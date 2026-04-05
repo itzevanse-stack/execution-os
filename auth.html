@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Execution OS — Sign In</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a1a3e;--bg2:#2c2c54;--card:#3a3a5c;--card2:#2d2d4a;
+  --teal:#4ecca3;--teal2:#3da88a;--teal-dim:rgba(78,204,163,.08);
+  --yellow:#ffd93d;--yellow2:#f4c430;
+  --purple:#6c63ff;--purple2:#5848ff;
+  --red:#ff6b6b;
+  --white:#fff;--muted:#e8e8e8;--dim:#b0b0d0;--dimmer:#6e6e9a;--text-dark:#1a1a2e;
+  --border:rgba(78,204,163,.2);--border2:rgba(255,255,255,.09);
+}
+body{font-family:'Poppins',sans-serif;color:var(--white);background:var(--bg);min-height:100vh;display:flex;flex-direction:column}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* TOPBAR */
+.topbar{background:linear-gradient(90deg,var(--bg2),var(--bg));border-bottom:1px solid var(--border);padding:0 1.5rem;position:sticky;top:0;z-index:100}
+.topbar-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:.65rem 0}
+.logo{font-size:15px;font-weight:900;letter-spacing:.5px;text-transform:uppercase}
+.logo span{color:var(--teal)}
+.hero-badge-pill{background:linear-gradient(135deg,var(--yellow),var(--yellow2));padding:5px 16px;border-radius:50px}
+.hero-badge-pill p{color:var(--text-dark);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px}
+
+/* MAIN */
+.main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
+.auth-wrap{width:100%;max-width:440px;animation:fadeUp .4s ease}
+
+/* CARD */
+.auth-card{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:24px;overflow:hidden;position:relative}
+.auth-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--purple),var(--yellow))}
+
+.card-head{padding:2rem 2rem 1.5rem;text-align:center}
+.card-head .tag-pill{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,var(--teal),var(--teal2));padding:4px 14px;border-radius:50px;margin-bottom:12px}
+.card-head .tag-pill span{color:var(--text-dark);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.card-head h1{font-size:clamp(20px,4vw,28px);font-weight:900;text-transform:uppercase;letter-spacing:-.5px;line-height:1.1}
+.card-head h1 em{font-style:normal;color:var(--teal)}
+.card-head p{font-size:12px;color:var(--dim);margin-top:8px;font-weight:500}
+
+/* TABS */
+.auth-tabs{display:flex;gap:3px;padding:3px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:50px;margin:0 2rem 1.5rem}
+.auth-tab{flex:1;padding:9px;text-align:center;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;border:none;background:transparent;border-radius:50px;cursor:pointer;color:var(--dimmer);transition:all .2s;font-family:'Poppins',sans-serif}
+.auth-tab.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);box-shadow:0 4px 14px rgba(78,204,163,.35)}
+
+/* FORM */
+.card-body{padding:0 2rem 2rem}
+.form-section{display:none}
+.form-section.on{display:block}
+
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900}
+.field input{width:100%;padding:11px 14px;font-size:13px;color:var(--white);background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);border-radius:12px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s,background .2s;font-weight:500}
+.field input::placeholder{color:rgba(255,255,255,.2)}
+.field input:focus{border-color:var(--teal);background:var(--teal-dim)}
+
+/* BUTTONS */
+.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:14px;font-family:'Poppins',sans-serif;font-weight:900;font-size:13px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;transition:all .15s;box-shadow:0 6px 24px rgba(78,204,163,.35);margin-bottom:1rem;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary:hover{box-shadow:0 10px 32px rgba(78,204,163,.5);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+.divider-or{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.divider-or::before,.divider-or::after{content:'';flex:1;height:1px;background:var(--border2)}
+.divider-or span{font-size:10px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+
+.social-btns{display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem}
+.btn-social{width:100%;padding:11px 14px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;color:var(--white);transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;text-transform:uppercase;letter-spacing:.5px}
+.btn-social:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.2)}
+.btn-social svg{width:18px;height:18px;flex-shrink:0}
+
+/* FORGOT */
+.forgot-link{font-size:11px;color:var(--teal);cursor:pointer;text-align:right;margin-top:-8px;margin-bottom:14px;font-weight:600;display:block}
+.forgot-link:hover{text-decoration:underline}
+
+/* ERROR / SUCCESS */
+.alert{padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;margin-bottom:14px;display:none}
+.alert.error{background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);color:#ff9a9a}
+.alert.success{background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);color:var(--teal)}
+.alert.show{display:block}
+
+/* SPINNER */
+.spinner{width:16px;height:16px;border:2px solid rgba(26,26,46,.3);border-top-color:var(--text-dark);border-radius:50%;animation:spin .7s linear infinite}
+
+/* FOOTER */
+.card-foot{padding:1.25rem 2rem;border-top:1px solid var(--border2);text-align:center;font-size:11px;color:var(--dimmer)}
+.card-foot a{color:var(--teal);cursor:pointer;font-weight:700}
+.card-foot a:hover{text-decoration:underline}
+
+/* TRIAL BANNER */
+.trial-banner{background:linear-gradient(135deg,rgba(255,217,61,.12),rgba(255,217,61,.05));border:1px solid rgba(255,217,61,.25);border-radius:12px;padding:10px 14px;margin-bottom:1.25rem;display:flex;align-items:center;gap:10px}
+.trial-banner p{font-size:11px;color:var(--muted);font-weight:600;line-height:1.4}
+.trial-banner p strong{color:var(--yellow)}
+
+/* BACK TO LANDING */
+.back-link{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dimmer);font-weight:600;cursor:pointer;margin-bottom:1.5rem}
+.back-link:hover{color:var(--teal)}
+
+@media(max-width:480px){.card-head{padding:1.5rem 1.25rem 1rem}.auth-tabs,.card-body{padding-left:1.25rem;padding-right:1.25rem}.auth-tabs{margin-left:1.25rem;margin-right:1.25rem}}
+
+/* PLAN SELECTOR */
+.plan-sel{display:none;padding:0 1.5rem 1.5rem}
+.plan-sel.on{display:block}
+.plan-sel-grid{display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem}
+.psl{border-radius:14px;border:2px solid var(--border2);padding:12px 14px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.psl::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.psl.s::before{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.psl.p::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
+.psl.e::before{background:linear-gradient(90deg,var(--yellow),var(--yellow2))}
+.psl.sel{border-color:var(--teal)}
+.psl.p.sel{border-color:var(--purple)}
+.psl.e.sel{border-color:var(--yellow)}
+.psl-top{display:flex;align-items:center;justify-content:space-between}
+.psl-name{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:1px}
+.psl.s .psl-name{color:var(--teal)}
+.psl.p .psl-name{color:var(--purple)}
+.psl.e .psl-name{color:var(--yellow)}
+.psl-price{font-size:18px;font-weight:900;color:var(--white)}
+.psl-price sub{font-size:11px;color:var(--dimmer);font-weight:500}
+.psl-desc{font-size:10px;color:var(--dimmer);margin-top:3px}
+.psl-check{width:20px;height:20px;border-radius:50%;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.psl.sel .psl-check{background:var(--teal);border-color:var(--teal)}
+.psl.p.sel .psl-check{background:var(--purple);border-color:var(--purple)}
+.psl.e.sel .psl-check{background:var(--yellow);border-color:var(--yellow)}
+.psl-check svg{width:10px;height:10px;stroke:var(--text-dark);fill:none;stroke-width:2.5;opacity:0;transition:opacity .2s}
+.psl.sel .psl-check svg{opacity:1}
+/* CARD FORM */
+.pay-section{display:none;padding:0 1.5rem 1.5rem}
+.pay-section.on{display:block}
+.pay-plan-chip{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.pay-plan-name{font-size:13px;font-weight:800;color:var(--white)}
+.pay-plan-price{font-size:12px;color:var(--dimmer)}
+.pay-change{font-size:10px;color:var(--teal);cursor:pointer;font-weight:700}
+.pay-fields{display:flex;flex-direction:column;gap:12px;margin-bottom:1.25rem}
+.pay-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.trial-note{font-size:10px;color:var(--dimmer);text-align:center;line-height:1.5;margin-bottom:1rem}
+.trial-note strong{color:var(--teal)}
+
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="logo"><span>Execution</span> OS</div>
+    <div class="hero-badge-pill" style="animation:pulse 2s ease-in-out infinite">
+      <p>7-Day Free Trial</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="auth-wrap">
+
+    <div class="back-link" onclick="window.location.href='index.html'">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15,18 9,12 15,6"/></svg>
+      Back to home
+    </div>
+
+    <div class="auth-card">
+
+      <!-- HEAD -->
+      <div class="card-head">
+        <div class="tag-pill"><span>Execution OS</span></div>
+        <h1 id="auth-heading">Sign in to<br><em>your account</em></h1>
+        <p id="auth-subheading">Welcome back — pick up right where you left off</p>
+      </div>
+
+      <!-- TABS -->
+      <div class="auth-tabs">
+        <button class="auth-tab on" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        <button class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <div class="card-body">
+
+        <!-- ALERT BOX -->
+        <div class="alert" id="alert-box"></div>
+
+        <!-- ===== LOGIN SECTION ===== -->
+        <div class="form-section on" id="section-login" style="display:block">
+          <div class="field">
+            <label>Email address</label>
+            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="login-password" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')doEmailLogin()">
+          </div>
+          <span class="forgot-link" onclick="doForgotPassword()">Forgot password?</span>
+          <button class="btn-primary" id="btn-login" onclick="doEmailLogin()">
+            <span>Sign In</span>
+          </button>
+          <div class="divider-or"><span>or continue with</span></div>
+          <div class="social-btns">
+            <button class="btn-social" onclick="doGoogleLogin()">
+              <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.2-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.5 35.5 26.9 36 24 36c-5.3 0-9.6-2.9-11.3-7H6.1l-6.7 4.9C6.9 40.2 15 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.6 4.6-4.9 6l6.2 5.2C41.1 35.6 44 30.2 44 24c0-1.3-.2-2.7-.4-4z"/></svg>
+              Continue with Google
+            </button>
+          </div>
+        </div>
+
+        <!-- ===== SIGNUP SECTION ===== -->
+        <div class="form-section" id="section-signup" style="display:none">
+          <div class="trial-banner">
+            <span style="font-size:20px">🎁</span>
+            <p><strong>Start FREE for 7 days.</strong> Full access to everything — no card required to try. Cancel anytime.</p>
+          </div>
+          <div class="field">
+            <label>Full name</label>
+            <input type="text" id="signup-name" placeholder="Your full name" autocomplete="name">
+          </div>
+          <div class="field">
+            <label>Email address</label>
+            <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input type="password" id="signup-password" placeholder="Minimum 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')doEmailSignup()">
+          </div>
+          <button class="btn-primary" id="btn-signup" onclick="doEmailSignup()">
+            <span>Start Free Trial</span>
+          </button>
+          <div class="divider-or"><span>or sign up with</span></div>
+          <div class="social-btns">
+            <button class="btn-social" onclick="doGoogleLogin()">
+              <svg viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.1 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-8 20-20 0-1.3-.2-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3.1 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.5-5.1l-6.2-5.2C29.5 35.5 26.9 36 24 36c-5.3 0-9.6-2.9-11.3-7H6.1l-6.7 4.9C6.9 40.2 15 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.5-2.6 4.6-4.9 6l6.2 5.2C41.1 35.6 44 30.2 44 24c0-1.3-.2-2.7-.4-4z"/></svg>
+              Sign up with Google
+            </button>
+          </div>
+          <p style="font-size:10px;color:var(--dimmer);text-align:center;line-height:1.5">By creating an account you agree to our <a href="#" style="color:var(--teal)">Terms of Service</a> and <a href="#" style="color:var(--teal)">Privacy Policy</a></p>
+        </div>
+
+
+        <!-- ===== PLAN SELECTOR ===== -->
+        <div class="plan-sel" id="section-plans">
+          <div style="text-align:center;margin-bottom:1.25rem">
+            <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px">Choose Your Plan</div>
+            <div style="font-size:11px;color:var(--dim)">Full access for 7 days free — card required to start</div>
+          </div>
+          <div class="plan-sel-grid">
+            <div class="psl s" id="psl-starter" onclick="selectPlan('starter')">
+              <div class="psl-top">
+                <div><div class="psl-name">Starter</div><div class="psl-price">$17<sub>/mo after trial</sub></div><div class="psl-desc">1 post/day · IG + Facebook calendar · DM scripts</div></div>
+                <div class="psl-check"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+              </div>
+            </div>
+            <div class="psl p" id="psl-pro" onclick="selectPlan('pro')">
+              <div style="position:absolute;top:-1px;right:12px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:1px;padding:3px 8px;border-radius:0 0 6px 6px">Most Popular</div>
+              <div class="psl-top">
+                <div><div class="psl-name">Pro</div><div class="psl-price">$29<sub>/mo after trial</sub></div><div class="psl-desc">2 posts/day · AI content + video scripts · Group coaching</div></div>
+                <div class="psl-check"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+              </div>
+            </div>
+            <div class="psl e" id="psl-elite" onclick="selectPlan('elite')">
+              <div class="psl-top">
+                <div><div class="psl-name">Elite</div><div class="psl-price">$59<sub>/mo after trial</sub></div><div class="psl-desc">3 posts/day · 1-on-1 mentorship · VIP access</div></div>
+                <div class="psl-check"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="goToCardEntry()" id="btn-choose-plan">Continue to Payment →</button>
+          <p style="font-size:10px;color:var(--dimmer);text-align:center;line-height:1.5;margin-top:8px">🔒 Your card will not be charged during the 7-day trial. Cancel anytime before trial ends.</p>
+        </div>
+
+        <!-- ===== PAYMENT ENTRY ===== -->
+        <div class="pay-section" id="section-payment">
+          <div class="pay-plan-chip">
+            <div>
+              <div class="pay-plan-name" id="pay-plan-display">Pro Plan</div>
+              <div class="pay-plan-price" id="pay-plan-price-display">$29/mo after 7-day trial</div>
+            </div>
+            <span class="pay-change" onclick="goBackToPlans()">Change</span>
+          </div>
+          <div class="pay-fields">
+            <div class="field">
+              <label>Cardholder Name</label>
+              <input type="text" id="pay-name" placeholder="Name on card" autocomplete="cc-name">
+            </div>
+            <div class="field">
+              <label>Card Number</label>
+              <input type="text" id="pay-number" placeholder="1234 5678 9012 3456" autocomplete="cc-number" maxlength="19" oninput="fmtCard(this)">
+            </div>
+            <div class="pay-row">
+              <div class="field">
+                <label>Expiry</label>
+                <input type="text" id="pay-expiry" placeholder="MM / YY" autocomplete="cc-exp" maxlength="7" oninput="fmtExp(this)">
+              </div>
+              <div class="field">
+                <label>CVV</label>
+                <input type="text" id="pay-cvv" placeholder="123" autocomplete="cc-csc" maxlength="4">
+              </div>
+            </div>
+          </div>
+          <div class="trial-note">🎁 <strong>7 days completely free.</strong> Your card is saved securely but not charged until your trial ends.</div>
+          <button class="btn-primary" id="btn-pay-trial" onclick="doPayAndStart()">
+            <span>Start My Free Trial →</span>
+          </button>
+          <p style="font-size:10px;color:var(--dimmer);text-align:center;margin-top:8px;line-height:1.5">🔒 Powered by Flutterwave · SSL secured · Cancel anytime</p>
+        </div>
+
+      </div><!-- /card-body -->
+
+      <div class="card-foot">
+        <span id="foot-text">Don't have an account? <a onclick="switchTab('signup')">Start your free trial →</a></span>
+      </div>
+
+    </div><!-- /auth-card -->
+  </div>
+</div>
+
+<!-- ===== FLUTTERWAVE ===== -->
+<script src="https://checkout.flutterwave.com/v3.js"></script>
+
+<!-- ===== FIREBASE ===== -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+         GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail, updateProfile }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
+  authDomain: "execution-os-1fbfd.firebaseapp.com",
+  projectId: "execution-os-1fbfd",
+  storageBucket: "execution-os-1fbfd.firebasestorage.app",
+  messagingSenderId: "300866558889",
+  appId: "1:300866558889:web:01a08d92f20332095d42b8",
+  measurementId: "G-ZT4WW98WV9"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ── Redirect if already logged in ──
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    if (snap.exists()) {
+      window.location.href = 'app.html';
+    }
+    // else: user registered but never completed plan/payment — stay here
+  }
+});
+
+// ── Auto-switch tab from URL param — runs after switchTab is defined below ──
+const urlTab = new URLSearchParams(window.location.search).get('tab');
+const urlPlan = new URLSearchParams(window.location.search).get('plan');
+if (urlPlan) { window._selectedPlan = urlPlan; }
+
+// ── Helpers ──
+function showAlert(msg, type='error'){
+  const el = document.getElementById('alert-box');
+  el.textContent = msg;
+  el.className = `alert ${type} show`;
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function hideAlert(){ document.getElementById('alert-box').className = 'alert'; }
+function setLoading(btnId, loading, label=''){
+  const btn = document.getElementById(btnId);
+  if(!btn)return;
+  if(loading){
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spinner"></div><span>Please wait…</span>';
+  } else {
+    btn.disabled = false;
+    if(label) btn.innerHTML = `<span>${label}</span>`;
+  }
+}
+
+let pendingUser = null; // holds {user, name} after auth, before payment
+
+async function createUserDoc(user, name='', plan='trial'){
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if(!snap.exists()){
+    await setDoc(ref, {
+      name: name || user.displayName || '',
+      email: user.email,
+      photoURL: user.photoURL || '',
+      plan: plan,
+      trialStart: serverTimestamp(),
+      createdAt: serverTimestamp()
+    });
+  }
+}
+
+// ── Tab switch ──
+window.switchTab = function(tab){
+  // Reset all sections to hidden using inline style (consistent with showSection)
+  ['section-login','section-signup'].forEach(s=>{
+    const el=document.getElementById(s);
+    if(el){ el.style.display='none'; el.classList.remove('on'); }
+  });
+  // Show the selected tab section
+  const target = document.getElementById('section-'+tab);
+  if(target){ target.style.display='block'; target.classList.add('on'); }
+  // Toggle tab button active state
+  ['login','signup'].forEach(t=>{
+    document.getElementById('tab-'+t).classList.toggle('on', t===tab);
+  });
+  // Hide plan/payment sections
+  ['section-plans','section-payment'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.classList.remove('on'); el.style.display=''; }
+  });
+  // Hide auth tabs when not on login/signup
+  const tabs=document.querySelector('.auth-tabs');
+  if(tabs) tabs.style.display='';
+  hideAlert();
+  const foot = document.getElementById('foot-text');
+  const heading = document.getElementById('auth-heading');
+  const subheading = document.getElementById('auth-subheading');
+  if(tab==='login'){
+    foot.innerHTML = 'Don\'t have an account? <a onclick="switchTab(\'signup\')">Start your free trial \u2192</a>';
+    if(heading) heading.innerHTML = 'Sign in to<br><em>your account</em>';
+    if(subheading) subheading.textContent = 'Welcome back \u2014 pick up right where you left off';
+  } else {
+    foot.innerHTML = 'Already have an account? <a onclick="switchTab(\'login\')">Sign in \u2192</a>';
+    if(heading) heading.innerHTML = 'Create your<br><em>free account</em>';
+    if(subheading) subheading.textContent = 'Join thousands building automated digital businesses';
+  }
+}
+
+// ── Apply URL param tab switch now that switchTab is defined ──
+if (urlTab === 'signup') switchTab('signup');
+
+function showSection(id){
+  ['section-login','section-signup','section-plans','section-payment'].forEach(s=>{
+    const el=document.getElementById(s);
+    if(el){ el.classList.remove('on'); el.style.display='none'; }
+  });
+  ['section-login','section-signup'].forEach(s=>{
+    const el=document.getElementById(s); if(el)el.classList.remove('on');
+  });
+  const target=document.getElementById(id);
+  if(target){ target.classList.add('on'); if(target.classList.contains('plan-sel')||target.classList.contains('pay-section')){} }
+  // Also hide auth tabs when in plan/payment screens
+  const tabs=document.querySelector('.auth-tabs');
+  if(tabs) tabs.style.display=(id==='section-login'||id==='section-signup')?'':'none';
+}
+
+// ── Selected plan ──
+window._selectedPlan = 'pro';
+const PLAN_CONFIG = {
+  starter: {name:'Starter Plan', price:'$17', amount:17},
+  pro:     {name:'Pro Plan',     price:'$29', amount:29},
+  elite:   {name:'Elite Plan',   price:'$59', amount:59}
+};
+
+window.selectPlan = function(plan){
+  window._selectedPlan = plan;
+  document.querySelectorAll('.psl').forEach(el=>el.classList.remove('sel'));
+  const el=document.getElementById('psl-'+plan);
+  if(el)el.classList.add('sel');
+};
+// Default selection
+selectPlan('pro');
+
+window.goToCardEntry = function(){
+  const plan = window._selectedPlan;
+  const cfg = PLAN_CONFIG[plan];
+  document.getElementById('pay-plan-display').textContent = cfg.name;
+  document.getElementById('pay-plan-price-display').textContent = cfg.price + '/mo after 7-day free trial';
+  showSection('section-payment');
+};
+window.goBackToPlans = function(){
+  showSection('section-plans');
+};
+
+// ── Card formatters ──
+window.fmtCard = function(input){
+  let v=input.value.replace(/\D/g,'').substring(0,16);
+  input.value=v.replace(/(.{4})/g,'$1 ').trim();
+};
+window.fmtExp = function(input){
+  let v=input.value.replace(/\D/g,'').substring(0,4);
+  if(v.length>=2)v=v.substring(0,2)+' / '+v.substring(2);
+  input.value=v;
+};
+
+// ── Email Login ──
+window.doEmailLogin = async function(){
+  hideAlert();
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if(!email || !password){ showAlert('Please enter your email and password.'); return; }
+  setLoading('btn-login', true);
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    window.location.href = 'app.html';
+  } catch(e) {
+    setLoading('btn-login', false, 'Sign In');
+    const msgs = {
+      'auth/user-not-found': 'No account found with that email.',
+      'auth/wrong-password': 'Incorrect password. Try again.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/too-many-requests': 'Too many attempts. Please try again later.',
+      'auth/invalid-credential': 'Email or password is incorrect.'
+    };
+    showAlert(msgs[e.code] || 'Sign in failed. Please try again.');
+  }
+}
+
+// ── Email Signup → goes to plan selector ──
+window.doEmailSignup = async function(){
+  hideAlert();
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const password = document.getElementById('signup-password').value;
+  if(!name){ showAlert('Please enter your full name.'); return; }
+  if(!email || !email.includes('@')){ showAlert('Please enter a valid email address.'); return; }
+  if(password.length < 6){ showAlert('Password must be at least 6 characters.'); return; }
+  setLoading('btn-signup', true);
+  try {
+    const { user } = await createUserWithEmailAndPassword(auth, email, password);
+    await updateProfile(user, { displayName: name });
+    pendingUser = { user, name };
+    // Don't create user doc yet — wait until payment
+    setLoading('btn-signup', false, 'Start Free Trial');
+    // Pre-select plan from URL if provided
+    if(urlPlan && PLAN_CONFIG[urlPlan]) selectPlan(urlPlan);
+    showSection('section-plans');
+  } catch(e) {
+    setLoading('btn-signup', false, 'Start Free Trial');
+    const msgs = {
+      'auth/email-already-in-use': 'An account already exists with that email. Sign in instead.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/weak-password': 'Password must be at least 6 characters.'
+    };
+    showAlert(msgs[e.code] || 'Sign up failed. Please try again.');
+  }
+}
+
+// ── Google Login → goes to plan selector ──
+window.doGoogleLogin = async function(){
+  hideAlert();
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    // Check if existing user
+    const ref = doc(db, 'users', result.user.uid);
+    const snap = await getDoc(ref);
+    if(snap.exists()){
+      // Existing user — go straight to app
+      window.location.href = 'app.html';
+      return;
+    }
+    // New user — collect plan + card
+    pendingUser = { user: result.user, name: result.user.displayName || '' };
+    if(urlPlan && PLAN_CONFIG[urlPlan]) selectPlan(urlPlan);
+    showSection('section-plans');
+  } catch(e) {
+    if(e.code !== 'auth/popup-closed-by-user'){
+      showAlert('Google sign-in failed. Please try again.');
+    }
+  }
+}
+
+// ── Payment + create user doc ──
+window.doPayAndStart = function(){
+  const cardName = document.getElementById('pay-name').value.trim();
+  const cardNum = document.getElementById('pay-number').value.replace(/\s/g,'');
+  const expiry = document.getElementById('pay-expiry').value.replace(/\s/g,'').replace('/','').trim();
+  const cvv = document.getElementById('pay-cvv').value.trim();
+  hideAlert();
+
+  if(!cardName){ showAlert('Please enter the cardholder name.'); return; }
+  if(cardNum.length < 13){ showAlert('Please enter a valid card number.'); return; }
+  if(expiry.length < 4){ showAlert('Please enter a valid expiry date.'); return; }
+  if(cvv.length < 3){ showAlert('Please enter the CVV.'); return; }
+
+  const plan = window._selectedPlan || 'pro';
+  const cfg = PLAN_CONFIG[plan];
+  const btn = document.getElementById('btn-pay-trial');
+  btn.innerHTML = '<div class="spinner"></div><span>Processing…</span>';
+  btn.disabled = true;
+
+  const userEmail = pendingUser?.user?.email || '';
+  const userName = pendingUser?.name || pendingUser?.user?.displayName || 'Customer';
+
+  FlutterwaveCheckout({
+    public_key: 'FLWPUBK-80956ca599bc1f3fb4f859309b9632d0-X',
+    tx_ref: 'eos-trial-' + Date.now() + '-' + Math.random().toString(36).slice(2,8),
+    amount: cfg.amount,
+    currency: 'USD',
+    payment_options: 'card',
+    customer: { email: userEmail, name: userName },
+    meta: { plan, userId: pendingUser?.user?.uid || '', type: 'trial_start' },
+    customizations: {
+      title: 'Execution OS',
+      description: `${cfg.name} — ${cfg.price}/month (7-day free trial)`,
+      logo: '',
+    },
+    callback: async function(data){
+      if(data.status === 'successful' || data.status === 'completed'){
+        if(pendingUser){
+          await createUserDoc(pendingUser.user, pendingUser.name, plan);
+        }
+        window.location.href = 'app.html';
+      } else {
+        btn.innerHTML = '<span>Start My Free Trial →</span>';
+        btn.disabled = false;
+        showAlert('Payment was not completed. Please try again.');
+      }
+    },
+    onclose: function(){
+      btn.innerHTML = '<span>Start My Free Trial →</span>';
+      btn.disabled = false;
+    }
+  });
+}
+
+// ── Forgot Password ──
+window.doForgotPassword = async function(){
+  const email = document.getElementById('login-email').value.trim();
+  if(!email){ showAlert('Enter your email address above first.'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showAlert('Password reset email sent! Check your inbox.', 'success');
+  } catch(e) {
+    showAlert('Could not send reset email. Check the address and try again.');
+  }
+}
+</script>
+
+</body>
+</html>
