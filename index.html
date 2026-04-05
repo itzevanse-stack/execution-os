@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Execution OS — Build Your Freedom Business</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0d0d1a;--bg2:#12122a;--card:#1e1e38;--card2:#191930;
+  --teal:#4ecca3;--teal2:#3da88a;--teal-glow:rgba(78,204,163,.2);--teal-dim:rgba(78,204,163,.07);
+  --yellow:#ffd93d;--yellow2:#f4c430;
+  --purple:#6c63ff;--purple2:#5848ff;
+  --red:#ff6b6b;--orange:#ff8c42;
+  --white:#fff;--muted:#d4d4e8;--dim:#8888aa;--dimmer:#55557a;
+  --border:rgba(78,204,163,.18);--border2:rgba(255,255,255,.07);
+  --text-dark:#0d0d1a;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Poppins',sans-serif;color:var(--white);background:var(--bg);overflow-x:hidden}
+
+/* ── UTILITY ── */
+.gradient-text{background:linear-gradient(135deg,var(--teal),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.btn-primary{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:50px;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .2s;box-shadow:0 8px 28px rgba(78,204,163,.35);text-decoration:none}
+.btn-primary:hover{box-shadow:0 12px 40px rgba(78,204,163,.5);transform:translateY(-2px)}
+.btn-outline{display:inline-flex;align-items:center;gap:8px;padding:13px 26px;background:transparent;color:var(--white);border:1.5px solid rgba(255,255,255,.2);border-radius:50px;font-family:'Poppins',sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;transition:all .2s;text-decoration:none}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+
+/* ── NAV ── */
+.nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:.85rem 2rem;display:flex;align-items:center;justify-content:space-between;background:rgba(13,13,26,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border2);transition:all .3s}
+.logo{font-weight:900;font-size:17px;text-transform:uppercase;letter-spacing:.5px;text-decoration:none;color:var(--white)}
+.logo span{color:var(--teal)}
+.nav-links{display:flex;align-items:center;gap:1.75rem}
+.nav-link{color:var(--dim);font-size:13px;font-weight:600;text-decoration:none;transition:color .2s;cursor:pointer}
+.nav-link:hover{color:var(--white)}
+.nav-link.highlight{color:var(--teal)}
+.nav-ctas{display:flex;gap:10px;align-items:center}
+
+/* ── HERO ── */
+.hero{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:8rem 2rem 5rem}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(78,204,163,.07),transparent),radial-gradient(ellipse 60% 50% at 80% 80%,rgba(108,99,255,.07),transparent);pointer-events:none}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;mask-image:radial-gradient(ellipse 70% 70% at 50% 50%,black,transparent)}
+.hero-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);border-radius:50px;padding:6px 14px;margin-bottom:1.5rem}
+.hero-badge span{font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:1px}
+.hero-badge-dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:dotpulse 2s infinite}
+@keyframes dotpulse{0%,100%{box-shadow:0 0 0 0 rgba(78,204,163,.4)}50%{box-shadow:0 0 0 5px rgba(78,204,163,0)}}
+.hero-h1{font-size:clamp(36px,5vw,62px);font-weight:900;line-height:1.05;letter-spacing:-1px;text-transform:uppercase;margin-bottom:1.25rem}
+.hero-sub{font-size:16px;color:var(--dim);line-height:1.7;margin-bottom:2rem;max-width:480px;font-weight:500}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:2.5rem}
+.hero-social{display:flex;align-items:center;gap:10px}
+.social-avatars{display:flex}
+.social-avatars span{width:32px;height:32px;border-radius:50%;border:2px solid var(--bg);background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;margin-left:-8px}
+.social-avatars span:first-child{margin-left:0}
+.social-txt{font-size:12px;color:var(--dim);font-weight:500}
+.social-txt strong{color:var(--white)}
+
+/* Hero preview card */
+.hero-preview{position:relative}
+.preview-card{background:linear-gradient(145deg,var(--card),rgba(30,30,56,.6));border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,.5)}
+.preview-topbar{background:rgba(255,255,255,.04);border-bottom:1px solid var(--border2);padding:10px 16px;display:flex;align-items:center;gap:8px}
+.preview-dots{display:flex;gap:5px}.preview-dot{width:9px;height:9px;border-radius:50%}
+.preview-title{font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-left:6px}
+.preview-body{padding:16px}
+.preview-stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.preview-stat{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;padding:10px 12px}
+.preview-stat-val{font-size:18px;font-weight:900;font-family:'Poppins',sans-serif}
+.preview-stat-lbl{font-size:9px;color:var(--dim);font-weight:600;margin-top:2px;text-transform:uppercase;letter-spacing:.5px}
+.preview-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.preview-cal-day{background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:6px;padding:5px;font-size:9px;color:var(--dim);font-weight:600}
+.preview-cal-day.active{background:rgba(78,204,163,.1);border-color:rgba(78,204,163,.3);color:var(--teal)}
+.glow-ring{position:absolute;top:-30px;right:-30px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(78,204,163,.12),transparent 70%);pointer-events:none}
+
+/* ── STATS STRIP ── */
+.stats-strip{background:rgba(255,255,255,.02);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2);padding:2.5rem 2rem}
+.stats-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2rem;text-align:center}
+.stat-val{font-size:clamp(28px,4vw,40px);font-weight:900;font-family:'Poppins',sans-serif}
+.stat-lbl{font-size:12px;color:var(--dim);font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+
+/* ── SECTION ── */
+.section{padding:5rem 2rem;max-width:1100px;margin:0 auto}
+.section-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:50px;padding:5px 13px;margin-bottom:1rem}
+.section-badge span{font-size:10px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:1px}
+.section-h2{font-size:clamp(28px,4vw,44px);font-weight:900;line-height:1.1;letter-spacing:-.5px;text-transform:uppercase;margin-bottom:1rem}
+.section-sub{font-size:15px;color:var(--dim);line-height:1.7;max-width:540px;font-weight:500;margin-bottom:3rem}
+
+/* ── FEATURES ── */
+.features-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.feat-card{background:linear-gradient(145deg,var(--card),rgba(18,18,42,.5));border:1px solid var(--border2);border-radius:18px;padding:1.5rem;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.feat-card:hover{border-color:var(--border);transform:translateY(-3px)}
+.feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.feat-card:nth-child(1)::before{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.feat-card:nth-child(2)::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
+.feat-card:nth-child(3)::before{background:linear-gradient(90deg,var(--yellow),#f4c430)}
+.feat-card:nth-child(4)::before{background:linear-gradient(90deg,var(--red),#ff4500)}
+.feat-card:nth-child(5)::before{background:linear-gradient(90deg,var(--orange),#ff6b35)}
+.feat-card:nth-child(6)::before{background:linear-gradient(90deg,var(--teal),var(--purple))}
+.feat-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:1rem}
+.feat-title{font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.feat-desc{font-size:12px;color:var(--dim);line-height:1.65;font-weight:500}
+
+/* ── HOW IT WORKS ── */
+.hiw-wrap{padding:5rem 2rem;background:rgba(255,255,255,.015);border-top:1px solid var(--border2);border-bottom:1px solid var(--border2)}
+.hiw-inner{max-width:1100px;margin:0 auto}
+.hiw-steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:3rem;position:relative}
+.hiw-steps::before{content:'';position:absolute;top:24px;left:10%;right:10%;height:1px;background:linear-gradient(90deg,var(--teal),var(--purple),var(--yellow),var(--red));opacity:.3}
+.hiw-step{text-align:center;position:relative}
+.step-num{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--bg2),var(--card));border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal);margin:0 auto 1rem;position:relative;z-index:1}
+.step-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.step-desc{font-size:11px;color:var(--dim);line-height:1.6;font-weight:500}
+
+/* ── TESTIMONIALS ── */
+.test-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.test-card{background:linear-gradient(145deg,var(--card),rgba(18,18,42,.5));border:1px solid var(--border2);border-radius:18px;padding:1.5rem;transition:border-color .2s}
+.test-card:hover{border-color:var(--border)}
+.test-stars{color:var(--yellow);font-size:13px;margin-bottom:12px;letter-spacing:1px}
+.test-quote{font-size:13px;color:var(--muted);line-height:1.7;font-weight:500;font-style:italic;margin-bottom:1.25rem}
+.test-author{display:flex;align-items:center;gap:10px}
+.test-av{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--white);flex-shrink:0}
+.test-name{font-size:12px;font-weight:800}
+.test-role{font-size:10px;color:var(--dim);font-weight:500;margin-top:1px}
+
+/* ── PRICING SECTION ── */
+.pricing-wrap{padding:5rem 2rem;max-width:1100px;margin:0 auto}
+.pricing-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.25);border-radius:50px;padding:5px 13px;margin-bottom:1rem}
+.pricing-badge span{font-size:10px;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:1px}
+.trial-strip{background:linear-gradient(135deg,rgba(78,204,163,.1),rgba(78,204,163,.04));border:1px solid rgba(78,204,163,.25);border-radius:14px;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:2.5rem;text-align:center;flex-wrap:wrap}
+.trial-strip p{font-size:13px;font-weight:600;color:var(--muted)}
+.trial-strip strong{color:var(--teal)}
+.plans-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;align-items:start}
+.plan-card{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:22px;overflow:hidden;transition:transform .2s,border-color .2s;position:relative}
+.plan-card:hover{transform:translateY(-4px)}
+.plan-card.featured{border-color:rgba(108,99,255,.5)}
+.plan-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.plan-card.starter::before{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.plan-card.pro::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
+.plan-card.elite::before{background:linear-gradient(90deg,var(--yellow),var(--yellow2))}
+.plan-popular{position:absolute;top:16px;right:16px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;border-radius:50px}
+.plan-inner{padding:1.75rem}
+.plan-name{font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:2px;margin-bottom:10px}
+.plan-card.starter .plan-name{color:var(--teal)}
+.plan-card.pro .plan-name{color:var(--purple)}
+.plan-card.elite .plan-name{color:var(--yellow)}
+.plan-price{font-size:42px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);line-height:1}
+.plan-price sup{font-size:20px;vertical-align:top;margin-top:8px;font-weight:700;color:var(--dim)}
+.plan-price sub{font-size:14px;font-weight:500;color:var(--dim);vertical-align:bottom;margin-bottom:4px}
+.plan-tagline{font-size:12px;color:var(--dim);margin-top:8px;margin-bottom:1.5rem;font-weight:500;line-height:1.5}
+.plan-divider{height:1px;background:var(--border2);margin-bottom:1.25rem}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:1.75rem}
+.plan-features li{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);font-weight:500;line-height:1.4}
+.plan-features li .chk{flex-shrink:0;width:16px;height:16px;border-radius:50%;background:rgba(78,204,163,.15);border:1px solid rgba(78,204,163,.35);display:flex;align-items:center;justify-content:center;margin-top:1px}
+.plan-features li .chk svg{width:8px;height:8px;stroke:var(--teal);fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.plan-features li.no{color:var(--dimmer)}
+.plan-features li.no .chk{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1)}
+.plan-features li.no .chk svg{stroke:var(--dimmer)}
+.plan-btn{width:100%;padding:13px;border:none;border-radius:14px;font-family:'Poppins',sans-serif;font-weight:900;font-size:13px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all .2s}
+.plan-btn.starter{background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);box-shadow:0 6px 22px rgba(78,204,163,.3)}
+.plan-btn.starter:hover{box-shadow:0 10px 32px rgba(78,204,163,.45)}
+.plan-btn.pro{background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;box-shadow:0 6px 22px rgba(108,99,255,.3)}
+.plan-btn.pro:hover{box-shadow:0 10px 32px rgba(108,99,255,.45)}
+.plan-btn.elite{background:linear-gradient(135deg,var(--yellow),var(--yellow2));color:var(--text-dark);box-shadow:0 6px 22px rgba(255,217,61,.25)}
+.plan-btn.elite:hover{box-shadow:0 10px 32px rgba(255,217,61,.4)}
+
+/* ── CTA BANNER ── */
+.cta-banner{margin:0 2rem 5rem;max-width:1100px;margin-left:auto;margin-right:auto;background:linear-gradient(135deg,rgba(78,204,163,.1),rgba(108,99,255,.1));border:1px solid rgba(78,204,163,.2);border-radius:24px;padding:4rem 3rem;text-align:center;position:relative;overflow:hidden}
+.cta-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(78,204,163,.06),transparent);pointer-events:none}
+.cta-h2{font-size:clamp(28px,4vw,42px);font-weight:900;text-transform:uppercase;letter-spacing:-.5px;margin-bottom:1rem;position:relative;z-index:1}
+.cta-sub{font-size:15px;color:var(--dim);margin-bottom:2rem;position:relative;z-index:1;font-weight:500}
+.cta-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1}
+
+/* ── FOOTER ── */
+.footer{border-top:1px solid var(--border2);padding:2.5rem 2rem;text-align:center;color:var(--dim);font-size:12px;font-weight:500}
+.footer-logo{font-weight:900;font-size:15px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.75rem;display:block}
+.footer-logo span{color:var(--teal)}
+
+/* ── MODAL OVERLAY ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:none;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(10px);overflow-y:auto}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{background:linear-gradient(145deg,var(--bg2),var(--bg));border:1px solid var(--border);border-radius:24px;width:100%;max-width:480px;overflow:hidden;position:relative;animation:slideUp .25s ease;margin:auto}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.modal-close{position:absolute;top:1.25rem;right:1.25rem;background:rgba(255,255,255,.06);border:none;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--dim);font-size:18px;transition:all .15s;z-index:10}
+.modal-close:hover{background:rgba(255,255,255,.12);color:var(--white)}
+.modal-top{padding:2rem 2rem 0;text-align:center;position:relative}
+.modal-logo{font-weight:900;font-size:18px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:.25rem}
+.modal-logo span{color:var(--teal)}
+.modal-sub{font-size:12px;color:var(--dim);font-weight:500;margin-bottom:1.25rem}
+.modal-tabs{display:flex;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:50px;padding:3px;margin:0}
+.modal-tab{flex:1;padding:9px;text-align:center;font-size:12px;font-family:'Poppins',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border-radius:50px;cursor:pointer;color:var(--dim);transition:all .2s;border:none;background:transparent}
+.modal-tab.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark)}
+.modal-body{padding:1.5rem 2rem 2rem}
+
+/* STEPS INDICATOR */
+.steps-indicator{display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:1.5rem}
+.step-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.12);transition:all .3s}
+.step-dot.active{background:var(--teal);width:24px;border-radius:4px}
+.step-dot.done{background:var(--teal);opacity:.5}
+
+/* SELECTED PLAN CHIP */
+.selected-plan-chip{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;cursor:pointer;transition:border-color .2s}
+.selected-plan-chip:hover{border-color:var(--border)}
+.chip-left{display:flex;align-items:center;gap:10px}
+.chip-badge{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:1px;padding:3px 9px;border-radius:50px}
+.chip-name{font-size:13px;font-weight:700;color:var(--white)}
+.chip-price{font-size:12px;color:var(--dim);font-weight:600}
+.chip-change{font-size:10px;color:var(--teal);font-weight:700;text-decoration:underline}
+
+/* AUTH FORM ELEMENTS */
+.auth-form{display:flex;flex-direction:column;gap:13px}
+.auth-field{display:flex;flex-direction:column;gap:5px}
+.auth-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--dim);font-weight:700}
+.auth-inp{padding:11px 14px;font-size:13px;color:var(--white);background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);border-radius:12px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s,background .2s;font-weight:500;width:100%}
+.auth-inp::placeholder{color:rgba(255,255,255,.2)}
+.auth-inp:focus{border-color:var(--teal);background:rgba(78,204,163,.06)}
+.auth-inp.error{border-color:var(--red)}
+.auth-btn{padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:14px;font-family:'Poppins',sans-serif;font-weight:900;font-size:13px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all .15s;box-shadow:0 6px 22px rgba(78,204,163,.35);display:flex;align-items:center;justify-content:center;gap:8px;width:100%}
+.auth-btn:hover{box-shadow:0 10px 32px rgba(78,204,163,.5);transform:translateY(-1px)}
+.auth-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.auth-divider{display:flex;align-items:center;gap:10px;color:var(--dim);font-size:11px;font-weight:600}
+.auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--border2)}
+.social-login{display:flex;gap:10px}
+.social-btn{flex:1;padding:11px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:12px;color:var(--muted);font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.social-btn:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15)}
+.auth-notice{font-size:11px;color:var(--dim);text-align:center;line-height:1.6;font-weight:500}
+.auth-notice a{color:var(--teal);text-decoration:none;font-weight:700;cursor:pointer}
+.auth-msg{padding:10px 14px;border-radius:10px;font-size:12px;font-weight:600;display:none}
+.auth-msg.success{background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);color:var(--teal);display:block}
+.auth-msg.error{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:var(--red);display:block}
+
+/* SPINNER */
+.spinner{width:15px;height:15px;border:2px solid rgba(26,26,46,.3);border-top-color:var(--text-dark);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+.spinner-purple{border-top-color:#fff}
+
+/* PLAN MINI CARDS for selection */
+.plan-mini-grid{display:flex;flex-direction:column;gap:8px}
+.plan-mini{background:rgba(255,255,255,.03);border:2px solid var(--border2);border-radius:14px;padding:12px 16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.plan-mini:hover{border-color:rgba(255,255,255,.15)}
+.plan-mini.selected{border-color:var(--teal);background:rgba(78,204,163,.06)}
+.plan-mini.selected.pro{border-color:var(--purple);background:rgba(108,99,255,.06)}
+.plan-mini.selected.elite{border-color:var(--yellow);background:rgba(255,217,61,.06)}
+.pm-left{display:flex;align-items:center;gap:12px}
+.pm-badge{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.pm-name{font-size:13px;font-weight:800;color:var(--white)}
+.pm-desc{font-size:11px;color:var(--dim);font-weight:500}
+.pm-price{font-size:15px;font-weight:900;font-family:'Poppins',sans-serif;text-align:right;flex-shrink:0}
+.pm-trial{font-size:9px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.pm-radio{width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,.2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.plan-mini.selected .pm-radio{border-color:var(--teal);background:var(--teal)}
+.plan-mini.selected.pro .pm-radio{border-color:var(--purple);background:var(--purple)}
+.plan-mini.selected.elite .pm-radio{border-color:var(--yellow);background:var(--yellow)}
+.pm-radio-dot{width:6px;height:6px;border-radius:50%;background:var(--text-dark);opacity:0;transition:opacity .2s}
+.plan-mini.selected .pm-radio-dot{opacity:1}
+
+/* CARD PAYMENT FORM */
+.card-form{display:flex;flex-direction:column;gap:12px}
+.card-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.card-inp-wrap{position:relative}
+.card-inp{padding:11px 14px 11px 40px;font-size:13px;color:var(--white);background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);border-radius:12px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s;font-weight:500;width:100%}
+.card-inp::placeholder{color:rgba(255,255,255,.2)}
+.card-inp:focus{border-color:var(--teal);background:rgba(78,204,163,.06)}
+.card-inp-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);pointer-events:none;opacity:.5}
+.secure-badge{display:flex;align-items:center;justify-content:center;gap:6px;font-size:10px;color:var(--dimmer);font-weight:600;padding:6px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:8px}
+.secure-badge svg{opacity:.6}
+.order-summary{background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:12px;padding:12px 14px}
+.order-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--dim);font-weight:600;margin-bottom:6px}
+.order-row:last-child{margin-bottom:0;padding-top:8px;border-top:1px solid var(--border2);color:var(--white);font-size:13px;font-weight:800}
+.order-row span:last-child{color:var(--teal)}
+.order-row:last-child span:last-child{color:var(--teal)}
+
+/* SUCCESS SCREEN */
+.success-screen{text-align:center;padding:1rem 0}
+.success-icon{font-size:56px;margin-bottom:1rem;display:block}
+.success-title{font-size:22px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:8px;text-transform:uppercase;letter-spacing:-.5px}
+.success-sub{font-size:13px;color:var(--dim);line-height:1.6;margin-bottom:1.75rem;font-weight:500}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-inner{grid-template-columns:1fr;text-align:center}
+  .hero-sub{margin:0 auto 2rem}
+  .hero-ctas{justify-content:center}
+  .hero-social{justify-content:center}
+  .hero-preview{display:none}
+  .features-grid,.test-grid{grid-template-columns:1fr 1fr}
+  .hiw-steps{grid-template-columns:1fr 1fr}
+  .hiw-steps::before{display:none}
+  .stats-inner{grid-template-columns:1fr 1fr}
+  .plans-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .features-grid,.test-grid,.stats-inner{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .cta-banner{padding:2.5rem 1.5rem}
+  .plans-grid{grid-template-columns:1fr}
+  .card-row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav class="nav" id="main-nav">
+  <a class="logo" href="#"><span>Execution</span> OS</a>
+  <div class="nav-links">
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#how" class="nav-link">How it works</a>
+    <a href="#results" class="nav-link">Results</a>
+    <a href="#pricing" class="nav-link highlight">Pricing</a>
+  </div>
+  <div class="nav-ctas">
+    <button onclick="openModal('login')" class="btn-outline" style="padding:9px 20px;font-size:12px">Log in</button>
+    <button onclick="openModal('signup')" class="btn-primary" style="padding:9px 20px;font-size:12px">Start free trial →</button>
+  </div>
+</nav>
+
+<!-- ══════════════ HERO ══════════════ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-left">
+      <div class="hero-badge"><div class="hero-badge-dot"></div><span>The #1 Execution OS</span></div>
+      <h1 class="hero-h1">Build & Grow your<br><span class="gradient-text">Digital Product business</span><br>with a clear plan</h1>
+      <p class="hero-sub">The complete execution system for online entrepreneurs — revenue plan, ideal customer avatar, AI-powered content calendar, DM scripts, daily tracker, and structured routine. All in one place.</p>
+      <div class="hero-ctas">
+        <a href="auth.html?tab=signup" class="btn-primary" style="font-size:14px;padding:16px 32px">🚀 Start free — 7 days on us</a>
+        <a href="#pricing" class="btn-outline" style="font-size:14px;padding:15px 28px">See pricing ↓</a>
+      </div>
+      <div class="hero-social">
+        <div class="social-avatars"><span>JT</span><span>AM</span><span>LK</span><span>RD</span></div>
+        <div class="social-txt"><strong>2,400+ entrepreneurs</strong> already executing with this system</div>
+      </div>
+    </div>
+    <div class="hero-preview">
+      <div class="glow-ring"></div>
+      <div class="preview-card">
+        <div class="preview-topbar">
+          <div class="preview-dots">
+            <div class="preview-dot" style="background:#ff5f56"></div>
+            <div class="preview-dot" style="background:#ffbe2e"></div>
+            <div class="preview-dot" style="background:#27c840"></div>
+          </div>
+          <div class="preview-title">Execution OS · Revenue Plan</div>
+        </div>
+        <div class="preview-body">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px;font-weight:700">Key metrics — $25,000/mo target</div>
+          <div class="preview-stat-row">
+            <div class="preview-stat"><div class="preview-stat-val" style="color:var(--teal)">25</div><div class="preview-stat-lbl">Sales needed</div></div>
+            <div class="preview-stat"><div class="preview-stat-val" style="color:var(--purple)">100</div><div class="preview-stat-lbl">Calls needed</div></div>
+            <div class="preview-stat"><div class="preview-stat-val" style="color:var(--yellow)">333</div><div class="preview-stat-lbl">Leads/month</div></div>
+          </div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px;font-weight:700">Content calendar — Week 1</div>
+          <div class="preview-cal">
+            <div class="preview-cal-day active">Mon<br>🎬 Reel</div>
+            <div class="preview-cal-day active">Tue<br>📸 Post</div>
+            <div class="preview-cal-day">Wed<br>🎠 Crsl</div>
+            <div class="preview-cal-day active">Thu<br>🎬 Reel</div>
+            <div class="preview-cal-day">Fri<br>📊 Stats</div>
+            <div class="preview-cal-day active">Sat<br>💬 Story</div>
+            <div class="preview-cal-day">Sun<br>🔁 Repst</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ STATS ══════════════ -->
+<div class="stats-strip">
+  <div class="stats-inner">
+    <div><div class="stat-val gradient-text">$4.2M+</div><div class="stat-lbl">Revenue generated by users</div></div>
+    <div><div class="stat-val" style="color:var(--purple)">2,400+</div><div class="stat-lbl">Active entrepreneurs</div></div>
+    <div><div class="stat-val" style="color:var(--yellow)">94%</div><div class="stat-lbl">Hit their 90-day goal</div></div>
+    <div><div class="stat-val" style="color:var(--orange)">17 min</div><div class="stat-lbl">Avg. setup time</div></div>
+  </div>
+</div>
+
+<!-- ══════════════ FEATURES ══════════════ -->
+<section class="section" id="features">
+  <div class="section-badge"><span>Everything you need</span></div>
+  <h2 class="section-h2">Six tools.<br><span class="gradient-text">One unstoppable system.</span></h2>
+  <p class="section-sub">Every module is engineered around the activities that actually generate revenue — not vanity metrics.</p>
+  <div class="features-grid">
+    <div class="feat-card"><div class="feat-icon" style="background:rgba(78,204,163,.1)">💰</div><div class="feat-title">Revenue Plan</div><div class="feat-desc">Enter your offer price and monthly target. Instantly see exactly how many DMs, calls, leads, and sales you need. Updated live with every keystroke.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:rgba(108,99,255,.1)">🎯</div><div class="feat-title">Ideal Customer Avatar</div><div class="feat-desc">Build a complete profile of your perfect buyer — demographics, pain points, dream outcomes, objections. AI generates hooks and a content strategy for them.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:rgba(255,217,61,.1)">📅</div><div class="feat-title">AI Content Calendar</div><div class="feat-desc">Generate 7 days of posts, viral hooks, and full video scripts tailored to your exact audience. Complete 4-week calendar with platform-specific content.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:rgba(255,107,107,.1)">💬</div><div class="feat-title">DM Scripts</div><div class="feat-desc">Proven cold opener, follow-up, closer, and survey dropper scripts. One-click copy. Personalize with your avatar details for maximum conversion rate.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:rgba(255,140,66,.1)">📊</div><div class="feat-title">Daily Tracker</div><div class="feat-desc">Track DMs, posts, survey clicks, calls booked, and deals closed every single day. See your remaining income target shrink with every closed deal.</div></div>
+    <div class="feat-card"><div class="feat-icon" style="background:rgba(78,204,163,.08)">⏰</div><div class="feat-title">Daily Routine</div><div class="feat-desc">A complete hour-by-hour routine from 4AM to 9:30PM — built for maximum focus, output, and recovery. Check off each block as you execute.</div></div>
+  </div>
+</section>
+
+<!-- ══════════════ HOW IT WORKS ══════════════ -->
+<div class="hiw-wrap" id="how">
+  <div class="hiw-inner">
+    <div style="text-align:center">
+      <div class="section-badge" style="margin-bottom:1rem;display:inline-flex"><span>Simple process</span></div>
+      <h2 class="section-h2" style="text-align:center;margin-bottom:.5rem">From zero to executing<br><span class="gradient-text">in under 20 minutes</span></h2>
+    </div>
+    <div class="hiw-steps">
+      <div class="hiw-step"><div class="step-num">1</div><div class="step-title">Choose your plan</div><div class="step-desc">Start with a 7-day free trial. No card required. Pick the plan that fits your ambition.</div></div>
+      <div class="hiw-step"><div class="step-num" style="color:var(--purple)">2</div><div class="step-title">Set your target</div><div class="step-desc">Enter your offer price and monthly revenue goal. Every metric calculated instantly.</div></div>
+      <div class="hiw-step"><div class="step-num" style="color:var(--yellow)">3</div><div class="step-title">Build & generate</div><div class="step-desc">Complete your avatar. AI creates 7 days of content, hooks, and scripts tailored to your audience.</div></div>
+      <div class="hiw-step"><div class="step-num" style="color:var(--orange)">4</div><div class="step-title">Execute daily</div><div class="step-desc">Follow the routine, track your numbers, send DMs. Repeat until you hit your number.</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ TESTIMONIALS ══════════════ -->
+<section class="section" id="results">
+  <div class="section-badge"><span>Real results</span></div>
+  <h2 class="section-h2">They used the system.<br><span class="gradient-text">They hit the number.</span></h2>
+  <p class="section-sub">These aren't cherry-picked outliers. This is what happens when you follow the execution plan every single day.</p>
+  <div class="test-grid">
+    <div class="test-card"><div class="test-stars">★★★★★</div><div class="test-quote">"I went from $0 online to $9,400 in my second month. The avatar section changed everything — I knew exactly what to say to my audience. The content calendar saved me hours every week."</div><div class="test-author"><div class="test-av">JT</div><div><div class="test-name">James T.</div><div class="test-role">Digital business owner · $9,400/mo</div></div></div></div>
+    <div class="test-card"><div class="test-stars">★★★★★</div><div class="test-quote">"I had no idea what I was doing before this. The DM scripts alone booked me 4 calls in the first week. By week 3 I had closed my first two $2,000 deals. This system is real."</div><div class="test-author"><div class="test-av" style="background:linear-gradient(135deg,var(--yellow),var(--orange))">AM</div><div><div class="test-name">Amara M.</div><div class="test-role">Side hustler turned full-time · $6,800/mo</div></div></div></div>
+    <div class="test-card"><div class="test-stars">★★★★★</div><div class="test-quote">"The daily routine alone is worth 10x the price. I was wasting 3 hours a day on things that don't move the needle. Now I follow the 4AM structure and I've never been more productive."</div><div class="test-author"><div class="test-av" style="background:linear-gradient(135deg,var(--purple),var(--purple2))">LK</div><div><div class="test-name">Lauren K.</div><div class="test-role">Mum of 2, work-from-home · $4,200/mo</div></div></div></div>
+  </div>
+</section>
+
+<!-- ══════════════ PRICING ══════════════ -->
+<section class="pricing-wrap" id="pricing">
+  <div style="text-align:center;margin-bottom:2.5rem">
+    <div class="pricing-badge" style="display:inline-flex;margin-bottom:1rem"><span>Simple pricing</span></div>
+    <h2 class="section-h2" style="text-align:center">Invest in your freedom.<br><span class="gradient-text">Cancel anytime.</span></h2>
+    <p style="font-size:15px;color:var(--dim);font-weight:500;margin-top:.5rem">Every plan starts with a full 7-day free trial. Your card is saved securely but not charged until your trial ends.</p>
+  </div>
+  <div class="trial-strip">
+    <span style="font-size:20px">🎁</span>
+    <p><strong>7-day free trial on every plan</strong> — full access, card required to activate. Not charged until trial ends. Cancel anytime before.</p>
+  </div>
+  <div class="plans-grid">
+
+    <!-- STARTER -->
+    <div class="plan-card starter">
+      <div class="plan-inner">
+        <div class="plan-name">Starter</div>
+        <div class="plan-price"><sup>$</sup>17<sub>/mo</sub></div>
+        <div class="plan-tagline">Everything you need to start executing and getting results fast.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Full revenue planner + metrics</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>4-week content calendar</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Proven DM scripts library</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Daily tracker + routine</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Weekly training emails</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Community access</li>
+          <li class="no"><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>AI content generator</li>
+          <li class="no"><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Group mentorship calls</li>
+          <li class="no"><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>1-on-1 mentorship</li>
+        </ul>
+        <button class="plan-btn starter" onclick="window.location.href='auth.html?tab=signup&plan=starter'">Start free trial →</button>
+      </div>
+    </div>
+
+    <!-- PRO -->
+    <div class="plan-card pro featured">
+      <div class="plan-popular">Most Popular</div>
+      <div class="plan-inner">
+        <div class="plan-name">Pro</div>
+        <div class="plan-price"><sup>$</sup>29<sub>/mo</sub></div>
+        <div class="plan-tagline">For serious builders who want AI tools and coaching to accelerate results.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Everything in Starter</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>AI content + hook generator</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Email copy templates</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Advanced analytics dashboard</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Weekly group mentorship calls</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Priority support (24hr)</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Advanced training library</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Private Pro community</li>
+          <li class="no"><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>1-on-1 mentorship</li>
+        </ul>
+        <button class="plan-btn pro" onclick="window.location.href='auth.html?tab=signup&plan=pro'">Start free trial →</button>
+      </div>
+    </div>
+
+    <!-- ELITE -->
+    <div class="plan-card elite">
+      <div class="plan-inner">
+        <div class="plan-name">Elite</div>
+        <div class="plan-price"><sup>$</sup>59<sub>/mo</sub></div>
+        <div class="plan-tagline">Go all in. Done-for-you systems, 1-on-1 mentorship, and VIP access.</div>
+        <div class="plan-divider"></div>
+        <ul class="plan-features">
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Everything in Pro</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Monthly 1-on-1 mentorship call</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Done-for-you email sequences</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>White-label reports</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>VIP private community</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Early access to new features</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Dedicated success manager</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Quarterly strategy review</li>
+          <li><div class="chk"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div>Custom content audit</li>
+        </ul>
+        <button class="plan-btn elite" onclick="window.location.href='auth.html?tab=signup&plan=elite'">Start free trial →</button>
+      </div>
+    </div>
+
+  </div>
+  <p style="text-align:center;font-size:12px;color:var(--dimmer);margin-top:1.5rem;font-weight:500">All plans include a 7-day free trial · Cancel anytime · Secure payment via Flutterwave · 150+ countries accepted</p>
+</section>
+
+<!-- ══════════════ CTA BANNER ══════════════ -->
+<div class="cta-banner">
+  <h2 class="cta-h2">Ready to build your<br><span class="gradient-text">freedom number?</span></h2>
+  <p class="cta-sub">Join 2,400+ entrepreneurs who stopped hoping and started executing. 7 days free — no card needed to start.</p>
+  <div class="cta-btns">
+    <a href="auth.html?tab=signup" class="btn-primary" style="font-size:14px;padding:16px 36px">🚀 Start your free trial</a>
+    <a href="#pricing" class="btn-outline" style="font-size:14px;padding:15px 32px">View all plans ↑</a>
+  </div>
+</div>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="footer">
+  <span class="footer-logo"><span>Execution</span> OS</span>
+  <div style="margin-bottom:.5rem">© 2025 Execution OS · Built for freedom builders</div>
+  <div><a href="#" style="color:var(--teal);text-decoration:none">Privacy Policy</a> · <a href="#" style="color:var(--teal);text-decoration:none">Terms of Service</a> · <a href="/cdn-cgi/l/email-protection#fa898f8a8a95888eba9f829f998f8e9395949589d4999597" style="color:var(--teal);text-decoration:none">Support</a></div>
+</footer>
+
+<!-- ══════════════ AUTH MODAL ══════════════ -->
+<div class="modal-overlay" id="auth-modal" onclick="closeOnOverlay(event)">
+  <div class="modal" id="modal-box">
+    <button class="modal-close" onclick="closeModal()">×</button>
+
+    <!-- ── SCREEN 1: PLAN SELECTION ── -->
+    <div id="screen-plan">
+      <div class="modal-top">
+        <div class="modal-logo"><span>Execution</span> OS</div>
+        <div class="modal-sub">Choose your plan to get started</div>
+      </div>
+      <div class="modal-body">
+        <div class="steps-indicator"><div class="step-dot active" id="sd1"></div><div class="step-dot" id="sd2"></div><div class="step-dot" id="sd3"></div></div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);font-weight:900;margin-bottom:10px">Select your plan</div>
+        <div class="plan-mini-grid">
+          <div class="plan-mini starter selected" id="pm-starter" onclick="selectPlan('starter')">
+            <div class="pm-left">
+              <div class="pm-radio"><div class="pm-radio-dot"></div></div>
+              <div class="pm-badge" style="background:var(--teal)"></div>
+              <div><div class="pm-name">Starter</div><div class="pm-desc">Training, templates & community</div><div class="pm-trial">7 days free</div></div>
+            </div>
+            <div><div class="pm-price" style="color:var(--teal)">$17<span style="font-size:10px;font-weight:500;color:var(--dim)">/mo</span></div></div>
+          </div>
+          <div class="plan-mini pro" id="pm-pro" onclick="selectPlan('pro')">
+            <div class="pm-left">
+              <div class="pm-radio"><div class="pm-radio-dot"></div></div>
+              <div class="pm-badge" style="background:var(--purple)"></div>
+              <div><div class="pm-name">Pro <span style="font-size:9px;background:var(--purple);padding:2px 7px;border-radius:50px;font-weight:900;letter-spacing:.5px;vertical-align:middle">POPULAR</span></div><div class="pm-desc">AI tools, analytics & mentorship</div><div class="pm-trial">7 days free</div></div>
+            </div>
+            <div><div class="pm-price" style="color:var(--purple)">$29<span style="font-size:10px;font-weight:500;color:var(--dim)">/mo</span></div></div>
+          </div>
+          <div class="plan-mini elite" id="pm-elite" onclick="selectPlan('elite')">
+            <div class="pm-left">
+              <div class="pm-radio"><div class="pm-radio-dot"></div></div>
+              <div class="pm-badge" style="background:var(--yellow)"></div>
+              <div><div class="pm-name">Elite</div><div class="pm-desc">1-on-1 mentorship & VIP access</div><div class="pm-trial">7 days free</div></div>
+            </div>
+            <div><div class="pm-price" style="color:var(--yellow)">$59<span style="font-size:10px;font-weight:500;color:var(--dim)">/mo</span></div></div>
+          </div>
+        </div>
+        <div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:10px;padding:10px 14px;margin-top:12px;font-size:11px;color:var(--dim);font-weight:600;text-align:center">
+          🎁 <strong style="color:var(--teal)">7 days completely free</strong> — no card needed to start your trial
+        </div>
+        <button class="auth-btn" style="margin-top:14px" onclick="goToStep2()">Continue with <span id="plan-btn-name">Starter</span> →</button>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 2: AUTH (SIGNUP / LOGIN) ── -->
+    <div id="screen-auth" style="display:none">
+      <div class="modal-top">
+        <div class="modal-logo"><span>Execution</span> OS</div>
+        <div class="modal-sub" id="auth-screen-sub">Create your account to get started</div>
+        <div class="modal-tabs">
+          <button class="modal-tab on" id="tab-signup" onclick="switchTab('signup')">Create account</button>
+          <button class="modal-tab" id="tab-login" onclick="switchTab('login')">Log in</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div class="steps-indicator"><div class="step-dot done" id="sd1b"></div><div class="step-dot active" id="sd2b"></div><div class="step-dot" id="sd3b"></div></div>
+
+        <!-- Selected plan chip -->
+        <div class="selected-plan-chip" id="plan-chip" onclick="goToStep1()">
+          <div class="chip-left">
+            <div class="chip-badge" id="chip-badge" style="background:rgba(78,204,163,.15);color:var(--teal)">Starter</div>
+            <div>
+              <div class="chip-name" id="chip-name">Starter Plan</div>
+              <div class="chip-price" id="chip-price">$17/mo · 7-day free trial</div>
+            </div>
+          </div>
+          <div class="chip-change">Change</div>
+        </div>
+
+        <div id="msg-auth" class="auth-msg"></div>
+
+        <!-- SIGNUP FORM -->
+        <div id="form-signup">
+          <div class="auth-form">
+            <div class="social-login">
+              <button class="social-btn" onclick="doGoogleAuth()">
+                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Google
+              </button>
+            </div>
+            <div class="auth-divider">or continue with email</div>
+            <div class="auth-field"><label class="auth-lbl">Full name</label><input class="auth-inp" id="signup-name" type="text" placeholder="Your full name" autocomplete="name"></div>
+            <div class="auth-field"><label class="auth-lbl">Email address</label><input class="auth-inp" id="signup-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
+            <div class="auth-field"><label class="auth-lbl">Password</label><input class="auth-inp" id="signup-pass" type="password" placeholder="Min. 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')handleSignup()"></div>
+            <button class="auth-btn" id="btn-signup" onclick="handleSignup()">Continue →</button>
+            <div class="auth-notice">By creating an account you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</div>
+          </div>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="form-login" style="display:none">
+          <div class="auth-form">
+            <div class="social-login">
+              <button class="social-btn" onclick="doGoogleAuth()">
+                <svg width="16" height="16" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                Google
+              </button>
+            </div>
+            <div class="auth-divider">or continue with email</div>
+            <div class="auth-field"><label class="auth-lbl">Email address</label><input class="auth-inp" id="login-email" type="email" placeholder="you@email.com" autocomplete="email"></div>
+            <div class="auth-field">
+              <div style="display:flex;align-items:center;justify-content:space-between"><label class="auth-lbl">Password</label><a style="font-size:10px;color:var(--teal);font-weight:700;cursor:pointer" onclick="doForgotPassword()">Forgot?</a></div>
+              <input class="auth-inp" id="login-pass" type="password" placeholder="Your password" autocomplete="current-password" onkeydown="if(event.key==='Enter')handleLogin()">
+            </div>
+            <button class="auth-btn" id="btn-login" onclick="handleLogin()" style="background:linear-gradient(135deg,var(--purple),var(--purple2));box-shadow:0 6px 22px rgba(108,99,255,.35)">Log in to my account →</button>
+            <div class="auth-notice">Don't have an account? <a onclick="switchTab('signup')">Create one free</a></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── SCREEN 3: PAYMENT ── -->
+    <div id="screen-payment" style="display:none">
+      <div class="modal-top" style="padding-bottom:1.25rem">
+        <div class="modal-logo"><span>Execution</span> OS</div>
+        <div class="modal-sub">Start your 7-day free trial</div>
+      </div>
+      <div class="modal-body" style="padding-top:0">
+        <div class="steps-indicator"><div class="step-dot done"></div><div class="step-dot done"></div><div class="step-dot active"></div></div>
+
+        <div class="order-summary" style="margin-bottom:14px">
+          <div class="order-row"><span>Plan</span><span id="pay-plan-name" style="color:var(--white);font-weight:700">Starter</span></div>
+          <div class="order-row"><span>Trial period</span><span style="color:var(--teal)">7 days FREE</span></div>
+          <div class="order-row"><span>Then billed</span><span id="pay-amount">$17/month</span></div>
+          <div class="order-row"><span>Due today</span><span>$0.00</span></div>
+        </div>
+
+        <div id="msg-payment" class="auth-msg" style="margin-bottom:12px"></div>
+
+        <div class="card-form">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dim);font-weight:900;margin-bottom:2px">Card details <span style="color:var(--dimmer);font-weight:500;text-transform:none;letter-spacing:0">(saved for after trial)</span></div>
+          <div class="auth-field"><label class="auth-lbl">Cardholder name</label><input class="auth-inp" id="card-name" placeholder="Name on card" autocomplete="cc-name"></div>
+          <div class="card-inp-wrap">
+            <svg class="card-inp-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <input class="card-inp" id="card-number" placeholder="Card number" maxlength="19" autocomplete="cc-number" oninput="formatCardNumber(this)">
+          </div>
+          <div class="card-row">
+            <div class="auth-field"><label class="auth-lbl">Expiry</label><input class="auth-inp" id="card-expiry" placeholder="MM / YY" maxlength="7" autocomplete="cc-exp" oninput="formatExpiry(this)"></div>
+            <div class="auth-field"><label class="auth-lbl">CVV</label><input class="auth-inp" id="card-cvv" placeholder="CVV" maxlength="4" autocomplete="cc-csc" type="password"></div>
+          </div>
+          <div class="secure-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            Secured by Flutterwave · 256-bit SSL · 150+ countries
+          </div>
+          <button class="auth-btn" id="btn-pay" onclick="handlePayment()">
+            <span id="pay-btn-txt">Start my free trial →</span>
+          </button>
+          <div class="auth-notice">Your card is saved for after the 7-day trial. Cancel anytime before the trial ends and you won't be charged.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCREEN 4: SUCCESS ── -->
+    <div id="screen-success" style="display:none">
+      <div class="modal-body" style="padding-top:2rem">
+        <div class="success-screen">
+          <span class="success-icon">🎉</span>
+          <div class="success-title">You're in!</div>
+          <p class="success-sub">Your 7-day free trial is active. Your full dashboard is ready — start executing your freedom plan right now.</p>
+          <button class="auth-btn" onclick="window.location.href='app.html'" style="font-size:14px;padding:14px">Go to my dashboard 🚀</button>
+          <div style="margin-top:12px;font-size:11px;color:var(--dimmer);font-weight:500">You'll receive a confirmation email shortly.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════ SCRIPTS ══════════════ -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<!-- Modal UI functions available immediately (independent of Firebase module load) -->
+<script>
+  window.openModal = function(tab, plan) {
+    // will be overwritten by the module version once loaded, but provides instant fallback
+    const overlay = document.getElementById('auth-modal');
+    if (!overlay) return;
+    if (plan) window._pendingPlan = plan;
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    // show correct screen
+    ['plan','auth','payment','success'].forEach(s => {
+      const el = document.getElementById('screen-'+s);
+      if (el) el.style.display = 'none';
+    });
+    if (tab === 'login') {
+      const auth = document.getElementById('screen-auth');
+      if (auth) auth.style.display = 'block';
+      // switch to login tab
+      const fl = document.getElementById('form-login');
+      const fs = document.getElementById('form-signup');
+      const tl = document.getElementById('tab-login');
+      const ts = document.getElementById('tab-signup');
+      if (fl) fl.style.display = 'block';
+      if (fs) fs.style.display = 'none';
+      if (tl) tl.classList.add('on');
+      if (ts) ts.classList.remove('on');
+      const pc = document.getElementById('plan-chip');
+      if (pc) pc.style.display = 'none';
+    } else {
+      const plan_screen = document.getElementById('screen-plan');
+      if (plan_screen) plan_screen.style.display = 'block';
+    }
+  };
+  window.closeModal = function() {
+    const overlay = document.getElementById('auth-modal');
+    if (overlay) overlay.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+  window.closeOnOverlay = function(e) {
+    if (e.target === document.getElementById('auth-modal')) window.closeModal();
+  };
+  document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') window.closeModal(); });
+  });
+</script>
+<script src="https://checkout.flutterwave.com/v3.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword,
+         signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,
+         sendPasswordResetEmail, updateProfile }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
+  authDomain: "execution-os-1fbfd.firebaseapp.com",
+  projectId: "execution-os-1fbfd",
+  storageBucket: "execution-os-1fbfd.firebasestorage.app",
+  messagingSenderId: "300866558889",
+  appId: "1:300866558889:web:01a08d92f20332095d42b8"
+};
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+
+// Logged-in users can view landing page — update nav to show "Go to App" link
+onAuthStateChanged(auth, user => {
+  if (user) {
+    const navCtas = document.querySelector('.nav-ctas');
+    if (navCtas) {
+      navCtas.innerHTML = `
+        <a href="app.html" class="btn-primary" style="padding:9px 20px;font-size:12px">Go to my dashboard →</a>
+        <button onclick="doSignOut()" class="btn-outline" style="padding:9px 20px;font-size:12px">Log out</button>
+      `;
+    }
+    // Also update all CTA buttons to go directly to app
+    document.querySelectorAll('a[href="auth.html?tab=signup"], a[href="auth.html?tab=login"]').forEach(btn => {
+      btn.href = 'app.html';
+      if (btn.textContent.includes('free')) btn.textContent = 'Go to my dashboard →';
+    });
+  }
+});
+
+window.doSignOut = async function() {
+  const { signOut } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+  await signOut(auth);
+  location.reload();
+};
+
+// ── State ──
+let selectedPlan = 'starter';
+let pendingUser = null; // Firebase user created but not yet saved to Firestore
+let currentTab = 'signup';
+
+const PLANS = {
+  starter: { name:'Starter', price:'$17', amount:17, color:'var(--teal)', badgeBg:'rgba(78,204,163,.15)', badgeColor:'var(--teal)' },
+  pro:     { name:'Pro',     price:'$29', amount:29, color:'var(--purple)', badgeBg:'rgba(108,99,255,.15)', badgeColor:'var(--purple)' },
+  elite:   { name:'Elite',   price:'$59', amount:59, color:'var(--yellow)', badgeBg:'rgba(255,217,61,.12)', badgeColor:'var(--yellow)' },
+};
+
+// ── Modal open/close ──
+window.openModal = function(tab, plan) {
+  if (plan || window._pendingPlan) { selectedPlan = plan || window._pendingPlan; window._pendingPlan=null; updatePlanUI(); }
+  document.getElementById('auth-modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (tab === 'login') { showScreen('auth'); switchTab('login'); }
+  else { showScreen('plan'); switchTab('signup'); }
+}
+window.closeModal = function() {
+  document.getElementById('auth-modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+window.closeOnOverlay = function(e) {
+  if (e.target === document.getElementById('auth-modal')) closeModal();
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// ── Plan selection ──
+window.selectPlan = function(plan) {
+  selectedPlan = plan;
+  ['starter','pro','elite'].forEach(p => {
+    const el = document.getElementById('pm-'+p);
+    el.className = 'plan-mini ' + p + (p === plan ? ' selected' : '');
+  });
+  document.getElementById('plan-btn-name').textContent = PLANS[plan].name;
+  updatePlanUI();
+}
+
+function updatePlanUI() {
+  const p = PLANS[selectedPlan];
+  // chip
+  const chip = document.getElementById('chip-badge');
+  if (chip) { chip.textContent = p.name; chip.style.background = p.badgeBg; chip.style.color = p.badgeColor; }
+  const cn = document.getElementById('chip-name'); if(cn) cn.textContent = p.name + ' Plan';
+  const cp = document.getElementById('chip-price'); if(cp) cp.textContent = p.price + '/mo · 7-day free trial';
+  // payment screen
+  const ppn = document.getElementById('pay-plan-name'); if(ppn) ppn.textContent = p.name;
+  const pa = document.getElementById('pay-amount'); if(pa) pa.textContent = p.price + '/month';
+}
+
+// ── Screen navigation ──
+function showScreen(name) {
+  ['plan','auth','payment','success'].forEach(s => {
+    const el = document.getElementById('screen-'+s);
+    if (el) el.style.display = s===name ? 'block' : 'none';
+  });
+}
+window.goToStep1 = function() { showScreen('plan'); }
+window.goToStep2 = function() { showScreen('auth'); updatePlanUI(); clearMsg(); }
+
+// ── Tab switch ──
+window.switchTab = function(tab) {
+  currentTab = tab;
+  document.getElementById('form-signup').style.display = tab==='signup' ? 'block' : 'none';
+  document.getElementById('form-login').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('tab-signup').classList.toggle('on', tab==='signup');
+  document.getElementById('tab-login').classList.toggle('on', tab==='login');
+  document.getElementById('plan-chip').style.display = tab==='signup' ? 'flex' : 'none';
+  clearMsg();
+}
+
+// ── Messages ──
+function showMsg(msg, type='error') {
+  const el = document.getElementById('msg-auth');
+  el.className = 'auth-msg ' + type;
+  el.textContent = msg;
+}
+function showPayMsg(msg, type='error') {
+  const el = document.getElementById('msg-payment');
+  el.className = 'auth-msg ' + type;
+  el.textContent = msg;
+}
+function clearMsg() {
+  ['msg-auth','msg-payment'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.className = 'auth-msg';
+  });
+}
+
+// ── Loading state ──
+function setLoading(btnId, loading, text='') {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  if (loading) btn.innerHTML = '<div class="spinner' + (btnId==='btn-login'?' spinner-purple':'') + '"></div><span>Please wait…</span>';
+  else if (text) btn.innerHTML = text;
+}
+
+// ── Create user doc in Firestore ──
+async function createUserDoc(user, name, plan) {
+  const ref = doc(db, 'users', user.uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      name: name || user.displayName || '',
+      email: user.email,
+      photoURL: user.photoURL || '',
+      plan: 'trial',
+      selectedPlan: plan,
+      trialStart: serverTimestamp(),
+      createdAt: serverTimestamp()
+    });
+  }
+}
+
+// ── SIGNUP ──
+window.handleSignup = async function() {
+  clearMsg();
+  const name = document.getElementById('signup-name').value.trim();
+  const email = document.getElementById('signup-email').value.trim();
+  const pass = document.getElementById('signup-pass').value;
+  if (!name) { showMsg('Please enter your full name.'); return; }
+  if (!email || !email.includes('@')) { showMsg('Please enter a valid email address.'); return; }
+  if (pass.length < 6) { showMsg('Password must be at least 6 characters.'); return; }
+  setLoading('btn-signup', true);
+  try {
+    const { user } = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(user, { displayName: name });
+    pendingUser = { user, name };
+    setLoading('btn-signup', false);
+    document.getElementById('btn-signup').innerHTML = 'Continue →';
+    goToPayment();
+  } catch(e) {
+    setLoading('btn-signup', false);
+    document.getElementById('btn-signup').innerHTML = 'Continue →';
+    const msgs = {
+      'auth/email-already-in-use': 'An account already exists with that email. Log in instead.',
+      'auth/invalid-email': 'Please enter a valid email address.',
+      'auth/weak-password': 'Password must be at least 6 characters.'
+    };
+    showMsg(msgs[e.code] || 'Sign up failed. Please try again.');
+  }
+}
+
+// ── LOGIN ──
+window.handleLogin = async function() {
+  clearMsg();
+  const email = document.getElementById('login-email').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  if (!email || !email.includes('@')) { showMsg('Please enter a valid email address.'); return; }
+  if (!pass) { showMsg('Please enter your password.'); return; }
+  setLoading('btn-login', true);
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    window.location.href = 'app.html';
+  } catch(e) {
+    setLoading('btn-login', false);
+    document.getElementById('btn-login').innerHTML = 'Log in to my account →';
+    const msgs = {
+      'auth/user-not-found': 'No account found with that email.',
+      'auth/wrong-password': 'Incorrect password. Try again.',
+      'auth/invalid-credential': 'Email or password is incorrect.',
+      'auth/too-many-requests': 'Too many attempts. Try again later.'
+    };
+    showMsg(msgs[e.code] || 'Login failed. Please try again.');
+  }
+}
+
+// ── GOOGLE AUTH ──
+window.doGoogleAuth = async function() {
+  clearMsg();
+  const provider = new GoogleAuthProvider();
+  try {
+    const result = await signInWithPopup(auth, provider);
+    pendingUser = { user: result.user, name: result.user.displayName || '' };
+    goToPayment();
+  } catch(e) {
+    if (e.code !== 'auth/popup-closed-by-user') showMsg('Google sign-in failed. Please try again.');
+  }
+}
+
+// ── FORGOT PASSWORD ──
+window.doForgotPassword = async function() {
+  const email = document.getElementById('login-email').value.trim();
+  if (!email) { showMsg('Enter your email address first.'); return; }
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showMsg('Password reset email sent! Check your inbox.', 'success');
+  } catch(e) {
+    showMsg('Could not send reset email. Check the address and try again.');
+  }
+}
+
+// ── GO TO PAYMENT ──
+function goToPayment() {
+  showScreen('payment');
+  updatePlanUI();
+}
+
+// ── Card formatters ──
+window.formatCardNumber = function(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,16);
+  input.value = v.replace(/(.{4})/g,'$1 ').trim();
+}
+window.formatExpiry = function(input) {
+  let v = input.value.replace(/\D/g,'').substring(0,4);
+  if (v.length >= 2) v = v.substring(0,2) + ' / ' + v.substring(2);
+  input.value = v;
+}
+
+// ── PAYMENT via Flutterwave ──
+window.handlePayment = function() {
+  const cardName = document.getElementById('card-name').value.trim();
+  const cardNum = document.getElementById('card-number').value.replace(/\s/g,'');
+  const expiry = document.getElementById('card-expiry').value.replace(/\s/g,'').replace('/','');
+  const cvv = document.getElementById('card-cvv').value.trim();
+
+  if (!cardName) { showPayMsg('Please enter the cardholder name.'); return; }
+  if (cardNum.length < 13) { showPayMsg('Please enter a valid card number.'); return; }
+  if (expiry.length < 4) { showPayMsg('Please enter a valid expiry date.'); return; }
+  if (cvv.length < 3) { showPayMsg('Please enter the CVV.'); return; }
+
+  const plan = PLANS[selectedPlan];
+  const userEmail = pendingUser?.user?.email || '';
+  const userName = pendingUser?.name || pendingUser?.user?.displayName || 'Customer';
+
+  document.getElementById('btn-pay').innerHTML = '<div class="spinner"></div><span>Processing…</span>';
+  document.getElementById('btn-pay').disabled = true;
+
+  FlutterwaveCheckout({
+    public_key: 'FLWPUBK-80956ca599bc1f3fb4f859309b9632d0-X',
+    tx_ref: 'eos-' + Date.now() + '-' + Math.random().toString(36).substring(2,8),
+    amount: plan.amount,
+    currency: 'USD',
+    payment_options: 'card',
+    customer: { email: userEmail, name: userName },
+    meta: { plan: selectedPlan, userId: pendingUser?.user?.uid || '' },
+    card_number: cardNum,
+    cvv: cvv,
+    expiry_month: expiry.substring(0,2),
+    expiry_year: expiry.substring(2),
+    customizations: {
+      title: 'Execution OS',
+      description: plan.name + ' Plan — ' + plan.price + '/month (7-day trial)',
+      logo: '',
+    },
+    callback: async function(data) {
+      if (data.status === 'successful' || data.status === 'completed') {
+        if (pendingUser) {
+          await createUserDoc(pendingUser.user, pendingUser.name, selectedPlan);
+        }
+        showScreen('success');
+      } else {
+        document.getElementById('btn-pay').innerHTML = 'Start my free trial →';
+        document.getElementById('btn-pay').disabled = false;
+        showPayMsg('Payment was not completed. Please try again.');
+      }
+    },
+    onclose: function() {
+      document.getElement
