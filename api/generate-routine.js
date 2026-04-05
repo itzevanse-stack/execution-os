@@ -11,12 +11,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
+  const GROQ_KEY = process.env.GROQ_API_KEY;
 
-  if (!ANTHROPIC_KEY) {
-    return res.status(500).json({
-      error: "ANTHROPIC_API_KEY not set in Vercel environment variables."
-    });
+  if (!GROQ_KEY) {
+    return res.status(500).json({ error: "GROQ_API_KEY not set in Vercel environment variables." });
   }
 
   const {
@@ -64,30 +62,27 @@ Rules:
 - 3-5 section headers, 12-18 routine blocks total
 - ONLY return the JSON array — no markdown, no explanation`;
 
-  const requestBody = JSON.stringify({
-    model: "claude-sonnet-4-20250514",
-    max_tokens: 4000,
-    messages: [{ role: "user", content: prompt }]
-  });
-
   try {
-    const apiResponse = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_KEY,
-        "anthropic-version": "2023-06-01"
+        "Authorization": `Bearer ${GROQ_KEY}`
       },
-      body: requestBody
+      body: JSON.stringify({
+        model: "llama-3.3-70b-versatile",
+        max_tokens: 4000,
+        messages: [{ role: "user", content: prompt }]
+      })
     });
 
-    const parsed = await apiResponse.json();
+    const parsed = await response.json();
 
     if (parsed.error) {
       return res.status(500).json({ error: parsed.error.message });
     }
 
-    const rawText = (parsed.content || []).map(i => i.text || "").join("");
+    const rawText = parsed.choices?.[0]?.message?.content || "";
     const clean = rawText.replace(/```json|```/g, "").trim();
     const blocks = JSON.parse(clean);
 
