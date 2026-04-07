@@ -193,6 +193,9 @@ td{padding:10px 16px;font-size:12px;color:var(--muted);font-weight:500}
       <div class="nav-item" onclick="showSection('activity',this)"><div class="nav-item-icon">⚡</div>Live Activity</div>
       <div class="nav-item" onclick="showSection('geo',this)"><div class="nav-item-icon">🌍</div>Geo & Countries</div>
 
+      <div class="nav-section">Access Control</div>
+      <div class="nav-item" onclick="showSection('access',this)" style="border-left-color:transparent"><div class="nav-item-icon">🔑</div>Add / Manage Users</div>
+
       <div class="nav-section">Content</div>
       <div class="nav-item" onclick="showSection('emails',this)"><div class="nav-item-icon">📧</div>Email Capture</div>
       <div class="nav-item" onclick="showSection('tracker',this)"><div class="nav-item-icon">🎯</div>User Tracker Data</div>
@@ -418,6 +421,61 @@ td{padding:10px 16px;font-size:12px;color:var(--muted);font-weight:500}
         </div>
       </div>
 
+      <!-- ══ ACCESS MANAGEMENT ══ -->
+      <div id="section-access" style="display:none">
+
+        <!-- Add user card -->
+        <div class="chart-card" style="margin-bottom:1.25rem">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">➕ Activate a New User</div>
+              <div class="chart-sub">Enter their name and email to instantly grant full access to app.html</div>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end">
+              <div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:6px">Full Name</div>
+                <input id="new-user-name" type="text" placeholder="e.g. John Doe"
+                  style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+                  onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,.07)'">
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:6px">Email Address</div>
+                <input id="new-user-email" type="email" placeholder="e.g. john@gmail.com"
+                  style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s"
+                  onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,.07)'"
+                  onkeydown="if(event.key==='Enter') activateUser()">
+              </div>
+              <div>
+                <button id="activate-btn" onclick="activateUser()"
+                  style="white-space:nowrap;padding:10px 22px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:opacity .2s;height:42px">
+                  ✅ Activate User
+                </button>
+              </div>
+            </div>
+            <div id="activate-msg" style="display:none;margin-top:14px;padding:12px 16px;border-radius:10px;font-size:12px;font-weight:700"></div>
+          </div>
+        </div>
+
+        <!-- Active members list -->
+        <div class="table-card">
+          <div class="table-head-row">
+            <div>
+              <div class="chart-title">🔑 Active Members</div>
+              <div class="chart-sub" id="members-count-lbl">Loading…</div>
+            </div>
+            <input class="table-search" id="members-search" placeholder="Search members…" oninput="filterMembers(this.value)">
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Email</th><th>Niche</th><th>Granted</th><th>Action</th></tr></thead>
+              <tbody id="members-tbody"><tr><td colspan="5" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -429,7 +487,7 @@ td{padding:10px 16px;font-size:12px;color:var(--muted);font-weight:500}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, query, orderBy, limit, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, orderBy, limit, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
@@ -810,7 +868,7 @@ function renderTraffic() {
 
 // ── SECTION NAVIGATION ─────────────────────────────────────────
 const sectionMeta = {
-  overview: { title: 'Dashboard Overview', sub: 'Real-time data from your Execution OS platform' },
+  access:   { title: 'Access Management', sub: 'Grant or revoke app access for individual users' },
   revenue: { title: 'Revenue Analytics', sub: 'Subscription revenue, MRR, ARR and deal tracking' },
   traffic: { title: 'Traffic & Leads', sub: 'Visitors, signups, and conversion rates' },
   users: { title: 'All Users', sub: 'Manage and view all your platform users' },
@@ -843,8 +901,124 @@ window.doAdminLogout = async function() {
   window.location.href = 'index.html';
 };
 
+
+// ── ACCESS MANAGEMENT ─────────────────────────────────────────
+let allMembers = [];
+
+async function loadMembers() {
+  try {
+    const snap = await getDocs(collection(db, 'members'));
+    allMembers = [];
+    snap.forEach(d => allMembers.push({ id: d.id, ...d.data() }));
+    allMembers.sort((a, b) => {
+      const ta = a.grantedAt ? new Date(a.grantedAt).getTime() : 0;
+      const tb = b.grantedAt ? new Date(b.grantedAt).getTime() : 0;
+      return tb - ta;
+    });
+    renderMembers(allMembers);
+  } catch(e) {
+    document.getElementById('members-tbody').innerHTML =
+      '<tr><td colspan="5" style="text-align:center;color:var(--red);padding:2rem">Error loading members</td></tr>';
+  }
+}
+
+function renderMembers(list) {
+  const lbl = document.getElementById('members-count-lbl');
+  if (lbl) lbl.textContent = list.length + ' active member' + (list.length !== 1 ? 's' : '');
+  const tbody = document.getElementById('members-tbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--dim);padding:2rem">No members yet — add one above.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(m => `
+    <tr>
+      <td class="td-name">${m.name || '—'}</td>
+      <td class="td-email">${m.email || m.id.replace(/-/g,'.')}</td>
+      <td style="color:var(--dim)">${m.niche || '—'}</td>
+      <td style="color:var(--dim)">${m.grantedAt ? new Date(m.grantedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+      <td>
+        <button onclick="revokeAccess('${m.id}','${(m.name||m.email||'').replace(/'/g,'')}')"
+          style="font-size:10px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.08);color:var(--red);transition:all .15s"
+          onmouseover="this.style.background='rgba(255,107,107,.18)'" onmouseout="this.style.background='rgba(255,107,107,.08)'">
+          Revoke
+        </button>
+      </td>
+    </tr>`).join('');
+}
+
+window.filterMembers = function(q) {
+  const lc = q.toLowerCase();
+  renderMembers(allMembers.filter(m =>
+    (m.name||'').toLowerCase().includes(lc) ||
+    (m.email||m.id||'').toLowerCase().includes(lc)
+  ));
+};
+
+window.activateUser = async function() {
+  const nameVal  = document.getElementById('new-user-name').value.trim();
+  const emailVal = document.getElementById('new-user-email').value.trim().toLowerCase();
+  const msgEl    = document.getElementById('activate-msg');
+  const btn      = document.getElementById('activate-btn');
+
+  const showMsg = (text, ok) => {
+    msgEl.style.display = 'block';
+    msgEl.style.background = ok ? 'rgba(78,204,163,.1)' : 'rgba(255,107,107,.1)';
+    msgEl.style.border = ok ? '1px solid rgba(78,204,163,.3)' : '1px solid rgba(255,107,107,.3)';
+    msgEl.style.color  = ok ? 'var(--teal)' : 'var(--red)';
+    msgEl.innerHTML = text;
+    setTimeout(() => { msgEl.style.display = 'none'; }, 4000);
+  };
+
+  if (!emailVal) { showMsg('⚠️ Please enter an email address.', false); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { showMsg('⚠️ Please enter a valid email.', false); return; }
+
+  btn.textContent = '⏳ Activating…';
+  btn.disabled = true;
+
+  try {
+    const safeEmail = emailVal.replace(/[^a-z0-9]/g, '-');
+    const memberRef = doc(db, 'members', safeEmail);
+    await setDoc(memberRef, {
+      name:      nameVal || emailVal.split('@')[0],
+      email:     emailVal,
+      grantedAt: new Date().toISOString(),
+      grantedBy: auth.currentUser?.email || 'admin',
+      niche:     '',
+      active:    true
+    }, { merge: true });
+
+    document.getElementById('new-user-name').value  = '';
+    document.getElementById('new-user-email').value = '';
+    showMsg(`✅ <strong>${nameVal || emailVal}</strong> now has full access to the app!`, true);
+    await loadMembers();
+  } catch(e) {
+    showMsg('❌ Error: ' + (e.message || 'Could not activate user.'), false);
+  } finally {
+    btn.textContent = '✅ Activate User';
+    btn.disabled = false;
+  }
+};
+
+window.revokeAccess = async function(docId, displayName) {
+  if (!confirm(`Revoke access for ${displayName || docId}? They will no longer be able to use the app.`)) return;
+  try {
+    await deleteDoc(doc(db, 'members', docId));
+    await loadMembers();
+  } catch(e) {
+    alert('Error revoking access: ' + (e.message || 'Unknown error'));
+  }
+};
+
+// Load members whenever the access section is opened
+const _origShowSection = window.showSection;
+window.showSection = function(name, el) {
+  _origShowSection(name, el);
+  if (name === 'access') loadMembers();
+};
+
 // Auto-refresh every 60 seconds
 setInterval(() => { if (document.visibilityState === 'visible') loadAllData(); }, 60000);
+
 </script>
 </body>
 </html>
