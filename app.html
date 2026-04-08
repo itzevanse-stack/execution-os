@@ -1315,53 +1315,75 @@ function getNicheDMConfig(){
 function buildNicheDMScripts(){
   const cfg=getNicheDMConfig();
   const niche=document.getElementById('niche')?document.getElementById('niche').value:'your niche';
-  const aud0=cfg.audience.split(' ')[0];
+  const av=window._avatarData||{};
+  // Pull deeply from avatar data
+  const jobLabel=av.job||(cfg.audience.split(' ').slice(0,2).join(' '))||'professional';
+  const aud0=jobLabel.split('/')[0].split(',')[0].trim();
+  const painPoint=(av.pain||cfg.metric||'achieving your goal').toLowerCase();
+  const motivation=(av.motivation||cfg.result||'your dream outcome').toLowerCase();
+  const fear=(av.fear||'it not working for them').toLowerCase();
+  const tried=(av.tried||'other approaches').split(',')[0].trim().toLowerCase();
+  const transformation=av.transformation||(cfg.result)||'a life-changing result';
+  const resource=cfg.resource||'Free Assessment';
+  const result=cfg.result||'your desired outcome';
+  const incomeGoal=av.incomeGoal?('$'+Number(av.incomeGoal).toLocaleString()+'/month'):'your income goal';
+
   return [
-    {title:`Opener — new ${aud0} connection`,tag:`Send within 24hrs of connecting · ${niche}`,lines:[
-      `Hey [Name]! Really glad we're connected — I genuinely checked out your profile and love what you're building 🙌`,
-      `Quick question — what's the biggest challenge you're facing right now with your ${cfg.metric}?`,
-      `(No pitch — I just make it a habit to actually know who I'm connected to in the ${niche} space)`
+    {title:`Opener — new ${aud0} connection`,tag:`Send within 24 hrs of connecting · ${niche}`,lines:[
+      `Hey [Name]! Really glad we're connected — I actually looked at your profile and you're exactly the kind of ${aud0} I love connecting with. 🙌`,
+      `Quick honest question — what's your #1 challenge right now when it comes to ${painPoint}?`,
+      `I'm not selling anything — I just make it a habit to actually know who I'm connected to in the ${niche} world. What's really going on for you right now?`
     ]},
-    {title:`Cold opener — commenters & group members`,tag:`Active commenters / group members · ${niche}`,lines:[
-      `[Name], I came across your comment and it genuinely caught my attention.`,
-      `Quick question — do you know your exact ${cfg.metric}? Like the specific number you need to achieve ${cfg.result}?`,
-      `I ask because I built a free ${cfg.resource} that clarifies exactly that in 3 minutes. Want me to send you the link?`
+    {title:`Cold opener — commenters & active group members`,tag:`For people who commented on your posts or are active in groups · ${niche}`,lines:[
+      `Hey [Name], I saw your comment earlier and it genuinely resonated — you're clearly someone who takes ${niche} seriously.`,
+      `Quick question — do you know your exact roadmap for going from ${painPoint} to ${motivation}? Like a clear, step-by-step plan specific to your situation?`,
+      `I ask because I built a free tool called the ${resource} that helps ${cfg.audience} get a personalised answer in 3 minutes. Want me to drop the link?`
     ]},
-    {title:`Follow-up — no reply after 24 hours`,tag:`Saw message but didn't reply · ${niche}`,lines:[
-      `[Name], just circling back — I know things get buried fast.`,
-      `The ${cfg.resource} I mentioned has helped a lot of ${cfg.audience} finally get clear on the right next step.`,
-      `Seriously takes 3 minutes. Worth a look?`
+    {title:`Hook-based opener — after they engage with a reel or post`,tag:`Best sent within 1–2 hours of someone liking or sharing your content · ${niche}`,lines:[
+      `[Name] — I noticed you engaged with my post on ${painPoint}. That tells me you're probably in the thick of it right now.`,
+      `Can I ask — have you ever had a clear plan for getting from where you are to ${motivation}? Or does it still feel like you're figuring it out as you go?`,
+      `Because I've helped a lot of ${cfg.audience} do exactly that — and I'd love to send you something free that maps out the first real step. Would that help?`
     ]},
-    {title:`Closer — after they show genuine interest`,tag:`Replied positively · ${niche}`,lines:[
-      `That's genuinely great to hear!`,
-      `So here's what I specialise in — I help ${cfg.audience} achieve ${cfg.result}, without ${cfg.pain}.`,
-      `I have a free resource that walks through exactly how my system works — no fluff, no pitch, just the real process.`,
-      `Want me to send it over so you can see if it fits your situation?`
+    {title:`Follow-up — no reply after 24 hours`,tag:`One follow-up only, 24 hrs after first message · ${niche}`,lines:[
+      `[Name], just bumping this up — I know DMs get buried fast.`,
+      `I genuinely think the ${resource} would help you get clarity on your path from ${painPoint} to ${result}.`,
+      `It's free, takes 3 minutes, and gives you a personalised answer — not generic advice. Worth a look?`
     ]},
-    {title:`Warm lead — already had a conversation`,tag:`People you've spoken to before · ${niche}`,lines:[
-      `[Name], I've been working on something I think will genuinely help you with your ${cfg.metric}.`,
-      `It's a free ${cfg.resource} — you answer a few honest questions and get a personalised action plan for ${cfg.result}.`,
-      `Over 500 ${cfg.audience} have used it this month.`,
+    {title:`Closer — after they show genuine interest`,tag:`For warm leads who replied positively · ${niche}`,lines:[
+      `I'm glad that resonated — and honestly what you just shared tells me you're further along than most ${cfg.audience} I speak to.`,
+      `Here's what I do: I help ${cfg.audience} achieve ${result}, without ${cfg.pain}.`,
+      `I've got a free ${resource} that shows exactly how my system works for someone in your exact situation — no fluff, no pitch, just the actual process.`,
+      `Let me send it to you — give me 3 minutes of your time and you'll walk away with more clarity than most people get from hours of research. Fair?`
+    ]},
+    {title:`Objection handler — "I don't have time"`,tag:`For leads who say they're too busy · ${niche}`,lines:[
+      `I hear you — every single ${aud0} I work with said the exact same thing before we started.`,
+      `But let me ask you this: if ${painPoint} stays exactly the same for the next 12 months, will that actually be okay for you?`,
+      `Because what I teach takes 2–3 focused hours per week. Most ${cfg.audience} already have that time — they're just spending it on things that aren't moving them toward ${motivation}.`,
+      `Can I send you the free ${resource}? It takes 3 minutes and will show you exactly where your time is actually going wrong. That alone is worth it.`
+    ]},
+    {title:`Objection handler — "I've tried things before and it didn't work"`,tag:`For skeptical leads who've been burned before · ${niche}`,lines:[
+      `Honestly? I'm glad you told me that. Because that tells me you've been putting in effort — just with the wrong approach.`,
+      `When people say they've tried ${tried} and it didn't work, it's almost never because they weren't trying hard enough. It's because the method wasn't built for their specific situation.`,
+      `What I do is different because [explain your unique system — e.g. "I don't teach generic strategies, I build a personalised plan around your exact situation, ${painPoint}, and goals"].`,
+      `Would you be willing to take 3 minutes on the free ${resource}? I genuinely want you to see for yourself what's different before making any decision.`
+    ]},
+    {title:`Re-engagement — gone cold`,tag:`For leads who replied but went silent · ${niche}`,lines:[
+      `Hey [Name] — I wasn't going to reach out again, but I thought about what you mentioned about ${painPoint} and I genuinely want to help.`,
+      `Are you still working on getting to ${motivation}? Or has something changed on your end?`,
+      `Either way, no pressure — I just find the ${cfg.audience} I end up working with are the ones who are honest about where they actually are right now. Where are you?`
+    ]},
+    {title:`Value drop — warm followers who haven't booked`,tag:`Warm audience who engages with your content but hasn't DM'd · ${niche}`,lines:[
+      `[Name] — I've been building something for ${cfg.audience} and I think you'd genuinely benefit from seeing it.`,
+      `It's a free ${resource}. You answer 5 questions about your specific situation and get a personalised action plan for ${result}.`,
+      `Over 500 ${cfg.audience} have used it this month and the most common response is "why didn't someone show me this sooner."`,
       `Here's the link: [YOUR LINK]`,
-      `Let me know what it says — I'd love to help you move forward with it.`
+      `Takes 3 minutes. Tell me what it says — I'll personally help you map out the next move.`
     ]},
-    {title:`Objection handler — "I don't have time"`,tag:`Leads who say they're too busy · ${niche}`,lines:[
-      `I completely understand — every ${aud0} I work with said the exact same thing before we started.`,
-      `But can I ask: if your ${cfg.metric} stays exactly the same for the next 12 months, will that actually be okay?`,
-      `Because what I teach takes 2–3 focused hours a week. Most ${cfg.audience} already have that time — they're just spending it on things that aren't moving the needle.`,
-      `Would you give me 3 minutes to show you what's genuinely different about this approach?`
-    ]},
-    {title:`Re-engagement — gone cold`,tag:`Replied but stopped responding · ${niche}`,lines:[
-      `Hey [Name] — I don't want to be the person who disappears after a good conversation 😄`,
-      `I was thinking about what you mentioned around ${cfg.metric} and genuinely wanted to come back to it properly.`,
-      `Are you still looking for a way to achieve ${cfg.result}? Or has something changed on your end?`,
-      `No pressure — I just find that the ${cfg.audience} I end up helping are the ones who were honest about where they actually are right now.`
-    ]},
-    {title:`Resource drop — warm audience`,tag:`Followers and engaged audience · ${niche}`,lines:[
-      `[Name], I've been documenting everything I know about achieving ${cfg.result} for ${cfg.audience} — and I put it all into one free resource.`,
-      `It's called the ${cfg.resource}. You answer 5 questions and get a personalised action plan based on your exact situation.`,
-      `Here's the link: [YOUR LINK]`,
-      `Takes 3 minutes. Tell me what it says — I'll help you map out exactly what to do next.`
+    {title:`Post-call follow-up — didn't close on the day`,tag:`For prospects who had a call but didn't commit · ${niche}`,lines:[
+      `[Name], really enjoyed our conversation earlier. I want to be straight with you.`,
+      `Based on everything you shared — ${painPoint}, wanting to reach ${motivation}, and having already tried ${tried} — you're exactly who I built this programme for.`,
+      `The only question is: are you ready to stop being in the same place 90 days from now?`,
+      `I have [X spots] left this month. If you want one of them, reply "YES" and I'll send you the details to get started today. If the timing isn't right — no hard feelings, genuinely.`
     ]}
   ];
 }
@@ -1369,7 +1391,17 @@ function buildNicheDMScripts(){
 function renderScripts(){
   const scripts=buildNicheDMScripts();
   const niche=document.getElementById('niche')?document.getElementById('niche').value:'';
-  const banner=niche?`<div style="background:linear-gradient(135deg,rgba(78,204,163,.1),rgba(108,99,255,.06));border:1px solid rgba(78,204,163,.25);border-radius:12px;padding:11px 16px;margin-bottom:1.25rem;display:flex;align-items:center;gap:10px"><span style="font-size:18px">🎯</span><div style="font-size:11px;color:var(--dim)">All DM scripts below are tailored for <strong style="color:var(--teal)">${niche}</strong>. Replace <strong style="color:var(--white)">[YOUR LINK]</strong> with your survey or assessment link before sending.</div></div>`:`<div style="background:rgba(255,217,61,.07);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:11px 16px;margin-bottom:1.25rem;font-size:11px;color:var(--dim)">⚡ <strong style="color:var(--yellow)">Select your niche</strong> in the Revenue Plan to get DM scripts tailored to your specific audience.</div>`;
+  const av=window._avatarData||{};
+  const hasAvatar=av&&av.job;
+  const banner=niche
+    ?`<div style="background:linear-gradient(135deg,rgba(78,204,163,.1),rgba(108,99,255,.06));border:1px solid rgba(78,204,163,.25);border-radius:12px;padding:13px 16px;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:10px">
+        <span style="font-size:18px;flex-shrink:0">🎯</span>
+        <div>
+          <div style="font-size:11px;font-weight:900;color:var(--teal);margin-bottom:3px">All 10 DM scripts below are tailored for <strong>${niche}</strong>${hasAvatar?' — and personalised to your ideal customer avatar':''}</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.55">Replace <strong style="color:var(--white)">[Name]</strong> with the real name and <strong style="color:var(--white)">[YOUR LINK]</strong> with your survey or assessment link before sending. Never copy-paste robotically — read each message and make it sound like you.</div>
+        </div>
+      </div>`
+    :`<div style="background:rgba(255,217,61,.07);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:11px 16px;margin-bottom:1.25rem;font-size:11px;color:var(--dim)">⚡ <strong style="color:var(--yellow)">Select your niche</strong> in the Revenue Plan to get DM scripts fully tailored to your specific audience and avatar.</div>`;
   document.getElementById('scripts-grid').innerHTML=banner+scripts.map((s,i)=>`<div class="sc-card"><div class="sc-head"><div><div class="sc-title">${s.title}</div><div class="sc-use">${s.tag}</div></div><button class="copy-btn" onclick="copyNicheScript(${i},this)">Copy</button></div><div class="sc-body">${s.lines.map(l=>`<p>${l}</p>`).join('')}</div></div>`).join('');
 }
 function copyNicheScript(i,btn){
@@ -1422,152 +1454,632 @@ setTimeout(()=>{
 },600);
 
 function generateOffer(){
-  // Full access — all members can use all features
   const gv=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
-  const promise=gv('offer_promise'),result=gv('offer_result'),noEffort=gv('offer_no_effort'),transformation=gv('offer_transformation');
-  const system=gv('offer_system'),format=gv('offer_format')||'Coaching Program',duration=gv('offer_duration')||'90 Days',difference=gv('offer_difference');
-  const price=parseInt(gv('offer_price'))||3000;
-  const payment=gv('offer_payment')||'2 installments',guarantee=gv('offer_guarantee')||'Results guarantee',guaranteeCond=gv('offer_guarantee_cond');
-  const scarcity=gv('offer_scarcity'),bonus=gv('offer_bonus'),offerName=gv('offer_name')||'Your Programme';
-  const niche=window._appliedNiche||'your niche';
-  const av=window._avatarData||{};
-  const audType=av.job||'your ideal clients',motivation=av.motivation||'time and financial freedom',pain=av.pain||'feeling stuck',incomeGoal=av.incomeGoal||'10000';
 
-  // Build stack
-  const stackRows=document.querySelectorAll('#offer-stack-items .offer-stack-row');
-  let stackItems=[];let totalValue=0;
-  stackRows.forEach(row=>{const inputs=row.querySelectorAll('input');const desc=inputs[0]?inputs[0].value.trim():'';const val=parseInt(inputs[1]?inputs[1].value:0)||0;if(desc){stackItems.push({desc,val});totalValue+=val;}});
+  // ── VALIDATION ────────────────────────────────────────────────
+  const niche = window._appliedNiche||'';
+  const promise = gv('offer_promise');
+  const result  = gv('offer_result');
+  const offerName = gv('offer_name');
 
-  // Funnels
-  const funnelStrategies=[
-    {name:'🎯 The High-Ticket DM Funnel',subtitle:'$20k–$50k/month in 90 days · zero ad spend',color:'var(--teal)',border:'rgba(78,204,163,.3)',bg:'rgba(78,204,163,.06)',
-      timeline:'Month 1: Build & validate · Month 2: Scale outreach · Month 3: Referrals + automation',
-      steps:[
-        `<strong>Content Machine</strong>: 2 Facebook posts + 3 Reels daily — speak to "${pain}" and lead toward "${motivation}". Every post ends with ONE clear CTA.`,
-        `<strong>DM Qualification</strong>: Send ${Math.ceil(price>3000?25:35)} DMs/day using the curiosity opener. Never pitch in the first message — ask a question about their ${(av.job||'situation').split('/')[0].trim()}.`,
-        `<strong>Free Assessment</strong>: Qualified leads go to a 5-question survey pre-framing your offer and screening for serious buyers. This does your selling before the call.`,
-        `<strong>Discovery Call (45 min)</strong>: Diagnose their situation → present "${offerName}" value stack → handle objections → close on the call. Same-day follow-up always.`,
-        `<strong>Close Structure</strong>: Present total value ($${totalValue.toLocaleString()||'30,000'}+) vs investment ($${price.toLocaleString()}) → ${payment} → ${guarantee.split('(')[0].trim()}`,
-        `<strong>Month 3 Target</strong>: ${Math.ceil(20000/price)} closes/month = $${(Math.ceil(20000/price)*price).toLocaleString()}/month · Scale to ${Math.ceil(50000/price)} closes = $50k/month`
-      ],
-      metric:`${Math.ceil(50000/price)} client closes/month to hit $50k`},
-    {name:'📣 The Authority Content-to-Call Funnel',subtitle:'Build inbound lead flow · scale to $30k+/month',color:'var(--purple)',border:'rgba(108,99,255,.3)',bg:'rgba(108,99,255,.06)',
-      timeline:'Month 1: Establish authority · Month 2: Launch offer publicly · Month 3: System runs itself',
-      steps:[
-        `<strong>30-Day Authority Series</strong>: Document your process and results in ${niche} publicly. Build trust before making any offer. No pitch for the first 14 days.`,
-        `<strong>VSL / Free Masterclass</strong>: Create a 20–45 min video that educates on "${pain}", demonstrates your system, and pre-sells "${offerName}" — hosted on a landing page.`,
-        `<strong>Application Funnel</strong>: Landing page → short application form (screens serious buyers) → calendar booking. Qualified applicants only get the call.`,
-        `<strong>7-Day Email Nurture</strong>: After opt-in — deliver value daily, handle objections, share case studies, drive urgency to book a call within 48 hours.`,
-        `<strong>Cohort Launch System</strong>: Open enrolment 2× per month with a hard deadline and genuine scarcity: "${scarcity||'5 spots available this intake'}"`,
-        `<strong>Month 3 Target</strong>: ${Math.ceil(30000/price)} closes from inbound = $${(Math.ceil(30000/price)*price).toLocaleString()}/month with 8–15 inbound applications/week`
-      ],
-      metric:`Target: 8–15 inbound applications/week by month 3`},
-    {name:'🚀 The Referral Amplification Funnel',subtitle:'Turn every client into a revenue multiplier · $50k+/month in 6 months',color:'var(--yellow)',border:'rgba(255,217,61,.3)',bg:'rgba(255,217,61,.06)',
-      timeline:'Month 1–2: Deliver exceptional results · Month 3–4: Activate referral engine · Month 5–6: Scale',
-      steps:[
-        `<strong>Results First Policy</strong>: Overdeliver on your first 3–5 clients. Exceptional results = real testimonials = social proof = the fuel for every future sale.`,
-        `<strong>Referral Incentive Programme</strong>: Every client who refers a paying client earns $${Math.round(price*0.1).toLocaleString()} credit or a bonus session. Your clients become your highest-converting sales channel.`,
-        `<strong>Case Study Engine</strong>: Document every win with a structured before/after case study. Post publicly and DM prospects with the specific result that matches their situation.`,
-        `<strong>Alumni Community</strong>: Keep past clients in a free private community. They engage with your content, refer new clients, and amplify your reach organically — for free.`,
-        `<strong>Upsell Path</strong>: After "${offerName}" (${duration}) → offer a VIP continuation tier at $${Math.round(price*1.5).toLocaleString()}+ for clients who want to keep going. Your best clients never want to leave.`,
-        `<strong>Month 6 Target</strong>: 40% of new clients from referrals = near-zero acquisition cost · ${Math.ceil(50000/price)} closes/month = $50k+/month compounding`
-      ],
-      metric:`Month 6: $50k+/month with 40% referral-sourced clients`}
+  const missing = [];
+  if(!niche || niche==='your niche') missing.push('Select your <strong>Niche</strong> in the Revenue Plan first');
+  if(!promise) missing.push('<strong>Step 1:</strong> Write your dream outcome promise sentence');
+  if(!result)  missing.push('<strong>Step 1:</strong> Fill in the #1 measurable result');
+  if(!offerName) missing.push('<strong>Step 5:</strong> Give your offer a name');
+
+  const output = document.getElementById('offer-output');
+  if(!output) return;
+
+  if(missing.length) {
+    output.style.display = 'block';
+    output.innerHTML = '<div style="background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:1rem">'
+      + '<div style="font-size:12px;font-weight:900;color:var(--red);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">⚠️ Complete these fields first</div>'
+      + missing.map(m=>'<div style="font-size:12px;color:var(--muted);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px"><span style="color:var(--red)">→</span>'+m+'</div>').join('')
+      + '</div>';
+    output.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
+
+  // ── READ ALL FORM DATA ────────────────────────────────────────
+  const noEffort      = gv('offer_no_effort');
+  const transformation= gv('offer_transformation');
+  const system        = gv('offer_system');
+  const format        = gv('offer_format')||'Coaching Program';
+  const duration      = gv('offer_duration')||'90 Days';
+  const difference    = gv('offer_difference');
+  const price         = parseInt(gv('offer_price'))||3000;
+  const payment       = gv('offer_payment')||'2 installments';
+  const guarantee     = gv('offer_guarantee')||'Results guarantee';
+  const guaranteeCond = gv('offer_guarantee_cond');
+  const scarcity      = gv('offer_scarcity');
+  const bonus         = gv('offer_bonus');
+
+  // ── AVATAR DATA ───────────────────────────────────────────────
+  const av        = window._avatarData || {};
+  const audType   = av.job         || 'your ideal clients';
+  const motivation= av.motivation  || 'financial and time freedom';
+  const pain      = av.pain        || 'feeling stuck';
+  const incomeGoal= av.incomeGoal  || '10000';
+  const fear      = av.fear        || 'it not working';
+  const tried     = av.tried       || 'other programmes';
+  const transformation_av = av.transformation || result;
+
+  // ── BUILD NICHE INTEL (all plain variables — no nested templates) ──
+  const nicheLabel = niche;
+  const NICHE_OFFER_INTEL = {
+    "Coaching & Consulting": {
+      bestOffer: "High-Ticket Group Coaching Programme (6–12 clients, 90 days)",
+      bestPrice: "$3,000–$8,000",
+      whyHighTicket: "Coaches who charge under $2,000 attract low-commitment clients who don't implement and demand refunds. Premium clients who pay $3k–$8k show up, do the work, and get results — which gives you testimonials that sell the next cohort automatically.",
+      biggestOpp: "The market is flooded with cheap online courses. The REAL gap is personalised, accountable coaching that guarantees a specific outcome. Nobody charges enough AND delivers a clear measurable result. Be the one who does both.",
+      positionAngle: "The Results-Guaranteed Coach",
+      positionSteps: [
+        "Pick ONE specific transformation: Don't be a generalist. The riches are in the niches within the niche. Own one result for one type of person.",
+        "Document every client result publicly: A screenshot, a short video, a before/after. Real proof posted publicly is worth 100 posts of advice. Do this every single time.",
+        "Raise your price 30% every 3 clients: Start at $2,000, move to $3,000 at client 3, then $5,000 at client 6. Each price increase forces you to deliver more and attract better clients.",
+        "Create a signature framework: Name your process. A named framework makes you memorable, referable, and worth 3x the price of someone with no framework.",
+        "Scale via group + referrals: Once you have closed 5 individual clients, transition to group cohorts (8-12 people at once). Your income multiplies; your time commitment does not."
+      ]
+    },
+    "Digital Products & Info Business": {
+      bestOffer: "Signature Course + Live Implementation Coaching (Hybrid Model)",
+      bestPrice: "$997–$3,000",
+      whyHighTicket: "A course alone will sell for $97–$297. A course with live coaching, accountability, and a community sells for $1,000–$3,000. The product is the same — but the container is worth 10x more because the buyer believes they will actually do it.",
+      biggestOpp: "Every creator is selling information. Nobody is selling transformation. The moment you pair your digital product with a live accountability element, you exit the commodity market entirely and enter the high-ticket space.",
+      positionAngle: "The Knowledge-to-Income Architect",
+      positionSteps: [
+        "Validate before you build: Sell your programme as a beta at 50% off before creating a single module. Get 5 paying beta clients who help you build it.",
+        "Build a micro-audience, not a massive one: 500 deeply engaged followers who trust you outperforms 50,000 passive ones. Quality beats quantity at launch.",
+        "Productise your expertise with a clear system: Name your method. A named framework is always worth more than tips and tricks.",
+        "Add a live layer to your digital product: Convert your standalone course into a live group programme with weekly Q&A calls. Instantly 3x-5x your price.",
+        "Build the evergreen engine: After 3 live cohorts, record the best content and automate with a webinar funnel. Earn passively the rest of the time."
+      ]
+    },
+    "Health & Fitness": {
+      bestOffer: "90-Day Body Transformation 1:1 or Group Coaching",
+      bestPrice: "$1,500–$4,000",
+      whyHighTicket: "People do not pay for information — they pay for accountability, personalisation, and results. A $15/month app gives them the same info. A $2,500 coaching programme gives them a coach who holds them accountable, adjusts the plan, and will not let them quit.",
+      biggestOpp: "Everyone is selling workout plans and diets online for $20. The real gap is the psychology of change — helping people stay consistent when motivation disappears. Whoever masters accountability and habit change in fitness becomes the go-to for high-paying, long-term clients.",
+      positionAngle: "The Lifestyle Transformation Coach",
+      positionSteps: [
+        "Hyper-niche your transformation promise: Not 'get fit' — but 'help busy mums lose 20lbs in 90 days without the gym.' The more specific, the more premium you can charge.",
+        "Sell the outcome, not the method: Nobody wants 12 weeks of meal plans. They want to fit back into their wedding dress. Sell the destination ruthlessly.",
+        "Build a before/after library: Document every transformation. Ask for photos, videos, voice notes. Your case studies are your primary conversion tool.",
+        "Add psychology and accountability to your offer: Add weekly check-ins, a habit tracking system, and mindset coaching. This separates you from every $50 online programme.",
+        "Scale via group and passive: Run a flagship 1:1 at $2,500+. Build a group version at $997. Add a maintenance membership at $97/month for graduates."
+      ]
+    },
+    "Social Media Marketing (SMMA)": {
+      bestOffer: "Done-For-You Social Media Retainer or Growth Agency Service",
+      bestPrice: "$2,000–$5,000/month retainer",
+      whyHighTicket: "Business owners do not have time to manage their social media — they have money. They will pay $2,500/month without hesitation for a service that consistently brings in leads. Your job is to do it FOR them, not teach them how.",
+      biggestOpp: "Most SMMA agencies compete on price and lose. The real positioning is to specialise in ONE industry and become the go-to agency for that sector. A specialist commands 3x the fees of a generalist.",
+      positionAngle: "The Industry-Specific Growth Agency",
+      positionSteps: [
+        "Niche down to one industry: Stop trying to serve everyone. Pick one industry you understand and become the best social media agency for THAT type of business.",
+        "Guarantee a specific result: Minimum 20 qualified leads per month or you work for free until you hit it. This removes buyer risk completely.",
+        "Build a case study for every client: A real before/after showing follower growth, leads generated, and revenue attributed. Case studies in your niche are your most powerful sales asset.",
+        "Create a recurring retainer model: One-time projects kill agencies. Retainers build them. Minimum 3-month contracts. Scope deliverables tightly.",
+        "Scale with sub-contractors: Hire specialist content creators and editors per project. Keep your team lean and your margins high as you scale to $20k-$50k/month."
+      ]
+    },
+    "Personal Finance & Investing": {
+      bestOffer: "1:1 Financial Coaching or Group Wealth Building Programme",
+      bestPrice: "$1,500–$5,000",
+      whyHighTicket: "People will spend $3,000 on a handbag but hesitate to invest $3,000 in their financial future — until you show them the math. A client who pays $3,000 to learn investing and build wealth will earn that back 10x in their first year if you deliver properly.",
+      biggestOpp: "The majority of people have never been taught basic money management. They are swimming in financial anxiety with no roadmap. Anyone who can give them a clear, personalised plan and hold them accountable commands premium prices with near-zero competition.",
+      positionAngle: "The Clarity-First Financial Coach",
+      positionSteps: [
+        "Own a specific financial transformation: 'From debt-stressed to debt-free in 12 months' or 'From clueless investor to confident portfolio builder.' Make your outcome measurable and time-bound.",
+        "Demystify complexity as your superpower: Most financial advice is confusing on purpose. Your competitive edge is radical simplicity. If a client can explain your system to a friend, you have won.",
+        "Use social proof with specific numbers: Post client wins like 'saved $12k in 6 months' or 'cleared $8k in debt in 90 days.' Numbers convert far better than vague testimonials.",
+        "Offer a clear starter product: A 30-day financial clarity intensive at $500-$997 demonstrates value fast and converts naturally to the full $3k-$5k programme.",
+        "Build a community for ongoing accountability: A monthly membership at $97-$197/month for graduates who want continued coaching and investment discussions."
+      ]
+    },
+    "Personal Development & Mindset": {
+      bestOffer: "90-Day Identity and High-Performance Transformation Programme",
+      bestPrice: "$2,000–$5,000",
+      whyHighTicket: "People pay premium for identity change, not information. When someone pays $3,000 to become a disciplined, high-performing version of themselves, they show up differently. The investment IS the transformation trigger.",
+      biggestOpp: "The personal development space is full of motivational content and cheap courses. The gap is structured, accountable transformation that produces a measurable identity shift — not just inspiration that fades in 48 hours.",
+      positionAngle: "The Identity Architect",
+      positionSteps: [
+        "Position around identity, not information: You are not selling a course. You are selling a new version of who they are. Every piece of content and every offer should speak to identity transformation.",
+        "Create a 90-day identity blueprint: Map out exactly who your client is on Day 1 and who they are on Day 90. Make the transformation vivid, specific, and compelling.",
+        "Combine mindset with tactical execution: Pure mindset work is seen as soft. Pair every belief shift with a concrete daily action. Results come from the combination of both.",
+        "Build accountability as your main feature: Weekly calls, daily check-ins, and a results dashboard. The accountability is worth more than the content in this space.",
+        "Document and share transformations publicly: Before/after is as powerful in personal development as in fitness. Specific stories about specific people drive your best conversions."
+      ]
+    },
+    "E-commerce & Dropshipping": {
+      bestOffer: "Done-With-You E-commerce Launch or Mentorship Programme",
+      bestPrice: "$2,000–$6,000",
+      whyHighTicket: "The e-commerce space is full of cheap courses that leave students to figure everything out alone. A mentorship that walks them through product selection, store setup, ads, and first sales is worth 10x the price of any course.",
+      biggestOpp: "Most e-commerce education teaches theory. The gap is practical, done-with-you support that gets someone to their first profitable sale. The person who can get students to their first $1,000 in sales will dominate this space.",
+      positionAngle: "The First-Sale E-commerce Coach",
+      positionSteps: [
+        "Focus on getting the first profitable sale: This is the single biggest psychological barrier in e-commerce. Build your programme around achieving this milestone within 30 days.",
+        "Include product research support: Most students fail at product selection. Make finding a winning product part of your service, not homework they do alone.",
+        "Teach paid ads with your own money on the line: Run a live demo showing your ad process. Real transparency builds more trust than any testimonial.",
+        "Build a community of active store owners: Your students will be more committed when they see peers succeeding alongside them. Community is your retention engine.",
+        "Upsell to a monthly mentorship: After the initial programme, offer ongoing support at $297-$497/month for students who want continued guidance as they scale."
+      ]
+    },
+    "Real Estate & Property": {
+      bestOffer: "Property Investment Coaching or Deal Analysis Mentorship",
+      bestPrice: "$3,000–$10,000",
+      whyHighTicket: "A client who pays $5,000 for property investment coaching and buys their first property generating $800/month passive income has a 1,920% ROI in year one alone. The value justification writes itself. This is the easiest high-ticket offer to justify in any niche.",
+      biggestOpp: "Most people believe property investment is only for the wealthy or the already-experienced. The gap is a programme that demystifies the process and walks a complete beginner through their first deal. Anyone who can do this reliably will never lack clients.",
+      positionAngle: "The First Deal Property Coach",
+      positionSteps: [
+        "Position around the first deal: 'I help first-time property investors close their first deal in 90 days' is more powerful than any generic property investing claim.",
+        "Demystify financing: Most beginners think they need a huge deposit. Show them the strategies — leveraging, bridging, joint ventures — that make first deals possible with less capital.",
+        "Create a deal analysis framework: Give clients a repeatable system for evaluating whether a property is worth buying. A proprietary framework is a major differentiator.",
+        "Build a network as a product feature: Your connections with brokers, solicitors, and lenders are worth more than your knowledge. Make introductions part of your offer.",
+        "Move into JV and co-investment: Once established, offer joint venture deals to top clients. This earns you equity in deals alongside your coaching income."
+      ]
+    },
+    "Relationships & Dating": {
+      bestOffer: "90-Day Confidence and Attraction Transformation Programme",
+      bestPrice: "$1,500–$4,000",
+      whyHighTicket: "People spend thousands on dating apps, nights out, and self-help books with zero results. A structured 90-day programme that actually changes how they show up in relationships — their confidence, communication, and attraction — is worth every penny.",
+      biggestOpp: "The relationships space is flooded with generic advice. The gap is personalised coaching that addresses the specific patterns keeping someone stuck — whether that is attachment style, self-worth, or communication. Whoever goes deep on one of these sub-problems wins.",
+      positionAngle: "The Attraction and Confidence Coach",
+      positionSteps: [
+        "Specialise in one relationship sub-problem: 'Help men over 35 re-enter the dating world after divorce' is more powerful than generic relationship advice. The more specific, the more you can charge.",
+        "Address psychology before tactics: Most dating advice is tactical. The premium offer goes deeper — attachment patterns, self-worth, identity. Whoever addresses the root cause wins.",
+        "Use transformation stories powerfully: A client who went from 3 years single and lonely to a committed relationship is your most powerful marketing asset. Document every win.",
+        "Position group coaching as the scalable model: Weekly group calls where members share and support each other are powerful in this niche. The community heals as much as the coaching.",
+        "Add a confidence audit as your lead magnet: A free personalised assessment that identifies someone's #1 relationship block generates the highest quality leads for this offer."
+      ]
+    },
+    "Spirituality & Faith": {
+      bestOffer: "90-Day Spiritual Growth and Daily Practice Programme",
+      bestPrice: "$1,000–$3,000",
+      whyHighTicket: "People invest deeply in their spiritual lives when they believe real transformation is possible. A structured programme that produces measurable spiritual growth — daily peace, consistent practice, breakthrough moments — justifies premium pricing in a space where results are typically vague.",
+      biggestOpp: "Most spiritual content is inspirational but not transformational. The gap is a structured programme with daily practices, accountability, and a clear progression — something that takes someone from spiritual dryness to consistent, growing faith in 90 days.",
+      positionAngle: "The Spiritual Transformation Guide",
+      positionSteps: [
+        "Make spiritual outcomes measurable: Not 'grow closer to God' but 'build a consistent 30-minute daily practice that produces real peace within 30 days.' Measurability drives trust and conversion.",
+        "Build a daily structure into the programme: The biggest failure in spiritual growth is inconsistency. Your programme's core value is the daily structure that makes consistency inevitable.",
+        "Create community as a core feature: Spiritual growth accelerates in community. A private group where members share, pray, and encourage each other is a major selling point.",
+        "Position yourself as a guide, not a guru: Authenticity is paramount in the faith space. Share your own journey openly. Transparency builds more trust here than credentials.",
+        "Offer ongoing community membership post-programme: A $47-$97/month ongoing community for programme graduates provides passive income and keeps your best clients in your ecosystem."
+      ]
+    },
+    "Education & Online Courses": {
+      bestOffer: "Live Cohort Course + Coaching Hybrid (8-12 week programme)",
+      bestPrice: "$997–$3,000",
+      whyHighTicket: "A self-paced course at $97 gets a 5% completion rate. A live cohort with accountability, community, and weekly calls gets 80%+ completion — and produces results you can use as testimonials to sell the next cohort at a higher price.",
+      biggestOpp: "The online education market is drowning in self-paced courses nobody completes. The gap is structured, live learning experiences with real accountability. Whoever delivers completion rates above 70% dominates their niche.",
+      positionAngle: "The Results-Driven Educator",
+      positionSteps: [
+        "Lead with completion rate and outcomes: Your marketing should focus on what students achieve, not what the course contains. Outcomes sell; curriculum descriptions do not.",
+        "Run live cohorts 3-4 times per year: Scarcity and community create urgency. Each cohort improves based on feedback. By cohort 3, your offer is nearly perfect.",
+        "Capture case studies at every cohort end: A structured exit interview with every student gives you testimonials, data, and content for your next launch.",
+        "Build a waitlist between cohorts: A free email course or challenge keeps prospective students engaged and warm between enrolment windows.",
+        "Create a self-paced version as a downsell: After running 3 live cohorts, record the best sessions and sell a self-paced version at $297-$497. This creates passive income between live cohorts."
+      ]
+    },
+    "Technology & SaaS": {
+      bestOffer: "SaaS Growth Mentorship or Go-To-Market Consulting",
+      bestPrice: "$3,000–$10,000",
+      whyHighTicket: "A SaaS founder who pays $5,000 for growth mentorship and goes from $0 to $5,000 MRR in 90 days earns that back within 1 month of hitting their goal. The ROI conversation sells itself. Technical people undercharge because they think in costs; help them think in returns.",
+      biggestOpp: "Most SaaS founders are exceptional builders and terrible marketers. The gap is go-to-market strategy, customer acquisition, and positioning — the business skills the engineering world does not teach. Anyone who can bridge that gap commands exceptional fees.",
+      positionAngle: "The SaaS Go-To-Market Strategist",
+      positionSteps: [
+        "Focus on the first $10k MRR milestone: This is the proof-of-concept moment for every SaaS founder. Build your programme around getting to this number and your positioning is clear.",
+        "Position around revenue, not features: Help founders shift from building features to acquiring customers. This mindset shift is worth more than any technical knowledge.",
+        "Offer ICP and positioning workshops: Ideal Customer Profile and messaging clarity are the #1 bottleneck for early-stage SaaS. A 2-hour workshop on this alone is worth $500.",
+        "Build case studies around MRR growth: '$0 to $8k MRR in 60 days' is a specific, compelling result. Document every client's growth curve publicly.",
+        "Scale to a founder community model: A monthly mastermind for SaaS founders at $297-$497/month provides recurring revenue and connects founders with each other — which is often more valuable than your coaching."
+      ]
+    },
+    "Affiliate Marketing": {
+      bestOffer: "Affiliate Income Accelerator Programme (90 days)",
+      bestPrice: "$1,500–$3,500",
+      whyHighTicket: "Someone who pays $2,000 to learn affiliate marketing and builds a $3,000/month passive income stream earns their investment back within one month of hitting their goal. This is one of the clearest ROI cases in online business education.",
+      biggestOpp: "The affiliate marketing space is full of low-quality courses teaching outdated tactics. The gap is a programme that teaches the current strategies that actually work — content SEO, email marketing, and social proof-based promotion — with real accountability.",
+      positionAngle: "The Passive Income Through Affiliate Coach",
+      positionSteps: [
+        "Niche your affiliate teaching down: 'Affiliate marketing for fitness bloggers' or 'Affiliate marketing for personal finance YouTubers' converts 3x better than generic affiliate training.",
+        "Lead with your own affiliate income proof: Show your own dashboards. Specificity builds credibility in this space. Vague claims kill conversions.",
+        "Focus on one traffic strategy first: Most students get overwhelmed trying to do everything. Build your programme around mastering one traffic source before expanding.",
+        "Include product selection as a core module: Choosing the wrong products to promote is why most affiliate marketers fail. Make product research and selection a major focus.",
+        "Build a community where students share wins: Peer motivation is powerful. A community where people post their first commissions creates the social proof that sells the next cohort."
+      ]
+    },
+    "Travel & Lifestyle": {
+      bestOffer: "Location Independence Blueprint (90-Day Income + Freedom Programme)",
+      bestPrice: "$1,500–$4,000",
+      whyHighTicket: "Someone who pays $2,500 to build a location-independent income that replaces a $40,000 salary earns their investment back in weeks. The lifestyle transformation — from 2 weeks holiday per year to travelling freely — is genuinely priceless to the right buyer.",
+      biggestOpp: "Every travel influencer sells cheap guides and bucket lists. The gap is a premium programme that actually teaches someone how to build the income needed for location independence — not just inspire them to want it.",
+      positionAngle: "The Freedom Business Architect",
+      positionSteps: [
+        "Lead with the income before the travel: Your buyers need money before they can travel. Build your programme around building a location-independent income stream first — the travel comes naturally after.",
+        "Choose one income model to teach: Freelancing, consulting, digital products, or remote employment. Pick one and become the best at teaching that specific path.",
+        "Show your own lifestyle authentically: Your life is your proof. Document your travels, your work setup, your income. Aspiration plus authenticity is the most powerful combination in this niche.",
+        "Build a community of location-independent earners: Connection with others living the lifestyle is highly valued. A private community where members share opportunities and support is a major retention driver.",
+        "Create income milestones as programme checkpoints: $500/month freelance income, first remote client, first month abroad. Clear milestones give students progress wins and you social proof."
+      ]
+    },
+    "Beauty & Fashion": {
+      bestOffer: "Beauty Business Launch or Personal Brand Monetisation Programme",
+      bestPrice: "$1,500–$4,000",
+      whyHighTicket: "A beauty professional who pays $2,500 to launch a monetised personal brand and generates $5,000/month from content, products, and clients earns that investment back in one month. The gap between talent and income in this space is enormous — whoever bridges it wins.",
+      biggestOpp: "The beauty space is flooded with creators who get millions of views but earn almost nothing. The gap is a programme that teaches talented beauty creators how to monetise — building income from brand deals, digital products, services, and their own audience.",
+      positionAngle: "The Beauty Brand Builder",
+      positionSteps: [
+        "Teach monetisation, not just content creation: Beauty creators know how to create. They do not know how to get paid. Position your offer around the money side and you have no competition.",
+        "Focus on one monetisation stream first: Brand deals, digital products, services, or a product line. Pick one, master it, then expand. Overwhelm kills action.",
+        "Build personal brand strategy into the programme: Aesthetic consistency, niche positioning, and audience trust are the foundations. These come before any monetisation attempt.",
+        "Use transformation proof relentlessly: A client who went from posting for free to earning $3,000/month from their beauty content is your most powerful marketing asset.",
+        "Create a community of beauty entrepreneurs: Connection with other beauty creators building businesses is highly valued and keeps your clients engaged long after the programme ends."
+      ]
+    },
+    "Food & Nutrition": {
+      bestOffer: "Personalised Nutrition and Lifestyle Coaching Programme (12 weeks)",
+      bestPrice: "$1,500–$3,500",
+      whyHighTicket: "People who pay $2,000 for nutrition coaching take it seriously. They implement, they get results, and they refer everyone they know. People who pay $20 for a meal plan read it once and do nothing. Price creates commitment, and commitment creates transformation.",
+      biggestOpp: "The nutrition space is overwhelmed with restrictive diet plans that nobody sustains. The gap is a personalised coaching approach that helps people build a genuinely enjoyable, healthy relationship with food — something they can maintain for life without feeling deprived.",
+      positionAngle: "The Sustainable Nutrition Coach",
+      positionSteps: [
+        "Position around sustainability, not restriction: 'Eat better forever without giving up the food you love' is worth 10x more than another strict diet programme. Sustainability is the selling point.",
+        "Hyper-personalise your programme: Generic meal plans are commodities. Personal coaching that adapts to someone's lifestyle, food preferences, and schedule commands premium pricing.",
+        "Build in accountability as a core feature: Weekly check-ins, food diary reviews, and daily access to you or your team. Accountability is what people pay the premium for — not information.",
+        "Collect and share specific client results: Weight lost, energy gained, health markers improved. Specific, measurable results in specific timeframes are your most powerful conversion tool.",
+        "Create a graduate community and maintenance plan: Offer ongoing group support at $97/month post-programme. Graduates who stay connected maintain their results and refer new clients."
+      ]
+    }
+  };
+
+  // ── GET NICHE INTEL OR BUILD SMART FALLBACK ───────────────────
+  const niRaw = NICHE_OFFER_INTEL[nicheLabel];
+
+  // All dynamic strings built HERE as plain JS variables (no nesting)
+  const bestOffer      = niRaw ? niRaw.bestOffer : (format + ' — ' + offerName);
+  const bestPrice      = niRaw ? niRaw.bestPrice : ('$' + price.toLocaleString());
+  const positionAngle  = niRaw ? niRaw.positionAngle : ('The ' + nicheLabel + ' Expert');
+  const positionSteps  = niRaw ? niRaw.positionSteps : [
+    'Own one specific transformation: "I help ' + audType + ' achieve ' + result + ' in ' + duration + '." Say it everywhere.',
+    'Document every client result publicly: Real proof posted publicly is worth 100 posts of advice. Do this every single time.',
+    'Raise your price 30% every 3 clients: Start at $2,000, move to $3,000 at client 3. Each increase forces better delivery and better clients.',
+    'Name your system: Give ' + (system||'your process') + ' a proper name and a step-by-step structure. A named framework is a 3x price multiplier.',
+    'Build the authority flywheel: Results → Case studies → Content → Inbound → Referrals. Once spinning, your programme sells itself by month 3.'
   ];
 
-  const output=document.getElementById('offer-output');
-  if(!output)return;
-  output.style.display='block';
-  output.innerHTML=`
-  <div style="background:linear-gradient(145deg,rgba(255,140,66,.12),var(--card));border:1px solid rgba(255,140,66,.4);border-radius:20px;overflow:hidden;margin-bottom:1.5rem;position:relative">
-    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--yellow),var(--teal))"></div>
-    <div style="padding:1.5rem">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">
-        <div>
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--orange);font-weight:900;margin-bottom:6px">✅ Your High-Ticket Offer — ${niche}</div>
-          <div style="font-size:clamp(18px,3vw,26px);font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);line-height:1.1">${offerName}</div>
-          <div style="font-size:12px;color:var(--dim);margin-top:6px;max-width:500px;line-height:1.65">${promise||transformation||`A high-ticket transformation programme for ${audType}`}</div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Investment</div>
-          <div style="font-size:38px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--orange)">$${price.toLocaleString()}</div>
-          <div style="font-size:11px;color:var(--dimmer)">${payment}</div>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">
-        ${[['📋 Format',format],['⏱ Duration',duration],['🎯 Core Result',result||'Transformation'],['🛡 Guarantee',guarantee.split('(')[0].trim()]].map(([l,v])=>`<div style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);font-weight:700;margin-bottom:3px">${l}</div><div style="font-size:11px;color:var(--muted);font-weight:600;line-height:1.3">${v}</div></div>`).join('')}
-      </div>
-    </div>
-  </div>
+  const whyHighTicket = niRaw ? niRaw.whyHighTicket :
+    'Clients who invest seriously in solving ' + pain + ' get 5x better results than those who buy cheap solutions. High-ticket creates commitment. Commitment creates transformation. Transformation creates testimonials that fill your next cohort automatically.';
 
-  ${stackItems.length?`
-  <div style="background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:16px;overflow:hidden;margin-bottom:1.5rem">
-    <div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-      <div style="font-size:11px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.5px">📦 What's Included — Value Stack</div>
-      <div style="font-size:10px;color:var(--dimmer)">Total perceived value: <strong style="color:var(--yellow)">$${totalValue.toLocaleString()}</strong> → investment: <strong style="color:var(--teal)">$${price.toLocaleString()}</strong></div>
-    </div>
-    <div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:8px">
-      ${stackItems.map((item,i)=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border2)"><div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0"><span style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:var(--text-dark);flex-shrink:0">${i+1}</span><div style="font-size:12px;color:var(--muted);font-weight:600">${item.desc}</div></div>${item.val?`<div style="font-size:13px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--yellow);white-space:nowrap;flex-shrink:0">$${item.val.toLocaleString()}</div>`:''}</div>`).join('')}
-      ${bonus?`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,140,66,.06);border-radius:10px;border:1px solid rgba(255,140,66,.2)"><span style="font-size:16px">🎁</span><div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--orange);font-weight:800;margin-bottom:2px">Fast-Action Bonus</div><div style="font-size:12px;color:var(--muted);font-weight:600">${bonus}</div></div></div>`:''}
-    </div>
-    <div style="padding:12px 1.25rem;background:rgba(255,217,61,.06);border-top:1px solid rgba(255,217,61,.2);display:flex;align-items:center;justify-content:space-between">
-      <div style="font-size:12px;font-weight:700;color:var(--muted)">Total Perceived Value</div>
-      <div><span style="font-size:16px;text-decoration:line-through;color:var(--dimmer);margin-right:10px">$${totalValue.toLocaleString()}</span><span style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--orange)">$${price.toLocaleString()}</span></div>
-    </div>
-  </div>`:''}
+  const biggestOpp = niRaw ? niRaw.biggestOpp :
+    'The ' + nicheLabel + ' market is saturated with low-ticket generic advice. The gap is a premium results-guaranteed programme that speaks directly to ' + audType + ' who are ready to solve ' + pain + ' once and for all. Be the specialist — not the generalist — and price becomes irrelevant.';
 
-  <div style="background:linear-gradient(145deg,rgba(108,99,255,.1),var(--card));border:1px solid rgba(108,99,255,.3);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem">
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:12px">📞 How to Present This Offer on a Discovery Call</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${[
-        ['Step 1 — Diagnose first',`"Before I share anything — just want to make sure I fully understand your situation. The main thing you're trying to solve is ${pain}, right? And what ${motivation} actually looks like for you is…?"`],
-        ['Step 2 — Bridge to the offer',`"What I've built is called the ${offerName}. It's specifically designed for ${audType} who are exactly where you are right now — here's what's inside:"`],
-        ['Step 3 — Walk the stack',`Go through each component. Frame every item as solving a specific pain. End with: "In total, that's $${totalValue.toLocaleString()||'[total value]'} in support. Your investment today is $${price.toLocaleString()} — ${payment}."`],
-        ['Step 4 — Guarantee and risk removal',`"And here's what makes this completely risk-free: ${guarantee}. ${guaranteeCond?'All I ask is that you '+guaranteeCond.toLowerCase()+'.':''} I want to carry the risk so you don't have to."`],
-        ['Step 5 — Create urgency',`"One thing I should mention — ${scarcity||'I only take 5 clients per month to keep the quality high'}. ${bonus?'If you get started today, I\'ll also include '+bonus+' as a fast-action bonus.':''} So if this feels right, today is genuinely the best day."`],
-        ['Step 6 — The close',`"Does this feel like the right fit for what you're trying to accomplish?" → Yes: process payment. Objection: "What specifically is holding you back?" → Diagnose and address, then re-ask.`]
-      ].map(([h,b])=>`<div style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;padding:11px 14px"><div style="font-size:10px;font-weight:800;color:var(--purple);margin-bottom:4px">${h}</div><div style="font-size:12px;color:var(--dim);line-height:1.6;font-style:italic">${b}</div></div>`).join('')}
-    </div>
-  </div>
+  // Funnel headlines — built as plain array of strings
+  const headlines = [];
+  if(niRaw === NICHE_OFFER_INTEL['Coaching & Consulting']) {
+    headlines.push('How ' + audType + ' Are Finally Hitting ' + result + ' in ' + duration + ' — Without Burning Out or Undercharging');
+    headlines.push('The ' + duration + ' Coaching System That Turns ' + pain + ' Into ' + motivation + ' — For Good');
+    headlines.push('Warning: If You Are Still Charging Under $2,000 as a Coach — Read This Before Your Next Sales Call');
+    headlines.push('From ' + pain + ' to ' + result + ' in ' + duration + ': The Exact System ' + audType + ' Are Using Right Now');
+    headlines.push('The Only ' + duration + ' Coaching Programme That ' + guarantee.split('(')[0].trim() + ' — Here Is Why That Changes Everything');
+  } else if(niRaw === NICHE_OFFER_INTEL['Digital Products & Info Business']) {
+    headlines.push('How to Turn What You Already Know Into ' + result + ' — Even With a Small Audience');
+    headlines.push('The Creator Blueprint That Generated ' + result + ' in ' + duration + ' Without a Huge Following');
+    headlines.push('You Do Not Need 100k Followers to Earn ' + result + ' — Here Is the System That Works');
+    headlines.push('Why Most ' + audType + ' Earn Under $500/Month From Their Content (And the One Change That Fixes It)');
+    headlines.push('From ' + pain + ' to ' + motivation + ' in ' + duration + ': The ' + nicheLabel + ' Roadmap');
+  } else if(niRaw === NICHE_OFFER_INTEL['Health & Fitness']) {
+    headlines.push('The Real Reason You Cannot Get ' + result + ' (It Is Not Your Diet or Your Workout Plan)');
+    headlines.push('How ' + audType + ' Are Achieving ' + result + ' in ' + duration + ' Without Giving Up the Food They Love');
+    headlines.push('Stop Buying Programmes That Worked for Someone Else — Here Is What Works for Your Specific Situation');
+    headlines.push('From ' + pain + ' to ' + result + ' in ' + duration + ': A Real System With a Real Guarantee');
+    headlines.push('The ' + duration + ' Transformation Blueprint: What Changes, How Fast, and Exactly What You Do Each Week');
+  } else if(niRaw === NICHE_OFFER_INTEL['Social Media Marketing (SMMA)']) {
+    headlines.push('How ' + audType + ' Are Getting ' + result + ' From Social Media — Without Posting a Single Thing Themselves');
+    headlines.push('We Handle All Your Social Media. You Handle the New Clients. Here Is How It Works.');
+    headlines.push('The Agency That Specialises in ' + audType + ' — Not Every Business Under the Sun');
+    headlines.push('From ' + pain + ' to a Fully-Booked Calendar in ' + duration + ' — Completely Done For You');
+    headlines.push('Why Generic Social Media Agencies Fail (And What We Do Differently for ' + audType + ')');
+  } else if(niRaw === NICHE_OFFER_INTEL['Personal Finance & Investing']) {
+    headlines.push('The Financial Roadmap Nobody Gave You in School — And How It Changes Everything in ' + duration);
+    headlines.push('How ' + audType + ' Are Going From ' + pain + ' to Investing Confidently in ' + duration);
+    headlines.push('You Do Not Need a High Income to Build Wealth — You Need This System');
+    headlines.push('The Honest Truth About Why Most People Never Achieve ' + result);
+    headlines.push('From ' + pain + ' to ' + result + ' in ' + duration + ': Step by Step, With Zero Jargon');
+  } else {
+    headlines.push('How ' + audType + ' Are Finally Solving ' + pain + ' and Reaching ' + result + ' in ' + duration);
+    headlines.push('The ' + duration + ' Blueprint That Takes ' + audType + ' From ' + pain + ' to ' + result + ' — Step by Step');
+    headlines.push('Stop Trying to Figure Out ' + pain + ' Alone — Here Is the Exact System That Works');
+    headlines.push('Why Most ' + audType + ' Never Reach ' + motivation + ' (And the One Change That Fixes Everything)');
+    headlines.push('From ' + pain + ' to ' + result + ' in ' + duration + ': A Real Programme With a ' + guarantee.split('(')[0].trim());
+  }
 
-  <div class="sec-label" style="margin-bottom:1rem">Your 3 custom funnel strategies — built for ${niche}</div>
-  <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:1.5rem">
-    ${funnelStrategies.map((f,fi)=>`
-    <div style="background:${f.bg};border:1px solid ${f.border};border-radius:18px;overflow:hidden">
-      <div style="padding:1.1rem 1.25rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:1px solid ${f.border}">
-        <div>
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:${f.color};font-weight:900;margin-bottom:4px">Funnel Strategy ${fi+1}</div>
-          <div style="font-size:16px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">${f.name}</div>
-          <div style="font-size:11px;color:${f.color};margin-top:3px;font-weight:600">${f.subtitle}</div>
-        </div>
-        <div style="background:rgba(255,255,255,.06);border:1px solid ${f.border};border-radius:10px;padding:8px 14px;text-align:right;flex-shrink:0">
-          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--dimmer);font-weight:700;margin-bottom:3px">Timeline</div>
-          <div style="font-size:10px;color:var(--muted);font-weight:600;line-height:1.4;max-width:200px">${f.timeline}</div>
-        </div>
-      </div>
-      <div style="padding:1.1rem 1.25rem">
-        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
-          ${f.steps.map((step,si)=>`<div style="display:flex;align-items:flex-start;gap:10px"><span style="width:20px;height:20px;border-radius:50%;background:${f.color};display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:${f.color==='var(--yellow)'?'var(--text-dark)':'#fff'};flex-shrink:0;margin-top:2px">${si+1}</span><div style="font-size:12px;color:var(--dim);line-height:1.55">${step}</div></div>`).join('')}
-        </div>
-        <div style="background:rgba(255,255,255,.04);border:1px solid ${f.border};border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px">
-          <span style="font-size:16px">🎯</span>
-          <div style="font-size:11px;font-weight:700;color:${f.color}">${f.metric}</div>
-        </div>
-      </div>
-    </div>`).join('')}
-  </div>
+  // Core message — plain string
+  const coreMsg = 'I help ' + audType + ' go from ' + pain + ' to ' + result + ' in ' + duration + (noEffort ? ' — without ' + noEffort : '') + '.';
 
-  <div style="background:linear-gradient(145deg,rgba(78,204,163,.08),rgba(108,99,255,.05));border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:2rem">
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:12px">🏆 Your 6-month revenue projection at $${price.toLocaleString()}/client</div>
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:10px">
-      ${[1,2,3,4,5,6].map(m=>{const factor=[0.3,0.5,0.75,1,1.3,1.65][m-1];const base=Math.ceil(20000/price)*price;const rev=Math.round(base*factor);const isGoal=m>=4;return`<div style="background:${isGoal?'rgba(78,204,163,.08)':'rgba(255,255,255,.03)'};border:1px solid ${isGoal?'rgba(78,204,163,.25)':'var(--border2)'};border-radius:8px;padding:8px 6px;text-align:center"><div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Month ${m}</div><div style="font-size:${m>=5?'14px':'12px'};font-weight:900;font-family:'Poppins',sans-serif;color:${m>=5?'var(--teal)':m>=3?'var(--yellow)':'var(--dimmer)'}">$${rev>=1000?(rev/1000).toFixed(1)+'k':rev}</div></div>`;}).join('')}
-    </div>
-    <div style="font-size:10px;color:var(--dimmer);line-height:1.55">Based on ${Math.ceil(20000/price)} sales/month at $${price.toLocaleString()} with natural compounding through referrals and content authority. Month 4+ assumes referral engine is active and content is attracting inbound. <strong style="color:var(--white)">Consistency is the only variable you control.</strong></div>
-  </div>
-  `;
+  // ── BUILD STACK ───────────────────────────────────────────────
+  const stackRows = document.querySelectorAll('#offer-stack-items .offer-stack-row');
+  let stackItems = []; let totalValue = 0;
+  stackRows.forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    const desc = inputs[0] ? inputs[0].value.trim() : '';
+    const val  = parseInt(inputs[1] ? inputs[1].value : 0) || 0;
+    if(desc) { stackItems.push({desc, val}); totalValue += val; }
+  });
+
+  // ── FUNNEL STRATEGIES ─────────────────────────────────────────
+  const funnelStrategies = [
+    {
+      name: '🎯 The High-Ticket DM Funnel',
+      subtitle: '$20k–$50k/month in 90 days — zero ad spend',
+      color: 'var(--teal)', border: 'rgba(78,204,163,.3)', bg: 'rgba(78,204,163,.06)',
+      timeline: 'Month 1: Build and validate · Month 2: Scale outreach · Month 3: Referrals and automation',
+      steps: [
+        '<strong>Content Machine:</strong> 2 Facebook posts + 3 Reels daily — speak to "' + pain + '" and lead toward "' + motivation + '". Every post ends with ONE clear CTA.',
+        '<strong>DM Qualification:</strong> Send ' + Math.ceil(price>3000?25:35) + ' DMs/day using the curiosity opener. Never pitch in the first message — ask a genuine question about their situation.',
+        '<strong>Free Assessment:</strong> Qualified leads go to a 5-question survey pre-framing your offer and screening for serious buyers. This does your selling before the call.',
+        '<strong>Discovery Call (45 min):</strong> Diagnose their situation → present ' + offerName + ' value stack → handle objections → close on the call. Same-day follow-up always.',
+        '<strong>Close Structure:</strong> Present total value ($' + (totalValue||30000).toLocaleString() + '+) vs investment ($' + price.toLocaleString() + ') → ' + payment + ' → ' + guarantee.split('(')[0].trim(),
+        '<strong>Month 3 Target:</strong> ' + Math.ceil(20000/price) + ' closes/month = $' + (Math.ceil(20000/price)*price).toLocaleString() + '/month. Scale to ' + Math.ceil(50000/price) + ' closes = $50k/month'
+      ],
+      metric: Math.ceil(50000/price) + ' client closes/month to hit $50k'
+    },
+    {
+      name: '📣 The Authority Content-to-Call Funnel',
+      subtitle: 'Build inbound lead flow — scale to $30k+/month',
+      color: 'var(--purple)', border: 'rgba(108,99,255,.3)', bg: 'rgba(108,99,255,.06)',
+      timeline: 'Month 1: Establish authority · Month 2: Launch offer publicly · Month 3: System runs itself',
+      steps: [
+        '<strong>30-Day Authority Series:</strong> Document your process and results in ' + nicheLabel + ' publicly. Build trust before making any offer. No pitch for the first 14 days.',
+        '<strong>VSL / Free Masterclass:</strong> Create a 20–45 min video that educates on "' + pain + '", demonstrates your system, and pre-sells ' + offerName + ' — hosted on a landing page.',
+        '<strong>Application Funnel:</strong> Landing page → short application form (screens serious buyers) → calendar booking. Qualified applicants only get the call.',
+        '<strong>7-Day Email Nurture:</strong> After opt-in — deliver value daily, handle objections, share case studies, drive urgency to book a call within 48 hours.',
+        '<strong>Cohort Launch System:</strong> Open enrolment 2× per month with a hard deadline and genuine scarcity: "' + (scarcity||'5 spots available this intake') + '"',
+        '<strong>Month 3 Target:</strong> ' + Math.ceil(30000/price) + ' closes from inbound = $' + (Math.ceil(30000/price)*price).toLocaleString() + '/month with 8–15 inbound applications/week'
+      ],
+      metric: 'Target: 8–15 inbound applications/week by month 3'
+    },
+    {
+      name: '🚀 The Referral Amplification Funnel',
+      subtitle: 'Turn every client into a revenue multiplier — $50k+/month in 6 months',
+      color: 'var(--yellow)', border: 'rgba(255,217,61,.3)', bg: 'rgba(255,217,61,.06)',
+      timeline: 'Month 1–2: Deliver exceptional results · Month 3–4: Activate referral engine · Month 5–6: Scale',
+      steps: [
+        '<strong>Results First Policy:</strong> Overdeliver on your first 3–5 clients. Exceptional results = real testimonials = social proof = the fuel for every future sale.',
+        '<strong>Referral Incentive Programme:</strong> Every client who refers a paying client earns $' + Math.round(price*0.1).toLocaleString() + ' credit or a bonus session. Your clients become your highest-converting sales channel.',
+        '<strong>Case Study Engine:</strong> Document every win with a structured before/after case study. Post publicly and DM prospects with the specific result that matches their situation.',
+        '<strong>Alumni Community:</strong> Keep past clients in a free private community. They engage with your content, refer new clients, and amplify your reach organically — for free.',
+        '<strong>Upsell Path:</strong> After ' + offerName + ' (' + duration + ') → offer a VIP continuation tier at $' + Math.round(price*1.5).toLocaleString() + '+ for clients who want to keep going.',
+        '<strong>Month 6 Target:</strong> 40% of new clients from referrals = near-zero acquisition cost · ' + Math.ceil(50000/price) + ' closes/month = $50k+/month compounding'
+      ],
+      metric: 'Month 6: $50k+/month with 40% referral-sourced clients'
+    }
+  ];
+
+  // ── BUILD HTML SAFELY ─────────────────────────────────────────
+  output.style.display = 'block';
+
+  // Helper to safely escape HTML for attribute use
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  let html = '';
+
+  // SECTION 1 — Offer Header
+  html += '<div style="background:linear-gradient(145deg,rgba(255,140,66,.12),var(--card));border:1px solid rgba(255,140,66,.4);border-radius:20px;overflow:hidden;margin-bottom:1.5rem;position:relative">'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--orange),var(--yellow),var(--teal))"></div>'
+    + '<div style="padding:1.5rem">'
+    + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem">'
+    + '<div>'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--orange);font-weight:900;margin-bottom:6px">✅ Your High-Ticket Offer — ' + nicheLabel + '</div>'
+    + '<div style="font-size:clamp(18px,3vw,26px);font-weight:900;font-family:\'Poppins\',sans-serif;color:var(--white);line-height:1.1">' + offerName + '</div>'
+    + '<div style="font-size:12px;color:var(--dim);margin-top:6px;max-width:500px;line-height:1.65">' + (promise||transformation||coreMsg) + '</div>'
+    + '</div>'
+    + '<div style="text-align:right;flex-shrink:0">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Investment</div>'
+    + '<div style="font-size:38px;font-weight:900;font-family:\'Poppins\',sans-serif;color:var(--orange)">$' + price.toLocaleString() + '</div>'
+    + '<div style="font-size:11px;color:var(--dimmer)">' + payment + '</div>'
+    + '</div></div>'
+    + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">'
+    + [['📋 Format',format],['⏱ Duration',duration],['🎯 Core Result',result||'Transformation'],['🛡 Guarantee',guarantee.split('(')[0].trim()]].map(function(x){
+        return '<div style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);font-weight:700;margin-bottom:3px">'+x[0]+'</div><div style="font-size:11px;color:var(--muted);font-weight:600;line-height:1.3">'+x[1]+'</div></div>';
+      }).join('')
+    + '</div></div></div>';
+
+  // SECTION 2 — Best Offer for Niche
+  html += '<div style="background:linear-gradient(145deg,rgba(78,204,163,.1),var(--card));border:1px solid rgba(78,204,163,.35);border-radius:20px;overflow:hidden;margin-bottom:1.5rem;position:relative">'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--purple))"></div>'
+    + '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(78,204,163,.15)">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:900;margin-bottom:4px">🏆 Best High-Ticket Offer For ' + nicheLabel + '</div>'
+    + '<div style="font-size:15px;font-weight:900;color:var(--white)">' + bestOffer + '</div>'
+    + '<div style="font-size:11px;color:var(--teal);font-weight:700;margin-top:4px">Recommended price range: ' + bestPrice + '</div>'
+    + '</div>'
+    + '<div style="padding:1.25rem 1.5rem">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:900;margin-bottom:8px">💡 Why High-Ticket Works in ' + nicheLabel + '</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.75;background:rgba(255,217,61,.05);border:1px solid rgba(255,217,61,.15);border-radius:12px;padding:14px 16px">' + whyHighTicket + '</div>'
+    + '</div></div>';
+
+  // SECTION 3 — Funnel Headlines
+  html += '<div style="background:linear-gradient(145deg,rgba(108,99,255,.1),var(--card));border:1px solid rgba(108,99,255,.35);border-radius:20px;overflow:hidden;margin-bottom:1.5rem;position:relative">'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--teal))"></div>'
+    + '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(108,99,255,.15)">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:900;margin-bottom:4px">📢 5 Funnel Headline Copies — Ready to Use</div>'
+    + '<div style="font-size:12px;color:var(--dim)">Built from your avatar data and niche. Use on landing pages, VSLs, ads, and social posts.</div>'
+    + '</div>'
+    + '<div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:10px">';
+  headlines.forEach(function(h, i) {
+    html += '<div style="display:flex;align-items:flex-start;gap:12px;background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:14px 16px">'
+      + '<div style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;font-size:11px;font-weight:900;font-family:\'Poppins\',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + (i+1) + '</div>'
+      + '<div style="flex:1">'
+      + '<div style="font-size:13px;color:var(--white);font-weight:700;line-height:1.55">' + h + '</div>'
+      + '<button onclick="navigator.clipboard.writeText(' + JSON.stringify(h) + ').then(function(){this.textContent=\'✅ Copied!\';var b=this;setTimeout(function(){b.textContent=\'Copy\'},1800)}.bind(this))" style="margin-top:8px;font-size:10px;padding:4px 14px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);color:var(--purple);border-radius:6px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700">Copy</button>'
+      + '</div></div>';
+  });
+  html += '</div></div>';
+
+  // SECTION 4 — Core Message
+  html += '<div style="background:linear-gradient(145deg,rgba(255,217,61,.08),var(--card));border:1px solid rgba(255,217,61,.3);border-radius:20px;overflow:hidden;margin-bottom:1.5rem;position:relative">'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--yellow),var(--orange))"></div>'
+    + '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,217,61,.15)">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:900;margin-bottom:4px">💬 Your Core Message — Social Media Profile Bio</div>'
+    + '<div style="font-size:12px;color:var(--dim)">Put this in your Instagram bio, Facebook intro, LinkedIn headline, and above every landing page.</div>'
+    + '</div>'
+    + '<div style="padding:1.25rem 1.5rem">'
+    + '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:18px 20px">'
+    + '<div style="font-size:16px;font-weight:900;color:var(--white);line-height:1.6">' + coreMsg + '</div>'
+    + '<div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
+    + '<div style="font-size:10px;color:var(--dimmer);font-weight:600">Position angle: <span style="color:var(--yellow)">' + positionAngle + '</span></div>'
+    + '<button onclick="navigator.clipboard.writeText(' + JSON.stringify(coreMsg) + ').then(function(){this.textContent=\'✅ Copied!\';var b=this;setTimeout(function(){b.textContent=\'📋 Copy Core Message\'},1800)}.bind(this))" style="font-size:10px;padding:6px 16px;background:linear-gradient(135deg,var(--yellow),var(--yellow2));color:var(--text-dark);border:none;border-radius:8px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:800">📋 Copy Core Message</button>'
+    + '</div></div>'
+    + '<div style="margin-top:12px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+    + [['Instagram Bio','Use your core message above. Add 1 emoji per line. End with a clear CTA link in bio.'],['Facebook Profile','Paste as your About intro. Add your offer name and a book-a-call link.'],['LinkedIn Headline','Lead with: I help [WHO] achieve [WHAT] in [TIME]. Keep it under 120 characters.']].map(function(x){
+        return '<div style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--yellow);font-weight:900;margin-bottom:4px">'+x[0]+'</div><div style="font-size:11px;color:var(--dim);line-height:1.45">'+x[1]+'</div></div>';
+      }).join('')
+    + '</div></div></div>';
+
+  // SECTION 5 — Biggest Opportunity
+  html += '<div style="background:linear-gradient(145deg,rgba(255,107,107,.08),var(--card));border:1px solid rgba(255,107,107,.3);border-radius:20px;overflow:hidden;margin-bottom:1.5rem;position:relative">'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--red),var(--orange))"></div>'
+    + '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,107,107,.15)">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--red);font-weight:900;margin-bottom:4px">🚀 Biggest Opportunity in ' + nicheLabel + '</div>'
+    + '<div style="font-size:12px;color:var(--dim)">Where the real money is hiding — and how to capture it before everyone else does.</div>'
+    + '</div>'
+    + '<div style="padding:1.25rem 1.5rem">'
+    + '<div style="font-size:13px;color:var(--muted);line-height:1.8;background:rgba(255,107,107,.05);border-left:3px solid var(--red);border-radius:0 12px 12px 0;padding:16px 18px;margin-bottom:1rem">' + biggestOpp + '</div>'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'
+    + [
+        ['📊 Market Gap', 'Your competitors are selling information. The gap is accountability plus a results guarantee. Be the person who delivers the outcome — not just the knowledge.'],
+        ['🎯 Ideal Client Signal', 'Someone who says "I have tried other things and they did not work" is your buyer. They have already proven they invest in solutions. They just need the right one.'],
+        ['💰 Price Psychology', 'Most people in ' + nicheLabel + ' charge too little — which signals low confidence. Charging more than feels comfortable communicates certainty in your results.'],
+        ['🔑 Conversion Key', 'Your offer sells the moment someone believes three things: the result is real, you can get THEM there specifically, and the risk is low. Address all three on every sales call.']
+      ].map(function(x){
+        return '<div style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:12px;padding:13px 15px"><div style="font-size:10px;font-weight:900;color:var(--white);margin-bottom:5px">'+x[0]+'</div><div style="font-size:11px;color:var(--dim);line-height:1.55">'+x[1]+'</div></div>';
+      }).join('')
+    + '</div></div></div>';
+
+  // SECTION 6 — Positioning Strategy
+  html += '<div style="background:linear-gradient(145deg,rgba(78,204,163,.08),var(--card));border:1px solid rgba(78,204,163,.3);border-radius:20px;overflow:hidden;margin-bottom:1.5rem;position:relative">'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--yellow))"></div>'
+    + '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(78,204,163,.15)">'
+    + '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:900;margin-bottom:4px">📈 Positioning Strategy — How to Dominate and Scale in ' + nicheLabel + '</div>'
+    + '<div style="font-size:12px;color:var(--dim)">The 5-step roadmap from your first client to market leader.</div>'
+    + '</div>'
+    + '<div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:10px">';
+  positionSteps.forEach(function(step, i) {
+    html += '<div style="display:flex;align-items:flex-start;gap:14px;padding:14px 16px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:12px">'
+      + '<div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);font-size:12px;font-weight:900;font-family:\'Poppins\',sans-serif;display:flex;align-items:center;justify-content:center;flex-shrink:0">' + (i+1) + '</div>'
+      + '<div style="font-size:12px;color:var(--muted);line-height:1.7">' + step + '</div>'
+      + '</div>';
+  });
+  html += '<div style="margin-top:4px;background:linear-gradient(135deg,rgba(78,204,163,.1),rgba(108,99,255,.06));border:1px solid rgba(78,204,163,.25);border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px">'
+    + '<span style="font-size:20px">🔑</span>'
+    + '<div>'
+    + '<div style="font-size:11px;font-weight:900;color:var(--teal);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">The non-negotiable truth</div>'
+    + '<div style="font-size:12px;color:var(--dim);line-height:1.65">You cannot out-market a bad offer. Fix the offer first — the promise, the system, the guarantee. Then market it relentlessly. The sequence matters: <strong style="color:var(--white)">Offer → Proof → Content → Scale.</strong> In that order, every time.</div>'
+    + '</div></div>'
+    + '</div></div>';
+
+  // SECTION 7 — Value Stack
+  if(stackItems.length) {
+    html += '<div style="background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:16px;overflow:hidden;margin-bottom:1.5rem">'
+      + '<div style="padding:1rem 1.25rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
+      + '<div style="font-size:11px;font-weight:900;color:var(--white);text-transform:uppercase;letter-spacing:.5px">📦 What\'s Included — Value Stack</div>'
+      + '<div style="font-size:10px;color:var(--dimmer)">Total perceived value: <strong style="color:var(--yellow)">$' + totalValue.toLocaleString() + '</strong> → your investment: <strong style="color:var(--teal)">$' + price.toLocaleString() + '</strong></div>'
+      + '</div>'
+      + '<div style="padding:1rem 1.25rem;display:flex;flex-direction:column;gap:8px">';
+    stackItems.forEach(function(item, i) {
+      html += '<div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:10px 12px;background:rgba(255,255,255,.03);border-radius:10px;border:1px solid var(--border2)">'
+        + '<div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0">'
+        + '<span style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:var(--text-dark);flex-shrink:0">' + (i+1) + '</span>'
+        + '<div style="font-size:12px;color:var(--muted);font-weight:600">' + item.desc + '</div>'
+        + '</div>'
+        + (item.val ? '<div style="font-size:13px;font-weight:900;font-family:\'Poppins\',sans-serif;color:var(--yellow);white-space:nowrap;flex-shrink:0">$' + item.val.toLocaleString() + '</div>' : '')
+        + '</div>';
+    });
+    if(bonus) {
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,140,66,.06);border-radius:10px;border:1px solid rgba(255,140,66,.2)">'
+        + '<span style="font-size:16px">🎁</span>'
+        + '<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--orange);font-weight:800;margin-bottom:2px">Fast-Action Bonus</div>'
+        + '<div style="font-size:12px;color:var(--muted);font-weight:600">' + bonus + '</div></div></div>';
+    }
+    html += '</div>'
+      + '<div style="padding:12px 1.25rem;background:rgba(255,217,61,.06);border-top:1px solid rgba(255,217,61,.2);display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--muted)">Total Perceived Value</div>'
+      + '<div><span style="font-size:16px;text-decoration:line-through;color:var(--dimmer);margin-right:10px">$' + totalValue.toLocaleString() + '</span><span style="font-size:24px;font-weight:900;font-family:\'Poppins\',sans-serif;color:var(--orange)">$' + price.toLocaleString() + '</span></div>'
+      + '</div></div>';
+  }
+
+  // SECTION 8 — Discovery Call Script
+  html += '<div style="background:linear-gradient(145deg,rgba(108,99,255,.1),var(--card));border:1px solid rgba(108,99,255,.3);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem">'
+    + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:12px">📞 How to Present ' + offerName + ' on a Discovery Call</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">';
+  [
+    ['Step 1 — Diagnose first', '"Before I share anything — just want to make sure I fully understand your situation. The main challenge you are trying to solve is ' + pain + ', right? Tell me more about exactly where you are right now."'],
+    ['Step 2 — Bridge to the offer', '"Based on everything you just shared, you are exactly who I built this for. It is called ' + offerName + '. Here is what is inside:"'],
+    ['Step 3 — Walk the stack', 'Go through each component. Frame every item as solving a specific pain they mentioned. End with: "In total, that is $' + (totalValue||30000).toLocaleString() + '+ in support. Your investment is $' + price.toLocaleString() + ' — ' + payment + '."'],
+    ['Step 4 — Guarantee and risk removal', '"Here is what makes this completely risk-free: ' + guarantee.split('—')[0].trim() + '. ' + (guaranteeCond ? 'All I ask is that you ' + guaranteeCond.toLowerCase().replace(/^complete /,'complete ') + '.' : 'I carry the risk so you do not have to.') + '"'],
+    ['Step 5 — Create urgency', '"One thing worth mentioning — ' + (scarcity||'I only take 5 clients per month to keep the quality high') + '. ' + (bonus ? 'If you get started today, I will also include ' + bonus + ' as a fast-action bonus.' : '') + '"'],
+    ['Step 6 — The close', '"Does this feel like the right fit for what you are trying to accomplish?" → Yes: process payment now. Objection: "What specifically is holding you back?" → Diagnose, address, re-ask.']
+  ].forEach(function(x) {
+    html += '<div style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;padding:11px 14px">'
+      + '<div style="font-size:10px;font-weight:800;color:var(--purple);margin-bottom:4px">' + x[0] + '</div>'
+      + '<div style="font-size:12px;color:var(--dim);line-height:1.6;font-style:italic">' + x[1] + '</div></div>';
+  });
+  html += '</div></div>';
+
+  // SECTION 9 — 3 Funnel Strategies
+  html += '<div class="sec-label" style="margin-bottom:1rem">Your 3 custom funnel strategies — built for ' + nicheLabel + '</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:14px;margin-bottom:1.5rem">';
+  funnelStrategies.forEach(function(f, fi) {
+    html += '<div style="background:' + f.bg + ';border:1px solid ' + f.border + ';border-radius:18px;overflow:hidden">'
+      + '<div style="padding:1.1rem 1.25rem;display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-bottom:1px solid ' + f.border + '">'
+      + '<div>'
+      + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:' + f.color + ';font-weight:900;margin-bottom:4px">Funnel Strategy ' + (fi+1) + '</div>'
+      + '<div style="font-size:16px;font-weight:900;font-family:\'Poppins\',sans-serif;color:var(--white)">' + f.name + '</div>'
+      + '<div style="font-size:11px;color:' + f.color + ';margin-top:3px;font-weight:600">' + f.subtitle + '</div>'
+      + '</div>'
+      + '<div style="background:rgba(255,255,255,.06);border:1px solid ' + f.border + ';border-radius:10px;padding:8px 14px;text-align:right;flex-shrink:0">'
+      + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--dimmer);font-weight:700;margin-bottom:3px">Timeline</div>'
+      + '<div style="font-size:10px;color:var(--muted);font-weight:600;line-height:1.4;max-width:200px">' + f.timeline + '</div>'
+      + '</div></div>'
+      + '<div style="padding:1.1rem 1.25rem">'
+      + '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">';
+    f.steps.forEach(function(step, si) {
+      var txtColor = f.color === 'var(--yellow)' ? 'var(--text-dark)' : '#fff';
+      html += '<div style="display:flex;align-items:flex-start;gap:10px">'
+        + '<span style="width:20px;height:20px;border-radius:50%;background:' + f.color + ';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:' + txtColor + ';flex-shrink:0;margin-top:2px">' + (si+1) + '</span>'
+        + '<div style="font-size:12px;color:var(--dim);line-height:1.55">' + step + '</div></div>';
+    });
+    html += '</div>'
+      + '<div style="background:rgba(255,255,255,.04);border:1px solid ' + f.border + ';border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px">'
+      + '<span style="font-size:16px">🎯</span>'
+      + '<div style="font-size:11px;font-weight:700;color:' + f.color + '">' + f.metric + '</div>'
+      + '</div></div></div>';
+  });
+  html += '</div>';
+
+  // SECTION 10 — Revenue Projection
+  html += '<div style="background:linear-gradient(145deg,rgba(78,204,163,.08),rgba(108,99,255,.05));border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:2rem">'
+    + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:12px">🏆 Your 6-Month Revenue Projection at $' + price.toLocaleString() + '/client</div>'
+    + '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;margin-bottom:10px">';
+  [1,2,3,4,5,6].forEach(function(m) {
+    var factor = [0.3,0.5,0.75,1,1.3,1.65][m-1];
+    var base = Math.ceil(20000/price)*price;
+    var rev = Math.round(base*factor);
+    var isGoal = m>=4;
+    var col = m>=5?'var(--teal)':m>=3?'var(--yellow)':'var(--dimmer)';
+    html += '<div style="background:' + (isGoal?'rgba(78,204,163,.08)':'rgba(255,255,255,.03)') + ';border:1px solid ' + (isGoal?'rgba(78,204,163,.25)':'var(--border2)') + ';border-radius:8px;padding:8px 6px;text-align:center">'
+      + '<div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Month ' + m + '</div>'
+      + '<div style="font-size:' + (m>=5?'14px':'12px') + ';font-weight:900;font-family:\'Poppins\',sans-serif;color:' + col + '">$' + (rev>=1000?(rev/1000).toFixed(1)+'k':rev) + '</div>'
+      + '</div>';
+  });
+  html += '</div><div style="font-size:10px;color:var(--dimmer);line-height:1.55">Based on ' + Math.ceil(20000/price) + ' sales/month at $' + price.toLocaleString() + ' with natural compounding through referrals and content authority. Month 4+ assumes referral engine is active and content is attracting inbound. <strong style="color:var(--white)">Consistency is the only variable you control.</strong></div></div>';
+
+  output.innerHTML = html;
   output.scrollIntoView({behavior:'smooth',block:'start'});
 }
 window.generateOffer=generateOffer;
+
 function renderRules(){document.getElementById('rules-grid').innerHTML=RULES.map(([r,s])=>`<div class="rule"><div class="rule-dot"></div><div><div class="rule-txt">${r}</div><div class="rule-sub">${s}</div></div></div>`).join('')}
 
 function renderTracker(dmsDay,salesGoal){
@@ -1734,7 +2246,7 @@ window.doLogout=function(){alert('Logout requires Firebase integration.');};
 // ====================================================================
 // ADMIN: Add member manually after closing a high-ticket deal
 // ====================================================================
-const ADMIN_EMAIL = 'YOUR_ADMIN_EMAIL@gmail.com'; // ← Change this to your email
+const ADMIN_EMAIL = 'itzevan.se@gmail.com'; // Admin email for in-app panel
 
 window.adminAddMember = async function(){
   const name  = document.getElementById('admin-new-name') ? document.getElementById('admin-new-name').value.trim() : '';
