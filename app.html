@@ -2210,19 +2210,325 @@ function renderRoutineBlocks(){if(!customRoutineBlocks||!customRoutineBlocks.len
 function renderRoutine(){updateRoutineProgress();if(customRoutineBlocks&&customRoutineBlocks.length){document.getElementById('routine-questionnaire').style.display='none';document.getElementById('routine-result').style.display='block';renderRoutineBlocks();}else{document.getElementById('routine-questionnaire').style.display='block';document.getElementById('routine-result').style.display='none';}}
 function toggleRoutine(i){if(routineDone.has(i))routineDone.delete(i);else routineDone.add(i);renderRoutineBlocks();}
 window.enterRoutineEditMode=function(){document.getElementById('routine-questionnaire').style.display='block';document.getElementById('edit-routine-btn').style.display='none';document.getElementById('routine-questionnaire').scrollIntoView({behavior:'smooth',block:'start'});};
-window.generateCustomRoutine=async function(){
-  // Full access — all members can generate their routine
-  const wake=document.getElementById('rq_wake').value,sleep=document.getElementById('rq_sleep').value,job=document.getElementById('rq_job').value,biztime=document.getElementById('rq_biztime').value,weakness=document.getElementById('rq_weakness').value,addiction=document.getElementById('rq_addiction').value,belief=document.getElementById('rq_belief').value.trim()||'I am not sure I can succeed',exercise=document.getElementById('rq_exercise').value,extype=document.getElementById('rq_extype').value,lifegoal=document.getElementById('rq_lifegoal').value.trim()||'Be the best version of myself',identity=document.getElementById('rq_identity').value.trim()||'A disciplined entrepreneur',areas=[...rqAreas].join(', '),target=window._appliedTarget||25000,niche=window._appliedNiche||'Digital Products & Info Business';
-  document.getElementById('gen-routine-btn').style.display='none';document.getElementById('routine-gen-status').style.display='block';
-  try{
-    const response=await fetch('/api/generate-routine',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({wake,sleep,job,biztime,weakness,addiction,belief,exercise,extype,lifegoal,identity,areas,target,niche})});
-    const data=await response.json();if(!response.ok||data.error){throw new Error(data.error||'Generation failed');}
-    customRoutineBlocks=data.blocks;routineDone=new Set();
-    document.getElementById('routine-gen-status').style.display='none';document.getElementById('routine-questionnaire').style.display='none';document.getElementById('routine-result').style.display='block';
-    const banner=document.getElementById('routine-saved-banner');if(banner)banner.style.display='flex';
-    renderRoutineBlocks();document.getElementById('routine-result').scrollIntoView({behavior:'smooth',block:'start'});
-    window.saveRoutineToFirestore&&window.saveRoutineToFirestore({blocks:JSON.stringify(customRoutineBlocks),answers:JSON.stringify({wake,sleep,job,biztime,weakness,addiction,belief,exercise,extype,lifegoal,identity,areas:Array.from(rqAreas)}),savedAt:new Date().toISOString()});
-  }catch(err){document.getElementById('routine-gen-status').innerHTML=`<div style="color:var(--red);font-size:13px;font-weight:700">⚠️ Generation failed.<br><span style="font-size:11px;color:var(--dimmer)">${err&&err.message?err.message:String(err)}</span></div>`;document.getElementById('gen-routine-btn').style.display='block';}
+window.generateCustomRoutine = function() {
+
+  // ── READ ALL FORM VALUES ──────────────────────────────────────
+  const wake     = document.getElementById('rq_wake').value     || '6:30 AM';
+  const sleep    = document.getElementById('rq_sleep').value    || '10:30 PM';
+  const job      = document.getElementById('rq_job').value      || 'Full-time 9–5 (office or remote)';
+  const biztime  = document.getElementById('rq_biztime').value  || '2–3 hours';
+  const weakness = document.getElementById('rq_weakness').value || 'Lack of discipline / procrastination';
+  const addiction= document.getElementById('rq_addiction').value|| 'None currently';
+  const belief   = document.getElementById('rq_belief').value.trim()   || 'I am not sure I can succeed';
+  const exercise = document.getElementById('rq_exercise').value || 'Sometimes — 2–3x per week';
+  const extype   = document.getElementById('rq_extype').value   || 'No preference / open to anything';
+  const lifegoal = document.getElementById('rq_lifegoal').value.trim() || 'Be the best version of myself';
+  const identity = document.getElementById('rq_identity').value.trim() || 'A disciplined, focused entrepreneur';
+  const niche    = window._appliedNiche || 'Digital Products & Info Business';
+  const target   = window._appliedTarget || 25000;
+  const areas    = [...rqAreas];
+
+  document.getElementById('gen-routine-btn').style.display = 'none';
+  document.getElementById('routine-gen-status').style.display = 'block';
+
+  // ── PARSE WAKE TIME INTO MINUTES ─────────────────────────────
+  function timeToMin(t) {
+    const m = t.match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if(!m) return 6*60+30;
+    let h = parseInt(m[1]), mn = parseInt(m[2]);
+    if(m[3].toUpperCase()==='PM' && h!==12) h+=12;
+    if(m[3].toUpperCase()==='AM' && h===12) h=0;
+    return h*60+mn;
+  }
+  function addMin(base, mins) {
+    const total = timeToMin(base) + mins;
+    const h = Math.floor(total/60) % 24, mn = total % 60;
+    const period = h >= 12 ? 'PM' : 'AM';
+    const hh = h > 12 ? h-12 : (h===0?12:h);
+    return hh+':'+(mn<10?'0':'')+mn+' '+period;
+  }
+
+  // ── DETERMINE BIZ BLOCKS ─────────────────────────────────────
+  const hasFullDay   = job.includes('Full-time entrepreneur') || job.includes('Freelancer');
+  const hasPartTime  = job.includes('Part-time') || job.includes('Stay-at-home');
+  const biz1Duration = biztime.includes('1–2') ? 60 : biztime.includes('2–3') ? 90 : biztime.includes('3–5') ? 120 : biztime.includes('5–8') ? 180 : biztime.includes('8+') ? 240 : 90;
+  const biz2Duration = biz1Duration >= 120 ? 90 : 60;
+
+  // ── EXERCISE BLOCK ───────────────────────────────────────────
+  const noExercise   = exercise.includes('sedentary') || exercise.includes('Rarely');
+  const exerciseMins = noExercise ? 20 : 45;
+  const exerciseIcon = extype.includes('Weight') ? '🏋️' : extype.includes('Running') ? '🏃' : extype.includes('Yoga') ? '🧘' : extype.includes('Walking') ? '🚶' : '💪';
+  const exerciseLabel= extype.includes('No pref') ? (noExercise ? 'Light Walk (Build the Habit)' : 'Workout') : extype.split(' ')[0].replace('/','');
+
+  // ── ADDICTION / WEAKNESS ANTIDOTE ───────────────────────────
+  const hasPhoneIssue = weakness.includes('Phone') || addiction.includes('social media');
+  const hasLateScreen = addiction.includes('Late-night');
+  const hasProcras    = weakness.includes('procrastin') || weakness.includes('discipline');
+
+  // ── BUILD BLOCKS ARRAY ───────────────────────────────────────
+  const blocks = [];
+
+  // MORNING
+  blocks.push({ section: '🌅 MORNING POWER BLOCK' });
+
+  blocks.push({
+    time: wake,
+    dur: '5 min',
+    icon: '🙏',
+    title: 'Wake & Declare Your Identity',
+    why: '"' + identity + '" — say it out loud before you touch your phone. Your first thought sets the tone for the entire day.',
+    tag: 'Mindset',
+    tagColor: 'rgba(108,99,255,.15)', tagText: 'var(--purple)', accent: 'var(--purple)'
+  });
+
+  if(hasPhoneIssue) {
+    blocks.push({
+      time: addMin(wake, 5),
+      dur: '2 min',
+      icon: '📵',
+      title: 'Phone Stays Face-Down — First 60 Minutes',
+      why: 'Your biggest weakness is ' + weakness.toLowerCase().split('/')[0].trim() + '. The phone is the trigger. Block it for the first hour. No exceptions.',
+      tag: 'Discipline',
+      tagColor: 'rgba(255,107,107,.12)', tagText: 'var(--red)', accent: 'var(--red)'
+    });
+  }
+
+  blocks.push({
+    time: addMin(wake, hasPhoneIssue ? 7 : 5),
+    dur: '10 min',
+    icon: '🙏',
+    title: areas.includes('spirit') ? 'Prayer & Scripture / Devotional' : 'Morning Gratitude & Intention',
+    why: areas.includes('spirit')
+      ? 'Start with God before you start with the world. A clear spiritual foundation creates the peace and direction that drives everything else.'
+      : 'Write 3 things you\'re grateful for and 1 intention for the day. Sets your mental state for execution.',
+    tag: areas.includes('spirit') ? 'Spirit' : 'Mind',
+    tagColor: 'rgba(78,204,163,.12)', tagText: 'var(--teal)', accent: 'var(--teal)'
+  });
+
+  blocks.push({
+    time: addMin(wake, hasPhoneIssue ? 17 : 15),
+    dur: exerciseMins + ' min',
+    icon: exerciseIcon,
+    title: exerciseLabel + (noExercise ? ' (Starting Easy — Just Show Up)' : ' Session'),
+    why: noExercise
+      ? 'You said you\'re currently sedentary. The goal right now is not fitness — it\'s identity. Showing up every morning for ' + exerciseMins + ' minutes makes you someone who exercises. That\'s the shift.'
+      : 'Physical movement in the morning raises dopamine, clears brain fog, and sets a discipline tone that carries into your business work.',
+    tag: 'Body',
+    tagColor: 'rgba(255,140,66,.12)', tagText: 'var(--orange)', accent: 'var(--orange)'
+  });
+
+  const postExercise = addMin(wake, (hasPhoneIssue ? 17 : 15) + exerciseMins);
+
+  blocks.push({
+    time: postExercise,
+    dur: '15 min',
+    icon: '🚿',
+    title: 'Shower, Dress & Fuel',
+    why: 'Get dressed like you\'re going somewhere important — because you are. Getting ready signals your brain that serious work is coming.',
+    tag: 'Energy',
+    tagColor: 'rgba(255,217,61,.12)', tagText: 'var(--yellow)', accent: 'var(--yellow)'
+  });
+
+  // BUSINESS BLOCK 1
+  const biz1Start = addMin(wake, (hasPhoneIssue ? 17 : 15) + exerciseMins + 15);
+  blocks.push({ section: '💼 BUSINESS EXECUTION BLOCK 1' });
+
+  if(hasProcras) {
+    blocks.push({
+      time: biz1Start,
+      dur: '2 min',
+      icon: '🎯',
+      title: 'Write Your #1 Task Before You Open Anything',
+      why: 'Your weakness is ' + weakness.toLowerCase().split('/')[0].trim() + '. Before you open any app or browser, write your single most important business task for today. This defeats procrastination before it starts.',
+      tag: 'Focus',
+      tagColor: 'rgba(108,99,255,.12)', tagText: 'var(--purple)', accent: 'var(--purple)'
+    });
+  }
+
+  blocks.push({
+    time: hasProcras ? addMin(biz1Start, 2) : biz1Start,
+    dur: biz1Duration + ' min',
+    icon: '📝',
+    title: 'Content Creation — Posts + Reels',
+    why: 'This is your income-generating activity for ' + niche + '. Write your 2 Facebook posts and your Reel scripts first — before DMs, before scrolling, before anything else. Content is the engine.',
+    tag: 'Income',
+    tagColor: 'rgba(78,204,163,.12)', tagText: 'var(--teal)', accent: 'var(--teal)'
+  });
+
+  // If they have a day job, go to work now
+  if(!hasFullDay && !hasPartTime) {
+    blocks.push({ section: '🏢 WORK / DAY JOB' });
+    blocks.push({
+      time: addMin(biz1Start, biz1Duration + (hasProcras?2:0)),
+      dur: '8 hrs',
+      icon: '💼',
+      title: 'Day Job',
+      why: 'Be fully present at work. Do not mix your business hustle with your job hours — respect both. Your business will fund your exit from this.',
+      tag: 'Responsibility',
+      tagColor: 'rgba(255,255,255,.08)', tagText: 'var(--dim)', accent: 'var(--dimmer)'
+    });
+  }
+
+  // MIDDAY (for full-time entrepreneurs or after work)
+  const midStart = hasFullDay
+    ? addMin(biz1Start, biz1Duration + (hasProcras?2:0))
+    : addMin(biz1Start, biz1Duration + (hasProcras?2:0) + 480);
+
+  blocks.push({ section: '⚡ MIDDAY EXECUTION' });
+
+  blocks.push({
+    time: midStart,
+    dur: '60 min',
+    icon: '💬',
+    title: 'DM Outreach — ' + Math.ceil((window._appliedTarget||25000)/(window._appliedPrice||1000)/0.25/0.30/30*3) + ' DMs Minimum',
+    why: 'DMs are your sales engine for ' + niche + '. Send to commenters, group members, and post engagers. Ask a genuine question — never pitch first. This block alone can close deals.',
+    tag: 'Outreach',
+    tagColor: 'rgba(255,217,61,.12)', tagText: 'var(--yellow)', accent: 'var(--yellow)'
+  });
+
+  blocks.push({
+    time: addMin(midStart, 60),
+    dur: '30 min',
+    icon: '🥗',
+    title: 'Real Meal + Complete Rest',
+    why: 'Step away from screens. Eat. Walk. Breathe. Your brain needs real recovery to perform at full capacity in the afternoon block.',
+    tag: 'Recovery',
+    tagColor: 'rgba(255,140,66,.1)', tagText: 'var(--orange)', accent: 'var(--orange)'
+  });
+
+  // AFTERNOON
+  blocks.push({ section: '🔥 AFTERNOON POWER BLOCK' });
+
+  blocks.push({
+    time: addMin(midStart, 90),
+    dur: '30 min',
+    icon: '💬',
+    title: 'Engage & Reply to All Comments',
+    why: 'Reply to every comment on every post within 2 hours of posting. The algorithm rewards engagement velocity — this is free reach amplification.',
+    tag: 'Engagement',
+    tagColor: 'rgba(78,204,163,.1)', tagText: 'var(--teal)', accent: 'var(--teal)'
+  });
+
+  blocks.push({
+    time: addMin(midStart, 120),
+    dur: biz2Duration + ' min',
+    icon: '📞',
+    title: 'Sales Calls + Follow-Ups',
+    why: 'Book and run your discovery calls during this block. Follow up every lead from the past 24 hours. Treat this block as sacred — it is directly tied to your $' + (target).toLocaleString() + '/month target.',
+    tag: 'Revenue',
+    tagColor: 'rgba(255,107,107,.1)', tagText: 'var(--red)', accent: 'var(--red)'
+  });
+
+  if(areas.includes('income')) {
+    blocks.push({
+      time: addMin(midStart, 120 + biz2Duration),
+      dur: '30 min',
+      icon: '📊',
+      title: 'Review Numbers + Track Daily KPIs',
+      why: 'Log your DMs sent, posts made, calls booked, deals closed in your Daily Tracker. What gets measured gets improved. This 30 minutes protects your momentum.',
+      tag: 'Tracking',
+      tagColor: 'rgba(108,99,255,.1)', tagText: 'var(--purple)', accent: 'var(--purple)'
+    });
+  }
+
+  // EVENING
+  blocks.push({ section: '🌙 EVENING RECOVERY BLOCK' });
+
+  if(areas.includes('soul') || areas.includes('body')) {
+    blocks.push({
+      time: addMin(midStart, 150 + biz2Duration + (areas.includes('income')?30:0)),
+      dur: '45 min',
+      icon: '❤️',
+      title: 'Family Time — Phones Away',
+      why: 'Your life goal is: "' + lifegoal + '". Your family or personal relationships are what the income is for. Protect this time. Phone off. Fully present.',
+      tag: 'Soul',
+      tagColor: 'rgba(255,107,107,.08)', tagText: 'var(--red)', accent: 'var(--red)'
+    });
+  }
+
+  blocks.push({
+    time: addMin(timeToMin(sleep)*1 - 90 < 0 ? '8:00 PM' : addMin(sleep, -90), 0),
+    dur: '30 min',
+    icon: '📚',
+    title: 'Read or Learn (1 Business / Self-Development Book)',
+    why: 'The most successful people in ' + niche + ' are lifelong learners. 30 minutes of reading per day = 12+ books per year. This compounds into your expertise and your content.',
+    tag: 'Mind',
+    tagColor: 'rgba(108,99,255,.1)', tagText: 'var(--purple)', accent: 'var(--purple)'
+  });
+
+  if(addiction !== 'None currently') {
+    blocks.push({
+      time: addMin(sleep, -60),
+      dur: '5 min',
+      icon: '🔒',
+      title: 'App Limits ON — ' + addiction + ' Protocol',
+      why: 'You identified "' + addiction + '" as a habit to break. Set app time limits on your phone right now. Willpower fails at night — systems win. This single habit protects your mornings.',
+      tag: 'Discipline',
+      tagColor: 'rgba(255,107,107,.12)', tagText: 'var(--red)', accent: 'var(--red)'
+    });
+  }
+
+  if(areas.includes('spirit')) {
+    blocks.push({
+      time: addMin(sleep, hasLateScreen ? -50 : -45),
+      dur: '10 min',
+      icon: '🙏',
+      title: 'Evening Prayer / Reflection',
+      why: 'End your day with gratitude and surrender. What did you do well today? What would you do differently? Bring it to God. This creates the peace that produces deep sleep and sharp mornings.',
+      tag: 'Spirit',
+      tagColor: 'rgba(78,204,163,.1)', tagText: 'var(--teal)', accent: 'var(--teal)'
+    });
+  }
+
+  blocks.push({
+    time: addMin(sleep, -30),
+    dur: '5 min',
+    icon: '📋',
+    title: 'Tomorrow\'s #1 Task — Write It Down Now',
+    why: 'Write your single most important task for tomorrow before you sleep. Your subconscious will work on it overnight. You\'ll wake up ready — not reactive.',
+    tag: 'Planning',
+    tagColor: 'rgba(255,217,61,.1)', tagText: 'var(--yellow)', accent: 'var(--yellow)'
+  });
+
+  if(hasLateScreen) {
+    blocks.push({
+      time: addMin(sleep, -20),
+      dur: '20 min',
+      icon: '📵',
+      title: 'Screens OFF — Wind Down Protocol',
+      why: 'You identified late-night screen time as a habit to break. Phone charges in another room from ' + addMin(sleep,-20) + '. This protects your sleep quality, which directly affects your focus and discipline tomorrow.',
+      tag: 'Recovery',
+      tagColor: 'rgba(255,107,107,.1)', tagText: 'var(--red)', accent: 'var(--red)'
+    });
+  }
+
+  blocks.push({
+    time: sleep,
+    dur: '7–8 hrs',
+    icon: '😴',
+    title: 'Sleep — Non-Negotiable Recovery',
+    why: 'Sleep is when your brain consolidates learning, repairs your body, and rebuilds discipline. Every great day starts the night before. Protect this.',
+    tag: 'Recovery',
+    tagColor: 'rgba(108,99,255,.08)', tagText: 'var(--purple)', accent: 'var(--purple)'
+  });
+
+  // ── RENDER ────────────────────────────────────────────────────
+  setTimeout(function() {
+    customRoutineBlocks = blocks;
+    routineDone = new Set();
+    document.getElementById('routine-gen-status').style.display = 'none';
+    document.getElementById('routine-questionnaire').style.display = 'none';
+    document.getElementById('routine-result').style.display = 'block';
+    const banner = document.getElementById('routine-saved-banner');
+    if(banner) banner.style.display = 'flex';
+    renderRoutineBlocks();
+    document.getElementById('routine-result').scrollIntoView({behavior:'smooth', block:'start'});
+    window.saveRoutineToFirestore && window.saveRoutineToFirestore({
+      blocks: JSON.stringify(customRoutineBlocks),
+      answers: JSON.stringify({wake,sleep,job,biztime,weakness,addiction,belief,exercise,extype,lifegoal,identity,areas:Array.from(rqAreas)}),
+      savedAt: new Date().toISOString()
+    });
+  }, 600);
 };
 
 // Placeholder for functions that will be overridden by niche patch
