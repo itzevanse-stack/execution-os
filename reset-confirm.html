@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Set New Password — Execution OS</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a1a3e;--bg2:#2c2c54;--card:#3a3a5c;--card2:#2d2d4a;
+  --teal:#4ecca3;--teal2:#3da88a;--yellow:#ffd93d;
+  --red:#ff6b6b;--white:#fff;--muted:#e8e8e8;--dim:#b0b0d0;--dimmer:#6e6e9a;
+  --border:rgba(78,204,163,.2);--border2:rgba(255,255,255,.09);--text-dark:#1a1a2e;
+}
+body{font-family:'Poppins',sans-serif;color:var(--white);background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.card{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:24px;padding:2.5rem 2rem;width:100%;max-width:420px;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--yellow));border-radius:24px 24px 0 0}
+.logo{font-size:13px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--white);text-align:center;margin-bottom:2rem}
+.logo span{color:var(--teal)}
+h1{font-size:22px;font-weight:900;text-align:center;margin-bottom:8px;line-height:1.2}
+.sub{font-size:13px;color:var(--dim);text-align:center;margin-bottom:2rem;line-height:1.6}
+.fl{font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);font-weight:900;margin-bottom:6px;display:block}
+.fi{width:100%;padding:12px 14px;font-size:14px;color:var(--white);background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.1);border-radius:12px;font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s}
+.fi::placeholder{color:rgba(255,255,255,.25)}
+.fi:focus{border-color:var(--teal);background:rgba(78,204,163,.07)}
+.field{margin-bottom:1rem;position:relative}
+.eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--dimmer);user-select:none}
+.eye:hover{color:var(--teal)}
+.strength{height:4px;border-radius:4px;margin-top:6px;background:rgba(255,255,255,.08);overflow:hidden}
+.strength-bar{height:100%;border-radius:4px;width:0%;transition:width .3s,background .3s}
+.strength-label{font-size:10px;color:var(--dimmer);margin-top:4px;font-weight:600}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;margin-top:.5rem;transition:opacity .2s;box-shadow:0 6px 24px rgba(78,204,163,.35)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.msg{display:none;padding:12px 16px;border-radius:10px;font-size:12px;font-weight:700;margin-top:1rem;text-align:center;line-height:1.5}
+.msg.ok{background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.3);color:var(--teal)}
+.msg.err{background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);color:var(--red)}
+.back{display:block;text-align:center;margin-top:1.5rem;font-size:12px;color:var(--dimmer);text-decoration:none;font-weight:600;transition:color .15s}
+.back:hover{color:var(--teal)}
+.invalid-state{text-align:center;padding:1rem 0}
+.invalid-state .icon{font-size:48px;margin-bottom:1rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo"><span>Execution</span> OS</div>
+
+  <!-- Shown while loading -->
+  <div id="loading-state">
+    <h1>Verifying Link…</h1>
+    <p class="sub">Please wait while we verify your reset link.</p>
+  </div>
+
+  <!-- Shown if link is invalid/expired -->
+  <div id="invalid-state" style="display:none">
+    <div class="invalid-state">
+      <div class="icon">⚠️</div>
+      <h1>Link Expired</h1>
+      <p class="sub">This password reset link is invalid or has already been used. Please request a new one.</p>
+    </div>
+    <a href="index.html" class="back">← Request a new reset link</a>
+  </div>
+
+  <!-- Shown when link is valid -->
+  <div id="reset-state" style="display:none">
+    <h1>Set New Password</h1>
+    <p class="sub">Choose a strong password for your account.</p>
+
+    <div class="field">
+      <label class="fl" for="new-password">New Password</label>
+      <input class="fi" type="password" id="new-password" placeholder="Enter new password" oninput="checkStrength(this.value)">
+      <span class="eye" onclick="toggleEye('new-password', this)">👁</span>
+      <div class="strength"><div class="strength-bar" id="strength-bar"></div></div>
+      <div class="strength-label" id="strength-label"></div>
+    </div>
+
+    <div class="field">
+      <label class="fl" for="confirm-password">Confirm Password</label>
+      <input class="fi" type="password" id="confirm-password" placeholder="Confirm new password" onkeydown="if(event.key==='Enter') doReset()">
+      <span class="eye" onclick="toggleEye('confirm-password', this)">👁</span>
+    </div>
+
+    <button class="btn" id="reset-btn" onclick="doReset()">🔒 Reset Password</button>
+    <div class="msg" id="reset-msg"></div>
+  </div>
+
+  <!-- Shown on success -->
+  <div id="success-state" style="display:none">
+    <div class="invalid-state">
+      <div class="icon">✅</div>
+      <h1>Password Reset!</h1>
+      <p class="sub">Your password has been updated successfully. You can now log in with your new password.</p>
+    </div>
+    <a href="index.html" class="back">← Go to Login</a>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }                          from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, verifyPasswordResetCode,
+         confirmPasswordReset }                   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
+  authDomain:        "execution-os-1fbfd.firebaseapp.com",
+  projectId:         "execution-os-1fbfd",
+  storageBucket:     "execution-os-1fbfd.firebasestorage.app",
+  messagingSenderId: "300866558889",
+  appId:             "1:300866558889:web:01a08d92f20332095d42b8"
+};
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// --- Grab oobCode from URL ---
+const params  = new URLSearchParams(window.location.search);
+const oobCode = params.get('oobCode');
+
+const show = (id) => {
+  ['loading-state','invalid-state','reset-state','success-state']
+    .forEach(s => document.getElementById(s).style.display = s === id ? 'block' : 'none');
+};
+
+// --- Verify the code on page load ---
+if (!oobCode) {
+  show('invalid-state');
+} else {
+  verifyPasswordResetCode(auth, oobCode)
+    .then(() => show('reset-state'))
+    .catch(() => show('invalid-state'));
+}
+
+// --- Password strength checker ---
+window.checkStrength = function(val) {
+  const bar   = document.getElementById('strength-bar');
+  const label = document.getElementById('strength-label');
+  let score = 0;
+  if (val.length >= 8)          score++;
+  if (/[A-Z]/.test(val))        score++;
+  if (/[0-9]/.test(val))        score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    { w:'0%',   bg:'transparent', text:'' },
+    { w:'25%',  bg:'#ff6b6b',     text:'Weak' },
+    { w:'50%',  bg:'#ffd93d',     text:'Fair' },
+    { w:'75%',  bg:'#4ecca3',     text:'Good' },
+    { w:'100%', bg:'#4ecca3',     text:'Strong 💪' },
+  ];
+  bar.style.width      = levels[score].w;
+  bar.style.background = levels[score].bg;
+  label.textContent    = levels[score].text;
+};
+
+// --- Toggle password visibility ---
+window.toggleEye = function(id, el) {
+  const input = document.getElementById(id);
+  input.type  = input.type === 'password' ? 'text' : 'password';
+  el.textContent = input.type === 'password' ? '👁' : '🙈';
+};
+
+// --- Submit new password ---
+window.doReset = async function() {
+  const newPass  = document.getElementById('new-password').value;
+  const confPass = document.getElementById('confirm-password').value;
+  const btn      = document.getElementById('reset-btn');
+  const msgEl    = document.getElementById('reset-msg');
+
+  const showMsg = (text, ok) => {
+    msgEl.textContent   = text;
+    msgEl.className     = 'msg ' + (ok ? 'ok' : 'err');
+    msgEl.style.display = 'block';
+  };
+
+  if (!newPass)              { showMsg('Please enter a new password.', false); return; }
+  if (newPass.length < 8)    { showMsg('Password must be at least 8 characters.', false); return; }
+  if (newPass !== confPass)  { showMsg('Passwords do not match.', false); return; }
+
+  btn.textContent = '⏳ Resetting…';
+  btn.disabled    = true;
+
+  try {
+    await confirmPasswordReset(auth, oobCode, newPass);
+    show('success-state');
+  } catch(err) {
+    let msg = 'Something went wrong. Please try again.';
+    if (err.code === 'auth/expired-action-code')  msg = 'This link has expired. Please request a new one.';
+    if (err.code === 'auth/invalid-action-code')  msg = 'This link is invalid or already used.';
+    if (err.code === 'auth/weak-password')         msg = 'Password is too weak. Please choose a stronger one.';
+    showMsg('❌ ' + msg, false);
+  } finally {
+    btn.textContent = '🔒 Reset Password';
+    btn.disabled    = false;
+  }
+};
+</script>
+</body>
+</html>
