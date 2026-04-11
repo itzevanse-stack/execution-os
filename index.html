@@ -1206,8 +1206,12 @@ window.doGoogleAuth=async function(){
 window.doForgotPassword=async function(){
   const email=document.getElementById('login-email').value.trim();
   if(!email){showMsg('Enter your email address first.');return;}
+  const actionCodeSettings = {
+    url: 'https://build.skillslibry.com',
+    handleCodeInApp: false
+  };
   try{
-    await sendPasswordResetEmail(auth,email);
+    await sendPasswordResetEmail(auth,email,actionCodeSettings);
     showMsg('Password reset email sent! Check your inbox.','success');
   } catch(e){
     showMsg('Could not send reset email. Check the address and try again.');
