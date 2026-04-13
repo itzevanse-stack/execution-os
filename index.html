@@ -1274,10 +1274,16 @@ window.doForgot = async () => {
   const email = document.getElementById('lm-em').value.trim();
   if(!email){ lmMsg('Enter your email address above first.'); return; }
   try {
-    await sendPasswordResetEmail(auth, email, { url: window.location.origin });
-    lmMsg('Password reset email sent — check your inbox.', 'success');
+    await sendPasswordResetEmail(auth, email);
+    lmMsg('Password reset email sent — check your inbox (and spam folder).', 'success');
   } catch(e) {
-    lmMsg('Could not send reset email. Check the address and try again.');
+    const msgs = {
+      'auth/user-not-found': 'No account found with that email address.',
+      'auth/invalid-email':  'Please enter a valid email address.',
+      'auth/too-many-requests': 'Too many requests. Please wait a few minutes and try again.'
+    };
+    lmMsg(msgs[e.code] || 'Could not send reset email. Please try again.');
+    console.error('Password reset error:', e.code, e.message);
   }
 };
 
