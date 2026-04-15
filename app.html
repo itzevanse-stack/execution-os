@@ -1093,6 +1093,8 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.5}
           <div style="font-size:11px;color:var(--dimmer);line-height:1.6;padding:10px 12px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px">
             💡 Access to this platform was granted to you directly. If you have any questions or need support, reach out to your coach.
           </div>
+          <button id="reset-pass-btn" onclick="doPasswordReset()" style="width:100%;padding:11px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);color:var(--purple);border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Send Reset Email</button>
+          <div id="reset-pass-msg" style="font-size:11px;text-align:center;display:none;margin-top:-4px"></div>
           <button onclick="doLogout()" style="width:100%;padding:11px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);color:var(--red);border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Sign Out</button>
         </div>
       </div>
@@ -3484,7 +3486,7 @@ window.copyPostScript30 = function(globalIdx) {
 <!-- Firebase Auth + Firestore -->
 <script type="module">
 import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut }
+import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail }
                                from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs }
                                from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -3523,6 +3525,36 @@ const CLOUDINARY_PRESET = 'execution_os_photos';
 let currentUser = null;
 let userDoc     = null;
 
+// Expose logout globally right away so access-denied screen can use it
+window.doLogout = async function() {
+  try { await signOut(auth); } catch(e) {}
+  window.location.href = 'index.html';
+};
+
+// Expose password reset globally
+window.doPasswordReset = async function() {
+  const btn = document.getElementById('reset-pass-btn');
+  const msg = document.getElementById('reset-pass-msg');
+  const email = currentUser && currentUser.email;
+  if (!email) {
+    if(msg){msg.style.color='var(--red)';msg.textContent='⚠️ No email found for your account.';msg.style.display='block';}
+    return;
+  }
+  if(btn){btn.textContent='Sending…';btn.disabled=true;}
+  try {
+    await sendPasswordResetEmail(auth, email);
+    if(msg){msg.style.color='var(--teal)';msg.textContent='✅ Reset email sent to '+email;msg.style.display='block';}
+    if(btn){btn.textContent='Email Sent ✓';}
+    setTimeout(()=>{
+      if(btn){btn.textContent='Send Reset Email';btn.disabled=false;}
+      if(msg)msg.style.display='none';
+    },4000);
+  } catch(e) {
+    if(msg){msg.style.color='var(--red)';msg.textContent='⚠️ '+(e.message||'Failed to send reset email.');msg.style.display='block';}
+    if(btn){btn.textContent='Send Reset Email';btn.disabled=false;}
+  }
+};
+
 // ─── Auth guard ───────────────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -3549,7 +3581,7 @@ onAuthStateChanged(auth, async (user) => {
           <div style="font-size:52px;margin-bottom:1rem">🔒</div>
           <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:10px">Access Not Yet Granted</div>
           <div style="font-size:13px;color:#b0b0d0;line-height:1.65;margin-bottom:1.5rem">Your account (<strong style="color:#fff">${user.email}</strong>) hasn't been added yet. If you've already enrolled, contact your coach to have your access activated.</div>
-          <button onclick="import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(m=>m.signOut(window._auth||auth))" style="padding:12px 24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#b0b0d0;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px" onclick="signOut(auth).then(()=>window.location.href='index.html')">Sign Out</button>
+          <button onclick="window.doLogout()" style="padding:12px 24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#b0b0d0;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Sign Out</button>
         </div>
       </div>`;
     return;
@@ -3596,10 +3628,7 @@ onAuthStateChanged(auth, async (user) => {
   window.saveRoutineToFirestore = async function(payload) {
     try { await updateDoc(doc(db,'users',currentUser.uid),{customRoutine:JSON.stringify(payload)}); } catch(e){}
   };
-  window.doLogout = async function() {
-    await signOut(auth);
-    window.location.href = 'index.html';
-  };
+
   window.saveProfile = async function() {
     if (!currentUser) return;
     const btn = document.getElementById('save-profile-btn');
