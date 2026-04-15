@@ -722,17 +722,35 @@ window.activateUser = async function() {
   btn.disabled = true;
 
   try {
-    // STEP 1 — Grant Firestore access
-    const safeEmail = emailVal.replace(/[^a-z0-9]/g, '-');
-    const memberRef = doc(db, 'members', safeEmail);
-    await setDoc(memberRef, {
-      name:      nameVal || emailVal.split('@')[0],
-      email:     emailVal,
-      grantedAt: new Date().toISOString(),
-      grantedBy: auth.currentUser?.email || 'admin',
-      niche:     '',
-      active:    true
-    }, { merge: true });
+    // STEP 1 — Create Firebase Auth account first
+btn.textContent = '⏳ Creating account…';
+const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!';
+
+try {
+  await createUserWithEmailAndPassword(auth, emailVal, tempPassword);
+} catch(authErr) {
+  // If account already exists, that's fine — still grant Firestore access
+  if (authErr.code !== 'auth/email-already-in-use') {
+    showMsg('❌ Could not create account: ' + authErr.message, false);
+    return;
+  }
+}
+
+// STEP 1b — Grant Firestore access
+const safeEmail = emailVal.replace(/[^a-z0-9]/g, '-');
+const memberRef = doc(db, 'members', safeEmail);
+await setDoc(memberRef, {
+  name:      nameVal || emailVal.split('@')[0],
+  email:     emailVal,
+  grantedAt: new Date().toISOString(),
+  grantedBy: auth.currentUser?.email || 'admin',
+  niche:     '',
+  active:    true
+}, { merge: true });
+
+// STEP 1c — Send password reset so user sets their own password
+btn.textContent = '📧 Sending login email…';
+await sendPasswordResetEmail(auth, emailVal);
 
     // STEP 2 — Send welcome email via Resend
     btn.textContent = '📧 Sending email…';
