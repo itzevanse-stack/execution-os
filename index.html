@@ -1273,17 +1273,40 @@ window.doLogin = async () => {
 window.doForgot = async () => {
   const email = document.getElementById('lm-em').value.trim();
   if(!email){ lmMsg('Enter your email address above first.'); return; }
+
+  /* Show loading state on the forgot link */
+  const forgotLink = document.querySelector('[onclick="doForgot()"]');
+  if(forgotLink){ forgotLink.textContent = 'Sending…'; forgotLink.style.pointerEvents = 'none'; }
+
   try {
+    /* Generate a Firebase password reset link server-side is ideal,
+       but client-side sendPasswordResetEmail is the standard approach.
+       We call it, then ALSO notify via Resend so the user gets a
+       well-designed email from your domain that won't hit spam. */
     await sendPasswordResetEmail(auth, email);
-    lmMsg('Password reset email sent — check your inbox (and spam folder).', 'success');
+
+    /* Fire a Resend notification so user gets a branded email
+       from your domain in addition to Firebase's reset link.
+       Replace RESEND_PROXY_URL with your actual worker endpoint. */
+    try {
+      await fetch('https://resend-proxy.executionos.workers.dev/send-reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+    } catch(_) { /* non-blocking — Firebase reset still sent */ }
+
+    lmMsg('Reset email sent! Check your inbox and spam folder.', 'success');
   } catch(e) {
     const msgs = {
-      'auth/user-not-found': 'No account found with that email address.',
-      'auth/invalid-email':  'Please enter a valid email address.',
-      'auth/too-many-requests': 'Too many requests. Please wait a few minutes and try again.'
+      'auth/user-not-found':    'No account found with that email address.',
+      'auth/invalid-email':     'Please enter a valid email address.',
+      'auth/too-many-requests': 'Too many attempts. Please wait a few minutes.'
     };
     lmMsg(msgs[e.code] || 'Could not send reset email. Please try again.');
     console.error('Password reset error:', e.code, e.message);
+  } finally {
+    if(forgotLink){ forgotLink.textContent = 'Forgot?'; forgotLink.style.pointerEvents = 'auto'; }
   }
 };
 
