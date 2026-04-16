@@ -1108,7 +1108,7 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.5}
           <span style="font-size:24px">👑</span>
           <div>
             <div style="font-size:13px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:.5px">Admin Panel</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:2px">Add members after closing high-ticket deals. They get instant full access.</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px">Add members after closing high-ticket deals. They'll receive an invitation email — your session stays active.</div>
           </div>
         </div>
         <div style="padding:1.5rem">
@@ -2612,43 +2612,80 @@ window.doLogout=function(){
 const ADMIN_EMAIL = 'itzevan.se@gmail.com'; // Admin email for in-app panel
 
 window.adminAddMember = async function(){
-  const name  = document.getElementById('admin-new-name') ? document.getElementById('admin-new-name').value.trim() : '';
+  const name  = document.getElementById('admin-new-name')  ? document.getElementById('admin-new-name').value.trim()  : '';
   const email = document.getElementById('admin-new-email') ? document.getElementById('admin-new-email').value.trim() : '';
   const niche = document.getElementById('admin-new-niche') ? document.getElementById('admin-new-niche').value.trim() : '';
-  const deal  = document.getElementById('admin-new-deal') ? document.getElementById('admin-new-deal').value.trim() : '';
+  const deal  = document.getElementById('admin-new-deal')  ? document.getElementById('admin-new-deal').value.trim()  : '';
   const notes = document.getElementById('admin-new-notes') ? document.getElementById('admin-new-notes').value.trim() : '';
   const statusEl = document.getElementById('admin-add-status');
 
-  if(!email){ if(statusEl)statusEl.textContent='⚠️ Email is required.'; return; }
-  if(!name){  if(statusEl)statusEl.textContent='⚠️ Name is required.'; return; }
+  if(!email){ if(statusEl){ statusEl.style.color='var(--red)'; statusEl.textContent='⚠️ Email is required.'; } return; }
+  if(!name){  if(statusEl){ statusEl.style.color='var(--red)'; statusEl.textContent='⚠️ Name is required.'; }  return; }
 
   if(statusEl){ statusEl.style.color='var(--dimmer)'; statusEl.textContent='Adding member…'; }
 
-  try {
-    // Write to Firestore — the member's account gets created when they first log in via Google/email
-    // We pre-create their profile doc so they have instant full access on first login
-    if(window._db && window._setDoc && window._doc){
-      // Use email as lookup key (sanitised)
-      const safeEmail = email.toLowerCase().replace(/[^a-z0-9]/g,'-');
-      await window._setDoc(window._doc(window._db, 'members', safeEmail), {
-        name, email, niche,
-        dealValue: deal,
-        notes,
-        accessGranted: true,
-        grantedAt: new Date().toISOString(),
-        grantedBy: ADMIN_EMAIL,
-        accessLevel: 'full'
-      });
-      if(statusEl){ statusEl.style.color='var(--teal)'; statusEl.textContent=`✅ ${name} added! They can now log in with ${email}.`; }
-      // Clear form
-      ['admin-new-name','admin-new-email','admin-new-niche','admin-new-deal','admin-new-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-      setTimeout(()=>adminLoadMembers(), 800);
-    } else {
-      if(statusEl){ statusEl.style.color='var(--yellow)'; statusEl.textContent='⚠️ Firebase not connected. Connect Firestore to enable member management.'; }
-    }
-  } catch(e) {
-    if(statusEl){ statusEl.style.color='var(--red)'; statusEl.textContent='❌ Error: ' + (e.message||String(e)); }
+  // ── STEP 1: Write access record to Firestore ──────────────────────────
+  // This is the ONLY auth-related side-effect: a Firestore write.
+  // It does NOT create a Firebase Auth account, does NOT sign anyone in,
+  // and does NOT affect the admin's current session in any way.
+  if(!window._db || !window._setDoc || !window._doc){
+    if(statusEl){ statusEl.style.color='var(--yellow)'; statusEl.textContent='⚠️ Firebase not connected. Connect Firestore to enable member management.'; }
+    return;
   }
+
+  try {
+    const safeEmail = email.toLowerCase().replace(/[^a-z0-9]/g,'-');
+    await window._setDoc(window._doc(window._db, 'members', safeEmail), {
+      name, email, niche,
+      dealValue: deal,
+      notes,
+      accessGranted: true,
+      grantedAt: new Date().toISOString(),
+      grantedBy: ADMIN_EMAIL,
+      accessLevel: 'full'
+    });
+  } catch(e) {
+    if(statusEl){ statusEl.style.color='var(--red)'; statusEl.textContent='❌ Could not save member: ' + (e.message||String(e)); }
+    return;
+  }
+
+  // ── STEP 2: Send an invitation email to the new member ─────────────────
+  // We use sendPasswordResetEmail which Firebase routes as a "set up your
+  // account" email when the user has no password yet.
+  // This call operates on the *target* email only — it never touches the
+  // admin's own auth session.
+  if(statusEl){ statusEl.style.color='var(--dimmer)'; statusEl.textContent='Sending invitation email…'; }
+
+  let emailSent = false;
+  let emailNote = '';
+
+  if(window._sendPasswordResetEmail && window._authInst){
+    try {
+      await window._sendPasswordResetEmail(window._authInst, email);
+      emailSent = true;
+    } catch(emailErr){
+      // auth/user-not-found → user hasn't created their Firebase account yet.
+      // That's fine — they'll do so on first login. We still show success.
+      if(emailErr.code === 'auth/user-not-found'){
+        emailNote = ' Share the platform link with them so they can sign up with this email.';
+      } else {
+        emailNote = ' (Could not send invite email — ' + (emailErr.message||emailErr.code) + ')';
+      }
+    }
+  }
+
+  // ── STEP 3: Show result & tidy up — admin stays exactly where they are ──
+  if(statusEl){
+    statusEl.style.color = 'var(--teal)';
+    statusEl.textContent = emailSent
+      ? `✅ ${name} added! An invitation email has been sent to ${email}.`
+      : `✅ ${name} added!${emailNote}`;
+  }
+
+  ['admin-new-name','admin-new-email','admin-new-niche','admin-new-deal','admin-new-notes']
+    .forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+
+  setTimeout(()=>adminLoadMembers(), 800);
 };
 
 window.adminLoadMembers = async function(){
@@ -3541,7 +3578,7 @@ window.copyPostScript30 = function(globalIdx) {
 <!-- Firebase Auth + Firestore -->
 <script type="module">
 import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail }
+import { getAuth, onAuthStateChanged, signOut, sendPasswordResetEmail, sendSignInLinkToEmail }
                                from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs }
                                from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
@@ -3565,14 +3602,17 @@ const db    = getFirestore(fbApp);
 window._authInst = auth;
 
 // Expose Firestore helpers to non-module scope (for admin functions)
-window._db         = db;
-window._doc        = doc;
-window._setDoc     = setDoc;
-window._getDoc     = getDoc;
-window._updateDoc  = updateDoc;
-window._deleteDoc  = deleteDoc;
-window._collection = collection;
-window._getDocs    = getDocs;
+window._db                   = db;
+window._doc                  = doc;
+window._setDoc               = setDoc;
+window._getDoc               = getDoc;
+window._updateDoc            = updateDoc;
+window._deleteDoc            = deleteDoc;
+window._collection           = collection;
+window._getDocs              = getDocs;
+// Expose auth helpers for admin invite flow (does NOT touch the admin's own session)
+window._sendPasswordResetEmail  = sendPasswordResetEmail;
+window._sendSignInLinkToEmail   = sendSignInLinkToEmail;
 
 // ─── Cloudinary ──────────────────────────────────────────────────────
 const CLOUDINARY_CLOUD  = 'dkjrpsvxv';
