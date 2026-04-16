@@ -1093,9 +1093,9 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.5}
           <div style="font-size:11px;color:var(--dimmer);line-height:1.6;padding:10px 12px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px">
             💡 Access to this platform was granted to you directly. If you have any questions or need support, reach out to your coach.
           </div>
-          <button id="reset-pass-btn" onclick="doPasswordReset()" style="width:100%;padding:11px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);color:var(--purple);border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Send Reset Email</button>
-          <div id="reset-pass-msg" style="font-size:11px;text-align:center;display:none;margin-top:-4px"></div>
           <button onclick="doLogout()" style="width:100%;padding:11px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);color:var(--red);border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Sign Out</button>
+          <button id="reset-pass-btn" onclick="sendResetEmail()" style="width:100%;padding:11px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);color:var(--purple);border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Send Reset Email</button>
+          <div id="reset-pass-msg" style="font-size:11px;text-align:center;display:none;margin-top:-4px;font-weight:600"></div>
         </div>
       </div>
     </div>
@@ -2214,6 +2214,54 @@ function toggleRoutine(i){if(routineDone.has(i))routineDone.delete(i);else routi
 window.enterRoutineEditMode=function(){document.getElementById('routine-questionnaire').style.display='block';document.getElementById('edit-routine-btn').style.display='none';document.getElementById('routine-questionnaire').scrollIntoView({behavior:'smooth',block:'start'});};
 window.generateCustomRoutine = function() {
 
+  // ── VALIDATE REQUIRED TEXT FIELDS ────────────────────────────
+  const required = [
+    { id: 'rq_belief',  label: 'Your biggest limiting belief' },
+    { id: 'rq_lifegoal',label: 'Your #1 life goal right now' },
+    { id: 'rq_identity',label: 'The person you want to become' }
+  ];
+  let missing = [];
+  required.forEach(function(f) {
+    const el = document.getElementById(f.id);
+    if (!el || !el.value.trim()) {
+      missing.push(f.label);
+      if (el) {
+        el.style.borderColor = 'var(--red)';
+        el.style.background  = 'rgba(255,107,107,.07)';
+        el.addEventListener('input', function clear() {
+          if (el.value.trim()) {
+            el.style.borderColor = '';
+            el.style.background  = '';
+            el.removeEventListener('input', clear);
+          }
+        });
+      }
+    }
+  });
+  if (missing.length) {
+    // Show an inline error instead of generating with fake data
+    let errEl = document.getElementById('routine-validation-error');
+    if (!errEl) {
+      errEl = document.createElement('div');
+      errEl.id = 'routine-validation-error';
+      errEl.style.cssText = 'background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.35);border-radius:12px;padding:14px 18px;margin-bottom:1rem;font-size:12px;color:var(--red);font-weight:700;line-height:1.6';
+      const btn = document.getElementById('gen-routine-btn');
+      btn.parentNode.insertBefore(errEl, btn);
+    }
+    errEl.style.display = 'block';
+    errEl.innerHTML = '⚠️ Please fill in the following fields before generating:<br><span style="font-weight:500;color:var(--muted)">' + missing.join('<br>') + '</span>';
+    // Scroll to first empty field
+    const firstEmpty = required.find(function(f){ const el=document.getElementById(f.id); return !el||!el.value.trim(); });
+    if (firstEmpty) {
+      const el = document.getElementById(firstEmpty.id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+  // Clear any previous error
+  const errEl = document.getElementById('routine-validation-error');
+  if (errEl) errEl.style.display = 'none';
+
   // ── READ ALL FORM VALUES ──────────────────────────────────────
   const wake     = document.getElementById('rq_wake').value     || '6:30 AM';
   const sleep    = document.getElementById('rq_sleep').value    || '10:30 PM';
@@ -2221,11 +2269,11 @@ window.generateCustomRoutine = function() {
   const biztime  = document.getElementById('rq_biztime').value  || '2–3 hours';
   const weakness = document.getElementById('rq_weakness').value || 'Lack of discipline / procrastination';
   const addiction= document.getElementById('rq_addiction').value|| 'None currently';
-  const belief   = document.getElementById('rq_belief').value.trim()   || 'I am not sure I can succeed';
+  const belief   = document.getElementById('rq_belief').value.trim();
   const exercise = document.getElementById('rq_exercise').value || 'Sometimes — 2–3x per week';
   const extype   = document.getElementById('rq_extype').value   || 'No preference / open to anything';
-  const lifegoal = document.getElementById('rq_lifegoal').value.trim() || 'Be the best version of myself';
-  const identity = document.getElementById('rq_identity').value.trim() || 'A disciplined, focused entrepreneur';
+  const lifegoal = document.getElementById('rq_lifegoal').value.trim();
+  const identity = document.getElementById('rq_identity').value.trim();
   const niche    = window._appliedNiche || 'Digital Products & Info Business';
   const target   = window._appliedTarget || 25000;
   const areas    = [...rqAreas];
@@ -2549,7 +2597,14 @@ window.refreshCalendar30=function(){if(!window._avatarData){window.showPage('ava
 window.saveCalendarState=async function(){};
 window.saveProfile=function(){const msg=document.getElementById('save-profile-msg');if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}};
 window.uploadProfilePhoto=function(){};
-window.doLogout=function(){alert('Logout requires Firebase integration.');};
+window.doLogout=function(){
+  import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js')
+    .then(function(m){
+      var a=window._authInst;
+      return a ? m.signOut(a) : Promise.resolve();
+    })
+    .finally(function(){ window.location.href='index.html'; });
+};
 
 // ====================================================================
 // ADMIN: Add member manually after closing a high-ticket deal
@@ -3507,6 +3562,7 @@ const ADMIN_EMAIL = 'itzevan.se@gmail.com';
 const fbApp = initializeApp(firebaseConfig);
 const auth  = getAuth(fbApp);
 const db    = getFirestore(fbApp);
+window._authInst = auth;
 
 // Expose Firestore helpers to non-module scope (for admin functions)
 window._db         = db;
@@ -3524,36 +3580,6 @@ const CLOUDINARY_PRESET = 'execution_os_photos';
 
 let currentUser = null;
 let userDoc     = null;
-
-// Expose logout globally right away so access-denied screen can use it
-window.doLogout = async function() {
-  try { await signOut(auth); } catch(e) {}
-  window.location.href = 'index.html';
-};
-
-// Expose password reset globally
-window.doPasswordReset = async function() {
-  const btn = document.getElementById('reset-pass-btn');
-  const msg = document.getElementById('reset-pass-msg');
-  const email = currentUser && currentUser.email;
-  if (!email) {
-    if(msg){msg.style.color='var(--red)';msg.textContent='⚠️ No email found for your account.';msg.style.display='block';}
-    return;
-  }
-  if(btn){btn.textContent='Sending…';btn.disabled=true;}
-  try {
-    await sendPasswordResetEmail(auth, email);
-    if(msg){msg.style.color='var(--teal)';msg.textContent='✅ Reset email sent to '+email;msg.style.display='block';}
-    if(btn){btn.textContent='Email Sent ✓';}
-    setTimeout(()=>{
-      if(btn){btn.textContent='Send Reset Email';btn.disabled=false;}
-      if(msg)msg.style.display='none';
-    },4000);
-  } catch(e) {
-    if(msg){msg.style.color='var(--red)';msg.textContent='⚠️ '+(e.message||'Failed to send reset email.');msg.style.display='block';}
-    if(btn){btn.textContent='Send Reset Email';btn.disabled=false;}
-  }
-};
 
 // ─── Auth guard ───────────────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
@@ -3628,7 +3654,24 @@ onAuthStateChanged(auth, async (user) => {
   window.saveRoutineToFirestore = async function(payload) {
     try { await updateDoc(doc(db,'users',currentUser.uid),{customRoutine:JSON.stringify(payload)}); } catch(e){}
   };
-
+  window.doLogout = async function() {
+    try { await signOut(auth); } catch(e) {}
+    window.location.href = 'index.html';
+  };
+  window.sendResetEmail = async function() {
+    if (!currentUser) return;
+    const btn = document.getElementById('reset-pass-btn');
+    const msg = document.getElementById('reset-pass-msg');
+    if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
+    try {
+      await sendPasswordResetEmail(auth, currentUser.email);
+      if (msg) { msg.style.color='var(--teal)'; msg.textContent='✅ Reset email sent! Check your inbox.'; msg.style.display='block'; }
+    } catch(e) {
+      if (msg) { msg.style.color='var(--red)'; msg.textContent='⚠️ Failed to send. Please try again.'; msg.style.display='block'; }
+    }
+    if (btn) { btn.textContent='Send Reset Email'; btn.disabled=false; }
+    setTimeout(()=>{ if(msg) msg.style.display='none'; }, 4000);
+  };
   window.saveProfile = async function() {
     if (!currentUser) return;
     const btn = document.getElementById('save-profile-btn');
