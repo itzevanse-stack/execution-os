@@ -3130,6 +3130,8 @@ function generateAvatar(){
   const influences=document.getElementById('av_influences').value||'Online communities.';
   const objections=document.getElementById('av_objections').value||'I don\'t have time.';
   const pains=(window._nichePains||[]).filter((_,i)=>selectedPains.has(i));
+  const pain=pains[0]||'feeling stuck';
+  const incFmt='$'+Number(incomeGoal).toLocaleString();
   const initials=name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()||'IC';
   const niche=window._appliedNiche||'your niche';
   const nc = (window.NICHE_CONFIG&&window.NICHE_CONFIG[niche]&&window.NICHE_CONFIG[niche].content)||{hooks:["If you're struggling — this is for you.","The truth that changes everything.","3 things that separate people who succeed from those who don't.","How to go from stuck to thriving in 30 days.","The one shift that makes everything else easier."],audience_type:'your audience'};
@@ -4353,460 +4355,2439 @@ function get30DayPlan(av, nc) {
 }
 
 function buildFB1(bp, d, phase, js, pain, motiv, transf, tried, aud, income, offerName, price, cta, niche) {
-  const hookLine = bp.hook;
-  const topicLine = bp.topic;
-  return `📝 FACEBOOK POST 1 — Day ${d} | Topic: ${topicLine}
+  const fmt = (d - 1) % 7;
+  const h = bp.hook;
+  const t = bp.topic;
+  const ft = bp.fb1Type;
+
+  const posts = [
+
+    // FORMAT 0 — The Story Drop (Connection + Authority)
+    `📝 FACEBOOK POST 1 — Day ${d} · ${ft}
+Purpose: Build trust through raw, personal narrative
 Phase: ${phase}
 
-${hookLine}
+${h}
 
-${d <= 7 ? `Let me be direct with you about something.
+I want to share the exact moment I understood why ${pain} keeps derailing ${aud} — because I lived it.
 
-I know what it's like to be a ${js} dealing with ${pain}. I've been exactly where you are right now — trying ${tried}, doing what everyone said to do, and still not seeing the results I wanted.
+Before I figured out ${t}, I was doing everything "right." Posting. Learning. Trying ${tried}. Working longer hours than made sense.
 
-The moment things changed for me wasn't when I found a new strategy or worked harder. It was when I stopped looking at the symptoms and started looking at the root cause.
+And I was barely moving.
 
-That root cause, in almost every case I've seen, is this: ${bp.fb1Type.toLowerCase().replace('post','').trim()}.
+The shift wasn't a new tactic. It wasn't a hack. It was one honest insight about ${t} that I'd been blind to the entire time.
 
-This month, I'm sharing everything — publicly, without filters. Every lesson, every framework, every mistake I've seen derail ${aud} who deserved better results.
+Here's what changed when I applied it:
 
-If you're a ${js} who's tired of being where you are — follow along. Day ${d} of 30. This is just the beginning.
+→ The daily frustration of ${pain} finally had a real cause I could act on — not just a feeling
+→ My energy stopped leaking into things that couldn't produce ${transf}
+→ For the first time, ${motiv} felt like a direction, not just a wish
 
-💬 Tell me in the comments: how long have you been dealing with ${pain}? I read every single reply.` :
-d <= 14 ? `Here's what I don't see people talking about enough.
+I'm sharing everything this month — publicly, without filters. 30 days of real content for ${aud} who are done spinning their wheels.
 
-Most ${aud} spend their time trying to fix the wrong thing. They work on ${pain} by doing more of what already hasn't worked — because nobody showed them where the actual problem is.
+If that's you — follow along. Today is Day ${d}.
 
-Today I want to address ${topicLine.toLowerCase()} directly.
+💬 How long have you been dealing with ${pain}? Drop your answer below. I read every reply.
+👉 Tag a ${js} friend who needs to see this.`,
 
-The truth is: ${bp.fb1Type}.
+    // FORMAT 1 — The List Bomb (Value + Shareability)
+    `📝 FACEBOOK POST 1 — Day ${d} · ${ft}
+Purpose: Drive saves and shares through concentrated value
+Phase: ${phase}
 
-Here's what that means practically:
+${h}
 
-Step 1: Recognise that the approach, not the effort, is the variable you can actually change
-Step 2: Build your actions around ${transf} specifically — not a generic version of it
-Step 3: Measure the right leading indicators, not just the lagging results
+7 truths about ${t} that most ${aud} learn too late:
 
-The ${aud} who get to ${motiv} consistently aren't more talented. They're more aligned with what actually produces the result.
+1️⃣ ${pain} is a direction problem, not an effort problem. You're working hard in the wrong gear.
 
-📌 Save this. When you feel stuck next week, come back to it.
+2️⃣ ${tried} didn't fail because you did it wrong. It failed because it was never built to solve the root cause.
 
-💬 What's been your biggest obstacle with ${pain}? Drop it below — I'll give you a specific action in the replies.` :
-d <= 21 ? `Real talk — day ${d} of 30.
+3️⃣ Every ${js} who reaches ${motiv} has one thing in common: they stopped treating ${t} as background noise and made it their main lever.
 
-I want to share something that happened recently with someone I've been working with.
+4️⃣ Your income ceiling is directly set by your clarity ceiling on ${t}. Raise one, you raise both.
 
-They came to me exactly where many of you are. Dealing with ${pain}. Had tried ${tried}. Was questioning everything.
+5️⃣ Consistency applied to the wrong system produces consistent frustration — not results.
 
-What changed wasn't one dramatic moment. It was the consistent application of the right approach to ${topicLine.toLowerCase()}.
+6️⃣ The ${js}s who reach ${transf} fastest aren't the most talented. They're the most aligned — daily actions pointing directly at the real goal.
 
-In their words: "I finally feel like I'm doing the right things, not just more things."
+7️⃣ The fear of choosing wrong keeps more people stuck than making a bad choice and adjusting ever could.
 
-Today's insight on ${topicLine}: ${bp.fb1Type}.
+Which one stings the most? That's the one worth sitting with today.
 
-The common thread I see across everyone who reaches ${transf}? They stopped asking "am I working hard enough?" and started asking "am I working on the right thing?"
+📌 Screenshot this. Read it every Monday.
 
-That shift — from effort to alignment — is everything.
+💬 Drop the number below that hits closest to home. I'll give you a specific action on it in the replies.`,
 
-💬 Where are you in this process right now? Be honest. The replies are a safe space and I'll respond to every single one.` :
-`Day ${d} — and I want to say something directly.
+    // FORMAT 2 — The Myth Buster (Attention + Credibility)
+    `📝 FACEBOOK POST 1 — Day ${d} · ${ft}
+Purpose: Disrupt false beliefs, establish authority
+Phase: ${phase}
 
-If you've been reading these posts for ${d <= 28 ? 'the past few weeks' : 'the whole month'} and haven't taken action yet — this post is for you.
+${h}
 
-Not to pressure you. To give you one last honest perspective before the month closes.
+The belief keeping most ${aud} stuck isn't laziness or lack of information.
 
-The cost of staying in ${pain} for another month is not zero. It's the income you didn't earn. The time you spent frustrated. The gap between where you are and ${motiv} that keeps widening.
+It's this:
 
-${bp.fb1Type}.
+"If I just work harder, ${pain} will eventually go away."
 
-I've worked with enough ${aud} to know: the difference between the people who get to ${transf} and the people who don't isn't intelligence, privilege, or timing.
+That's the myth. Here's the reality: ${pain} is a direction problem. Working harder on a misaligned approach doesn't solve it — it just produces more exhausted, frustrated effort.
 
-It's the decision to stop waiting for the perfect moment and to start with the moment you have.
+The truth about ${t} that most people miss:
 
-${d === 30 ? `This is the final post of this month's series. Thank you for following along. If you want to take the next step — you know where to find me.` : `If that decision is ready to be made — I have ${d >= 28 ? 'very few' : 'a limited number of'} spots left this month. Reply or DM me and let's talk.`}
+❌ Myth: "I haven't tried ${tried} hard enough."
+✅ Reality: ${tried} was never the right tool for this problem. Effort doesn't fix a strategy mismatch.
 
-💬 What would ${motiv} actually make possible in your life? Tell me below.`}`;
+❌ Myth: "Other ${js}s have something I don't — a connection, a platform, a background."
+✅ Reality: They understand ${t} at a level you haven't been shown yet. That's a knowledge gap. Knowledge gaps are fixable.
+
+❌ Myth: "I need to do MORE."
+✅ Reality: You need to do the RIGHT things with the effort you already have.
+
+The day you stop pushing harder and start pointing straighter is the day ${transf} becomes a timeline, not a wish.
+
+📌 Save this. Share it with a ${js} who's grinding without results.
+
+💬 Which myth have you believed the longest? Honest answers only — I've believed all three at some point.`,
+
+    // FORMAT 3 — The Before/After Contrast (Proof + Desire)
+    `📝 FACEBOOK POST 1 — Day ${d} · ${ft}
+Purpose: Make the transformation feel real and achievable
+Phase: ${phase}
+
+${h}
+
+Two pictures. Tell me which one is familiar.
+
+━━ BEFORE ━━
+→ A ${js} dealing with ${pain} every single day
+→ Tried ${tried} — some movement, never enough, never consistent
+→ Feeling like everyone else has figured something out that just isn't clicking
+→ Wondering if ${motiv} is even possible for someone in their specific position
+→ Working harder than they should have to for results that keep receding
+
+━━ AFTER ━━
+→ That same ${js}, 90 days later
+→ ${transf} — not perfect, but real and building
+→ A daily approach aligned with the actual goal, not just busy work
+→ ${pain} still present sometimes, but understood, not controlling
+→ ${motiv} no longer a question mark — a trajectory
+
+The bridge between those two pictures?
+
+Not a secret. Not luck. Not some unfair advantage.
+
+Understanding ${t} at the level that changes how you act every day.
+
+That understanding is available to you. Right now. In this month's content.
+
+Day ${d} of 30.
+
+💬 Which "before" bullet is most painfully accurate right now? Drop the arrow below. I'm not here to judge — I'm here to show you what comes next.`,
+
+    // FORMAT 4 — The Hard Question (Engagement + Introspection)
+    `📝 FACEBOOK POST 1 — Day ${d} · ${ft}
+Purpose: Create deep engagement through uncomfortable honesty
+Phase: ${phase}
+
+${h}
+
+I want to ask you something uncomfortable.
+
+If you keep doing exactly what you're doing right now — same approach, same daily habits, same level of clarity on ${t} — where will you be in 12 months?
+
+Not vaguely. Specifically.
+
+Will ${pain} still be a daily reality?
+Will ${motiv} feel closer, or further away?
+Will ${transf} have happened — or will you be in the same internal conversation you're having today?
+
+I ask this not to shake you. I ask because every ${aud} who broke through this did so the moment they answered that question honestly.
+
+Because the honest answer reveals something important:
+
+If the trajectory hasn't changed — the result is predictable.
+And if the predictable result is one you don't want — then something has to change now.
+
+${t} is where the change starts. Not someday. This month.
+
+Here's the one action that moves the needle most in the next 7 days for ${aud} in your position:
+
+[Replace this bracket with your specific method — the cleaner and more direct, the more this post converts]
+
+The question is never "can I do this?"
+
+The question is always "will I?"
+
+💬 Write your honest 12-month projection in the comments. No editing for positivity. Just the truth — and I'll respond personally to every single one.`,
+
+    // FORMAT 5 — The Contrarian Take (Virality + Thought Leadership)
+    `📝 FACEBOOK POST 1 — Day ${d} · ${ft}
+Purpose: Spark debate, earn shares, establish a distinct voice
+Phase: ${phase}
+
+${h}
+
+Unpopular opinion: 90% of advice being given to ${aud} right now is actively making ${pain} worse.
+
+Here's why.
+
+The standard advice track goes: "Stay consistent. Post every day. Show up. Trust the process."
+
+That's not wrong. It's just painfully incomplete — and incomplete advice applied to the wrong problem produces more of the same frustration you're already running on.
+
+The real conversation nobody in the ${niche} space wants to have:
+
+Most ${js}s dealing with ${pain} don't have a consistency problem.
+
+They have a ${t} problem.
+
+They are being perfectly consistent — at the wrong things.
+
+The motivational accounts, the $10k/month screenshots, the "just believe in yourself" content — they give you energy for the day. What they don't give you:
+
+✦ Why ${pain} is specifically happening in your situation (not the generic version)
+✦ Why ${tried} didn't work — not because you failed, but because it was the wrong intervention
+✦ The actual mechanism behind ${transf} — which is almost never what it looks like from the outside
+
+This is why I post differently.
+
+Not inspiration. Precision.
+
+If you want the specific, honest, niche-free version of what it actually takes to go from ${pain} to ${motiv} — follow along this month.
+
+💬 What's the most useless piece of advice you've been given about ${pain}? I want to build a wall of shame in the comments.`,
+
+    // FORMAT 6 — The Framework Reveal (Value + Lead Generation)
+    `📝 FACEBOOK POST 1 — Day ${d} · ${ft}
+Purpose: Teach a usable system, generate DMs and saves
+Phase: ${phase}
+
+${h}
+
+Here's the exact 3-layer framework I use with ${aud} to move from ${pain} to ${transf}:
+
+🔷 LAYER 1 — CLARITY (the step everyone skips)
+Get specific about the exact version of ${pain} you're dealing with. Not the label — the mechanism. Where does it show up? When? What daily action does it prevent or distort? You can't solve a problem you haven't precisely defined.
+
+🔷 LAYER 2 — ALIGNMENT (the step that multiplies effort)
+Every single daily action needs a direct line to ${transf}. Not a vague connection — a specific, testable one. "I'm doing X because it directly produces Y which leads to Z." If you can't complete that sentence for your main activities — you have an alignment problem, not an effort problem.
+
+🔷 LAYER 3 — FEEDBACK LOOPS (the step that locks in momentum)
+Build simple weekly metrics that tell you if you're moving in the right direction. Not just outcome metrics (income, followers) — input metrics. Posts published. DMs sent. Offers made. Inputs predict outputs before the outputs appear.
+
+Apply all three layers to ${t} and ${motiv} stops being a hope.
+
+It becomes a system.
+
+📌 Save this. Apply Layer 1 today — just that one step will change how you see the next 30 days.
+👉 Share this with one ${js} who needs a framework instead of motivation.
+
+💬 Which layer are you missing most right now? Drop 1, 2, or 3 below — I'll respond with a specific action for it.
+[${cta} link in first comment]`
+  ];
+
+  return posts[fmt];
 }
 
 function buildFB2(bp, d, phase, js, pain, motiv, transf, aud, offerName, price, cta) {
-  return `📝 FACEBOOK POST 2 — Day ${d} | ${bp.fb2Type}
+  const fmt = (d + 2) % 7; // Offset from FB1 so the same format never repeats on the same day
+  const h = bp.hook;
+  const t = bp.topic;
+  const ft2 = bp.fb2Type;
+
+  const posts = [
+
+    // FORMAT 0 — The Step-by-Step Process (Actionability)
+    `📝 FACEBOOK POST 2 — Day ${d} · ${ft2}
+Purpose: Give step-by-step value that drives saves
 Phase: ${phase}
 
-${bp.fb2Type} — here's the full breakdown.
+Here's exactly how I approach ${t} — the process I follow every single time.
 
-Most ${aud} approaching ${pain} focus on the visible problem. But the visible problem is almost always a symptom of something deeper.
+Most ${aud} make this harder than it needs to be because they're skipping Step 1. And Step 1 is everything.
 
-Today's specific topic: ${bp.topic}
+STEP 1 — Define the specific outcome, not the general goal
+"I want ${transf}" is not specific enough to act on. "I want to [precise measurable version of ${transf}] by [date] by doing [specific action] every [frequency]" is a target. Start here.
 
-Here's the framework I use to address this:
+STEP 2 — Audit your current approach against the target
+For every major action you take daily: does it directly create the specific outcome from Step 1? If the answer requires more than one logical step to connect — cut it or push it to later.
 
-🔑 PRINCIPLE 1: Understand the mechanism, not just the method
-${pain} persists when people apply methods without understanding why those methods work. When you understand the mechanism, you can adapt and problem-solve instead of just following steps.
+STEP 3 — Remove one thing before adding one thing
+Every ${js} I've worked with has too much on their plate, not too little. Before you add a new approach to ${t}, identify one low-leverage activity to remove. The goal is not more — it's better directed.
 
-🔑 PRINCIPLE 2: Align your daily actions with your actual goal
-Every day you spend on activities that don't directly move you toward ${transf} is a day that compounds in the wrong direction. The question isn't "am I busy?" — it's "am I busy with the right things?"
+STEP 4 — Execute for 14 days before evaluating
+The single most common mistake: changing course before the current approach has had time to produce data. Run the adjusted approach for exactly 14 days. Measure the inputs daily. Evaluate on Day 14 only.
 
-🔑 PRINCIPLE 3: Measure what matters
-Most ${aud} measure results. The ones who reach ${motiv} measure the inputs that create results. Posts published. DMs sent. Calls held. Offers made. These are the numbers that predict the outcome.
+STEP 5 — Amplify what's working, cut what isn't
+Not based on what feels good. Based on the input data from Step 4. This is where ${aud} start to diverge — the ones who use data move forward, the ones who use feelings loop back to Step 1.
 
-The difference between where you are now and ${transf}:
-→ It's not a talent gap
-→ It's not a timing gap
-→ It's a framework gap — and that's the most fixable kind
+📌 This is the exact process. Save it. Use it.
 
-📌 Save this post. Share it with someone who needs to hear this today.
+💬 Where are you getting stuck in this sequence? Drop the step number — I'll troubleshoot it with you in the comments.`,
 
-💬 Which of these 3 principles is your weakest right now? Reply below and I'll give you a specific fix for it.
+    // FORMAT 1 — The Mistake List (Engagement + Empathy)
+    `📝 FACEBOOK POST 2 — Day ${d} · ${ft2}
+Purpose: Create recognition, drive comments and shares
+Phase: ${phase}
 
-[YOUR CTA: Link to ${cta} in comments]`;
+The 5 mistakes I see ${aud} make with ${t} — and why they're almost invisible until someone points them out:
+
+MISTAKE 1: Treating ${pain} as the problem instead of the symptom
+${pain} is the output. The input — the cause — is almost always something one level deeper. Most people attack the output endlessly without ever touching the cause.
+
+MISTAKE 2: Copying what works for others without understanding why it works
+Tactics transfer. Principles transfer universally. When you copy a tactic without the underlying principle, you get unpredictable results and no idea why.
+
+MISTAKE 3: Measuring results before measuring inputs
+You can't control your results. You can control your inputs. ${aud} who track what they do daily — not just what they earn — improve 3x faster because they know what to adjust.
+
+MISTAKE 4: Waiting for clarity before taking action
+Clarity comes from action, not from thinking about action. Every ${js} who reached ${transf} did so with incomplete information. They course-corrected mid-flight.
+
+MISTAKE 5: Treating ${motiv} as the goal instead of the by-product
+${motiv} is not a goal. It's the consequence of solving the right problems in the right sequence. Focus on the sequence. The outcome follows.
+
+Which of these 5 is showing up most in your current approach?
+
+📌 Save this. Share it with a ${js} who's been spinning their wheels.
+
+💬 Honest answers in the comments — which mistake are you making right now? I'll give you a specific fix in the replies.`,
+
+    // FORMAT 2 — The Comparison Post (Clarity + Viral potential)
+    `📝 FACEBOOK POST 2 — Day ${d} · ${ft2}
+Purpose: Crystallise the contrast between stuck and moving
+Phase: ${phase}
+
+The difference between ${aud} who reach ${transf} and those who stay stuck with ${pain}:
+
+It's rarely talent. Rarely resources. Rarely timing.
+
+Here's what it actually is:
+
+${aud} who STAY STUCK on ${pain}:
+→ Focus on symptoms, not cause
+→ Keep adding more activity hoping volume fixes direction
+→ Measure results but not inputs — so they can't diagnose the problem
+→ Change strategy every 4 weeks before anything has time to compound
+→ Treat ${motiv} as a mystery that happens to other people
+→ Spend more time consuming content about ${t} than applying it
+
+${aud} who BREAK THROUGH to ${transf}:
+→ Identify the root cause of ${pain} before touching tactics
+→ Eliminate misaligned activity before adding new activity
+→ Track the specific inputs that predict the result they want
+→ Pick a direction and execute for 30–60 days minimum before evaluating
+→ Treat ${motiv} as the predictable output of a working system
+→ Apply one thing at a time until it either works or proves it won't
+
+The gap isn't size of effort.
+It's direction of effort.
+
+And direction is something you can change today.
+
+📌 Honest question: which list sounds more like your current approach?
+
+💬 Reply below — "STUCK" or "MOVING" — and I'll send you a specific next step in the comments based on where you are.`,
+
+    // FORMAT 3 — The Quick Win (Immediate value, builds goodwill)
+    `📝 FACEBOOK POST 2 — Day ${d} · ${ft2}
+Purpose: Deliver immediate actionable value
+Phase: ${phase}
+
+One thing you can do today — in the next 60 minutes — that will directly move you toward ${transf}:
+
+It's about ${t}.
+
+Here's the specific action:
+
+Take the biggest daily activity you do related to ${pain}. Write it down.
+
+Now ask: "Does this activity, on its own, produce a measurable step toward ${transf}?"
+
+If the answer requires more than two logical steps to connect the activity to the result — that activity is probably the thing that's draining your energy without moving your outcome.
+
+Now write the one activity that would most directly produce ${transf} if you did it consistently.
+
+Is that the activity you're spending the most time on?
+
+For most ${aud} I work with — the honest answer is no.
+
+The gap between your most common daily activity and your most impactful daily activity is where ${pain} lives.
+
+Closing that gap is the entire game.
+
+Today's assignment — you have 60 minutes:
+1. Write your current most common daily activity
+2. Write your highest-leverage daily activity toward ${transf}
+3. Find ONE thing to remove from bucket 1 to make room for more of bucket 2
+
+That's it. That's the move.
+
+💬 Drop what you discovered in the comments — I'll help you pressure-test the logic in the replies.`,
+
+    // FORMAT 4 — The Mindset Reframe (Depth + Shareability)
+    `📝 FACEBOOK POST 2 — Day ${d} · ${ft2}
+Purpose: Shift perspective at a deep level — builds relationship
+Phase: ${phase}
+
+This is going to reframe how you see ${pain} — and once you see it this way, you can't unsee it.
+
+${pain} is not a problem to solve.
+
+It's feedback to decode.
+
+Here's what I mean:
+
+Every time ${pain} shows up — in your content, your sales, your confidence, your income — it's pointing at one specific thing in your system that's misaligned with ${transf}.
+
+It's not random. It's diagnostic.
+
+Most ${aud} treat it as a judgment ("something is wrong with me") instead of data ("something is misaligned in my approach").
+
+That single reframe changes everything.
+
+Because once ${pain} is feedback instead of failure, you stop fighting it and start reading it.
+
+And once you start reading it, you see ${t} in a completely different light.
+
+${t} is not the topic of today's post.
+
+It's the answer ${pain} has been pointing at all along.
+
+The ${js}s who reach ${motiv} consistently — they're not smarter or luckier. They learned to read the feedback instead of resenting it.
+
+That's what this month is teaching.
+
+📌 Save this perspective. Come back to it the next time ${pain} shows up.
+
+💬 What has ${pain} been trying to tell you that you've been ignoring? Be honest below — the answer is usually already visible if you look.`,
+
+    // FORMAT 5 — The Case Study + Lesson (Social Proof + Teaching)
+    `📝 FACEBOOK POST 2 — Day ${d} · ${ft2}
+Purpose: Build credibility through specific proof
+Phase: ${phase}
+
+I want to share a specific example — because this one illustrates ${t} better than any theory.
+
+A ${js} came to me dealing with exactly the version of ${pain} most of you recognise: real effort, genuine commitment, but results that refused to match the input.
+
+They'd tried ${tried}. They'd been consistent. They genuinely deserved better than what they were getting.
+
+What we found when we dug into the actual daily actions:
+
+The majority of their effort was going toward things that felt productive but didn't directly produce ${transf}. Busy work dressed as strategy.
+
+Two changes:
+
+1. Identified the one daily action most directly connected to ${transf}
+2. Protected 90 minutes per day specifically for that action before anything else
+
+6 weeks later: the results they'd been chasing for months started to appear — not because they worked more, but because the work they were already doing was finally aligned.
+
+This is what ${t} looks like applied.
+
+The insight isn't new. But most ${aud} never see it applied to their specific situation — which is why it feels like theory until it doesn't.
+
+Want to know what that one highest-leverage action was for their specific niche?
+
+💬 Drop your niche or situation in the comments and I'll tell you what I'd look at first for your specific context.`,
+
+    // FORMAT 6 — The Practical Checklist (Saves + Actionability)
+    `📝 FACEBOOK POST 2 — Day ${d} · ${ft2}
+Purpose: Generate saves and direct applications
+Phase: ${phase}
+
+Quick audit: how many of these are true for you right now?
+
+☐ I know the single daily action most directly connected to ${transf}
+☐ More than 60% of my work time goes toward that action
+☐ I can clearly explain why each of my daily activities produces a specific result
+☐ I've been running the same core approach for at least 30 days without changing it
+☐ I measure input metrics (actions taken) at least as often as outcome metrics (results)
+☐ I've specifically addressed ${t} in my system — not generically, but for my exact situation
+☐ I know the precise root cause of ${pain} in my case — not the general explanation
+
+If you checked 5 or more: you're aligned. The work is about execution and patience.
+
+If you checked 3–4: you have clarity in some areas. Find the unchecked boxes — those are your highest-leverage gaps right now.
+
+If you checked 2 or fewer: you're not stuck because you lack effort. You're stuck because the foundation needs work before more action helps. That foundation starts with ${t}.
+
+The good news: every single box above is buildable. None of them require talent, connections, or perfect timing.
+
+They require honesty and a willingness to change one thing at a time.
+
+📌 Screenshot this. Use it as your weekly audit — every Sunday, go through the list.
+
+💬 How many did you check? Reply with your number — no shame in any answer. That's where we start.`
+  ];
+
+  return posts[fmt];
 }
 
 function buildReel1(bp, d, js, pain, motiv, transf, aud, offerName, niche) {
-  return `🎬 REEL SCRIPT 1 — Day ${d} | ${bp.reel1Style.toUpperCase()}
-FORMAT: Face to camera, 30–45 seconds, high energy
-PLATFORM: Instagram Reels + Facebook Reels
-POST AT: 9am–11am for maximum reach
+  const fmt = (d - 1) % 5;
+  const h = bp.hook;
+  const t = bp.topic;
+  const rs = bp.reel1Style;
 
-HOOK (first 3 seconds — say this AND show on screen):
-"${bp.hook}"
+  const reels = [
 
-FULL SCRIPT:
-[Open strong — look directly at camera, no smile yet, serious tone]
+    // FORMAT 0 — The Bold Challenge Reel (stops scroll cold)
+    `🎬 REEL SCRIPT 1 — Day ${d} | BOLD STATEMENT OPENER
+Format: Face to camera, 30–45 sec, high energy
+Platform: Instagram Reels + Facebook Reels
+Post at: 9–11am for maximum reach
 
-"${bp.hook}
+━━ HOOK (say this AND show on screen, first 2 seconds) ━━
+"${h}"
 
-[Pause 1 second]
+━━ FULL SCRIPT ━━
+[Open direct to camera. No smile. High energy, serious.]
 
-If you're a ${js} and you're dealing with ${pain} — I need you to hear this.
+"${h}
 
-The reason it's not working isn't what you think.
+[1-second pause]
 
-It's not that you're not smart enough. It's not that you don't work hard enough.
+If you're a ${js} dealing with ${pain} — this is specifically for you.
 
-It's that ${bp.topic.toLowerCase()} is the real variable — and almost nobody is addressing it directly.
+The reason it's not moving isn't what most people tell you.
 
-[Step slightly closer to camera]
+It's not effort. It's not consistency. It's not even your niche.
 
-Here's what I mean: [give one specific, concrete sentence about the topic that immediately adds value]
+It's ${t}.
 
-When you understand this, everything else starts to make sense.
+Almost nobody is addressing this directly. And until you do — everything else is just spinning wheels.
 
-I'm breaking this down fully in today's post. Link in bio — go read it.
+[Look straight into lens]
 
-[End frame: direct look, slight nod]
+Here's what changes when you actually fix this:
 
-Follow me. I post like this every day."
+[Deliver one specific, concrete sentence that adds immediate value about ${t}]
 
-TEXT OVERLAYS TO ADD:
-Line 1: "${bp.hook}"
-Line 2: "The real reason: ${bp.topic}"
-Line 3: "Follow for daily ${niche} strategy"
+I'm breaking this down fully in today's post. Go read it.
 
-CAPTION:
-${bp.hook} 👇
+Follow me — I post like this every single day."
 
-Drop a "1" in the comments if this resonates.
+━━ TEXT OVERLAYS ━━
+Screen 1: "${h}"
+Screen 2: "The real variable: ${t}"
+Screen 3: "Follow for daily ${niche} strategy"
 
-I'm posting every day this month — don't miss a single one. Follow and turn on notifications.
+━━ CAPTION ━━
+${h} 👇
 
-#${niche.replace(/[^a-zA-Z]/g,'')} #${js.replace(/\s/g,'').toLowerCase()}tips #${pain.replace(/\s/g,'').toLowerCase()} #${motiv.replace(/\s/g,'').toLowerCase()}`;
+Drop a "1" if this hits home.
+
+Every comment I get — I respond personally. Try me.
+
+#${niche.replace(/[^a-zA-Z]/g,'')} #${js.replace(/\s+/g,'').toLowerCase()}mindset #${pain.replace(/[^a-zA-Z]/g,'').toLowerCase()}`,
+
+    // FORMAT 1 — The "Stop Doing This" Reel (pattern interrupt)
+    `🎬 REEL SCRIPT 1 — Day ${d} | PATTERN INTERRUPT
+Format: Urgent, direct, slightly confrontational — 30–45 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 9–11am
+
+━━ HOOK (first 2 seconds) ━━
+"Stop doing this if you want ${transf}."
+
+━━ FULL SCRIPT ━━
+[High energy open — urgent tone, lean toward camera]
+
+"Stop doing this if you want ${transf}.
+
+[Beat]
+
+${aud} dealing with ${pain} keep making this one move — it feels productive, it looks like effort, but it is silently blocking your results.
+
+What is it?
+
+[Pause for effect]
+
+${t} — applied at the wrong layer.
+
+Here's what I mean: most ${js}s address ${t} at the surface. The tactics. The visible actions.
+
+But the results live at the root level. And the root is what nobody is showing you.
+
+[Step closer to camera]
+
+When I started addressing ${t} at the root — the specific mechanism, not the symptom — everything accelerated.
+
+Same effort. Different direction. Completely different outcome.
+
+If you're exhausted from trying and not moving — this is why.
+
+I'll show you exactly how to fix it. Profile link."
+
+━━ TEXT OVERLAYS ━━
+"Stop doing THIS →"
+"${pain} = wrong layer"
+"Fix: ${t} at the root"
+"Details in bio ↑"
+
+━━ CAPTION ━━
+The move that blocks results while feeling like progress 👇
+
+Sound familiar? Drop "YES" in the comments.
+
+I reply to every one.
+
+#${niche.replace(/[^a-zA-Z]/g,'')} #${aud.replace(/\s+/g,'').toLowerCase()}results`,
+
+    // FORMAT 2 — The Transformation Tease (desire-driven)
+    `🎬 REEL SCRIPT 1 — Day ${d} | TRANSFORMATION REVEAL
+Format: Two-part energy — subdued then energised, 45 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 9–11am
+
+━━ HOOK ━━
+"I was the ${js} who couldn't figure out why ${pain} kept following me. Here's what changed."
+
+━━ FULL SCRIPT ━━
+[Start calm, slightly vulnerable]
+
+"I was the ${js} who couldn't figure out why ${pain} kept following me.
+
+I was doing everything I was told to do. Trying ${aud.includes('entrepreneur') ? 'every strategy in the playbook' : 'every approach I could find'}.
+
+Nothing moved.
+
+[Pause. Shift energy. Lift chin.]
+
+Then I understood ${t} — not as a concept, but as something I could actually apply to my specific situation.
+
+[More energy now]
+
+And in the next 90 days:
+
+${transf}.
+
+Not overnight. But directionally — for the first time — forward.
+
+[Direct eye contact, calm but confident]
+
+The gap between where you are and where you want to be — it's not as wide as ${pain} makes it feel.
+
+It's a ${t} gap. And that kind is fixable.
+
+I'll show you exactly how. Content every day this month. Follow now."
+
+━━ TEXT OVERLAYS ━━
+"BEFORE: ${pain}"
+"THE SHIFT: ${t}"
+"AFTER: ${transf}"
+"Follow — 30 days of this"
+
+━━ CAPTION ━━
+From ${pain} to ${transf} — the real story 👇
+
+The bridge wasn't talent or timing. Drop "TELL ME MORE" and I'll DM you the breakdown.
+
+#${niche.replace(/[^a-zA-Z]/g,'')} #${transf.replace(/[^a-zA-Z\s]/g,'').replace(/\s+/g,'').toLowerCase().slice(0,20)}`,
+
+    // FORMAT 3 — "Nobody Tells You This" (insider reveal, high viral)
+    `🎬 REEL SCRIPT 1 — Day ${d} | INSIDER REVEAL
+Format: Conspiratorial, leaning in, 30–40 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 9–11am
+
+━━ HOOK ━━
+"Nobody in the ${niche} space is going to tell you this about ${pain}."
+
+━━ FULL SCRIPT ━━
+[Lean slightly toward camera. Slightly lower energy — like sharing a secret.]
+
+"Nobody in the ${niche} space is going to tell you this about ${pain}.
+
+Because it makes most of the generic advice out there look useless — and it is.
+
+[Beat]
+
+Here's the insider truth: ${pain} is almost never caused by what it looks like it's caused by.
+
+The surface problem is ${pain}.
+
+The root problem is ${t}.
+
+[Straighten up, more direct]
+
+Every ${js} who escapes ${pain} and builds ${transf} figures this out — either by accident or with help.
+
+The ones who figure it out early, with help, get there in months.
+
+The ones who figure it out by accident? Years.
+
+I'm not letting that happen to you.
+
+30 days of content. Every day. All of it built around what actually moves the needle for ${aud}.
+
+You in? Follow now."
+
+━━ TEXT OVERLAYS ━━
+"What nobody says →"
+"Real cause: ${t}"
+"${pain} ≠ the problem"
+"30 days. Starting now."
+
+━━ CAPTION ━━
+The thing the ${niche} industry doesn't want you to figure out 👀
+
+Drop "TRUTH" if you already suspected this. I'll send you the deep-dive.`,
+
+    // FORMAT 4 — Rapid Tips (high save rate)
+    `🎬 REEL SCRIPT 1 — Day ${d} | RAPID VALUE DROPS
+Format: Fast-paced, energetic, 45–60 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 9–11am
+
+━━ HOOK ━━
+"3 things about ${t} that every ${js} needs to know — fast version:"
+
+━━ FULL SCRIPT ━━
+[High energy. Stand, don't sit. Hand gestures or use fingers to count.]
+
+"3 things about ${t} that every ${js} needs to know — fast:
+
+[Hold up 1 finger]
+
+Number one: ${pain} isn't a motivation problem. It's an alignment problem. You're working — just not on the thing that produces ${transf}. Fix the direction before adding effort.
+
+[2 fingers]
+
+Number two: everything you've tried before — ${aud.includes('tried') ? 'the courses, the strategies, the programmes' : 'including what I listed in today\'s post'} — failed at the mechanism level, not the effort level. You were applying the right energy to the wrong layer.
+
+[3 fingers]
+
+Number three: ${motiv} is not the goal. It's the output. The goal is building the specific system that makes ${motiv} the predictable result. Build the system. The outcome follows.
+
+[Quick pause. Direct look.]
+
+Which one are you missing most? Drop 1, 2, or 3 in the comments.
+
+I answer every single one."
+
+━━ TEXT OVERLAYS ━━
+"1: Alignment over effort"
+"2: Mechanism, not surface"
+"3: System first, outcome second"
+"Comment your number ↓"
+
+━━ CAPTION ━━
+3 fast truths that change how you approach ${pain} 👇
+
+Comment your number. I'll give you the specific action in the replies.
+
+#${niche.replace(/[^a-zA-Z]/g,'')} #${js.replace(/\s+/g,'').toLowerCase()}tips #fastvalue`
+  ];
+
+  return reels[fmt];
 }
 
 function buildReel2(bp, d, js, pain, motiv, transf, aud) {
-  return `🎬 REEL SCRIPT 2 — Day ${d} | ${bp.reel2Style.toUpperCase()}
-FORMAT: Talking head with text overlays, 45–60 seconds
-PLATFORM: Instagram Reels + Facebook Reels
-POST AT: 12pm–2pm, separate from Reel 1
+  const fmt = (d + 1) % 5; // Offset from reel1
+  const t = bp.topic;
+  const rs2 = bp.reel2Style;
 
-HOOK (on screen + voiceover):
-"${bp.reel2Style.charAt(0).toUpperCase() + bp.reel2Style.slice(1)} — here's what you need to know."
+  const reels = [
 
-FULL SCRIPT:
-[Calm, teaching tone — like a trusted mentor, not a salesperson]
+    // FORMAT 0 — The 3-Point Educational Breakdown
+    `🎬 REEL SCRIPT 2 — Day ${d} | 3-POINT BREAKDOWN
+Format: Talking head with text overlays, 45–60 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 12–2pm (separated from Reel 1)
 
-"Let me give you something practical today.
+━━ HOOK ━━
+"3 reasons ${pain} keeps happening — even when you're doing the work."
 
-The topic is ${bp.topic.toLowerCase()}. And I'm going to break this down in a way that you can use immediately.
+━━ FULL SCRIPT ━━
+[Teaching tone — calm, like a mentor. Text overlay for each point.]
 
-[Hold up 3 fingers or use text overlay for each point]
+"3 reasons ${pain} keeps happening — even when you're doing the work.
 
-Number one: [Specific insight about the topic directly relevant to ${pain}]
-This is the thing most ${aud} skip — and it's why they stay stuck.
+[Hold up 1 finger]
 
-Number two: [Specific action that addresses the insight]
-This is what the people who reach ${transf} actually do differently.
+Reason one: You're solving the symptom, not the cause. ${pain} is visible. The cause — ${t} — is one level deeper. Until you address the cause, treating the symptom gives temporary relief, not permanent change.
 
-Number three: [The result or mindset that locks in the change]
-When you consistently do this, ${motiv} stops being a wish and starts being a trajectory.
+[2 fingers]
 
-[Pause. Direct eye contact.]
+Reason two: Your daily actions aren't connected to the specific output you want. Busy ≠ productive. The question isn't 'did I work today?' — it's 'did what I worked on today directly create ${transf}?'
 
-Does this make sense? Drop a '1' in the comments if you found this useful.
+[3 fingers]
 
-I'll send you the full breakdown in a DM — just reply '1' and I'll reach out today."
+Reason three: You're measuring the wrong things. Tracking results before you have consistent inputs is like checking the mirror before you've started working out. Track the inputs. The results become predictable.
 
-TEXT OVERLAYS:
-Point 1: [Topic insight #1]
-Point 2: [Topic action #1]
-Point 3: [Result/mindset]
-End card: "DM me '1' for the full breakdown"
+[Direct eye contact]
 
-CAPTION:
-${bp.reel2Style.charAt(0).toUpperCase() + bp.reel2Style.slice(1)} 👆
+If all 3 are true for you — drop '3' in the comments.
 
-Save this. Every time you feel stuck on ${pain}, come back to these 3 points.
+That's where we start."
 
-💬 Which point is most relevant to where you are right now?`;
+━━ TEXT OVERLAYS ━━
+"Reason 1: Wrong layer"
+"Reason 2: Activity ≠ alignment"
+"Reason 3: Wrong metrics"
+"Drop your number ↓"
+
+━━ CAPTION ━━
+3 reasons the effort isn't matching the result 💡
+
+Save this. Every time ${pain} comes back — check which reason is active.
+
+Which one is yours right now? Drop 1, 2, or 3.`,
+
+    // FORMAT 1 — Myth vs Reality Split
+    `🎬 REEL SCRIPT 2 — Day ${d} | MYTH VS REALITY
+Format: Side-by-side contrast energy, 45 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 12–2pm
+
+━━ HOOK ━━
+"What you were told about ${t} vs what actually works."
+
+━━ FULL SCRIPT ━━
+[Measured pace. Each contrast delivered clearly.]
+
+"What you were told about ${t} vs what actually works.
+
+[Pause]
+
+Told: work harder and results will come.
+Reality: direction matters more than speed. Working hard in the wrong direction just gets you more deeply lost.
+
+[Pause]
+
+Told: ${pain} is a mindset problem.
+Reality: ${pain} is a systems problem. Fix the system. The mindset follows the results.
+
+[Pause]
+
+Told: copy what the successful ${js}s in your niche do.
+Reality: copy the principle behind what they do — not the tactic. Tactics depend on context. Principles transfer.
+
+[Pause]
+
+Told: consistency is the answer.
+Reality: consistent wrong action is still wrong action. First align, then be consistent.
+
+[Lean in slightly]
+
+The gap between the told version and the reality version?
+
+That's where most ${aud} are living right now.
+
+You don't have to stay there.
+
+DM me '${t.split(' ')[0].toUpperCase()}' and I'll send you the reality-based approach for your specific situation."
+
+━━ TEXT OVERLAYS ━━
+"TOLD vs REALITY"
+Each myth/reality pair as split text
+
+━━ CAPTION ━━
+The gap between what you were told and what actually works 👆
+
+Which "told" have you been acting on the longest? Comment below.`,
+
+    // FORMAT 2 — "Someone DMed Me..." Format (high relatability)
+    `🎬 REEL SCRIPT 2 — Day ${d} | THE DM REVEAL
+Format: Conversational, authentic, 45–55 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 12–2pm
+
+━━ HOOK ━━
+"Someone DM'd me this week asking about ${pain}. My answer might surprise you."
+
+━━ FULL SCRIPT ━━
+[Conversational tone. Like talking to a friend on camera.]
+
+"Someone DM'd me this week. They asked:
+
+'Why does ${pain} keep happening even when I'm putting in the work?'
+
+And I want to answer it publicly because I guarantee you're wondering the same thing.
+
+[Pause]
+
+Here's what I told them:
+
+The issue isn't the effort. The effort is real. The issue is that ${pain} and ${t} are connected in a way that most advice completely skips over.
+
+[Slightly more direct]
+
+${t} is the input. ${pain} is the output of ${t} being misaligned.
+
+Most ${aud} spend months fixing the output. The people who reach ${transf} quickly — they find the input and fix that instead.
+
+[Pause]
+
+My answer to that DM:
+
+Stop trying to work through ${pain}. Start asking: 'What specifically about ${t} is producing this pain?'
+
+That one question will change your entire approach.
+
+[Direct]
+
+Did this answer your question too? Drop 'YES' in the comments and I'll add you to this week's DM list."
+
+━━ TEXT OVERLAYS ━━
+"DM question: ${pain}?"
+"The real answer: ${t}"
+"What most miss →"
+"DM me for more ↑"
+
+━━ CAPTION ━━
+Real question from a DM this week — answered publicly because you probably need it too 👇
+
+Drop "YES" if this is your question. I'll send you the full breakdown.`,
+
+    // FORMAT 3 — The "I Tested This" Experiment Reel
+    `🎬 REEL SCRIPT 2 — Day ${d} | THE EXPERIMENT REVEAL
+Format: Curious, data-driven, personal, 50–60 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 12–2pm
+
+━━ HOOK ━━
+"I tested two approaches to ${t} for 30 days. The difference in results was not close."
+
+━━ FULL SCRIPT ━━
+[Curiosity energy — like sharing a discovery]
+
+"I tested two approaches to ${t} for 30 days. The difference was not even close.
+
+[Pause]
+
+Approach 1: Generic. The standard advice. Stay consistent, work hard, follow the conventional wisdom about addressing ${pain}.
+
+Approach 2: Specific. Address ${t} at the mechanism level. Every action tied directly to one output. No noise.
+
+[Clear delivery]
+
+After 30 days:
+
+Approach 1 produced: incremental movement, high frustration, more questions than answers.
+
+Approach 2 produced: ${transf} — not complete, but unmistakably moving in the right direction for the first time.
+
+The difference wasn't how much I did.
+
+It was how precisely I understood what ${t} actually is and how it connects to the result I wanted.
+
+[Direct]
+
+Generic feels safe. Specific feels vulnerable.
+
+But specific is the only thing that actually works.
+
+Are you running Approach 1 or Approach 2 right now?
+
+Honest answer in the comments."
+
+━━ TEXT OVERLAYS ━━
+"30-day test:"
+"Generic vs Specific"
+"Results: NOT CLOSE"
+"Which are you running? ↓"
+
+━━ CAPTION ━━
+The 30-day experiment that changed how I approach ${pain} 👇
+
+Approach 1 or Approach 2 — which one sounds like your current strategy? Be honest.`,
+
+    // FORMAT 4 — The 60-Second Masterclass
+    `🎬 REEL SCRIPT 2 — Day ${d} | 60-SECOND MASTERCLASS
+Format: Teaching mode, structured, high value, 55–65 sec
+Platform: Instagram Reels + Facebook Reels
+Post at: 12–2pm
+
+━━ HOOK ━━
+"Everything you need to know about ${t} — in 60 seconds."
+
+━━ FULL SCRIPT ━━
+[Upright, clear, authoritative. Text overlays help retention.]
+
+"Everything you need to know about ${t} in 60 seconds.
+
+[Quick pace, clear delivery]
+
+WHAT IT IS: ${t} is the mechanism that sits between ${pain} and ${transf}. It's not a tactic. It's the specific variable that determines whether your effort produces results or just produces more effort.
+
+WHAT MOST PEOPLE GET WRONG: They address ${t} at the surface — tactics and actions — rather than at the root — the specific mechanism driving their particular version of ${pain}.
+
+WHAT ACTUALLY WORKS: Identify which part of ${t} is misaligned in your specific situation. Address that precise part. Everything else will start to compound correctly.
+
+WHY THIS MATTERS: Without this, you can be the most consistent, hard-working ${js} in your niche — and still feel like ${pain} has a personal grudge against you.
+
+ONE ACTION YOU CAN TAKE TODAY: Look at your 3 main daily activities. Ask which one most directly produces ${transf}. If it's not the one you spend the most time on — rearrange your day.
+
+[Final beat. Direct look.]
+
+That's the 60-second version. The full breakdown is in today's post. Go read it.
+
+Save this reel. You'll need it."
+
+━━ TEXT OVERLAYS ━━
+"WHAT IT IS"
+"WHAT'S WRONG"  
+"WHAT WORKS"
+"1 ACTION TODAY ↑"
+
+━━ CAPTION ━━
+60-second masterclass on ${t} 📚
+
+Save this for every time ${pain} slows you down. Which section hit hardest? Comment below.
+
+#${aud.replace(/\s+/g,'').toLowerCase()} #60secondmasterclass`
+  ];
+
+  return reels[fmt];
 }
 
 function buildReel3(bp, d, js, pain, motiv, fear, transf, tried, aud, income) {
-  return `🎬 REEL SCRIPT 3 — Day ${d} | STORY / PERSONAL REEL
-FORMAT: Raw, personal — unscripted feel, 45–60 seconds
-PLATFORM: Instagram Reels + Facebook Reels
-POST AT: 6pm–8pm for evening audience
+  const wk = Math.ceil(d / 7);
+  const dayOfWeek = (d - 1) % 7; // 0=Mon through 6=Sun
+  const t = bp.topic;
 
-HOOK:
-"${d <= 14 ? `I used to be the ${js} who ${pain}.` : d <= 21 ? `I want to show you what changed between then and now.` : `This is for the ${js} who's been watching but hasn't moved yet.`}"
+  // Week-based story arc + day-of-week variation for genuine daily differences
 
-FULL SCRIPT:
-[Slightly more casual setting — maybe walking, at desk, outdoors. Raw energy.]
+  if (wk === 1) {
+    // WEEK 1 ARC: Origin Stories + Raw Beginnings
+    const w1Scripts = [
+      // Mon — The confession
+      `🎬 REEL SCRIPT 3 — Day ${d} | THE CONFESSION
+Format: Raw, unfiltered — no teleprompter energy. 45–60 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
 
-"${d <= 7 ? `Story time. Because I think you need to hear this.
+HOOK: "I almost quit before I figured this out. And I'm glad I'm telling you."
 
-Before I figured out ${bp.topic.toLowerCase()}, I was doing everything I was "supposed to" do.
+SCRIPT:
+[Slightly vulnerable. Not polished. Real.]
 
-I was posting. I was learning. I was trying.
+"I almost quit before I figured this out.
 
-But nothing was moving — and I genuinely didn't understand why.
+Before I understood ${t}, I was posting into silence. Working with no real system. Trying ${tried} and getting just enough to keep going — never enough to actually move.
 
-[Pause. Vulnerable moment.]
+I remember the specific day I thought 'maybe this just isn't for me.'
 
-The thing nobody told me was this: [one honest insight about the root of the struggle].
+[Pause]
 
-The moment I understood that — everything changed.
+What stopped me wasn't motivation. It wasn't a mindset shift.
 
-Not overnight. But directionally. Finally.
+It was one conversation that reframed how I saw ${pain}.
 
-That's what this month is about. One honest lesson a day. Follow me if you want all 30.` :
-d <= 14 ? `I want to be transparent with you today.
+Turned out — what I'd been calling my problem was actually feedback. It was pointing me exactly toward ${t} the whole time. I just didn't know how to read it.
 
-Day ${d} of sharing this content publicly — and the questions I'm getting in my DMs tell me a lot.
+The moment I read it correctly — everything changed direction.
 
-The pattern I keep seeing: ${aud} who are putting in real effort but not addressing ${bp.topic.toLowerCase()}.
+Not the workload. The direction.
 
-And I understand why. Nobody shows you this part.
+[Direct look]
 
-[Look at camera directly]
+If you're in the 'almost quit' phase right now — stay. What you need isn't more effort. It's the right read on what ${pain} is actually telling you.
 
-So today I'm showing you exactly: [give one specific, honest insight about the topic from lived experience].
+I'm going to give you that read this month. One post at a time.
 
-This isn't theory. This is what I've watched work and not work, over and over again.
-
-Take this. Apply it. Tell me what happens.` :
-d <= 21 ? `Real results time.
-
-I want to share what I've seen happen when ${aud} actually address ${bp.topic.toLowerCase()} properly.
-
-[Describe a real or composite result without naming anyone — specific details make it credible]
-
-They went from ${pain} to ${transf} in [realistic timeframe].
-
-Not because they found a secret. Not because they worked 20 hours a day.
-
-Because they finally aligned their daily actions with the result they actually wanted.
-
-That alignment is learnable. It's buildable. And it's what I help ${aud} do.
-
-Is this what you need? DM me the word 'READY' and let's have an honest conversation.` :
-`I need to say something directly.
-
-If you've been watching this content and haven't taken a step yet — I'm not going to judge you for that. But I am going to be honest with you.
-
-[Look directly at camera]
-
-Every week you don't address ${pain} is a week that ${motiv} gets pushed further away. Not because time runs out — but because momentum compounds in the wrong direction.
-
-I've seen it. I've lived it.
-
-The ${aud} who get to ${transf} — they didn't wait for the perfect moment.
-
-They made this the moment.
-
-If you're ready to do that — DM me. I have [limited spots] this month and they're filling.
-
-Don't let it be next month. It doesn't have to be next month.`}"
+Follow. I'll be here every day."
 
 CAPTION:
-${d <= 14 ? `From ${pain} to ${transf} — it starts with understanding the actual problem. 👇` : `Results don't lie. Consistency doesn't lie. The only question is when you start. 👇`}
+The thing that almost made me quit — and what I learned from it 👇
 
-Follow for the rest of the month — 30 days of this content.`;
+If you've been close to giving up, drop "SAME" below. You're not alone. And you don't have to be.`,
+
+      // Tue — The "why I do this"
+      `🎬 REEL SCRIPT 3 — Day ${d} | WHY I DO THIS
+Format: Sincere, mission-driven. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "I want to tell you exactly why I post every single day."
+
+SCRIPT:
+[Calm, sincere, not salesy]
+
+"I want to tell you exactly why I post every single day.
+
+It's not follower count. It's not brand building.
+
+It's because I work with ${aud} dealing with ${pain} — and I watch smart, hardworking people stay stuck because nobody in their corner understands ${t} at the specific level it takes to actually move.
+
+[Pause]
+
+When a ${js} messages me saying '${motiv} finally happened' — I don't feel successful. I feel responsible.
+
+Like it was always possible, and I just helped them see the path to it.
+
+That's why every post. Every reel. Every day.
+
+Because if one person watching this today gets the specific thing they need to go from ${pain} to ${transf} — this was worth it.
+
+[Direct]
+
+Are you that person today? Tell me what you're dealing with below.
+
+I read every comment. Every one."
+
+CAPTION:
+The real reason behind all of this content 🎯
+
+Tell me in the comments what you're dealing with right now. I'll respond personally.`,
+
+      // Wed — The Mistake
+      `🎬 REEL SCRIPT 3 — Day ${d} | THE MISTAKE
+Format: Honest self-reflection. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "The mistake I made for 18 months that cost me more than I'm comfortable admitting."
+
+SCRIPT:
+[Self-aware, slightly wry, honest]
+
+"The mistake I made for 18 months that cost me more than I like to admit:
+
+I was solving ${pain} at the wrong level.
+
+I was addressing the visible symptoms — the output — while completely ignoring ${t}, which was the actual cause.
+
+So every solution I found was temporary. The pain would come back. Different form, same root.
+
+[Beat]
+
+And the brutal part? I was working really hard the entire time.
+
+Effort without the right direction is the most demoralising kind of failure — because you can't blame laziness.
+
+[Direct]
+
+The day I addressed ${t} directly — not generically, specifically — the cycle finally broke.
+
+I'm not sharing this to look humble. I'm sharing it because if you've been in that cycle — trying hard, getting minimal return — this is probably why.
+
+And it's fixable. It's not a talent gap. It's a direction gap.
+
+Those close faster than you think.
+
+Comment 'ME TOO' if this hit home."
+
+CAPTION:
+18 months of working hard in the wrong direction 🤦
+
+Has this been you? Comment 'ME TOO' — I want to know how many of us have been here.`,
+
+      // Thu — The turning point
+      `🎬 REEL SCRIPT 3 — Day ${d} | THE TURNING POINT
+Format: Specific story beat — one moment that changed everything. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "There was one specific day everything changed. I want to tell you what happened."
+
+SCRIPT:
+[Story mode — specific, not generic]
+
+"There was one specific day everything changed.
+
+I was dealing with ${pain} for what felt like the hundredth time. Same results despite the work. Same frustration despite the effort.
+
+And I had this conversation — could have been with a mentor, a client, a book, a post — that asked one question I'd never sat with properly:
+
+'What is ${t} specifically producing in your situation?'
+
+Not generally. Specifically.
+
+[Pause. This is the pivot.]
+
+That question broke the pattern.
+
+Because for the first time I stopped treating ${pain} as a block and started treating it as a signal. A signal pointing directly at ${t}.
+
+And when I looked at ${t} with that lens — I saw immediately what had been wrong the whole time.
+
+[Direct]
+
+That turning point is available to you. Not someday. Now.
+
+It starts with one honest question. And I'm going to help you find the answer to it this month.
+
+Follow along. Day ${d} of 30."
+
+CAPTION:
+The one question that changed the trajectory 💡
+
+What's the version of this question you've been avoiding? Drop it below.`,
+
+      // Fri — The proof
+      `🎬 REEL SCRIPT 3 — Day ${d} | EARLY PROOF
+Format: Confident, results-focused, direct. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Here's what's already happened for people following this content this week."
+
+SCRIPT:
+[Upbeat but real — not hype]
+
+"Here's what I'm seeing in the DMs this week:
+
+${aud} who've been dealing with ${pain} for months — applying one specific insight from this content — and reporting that things are finally shifting.
+
+Not dramatically. But directionally.
+
+[Pause]
+
+That's what Week 1 is supposed to feel like. Not a transformation. A direction change.
+
+Because here's what I know about ${transf}:
+
+It doesn't arrive one day. It builds. Slowly, then suddenly.
+
+And the slow part? That's what this week has been for. Laying the foundation of understanding ${t} at a level that makes the acceleration possible later.
+
+[Direct]
+
+If you're doing the work and not seeing the dramatic result yet — you're in the right phase. Stay in it.
+
+The dramatic result is what Weeks 3 and 4 look like.
+
+We're building toward it right now.
+
+See you tomorrow."
+
+CAPTION:
+Week 1 energy check ✅
+
+What's shifted in your thinking this week — even slightly? Drop it below. I want to hear the small wins.`,
+
+      // Sat — The weekend motivation
+      `🎬 REEL SCRIPT 3 — Day ${d} | WEEKEND CHECK-IN
+Format: Relaxed but purposeful. Weekend energy. 35–45 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "It's the weekend. Most of your competition just checked out. Don't."
+
+SCRIPT:
+[Relaxed energy but with purpose]
+
+"It's the weekend. Most ${aud} in your space just mentally checked out.
+
+That's not judgment. That's opportunity.
+
+[Easy smile, then serious]
+
+The ${js}s who build ${motiv} while everyone else is building their Saturday — they're not working more.
+
+They're thinking more clearly. Because the noise dropped.
+
+One question for this weekend:
+
+If ${pain} disappeared tomorrow — what would you do first?
+
+[Pause]
+
+Write the answer down. Specifically. Not a feeling — an action.
+
+Because that action, whatever it is, probably tells you more about ${t} and what you should be prioritizing Monday morning than any content you consume this weekend.
+
+[Smile]
+
+Enjoy the weekend. But don't lose the thread.
+
+See you tomorrow."
+
+CAPTION:
+Weekend thought drop 🎯
+
+What would you do first if ${pain} disappeared? Tell me below — I'm curious and I'll actually read every answer.`,
+
+      // Sun — The weekly reflection
+      `🎬 REEL SCRIPT 3 — Day ${d} | WEEK 1 CLOSE
+Format: Reflective, warm, forward-looking. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Week 1 is done. Here's what I want you to take from it."
+
+SCRIPT:
+[Warm, wrap-up energy]
+
+"Week 1 of this content series is done.
+
+And I want to be honest with you about what this week was actually for:
+
+Not tactics. Foundation.
+
+Before any strategy, system, or plan works — you need to see ${t} clearly. Not as a vague concept but as the specific variable affecting your specific situation.
+
+[Pause]
+
+This week was about building that clarity.
+
+If you're still fuzzy on it — that's fine. The next three weeks get more and more specific.
+
+If you got even one shift in how you see ${pain} this week — that's the seed. We're going to grow it.
+
+[Direct]
+
+Week 2 starts tomorrow.
+
+Topic: real, specific value on the approaches that actually move the needle for ${aud} who are serious.
+
+No fluff. No motivation. Just the work.
+
+See you in the morning."
+
+CAPTION:
+Week 1 complete 🔄
+
+What's the biggest thing you're taking from this week? Drop it in the comments — I want to know what landed.`
+    ];
+    return w1Scripts[dayOfWeek];
+  }
+
+  if (wk === 2) {
+    // WEEK 2 ARC: Teaching Through Personal Experience
+    const w2Scripts = [
+      `🎬 REEL SCRIPT 3 — Day ${d} | TEACHING FROM EXPERIENCE
+Format: Mentor energy, specific and practical. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Week 2. Let me show you what this looks like in practice."
+
+SCRIPT:
+"Week 2. No more foundations — let's go practical.
+
+The most common message I get from ${aud} trying to address ${pain} is: 'I understand the concept but I don't know what to actually do.'
+
+So today I'm going to tell you exactly what to actually do.
+
+[Clear, specific delivery]
+
+The one move that shifts ${t} from concept to action:
+
+Identify the single daily activity most directly connected to ${transf}. Not the one that feels most productive. The one that most directly produces the result.
+
+Now ask: 'Am I doing this activity with the specific understanding of ${t} I now have — or am I still running it like I was before?'
+
+If the answer is 'before' — that's today's job. Update the activity with the new understanding.
+
+That's not a strategy change. It's a precision upgrade.
+
+[Direct]
+
+Week 2 content gets more specific every day.
+
+Stay with it."
+
+CAPTION:
+Week 2 — moving from concept to application 🔧
+
+What's your one highest-leverage daily activity? Drop it below and I'll tell you how to precision-upgrade it.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | WHAT I SEE IN THE DMs
+Format: Candid, transparent. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Day ${d}. Let me tell you what I'm seeing in the DMs from ${aud} this week."
+
+SCRIPT:
+"Day ${d}. Here's what I'm seeing from ${aud} who are actually applying this.
+
+The pattern:
+
+The ones who identified their specific version of ${t} — not the generic version, theirs — are reporting the first real clarity they've felt in months.
+
+The ones who haven't? Still treating ${pain} as a block instead of a signal.
+
+The difference in how they experience the same week of content is significant.
+
+[Pause]
+
+I'm not saying this to pressure you. I'm saying it because the single most important move you can make this week is to get specific.
+
+Not 'I struggle with ${pain}.' But 'This specific version of ${pain} shows up when I do X, and it tells me that Y in my ${t} is misaligned.'
+
+That level of specificity is what separates movement from frustration.
+
+Are you there yet? Tell me honestly in the comments.
+
+I'll point you directly toward the thing that's blocking you."
+
+CAPTION:
+What the DMs are showing me this week 👀
+
+Are you at the specific level yet? Drop "YES" or "WORKING ON IT" below.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | MID-WEEK HONEST TALK
+Format: Direct, no fluff. 35–45 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Day ${d}. Halfway through the week. Honest check-in time."
+
+SCRIPT:
+"Day ${d}. Halfway through the week.
+
+Honest question: have you applied anything from this content yet?
+
+Not 'saved for later.' Applied. Like actually did the thing.
+
+[Pause]
+
+Because here's the only truth that matters in ${niche}:
+
+Consumed insight ≠ applied insight.
+
+The gap between knowing about ${t} and using ${t} to address ${pain} is the gap between where you are and ${transf}.
+
+You can close that gap this week. Right now, actually.
+
+[Quick and direct]
+
+One action. Tonight. 20 minutes.
+
+Take the biggest version of ${pain} you're currently dealing with. Write one sentence about how ${t} is contributing to it. Not a paragraph. One sentence.
+
+Then ask: 'What would I do differently tomorrow if I took that sentence seriously?'
+
+Write that too.
+
+That's the move.
+
+Do it. Tell me what you found in the comments tomorrow."
+
+CAPTION:
+Day ${d} honest check-in 💬
+
+Have you applied anything yet — or still consuming? No judgment. Just data.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | THE SPECIFIC LESSON
+Format: Precise, one-idea delivery. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Day ${d}. One specific lesson today — the one I wish someone had given me earlier."
+
+SCRIPT:
+"Day ${d}. One specific lesson — the one I wish I'd understood earlier.
+
+The version of ${pain} you're dealing with has a specific fingerprint.
+
+It shows up in specific situations, triggered by specific conditions, in response to specific gaps in your approach to ${t}.
+
+When you identify that fingerprint — not generically, but specifically for your situation — you can stop being surprised by ${pain} and start anticipating it.
+
+And once you can anticipate it, you can interrupt it.
+
+[Pause]
+
+That interruption is the beginning of ${transf}.
+
+Not the result of it. The beginning of it.
+
+[Clear delivery]
+
+So the question I want you to sit with today:
+
+'In what specific situation does ${pain} hit me hardest?'
+
+Write the answer. That's the fingerprint. That's where we start.
+
+Tell me in the comments. I'll help you decode it."
+
+CAPTION:
+The lesson I wish someone gave me earlier 💡
+
+Tell me: in what specific situation does ${pain} hit you hardest? Drop it below and I'll decode it with you.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | RESULTS CHECK-IN
+Format: Energised, proof-based. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Day ${d}. The results I'm seeing from ${aud} applying this content are worth sharing."
+
+SCRIPT:
+"Day ${d}. I want to share what's happening for ${aud} who are actually applying this.
+
+Not motivational screenshots. Real process updates.
+
+Someone who'd been dealing with ${pain} for over a year — finally identified the specific version of ${t} driving it. Said it was like the problem 'shrunk to a size I could actually work on.'
+
+Another one — realised that every time they addressed ${pain} they were fixing the wrong layer. Changed the layer. Different results in the first week.
+
+[Pause]
+
+I'm not sharing these to hype you. I'm sharing them because the pattern is consistent:
+
+When ${aud} stop treating ${pain} as a wall and start treating it as a signal pointing at ${t} — things move.
+
+Not always immediately. But directionally. Undeniably.
+
+[Direct]
+
+Which stage are you at?
+
+Treating it as a wall, or reading it as a signal?
+
+Drop your answer below. Genuinely — I want to know."
+
+CAPTION:
+Real progress from ${aud} applying this content 📊
+
+Wall or signal — which stage are you at right now? Comment below.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | SATURDAY DEPTH
+Format: Slower pace, more thoughtful. 50–60 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Saturday. Let me go a little deeper on ${t} than a weekday allows."
+
+SCRIPT:
+"Saturday — and I want to go a little deeper than usual.
+
+All week we've been looking at ${t} as a daily practical concern.
+
+Today I want to zoom out.
+
+Here's the bigger picture:
+
+${pain} doesn't just cost you results. It costs you identity.
+
+Every day you spend in ${pain} without moving toward ${transf} — on some level, the story you tell yourself about what's possible starts to shrink.
+
+[Pause. This is important.]
+
+That's the invisible cost nobody talks about.
+
+It's not just income not earned. It's vision not held. It's the version of yourself that could reach ${motiv} becoming harder and harder to believe in.
+
+${t} matters for practical reasons. But it matters most for this reason: solving it isn't just about the result. It's about reclaiming the belief that the result is possible for you.
+
+[Warm, direct]
+
+That belief — I want to help you rebuild it. One post at a time.
+
+You still with me?"
+
+CAPTION:
+The cost of ${pain} that nobody talks about 💭
+
+Are you still holding the belief that ${motiv} is possible for you? Tell me honestly. No wrong answers.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | WEEK 2 CLOSE
+Format: Summary + anticipation. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Week 2 is done. And I want to tell you what Week 3 is going to do for you."
+
+SCRIPT:
+"Week 2 is done.
+
+This week was about getting practical — moving from understanding ${t} to actually applying it to ${pain} in your specific situation.
+
+If you applied even one thing this week — you're ahead of where 90% of ${aud} will ever get.
+
+[Pause]
+
+Week 3 is different.
+
+Week 3 is proof week.
+
+I'm going to show you real, specific examples of what happens when ${aud} in your exact situation apply this correctly.
+
+Not generic success stories. Specific mechanisms. Specific decisions. Specific results.
+
+By the end of Week 3, you'll know exactly what you'd need to change to produce ${transf} — not someday, on a realistic, specific timeline.
+
+[Direct]
+
+Are you still here? Drop a '✅' in the comments.
+
+I want to know how many of you are actually doing this month properly.
+
+That number matters to me."
+
+CAPTION:
+Week 2 complete. Week 3 incoming 🚀
+
+Drop a ✅ if you're still with it. I want to see who's doing this properly.`
+    ];
+    return w2Scripts[dayOfWeek];
+  }
+
+  if (wk === 3) {
+    // WEEK 3 ARC: Proof, Results, Social Proof
+    const w3Scripts = [
+      `🎬 REEL SCRIPT 3 — Day ${d} | PROOF WEEK OPENS
+Format: Results-focused energy. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Week 3. This is proof week. Let me show you what this system actually produces."
+
+SCRIPT:
+"Week 3 — proof week.
+
+This is where I stop talking about what's possible and start showing you what's happened.
+
+Real ${aud}. Real situations. Real results from applying the exact approach to ${t} we've been building.
+
+[First story — no names, specific details]
+
+A ${js} I worked with was dealing with ${pain} — not the vague version, the specific version where [describe a relatable specific situation without names].
+
+They'd been at it for months. Trying ${tried}. Getting nowhere.
+
+One thing changed: they identified the specific part of ${t} misaligned in their approach and fixed only that.
+
+In 30 days: [specific result toward ${transf}].
+
+Not complete. But undeniable.
+
+[Direct]
+
+That's what happens when the effort is finally aimed right.
+
+I'm going to share a different example every day this week.
+
+By Friday — you'll be able to see exactly what this looks like for your situation.
+
+Stay with it."
+
+CAPTION:
+Proof week starts now 🏆
+
+What result would convince you that this works for your specific situation? Tell me below — I want to address it directly this week.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | THE COMMON THREAD
+Format: Pattern recognition, analytical. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "I've worked with dozens of ${aud}. The ones who reach ${transf} all have one thing in common."
+
+SCRIPT:
+"I've worked with dozens of ${aud} dealing with ${pain}.
+
+The ones who reach ${transf} have one thing in common — and it's not what most people expect.
+
+It's not the best strategy.
+It's not the biggest audience.
+It's not the most experience.
+
+[Pause]
+
+It's this: they got specific about ${t} before they got busy with execution.
+
+Not specific in a general way. Specific in a 'I know exactly which part of ${t} is misaligned in my situation and I know what I'm doing about it' way.
+
+[Pause]
+
+That specificity creates a different kind of confidence.
+
+Not 'I believe I can do this' confidence.
+
+'I know exactly what I'm doing and why' confidence.
+
+That second type? That's the one that produces ${transf}.
+
+[Direct]
+
+Do you have that type of clarity right now?
+
+If not — that's the work. Not more content. More specificity about ${t} in your specific case.
+
+Tell me where you're stuck. I'll help."
+
+CAPTION:
+The common thread across every success story I've seen 🔍
+
+Do you have the 'I know exactly what I'm doing' clarity yet? Comment below.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | REAL TALK MID-WEEK
+Format: Direct, honest assessment. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Day ${d}. Real talk — the thing that separates people who get results from people who don't."
+
+SCRIPT:
+"Real talk on Day ${d}.
+
+I've been posting every day for ${d} days. And I can already see — from the comments, the DMs, the engagement — who's going to reach ${transf} this year and who isn't.
+
+[Pause]
+
+It's not who's the most talented.
+It's not who has the biggest following.
+It's not who worked with the best mentor.
+
+[Clear, direct]
+
+It's who decided to get specific.
+
+The ${aud} who are moving — they're not consuming more. They're applying more. They took the insight about ${t} and turned it into one concrete change to their daily approach.
+
+The ones who are staying stuck? They're saving posts and waiting for the perfect moment to start.
+
+[Pause. Personal look.]
+
+This is not a judgment. It's a pattern.
+
+And patterns can change — instantly, with one decision.
+
+Which side are you on right now?
+
+Drop 'APPLYING' or 'WAITING' in the comments. No wrong answer — but the honest answer is worth knowing."
+
+CAPTION:
+Day ${d} real talk 👊
+
+Applying or waiting? One word in the comments. I'll respond to every honest answer.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | THE OBJECTION
+Format: Preemptive, empathetic. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "I know what you're thinking. 'This sounds good but my situation is different.'"
+
+SCRIPT:
+"I know what some of you are thinking.
+
+'This all sounds good. But my situation is different.'
+
+[Pause — nod]
+
+I know. I hear this a lot.
+
+And I want to address it directly — because it's the one belief that keeps more ${aud} stuck than any external obstacle.
+
+Your situation IS different. Every ${js} dealing with ${pain} has a specific context. Specific constraints. Specific starting points.
+
+And here's why that's actually good news:
+
+${t} isn't a universal solution applied uniformly. It's a diagnostic framework applied specifically to your situation.
+
+The same principles — different application. Tailored to your exact starting point, your specific version of ${pain}, your actual resources and timeline.
+
+[Direct]
+
+'Different' isn't a reason to wait. It's a reason to get specific about how this applies to you — which is exactly what I help with.
+
+If you want the version of this that applies to your specific situation — DM me the word 'SPECIFIC' and I'll walk you through it personally.
+
+That offer is open this week only."
+
+CAPTION:
+"My situation is different" — let me address that directly 🎯
+
+DM me "SPECIFIC" this week and I'll help you apply this to your exact situation.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | THE RESULT THAT SURPRISED ME
+Format: Story mode, builds to a reveal. 50–60 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "I want to share a result that genuinely surprised me — and what it revealed about ${t}."
+
+SCRIPT:
+"I want to share a result that genuinely surprised me.
+
+A ${js} I worked with — dealing with ${pain} for over a year, tried ${tried}, had basically accepted that slow progress was just 'how it is for them.'
+
+We worked on one specific thing: identifying the precise part of ${t} driving their version of ${pain}.
+
+Not the generic version. The specific mechanism in their specific situation.
+
+[Pause]
+
+In 6 weeks:
+
+[Describe a specific, realistic result toward ${transf} — concrete enough to be believable]
+
+Not a dramatic overnight transformation. A clear, undeniable shift in the direction of ${transf}.
+
+[What surprised me]
+
+What surprised me wasn't the result. It was the speed.
+
+When the right lever is identified and pulled — specifically, not generically — the lag between effort and result collapses.
+
+[Direct]
+
+That lever exists in your situation too.
+
+Finding it is the work.
+
+DM me 'LEVER' and I'll help you find yours this week."
+
+CAPTION:
+The result that changed how I think about ${t} 💡
+
+DM me "LEVER" if you want help identifying the specific one in your situation.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | SATURDAY PROOF
+Format: Calm, evidence-based, warm. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Saturday proof check: here's what 3 weeks of this content has produced."
+
+SCRIPT:
+"Saturday check-in.
+
+Three weeks into this content series — and I want to share what's happening.
+
+DMs are up. Comments are more specific. People are bringing me real situations instead of vague feelings about ${pain}.
+
+That tells me the content is landing where it needs to land.
+
+But I want to hear from you directly.
+
+[Pause]
+
+Week 3 was about proof. About showing you that ${transf} is real — not aspirational — for ${aud} who approach ${t} correctly.
+
+Did the proof land for you?
+
+Did you see yourself in any of this week's examples?
+
+More importantly — did you make even one specific change to how you're approaching ${t} this week?
+
+[Warm, direct]
+
+Tell me. Even one small move counts.
+
+The goal isn't to be perfect. It's to be moving.
+
+Are you moving?"
+
+CAPTION:
+3 weeks in — Saturday reflection 🌤
+
+Did Week 3 proof land for you? Tell me what shifted this week. Even one small thing counts.`,
+
+      `🎬 REEL SCRIPT 3 — Day ${d} | WEEK 3 CLOSE + WEEK 4 PREVIEW
+Format: Energy shift — building momentum. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Week 3 is done. Week 4 is the most important week of this series."
+
+SCRIPT:
+"Week 3 is done.
+
+This week was about proof. About showing you that what we've been building toward is real, achievable, and not just for other people.
+
+[Pause]
+
+Week 4 is different.
+
+Week 4 is about decision and momentum.
+
+It's where I address the specific fear — ${fear} — that keeps most ${aud} in the 'almost' zone permanently.
+
+And it's where I make the case — directly and without pressure — for why the time to move is now, not when conditions are perfect.
+
+[Direct]
+
+Perfect conditions are a fiction. They don't arrive. You create them by starting.
+
+Week 4 is going to be the most honest, most direct content I've posted this month.
+
+If you're still here after 3 weeks — you're not casual about this. You deserve straight talk.
+
+That's what Week 4 is.
+
+See you tomorrow."
+
+CAPTION:
+Week 3 complete. Week 4 incoming — and it's different 🔥
+
+Still here? Drop a "✅" — I want to see who's made it to Week 4.`
+    ];
+    return w3Scripts[dayOfWeek];
+  }
+
+  // WEEK 4 ARC: Decision, Urgency, Closing
+  const w4Scripts = [
+    `🎬 REEL SCRIPT 3 — Day ${d} | WEEK 4 OPENS — THE DECISION
+Format: Direct, honest, slightly urgent. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Week 4. This is the week I ask you to actually decide."
+
+SCRIPT:
+"Week 4. Here's what's different.
+
+I'm not going to give you more information this week.
+
+I'm going to give you the thing that actually bridges information and result: a decision.
+
+[Pause]
+
+You've been reading, watching, learning for ${d - 1} days.
+
+You understand ${t} differently than you did a month ago.
+
+You see ${pain} differently.
+
+You know what ${transf} requires.
+
+[Pause. More direct.]
+
+So the only remaining question is: are you going to act on what you know?
+
+Not perfectly. Not with every resource you'd want. Not when conditions are ideal.
+
+Are you going to act — now, with what you have, at the level you're at?
+
+[Direct]
+
+That decision is the entire game.
+
+Everything this month was preparation for it.
+
+What are you going to decide?
+
+Drop 'DECIDING' in the comments. Make it real by saying it out loud."
+
+CAPTION:
+Week 4 begins — and it's about decision. Not information. 💡
+
+Drop "DECIDING" in the comments if you're ready to act on what you know. Make it real.`,
+
+    `🎬 REEL SCRIPT 3 — Day ${d} | THE COST OF WAITING
+Format: Honest, slightly confrontational, caring. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "The cost of waiting one more month is higher than most ${aud} calculate."
+
+SCRIPT:
+"I want to talk about the cost of waiting.
+
+Not in a pressure way. In an honest, mathematical way.
+
+Every month you spend in ${pain} without moving toward ${transf} has a specific cost:
+
+The income you didn't earn. The time spent frustrated. The energy spent on approaches that confirm the problem but don't solve it.
+
+And the invisible cost: the story about what's possible for you that gets slightly smaller every month you stay stuck.
+
+[Pause]
+
+I'm not saying move because I'm here with a deadline.
+
+I'm saying move because every month you don't is a month that ${motiv} is further away — not because it became less achievable, but because you became less certain it's achievable.
+
+[Caring, direct]
+
+That certainty matters.
+
+And it erodes quietly, month by month, in the absence of movement.
+
+The move doesn't have to be perfect. It just has to be real.
+
+What's one real step you can take this week — not this month, this week — toward ${transf}?
+
+Drop it below. I'll hold you to it."
+
+CAPTION:
+The real cost of another month in ${pain} 💭
+
+What's one real step you can take THIS WEEK? Drop it below. I'll check back.`,
+
+    `🎬 REEL SCRIPT 3 — Day ${d} | THE FEAR DIRECTLY
+Format: Empathetic, direct. 50–60 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Let me address the fear directly — ${fear}."
+
+SCRIPT:
+"I want to name the fear directly.
+
+Because I see it in the DMs. I see it in the comments. And I know it's what keeps ${aud} on the edge of moving — but not quite moving.
+
+The fear: ${fear}.
+
+[Pause. Acknowledge it.]
+
+That fear is real. I'm not going to dismiss it.
+
+But I want to offer you one reframe.
+
+The fear of ${fear} — what is it actually protecting you from?
+
+[Pause]
+
+In most cases, it's protecting you from the discomfort of trying and not immediately succeeding.
+
+But here's what the fear costs in exchange for that protection:
+
+The certainty of staying in ${pain}. The certainty of not reaching ${transf}. The certainty of ${motiv} staying out of reach.
+
+[Direct]
+
+The fear is trading a possible bad outcome for a guaranteed stuck outcome.
+
+That's not a trade that serves you.
+
+I'm not asking you to be fearless. I'm asking you to decide that ${motiv} is worth being afraid and moving anyway.
+
+Are you there?
+
+Drop 'MOVING ANYWAY' in the comments if this landed."
+
+CAPTION:
+Naming the fear directly — and what it's actually costing you 🔍
+
+Drop "MOVING ANYWAY" if you're choosing to act despite it.`,
+
+    `🎬 REEL SCRIPT 3 — Day ${d} | THE ONES WHO WAITED
+Format: Narrative contrast — honest. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "I want to tell you about the ${aud} who waited — and what they said 6 months later."
+
+SCRIPT:
+"I want to share something that stays with me.
+
+The ${aud} who say 'not yet' — the ones who understand the value, see the path, but decide to wait for a better moment — I remember them.
+
+Not because they failed. Because of what they said when I checked in 6 months later.
+
+Almost every one said the same thing:
+
+'I wish I'd started then.'
+
+Not 'I'm glad I waited.' Not 'the extra time was worth it.'
+
+'I wish I'd started then.'
+
+[Pause]
+
+Because here's what actually happened during the waiting period:
+
+Nothing changed about their situation. ${pain} was still there. ${motiv} was still the goal. The path was still the same.
+
+The only thing that changed was they spent 6 months in the same place they were in when they said 'not yet.'
+
+[Direct, warm]
+
+I'm not telling you this to scare you.
+
+I'm telling you because the version of you 6 months from now will thank the version of you today for one reason:
+
+Whether you started or kept waiting.
+
+What's it going to be?"
+
+CAPTION:
+What the people who waited said 6 months later 😔
+
+I don't want this to be your story. What would need to be true for you to start this week? Tell me.`,
+
+    `🎬 REEL SCRIPT 3 — Day ${d} | THE INVITATION
+Format: Warm, direct, low pressure. 40–50 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Day ${d}. I want to make you a direct invitation."
+
+SCRIPT:
+"Day ${d}. I want to be direct with you.
+
+This month of content has been building toward one thing: giving you everything you need to understand why ${pain} has been happening and what it actually takes to reach ${transf}.
+
+I've held nothing back.
+
+[Pause]
+
+And now — for the ${aud} who want to take this beyond content, into a personalised plan with real support and accountability — I'm opening spots in ${offerName}.
+
+[Not salesy — honest]
+
+This isn't a pressure pitch. It's an invitation.
+
+If this month's content has shifted how you see ${t} — if you've applied even one thing and felt something move — then you understand the value of having this applied specifically to your situation, with guidance, over 90 days.
+
+That's what ${offerName} does.
+
+Investment: ${price}. Guarantee: you'll move toward ${transf} in ways you can't with content alone.
+
+[Direct]
+
+If you want to know if it's right for you — DM me the word 'READY' and I'll give you a straight answer.
+
+No sales call unless you want one. Just an honest conversation."
+
+CAPTION:
+Day ${d} — the direct invitation 🎯
+
+DM me "READY" if you want to know if ${offerName} is right for your specific situation. I'll be straight with you.`,
+
+    `🎬 REEL SCRIPT 3 — Day ${d} | THE FINAL WEEKEND
+Format: Reflective, grateful, building urgency. 45–55 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Final weekend of this content series. I want to say something real."
+
+SCRIPT:
+"Final weekend of 30 days of daily content.
+
+And I want to say something real before we close it out.
+
+Every day this month, I've posted specifically for ${aud} dealing with ${pain} who are serious about ${transf}.
+
+Not for everyone. For you.
+
+[Pause]
+
+If you've been here the whole month — you've received more real, specific, niche-tailored content than most people get in a year of following accounts in this space.
+
+I hope it's done something. I hope it's shifted at least one thing.
+
+But I'll be honest: content can only take you so far.
+
+Understanding ${t} is not the same as having it worked out for your specific situation with someone who can see it from the outside.
+
+[Direct]
+
+If you're ready for that — to go from understanding to application with real support — the last few spots in ${offerName} are open this weekend.
+
+Investment: ${price}. DM me 'WEEKEND' and I'll give you everything you need to decide.
+
+No games. Just the work."
+
+CAPTION:
+Final weekend of the series 🔚
+
+If you've been here all month — what's the one thing that landed most? Tell me below.`,
+
+    `🎬 REEL SCRIPT 3 — Day 30 | THE CLOSE
+Format: Warm, grateful, honest. 50–60 sec.
+Platform: Instagram + Facebook Reels
+Post at: 6–8pm
+
+HOOK: "Day 30. The last one. I want to end it the right way."
+
+SCRIPT:
+"Day 30. The last one.
+
+30 days. Every day. For ${aud} who are serious about moving from ${pain} to ${transf}.
+
+[Pause. Genuine.]
+
+I want to say thank you — not as a content sign-off, but genuinely.
+
+Building in public, sharing the real stuff, being honest about the specific mechanisms instead of just the motivational version — it requires the audience to be worth that honesty.
+
+You've been worth it.
+
+[What I hope you're taking from this month]
+
+I hope you're leaving this month with:
+
+→ A real, specific understanding of ${t} in your situation
+→ At least one change you've made to your daily approach
+→ A clearer picture of what ${transf} actually requires — and the belief that it's achievable
+
+If you have all three — you're not starting from scratch. You're continuing something.
+
+[The door]
+
+If you want to continue it with real support, accountability, and a personalised plan — ${offerName} is still open.
+
+DM me 'DAY 30' and I'll show you exactly what happens next.
+
+[Warm close]
+
+See you in the next chapter."
+
+CAPTION:
+Day 30 — the close 🙏
+
+30 days. Thank you for being here. What's the single biggest thing you're taking from this month?
+
+DM me "DAY 30" if you're ready for the next chapter.`
+  ];
+  return w4Scripts[Math.min(dayOfWeek, w4Scripts.length - 1)];
 }
 
 function buildEmail(bp, d, wk, phase, js, pain, motiv, transf, tried, aud, income, offerName, price, cta, result) {
-  const subjects = [
-    bp.emailAngle,
-    `Day ${d}: ${bp.topic}`,
-    `[${aud.split(' ')[0]}] — ${bp.emailAngle}`,
-  ];
-  const subject = subjects[0];
+  const t = bp.topic;
+  const ea = bp.emailAngle;
+  const dayOfWeek = (d - 1) % 7;
 
-  return `📧 EMAIL — Day ${d} of 30 | Week ${wk}: ${phase}
+  // 6 distinct email types rotating through the series
+  const emailType = (d - 1) % 6;
+
+  const types = [
+    // TYPE 0 — The Teaching Email (insight + mechanism)
+    `📧 EMAIL — Day ${d} · Week ${wk}: ${phase}
 ${'═'.repeat(55)}
-SUBJECT LINE: ${subject}
-PREVIEW TEXT: This is the insight most ${aud} never get...
+SUBJECT: ${ea}
+PREVIEW: The specific mechanism most ${aud} miss about ${t}...
 ${'─'.repeat(55)}
 
 Hey [First Name],
 
-${d === 1 ? `Welcome — and thank you for being here.
+Today is about one thing: ${t}.
 
-I want to start this series the way I start every important conversation: with honesty.
+Not the surface-level version you've read about. The specific mechanism — the one that explains why addressing ${t} generically never sticks and addressing it specifically changes everything.
 
-You didn't sign up for generic advice. You signed up because something about ${pain} is real for you right now. So I'm going to respect that by making every single email in this series count.
+Here's the insight:
 
-Here's my promise: every day for 30 days, you'll get one insight that is specific, actionable, and directly relevant to going from ${pain} to ${transf}.
+${t} isn't a single thing. It's a layered system, and most ${aud} dealing with ${pain} are only addressing the top layer. The visible layer.
 
-No filler. No recycled content. No motivational quotes without substance.
+The layer below it — the mechanism layer — is where the cause lives.
 
-Today's insight is about ${bp.topic.toLowerCase()}.
+Let me make this concrete for you:
 
-${bp.emailAngle}:
+The top layer of ${t}: [what it looks like from the outside — the visible actions and patterns]
 
-The most fundamental thing I've observed in working with ${aud} is that the people who reach ${motiv} don't just work harder — they work on the right layer of the problem.
+The mechanism layer: [what's actually driving those patterns — the specific belief, habit, or system misalignment creating them]
 
-Most people attack the surface. The right approach attacks the root.
+Every time you address only the top layer, you get temporary relief. Every time you reach the mechanism layer and address it directly, you get permanent change.
 
-That's what this month is about.
+Today's question for you:
 
-TODAY'S ACTION: Reply to this email and tell me — in one sentence — what ${pain} is costing you right now. Not what you want. What the current situation is costing you. That clarity will shape every email I send you this month.
+Which layer have you been working on?
 
-Looking forward to this,
-[Your Name]` :
+If the answer is the top layer — that's not a failure. That's the most common starting point. The move now is to go one level deeper.
 
-d <= 7 ? `Day ${d}. Let's keep building.
+What does the mechanism layer look like in your specific situation? Reply to this email and tell me. I'll give you a specific next step based on your answer.
 
-Today's topic: ${bp.topic}
-
-${bp.emailAngle}
-
-Here's what I want you to sit with today:
-
-Most ${aud} who struggle with ${pain} are not failing because they're not trying hard enough. They're failing because they're applying effort in the wrong direction.
-
-${bp.fb1Type} is a perfect example of this pattern.
-
-Here's the specific insight for today:
-
-The difference between ${aud} who reach ${transf} and those who stay stuck is almost never talent, resources, or timing. It's whether they understand the actual mechanism of change — not just the surface-level actions.
-
-When you understand the mechanism, you can adapt. When you only know the actions, you're dependent on perfect conditions.
-
-Today's mechanism: ${bp.topic.toLowerCase()} works because [connect topic to the specific psychological or strategic lever that drives results in your niche].
-
-Can you see how this applies to your situation right now?
-
-TODAY'S ACTION: Identify one thing you've been doing to address ${pain} that is a surface-level action rather than a mechanism-level action. What would the mechanism-level version of that look like?
-
-Reply and tell me. I'll respond personally.
+Today's post on ${t} goes deeper on this — go read the comments too. The conversation there is worth it.
 
 [Your Name]
-P.S. Did you know that ${audType} who understand this specific distinction move 3x faster than those who don't? You're already ahead.` :
+P.S. The ${aud} who reach ${transf} fastest are the ones who get to the mechanism layer early. You're closer than you think.`,
 
-d <= 14 ? `Day ${d}: ${bp.emailAngle}
+    // TYPE 1 — The Story Email (narrative + lesson)
+    `📧 EMAIL — Day ${d} · Week ${wk}: ${phase}
+${'═'.repeat(55)}
+SUBJECT: The ${js} who changed everything — Day ${d} story
+PREVIEW: This one's personal. Worth reading to the end...
+${'─'.repeat(55)}
 
-Short and sharp today — because the best insights don't need paragraphs.
+Hey [First Name],
 
-The topic: ${bp.topic}
+I want to tell you a story today — not a motivational one, a true one.
 
-The one insight I want you to take from today:
+A ${js} came to me in exactly the situation most of you are familiar with: real effort, genuine commitment, ${pain} that refused to respond to any of it.
 
-${bp.reel2Style.charAt(0).toUpperCase() + bp.reel2Style.slice(1)}.
+They'd tried ${tried}. Not half-heartedly — seriously, over real time.
 
-Most ${aud} hear advice like this and think "yes, that makes sense" — then go back to doing exactly what they were doing before.
+What we found when we dug in:
 
-The ones who actually reach ${transf} hear advice like this and immediately ask: "Where specifically am I violating this principle, and what am I going to do differently today?"
+Every approach they'd taken had addressed ${t} at the symptom level. Not because they were wrong about the direction — because nobody had shown them the specific mechanism driving their version of ${pain}.
 
-That's the gap. Not knowledge. Application.
+So the effort kept landing in the wrong layer.
 
-So here's your assignment for today:
+Two weeks after we identified the specific mechanism and adjusted the daily approach:
 
-Take the insight above and apply it to one specific situation in your business or journey right now. Not theoretically. Actually.
+The first real signal of ${transf}. Not complete — but directionally different than anything they'd experienced before.
 
-What changes when you apply it?
+After 60 days:
 
-Reply and tell me what you came up with. I'll give you a specific next step based on your answer.
+[Describe a specific, realistic result — concrete and believable, not hype]
 
-See you tomorrow.
-[Your Name]
-P.S. Today's Facebook post goes deeper on this. Find it on my profile — the engagement in the comments is worth reading.` :
+The lesson I want you to take from this:
 
-d <= 21 ? `Day ${d}: Real talk.
+The gap between where they started and where they got wasn't closed by working harder. It was closed by working on the right layer of the right problem.
 
-You're past the halfway point of this email series. And I want to be honest with you about what I've observed.
+That layer is available to you. Right now.
 
-The people who get the most from content like this — the ones who actually reach ${transf} — are the ones who treat each email as an assignment, not entertainment.
+Where do you think your version of ${pain} is living — in the symptom layer or the mechanism layer?
 
-Today's assignment is about ${bp.topic.toLowerCase()}.
+Reply and tell me. I want to help you find it.
 
-Here's the truth about this stage: ${bp.emailAngle}.
+[Your Name]`,
 
-By day ${d}, most ${aud} either:
+    // TYPE 2 — The Assignment Email (action-focused)
+    `📧 EMAIL — Day ${d} · Week ${wk}: ${phase}
+${'═'.repeat(55)}
+SUBJECT: Your assignment for Day ${d} — takes 20 minutes
+PREVIEW: One specific move that shifts ${t} from concept to action...
+${'─'.repeat(55)}
 
-A) Have started implementing something and are seeing early signals of change (if this is you — reply and tell me what's shifting)
+Hey [First Name],
 
-B) Have been reading and learning but haven't made a concrete move yet (if this is you — this email is specifically for you)
+Short and specific today. This is an assignment email — one thing, 20 minutes, do it before you sleep tonight.
 
-For group B: I want to ask you one question.
+Assignment: The ${t} Audit
 
-What would need to be true for you to take one specific action toward ${transf} before you go to bed tonight?
+Step 1 (5 minutes): Write down the three daily activities you spend the most time on related to ${pain}.
 
-Not a big action. Not a perfect action. One concrete step.
+Step 2 (5 minutes): For each one, complete this sentence: "I do this because it directly creates _____ which leads to ${transf}."
 
-Reply and tell me what it is. I'll hold you to it and check back tomorrow.
+Step 3 (5 minutes): Identify which activity has the clearest, most direct line to ${transf}. Circle it.
 
-This is what mentorship looks like — not motivation, but accountability.
+Step 4 (5 minutes): Now write down: "I will protect _____ minutes for this activity tomorrow morning before anything else."
 
-[Your Name]
-P.S. If you're ready to have this kind of specific, personalised accountability built into your programme — the ${offerName} opens for the last few spots this month. Price: ${price}. Reply 'DETAILS' for everything.` :
+That's it.
 
-`Day ${d}: ${bp.emailAngle}
+Not a strategy overhaul. Not a 2-hour planning session.
 
-We're in the final stretch. This email is direct.
+A 20-minute audit that tells you whether your effort is aligned with your outcome — and makes one adjustment if it isn't.
 
-I've been in your inbox every day this month sharing what I know about going from ${pain} to ${transf}.
+Most ${aud} who do this discover that the activity with the clearest line to ${transf} is not the one they spend the most time on.
 
-You've received more than most people ever get about this topic for free.
+That discovery is the move.
 
-Now I want to ask you something:
+Do the audit. Reply and tell me what you found in Step 3.
 
-What has actually changed since Day 1?
-
-If the answer is "my understanding has changed but my situation hasn't" — that's important information. Because understanding without action is just an expensive form of procrastination.
-
-Here's what I know about ${aud} who reach ${motiv}:
-
-They don't wait until they understand everything. They act with incomplete information and learn from the feedback.
-
-${d === 30 ? `This is the final email in this series.
-
-Thank you for reading. Genuinely.
-
-If this content has given you clarity, changed how you see ${pain}, or helped you take any step toward ${transf} — that's exactly why I created it.
-
-If you're ready to go further — to have this level of insight applied specifically to your situation, with personalised support and a clear roadmap — the ${offerName} is open.
-
-Investment: ${price}. Guarantee: ${result || 'real, measurable progress'}.
-
-Reply to this email or send me a DM. Let's finish what we started.
-
-[Your Name]` : `There are ${30 - d} days left in this month's content series. And I have ${d >= 27 ? 'very few' : 'a limited number of'} spots left in ${offerName}.
-
-If you want to move from reading about ${transf} to actually building toward it — with support, personalisation, and accountability — reply 'YES' to this email today.
-
-I'll send you everything you need to know.
+I will personally respond to every reply I receive today.
 
 [Your Name]
-P.S. The investment is ${price}. The cost of staying where you are is compounding daily. Which is the bigger number?`}`}`;
+P.S. This is a non-negotiable. Information without application is expensive entertainment. Do the audit.`,
+
+    // TYPE 3 — The Reframe Email (perspective shift)
+    `📧 EMAIL — Day ${d} · Week ${wk}: ${phase}
+${'═'.repeat(55)}
+SUBJECT: ${ea} — a different way to see ${pain}
+PREVIEW: What if ${pain} isn't the problem you think it is?
+${'─'.repeat(55)}
+
+Hey [First Name],
+
+I want to offer you a reframe today.
+
+What if ${pain} isn't a problem?
+
+What if it's a signal?
+
+[Pause. Stay with this.]
+
+Every time ${pain} shows up — in your content, your sales, your confidence, your income — it's pointing at one specific thing in your approach that's misaligned with ${transf}.
+
+It's not random. It's diagnostic.
+
+The ${aud} who reach ${motiv} quickly — they're not luckier, and they're not tougher. They learned to read the signal instead of fighting it.
+
+Once you read it, ${pain} tells you:
+
+→ Which part of ${t} is misaligned in your situation
+→ Which layer you're working on (symptom or mechanism)
+→ What one specific change would create the most movement
+
+That information is already available to you. ${pain} has been trying to give it to you the whole time.
+
+Here's the reframe in action:
+
+The next time ${pain} shows up — instead of "why is this still happening?" ask: "What is this telling me about ${t} in my specific situation?"
+
+Write your answer. That's the map.
+
+Has ${pain} been telling you something you've been ignoring? Reply and tell me what it is. I'll help you decode the signal.
+
+[Your Name]`,
+
+    // TYPE 4 — The Social Proof Email (credibility + case study)
+    `📧 EMAIL — Day ${d} · Week ${wk}: ${phase}
+${'═'.repeat(55)}
+SUBJECT: Real results — what happened when they got specific about ${t}
+PREVIEW: Not a screenshot. The actual mechanism behind the result...
+${'─'.repeat(55)}
+
+Hey [First Name],
+
+Today I want to share a result — not as motivation, but as evidence of a specific mechanism.
+
+I work with ${aud} who are serious about moving from ${pain} to ${transf}.
+
+Last month, one of them — a ${js} who'd been dealing with ${pain} for over a year — made one specific change:
+
+They stopped addressing ${t} at the symptom level and started addressing it at the mechanism level.
+
+Not dramatically. One adjustment to their daily approach based on a specific insight about their version of ${t}.
+
+The result in the first 30 days:
+
+[Describe a specific, realistic, believable result that your audience can relate to — concrete numbers if possible, or concrete qualitative shifts]
+
+The result in 60 days:
+
+[Building on the above — the compounding effect]
+
+What I want you to notice isn't the result itself. It's the input that produced it:
+
+One specific adjustment to one specific layer of ${t}.
+
+Not a strategy overhaul. Not a complete rebuild.
+
+One precise move at the mechanism level.
+
+That precision is available to you. It starts with identifying which part of ${t} is misaligned in your specific situation.
+
+Want help identifying it? Reply to this email with a brief description of your situation — where you are, what you've tried, where you're getting stuck.
+
+I respond personally to every reply. Today especially.
+
+[Your Name]
+P.S. The gap between where this person started and where they got — it's smaller than it looks from the outside. That's always true until you're on the other side of it.`,
+
+    // TYPE 5 — The Offer/CTA Email (conversion-focused)
+    `📧 EMAIL — Day ${d} · Week ${wk}: ${phase}
+${'═'.repeat(55)}
+SUBJECT: ${d >= 25 ? 'Final' : 'This week only'} — ${offerName} for ${aud} who are ready
+PREVIEW: No pressure. Just the honest version of what happens next...
+${'─'.repeat(55)}
+
+Hey [First Name],
+
+I want to be direct with you today — and then offer you something specific.
+
+You've been receiving this content because you're a ${js} who's serious about moving from ${pain} to ${transf}.
+
+You've now seen 30 days (or close to it) of real, specific insight into ${t} and why it's the central variable between where you are and where you want to be.
+
+Here's what I know from working with ${aud} at this stage:
+
+Content gets you to understanding. Understanding is essential. But understanding alone doesn't close the gap.
+
+What closes the gap:
+
+A personalised plan applied specifically to your situation, with someone who understands ${t} at the mechanism level, built around your actual constraints and timeline.
+
+That's what ${offerName} provides.
+
+What it includes:
+
+→ A complete diagnostic of your specific version of ${pain} — the mechanism level, not the symptom level
+→ A 90-day action plan tailored to your starting point, niche, and income goal
+→ Weekly accountability and course-correction
+→ Access to the specific frameworks I've used in every case study I've shared this month
+
+Investment: ${price}.
+What you get: a clear, specific path from ${pain} to ${transf} — not general, yours.
+Guarantee: ${result || 'if you do the work and don\'t see real movement in 30 days, I\'ll work with you until you do'}.
+
+If you want to know if this is right for your specific situation — reply to this email with one sentence about where you're stuck.
+
+No call required. I'll give you a straight answer based on what you tell me.
+
+[Your Name]
+P.S. I'm keeping this offer small — not as a tactic, but because personalised support requires limited intake. If you're serious, reply today.`
+  ];
+
+  return types[emailType];
 }
 
 // Now replace in the file
