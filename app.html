@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Execution OS</title> 
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<title>Execution OS</title>
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&display=swap');
@@ -260,6 +259,10 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.5}
   .ao-grid{grid-template-columns:1fr}
   .pain-grid{grid-template-columns:1fr}
 }
+
+.bhs-pillar-bar{height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-top:4px}
+.bhs-pillar-fill{height:100%;border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)}
+@keyframes bhs-pulse{0%,100%{opacity:1}50%{opacity:.7}}
 </style>
 </head>
 <body>
@@ -292,6 +295,7 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.5}
     <button class="nav-btn" onclick="showPage('tracker',this)"><span class="nav-dot"></span>Daily Tracker</button>
     <button class="nav-btn" onclick="showPage('affiliate',this)" id="nav-affiliate"><span class="nav-dot"></span>🔗 Affiliate Hub</button>
     <button class="nav-btn" onclick="showPage('growth',this)" id="nav-growth"><span class="nav-dot"></span>📚 Growth Support</button>
+    <button class="nav-btn" id="nav-perfhq" onclick="showPage('perfhq',this)"><span class="nav-dot"></span>⚡ Performance HQ</button>
     <button class="nav-btn" id="nav-profile" onclick="showPage('profile',this)"><span class="nav-dot"></span>My Profile</button>
   </div>
 
@@ -1211,6 +1215,60 @@ textarea.fi{resize:vertical;min-height:72px;line-height:1.5}
     </div>
   </div><!-- end page-growth -->
 
+
+  <!-- PERFORMANCE HQ PAGE -->
+  <div class="page" id="page-perfhq">
+
+    <!-- Hero -->
+    <div class="hero-strip" style="background:linear-gradient(145deg,rgba(78,204,163,.12),rgba(108,99,255,.08),var(--card));margin-bottom:1.75rem">
+      <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--purple),var(--yellow));border-radius:20px 20px 0 0"></div>
+      <div class="strip-inner">
+        <div class="strip-left">
+          <div class="tag-pill" style="background:linear-gradient(135deg,var(--teal),var(--teal2))"><span>Performance HQ</span></div>
+          <div class="h1" style="font-size:clamp(20px,3.5vw,32px)">Your score.<br><em>Your milestones.</em></div>
+          <div class="strip-sub">Your Business Health Score measures execution across 5 pillars — live, every week. Your Revenue Milestones celebrate every income breakthrough, permanently on record.</div>
+        </div>
+        <div class="strip-right" style="min-width:200px">
+          <div style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);border-radius:14px;padding:14px 18px;text-align:center">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">This week's score</div>
+            <div id="phq-score-badge" style="font-size:42px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal)">—</div>
+            <div id="phq-score-label" style="font-size:11px;color:var(--dim);margin-top:4px;font-weight:600">Loading…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab strip -->
+    <div class="tab-strip" id="phq-tabs" style="margin-bottom:1.75rem">
+      <button class="tab on" onclick="showPHQTab('score',this)">📊 Business Health Score</button>
+      <button class="tab" onclick="showPHQTab('milestones',this)">🏆 Revenue Milestones</button>
+    </div>
+
+    <!-- SCORE TAB -->
+    <div id="phq-pane-score">
+      <div id="bhs-widget"></div>
+    </div>
+
+    <!-- MILESTONES TAB -->
+    <div id="phq-pane-milestones" style="display:none">
+
+      <!-- Milestones hero summary -->
+      <div id="phq-milestone-summary" style="background:linear-gradient(145deg,rgba(255,217,61,.08),var(--card));border:1px solid rgba(255,217,61,.25);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--yellow),var(--orange),var(--teal))"></div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--yellow);font-weight:900;margin-bottom:10px">🏆 Your Revenue Milestones</div>
+        <div id="phq-milestone-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px"></div>
+        <div style="font-size:10px;color:var(--dimmer);margin-top:12px;line-height:1.5">Milestones are earned automatically when you log deals in the Daily Tracker. Each one generates a downloadable certificate — permanently on your record.</div>
+      </div>
+
+      <!-- Timeline of earned milestones -->
+      <div id="phq-milestone-timeline"></div>
+
+      <!-- Next milestone -->
+      <div id="phq-next-milestone" style="margin-top:1.5rem"></div>
+
+    </div>
+  </div><!-- end page-perfhq -->
+
   <!-- PROFILE PAGE -->
   <div class="page" id="page-profile">
     <div class="hero-strip">
@@ -1358,6 +1416,7 @@ function markFilled(){
 }
 window.markFilled=markFilled;
 function showPage(n,btn){
+  if(n==='perfhq'){setTimeout(()=>{window.renderHealthScore&&window.renderHealthScore();window.renderPHQHero&&window.renderPHQHero();window.renderMilestoneGrid&&window.renderMilestoneGrid();},80);}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('on'));
   const pg=document.getElementById('page-'+n);
@@ -1384,6 +1443,7 @@ function applyAll(){
   window._trackerLastTarget=target;window._trackerLastPrice=price;
   generate();
   window.saveRevenuePlan && window.saveRevenuePlan();
+  if (document.getElementById('bhs-widget')) setTimeout(()=>window.renderHealthScore&&window.renderHealthScore(), 100);
   const btn=document.getElementById('apply-btn');
   if(btn){btn.textContent='✓ Saved & Applied!';btn.style.background='linear-gradient(135deg,var(--yellow),var(--yellow2))';setTimeout(()=>{btn.textContent='⚡ Apply to Everything';btn.style.background='linear-gradient(135deg,var(--teal),var(--teal2))'},1800);}
 }
@@ -2476,12 +2536,12 @@ function generateOffer(){
   const bonus         = gv('offer_bonus');
 
   const av        = window._avatarData || {};
-  const audType   = av.job         || 'your ideal clients';
-  const motivation= av.motivation  || 'financial and time freedom';
-  const pain      = av.pain        || 'feeling stuck';
+  const audType   = av.job ? toPlural(av.job) : 'your ideal clients';
+  const motivation= toKeyword(av.motivation) || 'financial and time freedom';
+  const pain      = toKeyword(av.pain)       || 'feeling stuck';
   const incomeGoal= av.incomeGoal  || '10000';
-  const fear      = av.fear        || 'it not working';
-  const tried     = av.tried       || 'other programmes';
+  const fear      = toKeyword(av.fear)       || 'it not working';
+  const tried     = toWithout(av.tried)      || 'other programmes';
   const nicheLabel = niche;
 
   // ── NICHE INTEL ───────────────────────────────────────────────
@@ -2620,7 +2680,8 @@ function generateOffer(){
   ];
   const whyHighTicket = niRaw ? niRaw.whyHighTicket : 'Clients who invest seriously get 5x better results. High-ticket creates commitment. Commitment creates transformation. Transformation creates testimonials that fill your next cohort automatically.';
   const biggestOpp = niRaw ? niRaw.biggestOpp : 'The ' + nicheLabel + ' market is saturated with generic low-ticket advice. The gap is a premium results-guaranteed programme speaking directly to ' + audType + ' who are ready to solve ' + pain + ' once and for all.';
-  const coreMsg = 'I help ' + audType + ' go from ' + pain + ' to ' + result + ' in ' + duration + (noEffort ? ' — without ' + noEffort : '') + '.';
+  const noEffort_clean = noEffort ? toWithout(noEffort) : '';
+  const coreMsg = 'I help ' + audType + ' go from ' + pain + ' to ' + result + ' in ' + duration + (noEffort_clean ? ' — without ' + noEffort_clean : '') + '.';
 
   // ── PROGRAMME OUTLINE ENGINE ──────────────────────────────────
   const weeksNum = parseInt(duration) || (duration.toLowerCase().includes('12')?12:duration.toLowerCase().includes('6')?6:duration.toLowerCase().includes('8')?8:12);
@@ -2955,7 +3016,7 @@ function generateOffer(){
   html += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--yellow);font-weight:900;margin-bottom:12px">📢 5 Ready-to-Use Funnel Headlines for ' + offerName + '</div>';
   html += '<div style="display:flex;flex-direction:column;gap:6px">';
   headlines.forEach((hl,i)=>{
-    html += '<div style="padding:11px 14px;background:rgba(255,217,61,.05);border:1px solid rgba(255,217,61,.15);border-radius:10px;font-size:12px;color:var(--muted);font-weight:700;line-height:1.5">' + (i+1) + '. "' + hl + '"</div>';
+    html += '<div data-headline style="padding:11px 14px;background:rgba(255,217,61,.05);border:1px solid rgba(255,217,61,.15);border-radius:10px;font-size:12px;color:var(--muted);font-weight:700;line-height:1.5">' + (i+1) + '. "' + hl + '"</div>';
   });
   html += '</div></div>';
 
@@ -3017,9 +3078,20 @@ function generateOffer(){
   html += '</div><div style="font-size:10px;color:var(--dimmer);line-height:1.55">Based on '+Math.ceil(20000/price)+' sales/month at $'+price.toLocaleString()+' with natural compounding through referrals and content authority. <strong style="color:var(--white)">Consistency is the only variable you control.</strong></div>';
   html += '</div>';
 
+  // Enhance headlines with AI for clean copy
+  const _headlines = output.querySelectorAll ? null : null; // placeholder — enhancement below
   output.innerHTML = html;
   output.style.display='block';
   output.scrollIntoView({behavior:'smooth',block:'start'});
+  // Async AI headline cleanup — non-blocking, updates in place
+  (async ()=>{
+    const headlineDivs = output.querySelectorAll('[data-headline]');
+    if(!headlineDivs.length) return;
+    const raw = Array.from(headlineDivs).map(d=>d.textContent);
+    const ctx = { niche, job:audType, pain, transformation:transformation_av, incomeGoal:incomeGoal+'', duration };
+    const improved = await enhanceCopyWithAI(raw, ctx);
+    improved.forEach((txt,i)=>{ if(headlineDivs[i] && txt) headlineDivs[i].textContent = txt; });
+  })();
 }
 window.generateOffer=generateOffer;
 
@@ -3057,6 +3129,7 @@ function renderTracker(dmsDay,salesGoal){
     </div>`;
 }
 function adj(key,delta,target,isClose){const s=window._trackerState;if(!s)return;const prev=s.counts[key]||0;const nv=Math.max(0,prev+delta);s.counts[key]=nv;const price=window._price||1000;if(isClose){const diff=nv-prev;s.closedDeals=Math.max(0,s.closedDeals+diff);s.remainingIncome=Math.max(0,window._target-(s.closedDeals*price));const rv=document.getElementById('income-remaining-val');const rs=document.getElementById('income-remaining-sub');if(rv){rv.textContent='$'+s.remainingIncome.toLocaleString();rv.style.color=s.remainingIncome===0?'var(--teal)':'var(--red)';}if(rs){rs.textContent=s.closedDeals+' deal'+(s.closedDeals!==1?'s':'')+' closed';}}const v=document.getElementById('val-'+key);const f=document.getElementById('fill-'+key);if(v)v.textContent=nv;if(f)f.style.width=Math.min(100,Math.round(nv/target*100))+'%';}
+window.adj=adj;
 function resetTracker(){const price=window._appliedPrice||1000;const target=window._appliedTarget||25000;window._trackerState={counts:{},closedDeals:0,remainingIncome:target};window._trackerLastTarget=target;window._trackerLastPrice=price;const sales=Math.ceil(target/price);const leads=Math.ceil(sales/0.25/0.30);renderTracker(Math.ceil(leads/30*3),sales);}
 
 function validateAvatarFields(){
@@ -3092,8 +3165,12 @@ function generateAvatar(){
   const influences=document.getElementById('av_influences').value||'Online communities.';
   const objections=document.getElementById('av_objections').value||'I don\'t have time.';
   const pains=(window._nichePains||[]).filter((_,i)=>selectedPains.has(i));
-  const pain=pains[0]||'feeling stuck';
+  const pain=toKeyword(pains[0]||av_pain_raw||'feeling stuck');
   const incFmt='$'+Number(incomeGoal).toLocaleString();
+  const tried_clean=toWithout(tried);
+  const transformation_clean=toTransform(transformation);
+  const motivation_clean=toKeyword(motivation);
+  const fear_clean=toKeyword(fear);
   const initials=name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase()||'IC';
   const niche=window._appliedNiche||'your niche';
   const nc = (window.NICHE_CONFIG&&window.NICHE_CONFIG[niche]&&window.NICHE_CONFIG[niche].content)||{hooks:["If you're struggling — this is for you.","The truth that changes everything.","3 things that separate people who succeed from those who don't.","How to go from stuck to thriving in 30 days.","The one shift that makes everything else easier."],audience_type:'your audience'};
@@ -3105,11 +3182,11 @@ function generateAvatar(){
 
   const hooks=[
     {hook:nc.hooks[0]||`"If you're a ${job.split('/')[0].trim()} who is struggling — read this."`,type:"Pain hook",why:"Names their exact situation and interrupts their scroll"},
-    {hook:`"How I went from ${(pains[0]||'feeling stuck').toLowerCase()} to $${Number(incomeGoal).toLocaleString()}/month."`,type:"Story hook",why:"They see themselves in this story"},
+    {hook:`"How I went from ${pain} to ${incFmt}/month."`,type:"Story hook",why:"They see themselves in this story"},
     {hook:`"The real reason ${job.split('/')[0].trim()}s can't get ahead (it has nothing to do with effort)."`,type:"Curiosity hook",why:"Challenges their belief — forces them to find out more"},
-    {hook:nc.hooks[1]||`"I used to think ${fear.toLowerCase().split('.')[0]} too. Then I tried this."`,type:"Objection crusher",why:"Addresses their #1 fear before they raise it"},
+    {hook:nc.hooks[1]||`"I used to fear ${fear_clean} too. Then I found a better way."`,type:"Objection crusher",why:"Addresses their #1 fear before they raise it"},
     {hook:`"What $${Number(incomeGoal).toLocaleString()}/month actually buys you — and why most people underestimate it."`,type:"Desire hook",why:"Makes their income goal feel tangible and real"},
-    {hook:`"You have already tried ${tried.split(',')[0]||'other things'}. Here is why those did not work."`,type:"Empathy hook",why:"Shows you understand their history — removes the 'I have tried before' wall"},
+    {hook:`"You have already tried ${tried_clean||'other approaches'}. Here is why it did not work — and what does."`,type:"Empathy hook",why:"Shows you understand their history — removes the 'I have tried before' wall"},
     {hook:nc.hooks[2]||`"If ${motivation.toLowerCase()} is your goal — stop doing this one thing immediately."`,type:"Pattern interrupt",why:"Speaks directly to their core motivation"},
     {hook:nc.hooks[3]||`"The 3-minute test that tells you exactly where to start."`,type:"CTA hook",why:"Low-commitment entry point — curiosity drives clicks"},
   ];
@@ -3240,7 +3317,7 @@ function generateAvatar(){
       <div style="padding:1rem 1.25rem;border-top:1px solid var(--border2)">
         <div style="font-size:10px;text-transform:uppercase;color:var(--teal);font-weight:900;margin-bottom:10px">The one-sentence positioning statement for ${niche}</div>
         <div style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);border-radius:12px;padding:14px 16px;font-size:14px;color:var(--white);font-weight:700;line-height:1.6">
-          "I help ${job.split('/')[0].trim()}s go from ${pains[0]||pain} to ${transformation} in ${duration||'90 days'} — without ${tried.split(',')[0]||'the hard way'}."
+          "I help ${toPlural(job)} go from ${pain} to ${transformation_clean} in ${duration||'90 days'} — without ${tried_clean}."
         </div>
         <div style="font-size:10px;color:var(--dimmer);margin-top:8px">Use this as your bio on every platform. It names who you help, the problem, the result, the timeframe, and what they don't have to do.</div>
       </div>
@@ -3251,6 +3328,7 @@ function generateAvatar(){
   </div>`;
 
   out.scrollIntoView({behavior:'smooth',block:'start'});
+  if (document.getElementById('bhs-widget')) setTimeout(()=>window.renderHealthScore&&window.renderHealthScore(), 200);
 }
 
 // Routine system (simplified)
@@ -3262,6 +3340,7 @@ function updateRoutineProgress(){const blocks=customRoutineBlocks||[];const tota
 function renderRoutineBlocks(){if(!customRoutineBlocks||!customRoutineBlocks.length)return;let blockIdx=0;document.getElementById('routine-blocks').innerHTML=customRoutineBlocks.map((b)=>{if(b.section){return`<div style="margin-top:1.75rem;margin-bottom:.5rem;display:flex;align-items:center;gap:10px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-family:'Poppins',sans-serif;font-weight:800;white-space:nowrap">${b.section}</div><div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.1),transparent)"></div></div>`;}const i=blockIdx++;const isDone=routineDone.has(i);const accent=b.accent||'var(--orange)';const tagColor=b.tagColor||'rgba(255,140,66,.12)';const tagText=b.tagText||'var(--orange)';return`<div class="rblock${isDone?' done':''}" onclick="toggleRoutine(${i})"><div style="position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:16px 0 0 16px;background:${accent};opacity:${isDone?.35:1}"></div><div style="display:flex;flex-direction:column;align-items:flex-start;min-width:66px"><div class="rblock-time">${b.time}</div><div style="font-size:9px;color:var(--dimmer);font-weight:600;margin-top:2px;font-family:'Poppins',sans-serif">${b.dur||''}</div></div><div class="rblock-icon" style="background:${tagColor}">${b.icon||'⚡'}</div><div class="rblock-body"><div class="rblock-title">${b.title}</div><div class="rblock-why">${b.why}</div><span class="rblock-tag" style="background:${tagColor};color:${tagText}">${b.tag||''}</span></div><div class="rblock-check"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div></div>`;}).join('');updateRoutineProgress();}
 function renderRoutine(){updateRoutineProgress();if(customRoutineBlocks&&customRoutineBlocks.length){document.getElementById('routine-questionnaire').style.display='none';document.getElementById('routine-result').style.display='block';renderRoutineBlocks();}else{document.getElementById('routine-questionnaire').style.display='block';document.getElementById('routine-result').style.display='none';}}
 function toggleRoutine(i){if(routineDone.has(i))routineDone.delete(i);else routineDone.add(i);renderRoutineBlocks();}
+window.toggleRoutine=toggleRoutine;
 window.enterRoutineEditMode=function(){document.getElementById('routine-questionnaire').style.display='block';document.getElementById('edit-routine-btn').style.display='none';document.getElementById('routine-questionnaire').scrollIntoView({behavior:'smooth',block:'start'});};
 window.generateCustomRoutine = function() {
 
@@ -3631,6 +3710,7 @@ window.showPostDetail30=function(){};
 window.copyPostScript30=function(){};
 window._calDone=new Set();
 function toggleDay30(dayIdx){if(!window._calDone)window._calDone=new Set();if(window._calDone.has(dayIdx))window._calDone.delete(dayIdx);else window._calDone.add(dayIdx);renderAICalendar30(currentWeek||1);}
+window.toggleDay30=toggleDay30;
 
 // No plan gate modal — all registered members have full access
 window.showPlanGateModal = function(){ /* no-op — full access model */ };
@@ -4226,15 +4306,124 @@ function getNicheContent() {
 // that never repeat across the 30-day cycle
 // ============================================================
 
+// ─── COPY-SAFE TEXT NORMALISER ───────────────────────────────────────────────
+// Converts raw user textarea input (full sentences) into clean short copy fragments
+// so generated headlines, hooks and posts read naturally when interpolated.
+function toFragment(str, mode) {
+  if(!str) return '';
+  str = str.trim();
+  // Strip leading "I ", "they ", "we " pronoun starts common in textarea answers
+  str = str.replace(/^(I have |I've |I am |I'm |They have |They've |They are |They're |We have |We've |We are |We're )/i, '');
+  // Strip trailing full stops
+  str = str.replace(/\.+$/, '').trim();
+  // Lowercase for mid-sentence use unless 'title' mode
+  if(mode === 'lower') str = str.charAt(0).toLowerCase() + str.slice(1);
+  if(mode === 'title') str = str.charAt(0).toUpperCase() + str.slice(1);
+  return str;
+}
+
+// Extract a SHORT keyword phrase from a long sentence
+// e.g. "invested in coaching programs and courses but not seeing growth" → "coaching programs and courses"
+function toKeyword(str) {
+  if(!str) return '';
+  str = toFragment(str, 'lower');
+  // Take up to the first comma, em dash, 'but', 'and', or 8 words — whichever comes first
+  str = str.split(/,| — | but | and still| yet | however/i)[0].trim();
+  const words = str.split(/\s+/);
+  if(words.length > 7) str = words.slice(0, 7).join(' ');
+  return str;
+}
+
+// Ensure value is a proper sentence-ending fragment (no verb awkwardness)
+// Used for "without [X]" constructs
+function toWithout(str) {
+  if(!str) return 'the hard way';
+  str = toFragment(str, 'lower');
+  // Strip "having to", "needing to", "doing" starters  
+  str = str.replace(/^(having to |needing to |doing |going through |dealing with )/i, '');
+  // Take first meaningful clause only
+  str = str.split(/,| — | but | and /i)[0].trim();
+  const words = str.split(/\s+/);
+  if(words.length > 8) str = words.slice(0, 8).join(' ');
+  return str || 'the hard way';
+}
+
+// Make plural job title safe for copy: "freelancer" → "freelancers"
+function toPlural(str) {
+  if(!str) return 'entrepreneurs';
+  str = str.split('/')[0].split(',')[0].trim().toLowerCase();
+  if(str.endsWith('s') || str.endsWith('x') || str.endsWith('z')) return str + 'es';
+  if(str.endsWith('y') && !/[aeiou]y$/.test(str)) return str.slice(0,-1) + 'ies';
+  return str + 's';
+}
+
+// Clean a transformation string for use in copy
+function toTransform(str) {
+  if(!str) return 'their ideal outcome';
+  str = toFragment(str, 'lower');
+  const words = str.split(/\s+/);
+  if(words.length > 8) str = words.slice(0, 8).join(' ');
+  return str;
+}
+
+// ─── AI COPY ENHANCER (Anthropic API) ────────────────────────────────────────
+// Cleans and rewrites a batch of generated copy through Claude claude-sonnet-4-20250514
+// Returns improved versions with correct grammar and natural flow
+async function enhanceCopyWithAI(pieces, context) {
+  const { niche, job, pain, transformation, incomeGoal, duration } = context;
+  const prompt = `You are an elite direct-response copywriter. I will give you ${pieces.length} pieces of marketing copy that were auto-generated and need professional cleanup. 
+
+CONTEXT:
+- Niche: ${niche}
+- Target audience: ${job}
+- Core pain: ${pain}
+- Transformation: ${transformation}
+- Income goal: ${incomeGoal}
+- Programme duration: ${duration}
+
+RULES:
+1. Fix ALL grammar, awkward phrasing, and sentence structure
+2. Keep the same intent and structure of each piece — just make it read naturally
+3. Remove any sentence that starts with "without" followed by a full clause starting with a subject pronoun
+4. Every headline must be punchy, clear, and conversion-focused
+5. Never use passive voice when active voice works
+6. Return ONLY a JSON array of the same length with improved strings — no markdown, no explanation
+
+PIECES TO IMPROVE:
+${JSON.stringify(pieces)}
+
+Return ONLY the JSON array.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await resp.json();
+    const text = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g,'').trim();
+    const improved = JSON.parse(clean);
+    if(Array.isArray(improved) && improved.length === pieces.length) return improved;
+    return pieces;
+  } catch(e) {
+    return pieces; // Fallback to original on any error
+  }
+}
+
 function get30DayPlan(av, nc) {
   const niche = (document.getElementById('niche')||{}).value || 'Online Business';
   const job = av.job || 'professional';
   const js = job.split('/')[0].split(',')[0].trim();
-  const pain = av.pain || 'feeling stuck';
-  const motivation = av.motivation || 'financial freedom';
-  const fear = av.fear || 'wasting money';
-  const tried = av.tried || 'other methods';
-  const transformation = av.transformation || 'achieving their goals';
+  const pain = toKeyword(av.pain) || 'feeling stuck';
+  const motivation = toKeyword(av.motivation) || 'financial freedom';
+  const fear = toKeyword(av.fear) || 'wasting money';
+  const tried = toWithout(av.tried) || 'other methods';
+  const transformation = toTransform(av.transformation) || 'achieving their goals';
   const incomeGoal = '$' + Number(av.incomeGoal || 10000).toLocaleString();
   const audType = nc.audience_type || 'aspiring entrepreneurs';
   const offerName = (document.getElementById('offer_name')||{}).value || 'my programme';
@@ -6957,6 +7146,35 @@ window.showPostDetail30 = function(globalIdx) {
     </div>
   </div>`;
   document.body.appendChild(modal);
+  // AI grammar + copy cleanup — async, non-blocking, updates in place
+  (async () => {
+    try {
+      const script = d.videoScript;
+      if(!script || script.length < 80) return;
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1500,
+          messages:[{role:'user', content:'You are a professional direct-response copywriter. Fix ALL grammar errors, unnatural phrasing, and awkward sentence structures in this marketing script. Rules: (1) Keep the exact same format, structure, platform markers, and length. (2) Every sentence must flow naturally and read like a human expert wrote it. (3) Remove any sentence where the subject and verb clash due to raw user-input interpolation. (4) Return ONLY the fixed script — no explanation, no markdown.\n\n' + script}]})
+      });
+      const d2 = await resp.json();
+      const improved = d2.content?.[0]?.text;
+      if(!improved || improved.length < 50) return;
+      // Update the stored script
+      if(window._aiCalendar30) {
+        const dayIdx = Math.floor(globalIdx / 6);
+        const slotIdx = globalIdx % 6;
+        if(window._aiCalendar30[dayIdx] && window._aiCalendar30[dayIdx][slotIdx]) {
+          window._aiCalendar30[dayIdx][slotIdx].videoScript = improved;
+        }
+      }
+      // Update the rendered modal if still open
+      const modalEl = document.getElementById('post-detail-modal');
+      if(modalEl) {
+        const scriptDivs = modalEl.querySelectorAll('[style*="white-space:pre-line"]');
+        scriptDivs.forEach(div => { div.textContent = improved; });
+      }
+    } catch(e){}
+  })();
 };
 
 // Override copyPostScript30 for 6-slot per day
@@ -7405,6 +7623,680 @@ function renderGrowthAnnouncements() {
   el.innerHTML = `<div style="background:linear-gradient(145deg,rgba(78,204,163,.08),var(--card));border:1px solid rgba(78,204,163,.25);border-radius:14px;padding:1.25rem"><div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:var(--text-dark);flex-shrink:0">C</div><div><div style="font-size:13px;font-weight:800;color:var(--white)">Your Coach</div><div style="font-size:10px;color:var(--dimmer)">Programme Director</div></div></div><div style="font-size:13px;color:var(--muted);line-height:1.75">Welcome to the Growth Support portal. This is where I will post all updates, session recordings, new resources, and important announcements throughout your programme. Check this tab regularly — everything you need will appear here.</div><div style="font-size:10px;color:var(--dimmer);margin-top:10px">Pinned announcement</div></div>`;
 }
 
+
+
+// ─── HEALTH SCORE + MILESTONE FEATURE ───────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
+// BUSINESS HEALTH SCORE + REVENUE MILESTONE CERTIFICATES
+// Wired to: _trackerState, _calDone, _avatarData, _aiCalendar30, _appliedPrice/Target/Niche,
+//           customRoutineBlocks, routineDone, _ti (tracker items), Firestore users/{uid}
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── WEEK KEY UTILITY ────────────────────────────────────────────────────────
+function getWeekKey() {
+  const now = new Date();
+  const jan1 = new Date(now.getFullYear(), 0, 1);
+  const week = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+  return `${now.getFullYear()}-W${String(week).padStart(2,'0')}`;
+}
+
+// ─── WEEKLY ACTIVITY ACCUMULATOR ─────────────────────────────────────────────
+// Survives daily resetTracker() calls. Accumulates all week.
+function getWeeklyAcc() {
+  const key = 'eos_week_' + getWeekKey();
+  try {
+    const stored = localStorage.getItem(key);
+    const data = stored ? JSON.parse(stored) : {};
+    return {
+      dms: data.dms || 0,
+      posts: data.posts || 0,
+      calls: data.calls || 0,
+      closes: data.closes || 0,
+      calDays: data.calDays || 0,
+      routineCompletions: data.routineCompletions || 0,
+      revenue: data.revenue || 0,
+      _key: key
+    };
+  } catch(e) {
+    return { dms:0, posts:0, calls:0, closes:0, calDays:0, routineCompletions:0, revenue:0, _key: 'eos_week_' + getWeekKey() };
+  }
+}
+
+function saveWeeklyAcc(acc) {
+  try {
+    const toSave = { dms: acc.dms, posts: acc.posts, calls: acc.calls, closes: acc.closes, calDays: acc.calDays, routineCompletions: acc.routineCompletions, revenue: acc.revenue };
+    localStorage.setItem(acc._key, JSON.stringify(toSave));
+    // Also push to Firestore if connected
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      const weekKey = getWeekKey();
+      window._setDoc(window._doc(window._db, 'users', window._currentUserUid), { weeklyActivity: { [weekKey]: toSave } }, { merge: true }).catch(()=>{});
+    }
+  } catch(e) {}
+}
+
+// Patch into adj() to accumulate weekly totals (positive changes only)
+const _origAdj = window.adj || function(){};
+window.adj = function(key, delta, target, isClose) {
+  _origAdj.apply(this, arguments);
+  if (delta > 0) {
+    const acc = getWeeklyAcc();
+    if (key === 'dms')    acc.dms    += delta;
+    if (key === 'posts')  acc.posts  += delta;
+    if (key === 'calls')  acc.calls  += delta;
+    if (key === 'closes') {
+      acc.closes  += delta;
+      const price  = window._appliedPrice || 1000;
+      acc.revenue += delta * price;
+      // Check milestones on every close
+      setTimeout(() => checkMilestones(acc.revenue), 400);
+    }
+    saveWeeklyAcc(acc);
+    // Refresh score if visible
+    if (document.getElementById('bhs-total')) renderHealthScore();
+  }
+};
+
+// Patch toggleDay30 to count calendar completions
+const _origToggleDay30 = window.toggleDay30;
+window.toggleDay30 = function(dayIdx) {
+  const wasDone = window._calDone && window._calDone.has(dayIdx);
+  if (_origToggleDay30) _origToggleDay30(dayIdx);
+  else {
+    if (!window._calDone) window._calDone = new Set();
+    if (window._calDone.has(dayIdx)) window._calDone.delete(dayIdx);
+    else window._calDone.add(dayIdx);
+  }
+  const nowDone = window._calDone && window._calDone.has(dayIdx);
+  if (!wasDone && nowDone) {
+    const acc = getWeeklyAcc();
+    acc.calDays += 1;
+    saveWeeklyAcc(acc);
+  } else if (wasDone && !nowDone) {
+    const acc = getWeeklyAcc();
+    acc.calDays = Math.max(0, acc.calDays - 1);
+    saveWeeklyAcc(acc);
+  }
+  if (document.getElementById('bhs-total')) renderHealthScore();
+};
+
+// Patch toggleRoutine to track completions
+const _origToggleRoutine = window.toggleRoutine;
+window.toggleRoutine = function(i) {
+  const wasDone = (typeof routineDone !== 'undefined') && routineDone.has(i);
+  if (_origToggleRoutine) _origToggleRoutine(i);
+  const nowDone = (typeof routineDone !== 'undefined') && routineDone.has(i);
+  if (!wasDone && nowDone) {
+    const acc = getWeeklyAcc();
+    acc.routineCompletions += 1;
+    saveWeeklyAcc(acc);
+  } else if (wasDone && !nowDone) {
+    const acc = getWeeklyAcc();
+    acc.routineCompletions = Math.max(0, acc.routineCompletions - 1);
+    saveWeeklyAcc(acc);
+  }
+  if (document.getElementById('bhs-total')) renderHealthScore();
+};
+
+// ─── HEALTH SCORE CALCULATOR ──────────────────────────────────────────────────
+function calculateHealthScore() {
+  const acc    = getWeeklyAcc();
+  const price  = window._appliedPrice  || 1000;
+  const target = window._appliedTarget || 25000;
+  const niche  = window._appliedNiche  || '';
+  const ts     = window._trackerState  || {};
+  const ti     = window._ti            || [];
+
+  // Get daily targets from tracker items
+  const dailyDmTarget   = (ti.find(x=>x.key==='dms')    || {target:17}).target;
+  const dailyCallTarget = (ti.find(x=>x.key==='calls')   || {target:1}).target;
+  const dailyCloseTarget= (ti.find(x=>x.key==='closes')  || {target:1}).target;
+
+  const weeklyDmTarget   = dailyDmTarget   * 7;
+  const weeklyCallTarget = dailyCallTarget * 5; // 5 business days
+  const weeklyCloseTarget= dailyCloseTarget* 4; // realistic weekly close goal
+
+  // ── PILLAR 1: Foundation & Setup (0–20) ──────────────────────
+  let p1 = 0;
+  const hasNiche   = !!(niche && niche !== 'your niche');
+  const hasTarget  = !!(target && target > 0);
+  const hasAvatar  = !!(window._avatarData && window._avatarData.name);
+  const hasCalendar= !!(window._aiCalendar30 && window._aiCalendar30.length > 0);
+  const hasRoutine = !!(typeof customRoutineBlocks !== 'undefined' && customRoutineBlocks && customRoutineBlocks.filter(b=>!b.section).length > 0);
+  const offerEl    = document.getElementById('offer-output');
+  const hasOffer   = !!(offerEl && offerEl.style.display !== 'none' && offerEl.innerHTML.length > 100);
+
+  if (hasNiche && hasTarget) p1 += 5;   // Revenue plan complete
+  if (hasAvatar)             p1 += 5;   // Avatar generated
+  if (hasOffer)              p1 += 4;   // Offer built
+  if (hasRoutine)            p1 += 3;   // Routine created
+  if (hasCalendar)           p1 += 3;   // Content calendar generated
+
+  // ── PILLAR 2: Content Consistency (0–20) ─────────────────────
+  let p2 = 0;
+  if (hasCalendar) {
+    // Weekly calendar completions — scored against 7 days/week
+    const calRatio = Math.min(1, acc.calDays / 7);
+    p2 = Math.round(calRatio * 20);
+    // Bonus: calendar exists at all gives baseline 3pts (already in p1, separate here)
+  } else {
+    // No calendar: score based on posts logged in tracker
+    const postRatio = Math.min(1, acc.posts / 14); // target: 2 posts/day × 7 days
+    p2 = Math.round(postRatio * 15);
+  }
+
+  // ── PILLAR 3: DM & Outreach Activity (0–20) ──────────────────
+  let p3 = 0;
+  const dmRatio = weeklyDmTarget > 0 ? Math.min(1, acc.dms / weeklyDmTarget) : 0;
+  p3 = Math.round(dmRatio * 20);
+
+  // ── PILLAR 4: Sales Activity (0–20) ──────────────────────────
+  let p4 = 0;
+  const callRatio  = weeklyCallTarget  > 0 ? Math.min(1, acc.calls  / weeklyCallTarget)  : 0;
+  const closeRatio = weeklyCloseTarget > 0 ? Math.min(1, acc.closes / weeklyCloseTarget) : 0;
+  p4 = Math.round(callRatio * 10) + Math.round(closeRatio * 10);
+
+  // ── PILLAR 5: Revenue Progress (0–20) ────────────────────────
+  let p5 = 0;
+  const closedDeals   = ts.closedDeals || 0;
+  const revenueEarned = closedDeals * price;
+  const revRatio      = target > 0 ? Math.min(1, revenueEarned / target) : 0;
+  p5 = Math.round(revRatio * 20);
+
+  const total = p1 + p2 + p3 + p4 + p5;
+
+  return {
+    total, p1, p2, p3, p4, p5,
+    // Diagnostics for display
+    hasNiche, hasAvatar, hasOffer, hasCalendar, hasRoutine, hasTarget,
+    dmRatio, callRatio, closeRatio, revRatio, calRatio: Math.min(1, acc.calDays / 7),
+    weeklyDmTarget, weeklyCallTarget, weeklyCloseTarget,
+    acc, closedDeals, revenueEarned, price, target,
+    weekKey: getWeekKey()
+  };
+}
+
+// ─── SCORE RATING LABELS ──────────────────────────────────────────────────────
+function scoreRating(score) {
+  if (score >= 85) return { label:'Elite', color:'var(--teal)',   bg:'rgba(78,204,163,.12)',   border:'rgba(78,204,163,.35)' };
+  if (score >= 70) return { label:'Strong', color:'var(--teal)',  bg:'rgba(78,204,163,.08)',   border:'rgba(78,204,163,.25)' };
+  if (score >= 55) return { label:'Building', color:'var(--yellow)', bg:'rgba(255,217,61,.08)', border:'rgba(255,217,61,.25)' };
+  if (score >= 35) return { label:'Developing', color:'var(--orange)', bg:'rgba(255,140,66,.08)', border:'rgba(255,140,66,.25)' };
+  return { label:'Getting Started', color:'var(--dimmer)', bg:'rgba(255,255,255,.04)', border:'rgba(255,255,255,.1)' };
+}
+
+function pillarBar(score, max, color) {
+  const pct = Math.round((score / max) * 100);
+  return `<div style="flex:1;height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1)"></div></div>`;
+}
+
+// ─── RENDER HEALTH SCORE UI ───────────────────────────────────────────────────
+function renderHealthScore() {
+  const el = document.getElementById('bhs-widget');
+  if (!el) return;
+
+  const s   = calculateHealthScore();
+  const rat = scoreRating(s.total);
+
+  const pillars = [
+    {
+      name:'Foundation & Setup', score:s.p1, max:20, color:'var(--purple)',
+      icon:'🏗',
+      items:[
+        { label:'Revenue plan configured', done: s.hasNiche && s.hasTarget, pts:5 },
+        { label:'Ideal customer avatar built', done: s.hasAvatar, pts:5 },
+        { label:'Offer creation complete', done: s.hasOffer, pts:4 },
+        { label:'Daily routine generated', done: s.hasRoutine, pts:3 },
+        { label:'Content calendar active', done: s.hasCalendar, pts:3 },
+      ]
+    },
+    {
+      name:'Content Consistency', score:s.p2, max:20, color:'var(--teal)',
+      icon:'📅',
+      meta: s.hasCalendar
+        ? `${s.acc.calDays} of 7 content days completed this week`
+        : `${s.acc.posts} posts logged this week (target: 14)`,
+      tip: s.p2 < 20 ? (s.hasCalendar ? 'Mark content calendar days as done to increase this score.' : 'Generate your content calendar and mark days complete.') : null
+    },
+    {
+      name:'DM & Outreach', score:s.p3, max:20, color:'var(--orange)',
+      icon:'💬',
+      meta:`${s.acc.dms} DMs sent this week (target: ${s.weeklyDmTarget})`,
+      tip: s.p3 < 20 ? `You need ${Math.max(0, s.weeklyDmTarget - s.acc.dms)} more DMs this week to max this pillar.` : null
+    },
+    {
+      name:'Sales Activity', score:s.p4, max:20, color:'var(--yellow)',
+      icon:'📞',
+      meta:`${s.acc.calls} calls booked · ${s.acc.closes} deals closed this week`,
+      tip: s.p4 < 20 ? `Calls target: ${s.weeklyCallTarget}/week · Closes target: ${s.weeklyCloseTarget}/week` : null
+    },
+    {
+      name:'Revenue Progress', score:s.p5, max:20, color:'var(--red)',
+      icon:'💰',
+      meta:`$${s.revenueEarned.toLocaleString()} earned of $${s.target.toLocaleString()} target`,
+      tip: s.p5 < 20 ? `${Math.max(0, Math.ceil((s.target - s.revenueEarned) / s.price))} more ${s.price > 0 ? '$'+s.price.toLocaleString()+' ' : ''}deals needed to hit your monthly goal.` : null
+    }
+  ];
+
+  let html = '';
+
+  // ── Score Hero ──
+  html += `<div style="background:${rat.bg};border:1px solid ${rat.border};border-radius:20px;padding:1.5rem;margin-bottom:1rem;position:relative;overflow:hidden">`;
+  html += `<div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--purple),var(--yellow))"></div>`;
+  html += `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap">`;
+  html += `<div>`;
+  html += `<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:6px">📊 Business Health Score · ${s.weekKey}</div>`;
+  html += `<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">`;
+  html += `<div id="bhs-total" style="font-size:52px;font-weight:900;font-family:'Poppins',sans-serif;color:${rat.color};line-height:1">${s.total}</div>`;
+  html += `<div style="font-size:14px;font-weight:700;color:${rat.color}">/100</div>`;
+  html += `<div style="background:${rat.bg};border:1px solid ${rat.border};border-radius:50px;padding:4px 14px;font-size:11px;font-weight:900;color:${rat.color};text-transform:uppercase;letter-spacing:.5px">${rat.label}</div>`;
+  html += `</div>`;
+  html += `<div style="font-size:11px;color:var(--dim);max-width:360px;line-height:1.6">`;
+  if (s.total >= 85) html += 'You are executing at an elite level. Stay consistent — momentum is your biggest asset right now.';
+  else if (s.total >= 70) html += 'Strong execution. One or two pillars are pulling your score down — identify them below and close the gap.';
+  else if (s.total >= 55) html += 'You are building momentum. Focus on the lowest-scoring pillar this week and push it to 15+.';
+  else if (s.total >= 35) html += 'You are in the foundation phase. Complete your setup first — every unfilled item costs you points and income.';
+  else html += 'Start with the Foundation pillar. Every item you complete unlocks a more accurate and powerful score across all pillars.';
+  html += `</div></div>`;
+
+  // Mini pillar bars on right
+  html += `<div style="display:flex;flex-direction:column;gap:7px;min-width:140px">`;
+  pillars.forEach(p => {
+    html += `<div style="display:flex;align-items:center;gap:8px">`;
+    html += `<div style="font-size:10px;color:var(--dimmer);min-width:28px;text-align:right;font-weight:700">${p.icon}</div>`;
+    html += pillarBar(p.score, p.max, p.color);
+    html += `<div style="font-size:11px;font-weight:900;color:${p.color};min-width:18px;text-align:right">${p.score}</div>`;
+    html += `</div>`;
+  });
+  html += `</div></div></div>`;
+
+  // ── Pillar Detail Cards ──
+  html += `<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem">`;
+  pillars.forEach(p => {
+    const pct = Math.round((p.score/p.max)*100);
+    html += `<div style="background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:14px;overflow:hidden">`;
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px">`;
+    html += `<div style="display:flex;align-items:center;gap:10px;flex:1">`;
+    html += `<span style="font-size:16px">${p.icon}</span>`;
+    html += `<div style="flex:1">`;
+    html += `<div style="font-size:11px;font-weight:900;color:var(--white);margin-bottom:5px">${p.name}</div>`;
+    html += `<div style="height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${p.color};border-radius:3px;transition:width .7s cubic-bezier(.4,0,.2,1)"></div></div>`;
+    if (p.meta) html += `<div style="font-size:10px;color:var(--dimmer);margin-top:4px">${p.meta}</div>`;
+    html += `</div></div>`;
+    html += `<div style="text-align:right;flex-shrink:0">`;
+    html += `<div style="font-size:18px;font-weight:900;font-family:'Poppins',sans-serif;color:${p.color}">${p.score}<span style="font-size:11px;color:var(--dimmer);font-weight:400">/${p.max}</span></div>`;
+    html += `</div></div>`;
+
+    // Foundation checklist
+    if (p.items) {
+      html += `<div style="padding:0 16px 12px;display:flex;flex-direction:column;gap:5px">`;
+      p.items.forEach(item => {
+        html += `<div style="display:flex;align-items:center;gap:8px">`;
+        html += `<div style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${item.done?'var(--teal)':'rgba(255,255,255,.15)'};background:${item.done?'var(--teal)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0">`;
+        if (item.done) html += `<svg width="8" height="6" viewBox="0 0 8 6" fill="none"><polyline points="1,3 3,5 7,1" stroke="#1a1a3e" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        html += `</div>`;
+        html += `<div style="font-size:11px;color:${item.done?'var(--muted)':'var(--dimmer)'};">${item.label}</div>`;
+        html += `<div style="margin-left:auto;font-size:10px;font-weight:700;color:${item.done?'var(--teal)':'var(--dimmer)'}">+${item.pts}pts</div>`;
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+
+    // Tip
+    if (p.tip) {
+      html += `<div style="margin:0 14px 12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:8px 11px;font-size:11px;color:var(--dimmer);line-height:1.5">💡 ${p.tip}</div>`;
+    }
+    html += `</div>`;
+  });
+  html += `</div>`;
+
+  // ── Score Refresh note ──
+  html += `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">`;
+  html += `<div style="font-size:10px;color:var(--dimmer)">Score updates live as you log activity in the Daily Tracker, Calendar, and Routine.</div>`;
+  html += `<button onclick="renderHealthScore()" style="font-size:10px;color:var(--teal);border:1px solid rgba(78,204,163,.3);border-radius:50px;padding:5px 14px;cursor:pointer;background:rgba(78,204,163,.06);font-family:'Poppins',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px">↻ Refresh Score</button>`;
+  html += `</div>`;
+
+  el.innerHTML = html;
+  if(typeof renderPHQHero==='function') renderPHQHero();
+}
+
+// ─── MILESTONE CERTIFICATE SYSTEM ────────────────────────────────────────────
+const MILESTONES = [
+  { amount: 1000,   label: '$1K',   title:'First $1,000 Month', icon:'🌱', color:'#4ecca3', glow:'rgba(78,204,163,.4)' },
+  { amount: 5000,   label: '$5K',   title:'$5,000 Month',       icon:'🔥', color:'#ffd93d', glow:'rgba(255,217,61,.4)' },
+  { amount: 10000,  label: '$10K',  title:'$10,000 Month',      icon:'💎', color:'#6c63ff', glow:'rgba(108,99,255,.5)' },
+  { amount: 25000,  label: '$25K',  title:'$25,000 Month',      icon:'🚀', color:'#ff8c42', glow:'rgba(255,140,66,.5)' },
+  { amount: 50000,  label: '$50K',  title:'$50,000 Month',      icon:'👑', color:'#ffd93d', glow:'rgba(255,217,61,.6)' },
+  { amount: 100000, label: '$100K', title:'$100,000 Month',     icon:'🏆', color:'#4ecca3', glow:'rgba(78,204,163,.6)' },
+  { amount: 250000, label: '$250K', title:'$250,000 Month',     icon:'💫', color:'#ff6b6b', glow:'rgba(255,107,107,.6)' },
+];
+
+function getEarnedMilestones() {
+  try { return JSON.parse(localStorage.getItem('eos_milestones') || '[]'); } catch(e) { return []; }
+}
+
+function saveMilestone(amount) {
+  const earned = getEarnedMilestones();
+  if (!earned.includes(amount)) {
+    earned.push(amount);
+    localStorage.setItem('eos_milestones', JSON.stringify(earned));
+    // Persist to Firestore
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      window._setDoc(window._doc(window._db, 'users', window._currentUserUid), { milestones: earned }, { merge: true }).catch(()=>{});
+    }
+  }
+}
+
+function checkMilestones(totalRevenue) {
+  const earned = getEarnedMilestones();
+  for (const m of MILESTONES) {
+    if (totalRevenue >= m.amount && !earned.includes(m.amount)) {
+      saveMilestone(m.amount);
+      showMilestoneCertificate(m);
+      break; // Show one at a time
+    }
+  }
+}
+
+function showMilestoneCertificate(m) {
+  // Remove any existing cert
+  const existing = document.getElementById('milestone-overlay');
+  if (existing) existing.remove();
+
+  const av        = window._avatarData || {};
+  const userName  = (function() {
+    const el = document.getElementById('prof-name');
+    return (el && el.value.trim()) ? el.value.trim() : 'You';
+  })();
+  const niche     = window._appliedNiche || 'Online Business';
+  const now       = new Date();
+  const dateStr   = now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+  const monthStr  = now.toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+
+  const overlay = document.createElement('div');
+  overlay.id = 'milestone-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(10,10,30,.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px);animation:mileFadeIn .4s ease';
+
+  overlay.innerHTML = `
+    <style>
+      @keyframes mileFadeIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+      @keyframes mileGlow{0%,100%{box-shadow:0 0 40px ${m.glow},0 0 80px ${m.glow}}50%{box-shadow:0 0 60px ${m.glow},0 0 120px ${m.glow}}}
+      @keyframes mileSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+      @keyframes mileFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+      #mile-cert{animation:mileGlow 2.5s ease-in-out infinite}
+    </style>
+    <div id="mile-cert" style="background:linear-gradient(145deg,#1a1a3e,#2c2c54);border:2px solid ${m.color};border-radius:24px;padding:2.5rem;max-width:480px;width:100%;text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,${m.color},rgba(255,255,255,.3),${m.color})"></div>
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,${m.glow.replace('.','0.').replace(',.4)',', 0.08)')},transparent);pointer-events:none"></div>
+      <div style="font-size:52px;animation:mileFloat 3s ease-in-out infinite;margin-bottom:8px">${m.icon}</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:${m.color};font-weight:900;margin-bottom:12px;font-family:'Poppins',sans-serif">Execution OS · Achievement Unlocked</div>
+      <div style="font-size:clamp(24px,5vw,38px);font-weight:900;font-family:'Poppins',sans-serif;color:#fff;line-height:1.1;margin-bottom:6px">${m.title}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:1.5rem;line-height:1.5">Achieved in <strong style="color:#fff">${niche}</strong></div>
+      <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;position:relative">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-bottom:8px">This certifies that</div>
+        <div style="font-size:20px;font-weight:900;font-family:'Poppins',sans-serif;color:${m.color};margin-bottom:4px">${userName}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.6">generated a <strong style="color:#fff">${m.label}/month</strong> income from their digital business<br>on <strong style="color:#fff">${dateStr}</strong></div>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:9px;color:rgba(255,255,255,.3);text-align:left">EXECUTION OS<br>CERTIFIED</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.3);text-align:right">${monthStr.toUpperCase()}<br>MILESTONE</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="downloadCertificate('${m.label}','${userName}','${m.title}','${niche}','${dateStr}','${monthStr}','${m.icon}','${m.color}')" style="flex:1;padding:12px;background:linear-gradient(135deg,${m.color},${m.color}cc);color:#1a1a3e;border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:900;font-size:12px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase">⬇ Save Certificate</button>
+        <button onclick="document.getElementById('milestone-overlay').remove()" style="padding:12px 20px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Continue</button>
+      </div>
+      <div style="margin-top:12px;font-size:10px;color:rgba(255,255,255,.3)">Screenshot this and share your win 🚀</div>
+    </div>
+  `;
+
+  document.body.appendChild(overlay);
+  // Close on backdrop click
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+}
+
+// ─── CERTIFICATE DOWNLOAD (Canvas-based PNG) ─────────────────────────────────
+function downloadCertificate(label, name, title, niche, dateStr, monthStr, icon, color) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1200; canvas.height = 800;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const grad = ctx.createLinearGradient(0, 0, 1200, 800);
+  grad.addColorStop(0, '#1a1a3e');
+  grad.addColorStop(1, '#2c2c54');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1200, 800);
+
+  // Border glow
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.roundRect(20, 20, 1160, 760, 24);
+  ctx.stroke();
+
+  // Top bar
+  const topGrad = ctx.createLinearGradient(0, 0, 1200, 0);
+  topGrad.addColorStop(0, color);
+  topGrad.addColorStop(0.5, 'rgba(255,255,255,0.6)');
+  topGrad.addColorStop(1, color);
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(20, 20, 1160, 6);
+
+  // Branding
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.font = '600 18px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('EXECUTION OS  ·  ACHIEVEMENT UNLOCKED', 600, 80);
+
+  // Icon
+  ctx.font = '100px Arial';
+  ctx.fillText(icon, 600, 200);
+
+  // Title
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 72px Arial';
+  ctx.fillText(title, 600, 290);
+
+  // Label
+  ctx.fillStyle = color;
+  ctx.font = 'bold 42px Arial';
+  ctx.fillText(label + ' / MONTH', 600, 345);
+
+  // Divider
+  ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(200, 380); ctx.lineTo(1000, 380); ctx.stroke();
+
+  // Certificate text
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '20px Arial';
+  ctx.fillText('THIS CERTIFIES THAT', 600, 430);
+
+  ctx.fillStyle = color;
+  ctx.font = 'bold 52px Arial';
+  ctx.fillText(name, 600, 490);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.font = '24px Arial';
+  ctx.fillText('generated a ' + label + '/month income from their digital business', 600, 540);
+  ctx.fillText('in ' + niche + ' on ' + dateStr, 600, 575);
+
+  // Footer
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '18px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('EXECUTION OS CERTIFIED', 50, 750);
+  ctx.textAlign = 'right';
+  ctx.fillText(monthStr.toUpperCase() + ' MILESTONE', 1150, 750);
+
+  // Download
+  const link = document.createElement('a');
+  link.download = 'ExecutionOS-' + label + '-Certificate.png';
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+// ─── INJECT HEALTH SCORE SECTION INTO REVENUE PLAN PAGE ─────────────────────
+function injectHealthScoreSection() {
+  // bhs-widget lives in page-perfhq — render safely via window references
+  if(window.renderHealthScore)   window.renderHealthScore();
+  if(window.renderPHQHero)       window.renderPHQHero();
+  if(window.renderMilestoneGrid) window.renderMilestoneGrid();
+}
+
+// ─── LOAD MILESTONES FROM FIRESTORE ON LOGIN ─────────────────────────────────
+window._onMilestonesLoaded = function(milestonesArray) {
+  if (Array.isArray(milestonesArray)) {
+    localStorage.setItem('eos_milestones', JSON.stringify(milestonesArray));
+  }
+};
+
+// ─── EXPOSE GLOBALS ──────────────────────────────────────────────────────────
+// ─── PERFORMANCE HQ TABS ─────────────────────────────────────────────────────
+window.showPHQTab = function(tab, btn) {
+  document.querySelectorAll('#phq-tabs .tab').forEach(t => t.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  document.getElementById('phq-pane-score').style.display      = (tab === 'score')      ? 'block' : 'none';
+  document.getElementById('phq-pane-milestones').style.display = (tab === 'milestones') ? 'block' : 'none';
+  if (tab === 'milestones') renderMilestoneGrid();
+};
+
+// ─── PHQ HERO BADGE (score in the hero strip) ────────────────────────────────
+function renderPHQHero() {
+  const s   = calculateHealthScore();
+  const rat = scoreRating(s.total);
+  const badge = document.getElementById('phq-score-badge');
+  const label = document.getElementById('phq-score-label');
+  if (badge) { badge.textContent = s.total; badge.style.color = rat.color; }
+  if (label) { label.textContent = rat.label + ' · ' + s.weekKey; }
+}
+
+// ─── MILESTONE GRID + TIMELINE ───────────────────────────────────────────────
+function renderMilestoneGrid() {
+  const earned   = getEarnedMilestones();
+  const allMiles = [
+    { amount:1000,   label:'$1K',   title:'First $1,000 Month', icon:'🌱', color:'var(--teal)' },
+    { amount:5000,   label:'$5K',   title:'$5,000 Month',       icon:'🔥', color:'var(--yellow)' },
+    { amount:10000,  label:'$10K',  title:'$10,000 Month',      icon:'💎', color:'var(--purple)' },
+    { amount:25000,  label:'$25K',  title:'$25,000 Month',      icon:'🚀', color:'var(--orange)' },
+    { amount:50000,  label:'$50K',  title:'$50,000 Month',      icon:'👑', color:'var(--yellow)' },
+    { amount:100000, label:'$100K', title:'$100,000 Month',     icon:'🏆', color:'var(--teal)' },
+    { amount:250000, label:'$250K', title:'$250,000 Month',     icon:'💫', color:'var(--red)' },
+  ];
+
+  // ── Grid of all milestones ──
+  const grid = document.getElementById('phq-milestone-grid');
+  if (grid) {
+    grid.innerHTML = allMiles.map(m => {
+      const done = earned.includes(m.amount);
+      return `<div style="background:${done ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.02)'};border:1px solid ${done ? m.color.replace('var(--teal)','rgba(78,204,163,.5)').replace('var(--yellow)','rgba(255,217,61,.5)').replace('var(--purple)','rgba(108,99,255,.5)').replace('var(--orange)','rgba(255,140,66,.5)').replace('var(--red)','rgba(255,107,107,.5)') : 'rgba(255,255,255,.06)'};border-radius:12px;padding:12px 10px;text-align:center;transition:all .2s;${done?'':'opacity:.4'}">
+        <div style="font-size:22px;margin-bottom:5px">${done ? m.icon : '🔒'}</div>
+        <div style="font-size:13px;font-weight:900;font-family:'Poppins',sans-serif;color:${done ? 'var(--white)' : 'var(--dimmer)'}">${m.label}</div>
+        <div style="font-size:9px;color:${done ? m.color : 'var(--dimmer)'};margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${done ? '✅ Earned' : 'Locked'}</div>
+        ${done ? `<button onclick="redownloadCertificate(${m.amount})" style="margin-top:8px;font-size:9px;padding:4px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;color:var(--dim);cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.3px">⬇ Cert</button>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // ── Earned timeline ──
+  const timeline = document.getElementById('phq-milestone-timeline');
+  if (timeline) {
+    const earnedMiles = allMiles.filter(m => earned.includes(m.amount));
+    if (earnedMiles.length === 0) {
+      timeline.innerHTML = `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:2rem;text-align:center">
+        <div style="font-size:28px;margin-bottom:10px">🎯</div>
+        <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px">No milestones earned yet</div>
+        <div style="font-size:12px;color:var(--dim);line-height:1.6;max-width:320px;margin:0 auto">Log your first deal in the Daily Tracker and watch this page come alive. Your first $1,000 month is closer than you think.</div>
+      </div>`;
+    } else {
+      timeline.innerHTML = `<div class="sec-label" style="margin-bottom:1rem">Earned milestones</div>` +
+        `<div style="display:flex;flex-direction:column;gap:10px">` +
+        earnedMiles.map(m => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:14px;padding:14px 18px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="font-size:28px">${m.icon}</div>
+              <div>
+                <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">${m.title}</div>
+                <div style="font-size:11px;color:var(--dim);margin-top:2px">Revenue milestone — permanently on your record</div>
+              </div>
+            </div>
+            <button onclick="redownloadCertificate(${m.amount})" style="flex-shrink:0;padding:8px 16px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);color:var(--teal);border-radius:50px;font-family:'Poppins',sans-serif;font-weight:800;font-size:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">⬇ Download</button>
+          </div>`).join('') +
+        `</div>`;
+    }
+  }
+
+  // ── Next milestone ──
+  const nextEl = document.getElementById('phq-next-milestone');
+  if (nextEl) {
+    const nextMile = allMiles.find(m => !earned.includes(m.amount));
+    if (nextMile) {
+      const s        = window._trackerState || {};
+      const price    = window._appliedPrice || 1000;
+      const earned_  = (s.closedDeals || 0) * price;
+      const gap      = Math.max(0, nextMile.amount - earned_);
+      const dealsNeeded = price > 0 ? Math.ceil(gap / price) : '?';
+      nextEl.innerHTML = `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.25rem">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:10px">🎯 Next milestone</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:28px">${nextMile.icon}</div>
+            <div>
+              <div style="font-size:15px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">${nextMile.title}</div>
+              <div style="font-size:12px;color:var(--dim);margin-top:2px">$${gap.toLocaleString()} to go · ${dealsNeeded} more deal${dealsNeeded !== 1 ? 's' : ''} at $${price.toLocaleString()}</div>
+            </div>
+          </div>
+          <div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:10px;padding:8px 16px;text-align:center">
+            <div style="font-size:9px;color:var(--dimmer);text-transform:uppercase;font-weight:700">Gap to close</div>
+            <div style="font-size:20px;font-weight:900;color:var(--yellow);font-family:'Poppins',sans-serif">$${gap.toLocaleString()}</div>
+          </div>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:14px;overflow:hidden">
+          <div style="width:${Math.round(Math.min(100,(earned_/nextMile.amount)*100))}%;height:100%;background:linear-gradient(90deg,var(--teal),var(--yellow));border-radius:2px;transition:width .6s"></div>
+        </div>
+        <div style="font-size:10px;color:var(--dimmer);margin-top:5px;text-align:right">${Math.round(Math.min(100,(earned_/nextMile.amount)*100))}% of the way there</div>
+      </div>`;
+    }
+  }
+}
+
+// ─── RE-DOWNLOAD CERTIFICATE FOR AN ALREADY-EARNED MILESTONE ─────────────────
+window.redownloadCertificate = function(amount) {
+  const allMiles = [
+    { amount:1000,   label:'$1K',   title:'First $1,000 Month', icon:'🌱', color:'#4ecca3' },
+    { amount:5000,   label:'$5K',   title:'$5,000 Month',       icon:'🔥', color:'#ffd93d' },
+    { amount:10000,  label:'$10K',  title:'$10,000 Month',      icon:'💎', color:'#6c63ff' },
+    { amount:25000,  label:'$25K',  title:'$25,000 Month',      icon:'🚀', color:'#ff8c42' },
+    { amount:50000,  label:'$50K',  title:'$50,000 Month',      icon:'👑', color:'#ffd93d' },
+    { amount:100000, label:'$100K', title:'$100,000 Month',     icon:'🏆', color:'#4ecca3' },
+    { amount:250000, label:'$250K', title:'$250,000 Month',     icon:'💫', color:'#ff6b6b' },
+  ];
+  const m = allMiles.find(x => x.amount === amount);
+  if (!m) return;
+  const name     = (document.getElementById('prof-name') || {}).value || 'Member';
+  const niche    = window._appliedNiche || 'Online Business';
+  const now      = new Date();
+  const dateStr  = now.toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+  const monthStr = now.toLocaleDateString('en-GB', { month:'long', year:'numeric' });
+  downloadCertificate(m.label, name, m.title, niche, dateStr, monthStr, m.icon, m.color);
+};
+
+window.renderHealthScore   = renderHealthScore;
+window.renderPHQHero       = renderPHQHero;
+window.renderMilestoneGrid = renderMilestoneGrid;
+window.getWeeklyAcc        = getWeeklyAcc;
+window.calculateHealthScore= calculateHealthScore;
+window.checkMilestones     = checkMilestones;
+window.showMilestoneCertificate = showMilestoneCertificate;
+window.downloadCertificate = downloadCertificate;
+
+// ─── INIT: Run after page loads ───────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  injectHealthScoreSection();
+});
+// Also try immediately (in case DOMContentLoaded already fired)
+if (document.readyState !== 'loading') {
+  setTimeout(injectHealthScoreSection, 300);
+}
 </script>
 
 <!-- Firebase Auth + Firestore -->
@@ -7488,6 +8380,8 @@ onAuthStateChanged(auth, async (user) => {
   if (userDoc.avatarFields) loadAvatarFields(userDoc.avatarFields);
   if (userDoc.calendar30)   loadCalendar(userDoc.calendar30);
   if (userDoc.customRoutine) restoreRoutine(userDoc.customRoutine);
+  if (userDoc.milestones) window._onMilestonesLoaded && window._onMilestonesLoaded(userDoc.milestones);
+  window._currentUserUid = user.uid;
 
   // Expose save helpers
   window.saveRevenuePlan = async function() {
