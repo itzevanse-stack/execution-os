@@ -9791,8 +9791,9 @@ window.toggleDay30 = function(dayIdx) {
 const _origShowPost = window.showPostDetail30;
 window.showPostDetail30 = function(globalIdx) {
   if(!window._aiCalendar30) return;
-  const dayIdx = Math.floor(globalIdx / 6);
-  const slotIdx = globalIdx % 6;
+  const SLOTS_PER_DAY = 4;
+  const dayIdx  = Math.floor(globalIdx / SLOTS_PER_DAY);
+  const slotIdx = globalIdx % SLOTS_PER_DAY;
   const daySlots = window._aiCalendar30[dayIdx];
   if(!daySlots || !daySlots[slotIdx]) return;
   const d = daySlots[slotIdx];
@@ -9804,8 +9805,8 @@ window.showPostDetail30 = function(globalIdx) {
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(10px)';
   modal.onclick = function(e) { if(e.target === modal) modal.remove(); };
 
-  const isReel = d.slotType && d.slotType.startsWith('reel');
-  const isEmail = d.slotType === 'email';
+  const isReel = d.isReel || (d.postType && d.postType.toLowerCase().includes('reel'));
+  const isEmail = d.postType && d.postType.toLowerCase().includes('email');
   const accentColor = isEmail ? 'var(--purple)' : isReel ? 'var(--red)' : 'var(--teal)';
   const accentBg = isEmail ? 'rgba(108,99,255,.07)' : isReel ? 'rgba(255,107,107,.07)' : 'rgba(78,204,163,.07)';
   const accentBorder = isEmail ? 'rgba(108,99,255,.2)' : isReel ? 'rgba(255,107,107,.2)' : 'rgba(78,204,163,.2)';
@@ -9814,11 +9815,11 @@ window.showPostDetail30 = function(globalIdx) {
   modal.innerHTML = `<div style="background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:20px;width:100%;max-width:680px;max-height:88vh;overflow-y:auto;position:relative">
     <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border2);display:flex;align-items:flex-start;justify-content:space-between;position:sticky;top:0;background:var(--card);z-index:1;border-radius:20px 20px 0 0">
       <div>
-        <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--white)">${d.dayLabel}</div>
+        <div style="font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--white)">${d.weekDay || 'Day ' + (dayIdx+1)} — ${d.topic || d.postType || ''}</div>
         <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
           <span style="font-size:9px;background:${accentBg};color:${accentColor};padding:2px 8px;border-radius:50px;font-weight:900;border:1px solid ${accentBorder}">${typeIcon} ${d.postType}</span>
         </div>
-        <div style="font-size:11px;color:var(--dimmer);margin-top:4px">${d.platform}</div>
+        <div style="font-size:11px;color:var(--dimmer);margin-top:4px">${d.postType || ''}</div>
       </div>
       <button onclick="document.getElementById('post-detail-modal').remove()" style="background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;color:var(--dim);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
     </div>
@@ -9829,7 +9830,7 @@ window.showPostDetail30 = function(globalIdx) {
       </div>
       <div>
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:800;margin-bottom:8px">${isReel ? '🎬 Full Reel Script' : isEmail ? '📧 Full Email Copy' : '📝 Full Post Copy'}</div>
-        <div style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--dim);line-height:1.85;white-space:pre-line">${d.videoScript}</div>
+        <div style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;font-size:12px;color:var(--dim);line-height:1.85;white-space:pre-line">${d.fullScript}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div style="background:rgba(255,217,61,.07);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:12px 14px">
@@ -9851,7 +9852,7 @@ window.showPostDetail30 = function(globalIdx) {
   // AI grammar + copy cleanup — async, non-blocking, updates in place
   (async () => {
     try {
-      const script = d.videoScript;
+      const script = d.fullScript;
       if(!script || script.length < 80) return;
       const improved = await callClaude('Fix ALL grammar errors and unnatural phrasing in this script. Keep exact format, structure and length. Return ONLY the fixed script.\n\n' + script, 1500).catch(()=>null);
       if(!improved || improved.length < 50) return;
@@ -9881,7 +9882,7 @@ window.copyPostScript30 = function(globalIdx) {
   const daySlots = window._aiCalendar30[dayIdx];
   if(!daySlots || !daySlots[slotIdx]) return;
   const d = daySlots[slotIdx];
-  const text = `${d.dayLabel}\n${'='.repeat(50)}\n\nTYPE: ${d.postType}\nPLATFORM: ${d.platform}\n\nHOOK:\n"${d.viralHook}"\n\nFULL CONTENT:\n${d.videoScript}\n\nCALL TO ACTION:\n${d.callToAction}\n\nPOSTING TIP:\n${d.engagementTip}`;
+  const text = `${d.weekDay || 'Day ' + (dayIdx+1)} — ${d.topic || d.postType || ''}\n${'='.repeat(50)}\n\nTYPE: ${d.postType}\nPLATFORM: ${d.postType || ''}\n\nHOOK:\n"${d.viralHook}"\n\nFULL CONTENT:\n${d.fullScript}\n\nCALL TO ACTION:\n${d.callToAction}\n\nPOSTING TIP:\n${d.engagementTip}`;
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('copy-btn-30');
     if(btn) { btn.textContent = '✅ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy to clipboard'; }, 2000); }
@@ -11069,7 +11070,7 @@ window.openVideoConverter = function(globalIdx) {
   const label = d.dayLabel || 'Reel Script';
 
   // Strip production notes — extract only spoken words
-  const rawScript = d.videoScript || '';
+  const rawScript = d.fullScript || '';
   const cleanScript = rawScript
     .replace(/^(HOOK|FORMAT|PLATFORM|POST AT|TEXT OVERLAYS|CAPTION|FULL SCRIPT|SCRIPT)[^\n]*\n/gim, '')
     .replace(/^\[.*?\]$/gm, '')
