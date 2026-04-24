@@ -11716,14 +11716,13 @@ Be specific to the actual product type and niche. Make the buyer avatar feel lik
       'Month close: what I learned from 30 days of sharing this journey'
     ];
 
-    // Generate in 8 batches of ~4 days each (stays under Vercel 60s timeout)
+    // 15 batches of 2 days each — safely under Vercel 60s limit
     window._aiCalendar30 = [];
-    const DAYS_PER_BATCH = 4;
-    const buildWeek = async (weekIdx) => {
-      const startDay   = weekIdx * DAYS_PER_BATCH;
-      const endDay     = Math.min(startDay + DAYS_PER_BATCH, 30);
+    const buildWeek = async (batchIdx) => {
+      const startDay   = batchIdx * 2;
+      const endDay     = Math.min(startDay + 2, 30);
       const weekTopics = affTopics.slice(startDay, endDay);
-      const apiWeek    = Math.floor(weekIdx / 2) + 1; // map batch 0-1→week1, 2-3→week2 etc
+      const apiWeek    = Math.floor(batchIdx / 4) + 1; // map to week phase 1-4
       const phase = weekPhases[weekIdx];
 
       const prompt = `You are an expert affiliate marketing copywriter.
@@ -11779,7 +11778,7 @@ RULES: Perfect grammar. Never use passive voice. Sound human, not AI. Specific b
 
       const weekResp = await callAPI('generate-affiliate', {
         type: 'calendar',
-        week: apiWeek,
+        week: batchIdx + 1,
         productName: productName || (window._affiliateOffer || {}).name || '',
         commission:  commission  || (window._affiliateOffer || {}).commission || 1000,
         monthlyTarget: window._appliedTarget,
@@ -11834,16 +11833,14 @@ RULES: Perfect grammar. Never use passive voice. Sound human, not AI. Specific b
     };
 
     const weeks = [];
-    const batchNames = [
-      'Days 1–4','Days 5–8','Days 9–12','Days 13–16',
-      'Days 17–20','Days 21–24','Days 25–28','Days 29–30'
-    ];
-    for (let w = 0; w < 8; w++) {
-      setProgress(40 + w*7, `Writing ${batchNames[w]}…`, null);
+    // 15 batches of 2 days each — safely under Vercel's 60s limit
+    for (let w = 0; w < 15; w++) {
+      const d1 = w * 2 + 1, d2 = Math.min(d1 + 1, 30);
+      setProgress(35 + w*4, `Writing Days ${d1}–${d2}…`, null);
       const result = await buildWeek(w);
       weeks.push(result);
-      setProgress(40 + (w+1)*7, `${batchNames[w]} complete ✅`, `${batchNames[w]} written ✅`);
-      if (w < 7) await new Promise(r => setTimeout(r, 300));
+      setProgress(35 + (w+1)*4, `Days ${d1}–${d2} done ✅`, `Days ${d1}–${d2} written ✅`);
+      if (w < 14) await new Promise(r => setTimeout(r, 200));
     }
 
     window._aiCalendar30 = [];
