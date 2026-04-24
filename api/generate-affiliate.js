@@ -10,39 +10,27 @@ export default async function handler(req, res) {
   if (!API_KEY) return res.status(500).json({ error: "ANTHROPIC_API_KEY not set." });
 
   const {
-    type,           // 'avatar' or 'calendar'
-    productUrl,
-    productName,
-    commission,
-    monthlyTarget,
-    niche,
-    trafficMode,    // 'organic' or 'paid'
-    week,           // 1-4 (for calendar type)
-    avatarData      // for calendar type — pass avatar from previous avatar call
+    type, productUrl, productName, commission,
+    monthlyTarget, niche, trafficMode,
+    week, avatarData
   } = req.body;
 
-  if (!productName && !productUrl) {
-    return res.status(400).json({ error: "Missing product name or URL." });
-  }
-  if (!commission) {
-    return res.status(400).json({ error: "Missing commission amount." });
-  }
+  const av = avatarData || {};
 
-  // ── AVATAR GENERATION ────────────────────────────────────────────────────
+  // ── AVATAR GENERATION (fast — ~8 seconds) ────────────────────────────────
   if (type === 'avatar') {
     const prompt = `You are an elite market researcher and buyer psychology expert.
 
-An affiliate marketer is promoting this product:
-- Product: "${productName}"
-- Platform: ${productUrl ? (productUrl.includes('copecart') ? 'Copecart' : productUrl.includes('digistore24') ? 'Digistore24' : 'Affiliate Platform') : 'Affiliate Platform'}
+An affiliate marketer is promoting: "${productName || 'a high-ticket programme'}"
+- Platform URL: ${productUrl || 'not provided'}
 - Niche: ${niche || 'Online Business'}
-- Commission per sale: $${Number(commission).toLocaleString()}
-- Monthly target: $${Number(monthlyTarget || commission * 5).toLocaleString()}
+- Commission per sale: $${Number(commission || 1000).toLocaleString()}
+- Monthly target: $${Number(monthlyTarget || commission * 5 || 5000).toLocaleString()}
 - Traffic strategy: ${trafficMode || 'organic'}
 
-Generate a PRECISE buyer avatar — the exact person most likely to buy this product through social media content and DM outreach.
+Generate a precise buyer avatar — the exact person most likely to buy through social content and DMs.
 
-Return ONLY valid JSON:
+Return ONLY valid JSON (no markdown, no explanation):
 {
   "name": "Avatar name (e.g. Ambitious Amanda)",
   "age": "32",
@@ -50,25 +38,28 @@ Return ONLY valid JSON:
   "location": "USA, UK, Australia",
   "job": "Marketing manager",
   "industry": "Corporate employment",
-  "income": "$50k-$75k",
-  "current": "2-3 sentences describing their frustrating current situation",
-  "desired": "2-3 sentences describing their dream outcome after the product",
+  "income": "$50k–$75k",
+  "current": "2–3 sentences describing their frustrating current situation in vivid detail",
+  "desired": "2–3 sentences describing their dream outcome after getting results",
   "incomeGoal": "10000",
-  "transformation": "The #1 transformation they desperately want in one sentence",
-  "fear": "Their biggest fear about investing in a solution",
-  "tried": "What they have already tried that did not work",
-  "pain": "Core pain in 4-8 words",
+  "transformation": "The #1 transformation they desperately want — one specific sentence",
+  "fear": "Their biggest fear about investing in a solution like this",
+  "tried": "What they have already tried that did not work — be specific",
+  "pain": "Core pain in 5–8 words",
   "motivation": "What drives them beyond money",
-  "personality": "Their personality type",
-  "influences": "3-5 influencers or communities they follow in this niche",
-  "objections": "Top 2-3 objections before buying",
-  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "productName": "${productName}",
-  "productUrl": "${productUrl || ''}",
-  "commission": ${Number(commission)},
+  "personality": "3–4 word personality description",
+  "influences": "3–5 influencers or communities they follow in this niche",
+  "objections": "Top 2–3 objections before buying",
+  "keywords": ["keyword1","keyword2","keyword3","keyword4","keyword5"],
+  "productName": "${productName || ''}",
+  "commission": ${Number(commission || 1000)},
   "niche": "${niche || 'Online Business'}",
-  "contentAngles": ["Content angle 1 for promoting this product organically", "Content angle 2", "Content angle 3"],
-  "dmStrategy": "2-3 sentences on the best DM approach for this specific product and audience"
+  "contentAngles": [
+    "Specific content angle 1 for promoting this product organically",
+    "Specific content angle 2",
+    "Specific content angle 3"
+  ],
+  "dmStrategy": "2–3 sentences on the best DM approach for this specific product and audience"
 }`;
 
     try {
@@ -81,7 +72,7 @@ Return ONLY valid JSON:
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
-          max_tokens: 2000,
+          max_tokens: 1500,
           messages: [{ role: "user", content: prompt }]
         })
       });
@@ -89,86 +80,89 @@ Return ONLY valid JSON:
       const data = await response.json();
       if (data.error) return res.status(500).json({ error: data.error.message });
 
-      const rawText = data.content?.[0]?.text || "";
-      const clean = rawText.replace(/```json|```/g, "").trim();
+      const raw = data.content?.[0]?.text || "";
+      const clean = raw.replace(/```json|```/g, "").trim();
       const start = clean.indexOf("{");
       const end   = clean.lastIndexOf("}");
-
       if (start === -1 || end === -1) return res.status(500).json({ error: "Invalid response format." });
 
-      const result = JSON.parse(clean.substring(start, end + 1));
-      return res.status(200).json(result);
-
+      return res.status(200).json(JSON.parse(clean.substring(start, end + 1)));
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
   }
 
-  // ── CALENDAR WEEK GENERATION ─────────────────────────────────────────────
+  // ── CALENDAR WEEK GENERATION (3–4 days per call to stay under 60s) ──────
   if (type === 'calendar') {
     const weekNum  = parseInt(week) || 1;
     const startDay = (weekNum - 1) * 7 + 1;
-    const av       = avatarData || {};
-    const isPaid   = trafficMode === 'paid';
+    // Only generate 4 days per call to stay under timeout
+    const daysPerCall = 4;
+    const endDay = Math.min(startDay + daysPerCall - 1, (weekNum * 7));
 
     const weekPhases = {
-      1: "Week 1 — Build Trust & Credibility: post about the PROBLEM only. Never mention the product. Build authority.",
-      2: "Week 2 — Education & Reveal: teach the solution approach. Introduce the product naturally mid-week.",
-      3: "Week 3 — Proof & Social Evidence: share results, reviews, objection handling content.",
-      4: "Week 4 — Urgency & Close: direct CTAs, scarcity, final push for conversions."
+      1: "WEEK 1 — Build Trust Only. Never mention the product. Educate about the PROBLEM. Make them feel completely understood.",
+      2: "WEEK 2 — Education & Soft Reveal. Teach the solution. Introduce the product naturally mid-week. Keep CTAs gentle.",
+      3: "WEEK 3 — Proof & Evidence. Share results, testimonials, objection-handling content.",
+      4: "WEEK 4 — Urgency & Close. Direct confident CTAs. Every post drives action."
     };
 
     const prompt = `You are an expert affiliate content strategist and direct-response copywriter.
 
-AFFILIATE CONTEXT:
-- Product: "${productName}"
-- Commission: $${Number(commission).toLocaleString()} per sale
-- Target buyer: ${av.job || 'professionals'} dealing with "${av.pain || 'their main struggle'}"
-- Their transformation: "${av.transformation || 'their desired outcome'}"
-- Their fear: "${av.fear || 'fear of wasting money'}"
-- What they've tried: "${av.tried || 'various solutions'}"
-- Traffic: ${isPaid ? 'Paid ads — bridge page approach' : 'Organic — content + DM outreach'}
+PRODUCT: "${productName || 'affiliate product'}"
+COMMISSION: $${Number(commission || 1000).toLocaleString()} per sale
+NICHE: ${niche || 'Online Business'}
+TRAFFIC: ${trafficMode === 'paid' ? 'Paid Ads' : 'Organic'}
 
-WEEK PHASE: ${weekPhases[weekNum] || weekPhases[1]}
+BUYER:
+- Job: ${av.job || 'professional'}
+- Core pain: "${av.pain || 'their main struggle'}"
+- Fear: "${av.fear || 'fear of wasting money'}"
+- Tried before: "${av.tried || 'various solutions'}"
+- Transformation wanted: "${av.transformation || 'their desired outcome'}"
 
-Generate content for Days ${startDay}–${startDay + 6} (Week ${weekNum} of 4).
+${weekPhases[weekNum] || weekPhases[1]}
 
-For EACH of the 7 days, create ALL 6 content pieces:
+Generate content for Days ${startDay}–${endDay} only (${endDay - startDay + 1} days).
 
-DAY [N]: [Topic — different every day, different angle and emotional trigger]
+For EACH day use this exact format:
 
-FACEBOOK POST 1 (280-350 words):
-[Full post — personal story or educational value. Perfect grammar. Human voice.]
+DAY [N]: [SPECIFIC TOPIC]
 
-FACEBOOK POST 2 (220-280 words):
-[Different angle — numbered list, framework, or case study. End with CTA.]
+FACEBOOK POST 1 (250–320 words):
+[Full post. Hook line 1 stops the scroll. Short paragraphs. Perfect grammar. End with a question.]
 
-REEL SCRIPT 1 (45-60 seconds):
-HOOK: [Pattern interrupt — first 3 seconds]
-SCRIPT: [Full word-for-word, natural speech]
+FACEBOOK POST 2 (200–260 words):
+[Educational angle. Numbered framework. End with save/share CTA. Perfect grammar.]
+
+REEL SCRIPT 1 (40–55 seconds):
+HOOK: [First 3 seconds — pattern interrupt]
+SCRIPT: [Full word-for-word. Natural speech. No filler.]
 CAPTION: [2 lines + 5 hashtags]
 
-REEL SCRIPT 2 (45-60 seconds):
-HOOK: [Different hook style]
-SCRIPT: [Educational, 3 points]
+REEL SCRIPT 2 (40–55 seconds):
+HOOK: [Different style]
+SCRIPT: [Teach 3 points. Natural speech.]
 CAPTION: [2 lines + 5 hashtags]
 
-REEL SCRIPT 3 (30-45 seconds):
+REEL SCRIPT 3 (30–45 seconds):
 HOOK: [Emotional opener]
-SCRIPT: [Raw and authentic]
-CAPTION: [1-2 lines + 5 hashtags]
+SCRIPT: [Raw, authentic feel.]
+CAPTION: [1–2 lines + 5 hashtags]
 
 EMAIL:
-SUBJECT LINE: [Under 50 chars]
-PREVIEW TEXT: [Under 90 chars]
-BODY: [280-350 words, conversational, one insight, one action]
+SUBJECT: [Under 48 characters]
+PREVIEW: [Under 88 characters]
+BODY: [250–320 words. One insight. One action. Warm sign-off.]
 
-AFFILIATE RULES:
-- Weeks 1-2: educate about the PROBLEM, never pitch the product
-- Week 3+: introduce the product naturally, share others' results  
-- Week 4: direct recommendation with your affiliate link
-- Never mention commission or that it's an affiliate product in the content
-- Sound like you genuinely found and love this product`;
+RULES:
+- Perfect grammar — no exceptions
+- Active voice always
+- Sound like a real human expert, never AI
+- Specific over vague — use real numbers and scenarios
+- Weeks 1–2: educate only, no product pitch
+- Weeks 3–4: introduce product naturally, never mention commission
+- Write specifically for ${av.job || 'the target audience'}`;
 
     try {
       const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -180,7 +174,7 @@ AFFILIATE RULES:
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
-          max_tokens: 8000,
+          max_tokens: 4500,
           messages: [{ role: "user", content: prompt }]
         })
       });
@@ -189,8 +183,7 @@ AFFILIATE RULES:
       if (data.error) return res.status(500).json({ error: data.error.message });
 
       const text = data.content?.[0]?.text || "";
-      return res.status(200).json({ text, week: weekNum, startDay });
-
+      return res.status(200).json({ text, week: weekNum, startDay, endDay });
     } catch (err) {
       return res.status(500).json({ error: err.message });
     }
