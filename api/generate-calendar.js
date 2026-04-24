@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
   const weekNum  = parseInt(week);
   const startDay = (weekNum - 1) * 7 + 1;
-  const endDay   = Math.min(startDay + 3, weekNum * 7); // 4 days per call stays under 60s
+  const endDay   = Math.min(startDay + 1, 30); // 2 days per call stays well under 60s
   const isAffiliate = mode === 'affiliate';
   const av = avatar || {};
 
@@ -65,7 +65,7 @@ ${avatarContext}
 
 ${weekPhases[weekNum] || weekPhases[1]}
 
-Generate content for Days ${startDay}–${endDay} (${endDay - startDay + 1} days only — keeping response concise).
+Generate content for Day ${startDay} and Day ${endDay} ONLY (2 days — keep responses concise).
 
 Each day must have a DIFFERENT topic, angle, emotional trigger, and hook style. No repetition.
 
@@ -131,7 +131,7 @@ Generate all 7 days now. Label each clearly.`;
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 4500, messages: [{ role: "user", content: prompt }] })
+      body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 2800, messages: [{ role: "user", content: prompt }] })
     });
     const data = await response.json();
     if (data.error) return res.status(500).json({ error: data.error.message });
