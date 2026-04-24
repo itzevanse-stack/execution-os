@@ -17,13 +17,14 @@ export default async function handler(req, res) {
     av_objections, av_pain_points, av_keywords
   } = req.body;
 
-  if (!niche || !price || !target) {
-    return res.status(400).json({ error: "Missing required fields: niche, price, target." });
-  }
+  // Use sensible defaults if revenue plan not yet filled
+  const resolvedNiche  = niche  || 'Coaching & Consulting';
+  const resolvedPrice  = price  || 3000;
+  const resolvedTarget = target || 25000;
 
   const prompt = `You are an elite market researcher and buyer psychology expert.
 
-Build a complete, deeply personalised buyer avatar for a ${niche} business charging $${Number(price).toLocaleString()} per client, targeting $${Number(target).toLocaleString()}/month revenue.
+Build a complete, deeply personalised buyer avatar for a ${resolvedNiche} business charging $${Number(resolvedPrice).toLocaleString()} per client, targeting $${Number(resolvedTarget).toLocaleString()}/month revenue.
 
 AVATAR DETAILS PROVIDED:
 - Avatar name: ${av_name || 'Not specified'}
