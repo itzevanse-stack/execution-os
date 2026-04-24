@@ -5540,52 +5540,112 @@ function generateAvatar(){
     <button class="gen-posts-btn" onclick="generate30DayCalendar()">⚡ Generate my personalised 30-day content plan — unique content every single day</button>
   </div>`;
 
+  // Add AI status indicator to output
+  const existingStatus = document.getElementById('av-ai-status');
+  if (!existingStatus) {
+    const statusDiv = document.createElement('div');
+    statusDiv.id = 'av-ai-status';
+    statusDiv.style.cssText = 'display:none;align-items:center;gap:10px;padding:12px 16px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px;margin-bottom:1rem';
+    if (out.firstChild) out.insertBefore(statusDiv, out.firstChild); else out.appendChild(statusDiv);
+  }
   out.scrollIntoView({behavior:'smooth',block:'start'});
   if (document.getElementById('bhs-widget')) setTimeout(()=>window.renderHealthScore&&window.renderHealthScore(), 200);
-  // Launch AI market intelligence async — non-blocking
-  // Call Vercel for AI-enhanced avatar insights
-  setTimeout(async () => {
+  // ── Call Vercel generate-avatar for AI-powered insights ──────────────
+  // Read directly from form fields so we don't depend on _appliedNiche being set
+  const _niche    = window._appliedNiche || (document.getElementById('niche')||{}).value || 'Coaching & Consulting';
+  const _price    = window._appliedPrice || (document.getElementById('price')||{}).value  || 3000;
+  const _target   = window._appliedTarget || (document.getElementById('target')||{}).value || 25000;
+
+  // Show AI loading indicator
+  const aiStatusEl = document.getElementById('av-ai-status');
+  if (aiStatusEl) {
+    aiStatusEl.style.display = 'flex';
+    aiStatusEl.innerHTML = '<div style="width:16px;height:16px;border:2px solid rgba(78,204,163,.25);border-top-color:var(--teal);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0"></div><span style="font-size:11px;color:var(--teal)">Claude is building your market intelligence…</span>';
+  }
+
+  (async () => {
     try {
+      const gv = id => (document.getElementById(id)||{}).value||'';
       const av = window._avatarData || {};
+
       const aiAv = await callAPI('generate-avatar', {
-        niche: window._appliedNiche,
-        price: window._appliedPrice,
-        target: window._appliedTarget,
-        av_name: av.name, av_age: av.age, av_gender: av.gender,
-        av_location: av.location, av_job: av.job, av_industry: av.industry,
-        av_employ: av.employ, av_hrs: av.hrs, av_current: av.current,
-        av_desired: av.desired, av_incomeGoal: av.incomeGoal,
-        av_fear: av.fear, av_tried: av.tried,
-        av_transformation: av.transformation, av_influences: av.influences,
-        av_objections: av.objections,
-        av_pain_points: (av.pains||[]).join(', '),
-        av_keywords: (av.keywords||[]).join(', ')
+        niche:   _niche,
+        price:   _price,
+        target:  _target,
+        av_name:           av.name         || gv('av_name'),
+        av_age:            av.age          || gv('av_age'),
+        av_gender:         av.gender       || gv('av_gender'),
+        av_location:       av.location     || gv('av_location'),
+        av_job:            av.job          || gv('av_job'),
+        av_industry:       av.industry     || gv('av_industry'),
+        av_employ:         av.employ       || gv('av_employ'),
+        av_hrs:            av.hrs          || gv('av_hrs'),
+        av_current:        av.current      || gv('av_current'),
+        av_desired:        av.desired      || gv('av_desired'),
+        av_incomeGoal:     av.incomeGoal   || gv('av_incomeGoal'),
+        av_fear:           av.fear         || gv('av_fear'),
+        av_tried:          av.tried        || gv('av_tried'),
+        av_transformation: av.transformation || gv('av_transformation'),
+        av_influences:     av.influences   || gv('av_influences'),
+        av_objections:     av.objections   || gv('av_objections'),
+        av_pain_points:    (av.pains||[]).join(', '),
+        av_keywords:       (av.keywords||[]).join(', ')
       });
-      // Inject AI market intelligence into the existing output
-      window._aiAvatarData = aiAv;
+
+      window._aiAvatarData     = aiAv;
+      window._aiContentPillars = aiAv.contentPillars || [];
+      window._aiDMHooks        = aiAv.dmHooks        || [];
+
+      // Inject AI market intelligence card
       const intelEl = document.getElementById('ai-intel-body');
       if (intelEl && aiAv.marketIntelligence) {
         const mi = aiAv.marketIntelligence;
         intelEl.innerHTML = `
-          <div style="display:flex;flex-direction:column;gap:12px;padding:1rem">
-            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:700;margin-bottom:5px">Market Size & Opportunity</div><p style="font-size:12px;color:var(--dim);line-height:1.7">${mi.marketSize||''}</p></div>
-            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:700;margin-bottom:5px">Your Unique Positioning</div><p style="font-size:12px;color:var(--dim);line-height:1.7">${mi.positioning||''}</p></div>
-            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:700;margin-bottom:5px">Pricing Psychology</div><p style="font-size:12px;color:var(--dim);line-height:1.7">${mi.pricingPsychology||''}</p></div>
-            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--orange);font-weight:700;margin-bottom:5px">Buying Triggers</div><ul style="font-size:12px;color:var(--dim);line-height:1.7;padding-left:1rem">${(mi.buyingTriggers||[]).map(t=>'<li>'+t+'</li>').join('')}</ul></div>
+          <div style="display:flex;flex-direction:column;gap:14px;padding:1rem 1.25rem">
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:800;margin-bottom:5px">📊 Market Size & Opportunity</div>
+              <p style="font-size:12px;color:var(--muted);line-height:1.75">${mi.marketSize||''}</p>
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:800;margin-bottom:5px">🎯 Your Unique Positioning</div>
+              <p style="font-size:12px;color:var(--muted);line-height:1.75">${mi.positioning||''}</p>
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:800;margin-bottom:5px">🏆 Competition Analysis</div>
+              <p style="font-size:12px;color:var(--muted);line-height:1.75">${mi.competition||''}</p>
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--orange);font-weight:800;margin-bottom:5px">💰 Pricing Psychology</div>
+              <p style="font-size:12px;color:var(--muted);line-height:1.75">${mi.pricingPsychology||''}</p>
+            </div>
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:800;margin-bottom:5px">⚡ Buying Triggers</div>
+              <ul style="font-size:12px;color:var(--muted);line-height:1.75;padding-left:1rem;margin:0">${(mi.buyingTriggers||[]).map(t=>'<li style="margin-bottom:4px">'+t+'</li>').join('')}</ul>
+            </div>
           </div>`;
       }
-      // Enhance content pillars with AI data
-      if (aiAv.contentPillars) {
-        window._aiContentPillars = aiAv.contentPillars;
+
+      // Inject AI DM hooks into the output
+      if (aiAv.dmHooks && aiAv.dmHooks.length) {
+        const dmEl = document.getElementById('ai-dm-hooks-body');
+        if (dmEl) {
+          dmEl.innerHTML = aiAv.dmHooks.map((h,i)=>`
+            <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:9px;padding:12px 14px;margin-bottom:6px">
+              <div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:4px">HOOK ${i+1}</div>
+              <div style="font-size:12px;color:var(--muted);line-height:1.6">"${h}"</div>
+            </div>`).join('');
+        }
       }
-      if (aiAv.dmHooks) {
-        window._aiDMHooks = aiAv.dmHooks;
-      }
+
+      if (aiStatusEl) aiStatusEl.style.display = 'none';
+
     } catch(e) {
-      console.warn('AI avatar enhancement failed:', e.message);
-      window.generateMarketIntelligence && window.generateMarketIntelligence(window._avatarData||{}, window._appliedNiche);
+      console.error('AI avatar call failed:', e.message);
+      if (aiStatusEl) {
+        aiStatusEl.innerHTML = '<span style="font-size:11px;color:var(--red)">⚠️ AI enhancement failed: ' + e.message + '</span>';
+      }
     }
-  }, 600);
+  })();
 }
 
 // Routine system (simplified)
@@ -11715,11 +11775,15 @@ ${weekTopics.map((t,i) => `Day ${startDay+i+1}: ${t}`).join('\n')}
 
 RULES: Perfect grammar. Never use passive voice. Sound human, not AI. Specific beats vague. In Weeks 1-2 educate only. Weeks 3-4 can recommend the product naturally.`;
 
-      const weekResp = await callAPI('generate-calendar', {
-        week: w + 1, niche: window._appliedNiche, price: window._appliedPrice,
-        target: window._appliedTarget, avatar: window._avatarData,
-        offer: document.getElementById('offer_name')?.value || '',
-        mode: window._appMode || 'expert'
+      const weekResp = await callAPI('generate-affiliate', {
+        type: 'calendar',
+        week: weekIdx + 1,
+        productName: productName || (window._affiliateOffer || {}).name || '',
+        commission:  commission  || (window._affiliateOffer || {}).commission || 1000,
+        monthlyTarget: window._appliedTarget,
+        niche:     productNiche || (window._affiliateOffer || {}).niche || '',
+        trafficMode: window._affTrafficMode || 'organic',
+        avatarData:  window._avatarData || avatarData
       });
       const weekText = weekResp.text || '';
       return { text: weekText, startDay, weekTopics };
