@@ -11528,16 +11528,50 @@ window.analyseAffiliateProduct = async function() {
   const monthlyTarget = parseInt(targetRaw) || commission * 5;
 
 
+  // ── STRICT VALIDATION — these are required for accurate AI output ──────
+  const showFieldError = (id, msg) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.style.borderColor = 'rgba(255,107,107,.6)';
+      el.style.boxShadow   = '0 0 0 3px rgba(255,107,107,.1)';
+      el.focus();
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 4000);
+    }
+    // Show error under the field
+    let errDiv = document.getElementById('aff-validation-error');
+    if (!errDiv) {
+      errDiv = document.createElement('div');
+      errDiv.id = 'aff-validation-error';
+      errDiv.style.cssText = 'background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--red);margin-bottom:1rem;line-height:1.6';
+      const btn = document.getElementById('aff-analyse-btn');
+      if (btn && btn.parentNode) btn.parentNode.insertBefore(errDiv, btn);
+    }
+    errDiv.style.display = 'block';
+    errDiv.innerHTML = '⚠️ ' + msg;
+  };
+
+  const clearError = () => {
+    const e = document.getElementById('aff-validation-error');
+    if (e) e.style.display = 'none';
+  };
+
+  if (!url) {
+    showFieldError('aff-product-url', 'Please paste your affiliate product link. The AI reads the actual product page to build accurate content — without it, results will not reflect your real offer.');
+    return;
+  }
+
   if (!commission || commission < 100) {
-    alert('Please enter your commission per sale (minimum $100).');
-    const cf = document.getElementById('aff-commission');
-    if (cf) { cf.focus(); cf.style.borderColor = 'rgba(255,107,107,.6)'; setTimeout(()=>cf.style.borderColor='rgba(255,255,255,.08)',3000); }
+    showFieldError('aff-commission', 'Please enter your commission per sale (minimum $100). This is used to calculate your exact revenue targets and DM volume.');
     return;
   }
+
   if (!niche) {
-    alert('Please select your product niche.');
+    showFieldError('aff-product-niche', 'Please select your product niche. This determines the content tone, hashtags, and audience targeting.');
     return;
   }
+
+  clearError();
 
   if (!url && !name) {
     alert('Please paste your affiliate product URL or enter the product name.');
