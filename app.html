@@ -5112,9 +5112,9 @@ window.adj=adj;
 function resetTracker(){const price=window._appliedPrice||1000;const target=window._appliedTarget||25000;window._trackerState={counts:{},closedDeals:0,remainingIncome:target};window._trackerLastTarget=target;window._trackerLastPrice=price;const sales=Math.ceil(target/price);const leads=Math.ceil(sales/0.25/0.30);renderTracker(Math.ceil(leads/30*3),sales);}
 
 function validateAvatarFields(){
-  const required=[{id:'av_name',label:'Avatar name'},{id:'av_location',label:'Location'},{id:'av_job',label:'Current job / profession'},{id:'av_industry',label:'Industry or sector'},{id:'av_current',label:'Describe their current life'},{id:'av_fear',label:'Biggest fear'},{id:'av_tried',label:'What have they already tried'},{id:'av_desired',label:'Describe their dream life'},{id:'av_transformation',label:'#1 desired transformation'},{id:'av_influences',label:'Influencers or communities'},{id:'av_objections',label:'Objections'}];
+  const required=[{id:'av_name',label:'Avatar name'},{id:'av_location',label:'Location'},{id:'av_job',label:'Current job / profession'},{id:'av_industry',label:'Industry or sector'},{id:'av_current',label:'Describe their current life'},{id:'av_fear',label:'Biggest fear'},{id:'av_tried',label:'What have they already tried'},{id:'av_desired',label:'Describe their dream life'},{id:'av_transformation',label:'#1 desired transformation'}];
   const missing=[];for(const f of required){const el=document.getElementById(f.id);if(!el||!el.value.trim()){missing.push(f.label);if(el){el.style.borderColor='var(--red)';el.addEventListener('input',()=>{el.style.borderColor=''},{ once:true });}}}
-  if(selectedPains.size===0)missing.push('At least one pain point selected');
+  // Pain points optional — niche must be selected first to see them
   return missing;
 }
 
@@ -11791,14 +11791,43 @@ Be specific to the actual product type and niche. Make the buyer avatar feel lik
       ]);
     }
 
-    window._aiCalendar30 = [];
+    // ✅ Calendar built — render it and navigate
+    setProgress(95, 'Finalising your calendar…', null);
+    window.renderAICalendar30 && window.renderAICalendar30(1);
+    setProgress(100, 'Everything ready! 🎉', 'Calendar ready ✅');
 
   } catch(e) {
-    console.error('Affiliate analysis error:', e);
-    // Don't throw — the partial calendar may still be useful
+    console.error('Affiliate analysis error:', e.message);
   }
 
-  // Trigger the active view if we have calendar data
+  // Complete — hide status, navigate to show results
+  setTimeout(() => {
+    const statusEl = document.getElementById('aff-analyse-status');
+    const btnEl    = document.getElementById('aff-analyse-btn');
+    if (statusEl) statusEl.style.display = 'none';
+    if (btnEl)    { btnEl.textContent = '⚡ Regenerate'; btnEl.style.display = 'block'; }
+
+    // Show active view if avatar data exists
+    const setupPanel = document.getElementById('aff-setup-panel');
+    const activeView = document.getElementById('aff-active-view');
+    if (window._affiliateOffer && window._affiliateOffer.name) {
+      if (setupPanel) setupPanel.style.display = 'none';
+      if (activeView) activeView.style.display = 'block';
+      // Populate the active offer card
+      const nameEl = document.getElementById('aff-active-name');
+      const metaEl = document.getElementById('aff-active-meta');
+      if (nameEl) nameEl.textContent = window._affiliateOffer.name || '';
+      if (metaEl) metaEl.textContent = '$' + (window._affiliateOffer.commission||0).toLocaleString() + ' commission per sale · ' + (window._affiliateOffer.niche||'');
+    }
+    // Navigate to calendar if it was built
+    if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
+      setTimeout(() => {
+        window.showPage && window.showPage('calendar', document.getElementById('nav-calendar'));
+        window.renderAICalendar30 && window.renderAICalendar30(1);
+      }, 500);
+    }
+  }, 800);
+
   if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
     window.renderAICalendar30 && window.renderAICalendar30(1);
   }
