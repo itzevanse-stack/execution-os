@@ -450,10 +450,8 @@ body {
 
 /* Page entrance */
 .page { display: none; }
-.page.on {
-  display: block;
-  animation: pageIn .28s cubic-bezier(.4,0,.2,1);
-}
+.page.on { display: block; opacity: 1; }
+.page.on.animate-in { animation: pageIn .28s cubic-bezier(.4,0,.2,1) forwards; }
 
 /* Section entrance — add .animate class via JS */
 .section-animate {
@@ -1398,13 +1396,9 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
 
 /* ── Page transition ─────────────────────────────────────────────── */
 .page {
-  animation: none;
-  opacity: 0;
-  transform: translateY(0);
+  /* No opacity:0 here — pages are hidden via display:none, not opacity */
 }
-.page.on {
-  animation: pageEnter .35s cubic-bezier(.22,.68,0,1.2) forwards;
-}
+/* Page animations only when navigating (JS adds .animate-in) */
 @keyframes pageEnter {
   from { opacity:0; transform:translateY(14px); }
   to   { opacity:1; transform:translateY(0);    }
@@ -1461,23 +1455,17 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
 
 /* ── Hero strip entrance ─────────────────────────────────────────── */
 .hero-strip {
-  animation: heroSlideIn .4s cubic-bezier(.22,.68,0,1.1) forwards;
-  animation-delay: .05s;
-  opacity: 0;
+  animation: heroSlideIn .4s cubic-bezier(.22,.68,0,1.1) .05s forwards;
 }
-.page.on .hero-strip { opacity: 0; animation: heroSlideIn .4s cubic-bezier(.22,.68,0,1.1) .05s forwards; }
+.page.on .hero-strip { animation: heroSlideIn .4s cubic-bezier(.22,.68,0,1.1) .05s forwards; }
 @keyframes heroSlideIn {
   from { opacity:0; transform:translateY(20px) scale(.99); }
   to   { opacity:1; transform:translateY(0)    scale(1);   }
 }
 
 /* ── Staggered card grid entrance ───────────────────────────────── */
-.page.on .m-card:nth-child(1)  { animation: cardIn .35s .10s cubic-bezier(.22,.68,0,1.2) both; }
-.page.on .m-card:nth-child(2)  { animation: cardIn .35s .15s cubic-bezier(.22,.68,0,1.2) both; }
-.page.on .m-card:nth-child(3)  { animation: cardIn .35s .20s cubic-bezier(.22,.68,0,1.2) both; }
-.page.on .m-card:nth-child(4)  { animation: cardIn .35s .25s cubic-bezier(.22,.68,0,1.2) both; }
-.page.on .m-card:nth-child(5)  { animation: cardIn .35s .30s cubic-bezier(.22,.68,0,1.2) both; }
-.page.on .m-card:nth-child(6)  { animation: cardIn .35s .35s cubic-bezier(.22,.68,0,1.2) both; }
+/* Cards animate in when navigating TO a page, not on initial load */
+.page.on .m-card { opacity: 1; }
 @keyframes cardIn {
   from { opacity:0; transform:translateY(18px) scale(.98); }
   to   { opacity:1; transform:translateY(0)    scale(1);   }
@@ -1654,6 +1642,19 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
   padding: 0 0 2rem;
   display: flex; justify-content: center;
 }
+
+/* ── Profile photo overflow guard ─────────────────────────────── */
+#profile-photo-img, #user-avatar-img, #topbar-avatar-img {
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: cover !important;
+  border-radius: inherit;
+}
+/* Profile photo container must clip overflow */
+.profile-photo-wrap, [class*="profile-circle"], [class*="av-circle"] {
+  overflow: hidden !important;
+  position: relative;
+}
 </style>
 </head>
 <body>
@@ -1678,10 +1679,10 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
 
     <!-- Hidden user refs for JS compatibility -->
     <span id="user-initials" style="display:none">?</span>
-    <img id="user-avatar-img" src="" style="display:none">
+    <img id="user-avatar-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;top:0;left:0">
     <div id="sidebar-user-name" style="display:none"></div>
     <div id="plan-badge-txt" style="display:none">✅</div>
-    <div id="sidebar-av" style="display:none"></div>
+    <div id="sidebar-av" style="display:none;overflow:hidden;flex-shrink:0"></div>
 
 
 
@@ -1881,7 +1882,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
   <!-- REVENUE PLAN PAGE -->
 
   <!-- DASHBOARD PAGE -->
-  <div class="page on" id="page-dashboard">
+  <div class="page" id="page-dashboard">
     <div style="padding-top:1.5rem">
 
       <!-- Welcome strip -->
@@ -3279,7 +3280,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
           <div id="profile-avatar-wrap" style="position:relative;width:90px;height:90px;margin:0 auto">
             <div id="profile-avatar-display" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:var(--text-dark);border:3px solid rgba(78,204,163,.4);overflow:hidden">
               <span id="profile-initials-big">?</span>
-              <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover">
+              <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:inherit">
             </div>
             <label for="photo-upload" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.3)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--text-dark)"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1 1 0 000-1.42l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.82z"/></svg>
@@ -3446,7 +3447,14 @@ function showPage(n,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('on'));
   const pg=document.getElementById('page-'+n);
-  if(pg){pg.classList.add('on');}else{console.warn('Page not found: page-'+n);return;}
+  if(pg){
+    pg.classList.add('on');
+    // Trigger animation only on navigation (not initial load)
+    requestAnimationFrame(() => {
+      pg.classList.add('animate-in');
+      setTimeout(() => pg.classList.remove('animate-in'), 400);
+    });
+  } else { console.warn('Page not found: page-'+n); return; }
   if(btn) btn.classList.add('on');
   if(n==='routine') renderRoutine();
   if(n==='scripts') renderScripts();
@@ -6578,19 +6586,9 @@ window.saveProfile=function(){const msg=document.getElementById('save-profile-ms
 window.uploadProfilePhoto=function(){};
 window.doLogout = async function() {
   try {
-    // Use the real Firebase signOut from the module scope
-    if (window._firebaseSignOut) {
-      await window._firebaseSignOut();
-    } else {
-      // Fallback: clear session and redirect
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = 'index.html';
-    }
-  } catch(e) {
-    localStorage.clear();
-    window.location.href = 'index.html';
-  }
+    if (window._firebaseSignOut) await window._firebaseSignOut();
+    else { localStorage.clear(); window.location.href = 'index.html'; }
+  } catch(e) { localStorage.clear(); window.location.href = 'index.html'; }
 };
 
 // ====================================================================
@@ -12159,20 +12157,17 @@ window.setAppMode = function(mode) {
 // Alias — some older onclick calls used window.setMode
 window.setMode = window.setAppMode;
 
-// Apply mode immediately from localStorage — before Firebase resolves
-(function initAppMode() {
+// Apply mode and show dashboard as soon as DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
   const saved = localStorage.getItem('eos_app_mode') || 'expert';
   document.body.classList.add(saved === 'affiliate' ? 'affiliate-mode' : 'expert-mode');
-  // Show dashboard immediately so app is never blank
+  // Show dashboard — just add 'on', no animation class on initial load
   const dashPage = document.getElementById('page-dashboard');
   const dashNav  = document.getElementById('nav-dashboard');
-  if (dashPage) dashPage.classList.add('on');
+  if (dashPage) { dashPage.style.display = 'block'; dashPage.style.opacity = '1'; dashPage.classList.add('on'); }
   if (dashNav)  dashNav.classList.add('on');
-  // Apply correct nav for mode
-  setTimeout(() => {
-    if (window.setAppMode) window.setAppMode(saved);
-  }, 100);
-})();
+  setTimeout(() => { window.setAppMode && window.setAppMode(saved); }, 50);
+});
 
 // ─── Live commission math preview on the affiliate setup form ─────────────
 window.updateAffTarget = function() {
@@ -13011,10 +13006,16 @@ onAuthStateChanged(auth, async (user) => {
     try { await updateDoc(doc(db,'users',currentUser.uid),{customRoutine:JSON.stringify(payload)}); } catch(e){}
   };
   window.doLogout = async function() {
-    await signOut(auth);
+    try { await signOut(auth); } catch(e) {}
+    localStorage.removeItem('eos_app_mode');
     window.location.href = 'index.html';
   };
-  window._firebaseSignOut = async () => { await signOut(auth); window.location.href='index.html'; };
+  window._firebaseSignOut = async function() {
+    try { await signOut(auth); } catch(e) {}
+    localStorage.removeItem('eos_app_mode');
+    window.location.href = 'index.html';
+  };
+  window.handleLogout = window._firebaseSignOut;
   window.saveProfile = async function() {
     if (!currentUser) return;
     const btn = document.getElementById('save-profile-btn');
