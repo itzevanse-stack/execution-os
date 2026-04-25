@@ -323,9 +323,9 @@ body {
 
 /* Page wrap — centred, max width */
 .page-wrap {
-  padding: var(--sp-7) var(--sp-8) 80px;
-  max-width: var(--content-max);
-  margin: 0 auto;
+  padding: 28px 32px 80px;
+  max-width: 100%;
+  margin: 0;
   width: 100%;
 }
 
@@ -1276,6 +1276,289 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
 }
 .rblock.done .rblock-check svg { display: block; stroke: var(--text-dark); }
 .rblock.done .rblock-check { background: var(--teal); border-color: var(--teal); }
+
+/* ── AI Advisor Chat ─────────────────────────────────────────────────── */
+.adv-msg { display:flex; gap:10px; align-items:flex-start; }
+.adv-msg-ai  { flex-direction:row; }
+.adv-msg-user{ flex-direction:row-reverse; }
+.adv-avatar {
+  width:32px; height:32px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:15px; flex-shrink:0;
+  background:rgba(108,99,255,.15); border:1px solid rgba(108,99,255,.25);
+}
+.adv-msg-user .adv-avatar { background:rgba(78,204,163,.15); border-color:rgba(78,204,163,.25); }
+.adv-bubble { max-width:80%; display:flex; flex-direction:column; gap:4px; }
+.adv-name { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--dimmer); }
+.adv-msg-user .adv-name { text-align:right; }
+.adv-text {
+  background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.07);
+  border-radius:0 14px 14px 14px; padding:12px 14px;
+  font-size:12px; color:var(--muted); line-height:1.75;
+  white-space:pre-wrap; word-break:break-word;
+}
+.adv-msg-ai .adv-text { border-left-color:rgba(108,99,255,.3); border-left-width:2px; }
+.adv-msg-user .adv-text {
+  background:rgba(78,204,163,.07); border-color:rgba(78,204,163,.2);
+  border-radius:14px 0 14px 14px; color:var(--white);
+}
+.adv-text strong { color:var(--white); font-weight:700; }
+.adv-text em { color:var(--teal); font-style:normal; font-weight:600; }
+.adv-typing { display:flex; gap:4px; align-items:center; padding:12px 14px; }
+.adv-typing span {
+  width:6px; height:6px; border-radius:50%; background:var(--purple);
+  animation:adv-bounce .8s infinite;
+}
+.adv-typing span:nth-child(2){ animation-delay:.15s; }
+.adv-typing span:nth-child(3){ animation-delay:.3s; }
+@keyframes adv-bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+.adv-starter {
+  padding:7px 12px; background:rgba(108,99,255,.08);
+  border:1px solid rgba(108,99,255,.2); border-radius:20px;
+  font-size:11px; color:var(--purple); cursor:pointer;
+  font-family:'Inter',sans-serif; font-weight:600;
+  transition:all .15s; white-space:nowrap;
+}
+.adv-starter:hover { background:rgba(108,99,255,.15); border-color:rgba(108,99,255,.4); }
+#advisor-input:focus { border-color:rgba(108,99,255,.4); box-shadow:0 0 0 3px rgba(108,99,255,.08); }
+
+/* ════════════════════════════════════════════════════════════════════
+   PREMIUM MOTION SYSTEM — Execution OS
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ── Page transition ─────────────────────────────────────────────── */
+.page {
+  animation: none;
+  opacity: 0;
+  transform: translateY(0);
+}
+.page.on {
+  animation: pageEnter .35s cubic-bezier(.22,.68,0,1.2) forwards;
+}
+@keyframes pageEnter {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0);    }
+}
+
+/* ── Card hover lift ─────────────────────────────────────────────── */
+.m-card, .hero-strip, .stat-card, .aff-card, .step-card, [class*="card"] {
+  transition: transform .2s cubic-bezier(.22,.68,0,1.1),
+              box-shadow .2s ease,
+              border-color .2s ease !important;
+}
+.m-card:hover, .stat-card:hover {
+  transform: translateY(-3px) scale(1.005);
+  box-shadow: 0 12px 40px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.07) !important;
+  border-color: rgba(255,255,255,.12) !important;
+}
+
+/* ── Sidebar nav item ripple + slide ─────────────────────────────── */
+.nav-item, .nav-btn {
+  position: relative;
+  overflow: hidden;
+  transition: background .18s ease, transform .15s ease !important;
+}
+.nav-item:hover, .nav-btn:hover {
+  background: rgba(255,255,255,.05) !important;
+  transform: translateX(3px);
+}
+.nav-item.on, .nav-btn.on {
+  animation: navPulse .4s ease forwards;
+}
+@keyframes navPulse {
+  0%   { background: rgba(255,255,255,.04); }
+  50%  { background: rgba(108,99,255,.18);  }
+  100% { background: rgba(108,99,255,.12);  }
+}
+
+/* ── Button press feel ───────────────────────────────────────────── */
+button:not(.nav-item):not(.nav-btn):not(.tab):active {
+  transform: scale(.97);
+}
+.tab { transition: all .18s ease !important; }
+.tab.on {
+  animation: tabActivate .25s ease forwards;
+}
+@keyframes tabActivate {
+  from { transform: translateY(2px); opacity:.7; }
+  to   { transform: translateY(0);   opacity:1;  }
+}
+
+/* ── Number counters animate in ──────────────────────────────────── */
+.stat-number, .m-stat-val, [class*="stat"] > div:first-child {
+  transition: color .3s ease;
+}
+
+/* ── Hero strip entrance ─────────────────────────────────────────── */
+.hero-strip {
+  animation: heroSlideIn .4s cubic-bezier(.22,.68,0,1.1) forwards;
+  animation-delay: .05s;
+  opacity: 0;
+}
+.page.on .hero-strip { opacity: 0; animation: heroSlideIn .4s cubic-bezier(.22,.68,0,1.1) .05s forwards; }
+@keyframes heroSlideIn {
+  from { opacity:0; transform:translateY(20px) scale(.99); }
+  to   { opacity:1; transform:translateY(0)    scale(1);   }
+}
+
+/* ── Staggered card grid entrance ───────────────────────────────── */
+.page.on .m-card:nth-child(1)  { animation: cardIn .35s .10s cubic-bezier(.22,.68,0,1.2) both; }
+.page.on .m-card:nth-child(2)  { animation: cardIn .35s .15s cubic-bezier(.22,.68,0,1.2) both; }
+.page.on .m-card:nth-child(3)  { animation: cardIn .35s .20s cubic-bezier(.22,.68,0,1.2) both; }
+.page.on .m-card:nth-child(4)  { animation: cardIn .35s .25s cubic-bezier(.22,.68,0,1.2) both; }
+.page.on .m-card:nth-child(5)  { animation: cardIn .35s .30s cubic-bezier(.22,.68,0,1.2) both; }
+.page.on .m-card:nth-child(6)  { animation: cardIn .35s .35s cubic-bezier(.22,.68,0,1.2) both; }
+@keyframes cardIn {
+  from { opacity:0; transform:translateY(18px) scale(.98); }
+  to   { opacity:1; transform:translateY(0)    scale(1);   }
+}
+
+/* ── Sidebar: smooth glide on appear ────────────────────────────── */
+.sidebar {
+  animation: sidebarIn .5s cubic-bezier(.22,.68,0,1.1) forwards;
+}
+@keyframes sidebarIn {
+  from { transform:translateX(-20px); opacity:.6; }
+  to   { transform:translateX(0);     opacity:1;  }
+}
+
+/* ── Metric numbers count-up shimmer ────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+.loading-shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.1) 50%, rgba(255,255,255,.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+  border-radius: 8px;
+  color: transparent !important;
+}
+
+/* ── Progress bars animate width ────────────────────────────────── */
+[class*="progress-fill"], [id*="progress-bar"], .progress-bar {
+  transition: width .8s cubic-bezier(.22,.68,0,1.1) !important;
+}
+
+/* ── AI generating pulse ─────────────────────────────────────────── */
+.ai-pulse {
+  animation: aiPulse 1.8s ease-in-out infinite;
+}
+@keyframes aiPulse {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(108,99,255,.4); }
+  50%       { box-shadow: 0 0 0 12px rgba(108,99,255,.0); }
+}
+
+/* ── Generate buttons glow ───────────────────────────────────────── */
+[id*="gen-"]:not(:disabled), [class*="gen-av-btn"], #aff-analyse-btn:not(:disabled) {
+  transition: transform .18s ease, box-shadow .25s ease, opacity .15s ease !important;
+}
+[id*="gen-"]:not(:disabled):hover, [class*="gen-av-btn"]:hover, #aff-analyse-btn:not(:disabled):hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 32px rgba(108,99,255,.35) !important;
+}
+[id*="gen-"]:not(:disabled):active {
+  transform: scale(.98);
+}
+
+/* ── Floating label on sidebar active ───────────────────────────── */
+.nav-item.on::before, .nav-btn.on::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--purple), var(--teal));
+  border-radius: 0 3px 3px 0;
+  animation: indicatorIn .25s ease forwards;
+}
+@keyframes indicatorIn {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* ── Mode toggle pill animation ──────────────────────────────────── */
+.toggle-pill-btn {
+  transition: all .22s cubic-bezier(.22,.68,0,1.2) !important;
+}
+.toggle-pill-btn.active-teal, .toggle-pill-btn.active-purple {
+  animation: pillActivate .25s cubic-bezier(.22,.68,0,1.3) forwards;
+}
+@keyframes pillActivate {
+  0%   { transform: scale(.94); }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1);   }
+}
+
+/* ── Top-bar / dashboard header fade ────────────────────────────── */
+.top-bar, .dash-header, [id*="topbar"] {
+  animation: topbarIn .3s ease forwards;
+}
+@keyframes topbarIn {
+  from { opacity:0; transform:translateY(-8px); }
+  to   { opacity:1; transform:translateY(0);    }
+}
+
+/* ── Affiliate tab chips entrance ───────────────────────────────── */
+.adv-starter {
+  animation: chipIn .3s cubic-bezier(.22,.68,0,1.2) both;
+}
+.adv-starter:nth-child(1) { animation-delay:.05s; }
+.adv-starter:nth-child(2) { animation-delay:.10s; }
+.adv-starter:nth-child(3) { animation-delay:.15s; }
+.adv-starter:nth-child(4) { animation-delay:.20s; }
+.adv-starter:nth-child(5) { animation-delay:.25s; }
+.adv-starter:nth-child(6) { animation-delay:.30s; }
+@keyframes chipIn {
+  from { opacity:0; transform:scale(.85) translateY(6px); }
+  to   { opacity:1; transform:scale(1)   translateY(0);   }
+}
+
+/* ── Modal entrance ─────────────────────────────────────────────── */
+#post-detail-modal > div, #video-converter-modal > div, [id*="modal"] > div {
+  animation: modalIn .3s cubic-bezier(.22,.68,0,1.2) forwards;
+}
+@keyframes modalIn {
+  from { opacity:0; transform:scale(.92) translateY(20px); }
+  to   { opacity:1; transform:scale(1)   translateY(0);    }
+}
+
+/* ── Sidebar section labels slide in ────────────────────────────── */
+.nav-section-label, .sec-label {
+  animation: labelFadeIn .4s ease forwards;
+  opacity: 0;
+}
+@keyframes labelFadeIn {
+  from { opacity:0; transform:translateX(-6px); }
+  to   { opacity:.45; transform:translateX(0);  }
+}
+
+/* ── Scrollbar premium styling ───────────────────────────────────── */
+.main-content::-webkit-scrollbar { width: 4px; }
+.main-content::-webkit-scrollbar-track { background: transparent; }
+.main-content::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--purple), var(--teal));
+  border-radius: 4px;
+}
+
+/* ── Dashboard metric cards count-up flash ──────────────────────── */
+@keyframes metricFlash {
+  0%   { color: var(--teal); transform: scale(1.08); }
+  100% { color: inherit;     transform: scale(1);    }
+}
+.metric-updated { animation: metricFlash .4s ease forwards; }
+
+/* ── Analyse button loading spin ─────────────────────────────────── */
+#aff-analyse-btn.loading::after {
+  content: '';
+  display: inline-block;
+  width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  margin-left: 8px;
+  vertical-align: middle;
+}
 </style>
 </head>
 <body>
@@ -1443,6 +1726,15 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
         <div class="ni-text">
           <div class="ni-label">GROWTH SUPPORT</div>
           <div class="ni-step">Training & resources</div>
+        </div>
+        <div class="ni-dot"></div>
+      </button>
+
+      <button class="nav-item ripple-container" onclick="showPage('advisor',this)" id="nav-advisor">
+        <div class="ni-icon">🧠</div>
+        <div class="ni-text">
+          <div class="ni-label">AI STRATEGIST</div>
+          <div class="ni-step">Your business advisor</div>
         </div>
         <div class="ni-dot"></div>
       </button>
@@ -1997,6 +2289,7 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
     </div>
 
     <button class="gen-av-btn" onclick="generateAvatar()">Generate my customer avatar + content strategy</button>
+    <div id="av-ai-status" style="display:none;padding:12px 16px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px;margin-bottom:1rem;font-size:11px;color:var(--teal);align-items:center;gap:10px"></div>
     <div id="avatar-output" style="display:none"></div>
   </div>
 
@@ -2726,7 +3019,63 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
   </div><!-- end page-affiliate -->
 
   <!-- GROWTH SUPPORT PAGE — Online Training Portal -->
-  <div class="page" id="page-growth">
+  <div class="page" id="page-advisor">
+
+      <div class="hero-strip" style="background:linear-gradient(145deg,rgba(108,99,255,.12),var(--card));border-color:rgba(108,99,255,.35)">
+        <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--teal),var(--yellow));border-radius:20px 20px 0 0"></div>
+        <div class="strip-inner">
+          <div class="strip-left">
+            <div class="tag-pill" style="background:rgba(108,99,255,.12);border-color:rgba(108,99,255,.3)"><span style="color:var(--purple)">🧠 AI Strategist</span></div>
+            <div class="h1">Your personal <em>business advisor</em></div>
+            <div class="strip-sub">Ask anything about your offer, content, sales, DMs, pricing, or growth. Execution OS knows your business — every answer is built around your specific situation, niche, and targets.</div>
+          </div>
+          <div class="strip-right" style="min-width:160px">
+            <div style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);border-radius:14px;padding:14px 16px;text-align:center">
+              <div style="font-size:28px;margin-bottom:4px">🧠</div>
+              <div style="font-size:11px;font-weight:700;color:var(--purple)">Execution OS</div>
+              <div style="font-size:9px;color:var(--dimmer);margin-top:2px">$10K Consultant Level</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="advisor-starters" style="margin-bottom:1.25rem">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:700;margin-bottom:10px">Quick questions — tap to ask</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px" id="advisor-starter-chips"></div>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:flex;flex-direction:column">
+        <div id="advisor-messages" style="flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1rem;min-height:360px;max-height:520px">
+          <div class="adv-msg adv-msg-ai">
+            <div class="adv-avatar">🧠</div>
+            <div class="adv-bubble">
+              <div class="adv-name">Execution OS</div>
+              <div class="adv-text" id="advisor-intro-text">Loading your business profile…</div>
+            </div>
+          </div>
+        </div>
+        <div style="border-top:1px solid var(--border);padding:1rem;display:flex;gap:10px;align-items:flex-end;background:rgba(255,255,255,.02)">
+          <textarea id="advisor-input"
+            placeholder="Ask me anything about your business, offer, content, or sales strategy…"
+            rows="2"
+            style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:10px 14px;color:var(--white);font-family:'Inter',sans-serif;font-size:12px;resize:none;outline:none;line-height:1.5;transition:border-color .15s"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();window.advisorSend();}"
+            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"
+          ></textarea>
+          <button onclick="window.advisorSend()" id="advisor-send-btn"
+            style="padding:10px 20px;background:linear-gradient(135deg,var(--purple),#7c3aed);color:#fff;border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0;height:42px">
+            Send ⚡
+          </button>
+        </div>
+      </div>
+
+      <div style="text-align:right;margin-top:8px">
+        <button onclick="window.advisorClear()" style="background:none;border:none;color:var(--dimmer);font-size:10px;cursor:pointer;font-family:'Inter',sans-serif">Clear conversation</button>
+      </div>
+
+    </div>
+
+    <div class="page" id="page-growth">
     <div class="hero-strip" style="background:linear-gradient(145deg,rgba(78,204,163,.12),var(--card));border-color:rgba(78,204,163,.35)">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--purple),var(--yellow));border-radius:20px 20px 0 0"></div>
       <div class="strip-inner">
@@ -4325,7 +4674,7 @@ function buildFunnelDiagram(funnelType, pf, offerName, price, audType, niche) {
       ['Traffic source', 'Facebook / Instagram ads direct to VSL page. No opt-in before the video — remove friction. Cold traffic CTR target: > 2.5%. Kill any ad under 1.5% after $50 spend.'],
       ['VSL page structure', 'Headline (call out the exact person + problem). Sub-headline (the promised outcome). Video (no controls, auto-plays on desktop). CTA button appears after 60% watched. Social proof below fold.'],
       ['VSL script structure', '0–3 min: Identify the person + problem. 3–10 min: The big lie they\'ve been told. 10–18 min: Your story. 18–30 min: Teaching (3 points). 30–40 min: Social proof cascade. 40–45 min: Offer reveal.'],
-      ['Application page', '"Apply for a strategy call." 5 questions: name/email, niche, current income, income goal, "what\'s stopped you before?" Screens for serious buyers — kills 80% of tyre-kickers.'],
+      ['Application page', '"Apply for a strategy call." 5 questions: name/email, niche, current income, income goal, "what is stopped you before?" Screens for serious buyers — kills 80% of tyre-kickers.'],
       ['Pre-call email sequence', 'Email 1: Confirmation + what to expect. Email 2: Case study. Email 3: "Watch this 3-minute video before our call." Email 4 (day of): "See you in [X] hours — join link below." Target 65%+ show rate.'],
       ['Discovery call structure', '5 min: Rapport + agenda. 15 min: Deep diagnosis — "Tell me exactly where you are and what you\'ve tried." 15 min: Present the solution + walk the value stack. 10 min: Objection handling. 5 min: Close.'],
       ['Post-call follow-up', 'Same day: Send proposal PDF + recording if they agreed. Day 2: "Did you get a chance to review?" Day 4: Final follow-up — different angle. After Day 4: Move to cold nurture sequence.'],
@@ -4920,7 +5269,7 @@ function generateOffer(){
   html += '<div style="display:flex;flex-direction:column;gap:8px">';
   [
     ['Step 1 — Diagnose First','"Before I share anything — I want to make sure I fully understand your situation. The main challenge you\'re trying to solve is ' + pain + ', right? Tell me exactly where you are right now."'],
-    ['Step 2 — Bridge to the Offer','"Based on everything you just shared — you\'re exactly who I built this for. It\'s called ' + offerName + '. Let me walk you through what\'s inside."'],
+    ['Step 2 — Bridge to the Offer','"Based on everything you just shared — you\'re exactly who I built this for. It\'s called ' + offerName + '. Let me walk you through what is inside."'],
     ['Step 3 — Walk the Stack','Go through each module and component. Frame every element as solving a specific pain they just described. End with: "In total, that\'s $' + (totalValue||30000).toLocaleString() + '+ in support. Your investment is $' + price.toLocaleString() + ' — ' + payment + '."'],
     ['Step 4 — Guarantee & Risk Removal','"Here\'s what makes this completely risk-free: ' + guarantee.split('—')[0].trim() + '. ' + (guaranteeCond?'All I ask is that you '+guaranteeCond.toLowerCase()+'.':'I carry the risk so you don\'t have to.') + '"'],
     ['Step 5 — Create Urgency','"One thing worth mentioning — ' + (scarcity||'I only take 5 clients per month to keep the quality high') + '. ' + (bonus?'If you start today, you\'ll also get '+bonus+' as a fast-action bonus.':'') + '"'],
@@ -6390,7 +6739,7 @@ const NICHE_CONFIG = {
       pain_themes:["living paycheck to paycheck","savings failure","investing fear","debt stress","no financial plan"],
       desire_themes:["financial freedom","passive income","debt-free life","early retirement","wealth building"],
       value_topics:["budgeting basics that work","how to start investing with $100","getting out of debt","building an emergency fund","the compound interest reality check"],
-      hooks:["You're not broke — you have a money management problem. Here's the fix.","The 3 money mistakes keeping you paycheck to paycheck.","How to start investing with any income level (no excuses).","What the wealthy know about money that nobody teaches in school.","The truth about compound interest (why starting today matters more than investing more)."],
+      hooks:["You are not broke — you have a money management problem. Here's the fix.","The 3 money mistakes keeping you paycheck to paycheck.","How to start investing with any income level (no excuses).","What the wealthy know about money that nobody teaches in school.","The truth about compound interest (why starting today matters more than investing more)."],
       cta_angle:"free personal finance assessment"
     }
   },
@@ -6456,7 +6805,7 @@ const NICHE_CONFIG = {
       pain_themes:["tiny commissions","no buyer traffic","wrong product selection","no email list","inconsistent affiliate income"],
       desire_themes:["passive affiliate income","high-ticket commissions","content that earns while you sleep","financial freedom through content"],
       value_topics:["choosing the right affiliate products","content that converts to affiliate sales","building an email list for affiliate income","SEO basics for affiliate marketers","high-ticket vs low-ticket affiliate strategy"],
-      hooks:["Why Amazon Associates is keeping most affiliates poor (and what to do instead).","The affiliate content formula that earns $500+ per post.","You're promoting the wrong products. Here's how to find the right ones.","How to build an affiliate income that grows while you sleep.","3 affiliate marketing mistakes that kill commissions before they start."],
+      hooks:["Why Amazon Associates is keeping most affiliates poor (and what to do instead).","The affiliate content formula that earns $500+ per post.","You are promoting the wrong products. Here's how to find the right ones.","How to build an affiliate income that grows while you sleep.","3 affiliate marketing mistakes that kill commissions before they start."],
       cta_angle:"free affiliate income strategy guide"
     }
   },
@@ -6610,7 +6959,7 @@ const NICHE_CONFIG = {
       pain_themes:["undercharging creative work","inconsistent income","no clients","imposter syndrome","likes but no paying clients"],
       desire_themes:["sustainable creative income","premium clients","creative freedom","building a creative brand","making a living from passion"],
       value_topics:["pricing creative work with confidence","finding clients who pay what you're worth","building a creative personal brand","marketing your art authentically","transitioning from side hustle to full-time creative"],
-      hooks:["You're more talented than most creatives earning 3x what you earn. Here's why.","The pricing mindset shift every creative needs before charging more.","How to get clients without feeling like you're selling your soul.","The creative business model that generates income without compromising your art.","Why your Instagram following isn't converting into paying clients."],
+      hooks:["You are more talented than most creatives earning 3x what you earn. Here's why.","The pricing mindset shift every creative needs before charging more.","How to get clients without feeling like you're selling your soul.","The creative business model that generates income without compromising your art.","Why your Instagram following isn't converting into paying clients."],
       cta_angle:"free creative business income strategy"
     }
   },
@@ -6949,13 +7298,13 @@ function get30DayPlan(av, nc) {
     // WEEK 4: Momentum & Close — urgency, decision, action
     {topic:desireThemes[1]||'The compound effect in your niche', hook:'What happens when you do the right things consistently for 90 days.', fb1Type:'Compound effect post', fb2Type:'The 90-day roadmap from where you are now', reel1Style:'day 1 vs day 90 comparison', reel2Style:'the compound curve visualised', emailAngle:'90 days from now — if you start today'},
     {topic:'The people who don\'t make it', hook:'I\'ve watched hundreds of '+audType+' fail. It always comes down to one thing.', fb1Type:'Hard truth post', fb2Type:'The 3 patterns that predict failure', reel1Style:'what failure looks like from the inside', reel2Style:'how to know if you\'re on the wrong path', emailAngle:'The single reason most people stay stuck'},
-    {topic:'Your offer — what\'s inside', hook:'Let me show you exactly what '+offerName+' does and who it\'s for.', fb1Type:'Transparent offer breakdown', fb2Type:'The result this programme is designed to produce', reel1Style:'what\'s inside my programme', reel2Style:'who gets results and why', emailAngle:'Everything inside '+offerName+' — no fluff'},
+    {topic:'Your offer — what is inside', hook:'Let me show you exactly what '+offerName+' does and who it\'s for.', fb1Type:'Transparent offer breakdown', fb2Type:'The result this programme is designed to produce', reel1Style:'what is inside my programme', reel2Style:'who gets results and why', emailAngle:'Everything inside '+offerName+' — no fluff'},
     {topic:'The decision moment', hook:'You\'ve been reading, watching, and thinking. Today is for deciding.', fb1Type:'Decision post', fb2Type:'The cost of delaying one more month', reel1Style:'the fork in the road reel', reel2Style:'what people who waited said 6 months later', emailAngle:'The decision you\'ve been postponing'},
     {topic:painThemes[2]||'The fear that stops everyone', hook:'The fear of '+fear+' is keeping you exactly where you are. Let\'s dismantle it.', fb1Type:'Fear dismantling post', fb2Type:'How to act despite the fear', reel1Style:'naming and overcoming the fear', reel2Style:'what happens when you do it scared', emailAngle:'The fear that costs you more than failure ever could'},
     {topic:'Social proof compilation', hook:'Here\'s what '+audType+' just like you said after working with me.', fb1Type:'Testimonial compilation post', fb2Type:'The specific moments that changed things for them', reel1Style:'client voices — real words', reel2Style:'the common thread across all results', emailAngle:'Let them speak for themselves'},
     {topic:'Final value drop — your best content', hook:'This is the most important thing I\'ve shared this month. Don\'t scroll past.', fb1Type:'Flagship value post — save this', fb2Type:'The complete framework in one post', reel1Style:'best teaching reel of the month', reel2Style:'the framework that ties everything together', emailAngle:'The most important email I\'ll send you this month'},
     {topic:'Urgency + final spots', hook:'[X] spots left this month. After this, I close intake until next month.', fb1Type:'Scarcity + invitation post', fb2Type:'What the next 30 days looks like for people who start today', reel1Style:'closing intake announcement', reel2Style:'what happens on day 1 of the programme', emailAngle:'Last call — this closes at midnight'},
-    {topic:'Month close + looking forward', hook:'7 days of content. Here\'s what I learned about you from posting every day.', fb1Type:'Month close reflection post', fb2Type:'What\'s coming next month + early access', reel1Style:'month close reflection reel', reel2Style:'what\'s next — teasing month 2', emailAngle:'Thank you — and what\'s coming next month'},
+    {topic:'Month close + looking forward', hook:'7 days of content. Here\'s what I learned about you from posting every day.', fb1Type:'Month close reflection post', fb2Type:'What is coming next month + early access', reel1Style:'month close reflection reel', reel2Style:'what is next — teasing month 2', emailAngle:'Thank you — and what is coming next month'},
   ];
 
   return dayBlueprints.map((blueprint, idx) => {
@@ -7033,7 +7382,7 @@ ${h}
 
 7 truths about ${t} that most ${aud} learn too late:
 
-1️⃣ ${pain} is a direction problem, not an effort problem. You're working hard in the wrong gear.
+1️⃣ ${pain} is a direction problem, not an effort problem. You are working hard in the wrong gear.
 
 2️⃣ ${tried} didn't fail because you did it wrong. It failed because it was never built to solve the root cause.
 
@@ -7447,7 +7796,7 @@ If you checked 5 or more: you're aligned. The work is about execution and patien
 
 If you checked 3–4: you have clarity in some areas. Find the unchecked boxes — those are your highest-leverage gaps right now.
 
-If you checked 2 or fewer: you're not stuck because you lack effort. You're stuck because the foundation needs work before more action helps. That foundation starts with ${t}.
+If you checked 2 or fewer: you're not stuck because you lack effort. You are stuck because the foundation needs work before more action helps. That foundation starts with ${t}.
 
 The good news: every single box above is buildable. None of them require talent, connections, or perfect timing.
 
@@ -7688,7 +8037,7 @@ Post at: 9–11am
 
 [Hold up 1 finger]
 
-Number one: ${pain} isn't a motivation problem. It's an alignment problem. You're working — just not on the thing that produces ${transf}. Fix the direction before adding effort.
+Number one: ${pain} isn't a motivation problem. It's an alignment problem. You are working — just not on the thing that produces ${transf}. Fix the direction before adding effort.
 
 [2 fingers]
 
@@ -7744,7 +8093,7 @@ Post at: 12–2pm (separated from Reel 1)
 
 [Hold up 1 finger]
 
-Reason one: You're solving the symptom, not the cause. ${pain} is visible. The cause — ${t} — is one level deeper. Until you address the cause, treating the symptom gives temporary relief, not permanent change.
+Reason one: You are solving the symptom, not the cause. ${pain} is visible. The cause — ${t} — is one level deeper. Until you address the cause, treating the symptom gives temporary relief, not permanent change.
 
 [2 fingers]
 
@@ -7752,7 +8101,7 @@ Reason two: Your daily actions aren't connected to the specific output you want.
 
 [3 fingers]
 
-Reason three: You're measuring the wrong things. Tracking results before you have consistent inputs is like checking the mirror before you've started working out. Track the inputs. The results become predictable.
+Reason three: You are measuring the wrong things. Tracking results before you have consistent inputs is like checking the mirror before you've started working out. Track the inputs. The results become predictable.
 
 [Direct eye contact]
 
@@ -8031,7 +8380,7 @@ Follow. I'll be here every day."
 CAPTION:
 The thing that almost made me quit — and what I learned from it 👇
 
-If you've been close to giving up, drop "SAME" below. You're not alone. And you don't have to be.`,
+If you've been close to giving up, drop "SAME" below. You are not alone. And you don't have to be.`,
 
       // Tue — The "why I do this"
       `🎬 REEL SCRIPT 3 — Day ${d} | WHY I DO THIS
@@ -9142,7 +9491,7 @@ I hope you're leaving this month with:
 → At least one change you've made to your daily approach
 → A clearer picture of what ${transf} actually requires — and the belief that it's achievable
 
-If you have all three — you're not starting from scratch. You're continuing something.
+If you have all three — you're not starting from scratch. You are continuing something.
 
 [The door]
 
@@ -9211,7 +9560,7 @@ What does the mechanism layer look like in your specific situation? Reply to thi
 Today's post on ${t} goes deeper on this — go read the comments too. The conversation there is worth it.
 
 [Your Name]
-P.S. The ${aud} who reach ${transf} fastest are the ones who get to the mechanism layer early. You're closer than you think.`,
+P.S. The ${aud} who reach ${transf} fastest are the ones who get to the mechanism layer early. You are closer than you think.`,
 
     // TYPE 1 — The Story Email (narrative + lesson)
     `📧 EMAIL — Day ${d} · Week ${wk}: ${phase}
@@ -9432,357 +9781,119 @@ function buildNicheCalendar30(avatarData) {
 }
 
 window.generate30DayCalendar = async function() {
-  const av = window._avatarData;
-  if(!av || !av.job) {
-    if (window._currentMode === 'affiliate') {
-      alert('Please analyse your affiliate product first — go to My Affiliate Offer and paste your product link.');
-      window.showPage('aff-offer', document.getElementById('nav-aff-offer'));
-    } else {
-      alert('Please complete and generate your Customer Avatar first.');
-      window.showPage('avatar', document.querySelectorAll('.nav-btn')[3]);
-    }
-    return;
-  }
+  const av        = window._avatarData || {};
+  const niche     = window._appliedNiche || 'Online Business';
+  const price     = window._appliedPrice || 3000;
+  const target    = window._appliedTarget || 25000;
+  const offerName = (document.getElementById('offer_name')||{}).value || 'My Programme';
+  const btn       = document.getElementById('gen-calendar-btn');
 
-  // Affiliate mode: include product context in the prompt
-  const isAffiliate = window._currentMode === 'affiliate';
-  const affOffer = window._affiliateOffer;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating your 7-day content plan…'; }
 
-  // API key handled server-side via Vercel
-
-  const btn = document.querySelector('.gen-posts-btn');
-  const setBtn = (txt, dis) => { if(btn){ btn.textContent=txt; btn.disabled=dis; btn.style.opacity=dis?'.6':'1'; } };
-  setBtn('⏳ AI is writing your 7-day content plan…', true);
-
-  const niche      = window._appliedNiche || 'Online Business';
-  const job        = av.job || 'entrepreneur';
-  const js         = job.split('/')[0].split(',')[0].trim();
-  const pain       = av.pain || 'feeling stuck';
-  const motivation = av.motivation || 'financial freedom';
-  const fear       = av.fear || 'wasting money';
-  const tried      = av.tried || 'other methods';
-  const transformation = av.transformation || 'achieving their goals';
-  const incomeGoal = '$' + Number(av.incomeGoal || 10000).toLocaleString();
-  const offerName  = (document.getElementById('offer_name')||{}).value || 'my programme';
-  const offerPrice = '$' + Number(window._appliedPrice || 1000).toLocaleString();
-  const duration   = (document.getElementById('offer_duration')||{}).value || '90 days';
-
-  const weekPhases = [
-    'Week 1: Foundation & Trust — introduce yourself, build connection, establish authority',
-    'Week 2: Value & Education — deep dives, teach your method, no selling',
-    'Week 3: Proof & Credibility — results, case studies, objection handling',
-    'Week 4: Momentum & Close — urgency, decision, final CTA'
-  ];
-
-  const dayTopics = [
-    'Your origin story and why you do this work',
-    'The biggest myth in the '+niche+' space that keeps people stuck',
-    'Who your offer is for — and who it is not for',
-    'The root cause of '+pain+' that nobody talks about',
-    'Your unique method and why it works when other things have not',
-    'The identity shift required to achieve '+transformation,
-    'Week 1 recap — what changes when people take this seriously',
-    'The right system vs working harder — why direction beats effort',
-    'How to understand your ideal customer at a deep level',
-    'The real reason most '+js+'s stay inconsistent (it is not discipline)',
-    'The content types that actually convert — not just get likes',
-    'What '+motivation+' looks like in practice, day to day',
-    'The overthinking pattern that kills momentum before it starts',
-    'How to sell without feeling pushy or salesy',
-    'Client result — the transformation and what made the difference',
-    'The objection everyone has about price — and the truth behind it',
-    'The daily non-negotiables of every successful person in this niche',
-    'The failure nobody in your niche will admit to — and what it taught',
-    'The shortcut that actually exists (it is not what most people expect)',
-    'Your audience\'s biggest questions — answered directly',
-    'Second client result — same starting point, same system, different person',
-    'The compound effect — what 90 days of right action actually produces',
-    'The pattern I see in every person who fails in this niche',
-    'A full transparent look inside '+offerName+' — what is inside and why',
-    'The decision moment — why waiting is the most expensive choice',
-    'The fear of '+fear+' — how to dismantle it completely',
-    'Social proof — real words from real people who made the shift',
-    'The most important insight of this entire month — do not miss this',
-    'Final spots this month — what the next 30 days looks like if you start now',
-    'Month close — what I learned from posting every day and what comes next'
-  ];
-
-  // Build all 30 days in parallel batches of 7 (one week per API call)
-  const allDays = new Array(30).fill(null);
-  
-  const buildWeek = async (weekIdx) => {
-    const weekNum = weekIdx + 1;
-    const phase = weekPhases[weekIdx];
-    const startDay = weekIdx * 7;
-    const endDay = Math.min(startDay + 7, 30);
-    const weekTopics = dayTopics.slice(startDay, endDay);
-
-    const affContext = isAffiliate && affOffer ? `
-IMPORTANT: This creator is an AFFILIATE promoting "${affOffer.productName || affOffer.name || 'a high-ticket product'}" (${affOffer.platform || 'affiliate platform'}).
-They earn $${(affOffer.commission||1000).toLocaleString()} per sale. 
-Content goal: warm up, educate, and convert buyers to purchase through their affiliate link.
-Promotion angle: ${affOffer.promotionAngle || 'Lead with transformation, not the product'}
-Content should promote this product indirectly (education + value first, product reveal later).
-NEVER write content that sounds like they created the product — they are recommending it.` : '';
-
-    const prompt = `You are an elite direct-response copywriter and social media strategist specialising in the ${niche} niche.
-${isAffiliate && affOffer ? affContext : ''}
-
-CREATOR CONTEXT:
-- Niche: ${niche}
-- Target audience: ${js}s dealing with "${pain}"
-- Desired transformation: "${transformation}"
-- Income goal they help clients reach: ${incomeGoal}/month
-- Programme name: ${offerName} (${offerPrice}, ${duration})
-- Fear to overcome: "${fear}"
-- What they've already tried: "${tried}"
-- Core motivation: "${motivation}"
-
-WEEK ${weekNum} PHASE: ${phase}
-
-Generate content for ${weekTopics.length} consecutive days (Days ${startDay+1}–${endDay}).
-Each day covers a DIFFERENT topic.
-
-For EACH day, write ALL of the following — in order, clearly labelled:
-
-DAY [N]: [TOPIC]
-
-FACEBOOK POST 1 (300-400 words):
-Write a compelling personal-brand Facebook post. Start with a powerful hook (first line must stop the scroll). Use short paragraphs. End with a genuine question to drive comments.
-
-FACEBOOK POST 2 (250-350 words):
-Write a value-driven educational Facebook post on the same topic but from a different angle. Include a numbered list or step-by-step framework. End with a save/share CTA.
-
-REEL SCRIPT 1 (talking head, 45-60 seconds):
-FORMAT: Face to camera. Write the full script with stage directions.
-HOOK: (first 3 seconds, say AND show on screen)
-SCRIPT: (full word-for-word script)
-CAPTION: (2-3 lines + hashtags)
-
-REEL SCRIPT 2 (educational breakdown, 45-60 seconds):
-FORMAT: Teach 3 points with text overlays.
-HOOK: (different from Reel 1)
-SCRIPT: (full word-for-word script)
-CAPTION: (2-3 lines + hashtags)
-
-REEL SCRIPT 3 (personal/story reel, 45-60 seconds):
-FORMAT: Raw and personal, unscripted feel.
-HOOK: (emotional/personal opener)
-SCRIPT: (full word-for-word script)
-CAPTION: (1-2 lines)
-
-EMAIL (to nurture list):
-SUBJECT LINE: (under 50 characters)
-PREVIEW TEXT: (under 90 characters)
-BODY: (300-400 words, conversational, one clear insight, one action step, personal sign-off)
-
-TOPICS FOR EACH DAY (in order):
-${weekTopics.map((t,i)=>`Day ${startDay+i+1}: ${t}`).join('\n')}
-
-RULES:
-- Every sentence must be grammatically perfect
-- Never use passive voice when active works
-- Every post must sound like a real person speaking — not AI
-- Specific beats vague always (use numbers, timeframes, real examples)
-- Each day's content must be genuinely different from the others
-- Write for ${js}s specifically — not a generic audience
-- Never mention AI wrote this`;
-
-    try {
-      const text = await callClaude(prompt, 8000);
-      return { weekIdx, text, weekTopics, startDay };
-    } catch(e) {
-      return { weekIdx, text: '', weekTopics, startDay, error: true };
-    }
-  };
-
-  // Show loading progress
+  // Show loading in calendar area
   let loadingEl = document.getElementById('cal-loading-progress');
-  if(!loadingEl) {
+  if (!loadingEl) {
     loadingEl = document.createElement('div');
     loadingEl.id = 'cal-loading-progress';
-    loadingEl.style.cssText = 'background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.3);border-radius:14px;padding:1.25rem 1.5rem;margin-bottom:1.25rem;display:none';
-    const calPage = document.getElementById('page-calendar');
-    if(calPage) calPage.insertBefore(loadingEl, calPage.querySelector('.tab-strip'));
+    loadingEl.style.cssText = 'padding:2rem;text-align:center';
+    const calBody = document.getElementById('cal-body');
+    if (calBody) calBody.parentNode.insertBefore(loadingEl, calBody);
   }
-
-  // Navigate to calendar page first so user sees progress
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
-  document.getElementById('page-calendar').classList.add('on');
-  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on'));
-  const navBtns = document.querySelectorAll('.nav-btn');
-  if(navBtns[4]) navBtns[4].classList.add('on');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-
   loadingEl.style.display = 'block';
-  loadingEl.innerHTML = `
-    <div style="font-size:11px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🤖 Claude is writing your 7-day content plan…</div>
-    <div style="font-size:12px;color:var(--dim);line-height:1.6;margin-bottom:12px">Generating unique, professional, niche-specific content for all 30 days. This takes about 30–60 seconds.</div>
-    <div style="height:5px;background:rgba(255,255,255,.07);border-radius:3px;overflow:hidden;margin-bottom:8px">
-      <div id="cal-progress-bar" style="height:100%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:3px;width:5%;transition:width .5s"></div>
-    </div>
-    <div id="cal-progress-label" style="font-size:10px;color:var(--dimmer)">Starting Week 1…</div>`;
+  loadingEl.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:12px">✍️ Claude is writing your 7-day content plan…</div>' +
+    '<div style="font-size:11px;color:var(--dim);margin-bottom:16px">Creating unique Facebook posts, Reel scripts, and emails tailored to your audience. Takes 20–30 seconds.</div>' +
+    '<div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden"><div id="cal-progress-bar" style="height:100%;width:10%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:2px;transition:width 1s"></div></div>';
 
-  const updateProgress = (pct, label) => {
+  const setProgress = pct => {
     const bar = document.getElementById('cal-progress-bar');
-    const lbl = document.getElementById('cal-progress-label');
-    if(bar) bar.style.width = pct + '%';
-    if(lbl) lbl.textContent = label;
+    if (bar) bar.style.width = pct + '%';
   };
 
-  // Generate all 4 weeks
-  const parseWeekText = (text, weekTopics, startDay) => {
-    // Split by DAY markers
-    const dayPattern = /DAY\s+(\d+)\s*:/gi;
-    const parts = text.split(dayPattern);
-    const days = [];
-    
-    for(let i=1; i<parts.length; i+=2) {
-      const dayNum = parseInt(parts[i]);
-      const content = parts[i+1] || '';
-      
-      const extract = (label, nextLabels) => {
-        const startPat = new RegExp(label + '[^\\n]*\\n', 'i');
-        const m = content.match(startPat);
-        if(!m) return '';
-        let start = content.indexOf(m[0]) + m[0].length;
-        let end = content.length;
-        for(const next of nextLabels) {
-          const nm = content.slice(start).match(new RegExp(next + '[^\\n]*\\n', 'i'));
-          if(nm) {
-            const pos = content.slice(start).indexOf(nm[0]);
-            if(pos !== -1 && pos < end - start) end = start + pos;
-          }
-        }
-        return content.slice(start, end).trim();
-      };
+  try {
+    setProgress(30);
+    const resp = await callAPI('generate-calendar', {
+      niche, price, target,
+      avatar: av,
+      offer: offerName,
+      mode: 'expert'
+    });
 
-      const fb1 = extract('FACEBOOK POST 1', ['FACEBOOK POST 2','REEL SCRIPT 1','REEL SCRIPT 2','REEL SCRIPT 3','EMAIL']);
-      const fb2 = extract('FACEBOOK POST 2', ['REEL SCRIPT 1','REEL SCRIPT 2','REEL SCRIPT 3','EMAIL']);
-      const reel1 = extract('REEL SCRIPT 1', ['REEL SCRIPT 2','REEL SCRIPT 3','EMAIL']);
-      const reel2 = extract('REEL SCRIPT 2', ['REEL SCRIPT 3','EMAIL']);
-      const reel3 = extract('REEL SCRIPT 3', ['EMAIL']);
-      const email = extract('EMAIL', []);
+    const calText = resp.text || '';
+    if (!calText) throw new Error('No content returned');
 
-      // Extract hook (first line) from each piece
-      const getHook = (txt) => txt.split('\n').find(l => l.trim().length > 10) || txt.slice(0,80);
-      const getSubject = (txt) => { const m = txt.match(/SUBJECT LINE:\s*(.+)/i); return m ? m[1].trim() : getHook(txt); };
+    setProgress(70);
 
-      const weekNum = Math.ceil(dayNum / 7);
-      const wds = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      const wd = wds[(dayNum-1) % 7];
-      const topic = weekTopics[(dayNum-1) % weekTopics.length] || 'Content strategy';
+    // Parse 7 days × 4 slots
+    window._aiCalendar30 = [];
+    const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-      days.push([
-        { dayNum, weekNum, dayLabel:`Day ${dayNum} — ${topic}`, weekDay:wd,
-          platform:'Facebook (Personal Profile)', postType:'Post 1 — Personal Story',
-          viralHook:getHook(fb1), videoScript:fb1||`[Day ${dayNum} Facebook Post 1 — ${topic}]`,
-          callToAction:'Comment your answer below — I reply to every one.',
-          engagementTip:'Post at 8–9am. Reply to every comment within 2 hours.',
-          goal:'Week '+weekNum+': '+weekPhases[weekNum-1].split(':')[1]?.trim(), slotType:'fb1' },
-        { dayNum, weekNum, dayLabel:`Day ${dayNum} — ${topic} · Post 2`, weekDay:wd,
-          platform:'Facebook (Groups + Profile)', postType:'Post 2 — Value Education',
-          viralHook:getHook(fb2), videoScript:fb2||`[Day ${dayNum} Facebook Post 2 — ${topic}]`,
-          callToAction:'Save this and share it with someone who needs it.',
-          engagementTip:'Share to 3 niche groups 4 hours after Post 1.',
-          goal:'Week '+weekNum, slotType:'fb2' },
-        { dayNum, weekNum, dayLabel:`Day ${dayNum} — ${topic} · Reel 1`, weekDay:wd,
-          platform:'Instagram + Facebook Reels', postType:'Reel 1 — Talking Head',
-          viralHook:getHook(reel1), videoScript:reel1||`[Day ${dayNum} Reel 1 — ${topic}]`,
+    const rawDays = calText.split('\nDAY').map((s,i) => i===0 ? s : 'DAY'+s).filter(s => s.trim());
+
+    const getSec = (text, startPat, endPats) => {
+      const ls = text.split('\n');
+      let si = -1;
+      for (let i=0;i<ls.length;i++) { if (new RegExp(startPat,'i').test(ls[i])) { si=i+1; break; } }
+      if (si < 0) return text.trim();
+      let ei = ls.length;
+      for (let i=si;i<ls.length;i++) { if (endPats.some(p=>new RegExp(p,'i').test(ls[i]))) { ei=i; break; } }
+      return ls.slice(si,ei).join('\n').trim();
+    };
+
+    const getHook = t => { const l=t.split('\n').find(x=>/^HOOK[\s:]/i.test(x)); return l?l.replace(/^HOOK[\s:]*/i,'').trim():t.split('\n').find(l=>l.trim().length>20)||t.slice(0,100); };
+    const getSubj = t => { const l=t.split('\n').find(x=>/^SUBJECT[\s:]/i.test(x)); return l?l.replace(/^SUBJECT[\s:]*/i,'').trim():t.split('\n')[0]||''; };
+
+    for (let d=0;d<Math.min(rawDays.length,7);d++) {
+      const block = rawDays[d];
+      const tm = block.match(/DAY\s*\d+\s*[:\-]?\s*(.+)/i);
+      const topic = tm ? tm[1].replace(/\*+/g,'').trim() : 'Day '+(d+1);
+
+      const fb = getSec(block,'FACEBOOK\s*POST',['REEL\s*1','REEL\s*ONE']);
+      const r1 = getSec(block,'REEL\s*1|REEL\s*ONE',['REEL\s*2','REEL\s*TWO']);
+      const r2 = getSec(block,'REEL\s*2|REEL\s*TWO',['EMAIL']);
+      const em = getSec(block,'EMAIL',['===','---','DAY\s*\d']);
+
+      const wd = DAY_NAMES[d];
+      window._aiCalendar30.push([
+        { postType:'Facebook Post', slotType:'fb1', viralHook:getHook(fb), videoScript:fb,
+          fullScript:fb, weekDay:wd, topic, dayNum:d+1,
+          callToAction:'Comment your biggest takeaway below.',
+          engagementTip:'Post 8–9am. Reply to every comment within 2 hours.' },
+        { postType:'Reel 1', slotType:'reel1', viralHook:getHook(r1), videoScript:r1,
+          fullScript:r1, weekDay:wd, topic, dayNum:d+1, isReel:true,
           callToAction:'Follow for daily content like this.',
-          engagementTip:'Post at 9–11am. High energy in the first 3 seconds.',
-          goal:'Week '+weekNum+': Reel reach', slotType:'reel1' },
-        { dayNum, weekNum, dayLabel:`Day ${dayNum} — ${topic} · Reel 2`, weekDay:wd,
-          platform:'Instagram + Facebook Reels', postType:'Reel 2 — Educational Breakdown',
-          viralHook:getHook(reel2), videoScript:reel2||`[Day ${dayNum} Reel 2 — ${topic}]`,
+          engagementTip:'Post 9–11am. High energy in the first 3 seconds.' },
+        { postType:'Reel 2', slotType:'reel2', viralHook:getHook(r2), videoScript:r2,
+          fullScript:r2, weekDay:wd, topic, dayNum:d+1, isReel:true,
           callToAction:'Save this — come back to it every week.',
-          engagementTip:'Post 12–2pm. Use text overlays for each point.',
-          goal:'Week '+weekNum+': Value content', slotType:'reel2' },
-        { dayNum, weekNum, dayLabel:`Day ${dayNum} — ${topic} · Reel 3`, weekDay:wd,
-          platform:'Instagram + Facebook Reels', postType:'Reel 3 — Personal Story',
-          viralHook:getHook(reel3), videoScript:reel3||`[Day ${dayNum} Reel 3 — ${topic}]`,
-          callToAction:'DM me your biggest challenge right now.',
-          engagementTip:'Post 6–8pm. Keep it raw and personal.',
-          goal:'Week '+weekNum+': Story reach', slotType:'reel3' },
-        { dayNum, weekNum, dayLabel:`Day ${dayNum} — ${topic} · Email`, weekDay:wd,
-          platform:'Email Newsletter', postType:'Daily Email',
-          viralHook:getSubject(email), videoScript:email||`[Day ${dayNum} Email — ${topic}]`,
+          engagementTip:'Post 12–2pm. Use text overlays for each point.' },
+        { postType:'Email', slotType:'email', viralHook:getSubj(em), videoScript:em,
+          fullScript:em, weekDay:wd, topic, dayNum:d+1,
+          emailSubject:getSubj(em), emailBody:em,
           callToAction:'Reply and tell me your biggest takeaway.',
-          engagementTip:'Send 8–10am or 5–7pm. Keep subject under 50 chars.',
-          goal:'Week '+weekNum+': Email nurture', slotType:'email',
-          emailSubject:getSubject(email), emailBody:email }
+          engagementTip:'Send 8–10am or 5–7pm. Keep subject under 50 chars.' },
       ]);
     }
-    return days;
-  };
 
-  const weekResults = [];
-  for(let w=0; w<4; w++) {
-    updateProgress(5 + w*22, `Writing Week ${w+1} of 4 — ${weekPhases[w].split(':')[0]}…`);
-    const result = await buildWeek(w);
-    weekResults.push(result);
-    updateProgress(5 + (w+1)*22, `Week ${w+1} complete ✅`);
-  }
+    setProgress(90);
 
-  // Parse and assemble all days
-  window._aiCalendar30 = [];
-  for(const r of weekResults) {
-    if(r.error || !r.text) {
-      // Fallback: generate placeholder slots for this week
-      for(let d=r.startDay; d<Math.min(r.startDay+7,30); d++) {
-        const dayNum = d+1;
-        const topic = dayTopics[d];
-        const wds = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-        const wd = wds[d%7];
-        const wk = Math.ceil(dayNum/7);
-        const makeSlot = (type, plat, style) => ({
-          dayNum, weekNum:wk, dayLabel:`Day ${dayNum} — ${topic}`, weekDay:wd,
-          platform:plat, postType:type, slotType:style,
-          viralHook:`Day ${dayNum}: ${topic}`,
-          videoScript:`Content for Day ${dayNum} on "${topic}" could not be generated. Click Refresh to retry.`,
-          callToAction:'Engage with your audience.', engagementTip:'Post at optimal times for your platform.',
-          goal:'Week '+wk, emailSubject:`Day ${dayNum}: ${topic}`, emailBody:''
-        });
-        window._aiCalendar30.push([
-          makeSlot('Post 1','Facebook','fb1'), makeSlot('Post 2','Facebook Groups','fb2'),
-          makeSlot('Reel 1','Instagram Reels','reel1'), makeSlot('Reel 2','Instagram Reels','reel2'),
-          makeSlot('Reel 3','Instagram Reels','reel3'), makeSlot('Email','Email','email')
-        ]);
-      }
-    } else {
-      const days = parseWeekText(r.text, r.weekTopics, r.startDay);
-      days.forEach(d => window._aiCalendar30.push(d));
-    }
-  }
+    // Save to localStorage
+    try { localStorage.setItem('eos_calendar30', JSON.stringify(window._aiCalendar30)); } catch(e) {}
 
-  // Ensure exactly 30 days
-  window._aiCalendar30 = window._aiCalendar30.slice(0, 30);
-
-  window._postsPerDay = 6;
-  window._cal30GeneratedAt = new Date().toISOString();
-  window._calDone = new Set();
-
-  updateProgress(100, '✅ All 30 days generated — loading your plan…');
-  
-  setTimeout(() => {
     loadingEl.style.display = 'none';
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(t => t.classList.remove('on'));
-    if(tabs[0]) tabs[0].classList.add('on');
-    window.currentWeek = 1;
-    window.renderAICalendar30(1);
-    window.saveCalendarState && window.saveCalendarState();
-    showCalendarCountdown(30);
+    if (btn) { btn.disabled = false; btn.textContent = '⚡ Regenerate my 7-day content plan'; }
 
-    const banner = document.getElementById('cal-ai-banner');
-    if(banner) {
-      banner.style.display = 'flex';
-      banner.querySelector('div div:first-child').textContent = '✅ AI-Written 7-Day Content Plan Ready';
-      banner.querySelector('div div:last-child').innerHTML = `Your niche-specific plan for <strong style="color:var(--white)">${niche}</strong> is live. Click any day to read the full scripts. Every word written by Claude. 📋`;
-    }
-    setBtn('✅ View Your 7-Day Content Plan →', false);
-    if(btn) btn.style.background = 'linear-gradient(135deg,#27c840,#1fa832)';
-  }, 600);
+    // Render
+    window.renderAICalendar30 && window.renderAICalendar30(1);
+
+    // Navigate to calendar page
+    const calNav = document.getElementById('nav-calendar');
+    window.showPage && window.showPage('calendar', calNav);
+
+  } catch(e) {
+    console.error('Calendar generation failed:', e.message);
+    loadingEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:1rem">⚠️ Content generation failed: '+e.message+'<br><br><button onclick="window.generate30DayCalendar()" style="margin-top:8px;padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700">Try Again</button></div>';
+    if (btn) { btn.disabled = false; btn.textContent = '⚡ Generate my 7-day content plan'; }
+  }
 };
 
 // toggleDay30 per-day (not per-slot) for niche calendar
@@ -9874,8 +9985,8 @@ window.showPostDetail30 = function(globalIdx) {
       if(!improved || improved.length < 50) return;
       // Update the stored script
       if(window._aiCalendar30) {
-        const dayIdx = Math.floor(globalIdx / 6);
-        const slotIdx = globalIdx % 6;
+        const dayIdx = Math.floor(globalIdx / 4);
+        const slotIdx = globalIdx % 4;
         if(window._aiCalendar30[dayIdx] && window._aiCalendar30[dayIdx][slotIdx]) {
           window._aiCalendar30[dayIdx][slotIdx].videoScript = improved;
         }
@@ -9893,8 +10004,8 @@ window.showPostDetail30 = function(globalIdx) {
 // Override copyPostScript30 for 6-slot per day
 window.copyPostScript30 = function(globalIdx) {
   if(!window._aiCalendar30) return;
-  const dayIdx = Math.floor(globalIdx / 6);
-  const slotIdx = globalIdx % 6;
+  const dayIdx = Math.floor(globalIdx / 4);
+  const slotIdx = globalIdx % 4;
   const daySlots = window._aiCalendar30[dayIdx];
   if(!daySlots || !daySlots[slotIdx]) return;
   const d = daySlots[slotIdx];
@@ -11078,8 +11189,8 @@ Format your response as clean HTML using these exact section headers wrapped in 
 // ═══════════════════════════════════════════════════════════════════════════
 
 window.openVideoConverter = function(globalIdx) {
-  const dayIdx  = Math.floor(globalIdx / 6);
-  const slotIdx = globalIdx % 6;
+  const dayIdx  = Math.floor(globalIdx / 4);
+  const slotIdx = globalIdx % 4;
   const daySlots = window._aiCalendar30 && window._aiCalendar30[dayIdx];
   if (!daySlots || !daySlots[slotIdx]) return;
   const d = daySlots[slotIdx];
@@ -11442,10 +11553,10 @@ function renderDashboard() {
   const coachNotes = {
     noSetup:   "Start with your Revenue Plan. Enter your offer price, monthly target, and niche. Every other feature in the platform personalises to those three numbers — they're the foundation of everything.",
     lowScore:  "Your health score is under 40. This usually means execution hasn't started yet, or key sections aren't filled in. Start with today's Mission #1 — one step at a time builds the momentum.",
-    building:  "You're in the building phase. The entrepreneurs who reach $100K don't have more talent — they have more reps. Post today's content, send your DMs, book your calls. Every day you do the work, the compound effect builds.",
+    building:  "You are in the building phase. The entrepreneurs who reach $100K don't have more talent — they have more reps. Post today's content, send your DMs, book your calls. Every day you do the work, the compound effect builds.",
     strong:    "Strong execution this week. The gap between where you are and $100K/month is smaller than it looks from inside the frustration. The system is working — stay consistent and don't change what's working.",
     elite:     "Elite execution. At this level, the only thing that limits you is the size of your offer and the scale of your outreach. If you haven't raised your price in the last 30 days, raise it today.",
-    onTrack:   "You're on track to hit your monthly target. The final stretch is where most people take the foot off the gas — don't. Finish the month strong and build the momentum into next month.",
+    onTrack:   "You are on track to hit your monthly target. The final stretch is where most people take the foot off the gas — don't. Finish the month strong and build the momentum into next month.",
     hitTarget: "Target hit. This is not the time to slow down — this is the time to raise it. The best time to scale your ambition is when the system is working. Set a bigger number and go again.",
     noContent: "Your content calendar is set up — but the days aren't being marked complete. Content consistency is the single most important variable in organic growth. Post today, mark it done, build the chain.",
   };
@@ -11640,7 +11751,10 @@ window.analyseAffiliateProduct = async function() {
     window._appliedNiche  = av.niche||productNiche;
     window._appliedPrice  = commission;
     window._appliedTarget = monthlyTarget;
-    try { localStorage.setItem('eos_affiliate_offer',JSON.stringify(window._affiliateOffer)); } catch(e){}
+    try {
+      localStorage.setItem('eos_affiliate_offer', JSON.stringify(window._affiliateOffer));
+      localStorage.setItem('eos_avatar_data', JSON.stringify(window._avatarData));
+    } catch(e) {}
 
     // STEP 2: Calendar
     setProgress(55,'Writing your 7-day content plan…','Commission targets set ✅');
@@ -11661,7 +11775,8 @@ window.analyseAffiliateProduct = async function() {
       const getSec=(text,startPat,endPats)=>{
         const ls=text.split('\n');let si=-1;
         for(let i=0;i<ls.length;i++){if(new RegExp(startPat,'i').test(ls[i])){si=i+1;break;}}
-        if(si<0)return text.trim();let ei=ls.length;
+        if(si<0)return text.trim();
+        let ei=ls.length;
         for(let i=si;i<ls.length;i++){if(endPats.some(p=>new RegExp(p,'i').test(ls[i]))){ei=i;break;}}
         return ls.slice(si,ei).join('\n').trim();
       };
@@ -11685,8 +11800,34 @@ window.analyseAffiliateProduct = async function() {
         }
       }
     } catch(e) {
-      console.warn('Calendar failed:',e.message);
-      setProgress(85,'Calendar generation failed — other tabs still ready',null);
+      console.warn('Calendar generation failed:', e.message);
+      setProgress(85, 'Building basic content plan from your avatar…', null);
+      // Generate skeleton calendar from avatar data so tab is never empty
+      const av2 = window._avatarData || {};
+      const pn  = window._affiliateOffer ? window._affiliateOffer.name : productName;
+      const dn  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      const topics = [
+        'The hidden reason why '+((av2.pain)||'your audience struggles')+' — and what to do instead',
+        'My honest story: what I wish I knew before I started in this space',
+        'The 3 mistakes that keep '+(av2.job||'people')+' stuck — and the simple fix',
+        'Why most solutions fail for '+(av2.job||'people')+'s like you (and what actually works)',
+        'What changed for me: the exact shift that made everything easier',
+        'The truth about '+((av2.transformation)||'getting real results')+' that no one talks about',
+        'If you want '+((av2.transformation)||'better results')+', read this first'
+      ];
+      window._aiCalendar30 = [];
+      const dn2 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      for (let d=0;d<7;d++) {
+        const t = topics[d];
+        const wd2 = dn2[d];
+        const note = 'Tap Regenerate above for full AI-written scripts.';
+        window._aiCalendar30.push([
+          { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:t+' — '+note, weekDay:wd2, topic:t, dayNum:d+1, callToAction:'Comment below.', engagementTip:'Post 8-9am.' },
+          { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:'HOOK: '+t+' — '+note, weekDay:wd2, topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for tips.', engagementTip:'Post 9-11am.' },
+          { postType:'Reel 2', slotType:'reel2', viralHook:t, fullScript:t+' — '+note, weekDay:wd2, topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12-2pm.' },
+          { postType:'Email', slotType:'email', viralHook:t.slice(0,45), fullScript:'SUBJECT: '+t.slice(0,45)+' — '+note, weekDay:wd2, topic:t, dayNum:d+1, emailSubject:t.slice(0,45), callToAction:'Reply to this email.', engagementTip:'Send 8-10am.' },
+        ]);
+      }
     }
 
     setProgress(100,'Everything ready! 🎉','Calendar ready ✅');
@@ -11703,7 +11844,16 @@ window.analyseAffiliateProduct = async function() {
 // ─── Render Affiliate Strategy ────────────────────────────────────────────
 window.renderAffStrategy = function renderAffStrategy(av) {
   const el = document.getElementById('aff-strategy-body');
-  if (!el || !av) return;
+  if (!el) return;
+  // Use offer data as fallback if avatar is empty
+  if (!av || Object.keys(av).length === 0) {
+    const offer = window._affiliateOffer || {};
+    av = {
+      job: 'online entrepreneur', pain: 'struggling to grow their income online',
+      transformation: 'financial freedom and a scalable online income',
+      commission: offer.commission || 1000, niche: offer.niche || 'Online Business'
+    };
+  }
   const commission = av.commission || window._appliedPrice || 1000;
   const target     = commission * 5;
   const salesNeeded  = Math.ceil(target / commission);
@@ -11740,7 +11890,15 @@ window.renderAffStrategy = function renderAffStrategy(av) {
 // ─── Render Buyer Avatar View ─────────────────────────────────────────────
 window.renderAffAvatarView = function renderAffAvatarView(av) {
   const el = document.getElementById('aff-avatar-body');
-  if (!el || !av) return;
+  if (!el) return;
+  if (!av || Object.keys(av).length === 0) {
+    const offer = window._affiliateOffer || {};
+    av = { name: 'Your Ideal Buyer', job: 'professional', age: '32-45',
+           location: 'USA, UK, Australia', pain: 'struggling to grow income',
+           transformation: offer.name ? 'achieve results with ' + offer.name : 'financial freedom',
+           fear: 'wasting money on the wrong solution', tried: 'various courses and programmes',
+           motivation: 'freedom, flexibility, and financial security', niche: offer.niche || '' };
+  }
   const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
   el.innerHTML = `
     <div style="background:linear-gradient(145deg,rgba(108,99,255,.08),var(--card));border:1px solid rgba(108,99,255,.2);border-radius:16px;overflow:hidden;margin-bottom:1rem">
@@ -11762,6 +11920,13 @@ window.renderAffAvatarView = function renderAffAvatarView(av) {
 window.renderAffDMScripts = function renderAffDMScripts(av, productName, commission) {
   const el = document.getElementById('aff-dms-body');
   if (!el) return;
+  const offer = window._affiliateOffer || {};
+  productName = productName || offer.name || 'the product';
+  commission  = commission  || offer.commission || 1000;
+  if (!av || Object.keys(av).length === 0) {
+    av = { job: 'professional', pain: 'struggling to grow income',
+           transformation: 'financial freedom', niche: offer.niche || '' };
+  }
   const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
   const pain = av.pain || 'their challenge';
   const trans = av.transformation || 'their goal';
@@ -11836,11 +12001,22 @@ window.showPage = function(n, btn) {
         const activeMeta = document.getElementById('aff-active-meta');
         if (activeName) activeName.textContent = offer.name;
         if (activeMeta) activeMeta.textContent = '$' + (offer.commission||0).toLocaleString() + ' commission · ' + (offer.platform||'');
-        if (window._avatarData) {
-          renderAffStrategy(window._avatarData);
-          renderAffAvatarView(window._avatarData);
-          renderAffDMScripts(window._avatarData, offer.name, offer.commission);
-          window.renderAffCommTracker = () => renderAffCommTrackerFn(offer.commission);
+        // Load avatarData from localStorage if not in memory
+        if (!window._avatarData) {
+          try {
+            const saved = localStorage.getItem('eos_avatar_data');
+            if (saved) window._avatarData = JSON.parse(saved);
+          } catch(e) {}
+        }
+        const av = window._avatarData || {};
+        window.renderAffStrategy      && window.renderAffStrategy(av);
+        window.renderAffAvatarView    && window.renderAffAvatarView(av);
+        window.renderAffDMScripts     && window.renderAffDMScripts(av, offer.name, offer.commission);
+        window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission);
+        window.renderAffCommTracker = () => window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission);
+        // Render calendar if available
+        if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
+          window.renderAICalendar30 && window.renderAICalendar30(1);
         }
       }
     }, 80);
@@ -12262,6 +12438,379 @@ document.addEventListener('DOMContentLoaded', function() {
 if (document.readyState !== 'loading') {
   setTimeout(injectHealthScoreSection, 300);
 }
+
+// ─── AI Strategist / Advisor ──────────────────────────────────────────────
+(function() {
+  let advisorHistory = [];
+  const MAX_HISTORY = 20;
+
+  // Build context from user's data
+  function buildContext() {
+    const av  = window._avatarData    || {};
+    const off = window._aiOfferData   || {};
+    const aff = window._affiliateOffer|| {};
+    return {
+      mode:       window._appMode        || 'expert',
+      niche:      window._appliedNiche   || '',
+      price:      window._appliedPrice   || 0,
+      target:     window._appliedTarget  || 0,
+      avatar:     av,
+      offer:      off,
+      affOffer:   aff,
+      trafficMode:window._affTrafficMode || 'organic',
+      calDays:    window._aiCalendar30   ? window._aiCalendar30.length : 0,
+    };
+  }
+
+  // Format markdown-lite: **bold**, *em*, bullet points
+  function formatMsg(text) {
+    return text
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="font-size:13px;color:var(--white);display:block;margin-top:8px">$1</strong>')
+      .replace(/^[-•]\s+(.+)$/gm, '<span style="display:block;padding-left:12px;position:relative"><span style="position:absolute;left:2px;color:var(--purple)">→</span>$1</span>')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>');
+  }
+
+  // Render a message bubble
+  function appendMsg(role, text, isTyping) {
+    const msgs = document.getElementById('advisor-messages');
+    if (!msgs) return;
+
+    const div = document.createElement('div');
+    div.className = 'adv-msg adv-msg-' + (role === 'user' ? 'user' : 'ai');
+
+    const avatar = document.createElement('div');
+    avatar.className = 'adv-avatar';
+    avatar.textContent = role === 'user' ? '👤' : '🧠';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'adv-bubble';
+
+    const name = document.createElement('div');
+    name.className = 'adv-name';
+    name.textContent = role === 'user' ? 'You' : 'Execution OS';
+
+    const textDiv = document.createElement('div');
+    textDiv.className = 'adv-text';
+
+    if (isTyping) {
+      textDiv.innerHTML = '<div class="adv-typing"><span></span><span></span><span></span></div>';
+    } else {
+      textDiv.innerHTML = formatMsg(text);
+    }
+
+    bubble.appendChild(name);
+    bubble.appendChild(textDiv);
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    return div;
+  }
+
+  // Send message
+  window.advisorSend = async function(overrideText) {
+    const input   = document.getElementById('advisor-input');
+    const sendBtn = document.getElementById('advisor-send-btn');
+    const text    = overrideText || (input ? input.value.trim() : '');
+    if (!text) return;
+
+    // Clear input
+    if (input && !overrideText) { input.value = ''; input.style.height = 'auto'; }
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '…'; }
+
+    // Hide starters after first message
+    const starters = document.getElementById('advisor-starters');
+    if (starters) starters.style.display = 'none';
+
+    // Add user message
+    appendMsg('user', text);
+    advisorHistory.push({ role: 'user', content: text });
+    if (advisorHistory.length > MAX_HISTORY) advisorHistory.splice(0, 2);
+
+    // Show typing indicator
+    const typingEl = appendMsg('ai', '', true);
+
+    try {
+      const resp = await callAPI('generate-advisor', {
+        messages:    advisorHistory,
+        userContext: buildContext()
+      });
+
+      const reply = resp.reply || 'I could not generate a response. Please try again.';
+
+      // Remove typing, add real message
+      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+      appendMsg('ai', reply);
+      advisorHistory.push({ role: 'assistant', content: reply });
+
+      // Save to localStorage
+      try { localStorage.setItem('eos_advisor_history', JSON.stringify(advisorHistory.slice(-10))); } catch(e) {}
+
+    } catch(e) {
+      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+      appendMsg('ai', '⚠️ Connection issue: ' + e.message + '\n\nPlease try again.');
+    }
+
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send ⚡'; }
+  };
+
+  // Clear conversation
+  window.advisorClear = function() {
+    advisorHistory = [];
+    try { localStorage.removeItem('eos_advisor_history'); } catch(e) {}
+    const msgs = document.getElementById('advisor-messages');
+    if (msgs) msgs.innerHTML = '';
+    try { localStorage.removeItem('eos_advisor_history'); } catch(e) {}
+    initAdvisor();
+  };
+
+  // Build dynamic quick starters based on user data
+  function buildStarters() {
+    const ctx   = buildContext();
+    const niche = ctx.niche || 'your niche';
+    const mode  = ctx.mode;
+    const price = ctx.price ? '$' + Number(ctx.price).toLocaleString() : 'your offer';
+    const av    = ctx.avatar || {};
+    const job   = av.job || 'your ideal client';
+
+    const expert = [
+      'Why am I not getting consistent leads in ' + niche + '?',
+      'Give me my exact DM script to book a discovery call at ' + price,
+      'What content should I be posting every day this week?',
+      'How do I handle the objection "I need to think about it"?',
+      'Build me a 30-day content plan that fills my calendar',
+      'What should I be doing TODAY to hit my monthly target?',
+      'How do I position my offer against cheaper competitors?',
+      'Why are people not converting from my content to DMs?',
+    ];
+
+    const affiliate = [
+      'How do I warm up a cold audience before promoting the product?',
+      'Give me my DM outreach script for this affiliate offer',
+      'What content gets the most clicks on affiliate links?',
+      'How many DMs a day do I need to hit my commission target?',
+      'What is the biggest mistake new affiliate marketers make?',
+      'How do I build trust before asking people to buy?',
+      'Give me a 7-day content strategy for this product launch',
+      'What do I say when someone asks "is this a scam?"',
+    ];
+
+    return (mode === 'affiliate' ? affiliate : expert).slice(0, 6);
+  }
+
+  // Initialize advisor page
+  function initAdvisor() {
+    const ctx   = buildContext();
+    const niche = ctx.niche || 'your niche';
+    const mode  = ctx.mode;
+    const price = ctx.price;
+    const av    = ctx.avatar || {};
+    const aff   = ctx.affOffer || {};
+    const isAff = mode === 'affiliate';
+
+    // Restore history from localStorage
+    if (!advisorHistory.length) {
+      try {
+        const saved = localStorage.getItem('eos_advisor_history');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.length) {
+            advisorHistory = parsed;
+            // Replay saved messages
+            const msgs = document.getElementById('advisor-messages');
+            if (msgs) {
+              msgs.innerHTML = '';
+              parsed.forEach(m => appendMsg(m.role, m.content));
+              return; // Skip intro
+            }
+          }
+        }
+      } catch(e) {}
+    }
+
+    // Build personalised intro
+    const introEl = document.getElementById('advisor-intro-text');
+    if (!introEl) return;
+
+    let intro = '';
+    if (isAff && aff.name) {
+      intro = '**I have your full brief.**\n\nYou are promoting **' + aff.name + '** at **$' + Number(aff.commission||1000).toLocaleString() + ' commission per sale** in the **' + niche + '** space.\n\n';
+      if (av.pain) intro += 'Your buyer is dealing with "' + av.pain + '" and wants "' + (av.transformation||'a better outcome') + '"\n\n';
+      intro += 'I know your target, your audience, your product. Ask me anything — DM scripts, content angles, objection handling, daily execution. I will give you a specific, actionable answer every time.\n\n**What is your biggest challenge right now?**';
+    } else if (!isAff && niche) {
+      const monthly = price ? '$' + Number(ctx.target||0).toLocaleString() + '/month' : 'your target';
+      intro = '**I have your full business profile.**\n\nYou are building in **' + niche + '**';
+      if (price) intro += ' with a **$' + Number(price).toLocaleString() + ' offer**';
+      if (ctx.target) intro += ', targeting **' + monthly + '**';
+      intro += '.\n\n';
+      if (av.pain) intro += 'Your ideal client is a **' + (av.job||'professional') + '** struggling with "' + av.pain + '" who wants "' + (av.transformation||'transformation') + '"\n\n';
+      intro += 'I know your numbers, your offer, and your audience. Ask me anything — content strategy, DM scripts, offer positioning, daily execution plan. I will give you a direct, structured, actionable answer.\n\n**What do you want to work on first?**';
+    } else {
+      intro = '**I am Execution OS — your personal business strategist.**\n\nI am connected to your platform data. Once you complete your Revenue Plan and Ideal Customer profile, my answers become fully personalised to your niche, offer, and targets.\n\nFor now, ask me anything about offer positioning, content strategy, DM sales, or daily execution — I will still give you structured, specific, actionable advice.\n\n**What are you working on right now?**';
+    }
+
+    introEl.innerHTML = formatMsg(intro);
+
+    // Build quick starters
+    const chips = document.getElementById('advisor-starter-chips');
+    if (chips) {
+      chips.innerHTML = '';
+      buildStarters().forEach(q => {
+        const btn = document.createElement('button');
+        btn.className = 'adv-starter';
+        btn.textContent = q;
+        btn.onclick = () => window.advisorSend(q);
+        chips.appendChild(btn);
+      });
+    }
+  }
+
+  // Hook into showPage
+  const origShowPage = window.showPage;
+  window.showPage = function(n, btn) {
+    if (origShowPage) origShowPage(n, btn);
+    if (n === 'advisor') {
+      setTimeout(initAdvisor, 100);
+    }
+  };
+
+  // Also init if already on advisor page
+  if (document.getElementById('page-advisor') &&
+      document.getElementById('page-advisor').style.display !== 'none') {
+    setTimeout(initAdvisor, 200);
+  }
+})();
+
+// ─── Premium Motion System ───────────────────────────────────────────────
+(function() {
+
+  // ── Count-up animation for numbers ──────────────────────────────────────
+  function countUp(el, target, duration, prefix, suffix) {
+    if (!el || isNaN(target)) return;
+    const start    = Date.now();
+    const startVal = 0;
+    const fmt = n => (prefix||'') + Math.round(n).toLocaleString() + (suffix||'');
+    const tick = () => {
+      const elapsed  = Date.now() - start;
+      const progress = Math.min(elapsed / duration, 1);
+      const ease     = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+      el.textContent = fmt(startVal + (target - startVal) * ease);
+      if (progress < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+
+  // ── Trigger count-ups on dashboard metrics ───────────────────────────────
+  function animateDashboardMetrics() {
+    const metrics = [
+      { id: 'dash-monthly-target', prefix: '$', suffix: '' },
+      { id: 'dash-earned',         prefix: '$', suffix: '' },
+      { id: 'dash-gap',            prefix: '$', suffix: '' },
+      { id: 'stat-health',         prefix: '',  suffix: '' },
+    ];
+    metrics.forEach(m => {
+      const el = document.getElementById(m.id);
+      if (!el) return;
+      const raw = el.textContent.replace(/[^\d.]/g,'');
+      const val = parseFloat(raw);
+      if (val > 0) countUp(el, val, 800, m.prefix, m.suffix);
+    });
+  }
+
+  // ── Page transition hook ─────────────────────────────────────────────────
+  const origShowPage = window.showPage;
+  window.showPage = function(name, btn) {
+    if (origShowPage) origShowPage(name, btn);
+    // Trigger metric animations on dashboard
+    if (name === 'dashboard') {
+      setTimeout(animateDashboardMetrics, 200);
+    }
+  };
+
+  // ── Button loading state helpers ─────────────────────────────────────────
+  window.setButtonLoading = function(id, loading, text) {
+    const btn = document.getElementById(id);
+    if (!btn) return;
+    if (loading) {
+      btn.dataset.origText = btn.textContent;
+      btn.textContent = text || 'Loading…';
+      btn.classList.add('loading');
+      btn.disabled = true;
+    } else {
+      btn.textContent = btn.dataset.origText || text || 'Done';
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  };
+
+  // ── Stagger animate any list of elements ─────────────────────────────────
+  window.staggerAnimate = function(selector, baseDelay) {
+    const els = document.querySelectorAll(selector);
+    els.forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(12px)';
+      el.style.transition = 'opacity .3s ease, transform .3s cubic-bezier(.22,.68,0,1.2)';
+      setTimeout(() => {
+        el.style.opacity = '1';
+        el.style.transform = 'translateY(0)';
+      }, (baseDelay || 0) + i * 60);
+    });
+  };
+
+  // ── Shimmer loading placeholders ─────────────────────────────────────────
+  window.showShimmer = function(containerId, rows) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = Array(rows || 3).fill(0).map((_,i) =>
+      '<div class="loading-shimmer" style="height:' + (i===0?'24px':'14px') + ';margin-bottom:10px;width:' + (80 - i*10) + '%">&nbsp;</div>'
+    ).join('');
+  };
+
+  // ── Ripple effect on nav items ───────────────────────────────────────────
+  document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.nav-item, .nav-btn');
+    if (!btn) return;
+    const r = document.createElement('div');
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    r.style.cssText = 'position:absolute;border-radius:50%;background:rgba(255,255,255,.12);pointer-events:none;' +
+      'width:' + size + 'px;height:' + size + 'px;' +
+      'left:' + (e.clientX - rect.left - size/2) + 'px;' +
+      'top:'  + (e.clientY - rect.top  - size/2) + 'px;' +
+      'transform:scale(0);animation:ripple .5s ease-out forwards;';
+    btn.appendChild(r);
+    setTimeout(() => r.remove(), 500);
+  });
+
+  // Add ripple keyframe if not present
+  if (!document.getElementById('ripple-style')) {
+    const s = document.createElement('style');
+    s.id = 'ripple-style';
+    s.textContent = '@keyframes ripple{from{transform:scale(0);opacity:.5}to{transform:scale(2.5);opacity:0}}';
+    document.head.appendChild(s);
+  }
+
+  // ── Sidebar nav label stagger on load ────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+      document.querySelectorAll('.nav-section-label, .sec-label').forEach((el, i) => {
+        el.style.animationDelay = (i * 0.05) + 's';
+        el.style.animationFillMode = 'forwards';
+      });
+    }, 100);
+  });
+
+  // ── Metric flash when value updates ─────────────────────────────────────
+  window.flashMetric = function(el) {
+    if (!el) return;
+    el.classList.add('metric-updated');
+    setTimeout(() => el.classList.remove('metric-updated'), 400);
+  };
+
+})();
 </script>
 
 <script type="module">
