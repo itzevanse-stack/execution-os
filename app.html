@@ -2600,12 +2600,10 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
           <div style="margin-bottom:1.1rem">
             <div style="font-size:10px;color:var(--dimmer);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">How will you drive traffic?</div>
             <div class="toggle-pill">
-              <button id="aff-toggle-organic" onclick="window.setAffTraffic('organic')"
-                style="flex:1;padding:9px;border-radius:7px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark)">
+              <button id="aff-toggle-organic" onclick="window.setAffTraffic('organic')" class="toggle-pill-btn active-teal">
                 🌿 Organic (Free)
               </button>
-              <button id="aff-toggle-paid" onclick="window.setAffTraffic('paid')"
-                style="flex:1;padding:9px;border-radius:7px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;transition:all .2s;background:transparent;color:rgba(255,255,255,.4)">
+              <button id="aff-toggle-paid" onclick="window.setAffTraffic('paid')" class="toggle-pill-btn">
                 💸 Paid Ads
               </button>
             </div>
@@ -2721,6 +2719,7 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
       </div>
       <div id="aff-tab-dms"      style="display:none"><div id="aff-dms-body"></div></div>
       <div id="aff-tab-tracker"  style="display:none"><div id="aff-tracker-body"></div></div>
+      <div id="aff-tab-dailytracker" style="display:none"><div id="aff-daily-tracker-body"></div></div>
 
     </div><!-- end aff-active-view -->
 
@@ -11510,7 +11509,7 @@ window.adj = window.adj; // keep reference
 
 // ─── Tab switcher ─────────────────────────────────────────────────────────
 window.showAffActiveTab = function(tab, btn) {
-  ['strategy','avatar','calendar','dms','tracker'].forEach(t => {
+  ['strategy','avatar','calendar','dms','tracker','dailytracker'].forEach(t => {
     const el = document.getElementById('aff-tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
@@ -11519,6 +11518,19 @@ window.showAffActiveTab = function(tab, btn) {
   if (tab === 'tracker')  window.renderAffCommTracker && window.renderAffCommTracker();
   if (tab === 'calendar' && window._aiCalendar30 && window._aiCalendar30.length > 0) {
     window.renderAICalendar30 && window.renderAICalendar30(1);
+  }
+  if (tab === 'dailytracker') {
+    const dtBody = document.getElementById('aff-daily-tracker-body');
+    if (dtBody && !dtBody.dataset.loaded) {
+      dtBody.dataset.loaded = '1';
+      window.renderTracker && window.renderTracker(
+        Math.max(5, Math.ceil(((window._affiliateOffer||{}).commission||1000) * 0.008)),
+        Math.ceil(((window._appliedTarget||5000) / ((window._affiliateOffer||{}).commission||1000)))
+      );
+      // Move tracker output into this tab
+      const trackerOut = document.getElementById('tracker-output');
+      if (trackerOut) dtBody.appendChild(trackerOut.cloneNode(true));
+    }
   }
 };
 
@@ -11906,10 +11918,84 @@ Be specific to the actual product type and niche. Make the buyer avatar feel lik
       // Populate ALL tab bodies with real data
       const av = window._avatarData || {};
       const offer = window._affiliateOffer || {};
-      typeof renderAffStrategy === 'function'    && renderAffStrategy(av);
-      typeof renderAffAvatarView === 'function'  && renderAffAvatarView(av);
-      typeof renderAffDMScripts === 'function'   && renderAffDMScripts(av, offer.name, offer.commission);
-      typeof renderAffCommTrackerFn === 'function' && renderAffCommTrackerFn(offer.commission);
+      
+window.affDtAdj = function(id, delta) {
+  const el = document.getElementById('aff-dt-' + id);
+  if (!el) return;
+  const val = Math.max(0, (parseInt(el.textContent)||0) + delta);
+  el.textContent = val;
+  try {
+    const saved = JSON.parse(localStorage.getItem('eos_aff_daily_tracker')||'{}');
+    saved[id] = val;
+    localStorage.setItem('eos_aff_daily_tracker', JSON.stringify(saved));
+  } catch(e) {}
+};
+window.affDtReset = function() {
+  ['dms-sent','clicks-today','sales-week','comm-earned'].forEach(id => {
+    const el = document.getElementById('aff-dt-' + id);
+    if (el) el.textContent = '0';
+  });
+  try { localStorage.setItem('eos_aff_daily_tracker', '{}'); } catch(e) {}
+};
+window.renderAffStrategy    && window.renderAffStrategy(av);
+      window.renderAffAvatarView   && window.renderAffAvatarView(av);
+      window.renderAffDMScripts    && window.renderAffDMScripts(av, offer.name, offer.commission);
+      window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission);
+
+      // Pre-populate daily tracker tab body
+      const dtBody = document.getElementById('aff-daily-tracker-body');
+      if (dtBody) {
+        const dmsPerDay = Math.max(5, Math.ceil((offer.commission||1000) * 0.008));
+        const salesNeeded = Math.ceil((window._appliedTarget||5000) / (offer.commission||1000));
+        const metrics = [
+          {label:'DMs Sent Today',    id:'dms-sent',     sub: dmsPerDay + '/day target', col:'var(--teal)'},
+          {label:'Link Clicks Today', id:'clicks-today', sub:'track every click',        col:'var(--purple)'},
+          {label:'Sales This Week',   id:'sales-week',   sub: salesNeeded + ' needed/month', col:'var(--yellow)'},
+          {label:'Commission Earned', id:'comm-earned',  sub:'$ this month',             col:'var(--orange)'},
+        ];
+        const metricCards = metrics.map(function(m) {
+          const card = document.createElement('div');
+          card.className = 'm-card';
+          card.style.cssText = 'border-left:3px solid ' + m.col + ';padding:16px 18px';
+          card.innerHTML = [
+            '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:8px">' + m.label + '</div>',
+            '<div style="display:flex;align-items:center;gap:10px">',
+            '<div id="aff-dt-' + m.id + '" style="font-size:32px;font-weight:900;font-family:Poppins,sans-serif;color:' + m.col + '">0</div>',
+            '<div style="display:flex;flex-direction:column;gap:4px">',
+            '<button onclick="window.affDtAdj(\'' + m.id + '\',1)" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;font-size:16px">+</button>',
+            '<button onclick="window.affDtAdj(\'' + m.id + '\',-1)" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;font-size:14px">−</button>',
+            '</div></div>',
+            '<div style="font-size:10px;color:var(--dimmer);margin-top:5px">' + m.sub + '</div>'
+          ].join('');
+          return card.outerHTML;
+        }).join('');
+        const wrapper = document.createElement('div');
+        wrapper.style.padding = 'var(--sp-4)';
+        const heading = document.createElement('div');
+        heading.style.cssText = 'font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:var(--sp-4)';
+        heading.textContent = '📋 Daily Affiliate Tracker';
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-4)';
+        grid.innerHTML = metricCards;
+        const resetBtn = document.createElement('button');
+        resetBtn.style.cssText = 'padding:8px 18px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:var(--r-sm);font-weight:700;font-size:11px;cursor:pointer';
+        resetBtn.textContent = 'Reset Today';
+        resetBtn.onclick = window.affDtReset;
+        wrapper.appendChild(heading);
+        wrapper.appendChild(grid);
+        wrapper.appendChild(resetBtn);
+        dtBody.innerHTML = '';
+        dtBody.appendChild(wrapper);
+
+        // Load saved values
+        try {
+          const saved = JSON.parse(localStorage.getItem('eos_aff_daily_tracker')||'{}');
+          ['dms-sent','clicks-today','sales-week','comm-earned'].forEach(id => {
+            const el = document.getElementById('aff-dt-' + id);
+            if (el && saved[id] !== undefined) el.textContent = saved[id];
+          });
+        } catch(e) {}
+      }
 
       // Render calendar tab
       const calTabBody = document.getElementById('aff-tab-calendar');
@@ -11927,7 +12013,7 @@ Be specific to the actual product type and niche. Make the buyer avatar feel lik
 
 
 // ─── Render Affiliate Strategy ────────────────────────────────────────────
-function renderAffStrategy(av) {
+window.renderAffStrategy = function renderAffStrategy(av) {
   const el = document.getElementById('aff-strategy-body');
   if (!el || !av) return;
   const commission = av.commission || window._appliedPrice || 1000;
@@ -11964,7 +12050,7 @@ function renderAffStrategy(av) {
 }
 
 // ─── Render Buyer Avatar View ─────────────────────────────────────────────
-function renderAffAvatarView(av) {
+window.renderAffAvatarView = function renderAffAvatarView(av) {
   const el = document.getElementById('aff-avatar-body');
   if (!el || !av) return;
   const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
@@ -11985,7 +12071,7 @@ function renderAffAvatarView(av) {
 }
 
 // ─── Render DM Scripts ────────────────────────────────────────────────────
-function renderAffDMScripts(av, productName, commission) {
+window.renderAffDMScripts = function renderAffDMScripts(av, productName, commission) {
   const el = document.getElementById('aff-dms-body');
   if (!el) return;
   const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
@@ -12014,7 +12100,7 @@ function renderAffDMScripts(av, productName, commission) {
 }
 
 // ─── Commission Tracker ───────────────────────────────────────────────────
-function renderAffCommTrackerFn(commission) {
+window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
   const el = document.getElementById('aff-tracker-body');
   if (!el) return;
   let data = {};
@@ -12122,9 +12208,9 @@ window.setAppMode = function(mode) {
     setNav('nav-affiliate',  'Offer Setup',         'Set up first', false);
     setNav('nav-avatar',     'Buyer Profile',       'Auto-built', false);
     setNav('nav-calendar',    null, null,            true);  // Calendar inside Offer Setup tabs in affiliate mode
-    setNav('nav-scripts',    'DM Scripts',          'Step 5 — Outreach',   false);
+    setNav('nav-scripts',     null, null,            true);  // Hidden — lives in Offer Setup tabs
     setNav('nav-routine',    'Daily Routine',       'Step 6',              false);
-    setNav('nav-tracker',    'Daily Tracker',       'Log DMs & commissions',false);
+    setNav('nav-tracker',     null, null,             true);  // Hidden — lives in Offer Setup tabs
     setNav('nav-growth',     'Growth Support',      'Training & resources', false);
     setNav('nav-perfhq',     'Performance HQ',      'Score & milestones',   false);
     setNav('nav-profile',    'My Profile',          'Account & settings',   false);
@@ -12151,11 +12237,11 @@ window.setAppMode = function(mode) {
     setNav('nav-perfhq',     'Performance HQ',      'Score & milestones', false);
     setNav('nav-profile',    'My Profile',          'Account & settings', false);
 
-    // Restore nav-plan and nav-calendar visibility
-    const planNavR = document.getElementById('nav-plan');
-    if (planNavR) planNavR.style.display = '';
-    const calNavR = document.getElementById('nav-calendar');
-    if (calNavR) calNavR.style.display = '';
+    // Restore nav visibility for expert mode
+    ['nav-plan','nav-calendar','nav-avatar','nav-scripts','nav-tracker'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = '';
+    });
     // Restore section labels
     const sectionLabelsE = document.querySelectorAll('.nav-section-label');
     if (sectionLabelsE[0]) sectionLabelsE[0].textContent = 'Your Business';
