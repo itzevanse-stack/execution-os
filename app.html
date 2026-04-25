@@ -1882,7 +1882,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
   <!-- REVENUE PLAN PAGE -->
 
   <!-- DASHBOARD PAGE -->
-  <div class="page" id="page-dashboard">
+  <div class="page on" id="page-dashboard" style="display:block;opacity:1">
     <div style="padding-top:1.5rem">
 
       <!-- Welcome strip -->
@@ -3444,7 +3444,7 @@ function addRipple(btn, e) {
 function showPage(n,btn){
   if(n==='aff-offer'){setTimeout(()=>{window.renderDashboard&&window.renderDashboard();},80);}
   if(n==='perfhq'){setTimeout(()=>{window.renderHealthScore&&window.renderHealthScore();window.renderPHQHero&&window.renderPHQHero();window.renderMilestoneGrid&&window.renderMilestoneGrid();},80);}
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); p.style.display=''; p.style.opacity=''; });
   document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('on'));
   const pg=document.getElementById('page-'+n);
   if(pg){
@@ -3459,6 +3459,46 @@ function showPage(n,btn){
   if(n==='routine') renderRoutine();
   if(n==='scripts') renderScripts();
   if(n==='growth') initGrowthSupport();
+  // Dashboard render
+  if(n==='dashboard') setTimeout(function(){ window.renderDashboard && window.renderDashboard(); }, 60);
+  // Affiliate page restore
+  if(n==='affiliate') setTimeout(function(){
+    window.setAffTraffic && window.setAffTraffic(window._affTrafficMode || 'organic');
+    const offer = window._affiliateOffer;
+    if(offer && offer.name){
+      const setup = document.getElementById('aff-setup-panel');
+      const active= document.getElementById('aff-active-view');
+      if(setup) setup.style.display='none';
+      if(active){ active.style.display='block';
+        if(!window._avatarData){ try{ const sv=localStorage.getItem('eos_avatar_data'); if(sv) window._avatarData=JSON.parse(sv); }catch(e){} }
+        const av=window._avatarData||{};
+        window.renderAffStrategy && window.renderAffStrategy(av);
+        window.renderAffAvatarView && window.renderAffAvatarView(av);
+        window.renderAffDMScripts && window.renderAffDMScripts(av, offer.name, offer.commission);
+        window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission);
+        if(window._aiCalendar30 && window._aiCalendar30.length>0) window.renderAICalendar30 && window.renderAICalendar30(1);
+      }
+    }
+  }, 100);
+  // Calendar restore
+  if(n==='calendar'){
+    if(!window._aiCalendar30||window._aiCalendar30.length===0){
+      try{ const sv=localStorage.getItem('eos_calendar30'); if(sv) window._aiCalendar30=JSON.parse(sv); }catch(e){}
+    }
+  }
+  // Advisor init
+  if(n==='advisor') setTimeout(function(){ window.initAdvisor && window.initAdvisor(); }, 100);
+  // Step progress
+  setTimeout(function(){ window.updateStepProgress && window.updateStepProgress(); }, 100);
+  // Animate children
+  setTimeout(function(){
+    const pg=document.getElementById('page-'+n);
+    if(pg){ pg.querySelectorAll('.hero-strip,.m-card,.av-sec,.w-card,.rblock').forEach(function(el,i){
+      el.style.opacity='0'; el.style.transform='translateY(12px)';
+      el.style.transition='opacity .3s ease, transform .3s ease';
+      setTimeout(function(){ el.style.opacity='1'; el.style.transform='translateY(0)'; }, i*40);
+    }); }
+  }, 50);
   if(n==='affiliate') initAffiliateHub();
 }
 window.showPage=showPage;
@@ -11583,28 +11623,7 @@ function renderDashboard() {
 window.renderDashboard = renderDashboard;
 
 // Auto-refresh dashboard when it's the active page
-const _origShowPage = window.showPage;
-window.showPage = function(n, btn) {
-  if (_origShowPage) _origShowPage(n, btn);
-  if (n === 'dashboard') {
-    setTimeout(renderDashboard, 60);
-  }
-  // Trigger section entrance animations
-  setTimeout(() => {
-    const pg = document.getElementById('page-' + n);
-    if (!pg) return;
-    pg.querySelectorAll('.hero-strip, .m-card, .av-sec, .w-card, .rblock, .mission-item, .quick-btn').forEach((el, i) => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(14px)';
-      el.style.transition = 'opacity .32s ease, transform .32s ease';
-      el.style.transitionDelay = (i * 45) + 'ms';
-      requestAnimationFrame(() => {
-        el.style.opacity = '1';
-        el.style.transform = 'translateY(0)';
-      });
-    });
-  }, 20);
-};
+
 
 // Also refresh dashboard whenever tracker adj() fires (score + activity update)
 const _dashOrigAdj = window.adj;
@@ -11986,48 +12005,7 @@ window.affTrack = function(key, delta) {
 };
 
 // ─── Auto-render when page opens ──────────────────────────────────────────
-const _origSPaff = window.showPage;
-window.showPage = function(n, btn) {
-  if (_origSPaff) _origSPaff(n, btn);
-  if (n === 'affiliate') {
-    setTimeout(() => {
-      // Render the traffic strategy on page open
-      window.setAffTraffic && window.setAffTraffic(window._affTrafficMode || 'organic');
-      const offer = window._affiliateOffer;
-      if (offer && offer.name) {
-        const setup  = document.getElementById('aff-setup-panel');
-        const active = document.getElementById('aff-active-view');
-        if (setup)  setup.style.display  = 'none';
-        if (active) active.style.display = 'block';
-        const heroName = document.getElementById('aff-hero-name');
-        const heroComm = document.getElementById('aff-hero-comm');
-        if (heroName) heroName.textContent = offer.name;
-        if (heroComm) heroComm.textContent = '$' + (offer.commission||0).toLocaleString() + ' per sale · ' + (offer.platform||'');
-        const activeName = document.getElementById('aff-active-name');
-        const activeMeta = document.getElementById('aff-active-meta');
-        if (activeName) activeName.textContent = offer.name;
-        if (activeMeta) activeMeta.textContent = '$' + (offer.commission||0).toLocaleString() + ' commission · ' + (offer.platform||'');
-        // Load avatarData from localStorage if not in memory
-        if (!window._avatarData) {
-          try {
-            const saved = localStorage.getItem('eos_avatar_data');
-            if (saved) window._avatarData = JSON.parse(saved);
-          } catch(e) {}
-        }
-        const av = window._avatarData || {};
-        window.renderAffStrategy      && window.renderAffStrategy(av);
-        window.renderAffAvatarView    && window.renderAffAvatarView(av);
-        window.renderAffDMScripts     && window.renderAffDMScripts(av, offer.name, offer.commission);
-        window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission);
-        window.renderAffCommTracker = () => window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission);
-        // Render calendar if available
-        if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
-          window.renderAICalendar30 && window.renderAICalendar30(1);
-        }
-      }
-    }, 80);
-  }
-};
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MODE SYSTEM — Expert / Affiliate toggle
@@ -12161,12 +12139,13 @@ window.setMode = window.setAppMode;
 document.addEventListener('DOMContentLoaded', function() {
   const saved = localStorage.getItem('eos_app_mode') || 'expert';
   document.body.classList.add(saved === 'affiliate' ? 'affiliate-mode' : 'expert-mode');
-  // Show dashboard — just add 'on', no animation class on initial load
-  const dashPage = document.getElementById('page-dashboard');
-  const dashNav  = document.getElementById('nav-dashboard');
-  if (dashPage) { dashPage.style.display = 'block'; dashPage.style.opacity = '1'; dashPage.classList.add('on'); }
-  if (dashNav)  dashNav.classList.add('on');
-  setTimeout(() => { window.setAppMode && window.setAppMode(saved); }, 50);
+  // Activate dashboard nav
+  const dashNav = document.getElementById('nav-dashboard');
+  if (dashNav) dashNav.classList.add('on');
+  // Render dashboard content (no Firebase needed for basic content)
+  setTimeout(function() { window.renderDashboard && window.renderDashboard(); }, 100);
+  // Apply mode nav
+  setTimeout(function() { window.setAppMode && window.setAppMode(saved); }, 150);
 });
 
 // ─── Live commission math preview on the affiliate setup form ─────────────
@@ -12418,14 +12397,7 @@ function animateChildren(parent, cls, delay) {
 }
 
 // Run stagger on dashboard open
-const _origShowForAnim = window.showPage;
-window.showPage = function(n, btn) {
-  _origShowForAnim(n, btn);
-  setTimeout(() => {
-    const pg = document.getElementById('page-' + n);
-    if (pg) animateChildren(pg);
-  }, 50);
-};
+
 
 document.addEventListener('DOMContentLoaded', function() {
   // Restore API key from localStorage
@@ -12869,11 +12841,7 @@ window.updateStepProgress = function() {
 };
 
 // Call on every page navigation
-const _origShowPageFinal = window.showPage;
-window.showPage = function(n, btn) {
-  if (_origShowPageFinal) _origShowPageFinal(n, btn);
-  setTimeout(window.updateStepProgress, 100);
-};
+
 
 // Init on load
 setTimeout(window.updateStepProgress, 500);
