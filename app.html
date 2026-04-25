@@ -1643,17 +1643,10 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
   display: flex; justify-content: center;
 }
 
-/* ── Profile photo overflow guard ─────────────────────────────── */
+/* Profile photos — always contained */
 #profile-photo-img, #user-avatar-img, #topbar-avatar-img {
-  max-width: 100% !important;
-  max-height: 100% !important;
-  object-fit: cover !important;
-  border-radius: inherit;
-}
-/* Profile photo container must clip overflow */
-.profile-photo-wrap, [class*="profile-circle"], [class*="av-circle"] {
-  overflow: hidden !important;
-  position: relative;
+  object-fit: cover;
+  border-radius: 50%;
 }
 </style>
 </head>
@@ -3278,7 +3271,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
         </div>
         <div class="strip-right" style="align-items:center;justify-content:center">
           <div id="profile-avatar-wrap" style="position:relative;width:90px;height:90px;margin:0 auto">
-            <div id="profile-avatar-display" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:var(--text-dark);border:3px solid rgba(78,204,163,.4);overflow:hidden">
+            <div id="profile-avatar-display" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:var(--text-dark);border:3px solid rgba(78,204,163,.4);overflow:hidden;position:relative;flex-shrink:0">
               <span id="profile-initials-big">?</span>
               <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:inherit">
             </div>
@@ -6624,11 +6617,18 @@ window.refreshCalendar30=function(){if(!window._avatarData){window.showPage('ava
 window.saveCalendarState=async function(){};
 window.saveProfile=function(){const msg=document.getElementById('save-profile-msg');if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}};
 window.uploadProfilePhoto=function(){};
-window.doLogout = async function() {
+window.doLogout = function() {
   try {
-    if (window._firebaseSignOut) await window._firebaseSignOut();
-    else { localStorage.clear(); window.location.href = 'index.html'; }
-  } catch(e) { localStorage.clear(); window.location.href = 'index.html'; }
+    if (window._firebaseSignOut) {
+      window._firebaseSignOut();
+    } else {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
+  } catch(e) {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  }
 };
 
 // ====================================================================
@@ -13036,7 +13036,9 @@ onAuthStateChanged(auth, async (user) => {
 // ─── Render user UI ───────────────────────────────────────────────────
 function renderUserUI(user, doc, memberData) {
   const name     = doc.name || memberData?.name || user.displayName || 'Member';
-  const photo    = doc.photoURL || user.photoURL || '';
+  const rawPhoto = doc.photoURL || user.photoURL || '';
+  // Only use photo if it's a real URL (not empty)
+  const photo    = (rawPhoto && rawPhoto.startsWith('http')) ? rawPhoto : '';
   const joined   = doc.createdAt || memberData?.grantedAt || '';
   const initials = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase() || '?';
 
@@ -13049,7 +13051,11 @@ function renderUserUI(user, doc, memberData) {
   if (ui2) ui2.textContent = initials;
   if (photo) {
     const timg = document.getElementById('topbar-avatar-img');
-    if (timg) { timg.src = photo; timg.style.display = 'block'; if(ti2) ti2.style.display='none'; }
+    if (timg) {
+      timg.src = photo;
+      timg.style.cssText = 'display:block;width:28px;height:28px;object-fit:cover;border-radius:50%;max-width:28px;max-height:28px';
+      if(ti2) ti2.style.display='none';
+    }
   }
 
   // Topbar
@@ -13058,8 +13064,12 @@ function renderUserUI(user, doc, memberData) {
   document.getElementById('user-initials').textContent = initials;
   if (photo) {
     const topImg = document.getElementById('user-avatar-img');
-    if(topImg){topImg.src=photo;topImg.style.display='block';}
-    document.getElementById('user-initials').style.display='none';
+    if(topImg){
+      topImg.src=photo;
+      topImg.style.cssText='display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;max-width:100%;max-height:100%';
+    }
+    const ui = document.getElementById('user-initials');
+    if(ui) ui.style.display='none';
   }
 
   // Profile page
@@ -13074,7 +13084,10 @@ function renderUserUI(user, doc, memberData) {
   const bigInit  = document.getElementById('profile-initials-big'); if(bigInit) bigInit.textContent = initials;
   if (photo) {
     const pImg = document.getElementById('profile-photo-img');
-    if(pImg){pImg.src=photo;pImg.style.display='block';}
+    if(pImg){
+      pImg.src=photo;
+      pImg.style.cssText='display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;max-width:100%;max-height:100%';
+    }
     if(bigInit) bigInit.style.display='none';
   }
 }
