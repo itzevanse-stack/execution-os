@@ -2701,16 +2701,26 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
       </div>
 
       <div class="tab-strip" id="aff-active-tabs" style="margin-bottom:1.25rem">
-        <button class="tab on" onclick="showAffActiveTab('strategy',this)">🎯 Promotion Strategy</button>
+        <button class="tab on" onclick="showAffActiveTab('strategy',this)">🎯 Strategy</button>
         <button class="tab" onclick="showAffActiveTab('avatar',this)">👤 Buyer Profile</button>
+        <button class="tab" onclick="showAffActiveTab('calendar',this)">📅 Content Calendar</button>
         <button class="tab" onclick="showAffActiveTab('dms',this)">💬 DM Scripts</button>
-        <button class="tab" onclick="showAffActiveTab('tracker',this)">📊 Commission Tracker</button>
+        <button class="tab" onclick="showAffActiveTab('tracker',this)">📊 Commissions</button>
       </div>
 
       <div id="aff-tab-strategy"><div id="aff-strategy-body"></div></div>
-      <div id="aff-tab-avatar" style="display:none"><div id="aff-avatar-body"></div></div>
-      <div id="aff-tab-dms" style="display:none"><div id="aff-dms-body"></div></div>
-      <div id="aff-tab-tracker" style="display:none"><div id="aff-tracker-body"></div></div>
+      <div id="aff-tab-avatar"   style="display:none"><div id="aff-avatar-body"></div></div>
+      <div id="aff-tab-calendar" style="display:none">
+        <div style="overflow-x:auto">
+          <div class="cal-head">
+            <div class="cal-dh">Mon</div><div class="cal-dh">Tue</div><div class="cal-dh">Wed</div>
+            <div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div><div class="cal-dh">Sun</div>
+          </div>
+          <div id="cal-body" class="cal-body" style="min-width:700px"></div>
+        </div>
+      </div>
+      <div id="aff-tab-dms"      style="display:none"><div id="aff-dms-body"></div></div>
+      <div id="aff-tab-tracker"  style="display:none"><div id="aff-tracker-body"></div></div>
 
     </div><!-- end aff-active-view -->
 
@@ -9849,6 +9859,14 @@ window.showPostDetail30 = function(globalIdx) {
     </div>
   </div>`;
   document.body.appendChild(modal);
+
+  // Set script preview safely (avoids HTML injection)
+  const vcPreview = document.getElementById('vc-script-preview');
+  if (vcPreview) {
+    const previewText = cleanScript.slice(0, 320) + (cleanScript.length > 320 ? '…' : '');
+    vcPreview.textContent = previewText;
+  }
+
   // AI grammar + copy cleanup — async, non-blocking, updates in place
   (async () => {
     try {
@@ -11151,8 +11169,7 @@ window.openVideoConverter = function(globalIdx) {
             <button id="vc-copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(cleanScript)}).then(()=>{const b=document.getElementById('vc-copy-btn');b.textContent='✅ Copied!';b.style.color='#4ecca3';setTimeout(()=>{b.textContent='📋 Copy again';b.style.color=''},2000)})"
               style="font-size:10px;padding:5px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:50px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.4px">📋 Copy again</button>
           </div>
-          <div style="font-size:11px;color:rgba(255,255,255,.6);line-height:1.75;max-height:100px;overflow:hidden;position:relative">
-            ${cleanScript.slice(0, 320).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}${cleanScript.length > 320 ? '…' : ''}
+          <div id="vc-script-preview" style="font-size:11px;color:rgba(255,255,255,.6);line-height:1.75;max-height:100px;overflow:hidden;position:relative">
             <div style="position:absolute;bottom:0;left:0;right:0;height:32px;background:linear-gradient(transparent,#1a1a3e88)"></div>
           </div>
         </div>
@@ -11493,13 +11510,16 @@ window.adj = window.adj; // keep reference
 
 // ─── Tab switcher ─────────────────────────────────────────────────────────
 window.showAffActiveTab = function(tab, btn) {
-  ['strategy','avatar','dms','tracker'].forEach(t => {
+  ['strategy','avatar','calendar','dms','tracker'].forEach(t => {
     const el = document.getElementById('aff-tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
   document.querySelectorAll('#aff-active-tabs .tab').forEach(b => b.classList.remove('on'));
   if (btn) btn.classList.add('on');
-  if (tab === 'tracker') window.renderAffCommTracker && window.renderAffCommTracker();
+  if (tab === 'tracker')  window.renderAffCommTracker && window.renderAffCommTracker();
+  if (tab === 'calendar' && window._aiCalendar30 && window._aiCalendar30.length > 0) {
+    window.renderAICalendar30 && window.renderAICalendar30(1);
+  }
 };
 
 // ─── Reset / change offer ─────────────────────────────────────────────────
@@ -11768,66 +11788,93 @@ Be specific to the actual product type and niche. Make the buyer avatar feel lik
       throw new Error('Calendar generation failed: ' + e.message);
     }
 
-    // Parse 7 days x 4 slots from the text
+    // Bulletproof 7-day parser — handles any AI output format
     window._aiCalendar30 = [];
-    const dayParts = calText.split(/DAY\s+\d+\s*:/i).filter(b => b.trim());
-    for (let d = 0; d < Math.min(dayParts.length, 7); d++) {
-      const block  = dayParts[d];
+    const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+    // Split on DAY markers — try multiple patterns
+    let rawDays = calText.split(/\n(?=DAY\s*\d)/i).filter(s => s.trim());
+    if (rawDays.length < 2) rawDays = calText.split(/DAY\s*\d+\s*[:\-]/i).filter(s => s.trim());
+    if (rawDays.length < 2) rawDays = [calText]; // fallback: treat whole text as day 1
+
+    // Extract a section between two headers — very flexible
+    const getSection = (text, startPat, endPats) => {
+      const lines = text.split('\n');
+      let startIdx = -1;
+      for (let i = 0; i < lines.length; i++) {
+        if (new RegExp(startPat, 'i').test(lines[i])) { startIdx = i + 1; break; }
+      }
+      if (startIdx < 0) return text.trim(); // fallback: return all text
+      let endIdx = lines.length;
+      for (let i = startIdx; i < lines.length; i++) {
+        if (endPats.some(p => new RegExp(p, 'i').test(lines[i]))) { endIdx = i; break; }
+      }
+      return lines.slice(startIdx, endIdx).join('\n').trim();
+    };
+
+    // Extract hook from reel text
+    const getHook = text => {
+      const hookLine = text.split('\n').find(l => /^HOOK[:\s]/i.test(l));
+      return hookLine ? hookLine.replace(/^HOOK[:\s]*/i,'').trim() : text.split('\n')[0] || '';
+    };
+
+    // Extract email subject
+    const getSubject = text => {
+      const sl = text.split('\n').find(l => /^SUBJECT[:\s]/i.test(l));
+      return sl ? sl.replace(/^SUBJECT[:\s]*/i,'').trim() : text.split('\n')[0] || '';
+    };
+
+    for (let d = 0; d < Math.min(rawDays.length, 7); d++) {
+      const block  = rawDays[d];
       const dayNum = d + 1;
-      const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-      const extract = (startLabel, endLabel) => {
-        const si = block.search(new RegExp(startLabel, 'i'));
-        if (si < 0) return '';
-        const rest = block.slice(si);
-        const ei   = endLabel === '$zzz' ? rest.length : rest.search(new RegExp(endLabel, 'i'));
-        const chunk = ei > 0 ? rest.slice(0, ei) : rest;
-        return chunk.replace(new RegExp('^' + startLabel + '[^\n]*\n?', 'im'), '').trim();
-      };
+      // Extract topic from the DAY header line
+      const topicMatch = block.match(/DAY\s*\d+\s*[:\-]?\s*(.+)/i);
+      const topic = topicMatch ? topicMatch[1].replace(/\*+/g,'').trim() : 'Day ' + dayNum;
 
-      const fbRaw    = extract('FACEBOOK POST.*?:', 'REEL 1');
-      const r1Raw    = extract('REEL 1.*?:', 'REEL 2');
-      const r2Raw    = extract('REEL 2.*?:', 'EMAIL');
-      const emRaw    = extract('EMAIL.*?:', '$zzz');
+      // Extract each section using flexible patterns
+      const fbText = getSection(block,
+        'FACEBOOK\s*POST',
+        ['REEL\s*1','REEL\s*ONE','##','---']
+      );
+      const r1Text = getSection(block,
+        'REEL\s*1|REEL\s*ONE',
+        ['REEL\s*2','REEL\s*TWO','##','---']
+      );
+      const r2Text = getSection(block,
+        'REEL\s*2|REEL\s*TWO',
+        ['EMAIL','##','---']
+      );
+      const emText = getSection(block,
+        'EMAIL',
+        ['DAY\s*\d','---','===']
+      );
 
-      const parseReel = raw => {
-        const ls2     = raw.split('\n');
-        const hookL   = ls2.find(l => /^HOOK:/i.test(l)) || '';
-        const hook    = hookL.replace(/^HOOK:\s*/i,'').trim();
-        const capIdx  = ls2.findIndex(l => /^CAPTION:/i.test(l));
-        const scrIdx  = ls2.findIndex(l => /^SCRIPT:/i.test(l));
-        const script  = (scrIdx >= 0 ? ls2.slice(scrIdx+1, capIdx >= 0 ? capIdx : undefined).join('\n') : raw).trim();
-        const caption = (capIdx >= 0 ? ls2.slice(capIdx+1).join('\n') : '').trim();
-        return { hook, script: script || raw, caption };
-      };
-      const parseEmail = raw => {
-        const ls2     = raw.split('\n');
-        const subL    = ls2.find(l => /^SUBJECT:/i.test(l)) || '';
-        const prevL   = ls2.find(l => /^PREVIEW:/i.test(l)) || '';
-        const bodyIdx = ls2.findIndex(l => /^BODY:/i.test(l));
-        const subject = subL.replace(/^SUBJECT:\s*/i,'').trim();
-        const preview = prevL.replace(/^PREVIEW:\s*/i,'').trim();
-        const body    = (bodyIdx >= 0 ? ls2.slice(bodyIdx+1).join('\n') : raw).trim();
-        return { subject, preview, body: body || raw };
-      };
+      // Build hook for first line display
+      const fbHook   = fbText.split('\n').find(l => l.trim().length > 20) || fbText.split('\n')[0] || '';
+      const r1Hook   = getHook(r1Text);
+      const r2Hook   = getHook(r2Text);
+      const emSubject = getSubject(emText);
 
-      const r1 = parseReel(r1Raw);
-      const r2 = parseReel(r2Raw);
-      const em = parseEmail(emRaw);
+      // Only push if we have REAL content
+      const hasContent = fbText.length > 30 || r1Text.length > 30;
 
-      const topicLine = calText.match(new RegExp('DAY\s+' + dayNum + '\s*:\s*([^\n]+)', 'i'));
-      const topic = topicLine ? topicLine[1].trim() : 'Day ' + dayNum;
-
-      window._aiCalendar30.push([
-        { postType:'Facebook Post', viralHook: fbRaw.split('\n')[0], fullScript: fbRaw, weekDay: dayNames[d], topic },
-        { postType:'Reel 1',        viralHook: r1.hook, fullScript: r1.hook + '\n\n' + r1.script, caption: r1.caption, isReel: true, weekDay: dayNames[d], topic },
-        { postType:'Reel 2',        viralHook: r2.hook, fullScript: r2.hook + '\n\n' + r2.script, caption: r2.caption, isReel: true, weekDay: dayNames[d], topic },
-        { postType:'Email',         viralHook: em.subject, fullScript: 'SUBJECT: ' + em.subject + '\nPREVIEW: ' + em.preview + '\n\n' + em.body, weekDay: dayNames[d], topic },
-      ]);
+      if (hasContent) {
+        window._aiCalendar30.push([
+          { postType:'Facebook Post', viralHook: fbHook,    fullScript: fbText,  weekDay: DAY_NAMES[d], topic, dayNum },
+          { postType:'Reel 1',        viralHook: r1Hook,    fullScript: r1Text,  weekDay: DAY_NAMES[d], topic, dayNum, isReel: true },
+          { postType:'Reel 2',        viralHook: r2Hook,    fullScript: r2Text,  weekDay: DAY_NAMES[d], topic, dayNum, isReel: true },
+          { postType:'Email',          viralHook: emSubject, fullScript: emText,  weekDay: DAY_NAMES[d], topic, dayNum },
+        ]);
+      }
     }
 
-    // ✅ Calendar built — render it and navigate
-    setProgress(95, 'Finalising your calendar…', null);
+    // Debug: log what was parsed
+    console.log('Calendar parsed:', window._aiCalendar30.length, 'days');
+    if (window._aiCalendar30[0]) console.log('Day 1 FB hook:', window._aiCalendar30[0][0].viralHook.slice(0,60));
+
+    // ✅ Calendar built — render it
+    setProgress(95, 'Building your dashboard…', null);
     window.renderAICalendar30 && window.renderAICalendar30(1);
     setProgress(100, 'Everything ready! 🎉', 'Calendar ready ✅');
 
@@ -11835,33 +11882,43 @@ Be specific to the actual product type and niche. Make the buyer avatar feel lik
     console.error('Affiliate analysis error:', e.message);
   }
 
-  // Complete — hide status, navigate to show results
+  // Complete — populate ALL tabs and show active view
   setTimeout(() => {
-    const statusEl = document.getElementById('aff-analyse-status');
-    const btnEl    = document.getElementById('aff-analyse-btn');
-    if (statusEl) statusEl.style.display = 'none';
-    if (btnEl)    { btnEl.textContent = '⚡ Regenerate'; btnEl.style.display = 'block'; }
-
-    // Show active view if avatar data exists
+    const statusEl  = document.getElementById('aff-analyse-status');
+    const btnEl     = document.getElementById('aff-analyse-btn');
     const setupPanel = document.getElementById('aff-setup-panel');
     const activeView = document.getElementById('aff-active-view');
+
+    if (statusEl) statusEl.style.display = 'none';
+    if (btnEl)    { btnEl.textContent = '⚡ Regenerate'; btnEl.disabled = false; btnEl.style.display = 'block'; }
+
     if (window._affiliateOffer && window._affiliateOffer.name) {
+      // Show active view
       if (setupPanel) setupPanel.style.display = 'none';
       if (activeView) activeView.style.display = 'block';
-      // Populate the active offer card
+
+      // Populate offer card
       const nameEl = document.getElementById('aff-active-name');
       const metaEl = document.getElementById('aff-active-meta');
       if (nameEl) nameEl.textContent = window._affiliateOffer.name || '';
       if (metaEl) metaEl.textContent = '$' + (window._affiliateOffer.commission||0).toLocaleString() + ' commission per sale · ' + (window._affiliateOffer.niche||'');
-    }
-    // Navigate to calendar if it was built
-    if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
-      setTimeout(() => {
-        window.showPage && window.showPage('calendar', document.getElementById('nav-calendar'));
+
+      // Populate ALL tab bodies with real data
+      const av = window._avatarData || {};
+      const offer = window._affiliateOffer || {};
+      typeof renderAffStrategy === 'function'    && renderAffStrategy(av);
+      typeof renderAffAvatarView === 'function'  && renderAffAvatarView(av);
+      typeof renderAffDMScripts === 'function'   && renderAffDMScripts(av, offer.name, offer.commission);
+      typeof renderAffCommTrackerFn === 'function' && renderAffCommTrackerFn(offer.commission);
+
+      // Render calendar tab
+      const calTabBody = document.getElementById('aff-tab-calendar');
+      if (calTabBody && window._aiCalendar30 && window._aiCalendar30.length > 0) {
+        calTabBody.innerHTML = '<div id="cal-body" class="cal-body" style="min-width:700px"></div>';
         window.renderAICalendar30 && window.renderAICalendar30(1);
-      }, 500);
+      }
     }
-  }, 800);
+  }, 600);
 
   if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
     window.renderAICalendar30 && window.renderAICalendar30(1);
@@ -12064,7 +12121,7 @@ window.setAppMode = function(mode) {
     setNav('nav-offer',       null, null,            true);   // HIDDEN
     setNav('nav-affiliate',  'Offer Setup',         'Set up first', false);
     setNav('nav-avatar',     'Buyer Profile',       'Auto-built', false);
-    setNav('nav-calendar',   'Content Calendar',    'Step 4 — AI content', false);
+    setNav('nav-calendar',    null, null,            true);  // Calendar inside Offer Setup tabs in affiliate mode
     setNav('nav-scripts',    'DM Scripts',          'Step 5 — Outreach',   false);
     setNav('nav-routine',    'Daily Routine',       'Step 6',              false);
     setNav('nav-tracker',    'Daily Tracker',       'Log DMs & commissions',false);
@@ -12085,7 +12142,7 @@ window.setAppMode = function(mode) {
     setNav('nav-plan',       'Revenue Plan',        'Step 1', false);  // Restored for expert
     setNav('nav-offer',      'Offer Creation',      'Step 2', false);
     setNav('nav-avatar',     'Ideal Customer',      'Step 3', false);
-    setNav('nav-calendar',   'Content Calendar',    'Step 4', false);
+    setNav('nav-calendar',   'Content Calendar',    'Step 4', false);  // Visible only in expert mode
     setNav('nav-scripts',    'DM & Sales',          'Step 5', false);
     setNav('nav-routine',    'Daily Routine',       'Step 6', false);
     setNav('nav-tracker',    'Daily Tracker',       'Log activity', false);
@@ -12094,9 +12151,11 @@ window.setAppMode = function(mode) {
     setNav('nav-perfhq',     'Performance HQ',      'Score & milestones', false);
     setNav('nav-profile',    'My Profile',          'Account & settings', false);
 
-    // Restore nav-plan visibility
+    // Restore nav-plan and nav-calendar visibility
     const planNavR = document.getElementById('nav-plan');
     if (planNavR) planNavR.style.display = '';
+    const calNavR = document.getElementById('nav-calendar');
+    if (calNavR) calNavR.style.display = '';
     // Restore section labels
     const sectionLabelsE = document.querySelectorAll('.nav-section-label');
     if (sectionLabelsE[0]) sectionLabelsE[0].textContent = 'Your Business';
