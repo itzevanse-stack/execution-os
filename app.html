@@ -6301,7 +6301,6 @@ window.removeTag=removeTag;
 window.setWeek=setWeek;
 </script>
 
-<!-- ===== NICHE-AWARE PATCH ===== -->
 <script>
 // =====================================================================
 // NICHE CONFIG — drives dynamic avatar questions & calendar content
@@ -11551,464 +11550,153 @@ window.resetAffiliateOffer = function() {
 // ─── MAIN: Analyse product and build everything ────────────────────────────
 window.analyseAffiliateProduct = async function() {
 
-  const url        = (document.getElementById('aff-product-url')    || {}).value || '';
-  const name       = (document.getElementById('aff-product-name')   || {}).value || '';
-  const commRaw    = (document.getElementById('aff-commission')      || {}).value || '';
-  const targetRaw  = (document.getElementById('aff-monthly-target')  || {}).value || '';
-  const niche      = (document.getElementById('aff-product-niche')   || {}).value || '';
-  const commission = parseInt(commRaw)  || 1000;
-  const monthlyTarget = parseInt(targetRaw) || commission * 5;
+  const gv = id => (document.getElementById(id)||{}).value||'';
+  const url          = gv('aff-product-url');
+  const productName  = gv('aff-product-name');
+  const commission   = parseInt(gv('aff-commission'))   || 1000;
+  const monthlyTarget= parseInt(gv('aff-monthly-target'))|| commission * 5;
+  const productNiche = gv('aff-product-niche');
+  const platform     = url.includes('copecart') ? 'Copecart' : url.includes('digistore') ? 'Digistore24' : 'Affiliate';
 
-
-  // ── STRICT VALIDATION — these are required for accurate AI output ──────
-  const showFieldError = (id, msg) => {
+  // Validation
+  const showErr = (id, msg) => {
     const el = document.getElementById(id);
-    if (el) {
-      el.style.borderColor = 'rgba(255,107,107,.6)';
-      el.style.boxShadow   = '0 0 0 3px rgba(255,107,107,.1)';
-      el.focus();
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 4000);
-    }
-    // Show error under the field
-    let errDiv = document.getElementById('aff-validation-error');
-    if (!errDiv) {
-      errDiv = document.createElement('div');
-      errDiv.id = 'aff-validation-error';
-      errDiv.style.cssText = 'background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--red);margin-bottom:1rem;line-height:1.6';
-      const btn = document.getElementById('aff-analyse-btn');
-      if (btn && btn.parentNode) btn.parentNode.insertBefore(errDiv, btn);
-    }
-    errDiv.style.display = 'block';
-    errDiv.innerHTML = '⚠️ ' + msg;
+    if (el) { el.style.borderColor='rgba(255,107,107,.6)'; el.focus(); setTimeout(()=>{ el.style.borderColor=''; },4000); }
+    let d = document.getElementById('aff-validation-error');
+    if (!d) { d=document.createElement('div'); d.id='aff-validation-error'; d.style.cssText='background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--red);margin-bottom:1rem'; const btn=document.getElementById('aff-analyse-btn'); if(btn&&btn.parentNode)btn.parentNode.insertBefore(d,btn); }
+    d.style.display='block'; d.textContent='⚠️ '+msg;
   };
+  if (!url)                     { showErr('aff-product-url','Paste your affiliate product URL first. The AI reads the actual page to build accurate content.'); return; }
+  if (!commission||commission<100){ showErr('aff-commission','Enter your commission per sale (minimum $100).'); return; }
+  if (!productNiche)             { showErr('aff-product-niche','Select your product niche.'); return; }
+  const ed = document.getElementById('aff-validation-error');
+  if (ed) ed.style.display='none';
 
-  const clearError = () => {
-    const e = document.getElementById('aff-validation-error');
-    if (e) e.style.display = 'none';
-  };
-
-  if (!url) {
-    showFieldError('aff-product-url', 'Please paste your affiliate product link. The AI reads the actual product page to build accurate content — without it, results will not reflect your real offer.');
-    return;
-  }
-
-  if (!commission || commission < 100) {
-    showFieldError('aff-commission', 'Please enter your commission per sale (minimum $100). This is used to calculate your exact revenue targets and DM volume.');
-    return;
-  }
-
-  if (!niche) {
-    showFieldError('aff-product-niche', 'Please select your product niche. This determines the content tone, hashtags, and audience targeting.');
-    return;
-  }
-
-  clearError();
-
-  if (!url && !name) {
-    alert('Please paste your affiliate product URL or enter the product name.');
-    return;
-  }
-
-  // API key handled server-side via Vercel
-
-  // Extract product context from URL
-  let platform = 'Affiliate Product';
-  if (url.includes('copecart'))      platform = 'Copecart';
-  if (url.includes('digistore24'))   platform = 'Digistore24';
-  if (url.includes('clickbank'))     platform = 'ClickBank';
-  if (url.includes('warriorplus'))   platform = 'WarriorPlus';
-
-  const productName = name || url.split('/').filter(Boolean).pop()?.replace(/[-_]/g,' ') || 'High-Ticket Programme';
-  const productNiche = niche || 'Online Business';
-
-  // Show loading state
-  const btn        = document.getElementById('aff-analyse-btn');
-  const statusDiv  = document.getElementById('aff-analyse-status');
-  const statusMsg  = document.getElementById('aff-status-msg');
-  const progressBar= document.getElementById('aff-progress-bar');
-  const stepsDiv   = document.getElementById('aff-status-steps');
-
-  if (btn) { btn.disabled = true; btn.classList.add('btn-loading'); btn.textContent = 'Analysing…'; }
-  if (statusDiv) statusDiv.style.display = 'block';
+  // Show progress
+  const statusEl = document.getElementById('aff-analyse-status');
+  const btnEl    = document.getElementById('aff-analyse-btn');
+  if (statusEl) statusEl.style.display='block';
+  if (btnEl)    { btnEl.disabled=true; btnEl.textContent='Analysing…'; }
 
   const setProgress = (pct, msg, step) => {
-    if (progressBar) progressBar.style.width = pct + '%';
-    if (statusMsg) statusMsg.textContent = msg;
-    if (stepsDiv && step) {
-      const s = document.createElement('div');
-      s.style.cssText = 'display:flex;align-items:center;gap:7px;animation:fadeIn .3s';
-      s.innerHTML = '<span style="color:var(--teal)">✓</span>' + step;
-      stepsDiv.appendChild(s);
+    const bar=document.getElementById('aff-progress-bar');
+    const txt=document.getElementById('aff-status-msg');
+    const steps=document.getElementById('aff-status-steps');
+    if (bar) bar.style.width=pct+'%';
+    if (txt) txt.textContent=msg;
+    if (steps&&step) steps.innerHTML+='<div style="color:var(--teal);font-size:11px">✓ '+step+'</div>';
+  };
+
+  // Called at the end regardless — always shows the tabs
+  const showResults = () => {
+    const av    = window._avatarData    || {};
+    const offer = window._affiliateOffer|| {};
+    if (statusEl) statusEl.style.display='none';
+    if (btnEl)    { btnEl.disabled=false; btnEl.textContent='⚡ Regenerate'; }
+    const setupPanel = document.getElementById('aff-setup-panel');
+    const activeView = document.getElementById('aff-active-view');
+    if (setupPanel) setupPanel.style.display='none';
+    if (activeView) activeView.style.display='block';
+    const nameEl=document.getElementById('aff-active-name');
+    const metaEl=document.getElementById('aff-active-meta');
+    if (nameEl) nameEl.textContent = offer.name||productName||'Your Offer';
+    if (metaEl) metaEl.textContent = '$'+(offer.commission||commission).toLocaleString()+' commission · '+(offer.niche||productNiche);
+    window.renderAffStrategy     && window.renderAffStrategy(av);
+    window.renderAffAvatarView   && window.renderAffAvatarView(av);
+    window.renderAffDMScripts    && window.renderAffDMScripts(av, offer.name||productName, offer.commission||commission);
+    window.renderAffCommTrackerFn&& window.renderAffCommTrackerFn(offer.commission||commission);
+    if (window._aiCalendar30&&window._aiCalendar30.length>0) {
+      window.renderAICalendar30&&window.renderAICalendar30(1);
     }
+    setAffTraffic(window._affTrafficMode||'organic');
   };
 
   try {
-
-    // ── STEP 1: AI builds buyer avatar from product context ──────────────
-    setProgress(15, 'Building your buyer avatar…', null);
-
-    const avatarPrompt = `You are an elite market researcher and buyer psychology expert.
-
-A digital affiliate marketer is promoting this product:
-- Product: "${productName}"
-- Platform: ${platform}
-- Niche: ${productNiche}
-- Commission per sale: $${commission}
-- Affiliate link: ${url || 'not provided'}
-
-Based on this product, generate a PRECISE buyer avatar — the exact type of person most likely to buy this product through social media content and DM outreach.
-
-Return ONLY valid JSON with this exact structure:
-{
-  "name": "Avatar name (e.g. Ambitious Amanda)",
-  "age": "32",
-  "gender": "Primarily women",
-  "location": "USA, UK, Australia",
-  "edu": "College graduate",
-  "income": "$50k–$75k",
-  "job": "Marketing manager",
-  "industry": "Corporate / 9-5 employment",
-  "employ": "Full-time employed",
-  "hrs": "50",
-  "current": "2-3 sentences describing their current frustrating life situation",
-  "desired": "2-3 sentences describing their dream outcome after the product",
-  "incomeGoal": "10000",
-  "transformation": "One sentence: the #1 transformation they desperately want",
-  "fear": "Their biggest fear about investing in a solution",
-  "tried": "What they have already tried that did not work",
-  "pain": "Their core pain point in 4-8 words",
-  "motivation": "Financial freedom",
-  "personality": "Skeptical but curious",
-  "influences": "3-5 influencers or communities they follow in this niche",
-  "objections": "Their top 2-3 objections before buying",
-  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "productName": "${productName}",
-  "productUrl": "${url}",
-  "platform": "${platform}",
-  "commission": ${commission},
-  "niche": "${productNiche}"
-}
-
-Be specific to the actual product type and niche. Make the buyer avatar feel like a real person.`;
-
-    // Call Vercel affiliate avatar endpoint
-    const affAvatarResp = await callAPI('generate-affiliate', {
-      type: 'avatar',
-      productUrl: url,
-      productName,
-      commission,
-      monthlyTarget,
-      niche: productNiche,
-      trafficMode: window._affTrafficMode || 'organic'
-    });
-    const avatarText = JSON.stringify(affAvatarResp);
-    let avatarData;
-    try { avatarData = typeof avatarText === 'string' ? JSON.parse(avatarText.replace(/```json|```/g,'').trim()) : affAvatarResp; }
-    catch(e) { throw new Error('Could not parse avatar data. Please try again.'); }
-
-    setProgress(35, 'Avatar built — generating content strategy…', 'Buyer avatar created ✅');
-
-    // Store avatar globally (same structure as manual avatar)
-    window._avatarData = avatarData;
-    window._affiliateOffer = {
-      name:       avatarData.productName || productName,
-      platform:   avatarData.platform || platform,
-      commission: avatarData.commission || commission,
-      url:        avatarData.productUrl || url,
-      niche:      avatarData.niche || productNiche,
-      buyer:      avatarData.job,
-      pain:       avatarData.pain,
-      transformation: avatarData.transformation
-    };
-
-    // Sync to revenue plan fields
-    window._appliedNiche   = avatarData.niche || productNiche;
-    window._appliedPrice   = commission;
-    window._appliedTarget  = monthlyTarget;  // uses the target they entered
-    const priceEl  = document.getElementById('price');
-    const targetEl = document.getElementById('target');
-    if (priceEl)  priceEl.value  = commission;
-    if (targetEl) targetEl.value = commission * 5;
-
-    // Save to localStorage
-    try { localStorage.setItem('eos_affiliate_offer', JSON.stringify(window._affiliateOffer)); } catch(e) {}
-    window.saveAvatarData && window.saveAvatarData();
-
-    // ── STEP 2: Generate 7-day content calendar ──────────────────────────
-    setProgress(50, 'Writing your 30-day affiliate content plan…', 'Commission targets set ✅');
-
-    const av = avatarData;
-    const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
-
-    const weekPhases = [
-      'Week 1: Trust & Credibility — establish authority on the problem, no product mention yet',
-      'Week 2: Education & Value — deep-dive the solution, introduce the product naturally',
-      'Week 3: Proof & Social Evidence — reviews, results, objection handling',
-      'Week 4: Urgency & Close — final CTA, scarcity, direct recommendation'
-    ];
-
-    const affTopics = [
-      'The #1 problem facing ' + js + 's that nobody is talking about',
-      'Why everything you\'ve been told about ' + av.pain + ' is wrong',
-      'My honest story: how I discovered a solution that actually works',
-      'The 3 signs you need a completely different approach to ' + av.pain,
-      'What achieving ' + av.transformation + ' actually looks like day-to-day',
-      'The biggest mistake ' + js + 's make when trying to solve this',
-      'Week 1 reflection: what changes when you finally get serious',
-      'The root cause of ' + av.pain + ' — and why most solutions miss it completely',
-      'Education deep-dive: the framework that works for ' + js + 's',
-      'Why consistency matters more than talent in this journey',
-      'Case study: from ' + av.pain + ' to ' + av.transformation,
-      'The content types that build trust with ' + js + 's faster than anything else',
-      'Debunking the myth: you don\'t need ' + (av.tried || 'expensive programmes') + ' for this',
-      'How to know if this solution is right for YOUR situation',
-      'Real results: what people are achieving with the right approach',
-      'The objection I hear most from ' + js + 's — and the honest answer',
-      'Why I recommend ' + productName + ' for people dealing with ' + av.pain,
-      'Behind the scenes: what\'s inside the programme and why it works',
-      'Social proof post: testimonials and transformations',
-      'The comparison: what I tried before vs what actually delivered results',
-      'Q&A: your top questions about ' + productName + ' answered honestly',
-      'Urgency: why waiting is the most expensive decision you can make',
-      'The investment conversation: is the price worth it?',
-      'Final push: this is for people who are serious about change',
-      'What happens the day you decide to take action',
-      'Community spotlight: people getting results right now',
-      'The alternative: what staying stuck actually costs you per year',
-      'My personal guarantee: why I stand behind this recommendation',
-      'Last call: the window for this is closing soon',
-      'Month close: what I learned from 30 days of sharing this journey'
-    ];
-
-    // 15 batches of 2 days each — safely under Vercel 60s limit
-    window._aiCalendar30 = [];
-    // ONE call — 7 days, 4 pieces each (FB Post + Reel 1 + Reel 2 + Email)
-    setProgress(50, 'Writing your 7-day content plan…', null);
-    let calText = '';
+    // STEP 1: Avatar
+    setProgress(15,'Building your buyer avatar…',null);
+    let av = {};
     try {
-      const calResp = await callAPI('generate-affiliate', {
-        type: 'calendar',
-        productName, commission,
-        niche: productNiche,
-        trafficMode: window._affTrafficMode || 'organic',
-        avatarData: avatarData
+      av = await callAPI('generate-affiliate',{
+        type:'avatar',productUrl:url,productName,commission,monthlyTarget,
+        niche:productNiche,trafficMode:window._affTrafficMode||'organic'
       });
-      calText = calResp.text || '';
-      setProgress(85, 'Content written ✅ — building calendar…', 'Content written ✅');
+      setProgress(40,'Avatar built ✅ — writing content…','Buyer avatar created ✅');
     } catch(e) {
-      throw new Error('Calendar generation failed: ' + e.message);
+      console.warn('Avatar call failed:',e.message);
+      av = {name:'Ideal Buyer',job:'online entrepreneur',pain:'struggling to grow income',
+            transformation:'financial freedom and flexibility',fear:'wasting money on wrong solutions',
+            tried:'various courses and programmes',commission,niche:productNiche};
+      setProgress(40,'Writing content plan…','Using default profile');
     }
 
-    // Bulletproof 7-day parser — handles any AI output format
-    window._aiCalendar30 = [];
-    const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-
-    // Split on DAY markers — try multiple patterns
-    let rawDays = calText.split(/\n(?=DAY\s*\d)/i).filter(s => s.trim());
-    if (rawDays.length < 2) rawDays = calText.split(/DAY\s*\d+\s*[:\-]/i).filter(s => s.trim());
-    if (rawDays.length < 2) rawDays = [calText]; // fallback: treat whole text as day 1
-
-    // Extract a section between two headers — very flexible
-    const getSection = (text, startPat, endPats) => {
-      const lines = text.split('\n');
-      let startIdx = -1;
-      for (let i = 0; i < lines.length; i++) {
-        if (new RegExp(startPat, 'i').test(lines[i])) { startIdx = i + 1; break; }
-      }
-      if (startIdx < 0) return text.trim(); // fallback: return all text
-      let endIdx = lines.length;
-      for (let i = startIdx; i < lines.length; i++) {
-        if (endPats.some(p => new RegExp(p, 'i').test(lines[i]))) { endIdx = i; break; }
-      }
-      return lines.slice(startIdx, endIdx).join('\n').trim();
+    // Store avatar
+    window._avatarData = av;
+    window._affiliateOffer = {
+      name: av.productName||productName||url, platform,
+      commission: av.commission||commission, url,
+      niche: av.niche||productNiche,
+      buyer: av.job, pain: av.pain, transformation: av.transformation
     };
+    window._appliedNiche  = av.niche||productNiche;
+    window._appliedPrice  = commission;
+    window._appliedTarget = monthlyTarget;
+    try { localStorage.setItem('eos_affiliate_offer',JSON.stringify(window._affiliateOffer)); } catch(e){}
 
-    // Extract hook from reel text
-    const getHook = text => {
-      const hookLine = text.split('\n').find(l => /^HOOK[:\s]/i.test(l));
-      return hookLine ? hookLine.replace(/^HOOK[:\s]*/i,'').trim() : text.split('\n')[0] || '';
-    };
+    // STEP 2: Calendar
+    setProgress(55,'Writing your 7-day content plan…','Commission targets set ✅');
+    try {
+      const calResp = await callAPI('generate-affiliate',{
+        type:'calendar',productName:av.productName||productName,
+        commission,niche:productNiche,
+        trafficMode:window._affTrafficMode||'organic',
+        avatarData:av
+      });
+      const calText = calResp.text||'';
+      setProgress(85,'Content ready ✅ — building calendar…','Content written ✅');
 
-    // Extract email subject
-    const getSubject = text => {
-      const sl = text.split('\n').find(l => /^SUBJECT[:\s]/i.test(l));
-      return sl ? sl.replace(/^SUBJECT[:\s]*/i,'').trim() : text.split('\n')[0] || '';
-    };
-
-    for (let d = 0; d < Math.min(rawDays.length, 7); d++) {
-      const block  = rawDays[d];
-      const dayNum = d + 1;
-
-      // Extract topic from the DAY header line
-      const topicMatch = block.match(/DAY\s*\d+\s*[:\-]?\s*(.+)/i);
-      const topic = topicMatch ? topicMatch[1].replace(/\*+/g,'').trim() : 'Day ' + dayNum;
-
-      // Extract each section using flexible patterns
-      const fbText = getSection(block,
-        'FACEBOOK\s*POST',
-        ['REEL\s*1','REEL\s*ONE','##','---']
-      );
-      const r1Text = getSection(block,
-        'REEL\s*1|REEL\s*ONE',
-        ['REEL\s*2','REEL\s*TWO','##','---']
-      );
-      const r2Text = getSection(block,
-        'REEL\s*2|REEL\s*TWO',
-        ['EMAIL','##','---']
-      );
-      const emText = getSection(block,
-        'EMAIL',
-        ['DAY\s*\d','---','===']
-      );
-
-      // Build hook for first line display
-      const fbHook   = fbText.split('\n').find(l => l.trim().length > 20) || fbText.split('\n')[0] || '';
-      const r1Hook   = getHook(r1Text);
-      const r2Hook   = getHook(r2Text);
-      const emSubject = getSubject(emText);
-
-      // Only push if we have REAL content
-      const hasContent = fbText.length > 30 || r1Text.length > 30;
-
-      if (hasContent) {
-        window._aiCalendar30.push([
-          { postType:'Facebook Post', viralHook: fbHook,    fullScript: fbText,  weekDay: DAY_NAMES[d], topic, dayNum },
-          { postType:'Reel 1',        viralHook: r1Hook,    fullScript: r1Text,  weekDay: DAY_NAMES[d], topic, dayNum, isReel: true },
-          { postType:'Reel 2',        viralHook: r2Hook,    fullScript: r2Text,  weekDay: DAY_NAMES[d], topic, dayNum, isReel: true },
-          { postType:'Email',          viralHook: emSubject, fullScript: emText,  weekDay: DAY_NAMES[d], topic, dayNum },
-        ]);
+      // Parse calendar
+      window._aiCalendar30=[];
+      const DN=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      const rawDays = calText.split('\nDAY').map((s,i)=>i===0?s:'DAY'+s).filter(s=>s.trim());
+      const getSec=(text,startPat,endPats)=>{
+        const ls=text.split('\n');let si=-1;
+        for(let i=0;i<ls.length;i++){if(new RegExp(startPat,'i').test(ls[i])){si=i+1;break;}}
+        if(si<0)return text.trim();let ei=ls.length;
+        for(let i=si;i<ls.length;i++){if(endPats.some(p=>new RegExp(p,'i').test(ls[i]))){ei=i;break;}}
+        return ls.slice(si,ei).join('\n').trim();
+      };
+      for(let d=0;d<Math.min(rawDays.length,7);d++){
+        const blk=rawDays[d];
+        const tm=blk.match(/DAY\s*\d+\s*[:\-]?\s*(.+)/i);
+        const topic=tm?tm[1].replace(/\*+/g,'').trim():'Day '+(d+1);
+        const fb=getSec(blk,'FACEBOOK\s*POST',['REEL\s*1','REEL\s*ONE']);
+        const r1=getSec(blk,'REEL\s*1|REEL\s*ONE',['REEL\s*2','REEL\s*TWO']);
+        const r2=getSec(blk,'REEL\s*2|REEL\s*TWO',['EMAIL']);
+        const em=getSec(blk,'EMAIL',['===','---']);
+        const gh=t=>{const ls2=t.split('\n');const hl=ls2.find(x=>/^HOOK[\s:]/i.test(x));return hl?hl.replace(/^HOOK[\s:]*/i,'').trim():ls2[0]||'';};
+        const gs=t=>{const ls2=t.split('\n');const sl=ls2.find(x=>/^SUBJECT[\s:]/i.test(x));return sl?sl.replace(/^SUBJECT[\s:]*/i,'').trim():ls2[0]||'';};
+        if(fb.length>20||r1.length>20){
+          window._aiCalendar30.push([
+            {postType:'Facebook Post',viralHook:fb.split('\n').find(l=>l.trim().length>20)||topic,fullScript:fb,weekDay:DN[d],topic,dayNum:d+1},
+            {postType:'Reel 1',viralHook:gh(r1),fullScript:r1,weekDay:DN[d],topic,dayNum:d+1,isReel:true},
+            {postType:'Reel 2',viralHook:gh(r2),fullScript:r2,weekDay:DN[d],topic,dayNum:d+1,isReel:true},
+            {postType:'Email', viralHook:gs(em),fullScript:em,weekDay:DN[d],topic,dayNum:d+1},
+          ]);
+        }
       }
+    } catch(e) {
+      console.warn('Calendar failed:',e.message);
+      setProgress(85,'Calendar generation failed — other tabs still ready',null);
     }
 
-    // Debug: log what was parsed
-    console.log('Calendar parsed:', window._aiCalendar30.length, 'days');
-    if (window._aiCalendar30[0]) console.log('Day 1 FB hook:', window._aiCalendar30[0][0].viralHook.slice(0,60));
-
-    // ✅ Calendar built — render it
-    setProgress(95, 'Building your dashboard…', null);
-    window.renderAICalendar30 && window.renderAICalendar30(1);
-    setProgress(100, 'Everything ready! 🎉', 'Calendar ready ✅');
+    setProgress(100,'Everything ready! 🎉','Calendar ready ✅');
 
   } catch(e) {
-    console.error('Affiliate analysis error:', e.message);
+    console.error('Analysis error:',e.message);
   }
 
-  // Complete — populate ALL tabs and show active view
-  setTimeout(() => {
-    const statusEl  = document.getElementById('aff-analyse-status');
-    const btnEl     = document.getElementById('aff-analyse-btn');
-    const setupPanel = document.getElementById('aff-setup-panel');
-    const activeView = document.getElementById('aff-active-view');
-
-    if (statusEl) statusEl.style.display = 'none';
-    if (btnEl)    { btnEl.textContent = '⚡ Regenerate'; btnEl.disabled = false; btnEl.style.display = 'block'; }
-
-    if (window._affiliateOffer && window._affiliateOffer.name) {
-      // Show active view
-      if (setupPanel) setupPanel.style.display = 'none';
-      if (activeView) activeView.style.display = 'block';
-
-      // Populate offer card
-      const nameEl = document.getElementById('aff-active-name');
-      const metaEl = document.getElementById('aff-active-meta');
-      if (nameEl) nameEl.textContent = window._affiliateOffer.name || '';
-      if (metaEl) metaEl.textContent = '$' + (window._affiliateOffer.commission||0).toLocaleString() + ' commission per sale · ' + (window._affiliateOffer.niche||'');
-
-      // Populate ALL tab bodies with real data
-      const av = window._avatarData || {};
-      const offer = window._affiliateOffer || {};
-      
-window.affDtAdj = function(id, delta) {
-  const el = document.getElementById('aff-dt-' + id);
-  if (!el) return;
-  const val = Math.max(0, (parseInt(el.textContent)||0) + delta);
-  el.textContent = val;
-  try {
-    const saved = JSON.parse(localStorage.getItem('eos_aff_daily_tracker')||'{}');
-    saved[id] = val;
-    localStorage.setItem('eos_aff_daily_tracker', JSON.stringify(saved));
-  } catch(e) {}
-};
-window.affDtReset = function() {
-  ['dms-sent','clicks-today','sales-week','comm-earned'].forEach(id => {
-    const el = document.getElementById('aff-dt-' + id);
-    if (el) el.textContent = '0';
-  });
-  try { localStorage.setItem('eos_aff_daily_tracker', '{}'); } catch(e) {}
-};
-window.renderAffStrategy    && window.renderAffStrategy(av);
-      window.renderAffAvatarView   && window.renderAffAvatarView(av);
-      window.renderAffDMScripts    && window.renderAffDMScripts(av, offer.name, offer.commission);
-      window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission);
-
-      // Pre-populate daily tracker tab body
-      const dtBody = document.getElementById('aff-daily-tracker-body');
-      if (dtBody) {
-        const dmsPerDay = Math.max(5, Math.ceil((offer.commission||1000) * 0.008));
-        const salesNeeded = Math.ceil((window._appliedTarget||5000) / (offer.commission||1000));
-        const metrics = [
-          {label:'DMs Sent Today',    id:'dms-sent',     sub: dmsPerDay + '/day target', col:'var(--teal)'},
-          {label:'Link Clicks Today', id:'clicks-today', sub:'track every click',        col:'var(--purple)'},
-          {label:'Sales This Week',   id:'sales-week',   sub: salesNeeded + ' needed/month', col:'var(--yellow)'},
-          {label:'Commission Earned', id:'comm-earned',  sub:'$ this month',             col:'var(--orange)'},
-        ];
-        const metricCards = metrics.map(function(m) {
-          const card = document.createElement('div');
-          card.className = 'm-card';
-          card.style.cssText = 'border-left:3px solid ' + m.col + ';padding:16px 18px';
-          card.innerHTML = [
-            '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:8px">' + m.label + '</div>',
-            '<div style="display:flex;align-items:center;gap:10px">',
-            '<div id="aff-dt-' + m.id + '" style="font-size:32px;font-weight:900;font-family:Poppins,sans-serif;color:' + m.col + '">0</div>',
-            '<div style="display:flex;flex-direction:column;gap:4px">',
-            '<button onclick="window.affDtAdj(\'' + m.id + '\',1)" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;font-size:16px">+</button>',
-            '<button onclick="window.affDtAdj(\'' + m.id + '\',-1)" style="width:28px;height:28px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;cursor:pointer;font-size:14px">−</button>',
-            '</div></div>',
-            '<div style="font-size:10px;color:var(--dimmer);margin-top:5px">' + m.sub + '</div>'
-          ].join('');
-          return card.outerHTML;
-        }).join('');
-        const wrapper = document.createElement('div');
-        wrapper.style.padding = 'var(--sp-4)';
-        const heading = document.createElement('div');
-        heading.style.cssText = 'font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:var(--sp-4)';
-        heading.textContent = '📋 Daily Affiliate Tracker';
-        const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-4)';
-        grid.innerHTML = metricCards;
-        const resetBtn = document.createElement('button');
-        resetBtn.style.cssText = 'padding:8px 18px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:var(--r-sm);font-weight:700;font-size:11px;cursor:pointer';
-        resetBtn.textContent = 'Reset Today';
-        resetBtn.onclick = window.affDtReset;
-        wrapper.appendChild(heading);
-        wrapper.appendChild(grid);
-        wrapper.appendChild(resetBtn);
-        dtBody.innerHTML = '';
-        dtBody.appendChild(wrapper);
-
-        // Load saved values
-        try {
-          const saved = JSON.parse(localStorage.getItem('eos_aff_daily_tracker')||'{}');
-          ['dms-sent','clicks-today','sales-week','comm-earned'].forEach(id => {
-            const el = document.getElementById('aff-dt-' + id);
-            if (el && saved[id] !== undefined) el.textContent = saved[id];
-          });
-        } catch(e) {}
-      }
-
-      // Render calendar tab
-      const calTabBody = document.getElementById('aff-tab-calendar');
-      if (calTabBody && window._aiCalendar30 && window._aiCalendar30.length > 0) {
-        calTabBody.innerHTML = '<div id="cal-body" class="cal-body" style="min-width:700px"></div>';
-        window.renderAICalendar30 && window.renderAICalendar30(1);
-      }
-    }
-  }, 600);
-
-  if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
-    window.renderAICalendar30 && window.renderAICalendar30(1);
-  }
+  // Always show results — even if calendar failed
+  setTimeout(showResults, 400);
 };
 
 
@@ -12206,7 +11894,7 @@ window.setAppMode = function(mode) {
     setNav('nav-plan',        null, null,            true);  // Revenue Plan HIDDEN for affiliates — targets live on Affiliate page
     setNav('nav-offer',       null, null,            true);   // HIDDEN
     setNav('nav-affiliate',  'Offer Setup',         'Set up first', false);
-    setNav('nav-avatar',     'Buyer Profile',       'Auto-built', false);
+    setNav('nav-avatar',      null, null,            true);  // Hidden in affiliate mode
     setNav('nav-calendar',    null, null,            true);  // Calendar inside Offer Setup tabs in affiliate mode
     setNav('nav-scripts',     null, null,            true);  // Hidden — lives in Offer Setup tabs
     setNav('nav-routine',    'Daily Routine',       'Step 6',              false);
@@ -12576,7 +12264,6 @@ if (document.readyState !== 'loading') {
 }
 </script>
 
-<!-- Firebase Auth + Firestore -->
 <script type="module">
 import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut }
