@@ -504,22 +504,6 @@ window.selectUserMode = function(mode) {
     btn.style.color      = '#fff';
   }
 };
-let selectedUserMode = 'expert'; // default mode for new users
-
-// ── Mode selection for new user ────────────────────────────────────────
-window.selectUserMode = function(mode) {
-  selectedUserMode = mode;
-  const btnE = document.getElementById('mode-btn-expert');
-  const btnA = document.getElementById('mode-btn-affiliate');
-  btnE.className = 'mode-toggle-btn' + (mode === 'expert'    ? ' active-expert'    : '');
-  btnA.className = 'mode-toggle-btn' + (mode === 'affiliate' ? ' active-affiliate' : '');
-  // Update activate button colour
-  const btn = document.getElementById('activate-btn');
-  btn.style.background = mode === 'expert'
-    ? 'linear-gradient(135deg,var(--teal),var(--teal2))'
-    : 'linear-gradient(135deg,var(--purple),var(--purple2))';
-  btn.style.color = mode === 'expert' ? 'var(--text-dark)' : '#fff';
-};
 
 // ── Auth ───────────────────────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
@@ -571,10 +555,6 @@ function modeChip(mode) {
   const isAff = m === 'affiliate';
   return `<span style="font-size:9px;font-weight:800;padding:3px 9px;border-radius:50px;text-transform:uppercase;letter-spacing:.5px;background:${isAff ? 'rgba(108,99,255,.12)' : 'rgba(78,204,163,.12)'};color:${isAff ? 'var(--purple)' : 'var(--teal)'};border:1px solid ${isAff ? 'rgba(108,99,255,.25)' : 'rgba(78,204,163,.25)'}">${isAff ? '🔗 Affiliate' : '🎯 Expert'}</span>`;
 }
-function modeChip(mode) {
-  const m = mode || 'expert';
-  return `<span class="mode-chip ${m}">${m === 'expert' ? '🎯 Expert' : '🔗 Affiliate'}</span>`;
-}
 function statusDot(plan) { const s=plan==='cancelled'?'cancelled':plan==='trial'?'trial':'active'; return `<span class="status-dot ${s}"></span>${s.charAt(0).toUpperCase()+s.slice(1)}`; }
 
 // ── Overview ───────────────────────────────────────────────────────────
@@ -616,27 +596,26 @@ function renderRevenueChart() {
 }
 
 function renderPlanDonut(paid,trial,cancelled) {
-  const starter=allUsers.filter(u=>u.plan==='starter').length,pro=allUsers.filter(u=>u.plan==='pro').length,elite=allUsers.filter(u=>u.plan==='elite').length,total=Math.max(allUsers.length,1);
+  const starter=allUsers.filter(u=>u.plan==='starter').length;
+  const pro=allUsers.filter(u=>u.plan==='pro').length;
+  const elite=allUsers.filter(u=>u.plan==='elite').length;
+  const total=Math.max(allUsers.length,1);
   const experts=allUsers.filter(u=>!u.appMode||u.appMode==='expert').length;
   const affiliates=allUsers.filter(u=>u.appMode==='affiliate').length;
-  document.getElementById('plan-donut').innerHTML=`<div class="donut-legend">
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900;margin-bottom:6px">By Plan</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Starter · ${starter} (${Math.round(starter/total*100)}%)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Pro · ${pro} (${Math.round(pro/total*100)}%)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Elite · ${elite} (${Math.round(elite/total*100)}%)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Trial · ${trial}</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Cancelled · ${cancelled}</div>
-    <div style="height:1px;background:rgba(255,255,255,.07);margin:8px 0"></div>
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900;margin-bottom:6px">By Mode</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Expert · ${experts}</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Affiliate · ${affiliates}</div>
-  </div>
-    <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900;margin:8px 0 6px">By Mode</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Expert · \${allUsers.filter(u=>!u.appMode||u.appMode==='expert').length}</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Affiliate · \${allUsers.filter(u=>u.appMode==='affiliate').length}</div>
-  </div>\`;
+  document.getElementById('plan-donut').innerHTML =
+    '<div class="donut-legend">' +
+    '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900;margin-bottom:6px">By Plan</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Starter · ' + starter + ' (' + Math.round(starter/total*100) + '%)</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Pro · ' + pro + ' (' + Math.round(pro/total*100) + '%)</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Elite · ' + elite + ' (' + Math.round(elite/total*100) + '%)</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Trial · ' + trial + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Cancelled · ' + cancelled + '</div>' +
+    '<div style="height:1px;background:rgba(255,255,255,.07);margin:8px 0"></div>' +
+    '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900;margin-bottom:6px">By Mode</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Expert · ' + experts + '</div>' +
+    '<div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Affiliate · ' + affiliates + '</div>' +
+    '</div>';
 }
-
 // ── Revenue ────────────────────────────────────────────────────────────
 function renderRevenue() {
   const paid=allUsers.filter(u=>['starter','pro','elite'].includes(u.plan));
