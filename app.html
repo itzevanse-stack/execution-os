@@ -6576,7 +6576,22 @@ window.refreshCalendar30=function(){if(!window._avatarData){window.showPage('ava
 window.saveCalendarState=async function(){};
 window.saveProfile=function(){const msg=document.getElementById('save-profile-msg');if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}};
 window.uploadProfilePhoto=function(){};
-window.doLogout=function(){alert('Logout requires Firebase integration.');};
+window.doLogout = async function() {
+  try {
+    // Use the real Firebase signOut from the module scope
+    if (window._firebaseSignOut) {
+      await window._firebaseSignOut();
+    } else {
+      // Fallback: clear session and redirect
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = 'index.html';
+    }
+  } catch(e) {
+    localStorage.clear();
+    window.location.href = 'index.html';
+  }
+};
 
 // ====================================================================
 // ADMIN: Add member manually after closing a high-ticket deal
@@ -12999,6 +13014,7 @@ onAuthStateChanged(auth, async (user) => {
     await signOut(auth);
     window.location.href = 'index.html';
   };
+  window._firebaseSignOut = async () => { await signOut(auth); window.location.href='index.html'; };
   window.saveProfile = async function() {
     if (!currentUser) return;
     const btn = document.getElementById('save-profile-btn');
