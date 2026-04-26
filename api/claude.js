@@ -1,61 +1,75 @@
+// api/claude.js — Vercel serverless function
+// Proxies requests to Anthropic API, adds API key server-side
+// Place this file at: /api/claude.js in your GitHub repo
+
 export default async function handler(req, res) {
+  // ── CORS headers — allow requests from your domain ──────────────────────
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
+  if (!ANTHROPIC_API_KEY) {
+    console.error('ANTHROPIC_API_KEY not set in Vercel environment variables');
+    return res.status(500).json({ error: 'API key not configured on server' });
+  }
 
   try {
-    const body = req.body || {};
+    const body = req.body;
 
-    // ── Optional: fetch a URL server-side and inject content into the prompt ──
-    if (body.fetchUrl) {
-      try {
-        const pageRes = await fetch(body.fetchUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ExecutionOS/1.0)' },
-          redirect: 'follow',
-          signal: AbortSignal.timeout(10000),
-        });
-        const html = await pageRes.text();
-        const text = html
-          .replace(/<script[\s\S]*?<\/script>/gi, '')
-          .replace(/<style[\s\S]*?<\/style>/gi, '')
-          .replace(/<[^>]+>/g, ' ')
-          .replace(/\s{2,}/g, ' ')
-          .replace(/&nbsp;/g, ' ')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .trim()
-          .slice(0, 6000);
+    // Build the Anthropic request — support both messages array and legacy prompt
+    const anthropicBody = {
+      model: body.model || 'claude-sonnet-4-20250514',
+      max_tokens: body.max_tokens || 1000,
+    };
 
-        if (body.messages && body.messages.length > 0) {
-          body.messages[0].content =
-            `SALES PAGE CONTENT FROM ${body.fetchUrl}:\n\n${text}\n\n---\n\n${body.messages[0].content}`;
-        }
-      } catch (fetchErr) {
-        console.warn('URL fetch failed:', fetchErr.message);
-      }
-      delete body.fetchUrl;
+    // Support messages array (new format)
+    if (body.messages && Array.isArray(body.messages)) {
+      anthropicBody.messages = body.messages;
+    }
+    // Support legacy single prompt
+    else if (body.prompt) {
+      anthropicBody.messages = [{ role: 'user', content: body.prompt }];
+    }
+    else {
+      return res.status(400).json({ error: 'Request must include messages array or prompt' });
+    }
+
+    // Support system prompt if provided
+    if (body.system) {
+      anthropicBody.system = body.system;
     }
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
+        'Content-Type':         'application/json',
+        'x-api-key':            ANTHROPIC_API_KEY,
+        'anthropic-version':    '2023-06-01',
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(anthropicBody),
     });
 
     const data = await response.json();
+
     if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message || 'API error' });
+      console.error('Anthropic API error:', response.status, data);
+      return res.status(response.status).json(data);
     }
-    res.status(200).json(data);
+
+    return res.status(200).json(data);
+
   } catch (err) {
-    res.status(500).json({ error: 'Server error: ' + err.message });
+    console.error('Proxy error:', err);
+    return res.status(500).json({ error: 'Internal server error', detail: err.message });
   }
 }
