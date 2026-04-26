@@ -771,13 +771,14 @@ window.activateUser = async function() {
 
     const safeEmail = emailVal.replace(/[^a-z0-9]/g, '-');
     await setDoc(doc(db, 'members', safeEmail), {
-      name:      nameVal || emailVal.split('@')[0],
-      email:     emailVal,
-      appMode:   selectedUserMode,
-      grantedAt: new Date().toISOString(),
-      grantedBy: auth.currentUser?.email || 'admin',
-      niche:     '',
-      active:    true
+      name:          nameVal || emailVal.split('@')[0],
+      email:         emailVal,
+      appMode:       selectedUserMode,
+      grantedAt:     new Date().toISOString(),
+      grantedBy:     auth.currentUser?.email || 'admin',
+      niche:         '',
+      active:        true,
+      accessGranted: true
     }, { merge: true });
 
     // Also write to users collection so app.html picks up the mode on first login
