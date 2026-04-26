@@ -540,7 +540,7 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
     <a href="#compare" class="nav-a">Compare</a>
   </div>
   <div class="nav-ctas" id="nav-ctas">
-    <button class="nav-login" onclick="openLoginModal()">Log in</button>
+    <button class="nav-login" onclick="window.location.href='auth.html'">Log in</button>
     <button class="nav-cta" onclick="openModal()">Learn More →</button>
   </div>
 </nav>
@@ -1145,8 +1145,8 @@ window.submit = () => {
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import{getFirestore,collection,addDoc,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import{getFirestore,collection,addDoc,serverTimestamp,doc,getDoc}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import{getAuth,onAuthStateChanged,signInWithEmailAndPassword,signOut,sendPasswordResetEmail}from"https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const cfg={
   apiKey:"AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
@@ -1255,8 +1255,23 @@ window.doLogin = async () => {
   btn.disabled = true;
   btn.innerHTML = '<div class="spinner" style="border-top-color:#fff"></div><span>Logging in…</span>';
   try {
-    await signInWithEmailAndPassword(auth, email, pw);
-    window.location.href = 'app.html';
+    const cred = await signInWithEmailAndPassword(auth, email, pw);
+    const localMode = localStorage.getItem('eos_app_mode');
+    if (localMode) { window.location.href = 'app.html'; return; }
+    try {
+      const uSnap = await getDoc(doc(db, 'users', cred.user.uid));
+      if (uSnap.exists() && uSnap.data().appMode) {
+        localStorage.setItem('eos_app_mode', uSnap.data().appMode);
+        window.location.href = 'app.html'; return;
+      }
+      const safeEmail = email.toLowerCase().replace(/[^a-z0-9]/g, '-');
+      const mSnap = await getDoc(doc(db, 'members', safeEmail));
+      if (mSnap.exists() && mSnap.data().appMode) {
+        localStorage.setItem('eos_app_mode', mSnap.data().appMode);
+        window.location.href = 'app.html'; return;
+      }
+    } catch(_) {}
+    window.location.href = 'auth.html';
   } catch(e) {
     btn.disabled = false;
     btn.innerHTML = 'Log in to my dashboard →';
@@ -1310,12 +1325,20 @@ window.doForgot = async () => {
   }
 };
 
+window._doSignOut = async () => {
+  try {
+    await signOut(auth);
+    localStorage.removeItem('eos_app_mode');
+    window.location.reload();
+  } catch(e) { console.error('Sign out error:', e); }
+};
+
 onAuthStateChanged(auth, user => {
   if(user){
     const ctas = document.getElementById('nav-ctas');
     if(ctas) ctas.innerHTML = `
       <a href="app.html" style="padding:9px 24px;background:var(--grad);color:#060615;font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:.6px;border:none;border-radius:8px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center">Dashboard →</a>
-      <button onclick="import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(m=>m.signOut(auth)).then(()=>location.reload())" style="padding:8px 20px;background:transparent;color:var(--muted);font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;cursor:pointer">Log out</button>
+      <button onclick="window._doSignOut()" style="padding:8px 20px;background:transparent;color:var(--muted);font-family:'Poppins',sans-serif;font-weight:600;font-size:13px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;cursor:pointer">Log out</button>
     `;
   }
 });
