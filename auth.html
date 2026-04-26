@@ -100,7 +100,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-
 
   <div class="auth-panel">
 
-    <!-- STEP 1 -->
+    <!-- STEP 1: Choose Mode -->
     <div id="step-1">
       <div class="auth-panel-title" style="text-align:center">Ready To EXECUTE?</div>
       <div class="auth-panel-sub" style="text-align:center">Choose your path — the platform fully configures to your strategy.</div>
@@ -123,7 +123,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-
       <button class="auth-btn" id="step-1-btn" disabled>Continue →</button>
     </div>
 
-    <!-- STEP 2 -->
+    <!-- STEP 2: Sign In -->
     <div id="step-2">
       <button class="step-back" id="back-btn">← Back</button>
       <div class="mode-badge">
@@ -167,7 +167,7 @@ import { getAuth, signInWithEmailAndPassword,
 import { getFirestore, doc, setDoc }                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
+  apiKey:            "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSF5B482TX0",
   authDomain:        "execution-os-1fbfd.firebaseapp.com",
   projectId:         "execution-os-1fbfd",
   storageBucket:     "execution-os-1fbfd.firebasestorage.app",
@@ -179,58 +179,74 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-// If already logged in → go straight to app
+// ── If already logged in, send them to app WITH their saved mode ──────────────
 onAuthStateChanged(auth, user => {
-  if (user) window.location.href = 'app.html';
+  if (user) {
+    // They're already logged in — keep their saved mode and go to app
+    // (Don't override their mode — they chose it last time)
+    window.location.href = 'app.html';
+  }
 });
 
-// ── State ─────────────────────────────────────────────────────────────
+// ── State ─────────────────────────────────────────────────────────────────────
 let selectedMode = null;
 
-// ── DOM refs ──────────────────────────────────────────────────────────
-const cardExpert   = document.getElementById('card-expert');
-const cardAffiliate= document.getElementById('card-affiliate');
-const step1Btn     = document.getElementById('step-1-btn');
-const step1El      = document.getElementById('step-1');
-const step2El      = document.getElementById('step-2');
-const backBtn      = document.getElementById('back-btn');
-const changeBtn    = document.getElementById('change-btn');
-const signinBtn    = document.getElementById('signin-btn');
-const forgotBtn    = document.getElementById('forgot-btn');
-const resetBtn     = document.getElementById('reset-btn');
-const authEmail    = document.getElementById('auth-email');
-const authPassword = document.getElementById('auth-password');
-const authError    = document.getElementById('auth-error');
-const forgotSec    = document.getElementById('forgot-section');
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+const cardExpert    = document.getElementById('card-expert');
+const cardAffiliate = document.getElementById('card-affiliate');
+const step1Btn      = document.getElementById('step-1-btn');
+const step1El       = document.getElementById('step-1');
+const step2El       = document.getElementById('step-2');
+const backBtn       = document.getElementById('back-btn');
+const changeBtn     = document.getElementById('change-btn');
+const signinBtn     = document.getElementById('signin-btn');
+const forgotBtn     = document.getElementById('forgot-btn');
+const resetBtn      = document.getElementById('reset-btn');
+const authEmail     = document.getElementById('auth-email');
+const authPassword  = document.getElementById('auth-password');
+const authError     = document.getElementById('auth-error');
+const forgotSec     = document.getElementById('forgot-section');
 
-// ── Mode selection ────────────────────────────────────────────────────
+// ── Mode selection ────────────────────────────────────────────────────────────
 function selectMode(mode) {
   selectedMode = mode;
+
+  // Update card styles
   cardExpert.className    = 'mode-card expert'    + (mode === 'expert'    ? ' selected-expert'    : '');
   cardAffiliate.className = 'mode-card affiliate' + (mode === 'affiliate' ? ' selected-affiliate' : '');
-  step1Btn.disabled       = false;
-  step1Btn.className      = 'auth-btn' + (mode === 'expert' ? ' teal' : '');
-  step1Btn.textContent    = mode === 'expert' ? 'Continue as Expert →' : 'Continue as Affiliate →';
+
+  // Update continue button
+  step1Btn.disabled    = false;
+  step1Btn.className   = 'auth-btn' + (mode === 'expert' ? ' teal' : '');
+  step1Btn.textContent = mode === 'expert' ? 'Continue as Expert →' : 'Continue as Affiliate →';
+
+  // ✅ Save mode to localStorage IMMEDIATELY on selection
+  // This ensures app.html gets the right mode even before sign-in completes
+  localStorage.setItem('eos_app_mode', mode);
 }
 
 cardExpert.addEventListener('click',    () => selectMode('expert'));
 cardAffiliate.addEventListener('click', () => selectMode('affiliate'));
 
-// ── Step navigation ───────────────────────────────────────────────────
+// ── Step 1 → Step 2 ───────────────────────────────────────────────────────────
 function goToStep2() {
   if (!selectedMode) return;
   step1El.style.display = 'none';
   step2El.style.display = 'block';
+
   // Update step indicators
-  document.getElementById('step-ind-1').className = 'auth-step done';
-  document.getElementById('step-dot-1').textContent = '✓';
-  document.getElementById('step-ind-2').className = 'auth-step active';
+  document.getElementById('step-ind-1').className    = 'auth-step done';
+  document.getElementById('step-dot-1').textContent  = '✓';
+  document.getElementById('step-ind-2').className    = 'auth-step active';
   document.getElementById('step-line-1').style.width = '100%';
-  // Update badge
+
+  // Update mode badge
   const isAff = selectedMode === 'affiliate';
   document.getElementById('badge-icon').textContent  = isAff ? '🔗' : '🎯';
   document.getElementById('badge-label').textContent = isAff ? 'Affiliate Mode selected' : 'Expert Mode selected';
   document.getElementById('step-2-sub').textContent  = 'Sign in to access your ' + (isAff ? 'Affiliate' : 'Expert') + ' Mode dashboard';
+
+  // Colour the sign-in button to match the mode
   signinBtn.className = 'auth-btn' + (isAff ? '' : ' teal');
   authEmail.focus();
 }
@@ -238,34 +254,39 @@ function goToStep2() {
 function goToStep1() {
   step2El.style.display = 'none';
   step1El.style.display = 'block';
-  document.getElementById('step-ind-1').className = 'auth-step active';
-  document.getElementById('step-dot-1').textContent = '1';
-  document.getElementById('step-ind-2').className = 'auth-step';
+  document.getElementById('step-ind-1').className    = 'auth-step active';
+  document.getElementById('step-dot-1').textContent  = '1';
+  document.getElementById('step-ind-2').className    = 'auth-step';
   document.getElementById('step-line-1').style.width = '0%';
+  authError.style.display = 'none';
 }
 
 step1Btn.addEventListener('click', goToStep2);
 backBtn.addEventListener('click',  goToStep1);
 changeBtn.addEventListener('click',goToStep1);
 
-// ── Sign in ───────────────────────────────────────────────────────────
+// ── Sign in ───────────────────────────────────────────────────────────────────
 async function signIn() {
   const email    = authEmail.value.trim();
   const password = authPassword.value;
-  if (!email || !password) {
-    showError('Please enter your email and password.');
-    return;
-  }
+  if (!email || !password) { showError('Please enter your email and password.'); return; }
+
   authError.style.display = 'none';
   signinBtn.disabled      = true;
   signinBtn.textContent   = 'Signing in…';
 
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    // Save mode to localStorage + Firebase
+
+    // ✅ Save chosen mode to BOTH localStorage AND Firestore before redirecting
     localStorage.setItem('eos_app_mode', selectedMode);
-    try { await setDoc(doc(db, 'users', cred.user.uid), { appMode: selectedMode }, { merge: true }); } catch(e) {}
+    try {
+      await setDoc(doc(db, 'users', cred.user.uid), { appMode: selectedMode }, { merge: true });
+    } catch(e) { /* non-blocking */ }
+
+    // ✅ Redirect to app — mode is now saved in both places
     window.location.href = 'app.html';
+
   } catch(e) {
     signinBtn.disabled    = false;
     signinBtn.textContent = 'Sign In to Execution OS';
@@ -273,10 +294,10 @@ async function signIn() {
       'auth/user-not-found':    'No account found with this email.',
       'auth/wrong-password':    'Incorrect password. Please try again.',
       'auth/invalid-email':     'Please enter a valid email address.',
-      'auth/too-many-requests': 'Too many attempts. Please wait and try again.',
-      'auth/invalid-credential':'Incorrect email or password.',
+      'auth/too-many-requests': 'Too many attempts. Please wait a few minutes.',
+      'auth/invalid-credential':'Incorrect email or password. Please check and try again.',
     };
-    showError(msgs[e.code] || 'Sign in failed: ' + e.message);
+    showError(msgs[e.code] || 'Sign in failed. Please try again.');
   }
 }
 
@@ -284,22 +305,28 @@ signinBtn.addEventListener('click', signIn);
 authPassword.addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
 
 function showError(msg) {
-  authError.textContent    = msg;
-  authError.style.display  = 'block';
+  authError.textContent   = '⚠️ ' + msg;
+  authError.style.display = 'block';
 }
 
-// ── Forgot password ───────────────────────────────────────────────────
+// ── Forgot password ───────────────────────────────────────────────────────────
 forgotBtn.addEventListener('click', () => {
   forgotSec.style.display = forgotSec.style.display === 'none' ? 'block' : 'none';
+  forgotBtn.textContent   = forgotSec.style.display === 'block' ? 'Cancel' : 'Forgot password? Reset it';
 });
 
 resetBtn.addEventListener('click', async () => {
   const email = (document.getElementById('reset-email').value || authEmail.value).trim();
-  if (!email) { alert('Enter your email address first.'); return; }
+  if (!email) { showError('Enter your email address to reset your password.'); return; }
   try {
     await sendPasswordResetEmail(auth, email);
-    alert('Reset email sent! Check your inbox.');
-  } catch(e) { alert('Error: ' + e.message); }
+    forgotSec.style.display = 'none';
+    forgotBtn.textContent   = 'Forgot password? Reset it';
+    authError.style.cssText = 'display:block;background:rgba(78,204,163,.08);border-color:rgba(78,204,163,.25);color:#4ecca3';
+    authError.textContent   = '✅ Reset email sent! Check your inbox.';
+  } catch(e) {
+    showError('Could not send reset email: ' + e.message);
+  }
 });
 </script>
 </body>
