@@ -3426,6 +3426,8 @@ button[onclick="generateOffer()"] {
 </div><!-- end app -->
 
 <script>
+window.PROXY_URL = 'https://build.skillslibry.com/api/claude';
+
 // ============================================================
 // CORE DATA
 // ============================================================
@@ -5602,7 +5604,7 @@ function adj(key,delta,target,isClose){const s=window._trackerState;if(!s)return
 const API_BASE = 'https://api.anthropic.com';
 
 async function callClaude(prompt, maxTokens) {
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  const resp = await fetch(window.PROXY_URL || 'https://build.skillslibry.com/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -5815,7 +5817,7 @@ YOUR RULES:
     prompt = body._rawPrompt || JSON.stringify(body);
   }
 
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  const resp = await fetch(window.PROXY_URL || 'https://build.skillslibry.com/api/claude', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -12761,7 +12763,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const dashNav = document.getElementById('nav-dashboard');
   if (dashNav) dashNav.classList.add('on');
   setTimeout(function() { window.renderDashboard && window.renderDashboard(); }, 100);
-  // Mode is set by onAuthStateChanged after reading saved preference — don't hardcode here
+  // mode applied by onAuthStateChanged
 });
 
 // ─── Live commission math preview on the affiliate setup form ─────────────
@@ -13189,22 +13191,37 @@ YOUR RULES:
       const ctx = buildContext();
       let reply = '';
 
-      // Direct fetch with system prompt support (callAPI doesn't support system param)
-      const directResp = await fetch(window.PROXY_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          system: buildAdvisorSystemPrompt(ctx),
-          messages: advisorHistory
-        })
-      });
-      if (directResp.ok) {
-        const directData = await directResp.json();
-        reply = (directData.content&&directData.content[0]&&directData.content[0].text)||'';
+      // Build messages with system context merged in (proxy handles rest)
+      const sysPrompt = buildAdvisorSystemPrompt(ctx);
+      const msgsToSend = advisorHistory.length > 0 ? [
+        { role: 'user', content: sysPrompt + '\n\n---\n\nUser: ' + advisorHistory[0].content },
+        ...advisorHistory.slice(1)
+      ] : [{ role: 'user', content: sysPrompt + '\n\n---\n\nGreet the user briefly and ask what they need help with today.' }];
+
+      const proxyUrl = window.PROXY_URL || 'https://build.skillslibry.com/api/claude';
+      let directResp;
+      try {
+        directResp = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            messages: msgsToSend
+          })
+        });
+        if (directResp.ok) {
+          const directData = await directResp.json();
+          reply = (directData.content&&directData.content[0]&&directData.content[0].text)||'';
+          if (!reply && directData.error) reply = '';
+        } else {
+          const errText = await directResp.text();
+          console.error('Advisor proxy error', directResp.status, errText);
+        }
+      } catch(fetchErr) {
+        console.error('Advisor fetch failed:', fetchErr);
       }
-      if (!reply) reply = 'I could not generate a response right now. Please try again.';
+      if (!reply) reply = 'Could not connect to AI advisor (status: '+(directResp?.status||'network error')+'). Please try again.';
 
       // Remove typing, add real message
       if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
@@ -13567,23 +13584,13 @@ const signOut = () => _signOut(auth);
 window._firebaseSignOut = () => _signOut(auth).then(() => { window.location.href = 'index.html'; });
 
 // ── Auth state listener ───────────────────────────────────────────────────────
-// Track whether Firebase has finished its initial auth check
-let _authResolved = false;
-
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    // Firebase can fire null briefly on first load while restoring session.
-    // Wait 2 seconds before redirecting to prevent a loop.
-    if (_authResolved) {
-      window.location.href = 'auth.html';
-    } else {
-      setTimeout(() => {
-        if (!auth.currentUser) window.location.href = 'auth.html';
-      }, 2000);
-    }
+    if (window._authDone) { window.location.href = 'auth.html'; }
+    else { setTimeout(() => { if (!auth.currentUser) window.location.href = 'auth.html'; }, 2000); }
     return;
   }
-  _authResolved = true;
+  window._authDone = true;
 
   window._currentUserUid = user.uid;
 
@@ -13719,7 +13726,7 @@ onAuthStateChanged(auth, async (user) => {
       reader.onload = async (e) => {
         const dataUrl = e.target.result;
         await setDoc(doc(db,'users',user.uid),{photoURL:dataUrl},{merge:true});
-        const imgs = ['profile-photo-img','user-avatar-img','topbar-avatar-img'];
+        const imgs = ['profile-photo-img','user-avatar-img'];
         imgs.forEach(id=>{const el=document.getElementById(id);if(el){el.src=dataUrl;el.style.display='block';}});
         if (statusEl) statusEl.textContent = '✅ Photo saved';
       };
@@ -13755,10 +13762,8 @@ function renderUserUI(user, userDocData, memberData) {
   setTxt('profile-initials-big', initials);
 
   if (photo) {
-    const topImg = document.getElementById('topbar-avatar-img');
-    if (topImg) { topImg.src=photo; topImg.style.cssText='display:block;width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;'; }
     const userImg = document.getElementById('user-avatar-img');
-    if (userImg) { userImg.src=photo; userImg.style.cssText='display:block;width:36px;height:36px;border-radius:50%;object-fit:cover;'; }
+    if (userImg) { userImg.src=photo; userImg.style.cssText='display:block;width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;'; }
     const profImg = document.getElementById('profile-photo-img');
     if (profImg) { profImg.src=photo; profImg.style.cssText='display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;position:absolute;top:0;left:0;'; }
     const ti = document.getElementById('topbar-initials');
