@@ -13677,9 +13677,13 @@ onAuthStateChanged(auth, async (user) => {
 
   // ── Check access ──────────────────────────────────────────────────────────
   const isAdmin = user.email === 'itzevan.se@gmail.com';
-  const hasAccess = isAdmin || userDocData.accessGranted || memberData.accessGranted;
+  // Accept accessGranted OR active:true (admin.html saves active:true in members collection)
+  const hasAccess = isAdmin
+    || userDocData.accessGranted
+    || memberData.accessGranted
+    || memberData.active === true;
   if (!hasAccess) {
-    window.location.href = 'index.html?error=no-access';
+    window.location.href = 'auth.html?error=no-access';
     return;
   }
 
@@ -13696,7 +13700,7 @@ onAuthStateChanged(auth, async (user) => {
   renderUserUI(user, userDocData, memberData);
 
   // ── Restore app mode — Firestore wins, then localStorage fallback ──────────
-  const savedMode = localStorage.getItem('eos_app_mode') || userDocData.appMode || 'affiliate';
+  const savedMode = localStorage.getItem('eos_app_mode') || userDocData.appMode || memberData?.appMode || 'affiliate';
   // Sync localStorage so it always matches
   localStorage.setItem('eos_app_mode', savedMode);
   // Apply mode — retry until setAppMode is available (handles timing)
