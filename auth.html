@@ -99,8 +99,6 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-
   </div>
 
   <div class="auth-panel">
-
-    <!-- STEP 1: Choose Mode -->
     <div id="step-1">
       <div class="auth-panel-title" style="text-align:center">Ready To EXECUTE?</div>
       <div class="auth-panel-sub" style="text-align:center">Choose your path — the platform fully configures to your strategy.</div>
@@ -110,20 +108,19 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-
           <div class="mode-card-icon">🎯</div>
           <div class="mode-card-title">Expert Mode</div>
           <div class="mode-card-tag">Coach · Consultant</div>
-          <div class="mode-card-desc"><strong>I sell my own High-Ticket Offer</strong><br>I coach, consult, or create courses. I own the product and keep 100% of revenue.</div>
+          <div class="mode-card-desc"><strong>I sell my own High-Ticket Offer</strong><br>I coach, consult, or create courses.</div>
         </div>
         <div class="mode-card affiliate" id="card-affiliate">
           <div class="mode-card-check">✓</div>
           <div class="mode-card-icon">🔗</div>
           <div class="mode-card-title">Affiliate Mode</div>
           <div class="mode-card-tag">Affiliate Marketer</div>
-          <div class="mode-card-desc"><strong>I promote other people's products</strong><br>I earn commissions promoting high-ticket products on Copecart or Digistore24.</div>
+          <div class="mode-card-desc"><strong>I promote other people's products</strong><br>I earn commissions on Copecart or Digistore24.</div>
         </div>
       </div>
       <button class="auth-btn" id="step-1-btn" disabled>Continue →</button>
     </div>
 
-    <!-- STEP 2: Sign In -->
     <div id="step-2">
       <button class="step-back" id="back-btn">← Back</button>
       <div class="mode-badge">
@@ -146,28 +143,33 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-
         <button class="auth-btn" id="signin-btn">Sign In to Execution OS</button>
         <div class="auth-divider">or</div>
         <button class="auth-link" id="forgot-btn">Forgot password? Reset it</button>
-        <div id="forgot-section" style="display:none;margin-top:4px">
+        <div id="forgot-section" style="display:none;margin-top:8px;">
           <div class="form-group">
             <label class="form-label">Email for reset</label>
             <input type="email" id="reset-email" class="form-input" placeholder="Enter your email">
           </div>
-          <button class="auth-btn" id="reset-btn" style="margin-top:8px;background:rgba(255,255,255,.08);box-shadow:none;border:1px solid rgba(255,255,255,.1)">Send Reset Email</button>
+          <button class="auth-btn" id="reset-btn" style="margin-top:8px;background:rgba(255,255,255,.08);box-shadow:none;border:1px solid rgba(255,255,255,.1);">Send Reset Email</button>
         </div>
       </div>
     </div>
-
   </div>
-  <div class="auth-footer">By signing in you agree to our Terms of Service.<br>Not a member? Contact your coach to get access.</div>
+  <div class="auth-footer">
+    By signing in you agree to our Terms of Service.<br>
+    Not a member? Contact your coach to get access.<br>
+    <span style="color:rgba(255,255,255,.15);font-size:9px;">v2026-04-26 16:36</span>
+  </div>
 </div>
 
 <script type="module">
 import { initializeApp }                              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword,
-         sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, setDoc }                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+         onAuthStateChanged }                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc }                from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const API_KEY = "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSF5B482TX0";
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSF5B482TX0",
+  apiKey:            API_KEY,
   authDomain:        "execution-os-1fbfd.firebaseapp.com",
   projectId:         "execution-os-1fbfd",
   storageBucket:     "execution-os-1fbfd.firebasestorage.app",
@@ -179,19 +181,14 @@ const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-// ── If already logged in, send them to app WITH their saved mode ──────────────
+// If already logged in go straight to app
 onAuthStateChanged(auth, user => {
-  if (user) {
-    // They're already logged in — keep their saved mode and go to app
-    // (Don't override their mode — they chose it last time)
-    window.location.href = 'app.html';
-  }
+  if (user) window.location.href = 'app.html';
 });
 
-// ── State ─────────────────────────────────────────────────────────────────────
+// ── State ──────────────────────────────────────────────────────────────────
 let selectedMode = null;
 
-// ── DOM refs ──────────────────────────────────────────────────────────────────
 const cardExpert    = document.getElementById('card-expert');
 const cardAffiliate = document.getElementById('card-affiliate');
 const step1Btn      = document.getElementById('step-1-btn');
@@ -207,46 +204,33 @@ const authPassword  = document.getElementById('auth-password');
 const authError     = document.getElementById('auth-error');
 const forgotSec     = document.getElementById('forgot-section');
 
-// ── Mode selection ────────────────────────────────────────────────────────────
+// ── Mode selection ─────────────────────────────────────────────────────────
 function selectMode(mode) {
   selectedMode = mode;
-
-  // Update card styles
-  cardExpert.className    = 'mode-card expert'    + (mode === 'expert'    ? ' selected-expert'    : '');
-  cardAffiliate.className = 'mode-card affiliate' + (mode === 'affiliate' ? ' selected-affiliate' : '');
-
-  // Update continue button
-  step1Btn.disabled    = false;
-  step1Btn.className   = 'auth-btn' + (mode === 'expert' ? ' teal' : '');
-  step1Btn.textContent = mode === 'expert' ? 'Continue as Expert →' : 'Continue as Affiliate →';
-
-  // ✅ Save mode to localStorage IMMEDIATELY on selection
-  // This ensures app.html gets the right mode even before sign-in completes
   localStorage.setItem('eos_app_mode', mode);
+  cardExpert.className    = 'mode-card expert'    + (mode==='expert'    ? ' selected-expert'    : '');
+  cardAffiliate.className = 'mode-card affiliate' + (mode==='affiliate' ? ' selected-affiliate' : '');
+  step1Btn.disabled    = false;
+  step1Btn.className   = 'auth-btn' + (mode==='expert' ? ' teal' : '');
+  step1Btn.textContent = mode==='expert' ? 'Continue as Expert →' : 'Continue as Affiliate →';
 }
 
 cardExpert.addEventListener('click',    () => selectMode('expert'));
 cardAffiliate.addEventListener('click', () => selectMode('affiliate'));
 
-// ── Step 1 → Step 2 ───────────────────────────────────────────────────────────
+// ── Step navigation ────────────────────────────────────────────────────────
 function goToStep2() {
   if (!selectedMode) return;
   step1El.style.display = 'none';
   step2El.style.display = 'block';
-
-  // Update step indicators
   document.getElementById('step-ind-1').className    = 'auth-step done';
   document.getElementById('step-dot-1').textContent  = '✓';
   document.getElementById('step-ind-2').className    = 'auth-step active';
   document.getElementById('step-line-1').style.width = '100%';
-
-  // Update mode badge
   const isAff = selectedMode === 'affiliate';
   document.getElementById('badge-icon').textContent  = isAff ? '🔗' : '🎯';
   document.getElementById('badge-label').textContent = isAff ? 'Affiliate Mode selected' : 'Expert Mode selected';
   document.getElementById('step-2-sub').textContent  = 'Sign in to access your ' + (isAff ? 'Affiliate' : 'Expert') + ' Mode dashboard';
-
-  // Colour the sign-in button to match the mode
   signinBtn.className = 'auth-btn' + (isAff ? '' : ' teal');
   authEmail.focus();
 }
@@ -263,9 +247,14 @@ function goToStep1() {
 
 step1Btn.addEventListener('click', goToStep2);
 backBtn.addEventListener('click',  goToStep1);
-changeBtn.addEventListener('click',goToStep1);
+changeBtn.addEventListener('click', goToStep1);
 
-// ── Sign in ───────────────────────────────────────────────────────────────────
+// ── Sign in ────────────────────────────────────────────────────────────────
+function showError(msg) {
+  authError.textContent   = '⚠️ ' + msg;
+  authError.style.display = 'block';
+}
+
 async function signIn() {
   const email    = authEmail.value.trim();
   const password = authPassword.value;
@@ -277,16 +266,11 @@ async function signIn() {
 
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
-
-    // ✅ Save chosen mode to BOTH localStorage AND Firestore before redirecting
-    localStorage.setItem('eos_app_mode', selectedMode);
+    localStorage.setItem('eos_app_mode', selectedMode || 'affiliate');
     try {
-      await setDoc(doc(db, 'users', cred.user.uid), { appMode: selectedMode }, { merge: true });
-    } catch(e) { /* non-blocking */ }
-
-    // ✅ Redirect to app — mode is now saved in both places
+      await setDoc(doc(db, 'users', cred.user.uid), { appMode: selectedMode || 'affiliate' }, { merge: true });
+    } catch(e) {}
     window.location.href = 'app.html';
-
   } catch(e) {
     signinBtn.disabled    = false;
     signinBtn.textContent = 'Sign In to Execution OS';
@@ -297,36 +281,32 @@ async function signIn() {
       'auth/too-many-requests': 'Too many attempts. Please wait a few minutes.',
       'auth/invalid-credential':'Incorrect email or password. Please check and try again.',
     };
-    showError(msgs[e.code] || 'Sign in failed. Please try again.');
+    showError(msgs[e.code] || 'Sign in failed: ' + e.code);
   }
 }
 
 signinBtn.addEventListener('click', signIn);
-authPassword.addEventListener('keydown', e => { if (e.key === 'Enter') signIn(); });
+authPassword.addEventListener('keydown', e => { if (e.key==='Enter') signIn(); });
 
-function showError(msg) {
-  authError.textContent   = '⚠️ ' + msg;
-  authError.style.display = 'block';
-}
-
-// ── Forgot password ───────────────────────────────────────────────────────────
+// ── Forgot password toggle ─────────────────────────────────────────────────
 forgotBtn.addEventListener('click', () => {
-  forgotSec.style.display = forgotSec.style.display === 'none' ? 'block' : 'none';
-  forgotBtn.textContent   = forgotSec.style.display === 'block' ? 'Cancel' : 'Forgot password? Reset it';
+  const isHidden = forgotSec.style.display === 'none';
+  forgotSec.style.display = isHidden ? 'block' : 'none';
+  forgotBtn.textContent   = isHidden ? 'Cancel' : 'Forgot password? Reset it';
 });
 
+// ── Password reset — direct REST API (no SDK, no api-key-not-valid) ────────
 resetBtn.addEventListener('click', async () => {
   const email = (document.getElementById('reset-email').value || authEmail.value).trim();
   if (!email) { showError('Enter your email address to reset your password.'); return; }
 
-  const btn = document.getElementById('reset-btn');
-  if (btn) { btn.disabled = true; btn.textContent = 'Sending…'; }
+  resetBtn.disabled    = true;
+  resetBtn.textContent = 'Sending…';
+  authError.style.display = 'none';
 
   try {
-    // Direct REST call — bypasses Firebase SDK entirely, avoids api-key-not-valid
-    const apiKey = firebaseConfig.apiKey;
     const res = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${apiKey}`,
+      'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=' + API_KEY,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -338,102 +318,21 @@ resetBtn.addEventListener('click', async () => {
       }
     );
     const data = await res.json();
-    if (!res.ok) {
-      const errMsg = data.error?.message || 'Failed to send reset email.';
-      throw new Error(errMsg);
-    }
+    if (!res.ok) throw new Error(data.error?.message || 'UNKNOWN_ERROR');
+
+    // Success
     forgotSec.style.display = 'none';
     forgotBtn.textContent   = 'Forgot password? Reset it';
     authError.style.cssText = 'display:block;background:rgba(78,204,163,.08);border-color:rgba(78,204,163,.25);color:#4ecca3';
     authError.textContent   = '✅ Reset email sent! Check your inbox (and spam folder).';
   } catch(e) {
+    authError.style.cssText = '';
     showError('Could not send reset email: ' + e.message);
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = 'Send Reset Email'; }
+    resetBtn.disabled    = false;
+    resetBtn.textContent = 'Send Reset Email';
   }
 });
-
-// ── Handle password reset confirmation link ────────────────────────────────
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  const mode   = params.get('mode');
-  const oobCode= params.get('oobCode');
-
-  if (mode === 'resetPassword' && oobCode) {
-    // Hide the normal login flow, show a "Set New Password" panel
-    document.getElementById('step-1').style.display = 'none';
-    document.getElementById('step-2').style.display = 'none';
-    document.getElementById('auth-steps').style.display = 'none';
-
-    const panel = document.querySelector('.auth-panel');
-    panel.innerHTML = `
-      <div class="auth-panel-title">Set New Password</div>
-      <div class="auth-panel-sub">Enter your new password below.</div>
-      <div class="auth-form">
-        <div class="form-group">
-          <label class="form-label">New Password</label>
-          <input type="password" id="new-password" class="form-input" placeholder="Enter new password (min 6 chars)" minlength="6">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Confirm Password</label>
-          <input type="password" id="confirm-password" class="form-input" placeholder="Confirm new password">
-        </div>
-        <div class="auth-error" id="reset-confirm-error"></div>
-        <button class="auth-btn" id="set-password-btn">Set New Password</button>
-      </div>
-    `;
-
-    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(({ confirmPasswordReset, verifyPasswordResetCode }) => {
-      // Verify the code is valid first
-      verifyPasswordResetCode(auth, oobCode).catch(() => {
-        const errEl = document.getElementById('reset-confirm-error');
-        if (errEl) {
-          errEl.textContent = '⚠️ This reset link has expired or already been used. Please request a new one.';
-          errEl.style.display = 'block';
-        }
-        const btn = document.getElementById('set-password-btn');
-        if (btn) btn.disabled = true;
-      });
-
-      document.getElementById('set-password-btn').addEventListener('click', async () => {
-        const pw  = document.getElementById('new-password').value;
-        const pw2 = document.getElementById('confirm-password').value;
-        const errEl = document.getElementById('reset-confirm-error');
-
-        errEl.style.display = 'none';
-        if (!pw || pw.length < 6) {
-          errEl.textContent = '⚠️ Password must be at least 6 characters.';
-          errEl.style.display = 'block'; return;
-        }
-        if (pw !== pw2) {
-          errEl.textContent = '⚠️ Passwords do not match.';
-          errEl.style.display = 'block'; return;
-        }
-
-        const btn = document.getElementById('set-password-btn');
-        btn.disabled = true; btn.textContent = 'Saving…';
-
-        try {
-          await confirmPasswordReset(auth, oobCode, pw);
-          // Success — redirect to login
-          panel.innerHTML = `
-            <div style="text-align:center;padding:1rem 0">
-              <div style="font-size:40px;margin-bottom:12px">✅</div>
-              <div class="auth-panel-title">Password Updated!</div>
-              <div class="auth-panel-sub" style="margin-bottom:1.5rem">Your password has been reset successfully. You can now sign in.</div>
-              <button class="auth-btn" onclick="window.location.href='auth.html'">Sign In Now</button>
-            </div>
-          `;
-        } catch(e) {
-          btn.disabled = false; btn.textContent = 'Set New Password';
-          errEl.textContent = '⚠️ ' + (e.message || 'Failed to reset password. Please try again.');
-          errEl.style.display = 'block';
-        }
-      });
-    });
-  }
-})();
-
 </script>
 </body>
 </html>
