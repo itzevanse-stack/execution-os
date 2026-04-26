@@ -13052,178 +13052,49 @@ if (document.readyState !== 'loading') {
 // ─── AI Strategist / Advisor ──────────────────────────────────────────────
 (function() {
   let advisorHistory = [];
-  const MAX_HISTORY = 20;
+  let advisorMode    = null;  // tracks which mode the history belongs to
+  const MAX_HISTORY  = 20;
 
-  // Build system prompt for E-OS Intelligent
-  function buildAdvisorSystemPrompt(ctx) {
-    const av      = ctx.avatar  || {};
-    const off     = ctx.offer   || {};
-    const aff     = ctx.affOffer|| {};
-    const isAff   = ctx.mode === 'affiliate';
-
-    // ── Build user's business snapshot ──────────────────────────────────────
-    let bizSnapshot = '';
-    if (isAff) {
-      bizSnapshot = `
-BUSINESS TYPE: Affiliate Marketing
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Product they promote: ${aff.name || 'NOT SET — tell them to complete Offer Setup'}
-Commission per sale: ${aff.commission ? '$'+aff.commission : 'NOT SET'}
-Monthly revenue target: ${aff.monthlyTarget || ctx.target ? '$'+(aff.monthlyTarget||ctx.target).toLocaleString() : 'NOT SET'}
-Niche: ${aff.niche || ctx.niche || 'NOT SET'}
-Target audience: ${aff.buyer || av.job || 'NOT SET'}
-Audience pain point: ${aff.pain || av.pain || 'NOT SET'}
-Audience desired result: ${aff.transformation || av.transformation || 'NOT SET'}
-Traffic strategy: ${ctx.trafficMode || 'organic'}
-Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days planned' : 'NOT GENERATED — they need to create it'}`;
-    } else {
-      bizSnapshot = `
-BUSINESS TYPE: Expert / High-Ticket Offer Owner
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Offer name: ${off.headline || 'NOT SET — tell them to complete Offer Creation (Step 2)'}
-Offer price: ${ctx.price ? '$'+Number(ctx.price).toLocaleString() : 'NOT SET — tell them to set it in Revenue Plan (Step 1)'}
-Monthly revenue target: ${ctx.target ? '$'+Number(ctx.target).toLocaleString() : 'NOT SET'}
-Niche: ${ctx.niche || 'NOT SET — tell them to complete Revenue Plan (Step 1)'}
-Ideal client role/title: ${av.job || 'NOT SET — tell them to complete Ideal Customer (Step 3)'}
-Client current struggle: ${av.pain || 'NOT SET'}
-Client desired transformation: ${av.transformation || 'NOT SET'}
-Client biggest fear: ${av.fear || 'NOT SET'}
-Client core motivation: ${av.motivation || 'NOT SET'}
-Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days planned' : 'NOT GENERATED — send them to Content Calendar (Step 4)'}`;
-    }
-
-    // ── Sections in the app they can be directed to ──────────────────────────
-    const appSections = isAff ? `
-APP SECTIONS YOU CAN DIRECT THEM TO:
-- "Go to Offer Setup" → to enter their affiliate product, commission, niche
-- "Go to Content Calendar" → to generate their 30-day content plan
-- "Go to DM & Sales" → to get DM scripts and sales sequences
-- "Go to Daily Routine" → to build their daily execution routine
-- "Go to Daily Tracker" → to log their daily activity (posts, DMs, closes)
-- "Go to Performance HQ" → to review their numbers and health score
-- "Go to E-OS Intelligent" → they're already here` :
-`APP SECTIONS YOU CAN DIRECT THEM TO:
-- "Go to Revenue Plan (Step 1)" → to set niche, price, and monthly target
-- "Go to Offer Creation (Step 2)" → to build and name their high-ticket offer
-- "Go to Ideal Customer (Step 3)" → to define their dream client avatar
-- "Go to Content Calendar (Step 4)" → to generate a 30-day content plan
-- "Go to DM & Sales (Step 5)" → to get outreach scripts and closing frameworks
-- "Go to Daily Routine (Step 6)" → to build a high-performance daily schedule
-- "Go to Daily Tracker" → to log daily activity and stay on track
-- "Go to Performance HQ" → to review scores, milestones, and momentum`;
-
-    return `You are E-OS Intelligent — the elite AI business advisor and accountability coach inside Execution OS.
-
-You are not a chatbot. You are a world-class coach who operates like a mix of Alex Hormozi, Dan Koe, and a no-excuses mentor. You know this user's business inside out. You are direct, motivating, persuasive, and you hold people accountable.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-USER'S CURRENT BUSINESS DATA
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${bizSnapshot}
-
-${appSections}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-YOUR PERSONALITY & COACHING STYLE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- You are a MOTIVATOR. Every response should leave the user feeling fired up and ready to act.
-- You are DIRECT. No fluff, no padding, no "great question!" openers. Get straight to the point.
-- You are PERSUASIVE. You help users see what's possible for them specifically. Paint the picture of their success vividly.
-- You are an ACCOUNTABILITY PARTNER. If they mention they haven't done something, call them out (with love), and remind them what's at stake.
-- You speak in plain, powerful language. Short punchy sentences mixed with depth when needed.
-- You reference their specific numbers, niche, offer, and audience in every answer — never generic advice.
-- You care deeply about their results. Every answer is designed to move them forward TODAY.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HOW TO HANDLE DIFFERENT REQUESTS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MINDSET QUESTIONS → Give them a real mindset shift. Use reframes, truth bombs, and perspective shifts. Make them feel unstoppable.
-
-BUSINESS STRATEGY → Give them a clear, specific, numbered action plan. Reference their niche and offer price. Make it feel custom-built.
-
-ACCOUNTABILITY → If they tell you they're stuck, procrastinating, or haven't done tasks — don't be soft. Tell them the truth. Remind them why they started. Give them ONE action to do right now.
-
-MOTIVATION → Be their hype person but grounded. Show them the math of their goal. e.g. "You need ${ctx.target ? Math.ceil(Number(ctx.target)/(ctx.price||500)) : 'X'} clients at ${ctx.price ? '$'+Number(ctx.price).toLocaleString() : 'your price'} — that's it. That's the whole game."
-
-IF SOMETHING IS NOT SET IN THEIR PROFILE → Don't just say "I don't know." Tell them exactly where to go to fix it. e.g. "You haven't set your offer price yet — head to Revenue Plan (Step 1) and set that now. Come back and I'll help you build your whole strategy around it."
-
-OFFER / IDEAL CLIENT / CONTENT / ROUTINE HELP → Direct them to the right section of the app first, then give them a taste of what they'll build. Don't do the full setup for them — that's what the app sections are for.
-
-QUESTIONS OUTSIDE THE SYSTEM (mindset, general business, life, productivity) → Answer fully and powerfully. You are their coach in all areas of business and mindset. You are not limited to just the app features.
-
-SCRIPTS / POSTS / DMs → Write the actual thing. Complete. Ready to use. Tailored to their niche and audience.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-RULES YOU NEVER BREAK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Never start a response with "Great question", "Of course", "Certainly", or any hollow opener.
-2. Never give advice that isn't specific to this user's situation.
-3. Never be vague. Every response must end with a clear next action.
-4. Never let them make excuses without acknowledging it and redirecting them.
-5. Always reference their numbers when relevant — their offer price, target, niche, audience.
-6. If their profile data is missing (shows NOT SET), always tell them which section to complete first.
-7. Keep responses focused and scannable — use short paragraphs, bold key points, and numbered steps when giving plans.`;
+  // ── Mode-specific localStorage keys ─────────────────────────────────────
+  function historyKey() {
+    return 'eos_advisor_history_' + (window._appMode || 'affiliate');
   }
 
-    // Build context from user's data
-  function buildContext() {
-    const av  = window._avatarData    || {};
-    const off = window._aiOfferData   || {};
-    const aff = window._affiliateOffer|| {};
-    return {
-      mode:       window._appMode        || 'expert',
-      niche:      window._appliedNiche   || '',
-      price:      window._appliedPrice   || 0,
-      target:     window._appliedTarget  || 0,
-      avatar:     av,
-      offer:      off,
-      affOffer:   aff,
-      trafficMode:window._affTrafficMode || 'organic',
-      calDays:    window._aiCalendar30   ? window._aiCalendar30.length : 0,
-    };
+  // ── Save history to localStorage (mode-specific) ─────────────────────────
+  function saveHistory() {
+    try { localStorage.setItem(historyKey(), JSON.stringify(advisorHistory)); } catch(e) {}
   }
 
-  // Format markdown-lite: **bold**, *em*, bullet points
+  // ── Format markdown-lite ──────────────────────────────────────────────────
   function formatMsg(text) {
     return text
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
       .replace(/\*(.+?)\*/g, '<em>$1</em>')
       .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="font-size:13px;color:var(--white);display:block;margin-top:8px">$1</strong>')
-      .replace(/^[-•]\s+(.+)$/gm, '<span style="display:block;padding-left:12px;position:relative"><span style="position:absolute;left:2px;color:var(--purple)">→</span>$1</span>')
-      .replace(/\n\n/g, '<br><br>')
+      .replace(/^[-•]\s+(.+)$/gm, '<span style="display:block;padding-left:12px;position:relative"><span style="position:absolute;left:0">•</span>$1</span>')
       .replace(/\n/g, '<br>');
   }
 
-  // Render a message bubble
-  function appendMsg(role, text, isTyping) {
+  // ── Append a message bubble ───────────────────────────────────────────────
+  function appendMsg(role, content, isTyping) {
     const msgs = document.getElementById('advisor-messages');
-    if (!msgs) return;
-
+    if (!msgs) return null;
     const div = document.createElement('div');
-    div.className = 'adv-msg adv-msg-' + (role === 'user' ? 'user' : 'ai');
-
+    div.style.cssText = 'display:flex;gap:10px;align-items:flex-start;' + (role === 'user' ? 'flex-direction:row-reverse' : '');
     const avatar = document.createElement('div');
-    avatar.className = 'adv-avatar';
-    avatar.textContent = role === 'user' ? '👤' : '🧠';
-
+    avatar.style.cssText = 'width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;' +
+      (role === 'user' ? 'background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff' : 'background:linear-gradient(135deg,#1a1a3e,#2c2c54);border:1px solid rgba(78,204,163,.3);color:var(--teal)');
+    avatar.textContent = role === 'user' ? '👤' : '⚡';
     const bubble = document.createElement('div');
-    bubble.className = 'adv-bubble';
-
-    const name = document.createElement('div');
-    name.className = 'adv-name';
-    name.textContent = role === 'user' ? 'You' : 'Execution OS';
-
-    const textDiv = document.createElement('div');
-    textDiv.className = 'adv-text';
-
+    bubble.style.cssText = 'max-width:85%;padding:12px 16px;border-radius:' + (role === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px') + ';font-size:13px;line-height:1.6;' +
+      (role === 'user'
+        ? 'background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff'
+        : 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted)');
     if (isTyping) {
-      textDiv.innerHTML = '<div class="adv-typing"><span></span><span></span><span></span></div>';
+      bubble.innerHTML = '<span style="opacity:.5">E-OS is thinking<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></span>';
     } else {
-      textDiv.innerHTML = formatMsg(text);
+      bubble.innerHTML = formatMsg(content);
     }
-
-    bubble.appendChild(name);
-    bubble.appendChild(textDiv);
     div.appendChild(avatar);
     div.appendChild(bubble);
     msgs.appendChild(div);
@@ -13231,178 +13102,253 @@ RULES YOU NEVER BREAK
     return div;
   }
 
-  // Send message
-  window.advisorSend = async function(overrideText) {
-    const input   = document.getElementById('advisor-input');
-    const sendBtn = document.getElementById('advisor-send-btn');
-    const text    = overrideText || (input ? input.value.trim() : '');
-    if (!text) return;
+  // ── Build context from live app data ─────────────────────────────────────
+  function buildContext() {
+    const av  = window._avatarData     || {};
+    const off = window._aiOfferData    || {};
+    const aff = window._affiliateOffer || {};
+    return {
+      mode:        window._appMode         || 'affiliate',
+      niche:       window._appliedNiche    || '',
+      price:       window._appliedPrice    || 0,
+      target:      window._appliedTarget   || 0,
+      avatar:      av,
+      offer:       off,
+      affOffer:    aff,
+      trafficMode: window._affTrafficMode  || 'organic',
+      calDays:     window._aiCalendar30    ? window._aiCalendar30.length : 0,
+    };
+  }
 
-    // Clear input
-    if (input && !overrideText) { input.value = ''; input.style.height = 'auto'; }
-    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '…'; }
+  // ── Build the full personalised system prompt ─────────────────────────────
+  function buildAdvisorSystemPrompt(ctx) {
+    const av    = ctx.avatar  || {};
+    const off   = ctx.offer   || {};
+    const aff   = ctx.affOffer|| {};
+    const isAff = ctx.mode === 'affiliate';
 
-    // Hide starters after first message
-    const starters = document.getElementById('advisor-starters');
-    if (starters) starters.style.display = 'none';
-
-    // Add user message
-    appendMsg('user', text);
-    advisorHistory.push({ role: 'user', content: text });
-    if (advisorHistory.length > MAX_HISTORY) advisorHistory.splice(0, 2);
-
-    // Show typing indicator
-    const typingEl = appendMsg('ai', '', true);
-
-    try {
-      // Pass full conversation history + business context
-      const ctx = buildContext();
-      let reply = '';
-
-      // Build messages with system prompt merged into first user message
-      const sysPrompt   = buildAdvisorSystemPrompt(ctx);
-      const msgsToSend  = advisorHistory.length > 0
-        ? [{ role: 'user', content: sysPrompt + '\n\n---\n\nUSER MESSAGE: ' + advisorHistory[0].content }, ...advisorHistory.slice(1)]
-        : [{ role: 'user', content: sysPrompt + '\n\n---\n\nGreet the user by name if possible, introduce yourself as E-OS Intelligent, and ask what they need help with today. Be energetic and motivating.' }];
-
-      const proxyUrl = window.PROXY_URL || 'https://build.skillslibry.com/api/claude';
-      let directResp;
-      try {
-        directResp = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1500,
-            messages: msgsToSend
-          })
-        });
-        if (directResp.ok) {
-          const directData = await directResp.json();
-          reply = (directData.content&&directData.content[0]&&directData.content[0].text)||'';
-        } else {
-          const errText = await directResp.text();
-          console.error('Advisor proxy error:', directResp.status, errText);
-        }
-      } catch(fetchErr) {
-        console.error('Advisor fetch failed:', fetchErr);
-      }
-      if (!reply) reply = '⚠️ Could not reach AI advisor (status: '+(directResp?.status||'network error')+'). Make sure the /api/claude proxy is deployed on Vercel.';
-
-      // Remove typing, add real message
-      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
-      appendMsg('ai', reply);
-      advisorHistory.push({ role: 'assistant', content: reply });
-
-      // Save to localStorage
-      try { localStorage.setItem('eos_advisor_history', JSON.stringify(advisorHistory.slice(-10))); } catch(e) {}
-
-    } catch(e) {
-      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
-      appendMsg('ai', '⚠️ Connection issue: ' + e.message + '\n\nPlease try again.');
+    let bizSnapshot = '';
+    if (isAff) {
+      bizSnapshot = `
+BUSINESS TYPE: Affiliate Marketing
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Product they promote: ${aff.name || 'NOT SET — tell them to complete Offer Setup'}
+Commission per sale: ${aff.commission ? '$'+Number(aff.commission).toLocaleString() : 'NOT SET'}
+Monthly revenue target: $${Number(aff.monthlyTarget || ctx.target || 0).toLocaleString()}
+Niche: ${aff.niche || ctx.niche || 'NOT SET'}
+Target audience: ${aff.buyer || av.job || 'NOT SET'}
+Audience pain point: ${aff.pain || av.pain || 'NOT SET'}
+Audience desired result: ${aff.transformation || av.transformation || 'NOT SET'}
+Traffic strategy: ${ctx.trafficMode || 'organic content'}
+Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days planned' : 'NOT GENERATED'}`;
+    } else {
+      bizSnapshot = `
+BUSINESS TYPE: Expert / High-Ticket Offer Owner
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Offer name: ${off.headline || 'NOT SET — tell them to complete Offer Creation (Step 2)'}
+Offer price: ${ctx.price ? '$'+Number(ctx.price).toLocaleString() : 'NOT SET — tell them to set it in Revenue Plan (Step 1)'}
+Monthly revenue target: ${ctx.target ? '$'+Number(ctx.target).toLocaleString() : 'NOT SET'}
+Niche: ${ctx.niche || 'NOT SET'}
+Ideal client role: ${av.job || 'NOT SET'}
+Client current struggle: ${av.pain || 'NOT SET'}
+Client desired transformation: ${av.transformation || 'NOT SET'}
+Client biggest fear: ${av.fear || 'NOT SET'}
+Client core motivation: ${av.motivation || 'NOT SET'}
+Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days planned' : 'NOT GENERATED'}`;
     }
 
-    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send ⚡'; }
-  };
+    const appSections = isAff
+      ? `APP SECTIONS TO DIRECT THEM TO:
+- "Go to Offer Setup" → enter their affiliate product, commission, niche, audience
+- "Go to Content Calendar" → generate 30-day content plan for their niche
+- "Go to DM & Sales" → get DM scripts and closing sequences
+- "Go to Daily Routine" → build their daily affiliate execution schedule
+- "Go to Daily Tracker" → log posts, DMs, clicks, closes daily
+- "Go to Performance HQ" → review numbers and health score`
+      : `APP SECTIONS TO DIRECT THEM TO:
+- "Go to Revenue Plan (Step 1)" → set niche, price, monthly target
+- "Go to Offer Creation (Step 2)" → build and name their high-ticket offer
+- "Go to Ideal Customer (Step 3)" → define dream client avatar
+- "Go to Content Calendar (Step 4)" → generate 30-day content plan
+- "Go to DM & Sales (Step 5)" → get outreach scripts and closing frameworks
+- "Go to Daily Routine (Step 6)" → build high-performance daily schedule
+- "Go to Daily Tracker" → log daily activity
+- "Go to Performance HQ" → review scores and momentum`;
 
-  // Clear conversation
-  window.advisorClear = function() {
-    advisorHistory = [];
-    try { localStorage.removeItem('eos_advisor_history'); } catch(e) {}
-    const msgs = document.getElementById('advisor-messages');
-    if (msgs) msgs.innerHTML = '';
-    try { localStorage.removeItem('eos_advisor_history'); } catch(e) {}
-    initAdvisor();
-  };
+    const salesMath = isAff
+      ? (ctx.target && aff.commission ? `THEIR SALES MATH: They need ${Math.ceil(Number(ctx.target)/Number(aff.commission))} sales at $${Number(aff.commission).toLocaleString()} commission to hit $${Number(ctx.target).toLocaleString()}/month.` : '')
+      : (ctx.target && ctx.price ? `THEIR SALES MATH: They need ${Math.ceil(Number(ctx.target)/Number(ctx.price))} clients at $${Number(ctx.price).toLocaleString()} to hit $${Number(ctx.target).toLocaleString()}/month. That is it. That is the whole game.` : '');
 
-  // Build dynamic quick starters based on user data
+    return `You are E-OS Intelligent — the elite AI business advisor and accountability coach inside Execution OS.
+
+You are NOT a chatbot. You are a world-class coach — think Alex Hormozi meets Dan Koe meets a no-excuses accountability partner. You know this user's business inside out. Every single answer you give is built around THEIR specific data below.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THIS USER'S LIVE BUSINESS DATA
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${bizSnapshot}
+
+${salesMath}
+
+${appSections}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+YOUR COACHING STYLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+- DIRECT: No hollow openers. Get straight to the point.
+- PERSONALISED: Every answer references their niche, product, audience, numbers. Never generic.
+- MOTIVATING: Leave them fired up and ready to act immediately.
+- ACCOUNTABLE: If they mention they haven't done something, call it out and give them ONE action right now.
+- PERSUASIVE: Paint the picture of what is possible for them specifically. Use their real numbers.
+- SPECIFIC: Mention their actual niche, their actual product, their actual audience in your answers.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+HOW TO RESPOND
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MINDSET → Real reframes. Truth bombs. Make them feel unstoppable.
+STRATEGY → Numbered action plan. Reference their niche, product, audience, price.
+STUCK / PROCRASTINATING → Call it out with love. Give one action to do right now.
+MOTIVATION → Show them the math of their goal using THEIR real numbers above.
+MISSING DATA → Tell them exactly which app section to complete. Be specific.
+OFFER / CONTENT / ROUTINE → Direct to the right section first, then give a taste.
+OUTSIDE THE SYSTEM → Answer fully. You are their coach in all areas.
+SCRIPTS / POSTS / DMs → Write the complete thing. Tailored to their niche and audience.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+RULES YOU NEVER BREAK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Never start with "Great question", "Of course", "Certainly".
+2. Never give advice that could apply to anyone. Always make it specific to THIS user.
+3. Always end with a clear next action.
+4. Never ignore an excuse — acknowledge and redirect.
+5. Always use their real numbers when motivating them.
+6. If data shows NOT SET, tell them exactly where to set it.
+7. Keep responses scannable — short paragraphs, bold key points, numbered steps.`;
+  }
+
+  // ── Build mode-specific starter questions ────────────────────────────────
   function buildStarters() {
     const ctx   = buildContext();
     const niche = ctx.niche || 'your niche';
     const mode  = ctx.mode;
     const price = ctx.price ? '$' + Number(ctx.price).toLocaleString() : 'your offer';
     const av    = ctx.avatar || {};
+    const aff   = ctx.affOffer || {};
     const job   = av.job || 'your ideal client';
+    const product = aff.name || 'your product';
 
     const expert = [
       'Why am I not getting consistent leads in ' + niche + '?',
-      'Give me my exact DM script to book a discovery call at ' + price,
-      'What content should I be posting every day this week?',
+      'Give me a DM script to book discovery calls at ' + price,
+      'What should I post every day this week for ' + (av.job || 'my audience') + '?',
       'How do I handle the objection "I need to think about it"?',
-      'Build me a 30-day content plan that fills my calendar',
-      'What should I be doing TODAY to hit my monthly target?',
-      'How do I position my offer against cheaper competitors?',
-      'Why are people not converting from my content to DMs?',
+      'What should I do TODAY to move closer to my monthly target?',
+      'How do I position my ' + price + ' offer against cheaper alternatives?',
+      'Write me a hook for a post about ' + (av.pain || 'the struggle my clients face'),
+      'Hold me accountable — what tasks should I complete today?',
     ];
 
     const affiliate = [
-      'How do I warm up a cold audience before promoting the product?',
-      'Give me my DM outreach script for this affiliate offer',
-      'What content gets the most clicks on affiliate links?',
-      'How many DMs a day do I need to hit my commission target?',
-      'What is the biggest mistake new affiliate marketers make?',
-      'How do I build trust before asking people to buy?',
-      'Give me a 7-day content strategy for this product launch',
-      'What do I say when someone asks "is this a scam?"',
+      'How do I get more clicks on my ' + product + ' link?',
+      'Write me a viral hook for ' + niche + ' content today',
+      'What DM should I send to warm up a lead for ' + product + '?',
+      'How do I talk about ' + product + ' without sounding salesy?',
+      'What should I post today to attract buyers in ' + niche + '?',
+      'How do I handle "Is this a scam?" objections for ' + product + '?',
+      'Give me a 7-day content plan for my ' + niche + ' audience',
+      'Hold me accountable — what do I need to execute on today?',
     ];
 
-    return (mode === 'affiliate' ? affiliate : expert).slice(0, 6);
+    const list = mode === 'affiliate' ? affiliate : expert;
+    return list.slice(0, 6);
   }
 
-  // Initialize advisor page
+  // ── Initialise advisor panel for current mode ────────────────────────────
   function initAdvisor() {
-    const ctx   = buildContext();
-    const niche = ctx.niche || 'your niche';
-    const mode  = ctx.mode;
-    const price = ctx.price;
-    const av    = ctx.avatar || {};
-    const aff   = ctx.affOffer || {};
-    const isAff = mode === 'affiliate';
+    const ctx      = buildContext();
+    const currMode = ctx.mode;
+    const niche    = ctx.niche || '';
+    const av       = ctx.avatar || {};
+    const aff      = ctx.affOffer || {};
+    const off      = ctx.offer || {};
+    const isAff    = currMode === 'affiliate';
 
-    // Restore history from localStorage
+    // If mode changed since last conversation — clear history
+    if (advisorMode && advisorMode !== currMode) {
+      advisorHistory = [];
+      try { localStorage.removeItem('eos_advisor_history_' + advisorMode); } catch(e) {}
+    }
+    advisorMode = currMode;
+
+    // Restore mode-specific history
     if (!advisorHistory.length) {
       try {
-        const saved = localStorage.getItem('eos_advisor_history');
+        const saved = localStorage.getItem(historyKey());
         if (saved) {
           const parsed = JSON.parse(saved);
           if (parsed.length) {
             advisorHistory = parsed;
-            // Replay saved messages
             const msgs = document.getElementById('advisor-messages');
             if (msgs) {
               msgs.innerHTML = '';
               parsed.forEach(m => appendMsg(m.role, m.content));
-              return; // Skip intro
+              // Refresh starters for current mode
+              const chips = document.getElementById('advisor-starter-chips');
+              if (chips) {
+                chips.innerHTML = '';
+                buildStarters().forEach(q => {
+                  const btn = document.createElement('button');
+                  btn.className = 'adv-starter';
+                  btn.textContent = q;
+                  btn.onclick = () => window.advisorSend(q);
+                  chips.appendChild(btn);
+                });
+              }
+              return;
             }
           }
         }
       } catch(e) {}
     }
 
-    // Build personalised intro
+    // Build personalised intro for this mode
     const introEl = document.getElementById('advisor-intro-text');
     if (!introEl) return;
 
     let intro = '';
-    if (isAff && aff.name) {
-      intro = '**I have your full brief.**\n\nYou are promoting **' + aff.name + '** at **$' + Number(aff.commission||1000).toLocaleString() + ' commission per sale** in the **' + niche + '** space.\n\n';
-      if (av.pain) intro += 'Your buyer is dealing with "' + av.pain + '" and wants "' + (av.transformation||'a better outcome') + '"\n\n';
-      intro += 'I know your target, your audience, your product. Ask me anything — DM scripts, content angles, objection handling, daily execution. I will give you a specific, actionable answer every time.\n\n**What is your biggest challenge right now?**';
-    } else if (!isAff && niche) {
-      const monthly = price ? '$' + Number(ctx.target||0).toLocaleString() + '/month' : 'your target';
-      intro = '**I have your full business profile.**\n\nYou are building in **' + niche + '**';
-      if (price) intro += ' with a **$' + Number(price).toLocaleString() + ' offer**';
-      if (ctx.target) intro += ', targeting **' + monthly + '**';
-      intro += '.\n\n';
-      if (av.pain) intro += 'Your ideal client is a **' + (av.job||'professional') + '** struggling with "' + av.pain + '" who wants "' + (av.transformation||'transformation') + '"\n\n';
-      intro += 'I know your numbers, your offer, and your audience. Ask me anything — content strategy, DM scripts, offer positioning, daily execution plan. I will give you a direct, structured, actionable answer.\n\n**What do you want to work on first?**';
+    if (isAff) {
+      if (aff.name && niche) {
+        intro = `**Your affiliate brief is locked in.**\n\nYou're promoting **${aff.name}** at **$${Number(aff.commission||0).toLocaleString()} per sale** in the **${niche}** space.\n\n`;
+        if (av.pain || aff.pain) intro += `Your audience is struggling with "${aff.pain || av.pain}" and wants "${aff.transformation || av.transformation || 'a real change'}"\n\n`;
+        if (ctx.target && aff.commission) {
+          const salesNeeded = Math.ceil(Number(ctx.target) / Number(aff.commission));
+          intro += `**The math is simple:** ${salesNeeded} sales × $${Number(aff.commission).toLocaleString()} = $${Number(ctx.target).toLocaleString()}/month. That's your target. Let's build the machine that gets there.\n\n`;
+        }
+        intro += `Ask me anything — content angles, DM scripts, objection handling, daily execution. Every answer will be built around your product, your niche, and your audience.\n\n**What's your biggest bottleneck right now?**`;
+      } else {
+        intro = `**I'm ready to help you execute as an affiliate.**\n\nI notice you haven't completed your Offer Setup yet — that's where I get your product name, commission, niche, and audience so I can give you fully personalised advice.\n\n**Go to Offer Setup now** and fill it in. Then come back and I'll know your exact product, your buyer, their pain, and your revenue target — and every answer I give will be built around that.\n\nFor now, ask me anything — I'll still give you strong affiliate marketing advice.\n\n**What are you working on right now?**`;
+      }
     } else {
-      intro = '**I am Execution OS — your personal business strategist.**\n\nI am connected to your platform data. Once you complete your Revenue Plan and Ideal Customer profile, my answers become fully personalised to your niche, offer, and targets.\n\nFor now, ask me anything about offer positioning, content strategy, DM sales, or daily execution — I will still give you structured, specific, actionable advice.\n\n**What are you working on right now?**';
+      if (niche && ctx.price) {
+        const monthly  = ctx.target ? '$' + Number(ctx.target).toLocaleString() + '/month' : 'your target';
+        const salesNeeded = ctx.target && ctx.price ? Math.ceil(Number(ctx.target) / Number(ctx.price)) : null;
+        intro = `**Your business profile is loaded.**\n\nYou're building in **${niche}**`;
+        if (ctx.price) intro += ` with a **$${Number(ctx.price).toLocaleString()} offer**`;
+        if (ctx.target) intro += `, targeting **${monthly}**`;
+        intro += `.\n\n`;
+        if (av.job && av.pain) intro += `Your ideal client is a **${av.job}** struggling with "${av.pain}" who wants "${av.transformation || 'a transformation'}"\n\n`;
+        if (salesNeeded) intro += `**The math:** ${salesNeeded} client${salesNeeded !== 1 ? 's' : ''} at $${Number(ctx.price).toLocaleString()} = ${monthly}. That's the whole game.\n\n`;
+        intro += `Every answer I give will be specific to your niche, your offer, your ideal client. No generic advice — ever.\n\n**What do you want to work on today?**`;
+      } else {
+        intro = `**I'm your E-OS business strategist.**\n\nTo give you fully personalised advice I need your business details filled in:\n\n**Step 1 — Revenue Plan:** Set your niche, offer price, and monthly target\n**Step 2 — Offer Creation:** Name and structure your offer\n**Step 3 — Ideal Customer:** Define exactly who you're selling to\n\nOnce those are done, every answer I give will reference your exact niche, your exact client, your exact numbers.\n\nFor now, ask me anything — strategy, mindset, content, outreach. I'm here.\n\n**What are you working on right now?**`;
+      }
     }
 
+    const msgs = document.getElementById('advisor-messages');
+    if (msgs) msgs.innerHTML = '';
     introEl.innerHTML = formatMsg(intro);
 
-    // Build quick starters
+    // Build quick starters for current mode
     const chips = document.getElementById('advisor-starter-chips');
     if (chips) {
       chips.innerHTML = '';
@@ -13416,16 +13362,106 @@ RULES YOU NEVER BREAK
     }
   }
 
-  // Hook into showPage
-  const origShowPage = window.showPage;
-  window.showPage = function(n, btn) {
-    if (origShowPage) origShowPage(n, btn);
-    if (n === 'advisor') {
-      setTimeout(initAdvisor, 100);
+  // ── Clear conversation (mode-aware) ─────────────────────────────────────
+  window.advisorClear = function() {
+    advisorHistory = [];
+    try { localStorage.removeItem(historyKey()); } catch(e) {}
+    const msgs = document.getElementById('advisor-messages');
+    if (msgs) msgs.innerHTML = '';
+    initAdvisor();
+  };
+
+  // ── Send a message ────────────────────────────────────────────────────────
+  window.advisorSend = async function(overrideText) {
+    const input   = document.getElementById('advisor-input');
+    const sendBtn = document.getElementById('advisor-send-btn');
+    const text    = overrideText || (input ? input.value.trim() : '');
+    if (!text) return;
+
+    if (input && !overrideText) { input.value = ''; input.style.height = 'auto'; }
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '…'; }
+
+    const starters = document.getElementById('advisor-starters');
+    if (starters) starters.style.display = 'none';
+
+    appendMsg('user', text);
+    advisorHistory.push({ role: 'user', content: text });
+    if (advisorHistory.length > MAX_HISTORY) advisorHistory.splice(0, 2);
+    saveHistory();
+
+    const typingEl = appendMsg('ai', '', true);
+
+    try {
+      const ctx       = buildContext();
+      const sysPrompt = buildAdvisorSystemPrompt(ctx);
+
+      // Merge system prompt into first user message so proxy doesn't need system param
+      const msgsToSend = advisorHistory.length > 0
+        ? [{ role: 'user', content: sysPrompt + '\n\n---\n\nUSER MESSAGE: ' + advisorHistory[0].content }, ...advisorHistory.slice(1)]
+        : [{ role: 'user', content: sysPrompt + '\n\n---\n\nGreet them by their mode (' + ctx.mode + '), reference their niche/product, and ask what they want to work on today.' }];
+
+      const proxyUrl = window.PROXY_URL || 'https://build.skillslibry.com/api/claude';
+      let directResp, reply = '';
+
+      try {
+        directResp = await fetch(proxyUrl, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            model:      'claude-sonnet-4-20250514',
+            max_tokens: 1500,
+            messages:   msgsToSend
+          })
+        });
+        if (directResp.ok) {
+          const directData = await directResp.json();
+          reply = (directData.content && directData.content[0] && directData.content[0].text) || '';
+        } else {
+          const errText = await directResp.text();
+          console.error('Advisor proxy error:', directResp.status, errText);
+        }
+      } catch(fetchErr) {
+        console.error('Advisor fetch failed:', fetchErr);
+      }
+
+      if (!reply) reply = '⚠️ Could not reach AI advisor (status: ' + (directResp?.status || 'network error') + '). Make sure api/claude.js is deployed on Vercel with ANTHROPIC_API_KEY set.';
+
+      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+      appendMsg('ai', reply);
+      advisorHistory.push({ role: 'assistant', content: reply });
+      if (advisorHistory.length > MAX_HISTORY) advisorHistory.splice(0, 2);
+      saveHistory();
+
+    } catch(e) {
+      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+      appendMsg('ai', '⚠️ Something went wrong: ' + e.message);
+    } finally {
+      if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send ⚡'; }
     }
   };
 
-  // Also init if already on advisor page
+  // ── When mode switches, reset the advisor for the new mode ───────────────
+  const origSetAppMode = window.setAppMode;
+  window.setAppMode = function(mode) {
+    const prevMode = window._appMode;
+    if (origSetAppMode) origSetAppMode(mode);
+    // If mode actually changed, clear advisor and reinitialise for new mode
+    if (prevMode && prevMode !== mode) {
+      advisorHistory = [];
+      const msgs = document.getElementById('advisor-messages');
+      if (msgs) msgs.innerHTML = '';
+      setTimeout(initAdvisor, 200);
+    }
+  };
+
+  // ── Hook into showPage ────────────────────────────────────────────────────
+  const origShowPage = window.showPage;
+  window.showPage = function(n, btn) {
+    if (origShowPage) origShowPage(n, btn);
+    if (n === 'advisor') setTimeout(initAdvisor, 100);
+  };
+
+  // Init if already on advisor page on load
   if (document.getElementById('page-advisor') &&
       document.getElementById('page-advisor').style.display !== 'none') {
     setTimeout(initAdvisor, 200);
