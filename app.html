@@ -64,7 +64,7 @@
    RESET
 ══════════════════════════════════════════════════════════════════ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
+html, body { height: 100%; overflow: auto; }
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg);
@@ -77,7 +77,7 @@ body {
 /* ══════════════════════════════════════════════════════════════════
    APP SHELL
 ══════════════════════════════════════════════════════════════════ */
-.app { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+.app { display: flex; min-height: 100vh; width: 100vw; overflow: visible; }
 
 /* ══════════════════════════════════════════════════════════════════
    SIDEBAR
@@ -85,12 +85,13 @@ body {
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
-  height: 100vh;
+  min-height: 100vh;
+  height: auto;
   background: linear-gradient(180deg, #080818 0%, #0e0e26 50%, #0a0a1e 100%);
   border-right: 1px solid rgba(255,255,255,.06);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   z-index: 100;
   position: relative;
   flex-shrink: 0;
@@ -353,8 +354,8 @@ body {
 ══════════════════════════════════════════════════════════════════ */
 .main-content {
   flex: 1;
-  height: 100vh;
-  overflow-y: auto;
+  min-height: 100vh;
+  overflow-y: visible;
   overflow-x: hidden;
   background: var(--bg);
   min-width: 0;
@@ -450,7 +451,7 @@ body {
 
 /* Page entrance */
 .page { display: none; }
-.page.on { display: block; opacity: 1; }
+.page.on { display: block !important; opacity: 1 !important; visibility: visible !important; }
 .page.on.animate-in { animation: pageIn .28s cubic-bezier(.4,0,.2,1) forwards; }
 
 /* Section entrance — add .animate class via JS */
@@ -1395,9 +1396,7 @@ input[type=range] { flex: 1; accent-color: var(--teal); }
    ════════════════════════════════════════════════════════════════════ */
 
 /* ── Page transition ─────────────────────────────────────────────── */
-.page {
-  /* No opacity:0 here — pages are hidden via display:none, not opacity */
-}
+
 /* Page animations only when navigating (JS adds .animate-in) */
 @keyframes pageEnter {
   from { opacity:0; transform:translateY(14px); }
@@ -1672,7 +1671,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
 
     <!-- Hidden user refs for JS compatibility -->
     <span id="user-initials" style="display:none">?</span>
-    <img id="user-avatar-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;top:0;left:0">
+    <img id="user-avatar-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
     <div id="sidebar-user-name" style="display:none"></div>
     <div id="plan-badge-txt" style="display:none">✅</div>
     <div id="sidebar-av" style="display:none;overflow:hidden;flex-shrink:0"></div>
@@ -1695,9 +1694,9 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
       </button>
 
       <!-- Section: Your Business -->
-      <div class="nav-section-label">Your Business</div>
+      <div class="nav-section-label">Affiliate Setup</div>
 
-      <button class="nav-item ripple-container" onclick="showPage('plan',this)" id="nav-plan">
+      <button class="nav-item ripple-container" onclick="showPage('plan',this)" id="nav-plan" style="display:none">
         <div class="ni-icon">📈</div>
         <div class="ni-text">
           <div class="ni-label">REVENUE PLAN</div>
@@ -1707,7 +1706,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
       </button>
 
       <!-- EXPERT: Offer Creation -->
-      <button class="nav-item ripple-container expert-only" onclick="showPage('offer',this)" id="nav-offer">
+      <button class="nav-item ripple-container expert-only" onclick="showPage('offer',this)" id="nav-offer" style="display:none">
         <div class="ni-icon">💎</div>
         <div class="ni-text">
           <div class="ni-label">OFFER CREATION</div>
@@ -1726,7 +1725,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
         <div class="ni-dot"></div>
       </button>
 
-      <button class="nav-item ripple-container" onclick="showPage('affiliate',this)" id="nav-affiliate" style="display:none">
+      <button class="nav-item ripple-container" onclick="showPage('affiliate',this)" id="nav-affiliate">
         <div class="ni-icon">🔗</div>
         <div class="ni-text">
           <div class="ni-label">OFFER SETUP</div>
@@ -1735,7 +1734,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
         <div class="ni-dot"></div>
       </button>
 
-      <button class="nav-item ripple-container" onclick="showPage('avatar',this)" id="nav-avatar">
+      <button class="nav-item ripple-container" onclick="showPage('avatar',this)" id="nav-avatar" style="display:none">
         <div class="ni-icon">🎯</div>
         <div class="ni-text">
           <div class="ni-label" id="nav-avatar-label">Ideal Customer</div>
@@ -1747,7 +1746,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
       <!-- Section: Daily Execution -->
       <div class="nav-section-label">Daily Execution</div>
 
-      <button class="nav-item ripple-container" onclick="showPage('calendar',this)" id="nav-calendar">
+      <button class="nav-item ripple-container" onclick="showPage('calendar',this)" id="nav-calendar" style="display:none">
         <div class="ni-icon">📅</div>
         <div class="ni-text">
           <div class="ni-label">CONTENT CALENDAR</div>
@@ -1756,7 +1755,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
         <div class="ni-dot"></div>
       </button>
 
-      <button class="nav-item ripple-container" onclick="showPage('scripts',this)" id="nav-scripts">
+      <button class="nav-item ripple-container" onclick="showPage('scripts',this)" id="nav-scripts" style="display:none">
         <div class="ni-icon">💬</div>
         <div class="ni-text">
           <div class="ni-label">DM &amp; SALES</div>
@@ -1774,7 +1773,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
         <div class="ni-dot"></div>
       </button>
 
-      <button class="nav-item ripple-container" onclick="showPage('tracker',this)" id="nav-tracker">
+      <button class="nav-item ripple-container" onclick="showPage('tracker',this)" id="nav-tracker" style="display:none">
         <div class="ni-icon">📊</div>
         <div class="ni-text">
           <div class="ni-label">DAILY TRACKER</div>
@@ -1800,7 +1799,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
       <button class="nav-item ripple-container" onclick="showPage('advisor',this)" id="nav-advisor">
         <div class="ni-icon">🧠</div>
         <div class="ni-text">
-          <div class="ni-label">AI STRATEGIST</div>
+          <div class="ni-label">E-OS INTELLIGENT</div>
           <div class="ni-step">Your business advisor</div>
         </div>
         <div class="ni-dot"></div>
@@ -1854,20 +1853,20 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
         <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
         <div class="content-topbar-title" id="topbar-page-title">Dashboard</div>
       </div>
-      <!-- Expert / Affiliate toggle — top right -->
-      <div id="mode-badge" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:5px 14px">
-          <span id="mode-badge-icon">⚡</span>
-          <span id="mode-badge-text" style="font-size:11px;font-weight:700;color:rgba(255,255,255,.8);font-family:'Poppins',sans-serif">Expert Mode</span>
-        </div></div>
+      <!-- Mode indicator — locked to login choice, not clickable -->
+      <div id="mode-badge" style="display:flex;align-items:center;gap:6px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);border-radius:20px;padding:5px 14px;cursor:default;user-select:none">
+        <span id="mode-badge-icon">🔗</span>
+        <span id="mode-badge-text" style="font-size:11px;font-weight:700;color:rgba(255,255,255,.8);font-family:'Poppins',sans-serif">Affiliate Mode</span>
+      </div>
       <!-- Hidden for JS compatibility -->
       <div id="plan-badge" style="display:none"><p id="plan-badge-txt-top">✅ Full Access</p></div>
       <span id="topbar-initials" style="display:none">?</span>
       <img id="topbar-avatar-img" src="" style="display:none">
       <span id="topbar-mode-icon" style="display:none">⚡</span>
-      <span id="topbar-mode-label" style="display:none">Expert Mode</span>
+      <span id="topbar-mode-label" style="display:none">Affiliate Mode</span>
       <div id="topbar-mode-pill" style="display:none"></div>
       <span id="topbar-breadcrumb" style="display:none"></span>
-    </div>
+    </div><!-- end .content-topbar -->
 
     <!-- Pages render here -->
     <div class="page-wrap">
@@ -3030,8 +3029,8 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
         </div>
         <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;text-align:center">
           <div style="width:32px;height:32px;border-radius:50%;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.2);display:flex;align-items:center;justify-content:center;font-size:14px;margin:0 auto 8px">🤖</div>
-          <div style="font-size:11px;font-weight:800;color:var(--white);margin-bottom:3px">AI Analyses</div>
-          <div style="font-size:10px;color:var(--dim);line-height:1.5">Claude builds your buyer avatar automatically</div>
+          <div style="font-size:11px;font-weight:800;color:var(--white);margin-bottom:3px">E-OS Analyses</div>
+          <div style="font-size:10px;color:var(--dim);line-height:1.5">Execution-OS builds your buyer avatar automatically</div>
         </div>
         <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;text-align:center">
           <div style="width:32px;height:32px;border-radius:50%;background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.2);display:flex;align-items:center;justify-content:center;font-size:14px;margin:0 auto 8px">📅</div>
@@ -3105,7 +3104,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
         <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--purple),var(--teal),var(--yellow));border-radius:20px 20px 0 0"></div>
         <div class="strip-inner">
           <div class="strip-left">
-            <div class="tag-pill" style="background:rgba(108,99,255,.12);border-color:rgba(108,99,255,.3)"><span style="color:var(--purple)">🧠 AI Strategist</span></div>
+            <div class="tag-pill" style="background:rgba(108,99,255,.12);border-color:rgba(108,99,255,.3)"><span style="color:var(--purple)">🧠 E-OS Intelligent</span></div>
             <div class="h1">Your personal <em>business advisor</em></div>
             <div class="strip-sub">Ask anything about your offer, content, sales, DMs, pricing, or growth. Execution OS knows your business — every answer is built around your specific situation, niche, and targets.</div>
           </div>
@@ -3273,7 +3272,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
           <div id="profile-avatar-wrap" style="position:relative;width:90px;height:90px;margin:0 auto">
             <div id="profile-avatar-display" style="width:90px;height:90px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:900;color:var(--text-dark);border:3px solid rgba(78,204,163,.4);overflow:hidden;position:relative;flex-shrink:0">
               <span id="profile-initials-big">?</span>
-              <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;top:0;left:0;border-radius:inherit">
+              <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
             </div>
             <label for="photo-upload" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.3)">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--text-dark)"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1 1 0 000-1.42l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.82z"/></svg>
@@ -5551,42 +5550,183 @@ function renderTracker(dmsDay,salesGoal){
     </div>`;
 }
 function adj(key,delta,target,isClose){const s=window._trackerState;if(!s)return;const prev=s.counts[key]||0;const nv=Math.max(0,prev+delta);s.counts[key]=nv;const price=window._price||1000;if(isClose){const diff=nv-prev;s.closedDeals=Math.max(0,s.closedDeals+diff);s.remainingIncome=Math.max(0,window._target-(s.closedDeals*price));const rv=document.getElementById('income-remaining-val');const rs=document.getElementById('income-remaining-sub');if(rv){rv.textContent='$'+s.remainingIncome.toLocaleString();rv.style.color=s.remainingIncome===0?'var(--teal)':'var(--red)';}if(rs){rs.textContent=s.closedDeals+' deal'+(s.closedDeals!==1?'s':'')+' closed';}}const v=document.getElementById('val-'+key);const f=document.getElementById('fill-'+key);if(v)v.textContent=nv;if(f)f.style.width=Math.min(100,Math.round(nv/target*100))+'%';}
-// ─── API helper — routes through Vercel serverless functions ──────────────
-// No API key needed — key lives securely in Vercel environment variables
-const API_BASE = 'https://build.skillslibry.com/api';
+// ─── API helper — routes directly through Anthropic API ──────────────────
+const API_BASE = 'https://api.anthropic.com';
 
-async function callClaude(prompt, maxTokens, endpoint) {
-  // Routes all AI calls through Vercel — no client-side API key needed
-  const resp = await fetch(API_BASE + '/generate-calendar', {
+async function callClaude(prompt, maxTokens) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      _rawPrompt: prompt,
-      _maxTokens: maxTokens || 2000,
-      week: 1,
-      niche: window._appliedNiche || 'Online Business',
-      mode: window._appMode || 'expert'
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: maxTokens || 2000,
+      messages: [{ role: 'user', content: prompt }]
     })
   });
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.error || 'API error ' + resp.status);
-  }
+  if (!resp.ok) throw new Error('API error ' + resp.status);
   const data = await resp.json();
-  return data.text || '';
+  return (data.content && data.content[0] && data.content[0].text) || '';
 }
 
 async function callAPI(endpoint, body) {
-  const resp = await fetch(API_BASE + '/' + endpoint, {
+  // Build a smart prompt based on which endpoint is being called
+  let prompt = '';
+
+  if (endpoint === 'generate-avatar') {
+    const niche = body.niche || 'Online Business';
+    const price = body.price || 1000;
+    const target = body.target || 25000;
+    const job = body.av_job || 'professional';
+    const pain = body.av_current || 'feeling stuck';
+    const fear = body.av_fear || 'failure';
+    const transformation = body.av_transformation || 'achieving their goals';
+    prompt = `You are an expert marketing strategist. Generate a detailed buyer avatar and market intelligence report for:
+Niche: ${niche}
+Offer price: $${price}
+Monthly revenue target: $${target}
+Target customer job: ${job}
+Their current situation: ${pain}
+Their biggest fear: ${fear}
+Their desired transformation: ${transformation}
+
+Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure:
+{
+  "contentPillars": ["pillar 1", "pillar 2", "pillar 3", "pillar 4", "pillar 5"],
+  "dmHooks": ["hook 1", "hook 2", "hook 3"],
+  "marketIntelligence": {
+    "marketSize": "2-3 sentence analysis of market size and opportunity",
+    "positioning": "2-3 sentence unique positioning strategy",
+    "competition": "2-3 sentence competition analysis",
+    "pricingPsychology": "2-3 sentence pricing psychology insight",
+    "buyingTriggers": ["trigger 1", "trigger 2", "trigger 3"]
+  }
+}`;
+
+  } else if (endpoint === 'generate-calendar') {
+    const niche = body.niche || 'Online Business';
+    const pieces = body.pieces || [];
+    prompt = body._rawPrompt || `Generate a 7-day social media content plan for niche: ${niche}. Return JSON array of 7 objects each with: topic, hook, fb1, fb2, reel1, reel2, email fields. No markdown.`;
+
+  } else if (endpoint === 'generate-offer') {
+    const niche = body.niche || 'Online Business';
+    const price = body.price || 1000;
+    prompt = `You are a high-ticket offer strategist. Create a compelling offer for niche: ${niche}, price: $${price}.
+Respond ONLY with valid JSON: { "offerName": "...", "tagline": "...", "result": "...", "modules": ["...","...","..."], "bonuses": ["...","..."], "guarantee": "..." }`;
+
+  } else if (endpoint === 'generate-routine') {
+    prompt = body._rawPrompt || `Generate a personalised daily routine. Return JSON array of blocks with: time, dur, icon, title, why, tag, accent, tagColor, tagText fields.`;
+
+  } else if (endpoint === 'generate-affiliate') {
+    const niche      = body.niche      || 'Online Business';
+    const productName= body.productName|| 'the product';
+    const commission = body.commission || 1000;
+    const target     = body.monthlyTarget || commission * 5;
+    const trafficMode= body.trafficMode || 'organic';
+
+    if (body.type === 'avatar') {
+      prompt = `You are an expert affiliate marketing strategist. A user is promoting an affiliate product.
+Product URL: ${body.productUrl || 'not provided'}
+Product Name: ${productName}
+Niche: ${niche}
+Commission per sale: $${commission}
+Monthly target: $${target}
+Traffic mode: ${trafficMode}
+
+Generate a detailed buyer avatar for this affiliate product. The buyer avatar should describe the BUYER of this product (not the affiliate marketer).
+
+Respond ONLY with valid JSON (no markdown, no backticks, no explanation) in this exact structure:
+{
+  "name": "A realistic buyer persona name e.g. Sarah Mitchell",
+  "age": "age range e.g. 28-42",
+  "gender": "Male / Female / Mixed",
+  "location": "Primary markets e.g. USA, UK, Canada, Australia",
+  "job": "Their current job or situation",
+  "industry": "Their industry",
+  "income": "Current income level",
+  "pain": "Their single biggest pain point that this product solves",
+  "transformation": "What they desperately want to achieve",
+  "fear": "Their biggest fear or objection about buying",
+  "tried": "What they have already tried and failed with",
+  "motivation": "What drives them emotionally",
+  "personality": "Key personality traits",
+  "influences": "Who they follow or what they read",
+  "objections": "Top 2-3 objections before buying",
+  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
+  "productName": "${productName}",
+  "niche": "${niche}",
+  "commission": ${commission}
+}`;
+
+    } else if (body.type === 'calendar') {
+      const av = body.avatarData || {};
+      prompt = `You are an expert affiliate content strategist. Generate a 7-day content plan for an affiliate marketer promoting: ${productName} in the ${niche} niche.
+
+Buyer avatar:
+- Job: ${av.job || 'professional'}
+- Pain: ${av.pain || 'struggling to grow income'}
+- Transformation: ${av.transformation || 'financial freedom'}
+- Fear: ${av.fear || 'wasting money'}
+Traffic mode: ${trafficMode}
+Commission: $${commission} per sale
+
+Generate 7 days of content. For EACH day use EXACTLY this format:
+
+DAY 1: [Topic Title]
+FACEBOOK POST
+HOOK: [attention-grabbing opening line]
+[3-4 paragraph Facebook post body — educational, builds trust, no hard sell]
+CALL TO ACTION: [soft CTA]
+
+REEL 1
+HOOK: [5-second verbal hook for video]
+[Full reel script — 45-60 seconds, conversational, problem-focused]
+ENGAGEMENT TIP: [best time to post]
+
+REEL 2
+HOOK: [different hook angle]
+[Full reel script — solution-focused]
+ENGAGEMENT TIP: [posting tip]
+
+EMAIL
+SUBJECT: [email subject line]
+[Full email body — personal, valuable, soft product mention with affiliate link placeholder]
+
+---
+
+Repeat exactly for DAY 2 through DAY 7. Each day must have a completely different topic and angle. Days 1-2: pure value/trust. Days 3-4: problem/solution. Days 5-6: social proof/desire. Day 7: soft CTA.`;
+
+    } else {
+      prompt = body._rawPrompt || `Generate an affiliate marketing strategy for niche: ${niche}. Commission: $${commission}. Return detailed advice.`;
+    }
+
+  } else if (endpoint === 'generate-advisor') {
+    const question = body.question || body.message || '';
+    const context = body.context || '';
+    prompt = `You are an elite business strategist and coach. ${context ? 'Context about this business: ' + context + '\n\n' : ''}Answer this question with specific, actionable advice:\n\n${question}`;
+
+  } else {
+    prompt = body._rawPrompt || JSON.stringify(body);
+  }
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: body._maxTokens || 2000,
+      messages: [{ role: 'user', content: prompt }]
+    })
   });
-  if (!resp.ok) {
-    const err = await resp.json().catch(() => ({}));
-    throw new Error(err.error || 'API error ' + resp.status);
+  if (!resp.ok) throw new Error('API error ' + resp.status);
+  const data = await resp.json();
+  const text = (data.content && data.content[0] && data.content[0].text) || '';
+  // Try to parse as JSON (most endpoints expect it), fallback to { text }
+  try {
+    const clean = text.replace(/```json|```/g, '').trim();
+    return JSON.parse(clean);
+  } catch(e) {
+    return { text };
   }
-  return await resp.json();
 }
 
 window.callClaude = callClaude;
@@ -6008,7 +6148,7 @@ function generateAvatar(){
       <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(108,99,255,.15)">
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:3px">🤖 AI Market Intelligence Report</div>
         <div style="font-size:14px;font-weight:900;color:var(--white)">Deep niche analysis — generated for ${niche} right now</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:3px">Claude analyses your exact market, competition, gaps, and the fastest path to dominance</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:3px">E-OS analyses your exact market, competition, gaps, and the fastest path to dominance</div>
       </div>
       <div id="ai-intel-body" style="padding:1.25rem">
         <div style="display:flex;align-items:center;gap:12px;padding:1rem;background:rgba(108,99,255,.06);border-radius:12px">
@@ -6045,7 +6185,7 @@ function generateAvatar(){
   const aiStatusEl = document.getElementById('av-ai-status');
   if (aiStatusEl) {
     aiStatusEl.style.display = 'flex';
-    aiStatusEl.innerHTML = '<div style="width:16px;height:16px;border:2px solid rgba(78,204,163,.25);border-top-color:var(--teal);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0"></div><span style="font-size:11px;color:var(--teal)">Claude is building your market intelligence…</span>';
+    aiStatusEl.innerHTML = '<div style="width:16px;height:16px;border:2px solid rgba(78,204,163,.25);border-top-color:var(--teal);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0"></div><span style="font-size:11px;color:var(--teal)">E-OS is building your market intelligence…</span>';
   }
 
   (async () => {
@@ -6603,7 +6743,48 @@ window.renderAICalendar30 = function(week) {
   }, 20);
 };
 
-window.showPostDetail30=function(){};
+window.showPostDetail30 = function(globalIdx) {
+  const dayIdx  = Math.floor(globalIdx / 6);
+  const slotIdx = globalIdx % 6;
+  const daySlots = window._aiCalendar30 && window._aiCalendar30[dayIdx];
+  if (!daySlots) return;
+  const slot = daySlots[slotIdx] || daySlots[Math.min(slotIdx, daySlots.length - 1)];
+  if (!slot) return;
+
+  let modal = document.getElementById('post-detail-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'post-detail-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.style.display = 'none'; });
+    document.body.appendChild(modal);
+  }
+
+  const typeColors = { fb1:'var(--teal)', fb2:'var(--teal)', reel1:'var(--purple)', reel2:'var(--purple)', email:'var(--yellow)' };
+  const col = typeColors[slot.slotType] || 'var(--teal)';
+  const script = (slot.fullScript || slot.viralHook || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  modal.innerHTML = `
+    <div style="background:linear-gradient(145deg,#1a1a3e,#12122a);border:1px solid rgba(255,255,255,.1);border-radius:20px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;position:relative">
+      <div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#1a1a3e;z-index:1">
+        <div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:${col};font-weight:900;margin-bottom:3px">Day ${(dayIdx+1)} · ${slot.postType||'Post'}</div>
+          <div style="font-size:14px;font-weight:900;color:#fff;font-family:'Poppins',sans-serif;line-height:1.3">${slot.topic||slot.viralHook||'Content Script'}</div>
+        </div>
+        <button onclick="document.getElementById('post-detail-modal').style.display='none'" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;flex-shrink:0">×</button>
+      </div>
+      <div style="padding:1.25rem 1.5rem">
+        <pre style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.8;white-space:pre-wrap;font-family:'Inter',sans-serif;margin:0">${script}</pre>
+      </div>
+      <div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;position:sticky;bottom:0;background:#1a1a3e">
+        <button onclick="navigator.clipboard.writeText(document.querySelector('#post-detail-modal pre').textContent).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy Script',2000)})"
+          style="flex:1;padding:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer">📋 Copy Script</button>
+        <button onclick="document.getElementById('post-detail-modal').style.display='none'"
+          style="padding:11px 20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:10px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer">Close</button>
+      </div>
+    </div>`;
+  modal.style.display = 'flex';
+};
 window.copyPostScript30=function(){};
 window._calDone=new Set();
 function toggleDay30(dayIdx){if(!window._calDone)window._calDone=new Set();if(window._calDone.has(dayIdx))window._calDone.delete(dayIdx);else window._calDone.add(dayIdx);renderAICalendar30(currentWeek||1);}
@@ -11379,7 +11560,6 @@ function renderDashboard() {
 
   // ── GREETING ──────────────────────────────────────────────────────────────
   const hour = new Date().getHours();
-  const isAffMode   = window._appMode === 'affiliate';
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
   const name = (document.getElementById('prof-name') || {}).value || 'Partner';
   const greetEl = document.getElementById('db-greeting');
@@ -11388,43 +11568,61 @@ function renderDashboard() {
   if (dateEl) {
     const d = new Date();
     const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-    dateEl.textContent = d.toLocaleDateString('en-GB', opts) + (isAffMode ? ' · Affiliate Mode' : ' · Execution OS');
+    dateEl.textContent = d.toLocaleDateString('en-GB', opts) + ' · Affiliate Mode';
   }
 
   // ── CORE DATA ─────────────────────────────────────────────────────────────
-  const price    = window._appliedPrice  || 0;
-  const target   = window._appliedTarget || 0;
-  const niche    = window._appliedNiche  || '';
-  const ts       = window._trackerState  || {};
-  const closed   = ts.closedDeals || 0;
-  const earned   = closed * price;
-  const gap      = Math.max(0, target - earned);
-  const gapDeals = price > 0 ? Math.ceil(gap / price) : 0;
-  const revPct   = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
-  const calDone  = window._calDone ? window._calDone.size : 0;
+  const offer     = window._affiliateOffer || {};
+  const commission= offer.commission || window._appliedPrice || 0;
+  const target    = window._appliedTarget  || 0;
+
+  // Commission tracker data
+  let trackerData = {};
+  try { trackerData = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
+  const clicks    = trackerData.clicks || 0;
+  const sales     = trackerData.sales  || 0;
+  const earned    = sales * commission;
+  const gap       = Math.max(0, target - earned);
+  const salesLeft = commission > 0 ? Math.ceil(gap / commission) : 0;
+  const revPct    = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
+  const convRate  = clicks > 0 ? ((sales / clicks) * 100).toFixed(1) : '0.0';
+  const calDone   = window._calDone ? window._calDone.size : 0;
 
   // ── KEY METRICS ──────────────────────────────────────────────────────────
-  const fmt = n => n >= 1000 ? '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'k' : '$' + n.toLocaleString();
+  const fmt   = n => n >= 1000 ? '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'k' : '$' + n.toLocaleString();
   const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
 
-  setEl('db-target',    target  ? fmt(target)  : '—');
-  setEl('db-earned',    fmt(earned));
-  setEl('db-earned-sub', closed + ' deal' + (closed !== 1 ? 's' : '') + ' closed');
+  setEl('db-target',    target   ? fmt(target)   : '—');
+  setEl('db-earned',    commission ? fmt(earned)  : '—');
+  setEl('db-earned-sub', sales + ' sale' + (sales !== 1 ? 's' : '') + ' · ' + clicks + ' clicks');
   setEl('db-gap',       gap > 0 ? fmt(gap) : '✅');
-  setEl('db-gap-sub',   gap > 0 ? gapDeals + ' deal' + (gapDeals !== 1 ? 's' : '') + ' to go' : 'Monthly target hit!');
+  setEl('db-gap-sub',   gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Monthly target hit!');
   setEl('db-cal-done',  calDone);
-  setEl('db-cal-sub',   'of 30 days — ' + (calDone >= 25 ? '🔥 elite' : calDone >= 14 ? '💪 strong' : calDone >= 7 ? '📈 building' : '🎯 get started'));
+  setEl('db-cal-sub',   'content days done — ' + (calDone >= 14 ? '🔥 on fire' : calDone >= 7 ? '💪 building' : '🎯 get started'));
 
   // Revenue bar
-  const bar = document.getElementById('db-rev-bar');
-  const pct = document.getElementById('db-rev-pct');
+  const bar    = document.getElementById('db-rev-bar');
+  const pctEl  = document.getElementById('db-rev-pct');
   const detail = document.getElementById('db-rev-deals');
-  if (bar) bar.style.width = revPct + '%';
-  if (bar) bar.style.background = revPct >= 100 ? 'linear-gradient(90deg,var(--teal),#27c840)' : revPct >= 50 ? 'linear-gradient(90deg,var(--yellow),var(--teal))' : 'linear-gradient(90deg,var(--red),var(--orange))';
-  if (pct) { pct.textContent = revPct + '%'; pct.style.color = revPct >= 100 ? 'var(--teal)' : revPct >= 50 ? 'var(--yellow)' : 'var(--red)'; }
-  if (detail && target > 0) {
-    detail.textContent = 'Closed $' + earned.toLocaleString() + ' of $' + target.toLocaleString() + ' target' + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + gapDeals + ' more deal' + (gapDeals !== 1 ? 's' : '') + ' at $' + price.toLocaleString() + ' each');
+  if (bar)   { bar.style.width = revPct + '%'; bar.style.background = revPct >= 100 ? 'linear-gradient(90deg,var(--teal),#27c840)' : revPct >= 50 ? 'linear-gradient(90deg,var(--yellow),var(--teal))' : 'linear-gradient(90deg,var(--red),var(--orange))'; }
+  if (pctEl) { pctEl.textContent = revPct + '%'; pctEl.style.color = revPct >= 100 ? 'var(--teal)' : revPct >= 50 ? 'var(--yellow)' : 'var(--red)'; }
+  if (detail) {
+    if (!commission) detail.textContent = 'Set up your affiliate offer to track commissions here.';
+    else if (target > 0) detail.textContent = 'Earned $' + earned.toLocaleString() + ' of $' + target.toLocaleString() + ' target' + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + salesLeft + ' more sale' + (salesLeft !== 1 ? 's' : '') + ' at $' + commission.toLocaleString() + ' each');
+    else detail.textContent = '$' + earned.toLocaleString() + ' earned · Conv rate: ' + convRate + '%';
   }
+
+  // Override metric labels for affiliate context
+  const lbl1 = document.querySelector('#db-metrics-row .db-metric:nth-child(1) .db-lbl');
+  const lbl2 = document.querySelector('#db-metrics-row .db-metric:nth-child(2) .db-lbl');
+  const lbl3 = document.querySelector('#db-metrics-row .db-metric:nth-child(3) .db-lbl');
+  const lbl4 = document.querySelector('#db-metrics-row .db-metric:nth-child(4) .db-lbl');
+  const sub2 = document.getElementById('db-earned-sub');
+  const sub3 = document.getElementById('db-gap-sub');
+  if (lbl1) lbl1.textContent = 'Monthly Target';
+  if (lbl2) lbl2.textContent = 'Commissions Earned';
+  if (lbl3) lbl3.textContent = 'Gap to Close';
+  if (lbl4) lbl4.textContent = 'Content Days Done';
 
   // ── HEALTH SCORE ─────────────────────────────────────────────────────────
   if (window.calculateHealthScore) {
@@ -11439,74 +11637,34 @@ function renderDashboard() {
   // ── STREAK ───────────────────────────────────────────────────────────────
   const streak = window._streakDays ? window._streakDays.length : 0;
   setEl('db-streak-num', streak);
-  const streakEl = document.getElementById('db-streak-num');
-  if (streakEl) streakEl.style.color = streak >= 14 ? 'var(--teal)' : streak >= 7 ? 'var(--yellow)' : 'var(--orange)';
 
   // ── TODAY'S MISSION ──────────────────────────────────────────────────────
-  const hasNiche    = !!(niche && niche !== 'your niche');
+  const hasAffOffer = !!(offer && offer.name);
   const hasAvatar   = !!(window._avatarData && window._avatarData.name);
   const hasCalendar = !!(window._aiCalendar30 && window._aiCalendar30.length > 0);
-  const hasOffer    = !!(document.getElementById('offer-output') && document.getElementById('offer-output').innerHTML.length > 100);
-  const hasRoutine  = !!(typeof customRoutineBlocks !== 'undefined' && customRoutineBlocks && customRoutineBlocks.filter(b => !b.section).length > 0);
-  const ti          = window._ti || [];
-  const dmsTarget   = (ti.find(x => x.key === 'dms') || { target: 17 }).target;
-  const callsTarget = (ti.find(x => x.key === 'calls') || { target: 1 }).target;
+  const ts          = window._trackerState || {};
+  const dmsTarget   = 20;
   const dmsDone     = ts.counts && ts.counts.dms || 0;
-  const callsDone   = ts.counts && ts.counts.calls || 0;
-  const postsDone   = ts.counts && ts.counts.posts || 0;
+  const dmsLeft     = Math.max(0, dmsTarget - dmsDone);
 
-  // Build mission dynamically based on setup state and daily progress
   const missions = [];
-
-  if (isAffMode) {
-    // ── AFFILIATE MISSIONS ───────────────────────────────────────────────
-    const hasAffOffer = window._affiliateOffer && window._affiliateOffer.name;
-    if (!hasAffOffer) {
-      missions.push({ n:1, col:'var(--teal)',   title:'Set up your affiliate offer',        sub:'Go to My Affiliate Offer, paste your link — AI builds everything.',  page:'affiliate', btnIdx:8 });
-      missions.push({ n:2, col:'var(--purple)', title:'Get your buyer profile auto-built',  sub:'Once your link is analysed, your target audience is ready.',          page:'affiliate', btnIdx:8 });
-      missions.push({ n:3, col:'var(--yellow)', title:'Your 7-day content plan will generate', sub:'It happens automatically after your product link is analysed.',  page:'affiliate', btnIdx:8 });
-    } else {
-      const todayCalIdx = calDone;
-      if (todayCalIdx < 30) missions.push({ n:1, col:'var(--teal)', title:'Post Day '+(todayCalIdx+1)+' affiliate content', sub:'Open Content Calendar and post your scripts for today.', page:'calendar', btnIdx:4 });
-      const dmsLeft = Math.max(0, dmsTarget - dmsDone);
-      if (dmsLeft > 0) missions.push({ n:missions.length+1, col:'var(--purple)', title:'Send '+dmsLeft+' more DMs today', sub:dmsTarget+' per day is the minimum. '+dmsDone+' done. '+dmsLeft+' to go.', page:'tracker', btnIdx:7 });
-      missions.push({ n:missions.length+1, col:'var(--orange)', title:'Track your commissions', sub:'Log every click and sale in My Affiliate Offer → Commission Tracker.', page:'affiliate', btnIdx:8 });
-    }
-  } else if (!hasNiche || !target) {
-    missions.push({ n: 1, col: 'var(--teal)', title: 'Complete your Revenue Plan', sub: 'Set your price, target, and niche — unlocks everything else.', page: 'plan', btnIdx: 1 });
-  } else if (!hasOffer) {
-    missions.push({ n: 1, col: 'var(--orange)', title: 'Build your High-Ticket Offer', sub: 'Engineer your offer, funnel strategy, and positioning.', page: 'offer', btnIdx: 2 });
-  } else if (!hasAvatar) {
-    missions.push({ n: 1, col: 'var(--purple)', title: 'Generate your Ideal Customer Avatar', sub: 'Get market intelligence and your $100K targeting system.', page: 'avatar', btnIdx: 3 });
-  } else if (!hasCalendar) {
-    missions.push({ n: 1, col: 'var(--teal)', title: 'Generate your 7-Day Content Plan', sub: 'Your AI-written content calendar awaits — 4 pieces per day.', page: 'avatar', btnIdx: 3 });
+  if (!hasAffOffer) {
+    missions.push({ n:1, col:'var(--teal)',   title:'Set up your affiliate offer',           sub:'Go to Offer Setup → paste your product link and commission — AI builds everything.', page:'affiliate', btnIdx:1 });
+    missions.push({ n:2, col:'var(--purple)', title:'Buyer profile will be auto-generated', sub:'After analysis, your full buyer avatar is ready instantly.',                           page:'affiliate', btnIdx:1 });
+    missions.push({ n:3, col:'var(--yellow)', title:'7-day content plan will be created',   sub:'Scripts, reels, and emails — written for your niche automatically.',                  page:'affiliate', btnIdx:1 });
   } else {
-    // Platform set up — show daily execution missions
-    const todayCalIdx = calDone; // next unposted day
-    if (todayCalIdx < 30) {
-      missions.push({ n: 1, col: 'var(--teal)', title: 'Post Day ' + (todayCalIdx + 1) + ' content', sub: 'Open your Content Calendar and post your scripts for today.', page: 'calendar', btnIdx: 4 });
-    }
-    const dmsLeft = Math.max(0, dmsTarget - dmsDone);
-    if (dmsLeft > 0) {
-      missions.push({ n: missions.length + 1, col: 'var(--purple)', title: 'Send ' + dmsLeft + ' more DMs today', sub: 'You need ' + dmsTarget + ' per day. ' + dmsDone + ' done. ' + dmsLeft + ' to go.', page: 'tracker', btnIdx: 7 });
-    } else {
-      missions.push({ n: missions.length + 1, col: 'var(--teal)', title: 'DMs complete ✅ — great work', sub: 'You hit your DM target. Engage with every comment on today\'s posts.', page: 'tracker', btnIdx: 7 });
-    }
-    const callsLeft = Math.max(0, callsTarget - callsDone);
-    if (callsLeft > 0) {
-      missions.push({ n: missions.length + 1, col: 'var(--yellow)', title: 'Book ' + callsLeft + ' discovery call' + (callsLeft !== 1 ? 's' : ''), sub: 'Your daily call target. Every call is a potential ' + (price ? '$' + price.toLocaleString() : '') + ' close.', page: 'scripts', btnIdx: 5 });
-    } else if (gap > 0) {
-      missions.push({ n: missions.length + 1, col: 'var(--red)', title: 'Log a closed deal', sub: 'You need ' + gapDeals + ' more close' + (gapDeals !== 1 ? 's' : '') + ' to hit your target. Go make it happen.', page: 'tracker', btnIdx: 7 });
-    }
+    if (hasCalendar && calDone < 7) missions.push({ n:missions.length+1, col:'var(--teal)',   title:'Post Day '+(calDone+1)+' content',       sub:'Open the Content Calendar tab in your offer and post today\'s scripts.',   page:'affiliate', btnIdx:1 });
+    else if (!hasCalendar)          missions.push({ n:missions.length+1, col:'var(--teal)',   title:'Generate your content plan',             sub:'Go to Offer Setup and click Analyse — your 7-day plan will be written.',   page:'affiliate', btnIdx:1 });
+    if (dmsLeft > 0)                missions.push({ n:missions.length+1, col:'var(--purple)', title:'Send '+dmsLeft+' more DMs today',        sub:dmsTarget+' DMs per day minimum. '+dmsDone+' done. '+dmsLeft+' to go.',    page:'affiliate', btnIdx:1 });
+    else                            missions.push({ n:missions.length+1, col:'var(--teal)',   title:'DMs done ✅ — engage your comments',     sub:'Reply to every comment on today\'s posts. Engagement builds reach.',       page:'affiliate', btnIdx:1 });
+    missions.push({ n:missions.length+1, col:'var(--orange)', title:'Log your clicks and sales',             sub:'Track every link click and sale in the Commission Tracker tab.',              page:'affiliate', btnIdx:1 });
   }
 
-  // Trim to 3
-  const top3 = missions.slice(0, 3);
+  const top3      = missions.slice(0, 3);
   const missionEl = document.getElementById('db-mission');
   if (missionEl && top3.length) {
-    const pageNames = ['', 'plan', 'offer', 'avatar', 'calendar', 'scripts', 'routine', 'tracker', 'affiliate', 'growth', 'perfhq', 'profile'];
     missionEl.innerHTML = top3.map(m => `
-      <div class="mission-item" onclick="window.showPage('${m.page}', document.querySelectorAll('.nav-btn')[${m.btnIdx}])">
+      <div class="mission-item" onclick="window.showPage('${m.page}', document.getElementById('nav-affiliate'))">
         <div class="mission-num" style="background:${m.col}">${m.n}</div>
         <div style="flex:1">
           <div style="font-size:12px;font-weight:800;color:var(--white);margin-bottom:2px">${m.title}</div>
@@ -11518,23 +11676,21 @@ function renderDashboard() {
 
   // ── SETUP CHECKLIST ───────────────────────────────────────────────────────
   const steps = [
-    { label: 'Revenue Plan configured',      done: hasNiche && target > 0,  page: 'plan',     btnIdx: 1 },
-    { label: 'Offer Creation complete',       done: hasOffer,                 page: 'offer',    btnIdx: 2 },
-    { label: 'Ideal Customer generated',      done: hasAvatar,                page: 'avatar',   btnIdx: 3 },
-    { label: '7-Day Content Calendar ready', done: hasCalendar,              page: 'calendar', btnIdx: 4 },
-    { label: 'Daily Routine built',           done: hasRoutine,               page: 'routine',  btnIdx: 6 },
+    { label: 'Affiliate offer configured',   done: hasAffOffer,              page: 'affiliate' },
+    { label: 'Buyer profile generated',      done: hasAvatar,                page: 'affiliate' },
+    { label: '7-Day content plan ready',     done: hasCalendar,              page: 'affiliate' },
+    { label: 'Daily Routine built',          done: !!(typeof customRoutineBlocks !== 'undefined' && customRoutineBlocks && customRoutineBlocks.filter(b=>!b.section).length>0), page:'routine' },
+    { label: 'First sale logged',            done: sales > 0,                page: 'affiliate' },
   ];
-  const doneCount = steps.filter(s => s.done).length;
-  const setupPct  = Math.round((doneCount / steps.length) * 100);
-
+  const doneCount  = steps.filter(s => s.done).length;
+  const setupPct   = Math.round((doneCount / steps.length) * 100);
   setEl('db-setup-pct', setupPct + '%');
   const setupBar = document.getElementById('db-setup-bar');
   if (setupBar) setupBar.style.width = setupPct + '%';
-
   const setupList = document.getElementById('db-setup-list');
   if (setupList) {
     setupList.innerHTML = steps.map(s => `
-      <div class="setup-step" onclick="window.showPage('${s.page}', document.querySelectorAll('.nav-btn')[${s.btnIdx}])">
+      <div class="setup-step" onclick="window.showPage('${s.page}', document.getElementById('nav-${s.page === 'routine' ? 'routine' : 'affiliate'}'))">
         <div class="setup-check ${s.done ? 'done' : ''}">
           ${s.done ? '<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><polyline points="1.5,4.5 4,7 9.5,1.5" stroke="#1a1a3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
         </div>
@@ -11543,21 +11699,20 @@ function renderDashboard() {
       </div>`).join('');
   }
 
-  // ── DAILY ACTIVITY SUMMARY ────────────────────────────────────────────────
+  // ── DAILY ACTIVITY ────────────────────────────────────────────────────────
   const actEl = document.getElementById('db-activity');
   if (actEl) {
-    const items = [
-      { key: 'posts',  label: 'Posts published',  target: 2,           done: postsDone, col: 'var(--purple)' },
-      { key: 'dms',    label: 'DMs sent',          target: dmsTarget,   done: dmsDone,   col: 'var(--teal)'   },
-      { key: 'calls',  label: 'Calls booked',      target: callsTarget, done: callsDone, col: 'var(--yellow)' },
-      { key: 'closes', label: 'Deals closed',       target: Math.max(1, Math.ceil((window._appliedTarget||0)/(window._appliedPrice||1)/30)), done: ts.counts && ts.counts.closes || 0, col: 'var(--red)' },
-    ];
-    actEl.innerHTML = items.map(it => {
-      const pct = it.target > 0 ? Math.min(100, Math.round((it.done / it.target) * 100)) : 0;
+    actEl.innerHTML = [
+      { label:'Posts today',   done: ts.counts&&ts.counts.posts||0,  target:4,          col:'var(--purple)' },
+      { label:'DMs sent',      done: dmsDone,                         target:dmsTarget,  col:'var(--teal)'   },
+      { label:'Link clicks',   done: clicks,                          target:Math.max(10,clicks+5), col:'var(--yellow)' },
+      { label:'Sales made',    done: sales,                           target:Math.max(1, commission>0?Math.ceil(target/commission):5), col:'var(--orange)' },
+    ].map(it => {
+      const pct = it.target > 0 ? Math.min(100, Math.round((it.done/it.target)*100)) : 0;
       return `<div>
         <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
           <span style="color:var(--dim);font-weight:600">${it.label}</span>
-          <span style="font-weight:800;color:${pct >= 100 ? 'var(--teal)' : 'var(--white)'}">${it.done}<span style="color:var(--dimmer);font-weight:400">/${it.target}</span></span>
+          <span style="font-weight:800;color:${pct>=100?'var(--teal)':'var(--white)'}">${it.done}<span style="color:var(--dimmer);font-weight:400">/${it.target}</span></span>
         </div>
         <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
           <div style="width:${pct}%;height:100%;background:${it.col};border-radius:2px;transition:width .5s"></div>
@@ -11567,23 +11722,23 @@ function renderDashboard() {
   }
 
   // ── NEXT MILESTONE ────────────────────────────────────────────────────────
-  const milestoneAmounts = [1000, 5000, 10000, 25000, 50000, 100000, 250000];
-  const milestoneIcons   = ['🌱','🔥','💎','🚀','👑','🏆','💫'];
-  const milestoneLabels  = ['$1K','$5K','$10K','$25K','$50K','$100K','$250K'];
+  const milestoneAmounts = [1000, 5000, 10000, 25000, 50000, 100000];
+  const milestoneIcons   = ['🌱','🔥','💎','🚀','👑','🏆'];
+  const milestoneLabels  = ['$1K','$5K','$10K','$25K','$50K','$100K'];
   let earnedMilestones = [];
-  try { earnedMilestones = JSON.parse(localStorage.getItem('eos_milestones') || '[]'); } catch(e) {}
+  try { earnedMilestones = JSON.parse(localStorage.getItem('eos_milestones')||'[]'); } catch(e) {}
   const nextMile = milestoneAmounts.find(a => !earnedMilestones.includes(a));
-  const mileEl = document.getElementById('db-next-milestone');
+  const mileEl   = document.getElementById('db-next-milestone');
   if (mileEl && nextMile) {
-    const idx = milestoneAmounts.indexOf(nextMile);
-    const milePct = price > 0 ? Math.min(100, Math.round((earned / nextMile) * 100)) : 0;
-    const dealsLeft = price > 0 ? Math.ceil(Math.max(0, nextMile - earned) / price) : '?';
+    const idx      = milestoneAmounts.indexOf(nextMile);
+    const milePct  = earned > 0 ? Math.min(100, Math.round((earned/nextMile)*100)) : 0;
+    const salesAway= commission > 0 ? Math.ceil(Math.max(0,nextMile-earned)/commission) : '?';
     mileEl.innerHTML = `
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
         <span style="font-size:18px">${milestoneIcons[idx]}</span>
         <div style="flex:1">
-          <div style="font-size:11px;font-weight:900;color:var(--white)">Next: ${milestoneLabels[idx]} Month</div>
-          <div style="font-size:10px;color:var(--dim)">${dealsLeft} deal${dealsLeft !== 1 ? 's' : ''} away${price ? ' at $' + price.toLocaleString() : ''}</div>
+          <div style="font-size:11px;font-weight:900;color:var(--white)">Next: ${milestoneLabels[idx]} in commissions</div>
+          <div style="font-size:10px;color:var(--dim)">${salesAway} sale${salesAway!==1?'s':''} away${commission?(' at $'+commission.toLocaleString()+' each'):''}</div>
         </div>
         <div style="font-size:12px;font-weight:900;color:var(--yellow)">${milePct}%</div>
       </div>
@@ -11593,32 +11748,15 @@ function renderDashboard() {
   }
 
   // ── COACH NOTE ────────────────────────────────────────────────────────────
-  const coachNotes = {
-    noSetup:   "Start with your Revenue Plan. Enter your offer price, monthly target, and niche. Every other feature in the platform personalises to those three numbers — they're the foundation of everything.",
-    lowScore:  "Your health score is under 40. This usually means execution hasn't started yet, or key sections aren't filled in. Start with today's Mission #1 — one step at a time builds the momentum.",
-    building:  "You are in the building phase. The entrepreneurs who reach $100K don't have more talent — they have more reps. Post today's content, send your DMs, book your calls. Every day you do the work, the compound effect builds.",
-    strong:    "Strong execution this week. The gap between where you are and $100K/month is smaller than it looks from inside the frustration. The system is working — stay consistent and don't change what's working.",
-    elite:     "Elite execution. At this level, the only thing that limits you is the size of your offer and the scale of your outreach. If you haven't raised your price in the last 30 days, raise it today.",
-    onTrack:   "You are on track to hit your monthly target. The final stretch is where most people take the foot off the gas — don't. Finish the month strong and build the momentum into next month.",
-    hitTarget: "Target hit. This is not the time to slow down — this is the time to raise it. The best time to scale your ambition is when the system is working. Set a bigger number and go again.",
-    noContent: "Your content calendar is set up — but the days aren't being marked complete. Content consistency is the single most important variable in organic growth. Post today, mark it done, build the chain.",
-  };
-
   let note = '';
-  if (!hasNiche || !target) note = coachNotes.noSetup;
-  else if (earned >= target) note = coachNotes.hitTarget;
-  else if (revPct >= 70) note = coachNotes.onTrack;
-  else if (window.calculateHealthScore) {
-    const sc = window.calculateHealthScore();
-    if (sc.total >= 85) note = coachNotes.elite;
-    else if (sc.total >= 70) note = coachNotes.strong;
-    else if (sc.total >= 40) {
-      note = hasCalendar && calDone < 7 ? coachNotes.noContent : coachNotes.building;
-    } else note = coachNotes.lowScore;
-  } else note = coachNotes.building;
-
+  if (!hasAffOffer)        note = 'Start by setting up your affiliate offer. Paste your product link, enter your commission, and click Analyse — the AI will build your entire strategy, buyer profile, and content plan in one go.';
+  else if (sales === 0)    note = 'Your setup is done. Now execute. Post today\'s content, send 20 DMs minimum, and track every link click. Your first commission comes from consistent daily action — not from waiting.';
+  else if (revPct >= 100)  note = 'Target hit! This is the moment to raise your monthly target. The compounding effect is real — your content is building reach, your DM skills are sharpening. Set a bigger number and go again.';
+  else if (revPct >= 50)   note = 'You are over halfway to your target. The pipeline is working. Stay consistent with your content and DMs — the second half of the month is where most commissions close.';
+  else                     note = 'Every link click is a potential commission. Every DM is a potential buyer. Focus on volume today — the law of numbers always wins. Post, DM, track, repeat.';
   setEl('db-coach-text', note);
 }
+
 
 window.renderDashboard = renderDashboard;
 
@@ -11768,6 +11906,7 @@ window.analyseAffiliateProduct = async function() {
       name: av.productName||productName||url, platform,
       commission: av.commission||commission, url,
       niche: av.niche||productNiche,
+      monthlyTarget: monthlyTarget,
       buyer: av.job, pain: av.pain, transformation: av.transformation
     };
     window._appliedNiche  = av.niche||productNiche;
@@ -11785,9 +11924,10 @@ window.analyseAffiliateProduct = async function() {
         type:'calendar',productName:av.productName||productName,
         commission,niche:productNiche,
         trafficMode:window._affTrafficMode||'organic',
-        avatarData:av
+        avatarData:av,
+        _maxTokens: 8000
       });
-      const calText = calResp.text||'';
+      const calText = calResp.text || (typeof calResp === 'string' ? calResp : JSON.stringify(calResp));
       setProgress(85,'Content ready ✅ — building calendar…','Content written ✅');
 
       // Parse calendar
@@ -11879,12 +12019,13 @@ window.renderAffStrategy = function renderAffStrategy(av) {
       commission: offer.commission || 1000, niche: offer.niche || 'Online Business'
     };
   }
-  const commission = av.commission || window._appliedPrice || 1000;
-  const target     = commission * 5;
-  const salesNeeded  = Math.ceil(target / commission);
-  const clicksNeeded = Math.ceil(salesNeeded / 0.03);    // 3% click→sale
-  const viewsNeeded  = Math.ceil(clicksNeeded / 0.08);  // 8% view→click
-  const dmsDay       = Math.max(10, Math.ceil(salesNeeded * 8));
+  const commission  = av.commission || window._appliedPrice || 1000;
+  const target      = window._appliedTarget || commission * 5;
+  const salesNeeded = Math.ceil(target / commission);
+  const leadsNeeded = Math.ceil(salesNeeded / 0.03 / 0.08);
+  const clicksNeeded= Math.ceil(salesNeeded / 0.03);
+  const viewsNeeded = Math.ceil(clicksNeeded / 0.08);
+  const dmsDay      = Math.max(10, Math.ceil(salesNeeded * 8));
   const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
 
   el.innerHTML = `
@@ -11981,19 +12122,59 @@ window.renderAffDMScripts = function renderAffDMScripts(av, productName, commiss
 window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
   const el = document.getElementById('aff-tracker-body');
   if (!el) return;
+  commission = commission || (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 1000;
+  const target   = window._appliedTarget || (window._affiliateOffer && window._affiliateOffer.monthlyTarget) || commission * 5;
   let data = {};
   try { data = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
-  const clicks = data.clicks || 0;
-  const sales  = data.sales  || 0;
-  const earned = sales * (commission || window._appliedPrice || 1000);
+  const clicks   = data.clicks  || 0;
+  const sales    = data.sales   || 0;
+  const earned   = sales * commission;
+  const convRate = clicks > 0 ? ((sales / clicks) * 100).toFixed(1) : '0.0';
+  const pct      = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
+  const remaining= Math.max(0, target - earned);
+  const salesLeft= commission > 0 ? Math.ceil(remaining / commission) : 0;
+
   el.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem">
-      ${[['🖱 Link Clicks',clicks,'var(--teal)'],['💳 Sales Made',sales,'var(--yellow)'],['💰 Earned','$'+earned.toLocaleString(),'var(--teal)']].map(([l,v,c])=>`<div class="db-metric teal" style="text-align:center"><div style="font-size:22px;margin-bottom:6px">${l.split(' ')[0]}</div><div class="db-lbl">${l.slice(2).trim()}</div><div class="db-val" style="color:${c}">${v}</div></div>`).join('')}
+    <div style="background:linear-gradient(145deg,rgba(78,204,163,.08),var(--card));border:1px solid rgba(78,204,163,.2);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1rem">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:900;margin-bottom:8px">💰 Monthly Progress</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:11px;color:var(--dim)">Earned: <strong style="color:var(--teal)">\$${earned.toLocaleString()}</strong> of <strong style="color:var(--white)">\$${target.toLocaleString()}</strong></span>
+        <span style="font-size:12px;font-weight:900;color:${pct>=100?'var(--teal)':'var(--yellow)'}">${pct}%</span>
+      </div>
+      <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-bottom:6px">
+        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--teal),var(--yellow));border-radius:3px;transition:width .5s"></div>
+      </div>
+      <div style="font-size:11px;color:var(--dim)">${pct>=100?'🏆 Target hit! Raise it for next month.':salesLeft+' more sale'+(salesLeft!==1?'s':'')+' needed at \$'+commission.toLocaleString()+' each'}</div>
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${[['Track a link click','clicks'],['Log a completed sale','sales']].map(([l,k])=>`<div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:12px 16px"><div style="font-size:12px;font-weight:700;color:var(--white)">${l}</div><div style="display:flex;gap:7px"><button onclick="window.affTrack('${k}',-1)" class="adj">−</button><button onclick="window.affTrack('${k}',1)" class="adj plus">+</button></div></div>`).join('')}
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem">
+      ${[
+        ['🖱 Link Clicks', clicks, 'var(--purple)'],
+        ['💳 Sales Made', sales, 'var(--yellow)'],
+        ['💰 Total Earned', '\$'+earned.toLocaleString(), 'var(--teal)'],
+        ['📊 Conv. Rate', convRate+'%', convRate>=2?'var(--teal)':'var(--orange)']
+      ].map(([l,v,c])=>`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">${l}</div><div style="font-size:20px;font-weight:900;font-family:'Poppins',sans-serif;color:${c}">${v}</div></div>`).join('')}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem">
+      ${[['🖱 Track a link click','clicks'],['💳 Log a completed sale','sales']].map(([l,k])=>`
+        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:12px 16px">
+          <div style="font-size:12px;font-weight:700;color:var(--white)">${l}</div>
+          <div style="display:flex;gap:7px">
+            <button onclick="window.affTrack('${k}',-1)" class="adj">−</button>
+            <button onclick="window.affTrack('${k}',1)" class="adj plus">+</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:11px;color:var(--dim)">Commission per sale</div>
+      <div style="font-size:14px;font-weight:900;color:var(--teal)">\$${commission.toLocaleString()}</div>
     </div>`;
-}
+};
+
+// ─── Alias so all callers work ────────────────────────────────────────────
+window.renderAffCommTracker = function() {
+  const commission = (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 1000;
+  window.renderAffCommTrackerFn(commission);
+};
 
 // ─── Commission tracker adjustment (global) ───────────────────────────────
 window.affTrack = function(key, delta) {
@@ -12011,7 +12192,7 @@ window.affTrack = function(key, delta) {
 // MODE SYSTEM — Expert / Affiliate toggle
 // ═══════════════════════════════════════════════════════════════════════════
 
-window._appMode = localStorage.getItem('eos_app_mode') || 'expert';
+window._appMode = 'affiliate';
 
 window.setAppMode = function(mode) {
   window._appMode      = mode;
@@ -12106,10 +12287,15 @@ window.setAppMode = function(mode) {
   document.body.classList.toggle('affiliate-mode', isAffiliate);
   document.body.classList.toggle('expert-mode',    !isAffiliate);
 
-  // Update mode badge
-  const badge = document.getElementById('mode-badge-text');
+  // Update mode badge (read-only indicator)
+  const badge = document.getElementById('mode-badge');
+  const badgeText = document.getElementById('mode-badge-text');
   const badgeIcon = document.getElementById('mode-badge-icon');
-  if (badge) badge.textContent = isAffiliate ? 'Affiliate Mode' : 'Expert Mode';
+  if (badge) {
+    badge.style.background = isAffiliate ? 'rgba(78,204,163,.12)' : 'rgba(108,99,255,.12)';
+    badge.style.borderColor = isAffiliate ? 'rgba(78,204,163,.3)' : 'rgba(108,99,255,.3)';
+  }
+  if (badgeText) { badgeText.textContent = isAffiliate ? 'Affiliate Mode' : 'Expert Mode'; badgeText.style.color = isAffiliate ? 'var(--teal)' : 'rgba(255,255,255,.8)'; }
   if (badgeIcon) badgeIcon.textContent = isAffiliate ? '🔗' : '⚡';
 
   // ── Close onboarding if open ──────────────────────────────────────────
@@ -12137,15 +12323,11 @@ window.setMode = window.setAppMode;
 
 // Apply mode and show dashboard as soon as DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-  const saved = localStorage.getItem('eos_app_mode') || 'expert';
-  document.body.classList.add(saved === 'affiliate' ? 'affiliate-mode' : 'expert-mode');
-  // Activate dashboard nav
+  document.body.classList.add('affiliate-mode');
   const dashNav = document.getElementById('nav-dashboard');
   if (dashNav) dashNav.classList.add('on');
-  // Render dashboard content (no Firebase needed for basic content)
   setTimeout(function() { window.renderDashboard && window.renderDashboard(); }, 100);
-  // Apply mode nav
-  setTimeout(function() { window.setAppMode && window.setAppMode(saved); }, 150);
+  setTimeout(function() { window.setAppMode && window.setAppMode('affiliate'); }, 150);
 });
 
 // ─── Live commission math preview on the affiliate setup form ─────────────
@@ -12158,8 +12340,7 @@ window.updateAffTarget = function() {
   const comm   = parseInt((commEl || {}).value) || 0;
   if (!comm || comm < 100) { if (preview) preview.style.display = 'none'; return; }
 
-  // Auto-suggest target if empty
-  if (targetEl && !targetEl.value) targetEl.value = comm * 5;
+  // Use manually entered target, or fall back to comm * 5 only for display math (never overwrite the field)
   const target = parseInt((targetEl || {}).value) || comm * 5;
 
   const sales        = Math.ceil(target / comm);
@@ -12186,6 +12367,13 @@ window.updateAffTarget = function() {
     grid.style.gridTemplateColumns = 'repeat(4,1fr)';
   }
   if (preview) preview.style.display = 'block';
+
+  // Also refresh the full metrics grid so toggling isn't required
+  if (!window._updatingAffTarget) {
+    window._updatingAffTarget = true;
+    window.setAffTraffic && window.setAffTraffic(window._affTrafficMode || 'organic');
+    window._updatingAffTarget = false;
+  }
 };
 
 // ─── Affiliate traffic mode toggle — full strategy renderer ──────────────
@@ -12848,190 +13036,42 @@ setTimeout(window.updateStepProgress, 500);
 </script>
 
 <script type="module">
-import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut }
-                               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs }
-                               from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+// ── PREVIEW MODE: Firebase auth bypassed for local preview ──────────────────
+const signOut = () => Promise.resolve();
+// Stub Firestore helpers so nothing crashes
+const doc = () => ({});
+const getDoc = () => Promise.resolve({ exists: () => false, data: () => ({}) });
+const setDoc = () => Promise.resolve();
+const updateDoc = () => Promise.resolve();
+const deleteDoc = () => Promise.resolve();
+const collection = () => ({});
+const getDocs = () => Promise.resolve({ forEach: () => {} });
+const db = {};
+window._db = db; window._doc = doc; window._setDoc = setDoc;
+window._getDoc = getDoc; window._updateDoc = updateDoc;
+window._deleteDoc = deleteDoc; window._collection = collection; window._getDocs = getDocs;
+// Stub Cloudinary & admin
+const CLOUDINARY_CLOUD = ''; const CLOUDINARY_PRESET = '';
+const ADMIN_EMAIL = '';
+let currentUser = null; let userDoc = {};
 
-// ─── YOUR FIREBASE CONFIG ───────────────────────────────────────────
-const firebaseConfig = {
-  apiKey:            "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
-  authDomain:        "execution-os-1fbfd.firebaseapp.com",
-  projectId:         "execution-os-1fbfd",
-  storageBucket:     "execution-os-1fbfd.firebasestorage.app",
-  messagingSenderId: "300866558889",
-  appId:             "1:300866558889:web:01a08d92f20332095d42b8"
-};
+// ── PREVIEW MODE: mock user auto-login ─────────────────────────────────────
+const mockUser = { uid: 'preview', email: 'preview@demo.com', displayName: 'Preview User', photoURL: '' };
+currentUser = mockUser;
+// Expose save stubs so buttons don't break
+window.saveRevenuePlan = () => {};
+window.saveAvatarData = () => {};
+window.saveCalendarState = () => {};
+window.uploadProfilePhoto = () => {};
+window.saveProfile = () => {};
 
-// ─── YOUR ADMIN EMAIL (only this account sees the admin panel) ───────
-const ADMIN_EMAIL = 'itzevan.se@gmail.com';
+renderUserUI(mockUser, {name:'Preview User',brand:'My Brand',niche:'Coaching'}, null);
+setTimeout(() => { window.renderDashboard && window.renderDashboard(); }, 300);
+const savedMode = localStorage.getItem('eos_app_mode') || 'affiliate';
+setTimeout(() => window.setAppMode && window.setAppMode(savedMode), 400);
 
-const fbApp = initializeApp(firebaseConfig);
-const auth  = getAuth(fbApp);
-const db    = getFirestore(fbApp);
 
-// Expose Firestore helpers to non-module scope (for admin functions)
-window._db         = db;
-window._doc        = doc;
-window._setDoc     = setDoc;
-window._getDoc     = getDoc;
-window._updateDoc  = updateDoc;
-window._deleteDoc  = deleteDoc;
-window._collection = collection;
-window._getDocs    = getDocs;
-
-// ─── Cloudinary ──────────────────────────────────────────────────────
-const CLOUDINARY_CLOUD  = 'dkjrpsvxv';
-const CLOUDINARY_PRESET = 'execution_os_photos';
-
-let currentUser = null;
-let userDoc     = null;
-
-// ─── Auth guard ───────────────────────────────────────────────────────
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    setTimeout(() => { if (!auth.currentUser) window.location.href = 'index.html'; }, 2000);
-    return;
-  }
-  currentUser = user;
-
-  // Load user's own profile doc
-  const ref  = doc(db, 'users', user.uid);
-  const snap = await getDoc(ref);
-  userDoc    = snap.exists() ? snap.data() : {};
-
-  // Check if user is in the approved members list (by email)
-  const safeEmail  = user.email.toLowerCase().replace(/[^a-z0-9]/g, '-');
-  const memberRef  = doc(db, 'members', safeEmail);
-  const memberSnap = await getDoc(memberRef);
-
-  // If not admin AND not in members list → deny access
-  if (user.email.toLowerCase() !== ADMIN_EMAIL.toLowerCase() && !memberSnap.exists()) {
-    document.body.innerHTML = `
-      <div style="min-height:100vh;background:#1a1a3e;display:flex;align-items:center;justify-content:center;padding:2rem;font-family:'Poppins',sans-serif">
-        <div style="background:linear-gradient(145deg,#2c2c54,#1a1a3e);border:1px solid rgba(255,107,107,.3);border-radius:24px;padding:2.5rem;max-width:420px;width:100%;text-align:center">
-          <div style="font-size:52px;margin-bottom:1rem">🔒</div>
-          <div style="font-size:18px;font-weight:900;color:#fff;margin-bottom:10px">Access Not Yet Granted</div>
-          <div style="font-size:13px;color:#b0b0d0;line-height:1.65;margin-bottom:1.5rem">Your account (<strong style="color:#fff">${user.email}</strong>) hasn't been added yet. If you've already enrolled, contact your coach to have your access activated.</div>
-          <button onclick="import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(m=>m.signOut(window._auth||auth))" style="padding:12px 24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#b0b0d0;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px" onclick="signOut(auth).then(()=>window.location.href='index.html')">Sign Out</button>
-        </div>
-      </div>`;
-    return;
-  }
-
-  renderUserUI(user, userDoc, memberSnap.exists() ? memberSnap.data() : null);
-
-  // ── Apply mode from Firebase (set at login) ────────────────────────────
-  if (userDoc.appMode) {
-    localStorage.setItem('eos_app_mode', userDoc.appMode);
-    setTimeout(() => window.setAppMode(userDoc.appMode), 400);
-  } else {
-    // Fallback: use localStorage
-    const savedMode = localStorage.getItem('eos_app_mode') || 'expert';
-    setTimeout(() => window.setAppMode(savedMode), 400);
-  }
-
-  // Restore saved data
-  if (userDoc.revenuePlan) loadRevenuePlan(userDoc.revenuePlan);
-  if (userDoc.avatarFields) loadAvatarFields(userDoc.avatarFields);
-  if (userDoc.calendar30)   loadCalendar(userDoc.calendar30);
-  if (userDoc.customRoutine) restoreRoutine(userDoc.customRoutine);
-  if (userDoc.milestones) window._onMilestonesLoaded && window._onMilestonesLoaded(userDoc.milestones);
-  window._currentUserUid = user.uid;
-
-  // Expose save helpers
-  window.saveRevenuePlan = async function() {
-    if (!currentUser) return;
-    const price  = document.getElementById('price')  ? document.getElementById('price').value  : '';
-    const target = document.getElementById('target') ? document.getElementById('target').value : '';
-    try { await setDoc(doc(db,'users',currentUser.uid),{revenuePlan:{price:Number(price)||0,target:Number(target)||0,savedAt:new Date().toISOString()}},{merge:true}); } catch(e){}
-  };
-  window.saveAvatarData = async function() {
-    if (!currentUser) return;
-    const fields = ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections'];
-    const avatarFields = {};
-    fields.forEach(id=>{ const el=document.getElementById(id); if(el) avatarFields[id]=el.value; });
-    avatarFields.selectedPains = Array.from(window.selectedPains||[]);
-    const kwWrap = document.getElementById('kw-wrap');
-    if(kwWrap) avatarFields.keywords = Array.from(kwWrap.querySelectorAll('.tag')).map(t=>t.textContent.replace('×','').trim());
-    try { await setDoc(doc(db,'users',currentUser.uid),{avatarFields,avatarSavedAt:new Date().toISOString()},{merge:true}); } catch(e){}
-  };
-  window.saveCalendarState = async function() {
-    if (!currentUser || !window._aiCalendar30) return;
-    try {
-      await setDoc(doc(db,'users',currentUser.uid),{
-        calendar30:{
-          data: JSON.stringify(window._aiCalendar30),
-          postsPerDay: window._postsPerDay||6,
-          generatedAt: window._cal30GeneratedAt||new Date().toISOString(),
-          calDone: Array.from(window._calDone||[])
-        }
-      },{merge:true});
-    } catch(e){}
-  };
-  window.saveRoutineToFirestore = async function(payload) {
-    try { await updateDoc(doc(db,'users',currentUser.uid),{customRoutine:JSON.stringify(payload)}); } catch(e){}
-  };
-  window.doLogout = async function() {
-    try { await signOut(auth); } catch(e) {}
-    localStorage.removeItem('eos_app_mode');
-    window.location.href = 'index.html';
-  };
-  window._firebaseSignOut = async function() {
-    try { await signOut(auth); } catch(e) {}
-    localStorage.removeItem('eos_app_mode');
-    window.location.href = 'index.html';
-  };
-  window.handleLogout = window._firebaseSignOut;
-  window.saveProfile = async function() {
-    if (!currentUser) return;
-    const btn = document.getElementById('save-profile-btn');
-    if(btn){btn.textContent='Saving…';btn.disabled=true;}
-    const name  = document.getElementById('prof-name')  ? document.getElementById('prof-name').value.trim()  : '';
-    const brand = document.getElementById('prof-brand') ? document.getElementById('prof-brand').value.trim() : '';
-    const niche = document.getElementById('prof-niche') ? document.getElementById('prof-niche').value.trim() : '';
-    try {
-      await setDoc(doc(db,'users',currentUser.uid),{name,brand,niche},{merge:true});
-      userDoc = {...userDoc,name,brand,niche};
-      renderUserUI(currentUser,userDoc,null);
-      if(btn){btn.textContent='Save Changes';btn.disabled=false;}
-      const msg=document.getElementById('save-profile-msg');
-      if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}
-    } catch(e){
-      if(btn){btn.textContent='Save Changes';btn.disabled=false;}
-    }
-  };
-  window.uploadProfilePhoto = async function(input) {
-    const file = input.files[0];
-    if (!file || !currentUser) return;
-    const status = document.getElementById('photo-upload-status');
-    if(status) status.textContent = '⏳ Uploading…';
-    const localUrl = URL.createObjectURL(file);
-    ['user-avatar-img','profile-photo-img'].forEach(id=>{const img=document.getElementById(id);if(img){img.src=localUrl;img.style.display='block';}});
-    document.getElementById('user-initials').style.display='none';
-    const bigInit=document.getElementById('profile-initials-big');if(bigInit)bigInit.style.display='none';
-    const fd = new FormData();
-    fd.append('file',file); fd.append('upload_preset',CLOUDINARY_PRESET); fd.append('folder','execution-os-profiles');
-    try {
-      const res  = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`,{method:'POST',body:fd});
-      const data = await res.json();
-      if (data.secure_url) {
-        await updateDoc(doc(db,'users',currentUser.uid),{photoURL:data.secure_url});
-        userDoc.photoURL = data.secure_url;
-        ['user-avatar-img','profile-photo-img'].forEach(id=>{const img=document.getElementById(id);if(img){img.src=data.secure_url;img.style.display='block';}});
-        if(status) status.textContent = '✅ Photo updated!';
-        setTimeout(()=>{if(status)status.textContent='';},2500);
-      }
-    } catch(e){ if(status)status.textContent='⚠️ Upload failed.'; }
-  };
-
-  // If admin: show admin panel and load members
-  if (user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-    const panel = document.getElementById('admin-panel');
-    if (panel) { panel.style.display = 'block'; window.adminLoadMembers(); }
-  }
-});
+// (preview mode — Firestore saves are no-ops)
 
 // ─── Render user UI ───────────────────────────────────────────────────
 function renderUserUI(user, doc, memberData) {
@@ -13085,8 +13125,13 @@ function renderUserUI(user, doc, memberData) {
   if (photo) {
     const pImg = document.getElementById('profile-photo-img');
     if(pImg){
-      pImg.src=photo;
-      pImg.style.cssText='display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;max-width:100%;max-height:100%';
+      pImg.src = photo;
+      pImg.style.display = 'block';
+      pImg.style.width = '100%';
+      pImg.style.height = '100%';
+      pImg.style.objectFit = 'cover';
+      pImg.style.borderRadius = '50%';
+      pImg.style.position = 'static';
     }
     if(bigInit) bigInit.style.display='none';
   }
