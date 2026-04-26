@@ -1647,6 +1647,54 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
   object-fit: cover;
   border-radius: 50%;
 }
+
+/* ══ COMPACT ACTION BUTTONS — width fix + centered ═══════════════════ */
+.gen-av-btn,
+.gen-posts-btn,
+#gen-routine-btn,
+#aff-analyse-btn {
+  width: fit-content !important;
+  min-width: 220px;
+  display: block !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  padding: 13px 36px !important;
+  text-align: center;
+}
+
+/* Offer generate button */
+button[onclick="generateOffer()"] {
+  width: fit-content !important;
+  min-width: 220px;
+  display: block !important;
+  margin: 0 auto 2rem !important;
+  padding: 13px 36px !important;
+  text-align: center;
+}
+
+/* Next step buttons — centered + slimmer */
+.next-step-wrap {
+  display: flex;
+  justify-content: center;
+}
+.next-step-btn {
+  width: fit-content !important;
+  max-width: 320px !important;
+  padding: 13px 28px !important;
+  font-size: 13px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* Apply button on Revenue Plan */
+#apply-btn {
+  width: fit-content !important;
+  min-width: 160px;
+  display: block !important;
+  margin: 8px auto 0 !important;
+  padding: 10px 28px !important;
+  text-align: center;
+}
 </style>
 </head>
 <body>
@@ -5701,8 +5749,67 @@ Repeat exactly for DAY 2 through DAY 7. Each day must have a completely differen
 
   } else if (endpoint === 'generate-advisor') {
     const question = body.question || body.message || '';
-    const context = body.context || '';
-    prompt = `You are an elite business strategist and coach. ${context ? 'Context about this business: ' + context + '\n\n' : ''}Answer this question with specific, actionable advice:\n\n${question}`;
+    const ctx = body.userContext || {};
+    const av = ctx.avatar || {};
+    const mode = ctx.mode || 'expert';
+    const niche = ctx.niche || av.niche || '';
+    const price = ctx.price || 0;
+    const target = ctx.target || 0;
+    const affOffer = ctx.affOffer || {};
+    const isAffiliate = mode === 'affiliate';
+
+    const businessContext = isAffiliate && affOffer.name
+      ? `BUSINESS CONTEXT:
+Mode: Affiliate Marketing
+Product promoting: ${affOffer.name}
+Commission per sale: $${affOffer.commission||price}
+Monthly target: $${affOffer.monthlyTarget||target}
+Niche: ${affOffer.niche||niche}
+Buyer: ${affOffer.buyer||av.job||''}
+Buyer pain: ${affOffer.pain||av.pain||''}
+Buyer goal: ${affOffer.transformation||av.transformation||''}`
+      : `BUSINESS CONTEXT:
+Mode: Expert / Coaching
+Niche: ${niche}
+Offer price: ${price ? '$'+price.toLocaleString() : 'not set'}
+Monthly target: ${target ? '$'+target.toLocaleString() : 'not set'}
+Ideal client job: ${av.job||'not set'}
+Client pain: ${av.pain||'not set'}
+Client transformation: ${av.transformation||'not set'}
+Client fear: ${av.fear||'not set'}`;
+
+    // Handle conversation history for multi-turn chat
+    const messages = body.messages || [{ role:'user', content: question }];
+    const systemPrompt = `You are E-OS Intelligent — the elite AI business advisor built into Execution OS.
+
+You give specific, direct, actionable answers. Never generic advice. Every answer must be tailored to the user's exact business context below.
+
+${businessContext}
+
+YOUR RULES:
+1. Always reference their specific niche, offer price, or buyer when relevant
+2. Give concrete steps — never vague advice like "be consistent" without specifics
+3. When asked for scripts or copy, write the actual script — don't describe it
+4. When asked for a plan, give the actual plan — numbered steps, specific actions
+5. Be direct. No unnecessary caveats or disclaimers.
+6. If they ask what to post, give them the actual post text
+7. If they ask for a DM script, write the complete DM
+8. Speak like a $10,000/month business coach who knows their business deeply`;
+
+    // For multi-turn, use the messages array directly with system prompt
+    return fetch(window.PROXY_URL || 'https://build.skillslibry.com/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2000,
+        system: systemPrompt,
+        messages: messages
+      })
+    }).then(r => r.json()).then(d => {
+      const text = (d.content&&d.content[0]&&d.content[0].text)||'';
+      return { reply: text };
+    });
 
   } else {
     prompt = body._rawPrompt || JSON.stringify(body);
@@ -11786,8 +11893,26 @@ window.showAffActiveTab = function(tab, btn) {
   document.querySelectorAll('#aff-active-tabs .tab').forEach(b => b.classList.remove('on'));
   if (btn) btn.classList.add('on');
   if (tab === 'tracker')  window.renderAffCommTracker && window.renderAffCommTracker();
-  if (tab === 'calendar' && window._aiCalendar30 && window._aiCalendar30.length > 0) {
-    window.renderAICalendar30 && window.renderAICalendar30(1);
+  if (tab === 'dms') {
+    const av = window._avatarData || {};
+    const offer = window._affiliateOffer || {};
+    window.renderAffDMScripts && window.renderAffDMScripts(av, offer.name, offer.commission);
+  }
+  if (tab === 'avatar') {
+    window.renderAffAvatarView && window.renderAffAvatarView(window._avatarData||{});
+  }
+  if (tab === 'strategy') {
+    window.renderAffStrategy && window.renderAffStrategy(window._avatarData||{});
+  }
+  if (tab === 'calendar') {
+    // Render into the aff-tab-calendar's own cal-body (not the main calendar page)
+    const affCalTab = document.getElementById('aff-tab-calendar');
+    if (!affCalTab) return;
+    if (!window._aiCalendar30 || window._aiCalendar30.length === 0) {
+      affCalTab.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--dimmer)">No content calendar yet — complete the setup and click Analyse & Build.</div>';
+      return;
+    }
+    window.renderAffCalendarInTab && window.renderAffCalendarInTab();
   }
   if (tab === 'dailytracker') {
     const dtBody = document.getElementById('aff-daily-tracker-body');
@@ -11822,43 +11947,49 @@ window.resetAffiliateOffer = function() {
 window.analyseAffiliateProduct = async function() {
 
   const gv = id => (document.getElementById(id)||{}).value||'';
-  const url          = gv('aff-product-url');
-  const productName  = gv('aff-product-name');
-  const commission   = parseInt(gv('aff-commission'))   || 1000;
-  const monthlyTarget= parseInt(gv('aff-monthly-target'))|| commission * 5;
-  const productNiche = gv('aff-product-niche');
-  const platform     = url.includes('copecart') ? 'Copecart' : url.includes('digistore') ? 'Digistore24' : 'Affiliate';
+  const url           = gv('aff-product-url').trim();
+  const productName   = gv('aff-product-name').trim();
+  const commission    = parseInt(gv('aff-commission'))    || 1000;
+  const monthlyTarget = parseInt(gv('aff-monthly-target'))|| commission * 5;
+  const productNiche  = gv('aff-product-niche');
+  const platform      = url.includes('copecart') ? 'Copecart'
+                      : url.includes('digistore') ? 'Digistore24' : 'Affiliate';
 
-  // Validation
+  // ── Validation ────────────────────────────────────────────────────────
   const showErr = (id, msg) => {
     const el = document.getElementById(id);
-    if (el) { el.style.borderColor='rgba(255,107,107,.6)'; el.focus(); setTimeout(()=>{ el.style.borderColor=''; },4000); }
+    if (el) { el.style.borderColor='rgba(255,107,107,.6)'; el.focus(); setTimeout(()=>el.style.borderColor='',4000); }
     let d = document.getElementById('aff-validation-error');
-    if (!d) { d=document.createElement('div'); d.id='aff-validation-error'; d.style.cssText='background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--red);margin-bottom:1rem'; const btn=document.getElementById('aff-analyse-btn'); if(btn&&btn.parentNode)btn.parentNode.insertBefore(d,btn); }
+    if (!d) {
+      d = document.createElement('div'); d.id='aff-validation-error';
+      d.style.cssText='background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:10px;padding:12px 16px;font-size:12px;color:var(--red);margin-bottom:1rem';
+      const btn=document.getElementById('aff-analyse-btn');
+      if(btn&&btn.parentNode) btn.parentNode.insertBefore(d,btn);
+    }
     d.style.display='block'; d.textContent='⚠️ '+msg;
   };
-  if (!url)                     { showErr('aff-product-url','Paste your affiliate product URL first. The AI reads the actual page to build accurate content.'); return; }
+  if (!url)                      { showErr('aff-product-url','Paste your affiliate product URL first.'); return; }
   if (!commission||commission<100){ showErr('aff-commission','Enter your commission per sale (minimum $100).'); return; }
-  if (!productNiche)             { showErr('aff-product-niche','Select your product niche.'); return; }
+  if (!productNiche)              { showErr('aff-product-niche','Select your product niche.'); return; }
   const ed = document.getElementById('aff-validation-error');
   if (ed) ed.style.display='none';
 
-  // Show progress
+  // ── UI: show progress ─────────────────────────────────────────────────
   const statusEl = document.getElementById('aff-analyse-status');
   const btnEl    = document.getElementById('aff-analyse-btn');
   if (statusEl) statusEl.style.display='block';
   if (btnEl)    { btnEl.disabled=true; btnEl.textContent='Analysing…'; }
 
   const setProgress = (pct, msg, step) => {
-    const bar=document.getElementById('aff-progress-bar');
-    const txt=document.getElementById('aff-status-msg');
-    const steps=document.getElementById('aff-status-steps');
-    if (bar) bar.style.width=pct+'%';
-    if (txt) txt.textContent=msg;
-    if (steps&&step) steps.innerHTML+='<div style="color:var(--teal);font-size:11px">✓ '+step+'</div>';
+    const bar   = document.getElementById('aff-progress-bar');
+    const txt   = document.getElementById('aff-status-msg');
+    const steps = document.getElementById('aff-status-steps');
+    if (bar)   bar.style.width = pct+'%';
+    if (txt)   txt.textContent = msg;
+    if (steps && step) steps.innerHTML += '<div style="color:var(--teal);font-size:11px">✓ '+step+'</div>';
   };
 
-  // Called at the end regardless — always shows the tabs
+  // ── Always show results at the end ────────────────────────────────────
   const showResults = () => {
     const av    = window._avatarData    || {};
     const offer = window._affiliateOffer|| {};
@@ -11868,145 +11999,437 @@ window.analyseAffiliateProduct = async function() {
     const activeView = document.getElementById('aff-active-view');
     if (setupPanel) setupPanel.style.display='none';
     if (activeView) activeView.style.display='block';
-    const nameEl=document.getElementById('aff-active-name');
-    const metaEl=document.getElementById('aff-active-meta');
+    const nameEl = document.getElementById('aff-active-name');
+    const metaEl = document.getElementById('aff-active-meta');
     if (nameEl) nameEl.textContent = offer.name||productName||'Your Offer';
     if (metaEl) metaEl.textContent = '$'+(offer.commission||commission).toLocaleString()+' commission · '+(offer.niche||productNiche);
-    window.renderAffStrategy     && window.renderAffStrategy(av);
-    window.renderAffAvatarView   && window.renderAffAvatarView(av);
-    window.renderAffDMScripts    && window.renderAffDMScripts(av, offer.name||productName, offer.commission||commission);
-    window.renderAffCommTrackerFn&& window.renderAffCommTrackerFn(offer.commission||commission);
-    if (window._aiCalendar30&&window._aiCalendar30.length>0) {
-      window.renderAICalendar30&&window.renderAICalendar30(1);
+    // Render all tabs
+    window.renderAffStrategy      && window.renderAffStrategy(av);
+    window.renderAffAvatarView    && window.renderAffAvatarView(av);
+    window.renderAffDMScripts     && window.renderAffDMScripts(av, offer.name||productName, offer.commission||commission);
+    window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission||commission);
+    // Calendar
+    if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
+      // Switch to the strategy tab first, calendar tab renders on click
+      window.showAffActiveTab && window.showAffActiveTab('strategy', document.querySelector('#aff-active-tabs .tab'));
     }
-    setAffTraffic(window._affTrafficMode||'organic');
+    window.setAffTraffic && window.setAffTraffic(window._affTrafficMode||'organic');
+    // Save to localStorage
+    try {
+      localStorage.setItem('eos_affiliate_offer', JSON.stringify(window._affiliateOffer));
+      localStorage.setItem('eos_avatar_data', JSON.stringify(window._avatarData));
+      if (window._aiCalendar30) localStorage.setItem('eos_calendar30', JSON.stringify(window._aiCalendar30));
+    } catch(e) {}
   };
 
   try {
-    // STEP 1: Avatar
-    setProgress(15,'Building your buyer avatar…',null);
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP 1 — Fetch and analyse the actual sales page via the proxy
+    // ═══════════════════════════════════════════════════════════════════
+    setProgress(10, 'Reading the sales page…', null);
+
+    const avatarPrompt = `You are an expert affiliate marketing strategist and conversion copywriter.
+
+I will give you the content of an affiliate product sales page. Read it carefully — extract the product name, what it does, who it's for, the pain points it solves, the benefits and transformation it promises.
+
+Then generate a complete, accurate buyer avatar for the BUYER of this product (not the affiliate marketer promoting it).
+
+Niche: ${productNiche}
+Commission per sale: $${commission}
+Monthly target: $${monthlyTarget}
+Traffic mode: ${window._affTrafficMode||'organic'}
+
+Respond ONLY with valid JSON (no markdown, no backticks, no explanation):
+{
+  "productName": "exact product name from the sales page",
+  "productTagline": "the product's main promise or tagline",
+  "productBenefits": ["benefit 1", "benefit 2", "benefit 3"],
+  "name": "realistic buyer persona name e.g. Sarah Mitchell",
+  "age": "age range e.g. 28-42",
+  "gender": "Male / Female / Mixed",
+  "location": "primary markets e.g. USA, UK, Canada, Australia",
+  "job": "their current job or situation",
+  "industry": "their industry",
+  "income": "current income level",
+  "pain": "their single biggest pain point that this product solves (from the sales page)",
+  "transformation": "what they desperately want to achieve (from the sales page promises)",
+  "fear": "their biggest fear or objection about buying",
+  "tried": "what they have already tried and failed with",
+  "motivation": "what drives them emotionally",
+  "personality": "key personality traits",
+  "influences": "who they follow or what they read",
+  "objections": "top 2-3 objections before buying",
+  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
+  "contentAngles": ["angle 1", "angle 2", "angle 3", "angle 4", "angle 5"],
+  "dmHooks": ["hook 1", "hook 2", "hook 3"],
+  "productName": "${productName || 'the product'}",
+  "niche": "${productNiche}",
+  "commission": ${commission}
+}`;
+
     let av = {};
     try {
-      av = await callAPI('generate-affiliate',{
-        type:'avatar',productUrl:url,productName,commission,monthlyTarget,
-        niche:productNiche,trafficMode:window._affTrafficMode||'organic'
+      // Use fetchUrl so the proxy reads the actual sales page
+      const resp = await fetch(window.PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fetchUrl: url,
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          messages: [{ role: 'user', content: avatarPrompt }]
+        })
       });
-      setProgress(40,'Avatar built ✅ — writing content…','Buyer avatar created ✅');
+      if (!resp.ok) throw new Error('API error ' + resp.status);
+      const data = await resp.json();
+      const text = (data.content && data.content[0] && data.content[0].text) || '';
+      const clean = text.replace(/```json|```/g,'').trim();
+      av = JSON.parse(clean);
+      setProgress(40, 'Sales page analysed ✅ — building buyer profile…', 'Sales page read ✅');
     } catch(e) {
-      console.warn('Avatar call failed:',e.message);
-      av = {name:'Ideal Buyer',job:'online entrepreneur',pain:'struggling to grow income',
-            transformation:'financial freedom and flexibility',fear:'wasting money on wrong solutions',
-            tried:'various courses and programmes',commission,niche:productNiche};
-      setProgress(40,'Writing content plan…','Using default profile');
+      console.warn('Avatar generation failed:', e.message);
+      // Fallback avatar without page content
+      try {
+        const fallbackResp = await fetch(window.PROXY_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1500,
+            messages: [{ role: 'user', content: `Generate a buyer avatar for a ${productNiche} affiliate product at $${commission} commission. URL: ${url}. Product name: ${productName||'not specified'}. Return valid JSON only with fields: productName, productTagline, name, age, gender, location, job, industry, income, pain, transformation, fear, tried, motivation, personality, influences, objections, keywords (array), contentAngles (array), dmHooks (array), niche, commission.` }]
+          })
+        });
+        const fd = await fallbackResp.json();
+        const ft = (fd.content&&fd.content[0]&&fd.content[0].text)||'';
+        av = JSON.parse(ft.replace(/```json|```/g,'').trim());
+      } catch(e2) {
+        av = {
+          productName: productName||'Affiliate Product', productTagline: 'Transform your results',
+          name:'Ideal Buyer', job:'Online entrepreneur', age:'28-45', gender:'Mixed',
+          location:'USA, UK, Australia', industry: productNiche,
+          income:'$30k-$60k/year', pain:'Struggling to get consistent results online',
+          transformation:'Build a profitable online income stream',
+          fear:'Wasting money on something that doesn\'t work',
+          tried:'Various courses and programmes without lasting results',
+          motivation:'Financial freedom and time flexibility',
+          personality:'Action-taker who has tried before',
+          influences:'Online business influencers and coaches',
+          objections:'Price, time commitment, whether it works for them',
+          keywords:['online income','affiliate marketing','passive income','work from home','digital business'],
+          contentAngles:['Pain story','Result proof','Myth busting','Step-by-step value','Behind the scenes'],
+          dmHooks:['Are you still dealing with [pain]?','I found something that changed this for me…','Have you heard of [product]?'],
+          niche: productNiche, commission
+        };
+      }
+      setProgress(40, 'Buyer profile created — writing content…', 'Profile created ✅');
     }
 
-    // Store avatar
+    // ── Store everything ──────────────────────────────────────────────
     window._avatarData = av;
     window._affiliateOffer = {
-      name: av.productName||productName||url, platform,
-      commission: av.commission||commission, url,
-      niche: av.niche||productNiche,
-      monthlyTarget: monthlyTarget,
-      buyer: av.job, pain: av.pain, transformation: av.transformation
+      name: av.productName||productName||url,
+      tagline: av.productTagline||'',
+      platform, commission: av.commission||commission, url,
+      niche: av.niche||productNiche, monthlyTarget,
+      buyer: av.job, pain: av.pain, transformation: av.transformation,
+      benefits: av.productBenefits||[]
     };
     window._appliedNiche  = av.niche||productNiche;
     window._appliedPrice  = commission;
     window._appliedTarget = monthlyTarget;
-    try {
-      localStorage.setItem('eos_affiliate_offer', JSON.stringify(window._affiliateOffer));
-      localStorage.setItem('eos_avatar_data', JSON.stringify(window._avatarData));
-    } catch(e) {}
 
-    // STEP 2: Calendar
-    setProgress(55,'Writing your 7-day content plan…','Commission targets set ✅');
+    setProgress(55, 'Writing your 7-day content plan…', 'Buyer avatar locked ✅');
+
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP 2 — Generate 7-day content calendar (affiliate-specific)
+    // ═══════════════════════════════════════════════════════════════════
+    const pn   = av.productName||productName||'the product';
+    const pain = av.pain||'their biggest challenge';
+    const transf = av.transformation||'their desired outcome';
+    const job  = (av.job||'professional').split('/')[0].split(',')[0].trim();
+    const fear = av.fear||'wasting money';
+    const tried = av.tried||'other programmes';
+    const traffic = window._affTrafficMode||'organic';
+
+    const calPrompt = `You are an expert affiliate content strategist. Write a 7-day content plan for an affiliate marketer promoting: "${pn}" in the ${productNiche} niche.
+
+BUYER PROFILE:
+- Job: ${job}
+- Pain: ${pain}
+- Transformation: ${transf}
+- Fear: ${fear}
+- Previously tried: ${tried}
+- Motivation: ${av.motivation||'financial freedom'}
+
+PRODUCT: ${pn}
+Commission: $${commission} per sale
+Traffic: ${traffic}
+Affiliate link placeholder: [YOUR AFFILIATE LINK]
+
+Write 7 days of content. For EACH day follow this EXACT format with these EXACT headers:
+
+DAY 1: [Topic Title]
+
+FACEBOOK POST
+HOOK: [attention-grabbing opening line under 15 words]
+[3-4 paragraph post body — educational, builds trust, no hard sell, mentions the problem]
+CALL TO ACTION: [soft CTA that doesn't sound salesy]
+
+REEL 1 SCRIPT
+HOOK: [5-second verbal hook for video opening]
+[Full 45-60 second reel script, conversational, problem-focused, no direct pitch on Days 1-2]
+ENGAGEMENT TIP: [best time to post]
+
+REEL 2 SCRIPT
+HOOK: [different angle hook]
+[Full 45-60 second reel script, solution-focused]
+ENGAGEMENT TIP: [posting tip]
+
+EMAIL
+SUBJECT: [email subject line]
+[Full email body — personal story or value, soft mention of product on Days 3-7 only]
+
+---
+
+Repeat for DAY 2 through DAY 7. Each day must have a completely different topic.
+Days 1-2: pure trust/value, no product mention.
+Days 3-4: introduce the problem the product solves, soft mention.
+Days 5-6: social proof angle, product as the solution.
+Day 7: final soft CTA with affiliate link.`;
+
     try {
-      const calResp = await callAPI('generate-affiliate',{
-        type:'calendar',productName:av.productName||productName,
-        commission,niche:productNiche,
-        trafficMode:window._affTrafficMode||'organic',
-        avatarData:av,
-        _maxTokens: 8000
+      const calResp = await fetch(window.PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 8000,
+          messages: [{ role: 'user', content: calPrompt }]
+        })
       });
-      const calText = calResp.text || (typeof calResp === 'string' ? calResp : JSON.stringify(calResp));
-      setProgress(85,'Content ready ✅ — building calendar…','Content written ✅');
+      if (!calResp.ok) throw new Error('Calendar API error ' + calResp.status);
+      const calData = await calResp.json();
+      const calText = (calData.content&&calData.content[0]&&calData.content[0].text)||'';
+      setProgress(85, 'Content written ✅ — building calendar…', 'Content plan written ✅');
 
-      // Parse calendar
-      window._aiCalendar30=[];
-      const DN=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      const rawDays = calText.split('\nDAY').map((s,i)=>i===0?s:'DAY'+s).filter(s=>s.trim());
-      const getSec=(text,startPat,endPats)=>{
-        const ls=text.split('\n');let si=-1;
-        for(let i=0;i<ls.length;i++){if(new RegExp(startPat,'i').test(ls[i])){si=i+1;break;}}
-        if(si<0)return text.trim();
-        let ei=ls.length;
-        for(let i=si;i<ls.length;i++){if(endPats.some(p=>new RegExp(p,'i').test(ls[i]))){ei=i;break;}}
-        return ls.slice(si,ei).join('\n').trim();
-      };
-      const getSec2 = getSec; // alias
-      for(let d=0;d<Math.min(rawDays.length,7);d++){
-        const blk=rawDays[d];
-        const tm=blk.match(/DAY\s*\d+\s*[:\-]?\s*(.+)/i);
-        const topic=tm?tm[1].replace(/\*+/g,'').trim():'Day '+(d+1);
-        const fb=getSec(blk,'FACEBOOK\s*POST',['REEL\s*1','REEL\s*ONE']);
-        const r1=getSec(blk,'REEL\s*1|REEL\s*ONE',['REEL\s*2','REEL\s*TWO']);
-        const r2=getSec(blk,'REEL\s*2|REEL\s*TWO',['EMAIL']);
-        const em=getSec(blk,'EMAIL',['===','---']);
-        const gh=t=>{const ls2=t.split('\n');const hl=ls2.find(x=>/^HOOK[\s:]/i.test(x));return hl?hl.replace(/^HOOK[\s:]*/i,'').trim():ls2[0]||'';};
-        const gs=t=>{const ls2=t.split('\n');const sl=ls2.find(x=>/^SUBJECT[\s:]/i.test(x));return sl?sl.replace(/^SUBJECT[\s:]*/i,'').trim():ls2[0]||'';};
-        if(fb.length>20||r1.length>20){
-          const fb2a = getSec2(blk,'FACEBOOK\\s*POST\\s*2',['REEL\\s*1','REEL\\s*SCRIPT\\s*1']);
-          window._aiCalendar30.push([
-            {postType:'Facebook Post 1',slotType:'fb1',viralHook:fb.split('\n').find(l=>l.trim().length>20)||topic,fullScript:fb,weekDay:DN[d],topic,dayNum:d+1},
-            {postType:'Facebook Post 2',slotType:'fb2',viralHook:fb2a.split('\n').find(l=>l.trim().length>20)||topic,fullScript:fb2a||fb,weekDay:DN[d],topic,dayNum:d+1},
-            {postType:'Reel 1',slotType:'reel1',viralHook:gh(r1),fullScript:r1,weekDay:DN[d],topic,dayNum:d+1,isReel:true},
-            {postType:'Reel 2',slotType:'reel2',viralHook:gh(r2),fullScript:r2,weekDay:DN[d],topic,dayNum:d+1,isReel:true},
-            {postType:'Email', slotType:'email',viralHook:gs(em),fullScript:em,weekDay:DN[d],topic,dayNum:d+1},
-          ]);
-        }
-      }
-    } catch(e) {
-      console.warn('Calendar generation failed:', e.message);
-      setProgress(85, 'Building basic content plan from your avatar…', null);
-      // Generate skeleton calendar from avatar data so tab is never empty
-      const av2 = window._avatarData || {};
-      const pn  = window._affiliateOffer ? window._affiliateOffer.name : productName;
-      const dn  = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      const topics = [
-        'The hidden reason why '+((av2.pain)||'your audience struggles')+' — and what to do instead',
-        'My honest story: what I wish I knew before I started in this space',
-        'The 3 mistakes that keep '+(av2.job||'people')+' stuck — and the simple fix',
-        'Why most solutions fail for '+(av2.job||'people')+'s like you (and what actually works)',
-        'What changed for me: the exact shift that made everything easier',
-        'The truth about '+((av2.transformation)||'getting real results')+' that no one talks about',
-        'If you want '+((av2.transformation)||'better results')+', read this first'
-      ];
+      // ── Parse calendar into slots ──────────────────────────────────
       window._aiCalendar30 = [];
-      const dn2 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-      for (let d=0;d<7;d++) {
-        const t = topics[d];
-        const wd2 = dn2[d];
-        const note = 'Tap Regenerate above for full AI-written scripts.';
+      const DN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+      // Split by DAY markers
+      const dayBlocks = calText.split(/\n(?=DAY\s*\d+\s*:)/i).filter(b => /DAY\s*\d+/i.test(b));
+
+      const extractSection = (text, startRe, endRe) => {
+        const lines = text.split('\n');
+        let si = -1;
+        for (let i=0; i<lines.length; i++) {
+          if (startRe.test(lines[i])) { si = i+1; break; }
+        }
+        if (si < 0) return '';
+        let ei = lines.length;
+        for (let i=si; i<lines.length; i++) {
+          if (endRe && endRe.test(lines[i])) { ei=i; break; }
+        }
+        return lines.slice(si, ei).join('\n').trim();
+      };
+
+      const getHook = (block) => {
+        const hookLine = block.split('\n').find(l => /^HOOK\s*:/i.test(l));
+        return hookLine ? hookLine.replace(/^HOOK\s*:\s*/i,'').trim() : block.split('\n').find(l=>l.trim().length>15)||'';
+      };
+
+      const getSubject = (block) => {
+        const subLine = block.split('\n').find(l => /^SUBJECT\s*:/i.test(l));
+        return subLine ? subLine.replace(/^SUBJECT\s*:\s*/i,'').trim() : block.split('\n')[0]||'';
+      };
+
+      for (let d=0; d<Math.min(dayBlocks.length,7); d++) {
+        const blk   = dayBlocks[d];
+        const topicMatch = blk.match(/DAY\s*\d+\s*:\s*(.+)/i);
+        const topic = topicMatch ? topicMatch[1].replace(/\*+/g,'').trim() : 'Day '+(d+1);
+        const wd    = DN[d%7];
+
+        const fbBlock  = extractSection(blk, /^FACEBOOK\s*POST/i, /^REEL\s*1/i);
+        const r1Block  = extractSection(blk, /^REEL\s*1\s*(SCRIPT)?/i, /^REEL\s*2/i);
+        const r2Block  = extractSection(blk, /^REEL\s*2\s*(SCRIPT)?/i, /^EMAIL/i);
+        const emBlock  = extractSection(blk, /^EMAIL/i, /^---|\n\nDAY/i);
+
+        const makeCTA = (b) => {
+          const ctaLine = b.split('\n').find(l=>/^CALL\s*TO\s*ACTION\s*:/i.test(l));
+          return ctaLine ? ctaLine.replace(/^CALL\s*TO\s*ACTION\s*:\s*/i,'').trim() : 'Comment below!';
+        };
+        const makeEngTip = (b) => {
+          const tipLine = b.split('\n').find(l=>/^ENGAGEMENT\s*TIP\s*:/i.test(l));
+          return tipLine ? tipLine.replace(/^ENGAGEMENT\s*TIP\s*:\s*/i,'').trim() : 'Post during peak hours.';
+        };
+
         window._aiCalendar30.push([
-          { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:t+' — '+note, weekDay:wd2, topic:t, dayNum:d+1, callToAction:'Comment below.', engagementTip:'Post 8-9am.' },
-          { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:'HOOK: '+t+' — '+note, weekDay:wd2, topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for tips.', engagementTip:'Post 9-11am.' },
-          { postType:'Reel 2', slotType:'reel2', viralHook:t, fullScript:t+' — '+note, weekDay:wd2, topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12-2pm.' },
-          { postType:'Email', slotType:'email', viralHook:t.slice(0,45), fullScript:'SUBJECT: '+t.slice(0,45)+' — '+note, weekDay:wd2, topic:t, dayNum:d+1, emailSubject:t.slice(0,45), callToAction:'Reply to this email.', engagementTip:'Send 8-10am.' },
+          {
+            postType:'Facebook Post', slotType:'fb1',
+            viralHook: getHook(fbBlock)||topic,
+            fullScript: fbBlock||'[Content not generated — regenerate your plan]',
+            weekDay:wd, topic, dayNum:d+1,
+            callToAction: makeCTA(fbBlock),
+            engagementTip:'Post 8–9am. Reply to all comments within 2 hours.'
+          },
+          {
+            postType:'Reel 1', slotType:'reel1',
+            viralHook: getHook(r1Block)||topic,
+            fullScript: r1Block||'[Content not generated — regenerate your plan]',
+            weekDay:wd, topic, dayNum:d+1, isReel:true,
+            callToAction:'Follow for more tips like this.',
+            engagementTip: makeEngTip(r1Block)
+          },
+          {
+            postType:'Reel 2', slotType:'reel2',
+            viralHook: getHook(r2Block)||topic,
+            fullScript: r2Block||'[Content not generated — regenerate your plan]',
+            weekDay:wd, topic, dayNum:d+1, isReel:true,
+            callToAction:'Save this for later.',
+            engagementTip: makeEngTip(r2Block)
+          },
+          {
+            postType:'Email', slotType:'email',
+            viralHook: getSubject(emBlock)||topic,
+            fullScript: emBlock||'[Content not generated — regenerate your plan]',
+            weekDay:wd, topic, dayNum:d+1,
+            emailSubject: getSubject(emBlock),
+            callToAction:'Reply and tell me your biggest takeaway.',
+            engagementTip:'Send 8–10am or 5–7pm for best open rates.'
+          },
         ]);
       }
+
+      // Fallback if parser got nothing
+      if (window._aiCalendar30.length === 0) throw new Error('Parse produced 0 days');
+
+    } catch(calErr) {
+      console.warn('Calendar error:', calErr.message);
+      setProgress(85, 'Using template content plan…', null);
+      // Build meaningful skeleton from avatar
+      const topics = [
+        `The real reason ${job}s can't escape ${pain.split(' ').slice(0,5).join(' ')}`,
+        `My honest story: what changed everything for me`,
+        `3 mistakes ${job}s make that keep them stuck — and the fix`,
+        `Why most solutions fail for people like you (and what actually works)`,
+        `What ${transf} actually looks like — and how ${pn} delivers it`,
+        `Real results: what happened when I stopped doing this`,
+        `If you're serious about ${transf} — read this`
+      ];
+      const DN2 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+      window._aiCalendar30 = topics.map((t,d) => ([
+        { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:`FACEBOOK POST — Day ${d+1}\n\n${t}\n\n[Full post body will be generated — click Regenerate to get AI-written content]\n\nCALL TO ACTION: Comment below with your thoughts!`, weekDay:DN2[d], topic:t, dayNum:d+1, callToAction:'Comment below!', engagementTip:'Post 8–9am.' },
+        { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:`REEL SCRIPT — Day ${d+1}\n\nHOOK: ${t}\n\n[Full reel script — click Regenerate for AI-written content]`, weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for more.', engagementTip:'Post 9–11am.' },
+        { postType:'Reel 2', slotType:'reel2', viralHook:t+' (Part 2)', fullScript:`REEL 2 SCRIPT — Day ${d+1}\n\nHOOK: Here's what nobody tells you about ${pain.split(' ').slice(0,4).join(' ')}\n\n[Full script — click Regenerate for AI-written content]`, weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12–2pm.' },
+        { postType:'Email', slotType:'email', viralHook:`Day ${d+1}: ${t.slice(0,50)}`, fullScript:`EMAIL — Day ${d+1}\n\nSUBJECT: ${t.slice(0,60)}\n\n[Full email — click Regenerate for AI-written content]\n\n${d>=2?'Check out '+pn+' here: [YOUR AFFILIATE LINK]':''}`, weekDay:DN2[d], topic:t, dayNum:d+1, emailSubject:t.slice(0,60), callToAction:'Reply to this email.', engagementTip:'Send 8–10am.' },
+      ]));
     }
 
-    setProgress(100,'Everything ready! 🎉','Calendar ready ✅');
+    setProgress(100, 'Everything ready! 🎉', 'Calendar ready ✅');
 
   } catch(e) {
-    console.error('Analysis error:',e.message);
+    console.error('Analysis failed:', e.message);
+    setProgress(100, 'Ready (with defaults) — check each tab', null);
   }
 
-  // Always show results — even if calendar failed
-  setTimeout(showResults, 400);
+  setTimeout(showResults, 500);
 };
 
+// ─── Affiliate calendar renderer (renders inside the affiliate tab) ─────────
+window.renderAffCalendarInTab = function() {
+  const container = document.getElementById('aff-tab-calendar');
+  if (!container) return;
+  if (!window._aiCalendar30 || !window._aiCalendar30.length) return;
 
-// ─── Render Affiliate Strategy ────────────────────────────────────────────
+  const calDone = window._affCalDone || new Set();
+  const DN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const slotMeta = [
+    { key:'fb1',   label:'FB Post',  icon:'📝', badgeClass:'badge-fb1' },
+    { key:'reel1', label:'Reel 1',   icon:'🎬', badgeClass:'badge-reel1', reel:true },
+    { key:'reel2', label:'Reel 2',   icon:'🎥', badgeClass:'badge-reel2', reel:true },
+    { key:'email', label:'Email',    icon:'📧', badgeClass:'badge-email' },
+  ];
+
+  let html = `<div style="overflow-x:auto;border-radius:var(--r-lg);border:1px solid var(--border2);background:var(--card2)">
+    <div class="cal-head">${DN.map(d=>`<div class="cal-dh">${d}</div>`).join('')}</div>
+    <div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));min-width:700px" id="aff-cal-body">`;
+
+  for (let d=0; d<Math.min(window._aiCalendar30.length,7); d++) {
+    const daySlots = window._aiCalendar30[d] || [];
+    const isDone = calDone.has(d);
+    html += `<div class="cal-day-col${isDone?' done':''}" style="border-right:1px solid var(--border3)">
+      <div class="cal-day-header">
+        <div style="display:flex;align-items:baseline;gap:5px">
+          <div class="cal-day-num">${d+1}</div>
+          <div class="cal-day-name">${DN[d]}</div>
+        </div>
+        <button class="cal-day-done-btn" onclick="window.toggleAffDay(${d})">${isDone?'✅ Done':'Mark done'}</button>
+      </div>
+      <div class="cal-slots">`;
+
+    slotMeta.forEach((sm, si) => {
+      const slot = daySlots[si] || daySlots.find(s=>s.slotType===sm.key) || {};
+      const hook = (slot.viralHook||slot.fullScript||'').slice(0,80);
+      const globalIdx = d * 4 + si;
+      html += `<div class="cal-slot" onclick="window.showAffPostDetail(${d},${si})">
+        <span class="cal-slot-badge ${sm.badgeClass}">${sm.icon} ${sm.label}</span>
+        <span class="cal-slot-hook">${hook||'Click to view script'}</span>
+      </div>`;
+    });
+
+    html += `</div></div>`;
+  }
+
+  html += `</div></div>`;
+  container.innerHTML = html;
+};
+
+window.toggleAffDay = function(d) {
+  if (!window._affCalDone) window._affCalDone = new Set();
+  if (window._affCalDone.has(d)) window._affCalDone.delete(d);
+  else window._affCalDone.add(d);
+  window.renderAffCalendarInTab && window.renderAffCalendarInTab();
+};
+
+window.showAffPostDetail = function(dayIdx, slotIdx) {
+  const daySlots = window._aiCalendar30 && window._aiCalendar30[dayIdx];
+  if (!daySlots) return;
+  const slot = daySlots[slotIdx] || {};
+  const script = slot.fullScript || slot.videoScript || slot.viralHook || 'No content available.';
+  const typeColors = { fb1:'var(--teal)', reel1:'var(--red)', reel2:'var(--orange)', email:'var(--purple)' };
+  const col = typeColors[slot.slotType] || 'var(--teal)';
+
+  let modal = document.getElementById('aff-post-modal');
+  if (modal) modal.remove();
+  modal = document.createElement('div');
+  modal.id = 'aff-post-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px)';
+  modal.onclick = e => { if(e.target===modal) modal.remove(); };
+  modal.innerHTML = `<div style="background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border);border-radius:20px;width:100%;max-width:640px;max-height:88vh;overflow-y:auto">
+    <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--card);border-radius:20px 20px 0 0;z-index:1">
+      <div>
+        <div style="font-size:12px;font-weight:900;color:var(--white)">Day ${dayIdx+1} — ${slot.topic||slot.postType||''}</div>
+        <div style="font-size:10px;color:${col};font-weight:700;margin-top:3px">${slot.postType||''}</div>
+      </div>
+      <button onclick="document.getElementById('aff-post-modal').remove()" style="background:rgba(255,255,255,.08);border:none;border-radius:50%;width:32px;height:32px;color:var(--dim);font-size:18px;cursor:pointer">×</button>
+    </div>
+    <div style="padding:1.5rem">
+      <div style="font-size:9px;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Hook / Opening</div>
+      <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--muted);font-style:italic;margin-bottom:1rem">"${slot.viralHook||''}"</div>
+      <div style="font-size:9px;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px">Full Script</div>
+      <pre style="font-size:12px;color:var(--dim);line-height:1.8;white-space:pre-wrap;font-family:'Inter',sans-serif;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;padding:14px">${script.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</pre>
+      ${slot.callToAction?`<div style="margin-top:10px;font-size:11px;color:var(--yellow)">📢 CTA: ${slot.callToAction}</div>`:''}
+      ${slot.engagementTip?`<div style="margin-top:5px;font-size:11px;color:var(--dim)">💡 ${slot.engagementTip}</div>`:''}
+    </div>
+    <div style="padding:1rem 1.5rem;border-top:1px solid var(--border2);display:flex;gap:8px">
+      <button id="aff-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('aff-post-modal').querySelector('pre').textContent).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy Script',2000)})" style="flex:1;padding:11px;background:linear-gradient(135deg,${col},${col}cc);color:#fff;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer">📋 Copy Script</button>
+      <button onclick="document.getElementById('aff-post-modal').remove()" style="padding:11px 18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:10px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+};
+
+// ─── Affiliate Strategy ────────────────────────────────────────────────────────
 window.renderAffStrategy = function renderAffStrategy(av) {
   const el = document.getElementById('aff-strategy-body');
   if (!el) return;
@@ -12133,6 +12556,8 @@ window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
   const pct      = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
   const remaining= Math.max(0, target - earned);
   const salesLeft= commission > 0 ? Math.ceil(remaining / commission) : 0;
+  // Keep commission in sync
+  window._currentCommission = commission;
 
   el.innerHTML = `
     <div style="background:linear-gradient(145deg,rgba(78,204,163,.08),var(--card));border:1px solid rgba(78,204,163,.2);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1rem">
@@ -12183,6 +12608,15 @@ window.affTrack = function(key, delta) {
   data[key] = Math.max(0, (data[key] || 0) + delta);
   try { localStorage.setItem('eos_aff_tracker', JSON.stringify(data)); } catch(e) {}
   window.renderAffCommTracker && window.renderAffCommTracker();
+  // Refresh dashboard metrics too
+  const dbPage = document.getElementById('page-dashboard');
+  if (dbPage && dbPage.classList.contains('on')) {
+    window.renderDashboard && window.renderDashboard();
+  }
+  // Check milestones
+  const comm = window._currentCommission || window._appliedPrice || 1000;
+  const sales = data.sales || 0;
+  window.checkMilestones && window.checkMilestones(sales * comm);
 };
 
 // ─── Auto-render when page opens ──────────────────────────────────────────
@@ -12618,6 +13052,49 @@ if (document.readyState !== 'loading') {
   let advisorHistory = [];
   const MAX_HISTORY = 20;
 
+  // Build system prompt for E-OS Intelligent
+  function buildAdvisorSystemPrompt(ctx) {
+    const av = ctx.avatar || {};
+    const isAffiliate = ctx.mode === 'affiliate';
+    const affOffer = ctx.affOffer || {};
+    const businessContext = isAffiliate && affOffer.name
+      ? `MODE: Affiliate Marketing
+Product: ${affOffer.name}
+Commission: $${affOffer.commission||ctx.price||0}/sale
+Monthly target: $${affOffer.monthlyTarget||ctx.target||0}
+Niche: ${affOffer.niche||ctx.niche||'not set'}
+Buyer profile: ${affOffer.buyer||av.job||'not set'}
+Buyer pain: ${affOffer.pain||av.pain||'not set'}
+Buyer goal: ${affOffer.transformation||av.transformation||'not set'}
+Traffic mode: ${ctx.trafficMode||'organic'}`
+      : `MODE: Expert / Own Business
+Niche: ${ctx.niche||'not set'}
+Offer price: ${ctx.price ? '$'+ctx.price.toLocaleString() : 'not set'}
+Monthly target: ${ctx.target ? '$'+ctx.target.toLocaleString() : 'not set'}
+Ideal client: ${av.job||'not set'}
+Client pain: ${av.pain||'not set'}
+Transformation: ${av.transformation||'not set'}
+Client fear: ${av.fear||'not set'}
+Client motivation: ${av.motivation||'not set'}
+Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days generated' : 'not generated'}`;
+
+    return `You are E-OS Intelligent — the elite AI business advisor inside Execution OS.
+
+You have full access to this user's business data:
+
+${businessContext}
+
+YOUR RULES:
+- Every answer must reference their specific niche, buyer, or numbers when relevant
+- Never give generic advice — always make it specific to their situation
+- When asked for a script, post, DM, or email: WRITE THE ACTUAL THING, completely
+- When asked for a plan: give numbered steps with specific daily actions
+- When asked what to post today: write the actual post with the hook
+- Speak like a world-class business coach who knows their business intimately
+- Be direct and action-oriented. No fluff. No vague platitudes.
+- If they haven't set up their niche/offer yet, guide them to do that first`;
+  }
+
   // Build context from user's data
   function buildContext() {
     const av  = window._avatarData    || {};
@@ -12708,12 +13185,26 @@ if (document.readyState !== 'loading') {
     const typingEl = appendMsg('ai', '', true);
 
     try {
-      const resp = await callAPI('generate-advisor', {
-        messages:    advisorHistory,
-        userContext: buildContext()
-      });
+      // Pass full conversation history + business context
+      const ctx = buildContext();
+      let reply = '';
 
-      const reply = resp.reply || 'I could not generate a response. Please try again.';
+      // Direct fetch with system prompt support (callAPI doesn't support system param)
+      const directResp = await fetch(window.PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          system: buildAdvisorSystemPrompt(ctx),
+          messages: advisorHistory
+        })
+      });
+      if (directResp.ok) {
+        const directData = await directResp.json();
+        reply = (directData.content&&directData.content[0]&&directData.content[0].text)||'';
+      }
+      if (!reply) reply = 'I could not generate a response right now. Please try again.';
 
       // Remove typing, add real message
       if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
@@ -13036,192 +13527,347 @@ setTimeout(window.updateStepProgress, 500);
 </script>
 
 <script type="module">
-// ── PREVIEW MODE: Firebase auth bypassed for local preview ──────────────────
-const signOut = () => Promise.resolve();
-// Stub Firestore helpers so nothing crashes
-const doc = () => ({});
-const getDoc = () => Promise.resolve({ exists: () => false, data: () => ({}) });
-const setDoc = () => Promise.resolve();
-const updateDoc = () => Promise.resolve();
-const deleteDoc = () => Promise.resolve();
-const collection = () => ({});
-const getDocs = () => Promise.resolve({ forEach: () => {} });
-const db = {};
-window._db = db; window._doc = doc; window._setDoc = setDoc;
-window._getDoc = getDoc; window._updateDoc = updateDoc;
-window._deleteDoc = deleteDoc; window._collection = collection; window._getDocs = getDocs;
-// Stub Cloudinary & admin
-const CLOUDINARY_CLOUD = ''; const CLOUDINARY_PRESET = '';
-const ADMIN_EMAIL = '';
-let currentUser = null; let userDoc = {};
+// ══════════════════════════════════════════════════════════════════════════════
+// FIREBASE AUTH — Real authentication (replace preview stubs)
+// ══════════════════════════════════════════════════════════════════════════════
 
-// ── PREVIEW MODE: mock user auto-login ─────────────────────────────────────
-const mockUser = { uid: 'preview', email: 'preview@demo.com', displayName: 'Preview User', photoURL: '' };
-currentUser = mockUser;
-// Expose save stubs so buttons don't break
-window.saveRevenuePlan = () => {};
-window.saveAvatarData = () => {};
-window.saveCalendarState = () => {};
-window.uploadProfilePhoto = () => {};
-window.saveProfile = () => {};
+// ── Paste your Firebase config here (from Firebase Console → Project Settings)
+const firebaseConfig = {
+  apiKey:            "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSF5B482TX0",
+  authDomain:        "execution-os-1fbfd.firebaseapp.com",
+  projectId:         "execution-os-1fbfd",
+  storageBucket:     "execution-os-1fbfd.firebasestorage.app",
+  messagingSenderId: "300866558889",
+  appId:             "1:300866558889:web:01a08d92f20332095d42b8",
+  measurementId:     "G-ZT4WW98WV9"
+};
 
-renderUserUI(mockUser, {name:'Preview User',brand:'My Brand',niche:'Coaching'}, null);
-setTimeout(() => { window.renderDashboard && window.renderDashboard(); }, 300);
-const savedMode = localStorage.getItem('eos_app_mode') || 'affiliate';
-setTimeout(() => window.setAppMode && window.setAppMode(savedMode), 400);
+import { initializeApp }                          from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getAuth, onAuthStateChanged, signOut as _signOut }
+                                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
+         collection, getDocs }                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-// (preview mode — Firestore saves are no-ops)
+// Expose Firestore helpers globally so all app code can use them
+window._db         = db;
+window._doc        = doc;
+window._setDoc     = setDoc;
+window._getDoc     = getDoc;
+window._updateDoc  = updateDoc;
+window._deleteDoc  = deleteDoc;
+window._collection = collection;
+window._getDocs    = getDocs;
 
-// ─── Render user UI ───────────────────────────────────────────────────
-function renderUserUI(user, doc, memberData) {
-  const name     = doc.name || memberData?.name || user.displayName || 'Member';
-  const rawPhoto = doc.photoURL || user.photoURL || '';
-  // Only use photo if it's a real URL (not empty)
-  const photo    = (rawPhoto && rawPhoto.startsWith('http')) ? rawPhoto : '';
-  const joined   = doc.createdAt || memberData?.grantedAt || '';
+// Sign-out
+const signOut = () => _signOut(auth);
+window._firebaseSignOut = () => _signOut(auth).then(() => { window.location.href = 'index.html'; });
+
+// ── Auth state listener ───────────────────────────────────────────────────────
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    // Not logged in — redirect to login page
+    window.location.href = 'index.html';
+    return;
+  }
+
+  window._currentUserUid = user.uid;
+
+  // ── Load user document from Firestore ──────────────────────────────────────
+  let userDocData = {};
+  let memberData  = {};
+  try {
+    const userSnap = await getDoc(doc(db, 'users', user.uid));
+    if (userSnap.exists()) userDocData = userSnap.data();
+  } catch(e) { console.warn('User doc load failed:', e.message); }
+
+  // Try members collection (for people added by admin)
+  try {
+    const safeEmail = (user.email||'').toLowerCase().replace(/[^a-z0-9]/g,'-');
+    const memberSnap = await getDoc(doc(db, 'members', safeEmail));
+    if (memberSnap.exists()) memberData = memberSnap.data();
+  } catch(e) {}
+
+  // ── Check access ──────────────────────────────────────────────────────────
+  const isAdmin = user.email === 'itzevan.se@gmail.com';
+  const hasAccess = isAdmin || userDocData.accessGranted || memberData.accessGranted;
+  if (!hasAccess) {
+    window.location.href = 'index.html?error=no-access';
+    return;
+  }
+
+  // ── Show admin panel ──────────────────────────────────────────────────────
+  if (isAdmin) {
+    const ap = document.getElementById('admin-panel');
+    if (ap) {
+      ap.style.display = 'block';
+      window.adminLoadMembers && window.adminLoadMembers();
+    }
+  }
+
+  // ── Render UI with real user data ─────────────────────────────────────────
+  renderUserUI(user, userDocData, memberData);
+
+  // ── Restore app mode — Firestore wins, then localStorage fallback ──────────
+  const savedMode = userDocData.appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+  // Sync localStorage so it always matches
+  localStorage.setItem('eos_app_mode', savedMode);
+  // Apply mode — retry until setAppMode is available (handles timing)
+  const applyMode = (attempts) => {
+    if (window.setAppMode) {
+      window.setAppMode(savedMode);
+    } else if (attempts > 0) {
+      setTimeout(() => applyMode(attempts - 1), 150);
+    }
+  };
+  applyMode(10);
+
+  // ── Restore saved Revenue Plan data ───────────────────────────────────────
+  if (userDocData.revenuePlan) loadRevenuePlan(userDocData.revenuePlan);
+
+  // ── Restore saved Avatar data ─────────────────────────────────────────────
+  if (userDocData.avatarData) {
+    window._avatarData = userDocData.avatarData;
+    loadAvatarFields(userDocData.avatarData);
+  }
+
+  // ── Restore Content Calendar ───────────────────────────────────────────────
+  if (userDocData.calendar) loadCalendar(userDocData.calendar);
+
+  // ── Restore Affiliate Offer ───────────────────────────────────────────────
+  if (userDocData.affiliateOffer) {
+    window._affiliateOffer = userDocData.affiliateOffer;
+    window._appliedNiche   = userDocData.affiliateOffer.niche;
+    window._appliedPrice   = userDocData.affiliateOffer.commission;
+    window._appliedTarget  = userDocData.affiliateOffer.monthlyTarget;
+  }
+
+  // ── Restore Routine ───────────────────────────────────────────────────────
+  if (userDocData.routine) restoreRoutine(JSON.stringify(userDocData.routine));
+
+  // ── Restore milestones ────────────────────────────────────────────────────
+  if (userDocData.milestones) {
+    localStorage.setItem('eos_milestones', JSON.stringify(userDocData.milestones));
+  }
+
+  // ── Render dashboard ──────────────────────────────────────────────────────
+  setTimeout(() => window.renderDashboard && window.renderDashboard(), 500);
+
+  // ── Save functions wired to Firestore ────────────────────────────────────
+  window.saveRevenuePlan = async () => {
+    const price  = parseInt((document.getElementById('price')||{}).value)||0;
+    const target = parseInt((document.getElementById('target')||{}).value)||0;
+    const niche  = (document.getElementById('niche')||{}).value||'';
+    try {
+      await setDoc(doc(db,'users',user.uid),{revenuePlan:{price,target,niche}},{merge:true});
+    } catch(e) { console.warn('Save revenue plan failed:',e.message); }
+  };
+
+  window.saveAvatarData = async () => {
+    if (!window._avatarData) return;
+    try {
+      await setDoc(doc(db,'users',user.uid),{avatarData:window._avatarData},{merge:true});
+    } catch(e) { console.warn('Save avatar failed:',e.message); }
+  };
+
+  window.saveCalendarState = async () => {
+    if (!window._aiCalendar30) return;
+    try {
+      await setDoc(doc(db,'users',user.uid),{
+        calendar:{
+          data: JSON.stringify(window._aiCalendar30),
+          postsPerDay: window._postsPerDay||6,
+          calDone: window._calDone ? Array.from(window._calDone) : [],
+          generatedAt: new Date().toISOString()
+        }
+      },{merge:true});
+    } catch(e) { console.warn('Save calendar failed:',e.message); }
+  };
+
+  window.saveProfile = async () => {
+    const name  = (document.getElementById('prof-name')||{}).value||'';
+    const brand = (document.getElementById('prof-brand')||{}).value||'';
+    const niche = (document.getElementById('prof-niche')||{}).value||'';
+    try {
+      await setDoc(doc(db,'users',user.uid),{name,brand,niche},{merge:true});
+      const msg = document.getElementById('save-profile-msg');
+      if (msg) { msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500); }
+    } catch(e) { console.warn('Save profile failed:',e.message); }
+  };
+
+  window.uploadProfilePhoto = async (input) => {
+    if (!input.files||!input.files[0]) return;
+    const statusEl = document.getElementById('photo-upload-status');
+    if (statusEl) statusEl.textContent = 'Uploading…';
+    try {
+      // Convert to base64 and store URL (use Cloudinary or similar if configured)
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target.result;
+        await setDoc(doc(db,'users',user.uid),{photoURL:dataUrl},{merge:true});
+        const imgs = ['profile-photo-img','user-avatar-img','topbar-avatar-img'];
+        imgs.forEach(id=>{const el=document.getElementById(id);if(el){el.src=dataUrl;el.style.display='block';}});
+        if (statusEl) statusEl.textContent = '✅ Photo saved';
+      };
+      reader.readAsDataURL(input.files[0]);
+    } catch(e) {
+      if (statusEl) statusEl.textContent = '⚠️ Upload failed';
+    }
+  };
+
+  window.saveRoutineToFirestore = async (data) => {
+    try {
+      await setDoc(doc(db,'users',user.uid),{routine:data},{merge:true});
+    } catch(e) {}
+  };
+});
+
+// ─── Render user UI (same as before but uses real data) ──────────────────────
+function renderUserUI(user, userDocData, memberData) {
+  const name     = userDocData.name || memberData?.name || user.displayName || user.email?.split('@')[0] || 'Member';
+  const rawPhoto = userDocData.photoURL || user.photoURL || '';
+  const photo    = (rawPhoto && rawPhoto.startsWith('http') || rawPhoto.startsWith('data:')) ? rawPhoto : '';
+  const joined   = userDocData.createdAt || memberData?.grantedAt || '';
   const initials = name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase() || '?';
 
-  // Sync sidebar + topbar elements
-  const sn = document.getElementById('sidebar-user-name');
-  if (sn) sn.textContent = name;
-  const ti2 = document.getElementById('topbar-initials');
-  const ui2 = document.getElementById('user-initials');
-  if (ti2) ti2.textContent = initials;
-  if (ui2) ui2.textContent = initials;
+  const setTxt = (id,v) => { const el=document.getElementById(id); if(el) el.textContent=v; };
+  const setVal = (id,v) => { const el=document.getElementById(id); if(el) el.value=v; };
+
+  setTxt('sidebar-user-name', name);
+  setTxt('topbar-initials', initials);
+  setTxt('user-initials', initials);
+  setTxt('plan-badge-txt', '✅ Full Access');
+  setTxt('logged-in-as', user.email||'');
+  setTxt('profile-initials-big', initials);
+
   if (photo) {
-    const timg = document.getElementById('topbar-avatar-img');
-    if (timg) {
-      timg.src = photo;
-      timg.style.cssText = 'display:block;width:28px;height:28px;object-fit:cover;border-radius:50%;max-width:28px;max-height:28px';
-      if(ti2) ti2.style.display='none';
-    }
+    ['topbar-avatar-img','user-avatar-img','profile-photo-img'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.src=photo; el.style.display='block'; }
+    });
+    const ti = document.getElementById('topbar-initials');
+    if (ti) ti.style.display='none';
+    const bi = document.getElementById('profile-initials-big');
+    if (bi) bi.style.display='none';
   }
 
-  // Topbar
-  const badgeTxt = document.getElementById('plan-badge-txt');
-  if(badgeTxt) badgeTxt.textContent = '✅ Full Access';
-  document.getElementById('user-initials').textContent = initials;
-  if (photo) {
-    const topImg = document.getElementById('user-avatar-img');
-    if(topImg){
-      topImg.src=photo;
-      topImg.style.cssText='display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;max-width:100%;max-height:100%';
-    }
-    const ui = document.getElementById('user-initials');
-    if(ui) ui.style.display='none';
-  }
-
-  // Profile page
-  const profName = document.getElementById('prof-name');     if(profName) profName.value = name;
-  const profEmail = document.getElementById('prof-email');   if(profEmail) profEmail.value = user.email||'';
-  const profBrand = document.getElementById('prof-brand');   if(profBrand) profBrand.value = doc.brand||'';
-  const profNiche = document.getElementById('prof-niche');   if(profNiche) profNiche.value = doc.niche||memberData?.niche||'';
-  const profJoined = document.getElementById('prof-joined');
-  if(profJoined && joined) profJoined.value = new Date(joined).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-
-  const loggedAs = document.getElementById('logged-in-as'); if(loggedAs) loggedAs.textContent = user.email;
-  const bigInit  = document.getElementById('profile-initials-big'); if(bigInit) bigInit.textContent = initials;
-  if (photo) {
-    const pImg = document.getElementById('profile-photo-img');
-    if(pImg){
-      pImg.src = photo;
-      pImg.style.display = 'block';
-      pImg.style.width = '100%';
-      pImg.style.height = '100%';
-      pImg.style.objectFit = 'cover';
-      pImg.style.borderRadius = '50%';
-      pImg.style.position = 'static';
-    }
-    if(bigInit) bigInit.style.display='none';
+  setVal('prof-name', name);
+  setVal('prof-email', user.email||'');
+  setVal('prof-brand', userDocData.brand||'');
+  setVal('prof-niche', userDocData.niche||memberData?.niche||'');
+  if (joined) {
+    const profJoined = document.getElementById('prof-joined');
+    if (profJoined) profJoined.value = new Date(joined).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   }
 }
 
-// ─── Restore saved data helpers ───────────────────────────────────────
+// ─── Data loaders ─────────────────────────────────────────────────────────────
 function loadRevenuePlan(data) {
-  if(!data) return;
-  if(data.price){const el=document.getElementById('price');if(el)el.value=Number(data.price)||'';}
-  if(data.target){const el=document.getElementById('target');if(el)el.value=Number(data.target)||'';}
-  if(data.price||data.target) { window._appliedPrice=Number(data.price); window._appliedTarget=Number(data.target); setTimeout(()=>window.applyAll&&window.applyAll(),100); }
+  if (!data) return;
+  if (data.price)  { const el=document.getElementById('price');  if(el) el.value=Number(data.price);  }
+  if (data.target) { const el=document.getElementById('target'); if(el) el.value=Number(data.target); }
+  if (data.niche)  {
+    const el=document.getElementById('niche');
+    if (el) { el.value=data.niche; }
+  }
+  if (data.price||data.target) {
+    window._appliedPrice  = Number(data.price);
+    window._appliedTarget = Number(data.target);
+    window._appliedNiche  = data.niche||'';
+    setTimeout(() => window.applyAll && window.applyAll(), 300);
+  }
 }
+
 function loadAvatarFields(data) {
-  if(!data) return;
-  const fields=['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections'];
-  fields.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el&&data[id]!==undefined){
-      el.value=data[id];
-      if(id==='av_age'){const o=document.getElementById('av_age_out');if(o)o.textContent=data[id]+' yrs';}
-      if(id==='av_hrs'){const o=document.getElementById('av_hrs_out');if(o)o.textContent=data[id]+' hrs/wk';}
-      if(id==='av_igr'){const o=document.getElementById('av_ig_out');if(o)o.textContent='$'+Number(data[id]).toLocaleString()+'/mo';}
+  if (!data) return;
+  const fields = ['av_name','av_age','av_gender','av_location','av_edu','av_income',
+                  'av_job','av_industry','av_employ','av_hrs','av_current','av_desired',
+                  'av_igr','av_transformation','av_fear','av_tried','av_personality',
+                  'av_motivation','av_influences','av_objections'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && data[id] !== undefined) {
+      el.value = data[id];
+      if (id==='av_age') { const o=document.getElementById('av_age_out'); if(o) o.textContent=data[id]+' yrs'; }
+      if (id==='av_hrs') { const o=document.getElementById('av_hrs_out'); if(o) o.textContent=data[id]+' hrs/wk'; }
+      if (id==='av_igr') { const o=document.getElementById('av_ig_out');  if(o) o.textContent='$'+Number(data[id]).toLocaleString()+'/mo'; }
     }
   });
-  if(data.selectedPains&&Array.isArray(data.selectedPains)){
-    data.selectedPains.forEach(i=>{
-      if(window.selectedPains) window.selectedPains.add(i);
-      const el=document.getElementById('pi-'+i);if(el)el.classList.add('sel');
+  if (data.selectedPains && Array.isArray(data.selectedPains)) {
+    data.selectedPains.forEach(i => {
+      if (window.selectedPains) window.selectedPains.add(i);
+      const el = document.getElementById('pi-'+i); if(el) el.classList.add('sel');
     });
   }
-  if(data.keywords&&Array.isArray(data.keywords)&&data.keywords.length>0){
-    const kwInp=document.getElementById('kw-inp');const kwWrap=document.getElementById('kw-wrap');
-    if(kwInp&&kwWrap){
-      data.keywords.forEach(kw=>{
-        const tag=document.createElement('span');tag.className='tag';
-        tag.innerHTML=kw+'<span onclick="this.parentElement.remove();markFilled()" style="cursor:pointer;margin-left:4px;opacity:.6">×</span>';
-        kwWrap.insertBefore(tag,kwInp);
+  if (data.keywords && Array.isArray(data.keywords) && data.keywords.length > 0) {
+    const kwInp = document.getElementById('kw-inp');
+    const kwWrap = document.getElementById('kw-wrap');
+    if (kwInp && kwWrap) {
+      data.keywords.forEach(kw => {
+        const tag = document.createElement('span'); tag.className='tag';
+        tag.innerHTML = kw+'<span onclick="this.parentElement.remove();markFilled()" style="cursor:pointer;margin-left:4px;opacity:.6">×</span>';
+        kwWrap.insertBefore(tag, kwInp);
       });
     }
   }
 }
+
 function loadCalendar(data) {
-  if(!data||!data.data) return;
+  if (!data||!data.data) return;
   const generatedAt = new Date(data.generatedAt||Date.now());
   const daysSince   = (Date.now()-generatedAt.getTime())/(1000*60*60*24);
-  if(daysSince>=30){
-    showCalendarExpiredBanner(generatedAt);return;
+  if (daysSince >= 30) {
+    // Calendar expired — show banner
+    let el = document.getElementById('cal-countdown');
+    if (!el) {
+      el = document.createElement('div'); el.id='cal-countdown';
+      const cp = document.getElementById('page-calendar');
+      if (cp) cp.insertBefore(el, cp.querySelector('.tab-strip'));
+    }
+    el.style.cssText='background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.3);border-radius:12px;padding:12px 16px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px';
+    el.innerHTML=`<div><div style="font-size:12px;font-weight:800;color:var(--yellow)">🔄 Your content plan has expired!</div><div style="font-size:11px;color:var(--dim);margin-top:2px">Generate a fresh plan from the Avatar or Affiliate Setup page.</div></div>`;
+    return;
   }
   try {
-    window._aiCalendar30  = JSON.parse(data.data);
-    window._postsPerDay   = data.postsPerDay||6;
-    window._calDone       = new Set(data.calDone||[]);
-    const banner=document.getElementById('cal-ai-banner');
-    if(banner){
+    window._aiCalendar30 = JSON.parse(data.data);
+    window._postsPerDay  = data.postsPerDay||6;
+    window._calDone      = new Set(data.calDone||[]);
+    const banner = document.getElementById('cal-ai-banner');
+    if (banner) {
       banner.style.display='flex';
-      banner.querySelector('div div:first-child').textContent='✅ 7-Day Content Plan Loaded';
-      banner.querySelector('div div:last-child').innerHTML='Your niche-tailored plan is active. Click any post to view the full script. 📋';
+      const divs = banner.querySelectorAll('div div');
+      if (divs[0]) divs[0].textContent='✅ 7-Day Content Plan Loaded';
+      if (divs[1]) divs[1].textContent='Your niche-tailored plan is active. Click any post to view the full script.';
     }
-    showCalendarCountdown(Math.ceil(30-daysSince));
-  } catch(e){}
+  } catch(e) { console.warn('Calendar restore failed:',e); }
 }
-function showCalendarExpiredBanner(generatedAt){
-  let el=document.getElementById('cal-countdown');
-  if(!el){el=document.createElement('div');el.id='cal-countdown';const cp=document.getElementById('page-calendar');if(cp)cp.insertBefore(el,cp.querySelector('.tab-strip'));}
-  el.style.cssText='background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.3);border-radius:12px;padding:12px 16px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px';
-  el.innerHTML=`<div><div style="font-size:12px;font-weight:800;color:var(--yellow)">🔄 Your 7-day content plan has expired!</div><div style="font-size:11px;color:var(--dim);margin-top:2px">Go to <strong style="color:var(--white)">Ideal Customer</strong> and click "Generate" to get a fresh 30-day plan.</div></div><button onclick="window.showPage('avatar',document.querySelectorAll('.nav-btn')[3])" style="font-size:10px;padding:8px 16px;background:linear-gradient(135deg,var(--yellow),var(--yellow2));color:var(--text-dark);border:none;border-radius:50px;font-family:'Poppins',sans-serif;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Regenerate →</button>`;
-}
-function restoreRoutine(saved){
+
+function restoreRoutine(saved) {
   try {
     const data = JSON.parse(saved);
-    if(data.blocks){
-      customRoutineBlocks = JSON.parse(data.blocks);
-      if(data.answers){
-        const ans=JSON.parse(data.answers);
-        const setVal=(id,val)=>{const el=document.getElementById(id);if(el&&val)el.value=val;};
-        setVal('rq_wake',ans.wake);setVal('rq_sleep',ans.sleep);setVal('rq_job',ans.job);
-        setVal('rq_biztime',ans.biztime);setVal('rq_weakness',ans.weakness);setVal('rq_addiction',ans.addiction);
-        setVal('rq_belief',ans.belief);setVal('rq_exercise',ans.exercise);setVal('rq_extype',ans.extype);
-        setVal('rq_lifegoal',ans.lifegoal);setVal('rq_identity',ans.identity);
-        if(Array.isArray(ans.areas)){
-          ['mind','body','spirit','soul','income','identity'].forEach(a=>{
-            const el=document.getElementById('rqa_'+a);if(!el)return;
-            if(ans.areas.includes(a)){rqAreas.add(a);el.classList.add('sel');}
-            else{rqAreas.delete(a);el.classList.remove('sel');}
+    if (data.blocks) {
+      window.customRoutineBlocks = JSON.parse(data.blocks);
+      if (data.answers) {
+        const ans = JSON.parse(data.answers);
+        const setVal = (id,val) => { const el=document.getElementById(id); if(el&&val) el.value=val; };
+        ['wake','sleep','job','biztime','weakness','addiction','belief','exercise','extype','lifegoal','identity']
+          .forEach(k => setVal('rq_'+k, ans[k]));
+        if (Array.isArray(ans.areas)) {
+          ['mind','body','spirit','soul','income','identity'].forEach(a => {
+            const el = document.getElementById('rqa_'+a); if(!el) return;
+            if (ans.areas.includes(a)) { window.rqAreas && window.rqAreas.add(a); el.classList.add('sel'); }
+            else { window.rqAreas && window.rqAreas.delete(a); el.classList.remove('sel'); }
           });
         }
       }
-      if(customRoutineBlocks&&customRoutineBlocks.length) renderRoutine();
+      if (window.customRoutineBlocks && window.customRoutineBlocks.length) {
+        window.renderRoutine && window.renderRoutine();
+      }
     }
-  } catch(e){}
+  } catch(e) {}
 }
 </script>
 </body>
