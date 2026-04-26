@@ -13612,7 +13612,7 @@ onAuthStateChanged(auth, async (user) => {
   renderUserUI(user, userDocData, memberData);
 
   // ── Restore app mode — Firestore wins, then localStorage fallback ──────────
-  const savedMode = userDocData.appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+  const savedMode = localStorage.getItem('eos_app_mode') || userDocData.appMode || 'affiliate';
   // Sync localStorage so it always matches
   localStorage.setItem('eos_app_mode', savedMode);
   // Apply mode — retry until setAppMode is available (handles timing)
@@ -13744,10 +13744,24 @@ function renderUserUI(user, userDocData, memberData) {
   setTxt('profile-initials-big', initials);
 
   if (photo) {
-    ['topbar-avatar-img','user-avatar-img','profile-photo-img'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.src=photo; el.style.display='block'; }
-    });
+    // topbar avatar — small circle
+    const topImg = document.getElementById('topbar-avatar-img');
+    if (topImg) {
+      topImg.src = photo;
+      topImg.style.cssText = 'display:block;width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;';
+    }
+    // sidebar avatar
+    const userImg = document.getElementById('user-avatar-img');
+    if (userImg) {
+      userImg.src = photo;
+      userImg.style.cssText = 'display:block;width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;';
+    }
+    // profile page large avatar
+    const profImg = document.getElementById('profile-photo-img');
+    if (profImg) {
+      profImg.src = photo;
+      profImg.style.cssText = 'display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;position:absolute;top:0;left:0;';
+    }
     const ti = document.getElementById('topbar-initials');
     if (ti) ti.style.display='none';
     const bi = document.getElementById('profile-initials-big');
