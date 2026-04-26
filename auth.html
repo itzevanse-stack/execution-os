@@ -167,7 +167,7 @@ import { getAuth, signInWithEmailAndPassword,
 import { getFirestore, doc, setDoc }                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:            "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
+  apiKey:            "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSF5B482TX0",
   authDomain:        "execution-os-1fbfd.firebaseapp.com",
   projectId:         "execution-os-1fbfd",
   storageBucket:     "execution-os-1fbfd.firebasestorage.app",
@@ -328,6 +328,88 @@ resetBtn.addEventListener('click', async () => {
     showError('Could not send reset email: ' + e.message);
   }
 });
+
+// ── Handle password reset confirmation link ────────────────────────────────
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const mode   = params.get('mode');
+  const oobCode= params.get('oobCode');
+
+  if (mode === 'resetPassword' && oobCode) {
+    // Hide the normal login flow, show a "Set New Password" panel
+    document.getElementById('step-1').style.display = 'none';
+    document.getElementById('step-2').style.display = 'none';
+    document.getElementById('auth-steps').style.display = 'none';
+
+    const panel = document.querySelector('.auth-panel');
+    panel.innerHTML = `
+      <div class="auth-panel-title">Set New Password</div>
+      <div class="auth-panel-sub">Enter your new password below.</div>
+      <div class="auth-form">
+        <div class="form-group">
+          <label class="form-label">New Password</label>
+          <input type="password" id="new-password" class="form-input" placeholder="Enter new password (min 6 chars)" minlength="6">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password</label>
+          <input type="password" id="confirm-password" class="form-input" placeholder="Confirm new password">
+        </div>
+        <div class="auth-error" id="reset-confirm-error"></div>
+        <button class="auth-btn" id="set-password-btn">Set New Password</button>
+      </div>
+    `;
+
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(({ confirmPasswordReset, verifyPasswordResetCode }) => {
+      // Verify the code is valid first
+      verifyPasswordResetCode(auth, oobCode).catch(() => {
+        const errEl = document.getElementById('reset-confirm-error');
+        if (errEl) {
+          errEl.textContent = '⚠️ This reset link has expired or already been used. Please request a new one.';
+          errEl.style.display = 'block';
+        }
+        const btn = document.getElementById('set-password-btn');
+        if (btn) btn.disabled = true;
+      });
+
+      document.getElementById('set-password-btn').addEventListener('click', async () => {
+        const pw  = document.getElementById('new-password').value;
+        const pw2 = document.getElementById('confirm-password').value;
+        const errEl = document.getElementById('reset-confirm-error');
+
+        errEl.style.display = 'none';
+        if (!pw || pw.length < 6) {
+          errEl.textContent = '⚠️ Password must be at least 6 characters.';
+          errEl.style.display = 'block'; return;
+        }
+        if (pw !== pw2) {
+          errEl.textContent = '⚠️ Passwords do not match.';
+          errEl.style.display = 'block'; return;
+        }
+
+        const btn = document.getElementById('set-password-btn');
+        btn.disabled = true; btn.textContent = 'Saving…';
+
+        try {
+          await confirmPasswordReset(auth, oobCode, pw);
+          // Success — redirect to login
+          panel.innerHTML = `
+            <div style="text-align:center;padding:1rem 0">
+              <div style="font-size:40px;margin-bottom:12px">✅</div>
+              <div class="auth-panel-title">Password Updated!</div>
+              <div class="auth-panel-sub" style="margin-bottom:1.5rem">Your password has been reset successfully. You can now sign in.</div>
+              <button class="auth-btn" onclick="window.location.href='auth.html'">Sign In Now</button>
+            </div>
+          `;
+        } catch(e) {
+          btn.disabled = false; btn.textContent = 'Set New Password';
+          errEl.textContent = '⚠️ ' + (e.message || 'Failed to reset password. Please try again.');
+          errEl.style.display = 'block';
+        }
+      });
+    });
+  }
+})();
+
 </script>
 </body>
 </html>
