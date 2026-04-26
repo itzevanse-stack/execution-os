@@ -387,7 +387,7 @@ td{padding:10px 16px;font-size:12px;color:var(--muted);font-weight:500}
           </div>
           <div style="overflow-x:auto">
             <table>
-              <thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Niche</th><th>Granted</th><th>Action</th></tr></thead>
+              <thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Niche</th><th>Granted</th><th style='min-width:260px'>Admin Actions</th></tr></thead>
               <tbody id="members-tbody"><tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
             </table>
           </div>
@@ -692,20 +692,39 @@ function renderMembers(list) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">No members yet — add one above.</td></tr>';
     return;
   }
-  tbody.innerHTML = list.map(m => `
+  tbody.innerHTML = list.map(m => {
+    const email      = m.email || m.id.replace(/-/g,'.');
+    const safeName   = (m.name||email||'').replace(/'/g,'\'');
+    const safeEmail  = email.replace(/'/g,'\'');
+    const isExpert   = (m.appMode || 'affiliate') === 'expert';
+    const newMode    = isExpert ? 'affiliate' : 'expert';
+    const newModeLabel = isExpert ? '🔗 Affiliate' : '🎯 Expert';
+    return `
     <tr>
       <td class="td-name">${m.name || '—'}</td>
-      <td class="td-email">${m.email || m.id.replace(/-/g,'.')}</td>
+      <td class="td-email">${email}</td>
       <td>${modeChip(m.appMode)}</td>
       <td style="color:var(--dim)">${m.niche || '—'}</td>
       <td style="color:var(--dim)">${m.grantedAt ? new Date(m.grantedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
-      <td>
-        <button onclick="revokeAccess('${m.id}','${(m.name||m.email||'').replace(/'/g,'')}')"
-          style="font-size:10px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.08);color:var(--red)">
-          Revoke
+      <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <button onclick="resendPassword('${safeEmail}','${safeName}')"
+          title="Send password reset email"
+          style="font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid rgba(78,204,163,.3);background:rgba(78,204,163,.08);color:var(--teal)">
+          📧 Reset PW
+        </button>
+        <button onclick="changeMode('${m.id}','${safeEmail}','${safeName}','${newMode}')"
+          title="Switch to ${newModeLabel}"
+          style="font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.08);color:#a89cff">
+          ⇄ ${newModeLabel}
+        </button>
+        <button onclick="revokeAccess('${m.id}','${safeName}')"
+          title="Revoke access"
+          style="font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.08);color:var(--red)">
+          🚫 Revoke
         </button>
       </td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 window.filterMembers = function(q) {
@@ -771,7 +790,13 @@ window.activateUser = async function() {
     }, { merge: true });
 
     btn.textContent = '📧 Sending login email…';
-    await sendPasswordResetEmail(auth, emailVal);
+    // REST API reset — bypasses SDK api-key-not-valid error
+    const resetRes = await fetch(
+      'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0',
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ requestType:'PASSWORD_RESET', email: emailVal }) }
+    );
+    if (!resetRes.ok) console.warn('Reset email warning:', await resetRes.text());
 
     let emailSent = false;
     try {
@@ -801,6 +826,52 @@ window.activateUser = async function() {
   } finally {
     btn.textContent = origText;
     btn.disabled = false;
+  }
+};
+
+// ── RESEND PASSWORD RESET (Admin only) ───────────────────────────────────
+window.resendPassword = async function(email, displayName) {
+  if (!confirm('Send password reset email to ' + (displayName||email) + '?')) return;
+  try {
+    const res = await fetch(
+      'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0',
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ requestType:'PASSWORD_RESET', email: email }) }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Failed');
+    alert('✅ Password reset email sent to ' + email);
+  } catch(e) {
+    alert('❌ Could not send reset email: ' + e.message);
+  }
+};
+
+// ── CHANGE USER MODE (Admin only) ────────────────────────────────────────
+window.changeMode = async function(docId, email, displayName, newMode) {
+  const label = newMode === 'expert' ? '🎯 Expert Mode' : '🔗 Affiliate Mode';
+  if (!confirm('Switch ' + (displayName||email) + ' to ' + label + '?\n\nThis will update their dashboard immediately on next login.')) return;
+  try {
+    // Update members collection
+    await setDoc(doc(db, 'members', docId), { appMode: newMode }, { merge: true });
+
+    // Update users collection (keyed by sanitized email — same ID format)
+    const safeId = email.replace(/[^a-z0-9]/g, '-');
+    await setDoc(doc(db, 'users', safeId), { appMode: newMode }, { merge: true });
+
+    // Show inline feedback
+    const tbody = document.getElementById('members-tbody');
+    const rows  = tbody ? tbody.querySelectorAll('tr') : [];
+    rows.forEach(row => {
+      if (row.textContent.includes(email)) {
+        row.style.background = 'rgba(78,204,163,.08)';
+        setTimeout(() => { row.style.background = ''; }, 2000);
+      }
+    });
+
+    alert('✅ ' + (displayName||email) + ' switched to ' + label + '!\n\nThey will see the new dashboard on their next login.');
+    await loadMembers();
+  } catch(e) {
+    alert('❌ Could not change mode: ' + (e.message||'Unknown error'));
   }
 };
 
