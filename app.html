@@ -13134,7 +13134,7 @@ BUSINESS TYPE: Affiliate Marketing
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Product they promote: ${aff.name || 'NOT SET — tell them to complete Offer Setup'}
 Commission per sale: ${aff.commission ? '$'+Number(aff.commission).toLocaleString() : 'NOT SET'}
-Monthly revenue target: $${Number(aff.monthlyTarget || ctx.target || 0).toLocaleString()}
+Monthly revenue target: ${(aff.monthlyTarget || ctx.target) ? '$'+Number(aff.monthlyTarget || ctx.target).toLocaleString() : 'NOT SET — do not invent a number'}
 Niche: ${aff.niche || ctx.niche || 'NOT SET'}
 Target audience: ${aff.buyer || av.job || 'NOT SET'}
 Audience pain point: ${aff.pain || av.pain || 'NOT SET'}
@@ -13221,9 +13221,10 @@ RULES YOU NEVER BREAK
 2. Never give advice that could apply to anyone. Always make it specific to THIS user.
 3. Always end with a clear next action.
 4. Never ignore an excuse — acknowledge and redirect.
-5. Always use their real numbers when motivating them.
-6. If data shows NOT SET, tell them exactly where to set it.
-7. Keep responses scannable — short paragraphs, bold key points, numbered steps.`;
+5. Always use their REAL numbers. NEVER invent, assume, or guess any figure — no "$25k", "$10k", or any made-up target. If a number is NOT SET, say it is not set.
+6. If data shows NOT SET, tell them exactly where to set it. Do not fill in the blank yourself.
+7. Keep responses scannable — short paragraphs, bold key points, numbered steps.
+8. CRITICAL: If monthly revenue target is NOT SET, never mention a specific dollar target. Simply tell them to set one in Offer Setup.`;
   }
 
   // ── Build mode-specific starter questions ────────────────────────────────
@@ -13320,7 +13321,7 @@ RULES YOU NEVER BREAK
       if (aff.name && niche) {
         intro = `**Your affiliate brief is locked in.**\n\nYou're promoting **${aff.name}** at **$${Number(aff.commission||0).toLocaleString()} per sale** in the **${niche}** space.\n\n`;
         if (av.pain || aff.pain) intro += `Your audience is struggling with "${aff.pain || av.pain}" and wants "${aff.transformation || av.transformation || 'a real change'}"\n\n`;
-        if (ctx.target && aff.commission) {
+        if (ctx.target && aff.commission && Number(ctx.target) > 0 && Number(aff.commission) > 0) {
           const salesNeeded = Math.ceil(Number(ctx.target) / Number(aff.commission));
           intro += `**The math is simple:** ${salesNeeded} sales × $${Number(aff.commission).toLocaleString()} = $${Number(ctx.target).toLocaleString()}/month. That's your target. Let's build the machine that gets there.\n\n`;
         }
@@ -13337,7 +13338,7 @@ RULES YOU NEVER BREAK
         if (ctx.target) intro += `, targeting **${monthly}**`;
         intro += `.\n\n`;
         if (av.job && av.pain) intro += `Your ideal client is a **${av.job}** struggling with "${av.pain}" who wants "${av.transformation || 'a transformation'}"\n\n`;
-        if (salesNeeded) intro += `**The math:** ${salesNeeded} client${salesNeeded !== 1 ? 's' : ''} at $${Number(ctx.price).toLocaleString()} = ${monthly}. That's the whole game.\n\n`;
+        if (salesNeeded && Number(ctx.price) > 0 && Number(ctx.target) > 0) intro += `**The math:** ${salesNeeded} client${salesNeeded !== 1 ? 's' : ''} at $${Number(ctx.price).toLocaleString()} = ${monthly}. That's the whole game.\n\n`;
         intro += `Every answer I give will be specific to your niche, your offer, your ideal client. No generic advice — ever.\n\n**What do you want to work on today?**`;
       } else {
         intro = `**I'm your E-OS business strategist.**\n\nTo give you fully personalised advice I need your business details filled in:\n\n**Step 1 — Revenue Plan:** Set your niche, offer price, and monthly target\n**Step 2 — Offer Creation:** Name and structure your offer\n**Step 3 — Ideal Customer:** Define exactly who you're selling to\n\nOnce those are done, every answer I give will reference your exact niche, your exact client, your exact numbers.\n\nFor now, ask me anything — strategy, mindset, content, outreach. I'm here.\n\n**What are you working on right now?**`;
