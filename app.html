@@ -12761,7 +12761,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const dashNav = document.getElementById('nav-dashboard');
   if (dashNav) dashNav.classList.add('on');
   setTimeout(function() { window.renderDashboard && window.renderDashboard(); }, 100);
-  setTimeout(function() { window.setAppMode && window.setAppMode('affiliate'); }, 150);
+  // Mode is set by onAuthStateChanged after reading saved preference — don't hardcode here
 });
 
 // ─── Live commission math preview on the affiliate setup form ─────────────
@@ -13567,12 +13567,23 @@ const signOut = () => _signOut(auth);
 window._firebaseSignOut = () => _signOut(auth).then(() => { window.location.href = 'index.html'; });
 
 // ── Auth state listener ───────────────────────────────────────────────────────
+// Track whether Firebase has finished its initial auth check
+let _authResolved = false;
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    // Not logged in — redirect to login page
-    window.location.href = 'index.html';
+    // Firebase can fire null briefly on first load while restoring session.
+    // Wait 2 seconds before redirecting to prevent a loop.
+    if (_authResolved) {
+      window.location.href = 'auth.html';
+    } else {
+      setTimeout(() => {
+        if (!auth.currentUser) window.location.href = 'auth.html';
+      }, 2000);
+    }
     return;
   }
+  _authResolved = true;
 
   window._currentUserUid = user.uid;
 
@@ -13744,24 +13755,12 @@ function renderUserUI(user, userDocData, memberData) {
   setTxt('profile-initials-big', initials);
 
   if (photo) {
-    // topbar avatar — small circle
     const topImg = document.getElementById('topbar-avatar-img');
-    if (topImg) {
-      topImg.src = photo;
-      topImg.style.cssText = 'display:block;width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;';
-    }
-    // sidebar avatar
+    if (topImg) { topImg.src=photo; topImg.style.cssText='display:block;width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;'; }
     const userImg = document.getElementById('user-avatar-img');
-    if (userImg) {
-      userImg.src = photo;
-      userImg.style.cssText = 'display:block;width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;';
-    }
-    // profile page large avatar
+    if (userImg) { userImg.src=photo; userImg.style.cssText='display:block;width:36px;height:36px;border-radius:50%;object-fit:cover;'; }
     const profImg = document.getElementById('profile-photo-img');
-    if (profImg) {
-      profImg.src = photo;
-      profImg.style.cssText = 'display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;position:absolute;top:0;left:0;';
-    }
+    if (profImg) { profImg.src=photo; profImg.style.cssText='display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;position:absolute;top:0;left:0;'; }
     const ti = document.getElementById('topbar-initials');
     if (ti) ti.style.display='none';
     const bi = document.getElementById('profile-initials-big');
