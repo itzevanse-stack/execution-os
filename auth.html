@@ -319,7 +319,10 @@ resetBtn.addEventListener('click', async () => {
   const email = (document.getElementById('reset-email').value || authEmail.value).trim();
   if (!email) { showError('Enter your email address to reset your password.'); return; }
   try {
-    await sendPasswordResetEmail(auth, email);
+    await sendPasswordResetEmail(auth, email, {
+      url: 'https://build.skillslibry.com/reset-confirm.html',
+      handleCodeInApp: false
+    });
     forgotSec.style.display = 'none';
     forgotBtn.textContent   = 'Forgot password? Reset it';
     authError.style.cssText = 'display:block;background:rgba(78,204,163,.08);border-color:rgba(78,204,163,.25);color:#4ecca3';
