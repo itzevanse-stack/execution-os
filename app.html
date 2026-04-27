@@ -2599,7 +2599,14 @@ button[onclick="generateOffer()"] {
             <div>
               <div class="fl">Your offer price</div>
               <div style="display:flex;align-items:center;gap:8px">
-                <div class="inp-row" style="background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 12px;flex:1"><span class="curr" style="font-size:20px">$</span><input class="big-inp" id="offer_price" type="number" value="3000" min="2000" step="500" style="font-size:20px" oninput="updateOfferCalc()"></div>
+                <div class="inp-row" style="background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.08);border-radius:10px;padding:9px 12px;flex:1"><span class="curr" style="font-size:20px">$</span><input class="big-inp" id="offer_price" type="number" value="" min="500" step="500" style="font-size:20px" oninput="
+    this.dataset.userEdited='true';
+    updateOfferCalc();
+    var rp=document.getElementById('price');
+    if(rp && this.value){rp.value=this.value;}
+    if(this.value){window._appliedPrice=parseInt(this.value)||0;}
+    window.renderDashboard&&window.renderDashboard();
+  "></div>
               </div>
               <div id="offer-price-warn" style="font-size:10px;color:var(--red);margin-top:4px;display:none">⚠️ Minimum recommended: $2,000</div>
             </div>
@@ -3545,8 +3552,8 @@ function showPage(n,btn){
 }
 window.showPage=showPage;
 
-window._appliedPrice=1000;
-window._appliedTarget=25000;
+window._appliedPrice=0;
+window._appliedTarget=0;
 
 function applyAll(){
   const parseVal = v => Math.max(1, parseInt(String(v).replace(/[^0-9]/g,'')) || 0);
@@ -3571,6 +3578,13 @@ function applyAll(){
   window._appliedTarget=target;
   window._trackerState={counts:{},closedDeals:0,remainingIncome:target};
   window._trackerLastTarget=target;window._trackerLastPrice=price;
+
+  // Sync price to offer creation (one-way, only if user hasn't manually changed it there)
+  const _ofEl = document.getElementById('offer_price');
+  if (_ofEl && _ofEl.dataset.userEdited !== 'true') {
+    _ofEl.value = price;
+    if (window.updateOfferCalc) window.updateOfferCalc();
+  }
 
   // Show loading
   const locked=document.getElementById('plan-locked-prompt');
@@ -3635,8 +3649,27 @@ window.setTrafficMode=function(mode){
 };
 
 function generate(){
-  const price  = Number(window._appliedPrice)  || 1000;
-  const target = Number(window._appliedTarget) || 25000;
+  const price  = Number(window._appliedPrice)  || 0;
+  const target = Number(window._appliedTarget) || 0;
+
+  // ── LOCKED STATE — don't show any metrics until user has set real data ──
+  const metricsGrid = document.getElementById('metrics-grid');
+  const lockedPrompt = document.getElementById('plan-locked-prompt');
+  const planResults  = document.getElementById('plan-results');
+
+  if (!price || !target) {
+    if (metricsGrid) metricsGrid.innerHTML = `
+      <div style="grid-column:1/-1;text-align:center;padding:2.5rem 1rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;">
+        <div style="font-size:36px;margin-bottom:12px">🔒</div>
+        <div style="font-size:14px;font-weight:800;color:var(--white);margin-bottom:8px">Your metrics will appear here</div>
+        <div style="font-size:12px;color:var(--dim);line-height:1.6;max-width:360px;margin:0 auto">
+          Enter your <strong style="color:var(--muted)">offer price</strong>, <strong style="color:var(--muted)">monthly revenue target</strong>, and <strong style="color:var(--muted)">niche</strong> above — then click <strong style="color:var(--teal)">⚡ Apply to Everything</strong> to unlock your personalised execution plan.
+        </div>
+      </div>`;
+    if (lockedPrompt) lockedPrompt.style.display = 'block';
+    if (planResults)  planResults.style.display  = 'none';
+    return;
+  }
   const mode=window._trafficMode||'free';
   const sales   = Math.ceil(target/price);
   const calls   = Math.ceil(sales  / 0.25);   // 25% close rate
@@ -4436,8 +4469,9 @@ function initMindset(){
 window.generateAffirmations=function(){
   const niche=(document.getElementById('niche')||{}).value||'your niche';
   const av=window._avatarData||{};
-  const price=window._appliedPrice||1000;
-  const target=window._appliedTarget||10000;
+  const price=window._appliedPrice||0;
+  const target=window._appliedTarget||0;
+  if(!price||!target) return;
   const offerName=(document.getElementById('offer_name')||{}).value||'my programme';
   const result=(document.getElementById('offer_result')||{}).value||"my clients transformation";
   const job=(av.job||'professional').split('/')[0].split(',')[0].trim();
@@ -4647,7 +4681,8 @@ function initResources(){
   const pq=document.getElementById('power-questions');
   if(pq) pq.innerHTML=questions.map((q,i)=>`<div style="display:flex;align-items:flex-start;gap:12px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;padding:11px 14px;transition:border-color .2s" onmouseenter="this.style.borderColor='rgba(255,217,61,.25)'" onmouseleave="this.style.borderColor='rgba(255,255,255,.09)'"><div style="width:22px;height:22px;border-radius:50%;background:rgba(255,217,61,.12);color:var(--yellow);font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div><div style="font-size:12px;color:var(--muted);line-height:1.65;font-style:italic">${q}</div></div>`).join('');
 
-  const price=window._appliedPrice||1000;const target=window._appliedTarget||25000;
+  const price=window._appliedPrice||0;const target=window._appliedTarget||0;
+  if(!price||!target){return;}
   const sales=Math.ceil(target/price);const calls=Math.ceil(sales/0.25);const dms=Math.ceil(calls/0.30/30*3);
   const refs=[
     {label:'DMs per day (your target)',val:dms+'/day minimum',color:'var(--teal)'},
@@ -5569,7 +5604,7 @@ window.generateOffer=generateOffer;
 function renderRules(){document.getElementById('rules-grid').innerHTML=RULES.map(([r,s])=>`<div class="rule"><div class="rule-dot"></div><div><div class="rule-txt">${r}</div><div class="rule-sub">${s}</div></div></div>`).join('')}
 
 function renderTracker(dmsDay,salesGoal){
-  const price=window._appliedPrice||1000;const target=window._appliedTarget||25000;
+  const price=window._appliedPrice||0;const target=window._appliedTarget||0;
   const items=[{key:'dms',label:'DMs sent',target:dmsDay,color:'var(--teal)'},{key:'posts',label:'Posts made',target:2,color:'var(--purple)'},{key:'surveys',label:'Survey clicks',target:5,color:'var(--yellow)'},{key:'calls',label:'Calls booked',target:Math.max(1,Math.ceil(salesGoal/4)),color:'var(--orange)'},{key:'closes',label:'Deals closed',target:Math.max(1,Math.ceil(salesGoal/30)),color:'var(--red)',isClose:true}];
   const totalActions=items.reduce((s,i)=>s+i.target,0);
   window._ti=items;window._price=price;window._target=target;window._totalActions=totalActions;
@@ -5624,8 +5659,8 @@ async function callAPI(endpoint, body) {
 
   if (endpoint === 'generate-avatar') {
     const niche = body.niche || 'Online Business';
-    const price = body.price || 1000;
-    const target = body.target || 25000;
+    const price = body.price || 0;
+    const target = body.target || 0;
     const job = body.av_job || 'professional';
     const pain = body.av_current || 'feeling stuck';
     const fear = body.av_fear || 'failure';
@@ -5654,12 +5689,25 @@ Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure
 
   } else if (endpoint === 'generate-calendar') {
     const niche = body.niche || 'Online Business';
-    const pieces = body.pieces || [];
-    prompt = body._rawPrompt || `Generate a 7-day social media content plan for niche: ${niche}. Return JSON array of 7 objects each with: topic, hook, fb1, fb2, reel1, reel2, email fields. No markdown.`;
+    const av    = body.avatar || {};
+    const price = body.price  || 0;
+    const offerName = body.offer || 'their offer';
+    // If a raw prompt was provided (expert/affiliate mode), use it
+    // Otherwise build a niche-aware default
+    prompt = body._rawPrompt || `You are an expert content strategist. Generate a 7-day social media content calendar for the "${niche}" niche.
+${av.job ? 'Ideal client: '+av.job : ''}
+${av.pain ? 'Their pain: '+av.pain : ''}
+${av.transformation ? 'Their goal: '+av.transformation : ''}
+${price > 0 ? 'Offer price: $'+price.toLocaleString() : ''}
+
+Each of the 7 days must have a COMPLETELY different topic and angle. No repeated themes.
+Return a JSON array of exactly 7 objects with fields: topic, hook, fb1, fb2, reel1, reel2, email.
+Each field must be complete, ready-to-post content — not a description of what to write.
+No markdown. No backticks. Valid JSON only.`;
 
   } else if (endpoint === 'generate-offer') {
     const niche = body.niche || 'Online Business';
-    const price = body.price || 1000;
+    const price = body.price || 0;
     prompt = `You are a high-ticket offer strategist. Create a compelling offer for niche: ${niche}, price: $${price}.
 Respond ONLY with valid JSON: { "offerName": "...", "tagline": "...", "result": "...", "modules": ["...","...","..."], "bonuses": ["...","..."], "guarantee": "..." }`;
 
@@ -5711,13 +5759,15 @@ Respond ONLY with valid JSON (no markdown, no backticks, no explanation) in this
       const av = body.avatarData || {};
       prompt = `You are an expert affiliate content strategist. Generate a 7-day content plan for an affiliate marketer promoting: ${productName} in the ${niche} niche.
 
-Buyer avatar:
-- Job: ${av.job || 'professional'}
-- Pain: ${av.pain || 'struggling to grow income'}
-- Transformation: ${av.transformation || 'financial freedom'}
-- Fear: ${av.fear || 'wasting money'}
+BUYER PROFILE (the person buying this product):
+- Job/situation: ${av.job || 'professional'}
+- Current pain: ${av.pain || 'struggling to grow income'}
+- Desired transformation: ${av.transformation || 'financial freedom'}
+- Biggest fear about buying: ${av.fear || 'wasting money'}
+- What they've already tried: ${av.tried || 'various solutions'}
+- Their core motivation: ${av.motivation || 'freedom and results'}
 Traffic mode: ${trafficMode}
-Commission: $${commission} per sale
+Commission: ${commission > 0 ? '$'+commission+' per sale' : 'commission not set'}
 
 Generate 7 days of content. For EACH day use EXACTLY this format:
 
@@ -5843,7 +5893,7 @@ window.callAPI    = callAPI;
 window.API_BASE   = API_BASE;
 
 window.adj=adj;
-function resetTracker(){const price=window._appliedPrice||1000;const target=window._appliedTarget||25000;window._trackerState={counts:{},closedDeals:0,remainingIncome:target};window._trackerLastTarget=target;window._trackerLastPrice=price;const sales=Math.ceil(target/price);const leads=Math.ceil(sales/0.25/0.30);renderTracker(Math.ceil(leads/30*3),sales);}
+function resetTracker(){const price=window._appliedPrice||0;const target=window._appliedTarget||0;window._trackerState={counts:{},closedDeals:0,remainingIncome:target};window._trackerLastTarget=target;window._trackerLastPrice=price;const sales=Math.ceil(target/price);const leads=Math.ceil(sales/0.25/0.30);renderTracker(Math.ceil(leads/30*3),sales);}
 
 function validateAvatarFields(){
   const required=[{id:'av_name',label:'Avatar name'},{id:'av_location',label:'Location'},{id:'av_job',label:'Current job / profession'},{id:'av_industry',label:'Industry or sector'},{id:'av_current',label:'Describe their current life'},{id:'av_fear',label:'Biggest fear'},{id:'av_tried',label:'What have they already tried'},{id:'av_desired',label:'Describe their dream life'},{id:'av_transformation',label:'#1 desired transformation'}];
@@ -6603,7 +6653,7 @@ window.generateCustomRoutine = function() {
     time: midStart,
     dur: '60 min',
     icon: '💬',
-    title: 'DM Outreach — ' + Math.ceil((window._appliedTarget||25000)/(window._appliedPrice||1000)/0.25/0.30/30*3) + ' DMs Minimum',
+    title: 'DM Outreach — ' + Math.ceil((window._appliedTarget||0)/(window._appliedPrice||1)/0.25/0.30/30*3) + ' DMs Minimum',
     why: 'DMs are your sales engine for ' + niche + '. Send to commenters, group members, and post engagers. Ask a genuine question — never pitch first. This block alone can close deals.',
     tag: 'Outreach',
     tagColor: 'rgba(255,217,61,.12)', tagText: 'var(--yellow)', accent: 'var(--yellow)'
@@ -7689,7 +7739,7 @@ function get30DayPlan(av, nc) {
   const incomeGoal = '$' + Number(av.incomeGoal || 10000).toLocaleString();
   const audType = nc.audience_type || 'aspiring entrepreneurs';
   const offerName = (document.getElementById('offer_name')||{}).value || 'my programme';
-  const offerPrice = '$' + Number(window._appliedPrice || 1000).toLocaleString();
+  const offerPrice = window._appliedPrice ? '$' + Number(window._appliedPrice).toLocaleString() : 'your offer price';
   const offerResult = (document.getElementById('offer_result')||{}).value || transformation;
   const valueTopics = nc.value_topics || ['building your system','understanding your audience','content strategy','sales confidence','daily habits'];
   const painThemes = nc.pain_themes || ['lack of results','no system','overthinking','inconsistency','fear of failure'];
@@ -10245,7 +10295,38 @@ window.generate30DayCalendar = async function() {
       niche, price, target,
       avatar: av,
       offer: offerName,
-      mode: 'expert'
+      mode: 'expert',
+      _rawPrompt: `You are an elite content strategist for high-ticket coaches and experts. Generate a 7-day social media content calendar.
+
+NICHE: ${niche}
+OFFER: ${offerName}${price > 0 ? ' — $'+Number(price).toLocaleString() : ''}
+IDEAL CLIENT: ${(av.job||'professional')} struggling with "${av.pain||'their current situation'}"
+THEIR GOAL: ${av.transformation||'achieving a major transformation'}
+THEIR FEAR: ${av.fear||'wasting time and money'}
+THEIR MOTIVATION: ${av.motivation||'freedom and success'}
+WHAT THEY'VE TRIED: ${av.tried||'various solutions'}
+
+CONTENT RULES — FOLLOW EXACTLY:
+- Each of the 7 days must cover a COMPLETELY DIFFERENT topic, hook, and angle
+- Write content for a REAL human, not a generic template
+- Address the ideal client's EXACT pain, fear, and desire in every piece
+- Days 1-2: Pure value and authority — zero selling
+- Days 3-4: Problem awareness — name their specific pain
+- Days 5-6: Social proof / desire — transformation stories
+- Day 7: Soft call to action — open a conversation
+
+Return a JSON array of exactly 7 objects. Each MUST have all these fields with COMPLETE, ready-to-post content:
+{
+  "topic": "specific topic for this day",
+  "hook": "exact first sentence that stops mid-scroll",
+  "fb1": "complete Facebook post (200-300 words, 3-4 paragraphs, end with an engagement question)",
+  "fb2": "complete Facebook post — different angle, story or listicle format",
+  "reel1": "full reel script: hook (5 sec) + content (45-60 sec) + CTA — written as speech",
+  "reel2": "full reel script — completely different hook and topic angle from reel1",
+  "email": "SUBJECT: [subject line]\n\n[full email body — personal, 200-300 words, soft product mention]"
+}
+
+Return ONLY valid JSON. No markdown. No backticks. No explanation.`
     });
 
     const calText = resp.text || '';
@@ -10999,7 +11080,7 @@ window.toggleRoutine = function(i) {
 // ─── HEALTH SCORE CALCULATOR ──────────────────────────────────────────────────
 function calculateHealthScore() {
   const acc    = getWeeklyAcc();
-  const price  = window._appliedPrice  || 1000;
+  const price  = window._appliedPrice  || 0;
   const target = window._appliedTarget || 25000;
   const niche  = window._appliedNiche  || '';
   const ts     = window._trackerState  || {};
@@ -11951,8 +12032,8 @@ window.analyseAffiliateProduct = async function() {
   const gv = id => (document.getElementById(id)||{}).value||'';
   const url           = gv('aff-product-url').trim();
   const productName   = gv('aff-product-name').trim();
-  const commission    = parseInt(gv('aff-commission'))    || 1000;
-  const monthlyTarget = parseInt(gv('aff-monthly-target'))|| commission * 5;
+  const commission    = parseInt(gv('aff-commission'))    || 0;
+  const monthlyTarget = parseInt(gv('aff-monthly-target'))|| 0;
   const productNiche  = gv('aff-product-niche');
   const platform      = url.includes('copecart') ? 'Copecart'
                       : url.includes('digistore') ? 'Digistore24' : 'Affiliate';
@@ -11971,7 +12052,8 @@ window.analyseAffiliateProduct = async function() {
     d.style.display='block'; d.textContent='⚠️ '+msg;
   };
   if (!url)                      { showErr('aff-product-url','Paste your affiliate product URL first.'); return; }
-  if (!commission||commission<100){ showErr('aff-commission','Enter your commission per sale (minimum $100).'); return; }
+  if (!commission||commission<1)  { showErr('aff-commission','Enter your commission per sale.'); return; }
+  if (!monthlyTarget)             { showErr('aff-monthly-target','Enter your monthly revenue target.'); return; }
   if (!productNiche)              { showErr('aff-product-niche','Select your product niche.'); return; }
   const ed = document.getElementById('aff-validation-error');
   if (ed) ed.style.display='none';
@@ -12547,7 +12629,7 @@ window.renderAffDMScripts = function renderAffDMScripts(av, productName, commiss
 window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
   const el = document.getElementById('aff-tracker-body');
   if (!el) return;
-  commission = commission || (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 1000;
+  commission = commission || (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 0;
   const target   = window._appliedTarget || (window._affiliateOffer && window._affiliateOffer.monthlyTarget) || commission * 5;
   let data = {};
   try { data = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
@@ -12599,7 +12681,7 @@ window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
 
 // ─── Alias so all callers work ────────────────────────────────────────────
 window.renderAffCommTracker = function() {
-  const commission = (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 1000;
+  const commission = (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 0;
   window.renderAffCommTrackerFn(commission);
 };
 
@@ -12763,7 +12845,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const dashNav = document.getElementById('nav-dashboard');
   if (dashNav) dashNav.classList.add('on');
   setTimeout(function() { window.renderDashboard && window.renderDashboard(); }, 100);
-  // mode applied by onAuthStateChanged
+  // mode set by onAuthStateChanged
 });
 
 // ─── Live commission math preview on the affiliate setup form ─────────────
@@ -12774,10 +12856,11 @@ window.updateAffTarget = function() {
   const grid     = document.getElementById('aff-math-grid');
 
   const comm   = parseInt((commEl || {}).value) || 0;
-  if (!comm || comm < 100) { if (preview) preview.style.display = 'none'; return; }
+  if (!comm || comm < 1) { if (preview) preview.style.display = 'none'; return; }
 
-  // Use manually entered target, or fall back to comm * 5 only for display math (never overwrite the field)
-  const target = parseInt((targetEl || {}).value) || comm * 5;
+  // Require BOTH commission AND target to be explicitly set — never calculate with a fallback
+  const target = parseInt((targetEl || {}).value) || 0;
+  if (!target) { if (preview) preview.style.display = 'none'; return; }
 
   const sales        = Math.ceil(target / comm);
   const clicksNeeded = Math.ceil(sales / 0.03);          // 3% click-to-sale rate
@@ -13052,420 +13135,301 @@ if (document.readyState !== 'loading') {
 // ─── AI Strategist / Advisor ──────────────────────────────────────────────
 (function() {
   let advisorHistory = [];
-  let advisorMode    = null;  // tracks which mode the history belongs to
+  let advisorMode    = null;
   const MAX_HISTORY  = 20;
 
-  // ── Mode-specific localStorage keys ─────────────────────────────────────
-  function historyKey() {
-    return 'eos_advisor_history_' + (window._appMode || 'affiliate');
-  }
+  function historyKey() { return 'eos_advisor_history_' + (window._appMode || 'affiliate'); }
+  function saveHistory() { try { localStorage.setItem(historyKey(), JSON.stringify(advisorHistory)); } catch(e) {} }
 
-  // ── Save history to localStorage (mode-specific) ─────────────────────────
-  function saveHistory() {
-    try { localStorage.setItem(historyKey(), JSON.stringify(advisorHistory)); } catch(e) {}
-  }
-
-  // ── Format markdown-lite ──────────────────────────────────────────────────
-  function formatMsg(text) {
+  function fmtMsg(text) {
     return text
-      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.+?)\*/g, '<em>$1</em>')
-      .replace(/^#{1,3}\s+(.+)$/gm, '<strong style="font-size:13px;color:var(--white);display:block;margin-top:8px">$1</strong>')
-      .replace(/^[-•]\s+(.+)$/gm, '<span style="display:block;padding-left:12px;position:relative"><span style="position:absolute;left:0">•</span>$1</span>')
-      .replace(/\n/g, '<br>');
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+      .replace(/\*(.+?)\*/g,'<em>$1</em>')
+      .replace(/^#{1,3}\s+(.+)$/gm,'<strong style="font-size:13px;color:var(--white);display:block;margin-top:8px">$1</strong>')
+      .replace(/^[-•]\s+(.+)$/gm,'<span style="display:block;padding-left:12px;position:relative"><span style="position:absolute;left:0">•</span>$1</span>')
+      .replace(/\n/g,'<br>');
   }
 
-  // ── Append a message bubble ───────────────────────────────────────────────
   function appendMsg(role, content, isTyping) {
     const msgs = document.getElementById('advisor-messages');
     if (!msgs) return null;
-    const div = document.createElement('div');
-    div.style.cssText = 'display:flex;gap:10px;align-items:flex-start;' + (role === 'user' ? 'flex-direction:row-reverse' : '');
-    const avatar = document.createElement('div');
-    avatar.style.cssText = 'width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;' +
-      (role === 'user' ? 'background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff' : 'background:linear-gradient(135deg,#1a1a3e,#2c2c54);border:1px solid rgba(78,204,163,.3);color:var(--teal)');
-    avatar.textContent = role === 'user' ? '👤' : '⚡';
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;gap:10px;align-items:flex-start;'+(role==='user'?'flex-direction:row-reverse':'');
+    const av = document.createElement('div');
+    av.style.cssText = 'width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;'+(role==='user'?'background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff':'background:linear-gradient(135deg,#1a1a3e,#2c2c54);border:1px solid rgba(78,204,163,.3);color:var(--teal)');
+    av.textContent = role==='user'?'👤':'⚡';
     const bubble = document.createElement('div');
-    bubble.style.cssText = 'max-width:85%;padding:12px 16px;border-radius:' + (role === 'user' ? '16px 4px 16px 16px' : '4px 16px 16px 16px') + ';font-size:13px;line-height:1.6;' +
-      (role === 'user'
-        ? 'background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff'
-        : 'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted)');
-    if (isTyping) {
-      bubble.innerHTML = '<span style="opacity:.5">E-OS is thinking<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></span>';
-    } else {
-      bubble.innerHTML = formatMsg(content);
-    }
-    div.appendChild(avatar);
-    div.appendChild(bubble);
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
-    return div;
+    bubble.style.cssText = 'max-width:85%;padding:12px 16px;border-radius:'+(role==='user'?'16px 4px 16px 16px':'4px 16px 16px 16px')+';font-size:13px;line-height:1.6;'+(role==='user'?'background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff':'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted)');
+    bubble.innerHTML = isTyping ? '<span style="opacity:.5">E-OS is thinking<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></span>' : fmtMsg(content);
+    wrap.appendChild(av); wrap.appendChild(bubble);
+    msgs.appendChild(wrap); msgs.scrollTop = msgs.scrollHeight;
+    return wrap;
   }
 
-  // ── Build context from live app data ─────────────────────────────────────
-  function buildContext() {
-    const av  = window._avatarData     || {};
-    const off = window._aiOfferData    || {};
-    const aff = window._affiliateOffer || {};
+  function buildCtx() {
     return {
-      mode:        window._appMode         || 'affiliate',
-      niche:       window._appliedNiche    || '',
-      price:       window._appliedPrice    || 0,
-      target:      window._appliedTarget   || 0,
-      avatar:      av,
-      offer:       off,
-      affOffer:    aff,
-      trafficMode: window._affTrafficMode  || 'organic',
-      calDays:     window._aiCalendar30    ? window._aiCalendar30.length : 0,
+      mode:        window._appMode        || 'affiliate',
+      niche:       window._appliedNiche   || '',
+      price:       Number(window._appliedPrice)  || 0,
+      target:      Number(window._appliedTarget) || 0,
+      avatar:      window._avatarData     || {},
+      offer:       window._aiOfferData    || {},
+      affOffer:    window._affiliateOffer || {},
+      trafficMode: window._affTrafficMode || 'organic',
+      calDays:     window._aiCalendar30 ? window._aiCalendar30.length : 0,
     };
   }
 
-  // ── Build the full personalised system prompt ─────────────────────────────
-  function buildAdvisorSystemPrompt(ctx) {
+  // Never show 0 as a money value — treat as not set
+  function money(v) { return (v && Number(v) > 0) ? '$' + Number(v).toLocaleString() : null; }
+
+  function buildPrompt(ctx) {
     const av    = ctx.avatar  || {};
     const off   = ctx.offer   || {};
     const aff   = ctx.affOffer|| {};
     const isAff = ctx.mode === 'affiliate';
 
-    let bizSnapshot = '';
+    let biz = '';
     if (isAff) {
-      bizSnapshot = `
-BUSINESS TYPE: Affiliate Marketing
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Product they promote: ${aff.name || 'NOT SET — tell them to complete Offer Setup'}
-Commission per sale: ${aff.commission ? '$'+Number(aff.commission).toLocaleString() : 'NOT SET'}
-Monthly revenue target: ${(aff.monthlyTarget || ctx.target) ? '$'+Number(aff.monthlyTarget || ctx.target).toLocaleString() : 'NOT SET — do not invent a number'}
+      const comm = money(aff.commission);
+      const tgt  = money(aff.monthlyTarget || ctx.target);
+      const sales= (comm && tgt) ? Math.ceil(Number(aff.monthlyTarget||ctx.target)/Number(aff.commission)) : null;
+      biz = `BUSINESS TYPE: Affiliate Marketing
+Product they promote: ${aff.name || 'NOT SET'}
+Commission per sale: ${comm || 'NOT SET — user must enter this in Offer Setup'}
+Monthly revenue target: ${tgt  || 'NOT SET — user must enter this in Offer Setup'}
+${sales ? 'Sales needed to hit target: '+sales : ''}
 Niche: ${aff.niche || ctx.niche || 'NOT SET'}
 Target audience: ${aff.buyer || av.job || 'NOT SET'}
-Audience pain point: ${aff.pain || av.pain || 'NOT SET'}
-Audience desired result: ${aff.transformation || av.transformation || 'NOT SET'}
-Traffic strategy: ${ctx.trafficMode || 'organic content'}
+Audience pain: ${aff.pain || av.pain || 'NOT SET'}
+Audience result they want: ${aff.transformation || av.transformation || 'NOT SET'}
+Traffic strategy: ${ctx.trafficMode}
 Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days planned' : 'NOT GENERATED'}`;
     } else {
-      bizSnapshot = `
-BUSINESS TYPE: Expert / High-Ticket Offer Owner
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Offer name: ${off.headline || 'NOT SET — tell them to complete Offer Creation (Step 2)'}
-Offer price: ${ctx.price ? '$'+Number(ctx.price).toLocaleString() : 'NOT SET — tell them to set it in Revenue Plan (Step 1)'}
-Monthly revenue target: ${ctx.target ? '$'+Number(ctx.target).toLocaleString() : 'NOT SET'}
-Niche: ${ctx.niche || 'NOT SET'}
-Ideal client role: ${av.job || 'NOT SET'}
-Client current struggle: ${av.pain || 'NOT SET'}
-Client desired transformation: ${av.transformation || 'NOT SET'}
-Client biggest fear: ${av.fear || 'NOT SET'}
-Client core motivation: ${av.motivation || 'NOT SET'}
+      const price = money(ctx.price);
+      const tgt   = money(ctx.target);
+      const sales = (price && tgt) ? Math.ceil(ctx.target/ctx.price) : null;
+      biz = `BUSINESS TYPE: Expert / High-Ticket Offer Owner
+Offer name: ${off.headline || 'NOT SET — complete Offer Creation (Step 2)'}
+Offer price: ${price || 'NOT SET — complete Revenue Plan (Step 1)'}
+Monthly revenue target: ${tgt || 'NOT SET — complete Revenue Plan (Step 1)'}
+${sales ? 'Clients needed to hit target: '+sales : ''}
+Niche: ${ctx.niche || 'NOT SET — complete Revenue Plan (Step 1)'}
+Ideal client role: ${av.job || 'NOT SET — complete Ideal Customer (Step 3)'}
+Client struggle: ${av.pain || 'NOT SET'}
+Client transformation: ${av.transformation || 'NOT SET'}
+Client fear: ${av.fear || 'NOT SET'}
+Client motivation: ${av.motivation || 'NOT SET'}
 Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days planned' : 'NOT GENERATED'}`;
     }
 
-    const appSections = isAff
-      ? `APP SECTIONS TO DIRECT THEM TO:
-- "Go to Offer Setup" → enter their affiliate product, commission, niche, audience
-- "Go to Content Calendar" → generate 30-day content plan for their niche
-- "Go to DM & Sales" → get DM scripts and closing sequences
-- "Go to Daily Routine" → build their daily affiliate execution schedule
-- "Go to Daily Tracker" → log posts, DMs, clicks, closes daily
-- "Go to Performance HQ" → review numbers and health score`
-      : `APP SECTIONS TO DIRECT THEM TO:
-- "Go to Revenue Plan (Step 1)" → set niche, price, monthly target
-- "Go to Offer Creation (Step 2)" → build and name their high-ticket offer
-- "Go to Ideal Customer (Step 3)" → define dream client avatar
-- "Go to Content Calendar (Step 4)" → generate 30-day content plan
-- "Go to DM & Sales (Step 5)" → get outreach scripts and closing frameworks
-- "Go to Daily Routine (Step 6)" → build high-performance daily schedule
-- "Go to Daily Tracker" → log daily activity
-- "Go to Performance HQ" → review scores and momentum`;
+    const sections = isAff
+      ? 'DIRECT THEM TO:\n- "Offer Setup" → product, commission, niche, audience\n- "Content Calendar" → 30-day plan\n- "DM & Sales" → scripts\n- "Daily Routine" → schedule\n- "Daily Tracker" → log activity'
+      : 'DIRECT THEM TO:\n- "Revenue Plan (Step 1)" → niche, price, target\n- "Offer Creation (Step 2)" → build offer\n- "Ideal Customer (Step 3)" → define client\n- "Content Calendar (Step 4)" → 30-day plan\n- "DM & Sales (Step 5)" → scripts\n- "Daily Routine (Step 6)" → schedule\n- "Daily Tracker" → log activity';
 
-    const salesMath = isAff
-      ? (ctx.target && aff.commission ? `THEIR SALES MATH: They need ${Math.ceil(Number(ctx.target)/Number(aff.commission))} sales at $${Number(aff.commission).toLocaleString()} commission to hit $${Number(ctx.target).toLocaleString()}/month.` : '')
-      : (ctx.target && ctx.price ? `THEIR SALES MATH: They need ${Math.ceil(Number(ctx.target)/Number(ctx.price))} clients at $${Number(ctx.price).toLocaleString()} to hit $${Number(ctx.target).toLocaleString()}/month. That is it. That is the whole game.` : '');
+    return `You are E-OS Intelligent — elite AI business advisor inside Execution OS. You coach like Alex Hormozi meets Dan Koe. Direct, motivating, accountable, persuasive. Built for people paying premium to get real results.
 
-    return `You are E-OS Intelligent — the elite AI business advisor and accountability coach inside Execution OS.
+THIS USER'S LIVE BUSINESS DATA:
+${biz}
 
-You are NOT a chatbot. You are a world-class coach — think Alex Hormozi meets Dan Koe meets a no-excuses accountability partner. You know this user's business inside out. Every single answer you give is built around THEIR specific data below.
+${sections}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-THIS USER'S LIVE BUSINESS DATA
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${bizSnapshot}
-
-${salesMath}
-
-${appSections}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-YOUR COACHING STYLE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-- DIRECT: No hollow openers. Get straight to the point.
-- PERSONALISED: Every answer references their niche, product, audience, numbers. Never generic.
-- MOTIVATING: Leave them fired up and ready to act immediately.
-- ACCOUNTABLE: If they mention they haven't done something, call it out and give them ONE action right now.
-- PERSUASIVE: Paint the picture of what is possible for them specifically. Use their real numbers.
-- SPECIFIC: Mention their actual niche, their actual product, their actual audience in your answers.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-HOW TO RESPOND
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MINDSET → Real reframes. Truth bombs. Make them feel unstoppable.
-STRATEGY → Numbered action plan. Reference their niche, product, audience, price.
-STUCK / PROCRASTINATING → Call it out with love. Give one action to do right now.
-MOTIVATION → Show them the math of their goal using THEIR real numbers above.
-MISSING DATA → Tell them exactly which app section to complete. Be specific.
-OFFER / CONTENT / ROUTINE → Direct to the right section first, then give a taste.
-OUTSIDE THE SYSTEM → Answer fully. You are their coach in all areas.
-SCRIPTS / POSTS / DMs → Write the complete thing. Tailored to their niche and audience.
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-RULES YOU NEVER BREAK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Never start with "Great question", "Of course", "Certainly".
-2. Never give advice that could apply to anyone. Always make it specific to THIS user.
-3. Always end with a clear next action.
-4. Never ignore an excuse — acknowledge and redirect.
-5. Always use their REAL numbers. NEVER invent, assume, or guess any figure — no "$25k", "$10k", or any made-up target. If a number is NOT SET, say it is not set.
-6. If data shows NOT SET, tell them exactly where to set it. Do not fill in the blank yourself.
-7. Keep responses scannable — short paragraphs, bold key points, numbered steps.
-8. CRITICAL: If monthly revenue target is NOT SET, never mention a specific dollar target. Simply tell them to set one in Offer Setup.`;
+ABSOLUTE RULES — NEVER BREAK THESE:
+1. NEVER start with "Great question", "Of course", "Certainly" or any filler.
+2. NEVER invent, guess, or assume ANY number — no dollar amounts, no targets, no commissions, no sales figures — unless they appear above as a real non-zero value. If something shows NOT SET, tell them where to set it.
+3. NEVER give advice that applies to everyone. Every answer must reference their specific data above.
+4. ALWAYS end with one clear next action.
+5. If data is NOT SET, tell them exactly which section to complete first, then offer to help with mindset or strategy in the meantime.
+6. Only show sales math if BOTH price/commission AND target are real non-zero values.
+7. Short paragraphs. Bold key points. Numbered steps for action plans. Scannable.`;
   }
 
-  // ── Build mode-specific starter questions ────────────────────────────────
-  function buildStarters() {
-    const ctx   = buildContext();
-    const niche = ctx.niche || 'your niche';
-    const mode  = ctx.mode;
-    const price = ctx.price ? '$' + Number(ctx.price).toLocaleString() : 'your offer';
-    const av    = ctx.avatar || {};
-    const aff   = ctx.affOffer || {};
-    const job   = av.job || 'your ideal client';
+  function buildStarters(ctx) {
+    const isAff   = ctx.mode === 'affiliate';
+    const niche   = ctx.niche || 'your niche';
+    const aff     = ctx.affOffer || {};
+    const av      = ctx.avatar || {};
     const product = aff.name || 'your product';
+    const priceStr= (ctx.price > 0) ? '$'+Number(ctx.price).toLocaleString() : 'your offer';
 
-    const expert = [
-      'Why am I not getting consistent leads in ' + niche + '?',
-      'Give me a DM script to book discovery calls at ' + price,
-      'What should I post every day this week for ' + (av.job || 'my audience') + '?',
-      'How do I handle the objection "I need to think about it"?',
+    return isAff ? [
+      'How do I get more clicks on my '+product+' link?',
+      'Write me a viral hook for '+niche+' content today',
+      'What DM should I send to warm up a lead for '+product+'?',
+      'What should I post today to attract buyers in '+niche+'?',
+      'How do I handle "Is this a scam?" objections for '+product+'?',
+      'Hold me accountable — what do I need to execute on today?',
+    ] : [
+      'Why am I not getting consistent leads in '+niche+'?',
+      'Give me a DM script to book discovery calls at '+priceStr,
+      'What should I post this week for '+(av.job||'my audience')+'?',
+      'How do I handle the "I need to think about it" objection?',
       'What should I do TODAY to move closer to my monthly target?',
-      'How do I position my ' + price + ' offer against cheaper alternatives?',
-      'Write me a hook for a post about ' + (av.pain || 'the struggle my clients face'),
       'Hold me accountable — what tasks should I complete today?',
     ];
-
-    const affiliate = [
-      'How do I get more clicks on my ' + product + ' link?',
-      'Write me a viral hook for ' + niche + ' content today',
-      'What DM should I send to warm up a lead for ' + product + '?',
-      'How do I talk about ' + product + ' without sounding salesy?',
-      'What should I post today to attract buyers in ' + niche + '?',
-      'How do I handle "Is this a scam?" objections for ' + product + '?',
-      'Give me a 7-day content plan for my ' + niche + ' audience',
-      'Hold me accountable — what do I need to execute on today?',
-    ];
-
-    const list = mode === 'affiliate' ? affiliate : expert;
-    return list.slice(0, 6);
   }
 
-  // ── Initialise advisor panel for current mode ────────────────────────────
   function initAdvisor() {
-    const ctx      = buildContext();
-    const currMode = ctx.mode;
-    const niche    = ctx.niche || '';
-    const av       = ctx.avatar || {};
-    const aff      = ctx.affOffer || {};
-    const off      = ctx.offer || {};
-    const isAff    = currMode === 'affiliate';
+    const ctx   = buildCtx();
+    const isAff = ctx.mode === 'affiliate';
+    const aff   = ctx.affOffer || {};
+    const off   = ctx.offer || {};
+    const av    = ctx.avatar || {};
 
-    // If mode changed since last conversation — clear history
-    if (advisorMode && advisorMode !== currMode) {
+    // Mode changed — wipe old conversation
+    if (advisorMode && advisorMode !== ctx.mode) {
       advisorHistory = [];
-      try { localStorage.removeItem('eos_advisor_history_' + advisorMode); } catch(e) {}
+      try { localStorage.removeItem('eos_advisor_history_'+advisorMode); } catch(e) {}
     }
-    advisorMode = currMode;
+    advisorMode = ctx.mode;
 
-    // Restore mode-specific history
+    // Restore saved conversation for this mode
     if (!advisorHistory.length) {
       try {
-        const saved = localStorage.getItem(historyKey());
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.length) {
-            advisorHistory = parsed;
-            const msgs = document.getElementById('advisor-messages');
-            if (msgs) {
-              msgs.innerHTML = '';
-              parsed.forEach(m => appendMsg(m.role, m.content));
-              // Refresh starters for current mode
-              const chips = document.getElementById('advisor-starter-chips');
-              if (chips) {
-                chips.innerHTML = '';
-                buildStarters().forEach(q => {
-                  const btn = document.createElement('button');
-                  btn.className = 'adv-starter';
-                  btn.textContent = q;
-                  btn.onclick = () => window.advisorSend(q);
-                  chips.appendChild(btn);
-                });
-              }
-              return;
-            }
+        const saved = JSON.parse(localStorage.getItem(historyKey()) || '[]');
+        if (saved.length) {
+          advisorHistory = saved;
+          const msgs = document.getElementById('advisor-messages');
+          if (msgs) { msgs.innerHTML=''; saved.forEach(m=>appendMsg(m.role,m.content)); }
+          const chips = document.getElementById('advisor-starter-chips');
+          if (chips) {
+            chips.innerHTML='';
+            buildStarters(ctx).forEach(q => {
+              const b=document.createElement('button'); b.className='adv-starter'; b.textContent=q;
+              b.onclick=()=>window.advisorSend(q); chips.appendChild(b);
+            });
           }
+          return;
         }
       } catch(e) {}
     }
 
-    // Build personalised intro for this mode
+    // Fresh intro
     const introEl = document.getElementById('advisor-intro-text');
-    if (!introEl) return;
+    const msgs    = document.getElementById('advisor-messages');
+    if (msgs) msgs.innerHTML = '';
 
     let intro = '';
     if (isAff) {
-      if (aff.name && niche) {
-        intro = `**Your affiliate brief is locked in.**\n\nYou're promoting **${aff.name}** at **$${Number(aff.commission||0).toLocaleString()} per sale** in the **${niche}** space.\n\n`;
-        if (av.pain || aff.pain) intro += `Your audience is struggling with "${aff.pain || av.pain}" and wants "${aff.transformation || av.transformation || 'a real change'}"\n\n`;
-        if (ctx.target && aff.commission && Number(ctx.target) > 0 && Number(aff.commission) > 0) {
-          const salesNeeded = Math.ceil(Number(ctx.target) / Number(aff.commission));
-          intro += `**The math is simple:** ${salesNeeded} sales × $${Number(aff.commission).toLocaleString()} = $${Number(ctx.target).toLocaleString()}/month. That's your target. Let's build the machine that gets there.\n\n`;
-        }
-        intro += `Ask me anything — content angles, DM scripts, objection handling, daily execution. Every answer will be built around your product, your niche, and your audience.\n\n**What's your biggest bottleneck right now?**`;
+      if (aff.name && (aff.niche || ctx.niche)) {
+        const comm  = money(aff.commission);
+        const tgt   = money(aff.monthlyTarget || ctx.target);
+        const sales = (comm && tgt) ? Math.ceil(Number(aff.monthlyTarget||ctx.target)/Number(aff.commission)) : null;
+        intro = `**Your affiliate brief is loaded.**\n\nYou're promoting **${aff.name}** in the **${aff.niche||ctx.niche}** space.`;
+        if (comm) intro += `\n\nCommission: **${comm} per sale**.`;
+        if (tgt)  intro += ` Monthly target: **${tgt}**.`;
+        if (sales && comm && tgt) intro += `\n\n**The math:** ${sales} sales × ${comm} = ${tgt}/month. That's the whole game. Let's build the machine.`;
+        intro += `\n\nAsk me anything — content, DMs, objections, daily execution. Every answer is built around your product, niche, and audience.\n\n**What's your biggest bottleneck right now?**`;
       } else {
-        intro = `**I'm ready to help you execute as an affiliate.**\n\nI notice you haven't completed your Offer Setup yet — that's where I get your product name, commission, niche, and audience so I can give you fully personalised advice.\n\n**Go to Offer Setup now** and fill it in. Then come back and I'll know your exact product, your buyer, their pain, and your revenue target — and every answer I give will be built around that.\n\nFor now, ask me anything — I'll still give you strong affiliate marketing advice.\n\n**What are you working on right now?**`;
+        intro = `**I'm ready to coach you as an affiliate.**\n\nYour **Offer Setup isn't complete** yet — that's where I get your product name, commission, niche, and audience. Without that I can only give you general affiliate advice, not the personalised coaching you deserve.\n\n**Go to Offer Setup now** → fill in your product, commission, niche, and monthly target → come back.\n\nFor now, what do you want to work on?`;
       }
     } else {
-      if (niche && ctx.price) {
-        const monthly  = ctx.target ? '$' + Number(ctx.target).toLocaleString() + '/month' : 'your target';
-        const salesNeeded = ctx.target && ctx.price ? Math.ceil(Number(ctx.target) / Number(ctx.price)) : null;
-        intro = `**Your business profile is loaded.**\n\nYou're building in **${niche}**`;
-        if (ctx.price) intro += ` with a **$${Number(ctx.price).toLocaleString()} offer**`;
-        if (ctx.target) intro += `, targeting **${monthly}**`;
-        intro += `.\n\n`;
-        if (av.job && av.pain) intro += `Your ideal client is a **${av.job}** struggling with "${av.pain}" who wants "${av.transformation || 'a transformation'}"\n\n`;
-        if (salesNeeded && Number(ctx.price) > 0 && Number(ctx.target) > 0) intro += `**The math:** ${salesNeeded} client${salesNeeded !== 1 ? 's' : ''} at $${Number(ctx.price).toLocaleString()} = ${monthly}. That's the whole game.\n\n`;
-        intro += `Every answer I give will be specific to your niche, your offer, your ideal client. No generic advice — ever.\n\n**What do you want to work on today?**`;
+      const p  = money(ctx.price);
+      const t  = money(ctx.target);
+      const s  = (p && t) ? Math.ceil(ctx.target/ctx.price) : null;
+      if (ctx.niche && p) {
+        intro = `**Your business profile is loaded.**\n\nYou're building in **${ctx.niche}** with a **${p} offer**`;
+        if (t) intro += `, targeting **${t}/month**`;
+        intro += '.';
+        if (av.job && av.pain) intro += `\n\nYour ideal client is a **${av.job}** struggling with "${av.pain}".`;
+        if (s && p && t) intro += `\n\n**The math:** ${s} client${s!==1?'s':''} at ${p} = ${t}/month. That's the whole game.`;
+        intro += `\n\nEvery answer I give will be specific to your niche, offer, and client. No generic advice — ever.\n\n**What do you want to work on today?**`;
       } else {
-        intro = `**I'm your E-OS business strategist.**\n\nTo give you fully personalised advice I need your business details filled in:\n\n**Step 1 — Revenue Plan:** Set your niche, offer price, and monthly target\n**Step 2 — Offer Creation:** Name and structure your offer\n**Step 3 — Ideal Customer:** Define exactly who you're selling to\n\nOnce those are done, every answer I give will reference your exact niche, your exact client, your exact numbers.\n\nFor now, ask me anything — strategy, mindset, content, outreach. I'm here.\n\n**What are you working on right now?**`;
+        intro = `**I'm your E-OS business strategist.**\n\nTo give you fully personalised coaching, complete these first:\n\n**→ Revenue Plan (Step 1):** Set your niche, offer price, and monthly target\n**→ Offer Creation (Step 2):** Name and structure your offer\n**→ Ideal Customer (Step 3):** Define exactly who you're selling to\n\nOnce done, I'll know your exact numbers and every answer will be built around them.\n\nFor now — **what are you working on right now?**`;
       }
     }
 
-    const msgs = document.getElementById('advisor-messages');
-    if (msgs) msgs.innerHTML = '';
-    introEl.innerHTML = formatMsg(intro);
+    if (introEl) introEl.innerHTML = fmtMsg(intro);
 
-    // Build quick starters for current mode
     const chips = document.getElementById('advisor-starter-chips');
     if (chips) {
-      chips.innerHTML = '';
-      buildStarters().forEach(q => {
-        const btn = document.createElement('button');
-        btn.className = 'adv-starter';
-        btn.textContent = q;
-        btn.onclick = () => window.advisorSend(q);
-        chips.appendChild(btn);
+      chips.innerHTML='';
+      buildStarters(ctx).forEach(q => {
+        const b=document.createElement('button'); b.className='adv-starter'; b.textContent=q;
+        b.onclick=()=>window.advisorSend(q); chips.appendChild(b);
       });
     }
   }
 
-  // ── Clear conversation (mode-aware) ─────────────────────────────────────
   window.advisorClear = function() {
-    advisorHistory = [];
+    advisorHistory=[];
     try { localStorage.removeItem(historyKey()); } catch(e) {}
-    const msgs = document.getElementById('advisor-messages');
-    if (msgs) msgs.innerHTML = '';
+    const msgs=document.getElementById('advisor-messages');
+    if(msgs) msgs.innerHTML='';
     initAdvisor();
   };
 
-  // ── Send a message ────────────────────────────────────────────────────────
-  window.advisorSend = async function(overrideText) {
+  window.advisorSend = async function(override) {
     const input   = document.getElementById('advisor-input');
     const sendBtn = document.getElementById('advisor-send-btn');
-    const text    = overrideText || (input ? input.value.trim() : '');
+    const text    = override||(input?input.value.trim():'');
     if (!text) return;
+    if (input && !override) { input.value=''; input.style.height='auto'; }
+    if (sendBtn) { sendBtn.disabled=true; sendBtn.textContent='…'; }
+    const starters=document.getElementById('advisor-starters');
+    if (starters) starters.style.display='none';
 
-    if (input && !overrideText) { input.value = ''; input.style.height = 'auto'; }
-    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '…'; }
-
-    const starters = document.getElementById('advisor-starters');
-    if (starters) starters.style.display = 'none';
-
-    appendMsg('user', text);
-    advisorHistory.push({ role: 'user', content: text });
-    if (advisorHistory.length > MAX_HISTORY) advisorHistory.splice(0, 2);
+    appendMsg('user',text);
+    advisorHistory.push({role:'user',content:text});
+    if (advisorHistory.length>MAX_HISTORY) advisorHistory.splice(0,2);
     saveHistory();
 
-    const typingEl = appendMsg('ai', '', true);
-
+    const typingEl=appendMsg('ai','',true);
     try {
-      const ctx       = buildContext();
-      const sysPrompt = buildAdvisorSystemPrompt(ctx);
+      const ctx=buildCtx();
+      const sys=buildPrompt(ctx);
+      const msgs2send = advisorHistory.length>0
+        ? [{role:'user',content:sys+'\n\n---\n\nUSER MESSAGE: '+advisorHistory[0].content},...advisorHistory.slice(1)]
+        : [{role:'user',content:sys+'\n\n---\n\nGreet the user. Reference ONLY data that is actually set above (ignore NOT SET fields). If key data is missing, tell them which section to complete first. Be energetic and direct.'}];
 
-      // Merge system prompt into first user message so proxy doesn't need system param
-      const msgsToSend = advisorHistory.length > 0
-        ? [{ role: 'user', content: sysPrompt + '\n\n---\n\nUSER MESSAGE: ' + advisorHistory[0].content }, ...advisorHistory.slice(1)]
-        : [{ role: 'user', content: sysPrompt + '\n\n---\n\nGreet them by their mode (' + ctx.mode + '), reference their niche/product, and ask what they want to work on today.' }];
-
-      const proxyUrl = window.PROXY_URL || 'https://build.skillslibry.com/api/claude';
-      let directResp, reply = '';
-
+      const proxyUrl=window.PROXY_URL||'https://build.skillslibry.com/api/claude';
+      let resp, reply='';
       try {
-        directResp = await fetch(proxyUrl, {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({
-            model:      'claude-sonnet-4-20250514',
-            max_tokens: 1500,
-            messages:   msgsToSend
-          })
+        resp=await fetch(proxyUrl,{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:msgs2send})
         });
-        if (directResp.ok) {
-          const directData = await directResp.json();
-          reply = (directData.content && directData.content[0] && directData.content[0].text) || '';
-        } else {
-          const errText = await directResp.text();
-          console.error('Advisor proxy error:', directResp.status, errText);
-        }
-      } catch(fetchErr) {
-        console.error('Advisor fetch failed:', fetchErr);
-      }
+        if (resp.ok) { const d=await resp.json(); reply=(d.content&&d.content[0]&&d.content[0].text)||''; }
+        else console.error('Advisor error:',resp.status,await resp.text());
+      } catch(fe) { console.error('Advisor fetch failed:',fe); }
 
-      if (!reply) reply = '⚠️ Could not reach AI advisor (status: ' + (directResp?.status || 'network error') + '). Make sure api/claude.js is deployed on Vercel with ANTHROPIC_API_KEY set.';
-
-      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
-      appendMsg('ai', reply);
-      advisorHistory.push({ role: 'assistant', content: reply });
-      if (advisorHistory.length > MAX_HISTORY) advisorHistory.splice(0, 2);
+      if (!reply) reply='⚠️ Could not reach AI advisor (status: '+(resp?.status||'network error')+'). Make sure api/claude.js is deployed on Vercel with ANTHROPIC_API_KEY set.';
+      if (typingEl&&typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+      appendMsg('ai',reply);
+      advisorHistory.push({role:'assistant',content:reply});
+      if (advisorHistory.length>MAX_HISTORY) advisorHistory.splice(0,2);
       saveHistory();
-
     } catch(e) {
-      if (typingEl && typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
-      appendMsg('ai', '⚠️ Something went wrong: ' + e.message);
+      if (typingEl&&typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
+      appendMsg('ai','⚠️ Something went wrong: '+e.message);
     } finally {
-      if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send ⚡'; }
+      if (sendBtn) { sendBtn.disabled=false; sendBtn.textContent='Send ⚡'; }
     }
   };
 
-  // ── When mode switches, reset the advisor for the new mode ───────────────
-  const origSetAppMode = window.setAppMode;
-  window.setAppMode = function(mode) {
-    const prevMode = window._appMode;
-    if (origSetAppMode) origSetAppMode(mode);
-    // If mode actually changed, clear advisor and reinitialise for new mode
-    if (prevMode && prevMode !== mode) {
-      advisorHistory = [];
-      const msgs = document.getElementById('advisor-messages');
-      if (msgs) msgs.innerHTML = '';
-      setTimeout(initAdvisor, 200);
+  // Reset advisor on mode switch
+  const _origSetMode=window.setAppMode;
+  window.setAppMode=function(mode){
+    const prev=window._appMode;
+    if(_origSetMode) _origSetMode(mode);
+    if(prev&&prev!==mode){
+      advisorHistory=[];
+      const msgs=document.getElementById('advisor-messages');
+      if(msgs) msgs.innerHTML='';
+      setTimeout(initAdvisor,200);
     }
   };
 
-  // ── Hook into showPage ────────────────────────────────────────────────────
-  const origShowPage = window.showPage;
-  window.showPage = function(n, btn) {
-    if (origShowPage) origShowPage(n, btn);
-    if (n === 'advisor') setTimeout(initAdvisor, 100);
+  // Hook showPage
+  const _origShow=window.showPage;
+  window.showPage=function(n,btn){
+    if(_origShow) _origShow(n,btn);
+    if(n==='advisor') setTimeout(initAdvisor,100);
   };
 
-  // Init if already on advisor page on load
-  if (document.getElementById('page-advisor') &&
-      document.getElementById('page-advisor').style.display !== 'none') {
-    setTimeout(initAdvisor, 200);
+  if(document.getElementById('page-advisor')&&
+     document.getElementById('page-advisor').style.display!=='none'){
+    setTimeout(initAdvisor,200);
   }
 })();
 
@@ -13714,11 +13678,7 @@ onAuthStateChanged(auth, async (user) => {
 
   // ── Check access ──────────────────────────────────────────────────────────
   const isAdmin = user.email === 'itzevan.se@gmail.com';
-  // Accept accessGranted OR active:true (admin.html saves active:true in members collection)
-  const hasAccess = isAdmin
-    || userDocData.accessGranted
-    || memberData.accessGranted
-    || memberData.active === true;
+  const hasAccess = isAdmin || userDocData.accessGranted || memberData.accessGranted || memberData.active === true;
   if (!hasAccess) {
     window.location.href = 'auth.html?error=no-access';
     return;
