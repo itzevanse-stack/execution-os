@@ -2474,11 +2474,11 @@ button[onclick="generateOffer()"] {
         <div class="av-fields">
           <div class="fr">
             <div class="fl">Current job / profession</div>
-            <input class="fi" id="av_job" placeholder="e.g. Select your niche first for tailored suggestions" oninput="markFilled()">
+            <input class="fi" id="av_job" placeholder="e.g. Online coach, freelancer, course creator, consultant" oninput="markFilled()">
           </div>
           <div class="fr">
             <div class="fl">Industry or sector</div>
-            <input class="fi" id="av_industry" placeholder="e.g. Select your niche first for tailored suggestions" oninput="markFilled()">
+            <input class="fi" id="av_industry" placeholder="e.g. Online business, health & wellness, finance, marketing" oninput="markFilled()">
           </div>
           <div class="fr">
             <div class="fl">Employment status</div>
@@ -2503,17 +2503,17 @@ button[onclick="generateOffer()"] {
         <div class="av-fields">
           <div class="fr">
             <div class="fl">Describe their current life in detail</div>
-            <textarea class="fi" id="av_current" placeholder="Select your niche first — this field will update with niche-specific guidance" style="min-height:80px" oninput="markFilled()"></textarea>
+            <textarea class="fi" id="av_current" placeholder="e.g. Works long hours at a job they don't love, earning less than they deserve, no time or system to build income online" style="min-height:80px" oninput="markFilled()"></textarea>
           </div>
           <div class="fl" style="margin-bottom:5px">Select their biggest pain points <span id="pain-grid-niche-label" style="color:var(--purple);font-size:9px;margin-left:6px">(select your niche to see tailored pain points)</span></div>
           <div class="pain-grid" id="pain-grid"></div>
           <div class="fr" style="margin-top:6px">
             <div class="fl">Their biggest fear about making a change</div>
-            <input class="fi" id="av_fear" placeholder="Select your niche first for tailored suggestions" oninput="markFilled()">
+            <input class="fi" id="av_fear" placeholder="e.g. Investing money and not seeing results, being scammed, not being good enough" oninput="markFilled()">
           </div>
           <div class="fr">
             <div class="fl">What have they already tried that didn't work?</div>
-            <input class="fi" id="av_tried" placeholder="Select your niche first for tailored suggestions" oninput="markFilled()">
+            <input class="fi" id="av_tried" placeholder="e.g. YouTube tutorials, free courses, cheap programmes that didn't deliver" oninput="markFilled()">
           </div>
         </div>
       </div>
@@ -2528,7 +2528,7 @@ button[onclick="generateOffer()"] {
         <div class="av-fields">
           <div class="fr">
             <div class="fl">Describe their dream life in vivid detail</div>
-            <textarea class="fi" id="av_desired" placeholder="Select your niche first — this field will update with niche-specific guidance" style="min-height:80px" oninput="markFilled()"></textarea>
+            <textarea class="fi" id="av_desired" placeholder="e.g. Wakes up to sales, works from anywhere, earns $10K+/month doing work they love, present for family" style="min-height:80px" oninput="markFilled()"></textarea>
           </div>
           <div class="fr">
             <div class="fl" id="av-income-label">Monthly income dream number</div>
@@ -2536,7 +2536,7 @@ button[onclick="generateOffer()"] {
           </div>
           <div class="fr">
             <div class="fl">#1 desired transformation (one sentence)</div>
-            <input class="fi" id="av_transformation" placeholder="Select your niche first for tailored suggestions" oninput="markFilled()">
+            <input class="fi" id="av_transformation" placeholder="e.g. Go from broke and stuck to $10K/month in 90 days without a huge audience" oninput="markFilled()">
           </div>
           <div class="fr">
             <div class="fl">Keywords they search when looking for a solution</div>
@@ -2578,11 +2578,11 @@ button[onclick="generateOffer()"] {
           </div>
           <div class="fr">
             <div class="fl">Influencers or communities they follow</div>
-            <input class="fi" id="av_influences" placeholder="Select your niche first for tailored suggestions" oninput="markFilled()">
+            <input class="fi" id="av_influences" placeholder="e.g. Alex Hormozi, Dan Koe, Iman Gadzhi, specific Facebook groups" oninput="markFilled()">
           </div>
           <div class="fr">
             <div class="fl">Objections they'll raise before buying</div>
-            <textarea class="fi" id="av_objections" placeholder="Select your niche first for tailored suggestions" style="min-height:68px" oninput="markFilled()"></textarea>
+            <textarea class="fi" id="av_objections" placeholder="e.g. I don't have time, I've tried before and failed, it's too expensive, I'm not tech-savvy" style="min-height:68px" oninput="markFilled()"></textarea>
           </div>
         </div>
       </div>
@@ -3985,6 +3985,109 @@ window.showPage=showPage;
 window._appliedPrice=0;
 window._appliedTarget=0;
 
+
+// ── Avatar placeholder updater — called by applyAll() and on page load ──────
+window._updateAvatarPlaceholders = function(niche) {
+  if (!niche) return;
+
+  // Niche-specific hint maps
+  const hints = {
+    "Digital Products & Info Business": {
+      job:    "e.g. Course creator, info-product seller, digital entrepreneur",
+      ind:    "e.g. Online education, digital marketing, e-learning",
+      cur:    "e.g. Has valuable knowledge but struggles to package and sell it online, no consistent income",
+      fear:   "e.g. Creating a course no one buys, being seen as a fraud, wasting time on the wrong platform",
+      tried:  "e.g. Udemy courses, free YouTube strategy, cheap info-product templates that gave no results",
+      des:    "e.g. Wakes up to PayPal notifications, earns $10K+/month from digital products, works 4 hours a day",
+      trans:  "e.g. Launch their first $2,000 digital product and hit $10K/month within 90 days",
+      infl:   "e.g. Dan Koe, Alex Hormozi, Russell Brunson, Amy Porterfield",
+      obj:    "e.g. I don't know what to sell, my audience is too small, it won't work for me",
+    },
+    "Coaching & Consulting": {
+      job:    "e.g. Life coach, business consultant, mindset coach, career consultant",
+      ind:    "e.g. Personal development, executive coaching, business consulting",
+      cur:    "e.g. Talented coach undercharging, trading time for money, no system to attract premium clients",
+      fear:   "e.g. Being rejected, not being credible enough, charging high prices and hearing no",
+      tried:  "e.g. Posting on social media with no traction, low-ticket offers, free sessions that led nowhere",
+      des:    "e.g. Fully booked at $5K-$10K per client, recognised as a leading authority, income without constant hustle",
+      trans:  "e.g. Build a premium coaching practice earning $20K+/month with 5 or fewer clients",
+      infl:   "e.g. Tony Robbins, Brendon Burchard, Jay Shetty, coaching Facebook communities",
+      obj:    "e.g. People won't pay that price, I need more credentials, coaching is too saturated",
+    },
+    "Health, Fitness & Wellness": {
+      job:    "e.g. Personal trainer, nutritionist, wellness coach, yoga instructor",
+      ind:    "e.g. Health & wellness, fitness, nutrition, mental health",
+      cur:    "e.g. Trading hours for money, fully booked but broke, no scalable income beyond 1:1 sessions",
+      fear:   "e.g. Online fitness market is too saturated, clients won't commit long-term",
+      tried:  "e.g. Local PT clients, IG posting with no conversions, joining fitness affiliate programmes",
+      des:    "e.g. Runs online programmes, earns $15K/month helping people transform their health from anywhere",
+      trans:  "e.g. Go from overworked PT to $15K/month online fitness coach in 60 days",
+      infl:   "e.g. Andrew Huberman, Kino Body, fitness Facebook groups, MyFitnessPal communities",
+      obj:    "e.g. Can I really coach online, what if clients don't get results, too much competition",
+    },
+    "Affiliate Marketing": {
+      job:    "e.g. Content creator, blogger, social media marketer, side hustler",
+      ind:    "e.g. Affiliate marketing, content creation, social media, e-commerce",
+      cur:    "e.g. Has tried affiliate marketing but earns pennies, no consistent traffic, picking wrong products",
+      fear:   "e.g. Getting banned, algorithms changing, picking a product that flops, wasting time on content",
+      tried:  "e.g. Amazon Associates, ClickBank, random YouTube tutorials, posting and praying",
+      des:    "e.g. Earns $5K-$20K/month in commissions while sleeping, content runs on autopilot",
+      trans:  "e.g. Build a $10K/month affiliate business in 90 days using short-form video",
+      infl:   "e.g. Pat Flynn, Income School, affiliate marketing Reddit groups, niche blogs",
+      obj:    "e.g. Too much competition, takes too long, I don't have an audience yet, products are low quality",
+    },
+    "E-commerce & Amazon FBA": {
+      job:    "e.g. E-commerce entrepreneur, Amazon seller, Shopify store owner, dropshipper",
+      ind:    "e.g. E-commerce, retail, Amazon, Shopify, consumer goods",
+      cur:    "e.g. Small store with low revenue, getting crushed by competition, can't crack paid ads profitably",
+      fear:   "e.g. Stock running out, Amazon banning account, ads eating all profit, copycats stealing products",
+      tried:  "e.g. Dropshipping, private label failures, Shopify stores that got no traffic",
+      des:    "e.g. Runs a $50K+/month store with strong margins, a recognisable brand, and passive reorders",
+      trans:  "e.g. Scale their e-commerce store to $50K/month with a repeatable product and traffic system",
+      infl:   "e.g. Jungle Scout community, Helium 10 users, Amazing Selling Machine alumni",
+      obj:    "e.g. Too much capital needed, Amazon is too competitive, ads are too expensive to figure out",
+    },
+  };
+
+  // Pick the hint set — fall back to generic if niche not in map
+  const h = hints[niche] || {
+    job:   "e.g. Their current role or profession in " + niche,
+    ind:   "e.g. The industry or sector your ideal client operates in",
+    cur:   "e.g. Their current struggles, frustrations, and daily reality in " + niche,
+    fear:  "e.g. Their biggest fear about investing in a solution like yours",
+    tried: "e.g. Other solutions, tools, or programmes they have already tried",
+    des:   "e.g. Their dream life after working with you — income, freedom, lifestyle",
+    trans: "e.g. The #1 measurable outcome they achieve through your " + niche + " offer",
+    infl:  "e.g. Key influencers, communities, and platforms your ideal client follows",
+    obj:   "e.g. The top objections they will raise before buying — price, time, trust, results",
+  };
+
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.placeholder = val; };
+  set('av_job',            h.job);
+  set('av_industry',       h.ind);
+  set('av_current',        h.cur);
+  set('av_fear',           h.fear);
+  set('av_tried',          h.tried);
+  set('av_desired',        h.des);
+  set('av_transformation', h.trans);
+  set('av_influences',     h.infl);
+  set('av_objections',     h.obj);
+};
+
+// ── Auto-apply placeholders when avatar page is visited ──────────────────────
+// Runs on showPage('avatar') so placeholders are always correct
+(function patchShowPageForAvatar() {
+  const _origShowPage = window.showPage;
+  if (!_origShowPage) return;
+  window.showPage = function(n, btn) {
+    _origShowPage(n, btn);
+    if (n === 'avatar') {
+      const niche = window._appliedNiche || (document.getElementById('niche') || {}).value || '';
+      if (niche) window._updateAvatarPlaceholders && window._updateAvatarPlaceholders(niche);
+    }
+  };
+})();
+
 function applyAll(){
   const parseVal = v => Math.max(1, parseInt(String(v).replace(/[^0-9]/g,'')) || 0);
   const price  = parseVal(document.getElementById('price').value);
@@ -4007,18 +4110,8 @@ function applyAll(){
   window._appliedPrice=price;
   window._appliedTarget=target;
 
-  // Update avatar form placeholders with niche-specific hints
-  const nicheHint = niche || 'your niche';
-  const jobEl = document.getElementById('av_job');
-  const indEl = document.getElementById('av_industry');
-  const curEl = document.getElementById('av_current');
-  const desEl = document.getElementById('av_desired');
-  const trEl  = document.getElementById('av_transformation');
-  if (jobEl) jobEl.placeholder = 'e.g. Their current job or profession in ' + nicheHint;
-  if (indEl) indEl.placeholder = 'e.g. Industry your ideal client works in';
-  if (curEl) curEl.placeholder = 'Describe where they are now — struggles, frustrations, daily reality in ' + nicheHint;
-  if (desEl) desEl.placeholder = 'Describe what they truly want — life, income, freedom after working with you';
-  if (trEl)  trEl.placeholder  = 'The #1 outcome they will achieve through your ' + nicheHint + ' offer';
+  // Update ALL avatar form placeholders with niche-specific hints
+  window._updateAvatarPlaceholders && window._updateAvatarPlaceholders(niche);
   window._trackerState={counts:{},closedDeals:0,remainingIncome:target};
   window._trackerLastTarget=target;window._trackerLastPrice=price;
 
@@ -14653,6 +14746,8 @@ function loadRevenuePlan(data) {
     window._appliedPrice  = Number(data.price);
     window._appliedTarget = Number(data.target);
     window._appliedNiche  = data.niche||'';
+    // Update avatar placeholders immediately with restored niche
+    if (data.niche) setTimeout(() => window._updateAvatarPlaceholders && window._updateAvatarPlaceholders(data.niche), 200);
     setTimeout(() => window.applyAll && window.applyAll(), 300);
   }
 }
