@@ -1497,7 +1497,7 @@ button:not(.nav-item):not(.nav-btn):not(.tab):active {
   transition: width .8s cubic-bezier(.22,.68,0,1.1) !important;
 }
 
-/* ── AI generating pulse ─────────────────────────────────────────── */
+/* ── Generating pulse ───────────────────────────────────────────── */
 .ai-pulse {
   animation: aiPulse 1.8s ease-in-out infinite;
 }
@@ -1695,6 +1695,191 @@ button[onclick="generateOffer()"] {
   padding: 10px 28px !important;
   text-align: center;
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   EOS PREMIUM LOADING SYSTEM
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Core keyframes ─────────────────────────────────────────── */
+@keyframes eos-shimmer {
+  0%   { background-position: -400% 0; }
+  100% { background-position:  400% 0; }
+}
+@keyframes eos-pulse {
+  0%, 100% { opacity: .4; transform: scale(.97); }
+  50%       { opacity: 1;  transform: scale(1);   }
+}
+@keyframes eos-pulse-ring {
+  0%   { transform: scale(.9); opacity: .8; }
+  70%  { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(.9);  opacity: 0; }
+}
+@keyframes eos-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes eos-fill-up {
+  from { height: 0; opacity: 0; }
+  to   { height: 100%; opacity: 1; }
+}
+@keyframes eos-fade-slide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+@keyframes eos-count-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes eos-dot-bounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: .4; }
+  40%            { transform: translateY(-6px); opacity: 1; }
+}
+@keyframes eos-grid-pop {
+  from { opacity: 0; transform: scale(.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes eos-typewriter-cursor {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+@keyframes eos-bar-fill {
+  from { width: 0%; }
+}
+
+/* ── Skeleton shimmer block ─────────────────────────────────── */
+.eos-skel {
+  background: linear-gradient(90deg,
+    rgba(255,255,255,.04) 25%,
+    rgba(255,255,255,.10) 50%,
+    rgba(255,255,255,.04) 75%);
+  background-size: 400% 100%;
+  animation: eos-shimmer 1.6s infinite;
+  border-radius: 8px;
+}
+
+/* ── Loader overlay container ───────────────────────────────── */
+.eos-loader-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  animation: eos-fade-slide .35s ease;
+}
+.eos-loader-icon {
+  position: relative;
+  width: 64px; height: 64px;
+  margin: 0 auto 1.5rem;
+}
+.eos-loader-icon-ring {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(78,204,163,.2);
+}
+.eos-loader-icon-ring::before {
+  content: '';
+  position: absolute; inset: -2px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  border-top-color: var(--teal);
+  animation: eos-spin .9s linear infinite;
+}
+.eos-loader-icon-pulse {
+  position: absolute; inset: 8px;
+  border-radius: 50%;
+  background: rgba(78,204,163,.12);
+  animation: eos-pulse-ring 1.8s ease-out infinite;
+}
+.eos-loader-icon-emoji {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px;
+}
+.eos-loader-title {
+  font-size: 16px; font-weight: 900;
+  font-family: 'Poppins', sans-serif;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+.eos-loader-msg {
+  font-size: 12px; color: var(--dim);
+  min-height: 18px;
+  transition: opacity .3s;
+}
+.eos-loader-bar-wrap {
+  width: 200px; height: 3px;
+  background: rgba(255,255,255,.07);
+  border-radius: 99px;
+  overflow: hidden;
+  margin: 1.25rem auto 0;
+}
+.eos-loader-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--purple));
+  border-radius: 99px;
+  animation: eos-bar-fill 0s ease forwards;
+  transition: width .6s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Typing dots ─────────────────────────────────────────────── */
+.eos-dots {
+  display: inline-flex; gap: 4px; align-items: center;
+}
+.eos-dots span {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--teal);
+  animation: eos-dot-bounce .9s infinite;
+}
+.eos-dots span:nth-child(2) { animation-delay: .15s; }
+.eos-dots span:nth-child(3) { animation-delay: .30s; }
+
+/* ── Calendar skeleton grid ──────────────────────────────────── */
+.eos-cal-skel {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin: 1.5rem 0;
+}
+.eos-cal-skel-cell {
+  height: 52px;
+  border-radius: 8px;
+  animation: eos-grid-pop .4s ease both;
+}
+
+/* ── Avatar silhouette loader ────────────────────────────────── */
+.eos-avatar-skel {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 1.5rem; margin: 1rem 0;
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 16px;
+}
+.eos-avatar-skel-circle {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.eos-avatar-skel-lines {
+  flex: 1; display: flex; flex-direction: column; gap: 8px; padding-top: 4px;
+}
+
+/* ── Offer typewriter ────────────────────────────────────────── */
+.eos-typewriter {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 900;
+  font-size: clamp(18px,3vw,26px);
+  color: var(--teal);
+}
+.eos-typewriter-cursor {
+  display: inline-block;
+  width: 2px; height: 1.1em;
+  background: var(--teal);
+  margin-left: 2px;
+  vertical-align: middle;
+  animation: eos-typewriter-cursor .7s infinite;
+}
+
 </style>
 </head>
 <body>
@@ -2689,6 +2874,7 @@ button[onclick="generateOffer()"] {
     <button onclick="generateOffer()" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--orange),#ff6b35);color:#fff;border:none;border-radius:14px;font-family:'Poppins',sans-serif;font-weight:900;font-size:14px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2rem;box-shadow:0 8px 28px rgba(255,140,66,.4)">
       🔥 Generate My High-Ticket Offer + 3 Funnel Strategies
     </button>
+    <div id="eos-offer-loader" style="display:none"></div>
     <div id="ai-offer-output" style="display:none"></div>
     <div class="next-step-wrap">
       <button class="next-step-btn" onclick="showPage('avatar', document.getElementById('nav-avatar'))">
@@ -2707,7 +2893,7 @@ button[onclick="generateOffer()"] {
     <div id="cal-ai-banner" style="display:none;background:linear-gradient(135deg,rgba(78,204,163,.12),rgba(108,99,255,.08));border:1px solid rgba(78,204,163,.3);border-radius:14px;padding:14px 18px;margin-bottom:1.25rem;align-items:center;gap:12px">
       <span style="font-size:20px">🤖</span>
       <div>
-        <div style="font-size:12px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.5px">AI Content Plan Generated</div>
+        <div style="font-size:12px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.5px">Content Plan Built by Execution OS</div>
         <div style="font-size:11px;color:var(--dim);margin-top:2px">Your niche-tailored plan is loaded. Click any post type to view the full script, hook &amp; copy.</div>
       </div>
     </div>
@@ -2773,7 +2959,7 @@ button[onclick="generateOffer()"] {
         <div class="strip-left">
           <div class="tag-pill" style="background:linear-gradient(135deg,var(--orange),#ff6b35)"><span style="color:#fff">Daily Routine</span></div>
           <div class="h1">Build <em>your</em> power<br>routine</div>
-          <div class="strip-sub">Answer a few strategic questions and AI will engineer a life-changing daily routine built around YOUR schedule, goals, and lifestyle.</div>
+          <div class="strip-sub">Answer a few strategic questions and Execution OS engineers a life-changing daily routine built around YOUR schedule, goals, and lifestyle.</div>
         </div>
         <div class="strip-right" style="min-width:170px">
           <div style="background:rgba(255,140,66,.08);border:1px solid rgba(255,140,66,.25);border-radius:14px;padding:14px 16px;text-align:center">
@@ -2908,7 +3094,7 @@ button[onclick="generateOffer()"] {
       <div id="routine-gen-status" style="display:none;background:rgba(255,140,66,.08);border:1px solid rgba(255,140,66,.25);border-radius:14px;padding:16px 20px;margin-bottom:2rem;text-align:center">
         <div style="font-size:20px;margin-bottom:8px">⚡</div>
         <div style="font-size:13px;font-weight:700;color:var(--orange)">Building your personalized routine…</div>
-        <div style="font-size:11px;color:var(--dimmer);margin-top:4px">AI is engineering a life-changing daily structure around your exact lifestyle and goals.</div>
+        <div style="font-size:11px;color:var(--dimmer);margin-top:4px">Execution OS is engineering a life-changing daily structure around your exact lifestyle and goals.</div>
       </div>
     </div>
 
@@ -2942,7 +3128,7 @@ button[onclick="generateOffer()"] {
         <div class="strip-left">
           <div class="tag-pill" style="background:linear-gradient(135deg,rgba(78,204,163,.15),rgba(108,99,255,.15));border:1px solid rgba(78,204,163,.3)"><span style="color:var(--teal)">🔗 High-Ticket Affiliate</span></div>
           <div class="h1">Set up your<br><em>affiliate offer</em></div>
-          <div class="strip-sub">Paste your affiliate link, set your commission and monthly target, choose your niche — then let the AI build your buyer avatar, 7-day content plan, DM scripts, and complete execution strategy in one go.</div>
+          <div class="strip-sub">Paste your affiliate link, set your commission and monthly target, choose your niche — then Execution OS builds your buyer avatar, 7-day content plan, DM scripts, and complete execution strategy in one go.</div>
         </div>
         <div class="strip-right" id="aff-offer-hero-card">
           <div id="aff-hero-box" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.1rem 1.25rem;min-width:220px">
@@ -2962,7 +3148,7 @@ button[onclick="generateOffer()"] {
         <!-- Panel header -->
         <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border2);background:rgba(78,204,163,.04)">
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:4px">Setup — Your Affiliate Offer</div>
-          <div style="font-size:15px;font-weight:800;color:var(--white)">Paste your link and set your targets — AI builds the rest</div>
+          <div style="font-size:15px;font-weight:800;color:var(--white)">Paste your link and set your targets — Execution OS builds your strategy</div>
           <div style="font-size:11px;color:var(--dim);margin-top:3px">Fill in all fields below, then click Analyse &amp; Build Everything</div>
         </div>
 
@@ -3329,9 +3515,12 @@ button[onclick="generateOffer()"] {
               <span id="profile-initials-big">?</span>
               <img id="profile-photo-img" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
             </div>
-            <label for="photo-upload" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.3)">
+            <label for="photo-upload" style="position:absolute;bottom:0;right:0;width:28px;height:28px;background:var(--teal);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.3)" title="Change photo">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="var(--text-dark)"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zm17.71-10.04a1 1 0 000-1.42l-2.34-2.34a1 1 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.82z"/></svg>
             </label>
+            <button id="delete-photo-btn" onclick="deleteProfilePhoto()" title="Remove photo" style="display:none;position:absolute;bottom:0;left:0;width:28px;height:28px;background:var(--red);border-radius:50%;border:2px solid var(--bg);box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;align-items:center;justify-content:center;padding:0">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="#fff"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
             <input type="file" id="photo-upload" accept="image/*" style="display:none" onchange="uploadProfilePhoto(this)">
           </div>
           <div id="photo-upload-status" style="font-size:10px;color:var(--dimmer);text-align:center;margin-top:8px"></div>
@@ -3367,6 +3556,75 @@ button[onclick="generateOffer()"] {
           <div class="fr"><div class="fl">Member since</div><input class="fi" id="prof-joined" disabled style="opacity:.6;cursor:not-allowed" placeholder="—"></div>
           <button onclick="saveProfile()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;margin-top:4px" id="save-profile-btn">Save Changes</button>
           <div id="save-profile-msg" style="font-size:11px;text-align:center;color:var(--teal);display:none;margin-top:-4px">✅ Saved successfully!</div>
+        </div>
+      </div>
+
+      <!-- ══ VOICE & STYLE PROFILE ══ -->
+      <div class="av-sec" id="voice-profile-section">
+        <div class="av-sec-head">
+          <div class="av-sec-icon" style="background:rgba(78,204,163,.1)">✍️</div>
+          <div>
+            <div class="av-sec-title">Your Voice &amp; Style Profile</div>
+            <div class="av-sec-sub">This tells Execution OS exactly how you communicate — so every output sounds like YOU, not a generic template.</div>
+          </div>
+        </div>
+
+        <div style="display:grid;gap:12px;margin-top:4px">
+
+          <div class="fr">
+            <div class="fl">Your Content Tone <span style="color:var(--teal);font-size:9px;margin-left:6px">HOW YOU SOUND</span></div>
+            <select class="fi" id="voice_tone" oninput="markVoiceDirty()">
+              <option value="">— Select your primary tone —</option>
+              <option value="Direct and no-nonsense">Direct and no-nonsense — I get to the point fast</option>
+              <option value="Warm and conversational">Warm and conversational — I talk like a friend</option>
+              <option value="Authoritative and expert">Authoritative and expert — I speak from experience</option>
+              <option value="Motivational and energetic">Motivational and energetic — I hype people up</option>
+              <option value="Analytical and data-driven">Analytical and data-driven — I back everything with logic</option>
+              <option value="Storytelling and personal">Storytelling and personal — I use my own journey</option>
+              <option value="Humorous and relatable">Humorous and relatable — I use humour to connect</option>
+            </select>
+          </div>
+
+          <div class="fr">
+            <div class="fl">Writing Style <span style="color:var(--teal);font-size:9px;margin-left:6px">HOW YOU WRITE</span></div>
+            <select class="fi" id="voice_style" oninput="markVoiceDirty()">
+              <option value="">— Select your writing style —</option>
+              <option value="Short punchy sentences. No fluff.">Short punchy sentences. No fluff.</option>
+              <option value="Longer paragraphs with full context and detail">Longer paragraphs with full context and detail</option>
+              <option value="Bullet points and structured lists">Bullet points and structured lists</option>
+              <option value="Conversational flow — like I'm talking to one person">Conversational flow — like I'm talking to one person</option>
+              <option value="Story-driven with a clear arc and lesson">Story-driven with a clear arc and lesson</option>
+              <option value="Question-driven — I ask questions to engage">Question-driven — I ask questions to engage</option>
+            </select>
+          </div>
+
+          <div class="fr">
+            <div class="fl">Words / phrases you ALWAYS use <span style="color:var(--dim);font-size:9px;margin-left:4px">(your signature language)</span></div>
+            <input class="fi" id="voice_words" placeholder='e.g. "Let's be real", "No BS", "Here's the truth"' oninput="markVoiceDirty()">
+          </div>
+
+          <div class="fr">
+            <div class="fl">Words / phrases you NEVER use <span style="color:var(--dim);font-size:9px;margin-left:4px">(things that don't sound like you)</span></div>
+            <input class="fi" id="voice_avoid" placeholder='e.g. "game-changer", "hustle", "synergy", "leverage"' oninput="markVoiceDirty()">
+          </div>
+
+          <div class="fr">
+            <div class="fl">Your story in one sentence <span style="color:var(--dim);font-size:9px;margin-left:4px">(your authority foundation)</span></div>
+            <input class="fi" id="voice_story" placeholder='e.g. "I went from 9-5 accountant to $15K/month coach in 8 months"' oninput="markVoiceDirty()">
+          </div>
+
+          <div class="fr">
+            <div class="fl">Your unique method or framework name <span style="color:var(--dim);font-size:9px;margin-left:4px">(if you have one)</span></div>
+            <input class="fi" id="voice_method" placeholder='e.g. "The 3-Step Clarity System", "The SCALE Framework"' oninput="markVoiceDirty()">
+          </div>
+
+          <div class="fr">
+            <div class="fl">Example of content you love (paste a real post or caption you wrote) <span style="color:var(--teal);font-size:9px;margin-left:6px">MOST POWERFUL</span></div>
+            <textarea class="fi" id="voice_example" rows="4" placeholder="Paste a real piece of content you wrote that sounds most like you. Execution OS will match this voice exactly." style="min-height:90px" oninput="markVoiceDirty()"></textarea>
+          </div>
+
+          <button onclick="saveVoiceProfile()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px" id="save-voice-btn">💾 Save My Voice Profile</button>
+          <div id="save-voice-msg" style="font-size:11px;text-align:center;color:var(--teal);display:none;margin-top:-4px">✅ Voice profile saved — all Execution OS outputs will now match your style</div>
         </div>
       </div>
 
@@ -3441,6 +3699,178 @@ window.PROXY_URL = 'https://build.skillslibry.com/api/claude';
 const RULES=[["Post daily on your personal profile","Reach + CTA — post daily without fail"],["Post in 3 Facebook groups","Only groups with engaged professionals"],["Send 17+ DMs to new people daily","People who comment or engage with your content"],["Reply to every comment within 2 hours","Engagement signals push your content to more people"],["Share your survey link once a day","This is your primary traffic destination"],["Close every call the same day it's booked","Follow up within 24 hours if they don't show"],["Track daily: posts, clicks, calls, closes","What gets measured gets improved"],["Never pitch in the first DM","Lead with the survey or a genuine question, always"],["Never post in a group without permission","Provide value for 5–7 days before dropping any link"],["Post every single day for 60 days minimum","Consistency compounds. Day 40 is better than day 7"],["Always send to survey first, not masterclass","Survey warms them up and makes the class far more effective"],["Never cancel a booked call","Follow up twice before giving up"],["If a post performs well, repost in 3 new groups","Double down on what works"],["Add every booking to your email list immediately","They are your warmest leads"]];
 const CAL_DATA=[{w:1,days:[{plat:"Facebook",task:"Share your personal journey — how you started, what changed",goal:"Trust + first impressions"},{plat:"Instagram",task:"Post a Reel: 'One thing I wish I knew before starting' — soft CTA to link in bio",goal:"Reach new audience"},{plat:"Facebook",task:"Provide value only — no pitch. Comment and engage",goal:"Build presence"},{plat:"Instagram",task:"Carousel: '3 signs you are ready for a breakthrough' — drive to survey",goal:"Survey traffic"},{plat:"Facebook",task:"Teach one thing your audience struggles with",goal:"Value post"},{plat:"Instagram",task:"Ask audience: 'Do you know your [niche] goal?' — drive to survey",goal:"Engagement hook"},{plat:"Facebook",task:"Show what your desired outcome looks like — lifestyle post",goal:"Lifestyle post"}]},{w:2,days:[{plat:"Facebook",task:"Post value + survey link. Engage all comments within 2 hours",goal:"Boost reach"},{plat:"Instagram",task:"Reel: Show a student result with transformation story",goal:"Social proof + traffic"},{plat:"Facebook",task:"Post income journey story. End with survey CTA",goal:"Story + CTA"},{plat:"Facebook",task:"Scale DMs aggressively — target 30/day",goal:"DM campaign"},{plat:"Instagram",task:"Carousel: Pain point content — direct CTA",goal:"Pain point content"},{plat:"Facebook",task:"Teach one thing step-by-step. No pitch.",goal:"Authority post"},{plat:"Instagram",task:"Story: before/after of student result",goal:"Trust building"}]},{w:3,days:[{plat:"Facebook",task:"First calls being booked. Close aggressively. Scale DMs to 40/day",goal:"Close push"},{plat:"Instagram",task:"Reel: 'How I booked 5 calls this week using one simple post'",goal:"Credibility + FOMO"},{plat:"Facebook",task:"Post another student result. Build FOMO.",goal:"FOMO content"},{plat:"Instagram",task:"Carousel: 'The content formula that gets strangers to DM you first'",goal:"Value + viral potential"},{plat:"Facebook",task:"Teach one thing — step-by-step. Drop survey link.",goal:"Authority + survey"},{plat:"Instagram",task:"Stories: Q&A about the business model — break objections",goal:"Objection handling"},{plat:"Facebook",task:"Lifestyle content. CTA to survey.",goal:"Lifestyle CTA"}]},{w:4,days:[{plat:"Facebook",task:"Final push to hit monthly target. Maximum group posting.",goal:"Target push"},{plat:"Instagram",task:"Reel: 'We're in the final week — here is where I am at'",goal:"Authenticity + urgency"},{plat:"Facebook",task:"Repost best performing content into 3 new groups",goal:"Maximum reach"},{plat:"Instagram",task:"Carousel: 'Month recap — what worked, what is next'",goal:"Recap + credibility"},{plat:"Facebook",task:"Send drop CTAs daily.",goal:"CTA saturation"},{plat:"Instagram",task:"Story: Final CTA — 'Last chance to book a call this month'",goal:"Final close urgency"},{plat:"Facebook",task:"Double down on what works — repost top-performing content.",goal:"Final close"}]}];
 
+
+// ═══════════════════════════════════════════════════════════════════
+// EOS PREMIUM LOADING SYSTEM
+// ═══════════════════════════════════════════════════════════════════
+window.EOSLoader = {
+
+  // ── Core renderer ───────────────────────────────────────────────
+  show(containerId, config) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    const {
+      emoji = '⚡',
+      title = 'Building your plan…',
+      messages = ['Working on it…'],
+      color = 'var(--teal)',
+      duration = 8000,
+      skeleton = null,
+    } = config;
+
+    el.style.display = 'block';
+    el.innerHTML = `
+      <div class="eos-loader-wrap">
+        <div class="eos-loader-icon">
+          <div class="eos-loader-icon-ring"></div>
+          <div class="eos-loader-icon-pulse" style="background:${color.replace('var(--teal)','rgba(78,204,163,.12)').replace('var(--purple)','rgba(108,99,255,.12)').replace('var(--yellow)','rgba(255,217,61,.12)').replace('var(--orange)','rgba(255,140,66,.12)')}"></div>
+          <div class="eos-loader-icon-emoji">${emoji}</div>
+        </div>
+        <div class="eos-loader-title">${title}</div>
+        <div class="eos-loader-msg" id="${containerId}-loader-msg">${messages[0]}</div>
+        <div class="eos-loader-bar-wrap">
+          <div class="eos-loader-bar" id="${containerId}-loader-bar" style="width:0%"></div>
+        </div>
+        ${skeleton || ''}
+      </div>`;
+
+    // Rotate messages
+    let msgIdx = 0;
+    const msgEl  = document.getElementById(`${containerId}-loader-msg`);
+    const barEl  = document.getElementById(`${containerId}-loader-bar`);
+    const interval = Math.max(1200, duration / messages.length);
+
+    const timer = setInterval(() => {
+      msgIdx = (msgIdx + 1) % messages.length;
+      if (msgEl) { msgEl.style.opacity = '0'; setTimeout(() => { if(msgEl) { msgEl.textContent = messages[msgIdx]; msgEl.style.opacity = '1'; }}, 250); }
+      const pct = Math.min(90, Math.round(((msgIdx + 1) / messages.length) * 90));
+      if (barEl) barEl.style.width = pct + '%';
+    }, interval);
+
+    el._eosLoaderTimer = timer;
+  },
+
+  hide(containerId) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (el._eosLoaderTimer) clearInterval(el._eosLoaderTimer);
+    const bar = document.getElementById(`${containerId}-loader-bar`);
+    if (bar) bar.style.width = '100%';
+    setTimeout(() => { el.innerHTML = ''; el.style.display = 'none'; }, 300);
+  },
+
+  // ── Button loading state ─────────────────────────────────────────
+  btnStart(btnId, text = 'Generating…') {
+    const btn = document.getElementById(btnId) || document.querySelector(`[onclick*="${btnId}"]`);
+    if (!btn) return;
+    btn._originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:10px">${text} <span class="eos-dots"><span></span><span></span><span></span></span></span>`;
+    btn.style.opacity = '.85';
+  },
+
+  btnDone(btnId, successText = null) {
+    const btn = document.getElementById(btnId) || document.querySelector(`[onclick*="${btnId}"]`);
+    if (!btn) return;
+    if (successText) {
+      btn.innerHTML = successText;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      setTimeout(() => { if(btn._originalText) btn.innerHTML = btn._originalText; }, 2500);
+    } else {
+      if (btn._originalText) btn.innerHTML = btn._originalText;
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  },
+
+  // ── Calendar skeleton (30 cells) ─────────────────────────────────
+  calendarSkeleton() {
+    const colors = ['var(--teal)','var(--purple)','var(--yellow)','var(--orange)','var(--red)'];
+    const cells = Array.from({length: 30}, (_,i) => {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const delay = (i * 0.04).toFixed(2);
+      return `<div class="eos-cal-skel-cell eos-skel" style="animation-delay:${delay}s;background:linear-gradient(90deg,rgba(255,255,255,.04) 25%,${color.replace(')',', .12)')} 50%,rgba(255,255,255,.04) 75%);background-size:400% 100%;animation:eos-shimmer 1.6s ${delay}s infinite"></div>`;
+    }).join('');
+    return `<div class="eos-cal-skel" style="margin-top:1.5rem">${cells}</div>
+      <div style="font-size:10px;color:var(--dimmer);text-align:center;margin-top:4px">Building your 30-day plan…</div>`;
+  },
+
+  // ── Avatar skeleton ───────────────────────────────────────────────
+  avatarSkeleton() {
+    return `
+      <div class="eos-avatar-skel" style="margin-top:1.5rem">
+        <div class="eos-avatar-skel-circle eos-skel"></div>
+        <div class="eos-avatar-skel-lines">
+          <div class="eos-skel" style="height:14px;width:60%"></div>
+          <div class="eos-skel" style="height:11px;width:40%"></div>
+          <div class="eos-skel" style="height:11px;width:80%"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+        ${Array.from({length:6}, () => `<div class="eos-skel" style="height:48px;border-radius:10px"></div>`).join('')}
+      </div>`;
+  },
+
+  // ── Offer skeleton ────────────────────────────────────────────────
+  offerSkeleton() {
+    return `
+      <div style="margin-top:1.5rem;padding:1.5rem;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px">
+        <div class="eos-skel" style="height:28px;width:70%;margin-bottom:12px"></div>
+        <div class="eos-skel" style="height:14px;width:50%;margin-bottom:20px"></div>
+        ${Array.from({length:4}, () => `<div class="eos-skel" style="height:12px;width:${60+Math.floor(Math.random()*35)}%;margin-bottom:8px"></div>`).join('')}
+      </div>`;
+  },
+
+  // ── Routine skeleton ──────────────────────────────────────────────
+  routineSkeleton() {
+    return `
+      <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:8px">
+        ${['5:00 AM','5:30 AM','6:00 AM','6:30 AM','7:00 AM','7:30 AM'].map((t,i) =>
+          `<div style="display:flex;gap:12px;align-items:center;animation:eos-fade-slide .4s ${(i*.08).toFixed(2)}s ease both">
+            <div class="eos-skel" style="width:52px;height:20px;flex-shrink:0;border-radius:6px"></div>
+            <div class="eos-skel" style="height:44px;flex:1;border-radius:10px"></div>
+          </div>`
+        ).join('')}
+      </div>`;
+  },
+
+  // ── Dashboard count-up ───────────────────────────────────────────
+  countUp(elementId, target, prefix = '', suffix = '', duration = 1200) {
+    const el = document.getElementById(elementId);
+    if (!el || !target) return;
+    const start = Date.now();
+    const startVal = 0;
+    const update = () => {
+      const elapsed = Date.now() - start;
+      const progress = Math.min(1, elapsed / duration);
+      const ease = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      const current = Math.round(startVal + (target - startVal) * ease);
+      el.textContent = prefix + current.toLocaleString() + suffix;
+      if (progress < 1) requestAnimationFrame(update);
+    };
+    requestAnimationFrame(update);
+  },
+
+  // ── Typewriter effect ─────────────────────────────────────────────
+  typewrite(elementId, text, speed = 40) {
+    const el = document.getElementById(elementId);
+    if (!el) return;
+    el.innerHTML = '<span class="eos-typewriter-cursor"></span>';
+    let i = 0;
+    const type = () => {
+      if (i < text.length) {
+        el.innerHTML = text.slice(0, ++i) + '<span class="eos-typewriter-cursor"></span>';
+        setTimeout(type, speed + Math.random() * 20);
+      } else {
+        el.textContent = text; // Remove cursor when done
+      }
+    };
+    setTimeout(type, 200);
+  },
+};
+
+
 let currentWeek=1;
 let selectedPains=new Set();
 window.selectedPains=selectedPains;
@@ -3469,7 +3899,7 @@ const PAGE_META = {
   plan:      { title:'Revenue Plan', sub:(window._appMode==='affiliate'?'Step 1 · Set your commission targets':'Step 1 · Set your income target') },
   offer:     { title:'Offer Creation', sub:'Step 2 · Build your high-ticket offer' },
   avatar:    { title:'Ideal Customer', sub:'Step 3 \u00b7 Know your target audience' },
-  calendar:  { title:'Content Calendar', sub:'Step 4 · 30 days of AI-written content' },
+  calendar:  { title:'Content Calendar', sub:'Step 4 · 30 days of execution-ready content' },
   scripts:   { title:'DM & Sales', sub:'Step 5 · Close with precision scripts' },
   routine:   { title:'Daily Routine', sub:'Step 6 · Engineer your power routine' },
   tracker:   { title:'Daily Tracker', sub:'Log activity · Track momentum' },
@@ -3576,6 +4006,19 @@ function applyAll(){
   window._appliedNiche=niche;
   window._appliedPrice=price;
   window._appliedTarget=target;
+
+  // Update avatar form placeholders with niche-specific hints
+  const nicheHint = niche || 'your niche';
+  const jobEl = document.getElementById('av_job');
+  const indEl = document.getElementById('av_industry');
+  const curEl = document.getElementById('av_current');
+  const desEl = document.getElementById('av_desired');
+  const trEl  = document.getElementById('av_transformation');
+  if (jobEl) jobEl.placeholder = 'e.g. Their current job or profession in ' + nicheHint;
+  if (indEl) indEl.placeholder = 'e.g. Industry your ideal client works in';
+  if (curEl) curEl.placeholder = 'Describe where they are now — struggles, frustrations, daily reality in ' + nicheHint;
+  if (desEl) desEl.placeholder = 'Describe what they truly want — life, income, freedom after working with you';
+  if (trEl)  trEl.placeholder  = 'The #1 outcome they will achieve through your ' + nicheHint + ' offer';
   window._trackerState={counts:{},closedDeals:0,remainingIncome:target};
   window._trackerLastTarget=target;window._trackerLastPrice=price;
 
@@ -3931,6 +4374,19 @@ function buildScriptSet(mode) {
   var jobLabel = av.job ? av.job.split('/')[0].split(',')[0].trim() : audType.split(' ').slice(0,2).join(' ');
   var incFmt = '$' + Number(offerPrice).toLocaleString();
   var nicheName = niche || 'your niche';
+  var vp = window._voiceProfile || {};
+  // Voice profile adjustments - personalise script openers to creator's tone
+  var vpTone    = vp.tone    || '';
+  var vpWords   = vp.words   || '';
+  var vpAvoid   = vp.avoid   || '';
+  var vpStory   = vp.story   || '';
+  var vpMethod  = vp.method  || '';
+  // Personalise the opener style based on voice tone
+  var scriptStyle = vpTone.includes('Warm') ? 'warm and friendly' :
+                    vpTone.includes('Direct') ? 'direct and no-nonsense' :
+                    vpTone.includes('Storytelling') ? 'story-led and personal' :
+                    vpTone.includes('Humorous') ? 'light and relatable' :
+                    vpTone.includes('Authoritative') ? 'confident and expert' : 'natural';
 
   if(mode === 'dm') return [
     {
@@ -5515,6 +5971,24 @@ function generateOffer(){
   output.scrollIntoView({behavior:'smooth',block:'start'});
 
   // Call Vercel for full AI offer document
+  const _offerBtn = document.querySelector('[onclick="generateOffer()"]');
+  if (_offerBtn) { _offerBtn._origText = _offerBtn.innerHTML; _offerBtn.disabled = true; _offerBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:10px">Crafting your offer… <span class="eos-dots"><span></span><span></span><span></span></span></span>'; }
+  window.EOSLoader && window.EOSLoader.show('eos-offer-loader', {
+    emoji: '🔥',
+    title: 'Engineering your high-ticket offer…',
+    color: 'var(--orange)',
+    duration: 14000,
+    messages: [
+      'Analysing your niche and positioning…',
+      'Building your signature promise…',
+      'Architecting your programme modules…',
+      'Writing your irresistible guarantee…',
+      'Crafting your three funnel strategies…',
+      'Finalising your offer framework…',
+      'Almost ready — polishing the details…',
+    ],
+    skeleton: window.EOSLoader.offerSkeleton(),
+  });
   (async () => {
     try {
       const offerData = await callAPI('generate-offer', {
@@ -5535,7 +6009,7 @@ function generateOffer(){
         aiEl.innerHTML = `
           <div style="background:linear-gradient(145deg,rgba(255,140,66,.07),var(--card));border:1px solid rgba(255,140,66,.22);border-radius:16px;overflow:hidden;margin-top:1.5rem">
             <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,.05);background:rgba(255,140,66,.04)">
-              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--orange);font-weight:900">⚡ AI Offer Document — Claude Generated</div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--orange);font-weight:900">⚡ Offer Document — Built by Execution OS</div>
             </div>
             <div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:1rem">
               <div>
@@ -5596,7 +6070,13 @@ function generateOffer(){
             </div>
           </div>`;
       }
-    } catch(e) { console.warn('AI offer failed:', e.message); }
+    } catch(e) {
+      console.warn('AI offer failed:', e.message);
+    } finally {
+      window.EOSLoader && window.EOSLoader.hide('eos-offer-loader');
+      const _ob = document.querySelector('[onclick="generateOffer()"]');
+      if (_ob && _ob._origText) { _ob.innerHTML = _ob._origText; _ob.disabled = false; }
+    }
   })();
 }
 window.generateOffer=generateOffer;
@@ -5694,11 +6174,24 @@ Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure
     const offerName = body.offer || 'their offer';
     // If a raw prompt was provided (expert/affiliate mode), use it
     // Otherwise build a niche-aware default
+    const _vp_cal = window._voiceProfile || {};
+    const _vp_cal_ctx = (_vp_cal.tone || _vp_cal.style || _vp_cal.example) ? `
+CREATOR VOICE PROFILE (write all content to match this exactly):
+- Tone: ${_vp_cal.tone || 'not specified'}
+- Writing style: ${_vp_cal.style || 'not specified'}
+${_vp_cal.words ? '- Always uses phrases like: ' + _vp_cal.words : ''}
+${_vp_cal.avoid ? '- NEVER use these words/phrases: ' + _vp_cal.avoid : ''}
+${_vp_cal.story ? '- Creator story: ' + _vp_cal.story : ''}
+${_vp_cal.method ? '- Their framework/method: ' + _vp_cal.method : ''}
+${_vp_cal.example ? '- Match this voice exactly (real content sample):\n' + _vp_cal.example : ''}
+CRITICAL: Every post must sound like this specific person wrote it — not generic AI content.` : '';
+
     prompt = body._rawPrompt || `You are an expert content strategist. Generate a 7-day social media content calendar for the "${niche}" niche.
 ${av.job ? 'Ideal client: '+av.job : ''}
 ${av.pain ? 'Their pain: '+av.pain : ''}
 ${av.transformation ? 'Their goal: '+av.transformation : ''}
 ${price > 0 ? 'Offer price: $'+price.toLocaleString() : ''}
+${_vp_cal_ctx}
 
 Each of the 7 days must have a COMPLETELY different topic and angle. No repeated themes.
 Return a JSON array of exactly 7 objects with fields: topic, hook, fb1, fb2, reel1, reel2, email.
@@ -5708,7 +6201,10 @@ No markdown. No backticks. Valid JSON only.`;
   } else if (endpoint === 'generate-offer') {
     const niche = body.niche || 'Online Business';
     const price = body.price || 0;
+    const _vp_off = window._voiceProfile || {};
+    const _vp_off_ctx = (_vp_off.tone || _vp_off.story) ? `Creator voice: ${_vp_off.tone || ''}. ${_vp_off.story ? 'Their story: '+_vp_off.story+'.' : ''} ${_vp_off.method ? 'Framework: '+_vp_off.method+'.' : ''}` : '';
     prompt = `You are a high-ticket offer strategist. Create a compelling offer for niche: ${niche}, price: $${price}.
+${_vp_off_ctx ? _vp_off_ctx + '\nName the offer and write copy to match this person\'s voice and story.' : ''}
 Respond ONLY with valid JSON: { "offerName": "...", "tagline": "...", "result": "...", "modules": ["...","...","..."], "bonuses": ["...","..."], "guarantee": "..." }`;
 
   } else if (endpoint === 'generate-routine') {
@@ -5846,7 +6342,22 @@ YOUR RULES:
 5. Be direct. No unnecessary caveats or disclaimers.
 6. If they ask what to post, give them the actual post text
 7. If they ask for a DM script, write the complete DM
-8. Speak like a $10,000/month business coach who knows their business deeply`;
+8. Speak like a $10,000/month business coach who knows their business deeply
+
+${(()=>{
+  const vp = window._voiceProfile;
+  if (!vp || (!vp.tone && !vp.style && !vp.example)) return '';
+  const parts = ['\n━━━ USER VOICE & STYLE PROFILE ━━━'];
+  if (vp.tone)    parts.push('Tone: ' + vp.tone);
+  if (vp.style)   parts.push('Writing style: ' + vp.style);
+  if (vp.story)   parts.push('Their story: ' + vp.story);
+  if (vp.method)  parts.push('Their method/framework: ' + vp.method);
+  if (vp.words)   parts.push('Phrases they always use: ' + vp.words);
+  if (vp.avoid)   parts.push('Words/phrases to NEVER use: ' + vp.avoid);
+  if (vp.example) parts.push('Example of their real content to match:\n + vp.example + ');
+  parts.push('CRITICAL: When writing content, DM scripts, or captions FOR this user, match their voice exactly. Use their phrases. Avoid their banned words. Mirror their writing style and tone.');
+  return parts.join('\n');
+})()}`;
 
     // For multi-turn, use the messages array directly with system prompt
     return fetch(window.PROXY_URL || 'https://build.skillslibry.com/api/claude', {
@@ -5907,6 +6418,9 @@ function generateAvatar(){
   const missing=validateAvatarFields();
   if(missing.length>0){let errEl=document.getElementById('av-validation-msg');if(!errEl){errEl=document.createElement('div');errEl.id='av-validation-msg';document.querySelector('.gen-av-btn').before(errEl);}errEl.style.cssText='background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.35);border-radius:12px;padding:14px 18px;margin-bottom:1rem;font-size:12px;color:var(--red);line-height:1.6';errEl.innerHTML='<strong>⚠ Please complete all required fields:</strong><br>'+missing.map(m=>`• ${m}`).join('<br>');errEl.scrollIntoView({behavior:'smooth',block:'nearest'});return;}
   const errEl=document.getElementById('av-validation-msg');if(errEl)errEl.remove();
+  // Button loading state
+  const _avBtn = document.querySelector('.gen-av-btn');
+  if (_avBtn) { _avBtn._orig = _avBtn.innerHTML; _avBtn.disabled = true; _avBtn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:10px">Building your avatar… <span class="eos-dots"><span></span><span></span><span></span></span></span>'; }
   const name=document.getElementById('av_name').value||'Your Ideal Customer';
   const age=document.getElementById('av_age').value;
   const gender=document.getElementById('av_gender').value;
@@ -5955,7 +6469,10 @@ function generateAvatar(){
   ];
 
   const out=document.getElementById('avatar-output');
+  if (!out) { console.error('avatar-output element not found'); return; }
   out.style.display='block';
+
+  try { // ── Main avatar render (wrapped to catch template errors) ──
 
   // Build niche-specific DM hook suggestions
   const hookSuggestions=[
@@ -6302,10 +6819,10 @@ function generateAvatar(){
       </div>
     </div>
 
-    <!-- AI MARKET INTELLIGENCE -->
+    <!-- MARKET INTELLIGENCE -->
     <div id="ai-market-intel" style="background:linear-gradient(145deg,rgba(108,99,255,.09),var(--card));border:1px solid rgba(108,99,255,.3);border-radius:20px;overflow:hidden">
       <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(108,99,255,.15)">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:3px">🤖 AI Market Intelligence Report</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:3px">📊 Market Intelligence Report</div>
         <div style="font-size:14px;font-weight:900;color:var(--white)">Deep niche analysis — generated for ${niche} right now</div>
         <div style="font-size:11px;color:var(--dim);margin-top:3px">E-OS analyses your exact market, competition, gaps, and the fastest path to dominance</div>
       </div>
@@ -6334,7 +6851,7 @@ function generateAvatar(){
   }
   out.scrollIntoView({behavior:'smooth',block:'start'});
   if (document.getElementById('bhs-widget')) setTimeout(()=>window.renderHealthScore&&window.renderHealthScore(), 200);
-  // ── Call Vercel generate-avatar for AI-powered insights ──────────────
+  // ── Call Vercel generate-avatar for deep market insights ──────────────
   // Read directly from form fields so we don't depend on _appliedNiche being set
   const _niche    = window._appliedNiche || (document.getElementById('niche')||{}).value || 'Coaching & Consulting';
   const _price    = window._appliedPrice || (document.getElementById('price')||{}).value  || 3000;
@@ -6343,9 +6860,50 @@ function generateAvatar(){
   // Show AI loading indicator
   const aiStatusEl = document.getElementById('av-ai-status');
   if (aiStatusEl) {
-    aiStatusEl.style.display = 'flex';
-    aiStatusEl.innerHTML = '<div style="width:16px;height:16px;border:2px solid rgba(78,204,163,.25);border-top-color:var(--teal);border-radius:50%;animation:spin .65s linear infinite;flex-shrink:0"></div><span style="font-size:11px;color:var(--teal)">E-OS is building your market intelligence…</span>';
+    aiStatusEl.style.display = 'block';
+    aiStatusEl.style.padding = '0';
+    aiStatusEl.style.background = 'none';
+    aiStatusEl.style.border = 'none';
+    if (window.EOSLoader) {
+      aiStatusEl.innerHTML = '';
+      window.EOSLoader.show('av-ai-status', {
+        emoji: '🧠',
+        title: 'Building your ideal customer profile…',
+        color: 'var(--purple)',
+        duration: 18000,
+        messages: [
+          'Analysing buyer psychology for your niche…',
+          'Mapping pain points and emotional triggers…',
+          'Profiling income goals and motivations…',
+          'Identifying content hooks that convert…',
+          'Writing your market intelligence report…',
+          'Building your DM hook library…',
+          'Calibrating your content strategy…',
+          'Finalising your customer avatar…',
+        ],
+        skeleton: window.EOSLoader.avatarSkeleton(),
+      });
+    } else {
+      aiStatusEl.innerHTML = '<div style="display:flex;align-items:center;gap:10px"><div style="width:16px;height:16px;border:2px solid rgba(78,204,163,.25);border-top-color:var(--teal);border-radius:50%;animation:eos-spin .65s linear infinite;flex-shrink:0"></div><span style="font-size:11px;color:var(--teal)">Building your market intelligence…</span></div>';
+    }
   }
+
+  // Restore avatar button
+  const _avBtnR = document.querySelector('.gen-av-btn');
+  if (_avBtnR && _avBtnR._orig) { _avBtnR.innerHTML = _avBtnR._orig; _avBtnR.disabled = false; }
+
+  } catch(renderErr) {
+    // Restore button on error too
+    const _avBtnE = document.querySelector('.gen-av-btn');
+    if (_avBtnE && _avBtnE._orig) { _avBtnE.innerHTML = _avBtnE._orig; _avBtnE.disabled = false; }
+    console.error('Avatar render error:', renderErr);
+    if (out) {
+      out.style.display = 'block';
+      out.innerHTML = '<div style="padding:20px;color:var(--red);font-size:13px">⚠️ Could not render avatar: ' + renderErr.message + '<br><br>Please make sure all required fields are filled in and try again.</div>';
+    }
+    return;
+  }
+  // ── End main avatar render ──
 
   (async () => {
     try {
@@ -6421,12 +6979,15 @@ function generateAvatar(){
         }
       }
 
-      if (aiStatusEl) aiStatusEl.style.display = 'none';
+      if (aiStatusEl) {
+      aiStatusEl.style.display = 'none';
+      if (window.EOSLoader) window.EOSLoader.hide('av-ai-status');
+    }
 
     } catch(e) {
       console.error('AI avatar call failed:', e.message);
       if (aiStatusEl) {
-        aiStatusEl.innerHTML = '<span style="font-size:11px;color:var(--red)">⚠️ AI enhancement failed: ' + e.message + '</span>';
+        aiStatusEl.innerHTML = '<span style="font-size:11px;color:var(--red)">⚠️ Execution OS enhancement failed: ' + e.message + '</span>';
       }
     }
   })();
@@ -6802,7 +7363,36 @@ window.generateCustomRoutine = function() {
       savedAt: new Date().toISOString()
     });
 
-    // AI-enhance routine via Vercel — replaces local blocks with Claude-generated version
+    // Execution OS enhances routine via Vercel — replaces local blocks with personalised version
+
+    // Show premium loader
+    const _routineLoaderEl = document.getElementById('routine-loader-zone') || (() => {
+      const el = document.createElement('div');
+      el.id = 'routine-loader-zone';
+      const routineOut = document.getElementById('routine-output') || document.querySelector('.routine-wrap') || document.querySelector('#page-routine .page-content');
+      if (routineOut) routineOut.insertAdjacentElement('afterbegin', el);
+      return el;
+    })();
+    if (window.EOSLoader) {
+      window.EOSLoader.show('routine-loader-zone', {
+        emoji: '🌅',
+        title: 'Building your personalised daily routine…',
+        color: 'var(--yellow)',
+        duration: 20000,
+        messages: [
+          'Analysing your goals and lifestyle…',
+          'Designing your morning power block…',
+          'Scheduling your business execution windows…',
+          'Building your mindset and health habits…',
+          'Crafting your evening wind-down ritual…',
+          'Calibrating to your niche and income target…',
+          'Personalising to your identity statement…',
+          'Finalising your daily execution system…',
+        ],
+        skeleton: window.EOSLoader.routineSkeleton(),
+      });
+    }
+
     (async () => {
       try {
         const readtime      = (document.getElementById('rq_readtime')       || {}).value || 'Evening';
@@ -6825,7 +7415,11 @@ window.generateCustomRoutine = function() {
             savedAt: new Date().toISOString()
           });
         }
-      } catch(e) { console.warn('AI routine failed:', e.message); }
+      } catch(e) {
+        console.warn('AI routine failed:', e.message);
+      } finally {
+        if (window.EOSLoader) window.EOSLoader.hide('routine-loader-zone');
+      }
     })();
   }, 600);
 };
@@ -6956,7 +7550,7 @@ function showCalendarCountdown(daysLeft){let el=document.getElementById('cal-cou
 window.refreshCalendar30=function(){if(!window._avatarData){window.showPage('avatar',document.querySelectorAll('.nav-btn')[3]);return;}window._aiCalendar30=null;window._calDone=new Set();window.generate30DayCalendar();};
 window.saveCalendarState=async function(){};
 window.saveProfile=function(){const msg=document.getElementById('save-profile-msg');if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}};
-window.uploadProfilePhoto=function(){};
+window.uploadProfilePhoto=function(input){ console.warn('Auth not ready yet'); }; window.deleteProfilePhoto=function(){ console.warn('Auth not ready yet'); };
 window.doLogout = function() {
   try {
     if (window._firebaseSignOut) {
@@ -10268,24 +10862,44 @@ window.generate30DayCalendar = async function() {
   const offerName = (document.getElementById('offer_name')||{}).value || 'My Programme';
   const btn       = document.getElementById('gen-calendar-btn');
 
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating your 7-day content plan…'; }
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:10px">Writing your plan… <span class="eos-dots"><span></span><span></span><span></span></span></span>';
+  }
 
-  // Show loading in calendar area
+  // Premium calendar loader
   let loadingEl = document.getElementById('cal-loading-progress');
   if (!loadingEl) {
     loadingEl = document.createElement('div');
     loadingEl.id = 'cal-loading-progress';
-    loadingEl.style.cssText = 'padding:2rem;text-align:center';
     const calBody = document.getElementById('cal-body');
     if (calBody) calBody.parentNode.insertBefore(loadingEl, calBody);
   }
   loadingEl.style.display = 'block';
-  loadingEl.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--teal);margin-bottom:12px">✍️ Claude is writing your 7-day content plan…</div>' +
-    '<div style="font-size:11px;color:var(--dim);margin-bottom:16px">Creating unique Facebook posts, Reel scripts, and emails tailored to your audience. Takes 20–30 seconds.</div>' +
-    '<div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden"><div id="cal-progress-bar" style="height:100%;width:10%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:2px;transition:width 1s"></div></div>';
+  if (window.EOSLoader) {
+    window.EOSLoader.show('cal-loading-progress', {
+      emoji: '📅',
+      title: 'Writing your 30-day content plan…',
+      color: 'var(--purple)',
+      duration: 28000,
+      messages: [
+        'Analysing your niche and ideal customer…',
+        'Planning your content themes and angles…',
+        'Writing Day 1 — 2 Facebook posts + Reel script…',
+        'Writing Days 2 & 3 — unique hooks and captions…',
+        'Writing Days 4 & 5 — story and authority content…',
+        'Writing Days 6 & 7 — engagement and CTA posts…',
+        'Crafting your email sequences…',
+        'Checking for repeated topics and angles…',
+        'Personalising to your voice and niche…',
+        'Almost done — finalising your content plan…',
+      ],
+      skeleton: window.EOSLoader.calendarSkeleton(),
+    });
+  }
 
   const setProgress = pct => {
-    const bar = document.getElementById('cal-progress-bar');
+    const bar = document.getElementById('cal-loading-progress-loader-bar');
     if (bar) bar.style.width = pct + '%';
   };
 
@@ -10408,7 +11022,10 @@ Return ONLY valid JSON. No markdown. No backticks. No explanation.`
   } catch(e) {
     console.error('Calendar generation failed:', e.message);
     loadingEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:1rem">⚠️ Content generation failed: '+e.message+'<br><br><button onclick="window.generate30DayCalendar()" style="margin-top:8px;padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700">Try Again</button></div>';
-    if (btn) { btn.disabled = false; btn.textContent = '⚡ Generate my 7-day content plan'; }
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '⚡ Generate my personalised 7-day content plan — unique posts, Reel scripts & emails';
+    }
   }
 };
 
@@ -11747,6 +12364,8 @@ window.generateMarketIntelligence = generateMarketIntelligence;
 // ═══════════════════════════════════════════════════════════════════════════
 
 function renderDashboard() {
+  const mode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+  const isAffiliate = mode === 'affiliate';
 
   // ── GREETING ──────────────────────────────────────────────────────────────
   const hour = new Date().getHours();
@@ -11758,194 +12377,252 @@ function renderDashboard() {
   if (dateEl) {
     const d = new Date();
     const opts = { weekday:'long', year:'numeric', month:'long', day:'numeric' };
-    dateEl.textContent = d.toLocaleDateString('en-GB', opts) + ' · Affiliate Mode';
+    dateEl.textContent = d.toLocaleDateString('en-GB', opts) + (isAffiliate ? ' · Affiliate Mode' : ' · Expert Mode');
   }
 
-  // ── CORE DATA ─────────────────────────────────────────────────────────────
-  const offer     = window._affiliateOffer || {};
-  const commission= offer.commission || window._appliedPrice || 0;
-  const target    = window._appliedTarget  || 0;
-
-  // Commission tracker data
-  let trackerData = {};
-  try { trackerData = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
-  const clicks    = trackerData.clicks || 0;
-  const sales     = trackerData.sales  || 0;
-  const earned    = sales * commission;
-  const gap       = Math.max(0, target - earned);
-  const salesLeft = commission > 0 ? Math.ceil(gap / commission) : 0;
-  const revPct    = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
-  const convRate  = clicks > 0 ? ((sales / clicks) * 100).toFixed(1) : '0.0';
-  const calDone   = window._calDone ? window._calDone.size : 0;
-
-  // ── KEY METRICS ──────────────────────────────────────────────────────────
   const fmt   = n => n >= 1000 ? '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'k' : '$' + n.toLocaleString();
   const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
 
-  setEl('db-target',    target   ? fmt(target)   : '—');
-  setEl('db-earned',    commission ? fmt(earned)  : '—');
-  setEl('db-earned-sub', sales + ' sale' + (sales !== 1 ? 's' : '') + ' · ' + clicks + ' clicks');
-  setEl('db-gap',       gap > 0 ? fmt(gap) : '✅');
-  setEl('db-gap-sub',   gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Monthly target hit!');
-  setEl('db-cal-done',  calDone);
-  setEl('db-cal-sub',   'content days done — ' + (calDone >= 14 ? '🔥 on fire' : calDone >= 7 ? '💪 building' : '🎯 get started'));
+  if (isAffiliate) {
+    // ══════════════════════════════════════════════════
+    // AFFILIATE DASHBOARD
+    // ══════════════════════════════════════════════════
+    const offer      = window._affiliateOffer || {};
+    const commission = offer.commission || window._appliedPrice || 0;
+    const target     = window._appliedTarget || 0;
 
-  // Revenue bar
-  const bar    = document.getElementById('db-rev-bar');
-  const pctEl  = document.getElementById('db-rev-pct');
-  const detail = document.getElementById('db-rev-deals');
-  if (bar)   { bar.style.width = revPct + '%'; bar.style.background = revPct >= 100 ? 'linear-gradient(90deg,var(--teal),#27c840)' : revPct >= 50 ? 'linear-gradient(90deg,var(--yellow),var(--teal))' : 'linear-gradient(90deg,var(--red),var(--orange))'; }
-  if (pctEl) { pctEl.textContent = revPct + '%'; pctEl.style.color = revPct >= 100 ? 'var(--teal)' : revPct >= 50 ? 'var(--yellow)' : 'var(--red)'; }
-  if (detail) {
-    if (!commission) detail.textContent = 'Set up your affiliate offer to track commissions here.';
-    else if (target > 0) detail.textContent = 'Earned $' + earned.toLocaleString() + ' of $' + target.toLocaleString() + ' target' + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + salesLeft + ' more sale' + (salesLeft !== 1 ? 's' : '') + ' at $' + commission.toLocaleString() + ' each');
-    else detail.textContent = '$' + earned.toLocaleString() + ' earned · Conv rate: ' + convRate + '%';
-  }
+    let trackerData = {};
+    try { trackerData = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
+    const clicks   = trackerData.clicks || 0;
+    const sales    = trackerData.sales  || 0;
+    const earned   = sales * commission;
+    const gap      = Math.max(0, target - earned);
+    const salesLeft= commission > 0 ? Math.ceil(gap / commission) : 0;
+    const revPct   = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
+    const convRate = clicks > 0 ? ((sales / clicks) * 100).toFixed(1) : '0.0';
+    const calDone  = window._calDone ? window._calDone.size : 0;
 
-  // Override metric labels for affiliate context
-  const lbl1 = document.querySelector('#db-metrics-row .db-metric:nth-child(1) .db-lbl');
-  const lbl2 = document.querySelector('#db-metrics-row .db-metric:nth-child(2) .db-lbl');
-  const lbl3 = document.querySelector('#db-metrics-row .db-metric:nth-child(3) .db-lbl');
-  const lbl4 = document.querySelector('#db-metrics-row .db-metric:nth-child(4) .db-lbl');
-  const sub2 = document.getElementById('db-earned-sub');
-  const sub3 = document.getElementById('db-gap-sub');
-  if (lbl1) lbl1.textContent = 'Monthly Target';
-  if (lbl2) lbl2.textContent = 'Commissions Earned';
-  if (lbl3) lbl3.textContent = 'Gap to Close';
-  if (lbl4) lbl4.textContent = 'Content Days Done';
+    // Metric labels
+    const lbl1 = document.querySelector('#db-metrics-row .db-metric:nth-child(1) .db-lbl');
+    const lbl2 = document.querySelector('#db-metrics-row .db-metric:nth-child(2) .db-lbl');
+    const lbl3 = document.querySelector('#db-metrics-row .db-metric:nth-child(3) .db-lbl');
+    const sub2 = document.getElementById('db-earned-sub');
+    const sub3 = document.getElementById('db-gap-sub');
+    if (lbl1) lbl1.textContent = 'Monthly Target';
+    if (lbl2) lbl2.textContent = 'Commission Earned';
+    if (lbl3) lbl3.textContent = 'Gap to Close';
+    setEl('db-target', target ? fmt(target) : '—');
+    setEl('db-earned', commission ? fmt(earned) : '—');
+    // Count-up animations
+    if (target && window.EOSLoader)     { setTimeout(() => window.EOSLoader.countUp('db-target', target, '$', '', 1000), 100); }
+    if (earned && window.EOSLoader)     { setTimeout(() => window.EOSLoader.countUp('db-earned', earned, '$', '', 900), 200); }
+    if (gap > 0 && window.EOSLoader)    { setTimeout(() => window.EOSLoader.countUp('db-gap', gap, '$', '', 800), 300); }
+    if (sub2) sub2.textContent = sales + ' sale' + (sales !== 1 ? 's' : '') + ' · ' + clicks + ' clicks';
+    setEl('db-gap', gap > 0 ? fmt(gap) : '✅');
+    if (sub3) sub3.textContent = gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Monthly target hit!';
+    setEl('db-cal-done', calDone);
+    setEl('db-cal-sub', 'content days done — ' + (calDone >= 14 ? '🔥 on fire' : calDone >= 7 ? '💪 building' : '🎯 get started'));
 
-  // ── HEALTH SCORE ─────────────────────────────────────────────────────────
-  if (window.calculateHealthScore) {
-    const s = window.calculateHealthScore();
-    const rat = window.scoreRating ? window.scoreRating(s.total) : { label: s.total >= 70 ? 'Strong' : 'Building', color: 'var(--teal)' };
-    setEl('db-score-num', s.total);
-    setEl('db-score-lbl', rat.label);
-    const scoreEl = document.getElementById('db-score-num');
-    if (scoreEl) scoreEl.style.color = rat.color;
-  }
+    const bar    = document.getElementById('db-rev-bar');
+    const pctEl  = document.getElementById('db-rev-pct');
+    const detail = document.getElementById('db-rev-deals');
+    if (bar)   { bar.style.width = revPct + '%'; bar.style.background = revPct >= 100 ? 'linear-gradient(90deg,var(--teal),#27c840)' : revPct >= 50 ? 'linear-gradient(90deg,var(--yellow),var(--teal))' : 'linear-gradient(90deg,var(--red),var(--orange))'; }
+    if (pctEl) { pctEl.textContent = revPct + '%'; pctEl.style.color = revPct >= 100 ? 'var(--teal)' : revPct >= 50 ? 'var(--yellow)' : 'var(--red)'; }
+    if (detail) {
+      if (!commission) detail.textContent = 'Set up your affiliate offer to track commissions here.';
+      else if (target > 0) detail.textContent = 'Earned $' + earned.toLocaleString() + ' of $' + target.toLocaleString() + ' target' + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + salesLeft + ' more sale' + (salesLeft !== 1 ? 's' : '') + ' at $' + commission.toLocaleString() + ' each');
+      else detail.textContent = '$' + earned.toLocaleString() + ' earned · Conv rate: ' + convRate + '%';
+    }
 
-  // ── STREAK ───────────────────────────────────────────────────────────────
-  const streak = window._streakDays ? window._streakDays.length : 0;
-  setEl('db-streak-num', streak);
+    // Affiliate missions
+    const hasAffOffer = !!(offer && offer.name);
+    const hasAvatar   = !!(window._aiAvatarData || window._avatarData);
+    const hasCalendar = !!(window._aiCalendar30 && window._aiCalendar30.length > 0);
+    let trackerToday = {};
+    try { trackerToday = JSON.parse(localStorage.getItem('eos_daily_tracker_' + new Date().toISOString().slice(0,10)) || '{}'); } catch(e) {}
+    const dmsDone  = trackerToday.dms  || 0;
+    const dmsTarget= commission > 0 ? Math.max(10, Math.ceil(Math.ceil(target / commission) * 8 / 30)) : 10;
+    const dmsLeft  = Math.max(0, dmsTarget - dmsDone);
 
-  // ── TODAY'S MISSION ──────────────────────────────────────────────────────
-  const hasAffOffer = !!(offer && offer.name);
-  const hasAvatar   = !!(window._avatarData && window._avatarData.name);
-  const hasCalendar = !!(window._aiCalendar30 && window._aiCalendar30.length > 0);
-  const ts          = window._trackerState || {};
-  const dmsTarget   = 20;
-  const dmsDone     = ts.counts && ts.counts.dms || 0;
-  const dmsLeft     = Math.max(0, dmsTarget - dmsDone);
+    const missions = [];
+    if (!hasAffOffer) missions.push({ n:1, col:'var(--yellow)', title:'Set up your affiliate offer', sub:'Go to Offer Setup — paste your affiliate link and click Analyse.', page:'affiliate' });
+    if (hasAffOffer && !hasAvatar) missions.push({ n:missions.length+1, col:'var(--purple)', title:'Generate your buyer avatar', sub:'Go to Offer Setup — your buyer profile is ready to build.', page:'affiliate' });
+    if (!hasCalendar) missions.push({ n:missions.length+1, col:'var(--teal)', title:'Generate your content plan', sub:'Go to Offer Setup and click Analyse — your 7-day plan will be written.', page:'affiliate' });
+    if (hasCalendar && calDone < 7) missions.push({ n:missions.length+1, col:'var(--teal)', title:'Post Day '+(calDone+1)+' content', sub:'Open the Content Calendar tab in your offer and post today\'s scripts.', page:'affiliate' });
+    if (dmsLeft > 0) missions.push({ n:missions.length+1, col:'var(--purple)', title:'Send '+dmsLeft+' more DMs today', sub:dmsTarget+' DMs per day minimum. '+dmsDone+' done. '+dmsLeft+' to go.', page:'affiliate' });
+    else missions.push({ n:missions.length+1, col:'var(--teal)', title:'DMs done ✅ — engage your comments', sub:'Reply to every comment on today\'s posts. Engagement builds reach.', page:'affiliate' });
+    missions.push({ n:missions.length+1, col:'var(--orange)', title:'Log your clicks and sales', sub:'Track every link click and sale in the Commission Tracker tab.', page:'affiliate' });
 
-  const missions = [];
-  if (!hasAffOffer) {
-    missions.push({ n:1, col:'var(--teal)',   title:'Set up your affiliate offer',           sub:'Go to Offer Setup → paste your product link and commission — AI builds everything.', page:'affiliate', btnIdx:1 });
-    missions.push({ n:2, col:'var(--purple)', title:'Buyer profile will be auto-generated', sub:'After analysis, your full buyer avatar is ready instantly.',                           page:'affiliate', btnIdx:1 });
-    missions.push({ n:3, col:'var(--yellow)', title:'7-day content plan will be created',   sub:'Scripts, reels, and emails — written for your niche automatically.',                  page:'affiliate', btnIdx:1 });
+    const top3 = missions.slice(0, 3);
+    const missionEl = document.getElementById('db-mission');
+    if (missionEl && top3.length) {
+      missionEl.innerHTML = top3.map(m => `
+        <div class="mission-item" onclick="window.showPage('${m.page}', document.getElementById('nav-affiliate'))">
+          <div class="mission-num" style="background:${m.col}">${m.n}</div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:800;color:var(--white);margin-bottom:2px">${m.title}</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.4">${m.sub}</div>
+          </div>
+          <div style="color:var(--dimmer);font-size:14px;flex-shrink:0">›</div>
+        </div>`).join('');
+    }
+
+    const steps = [
+      { label: 'Affiliate offer configured', done: hasAffOffer, page: 'affiliate' },
+      { label: 'Buyer profile generated',    done: hasAvatar,   page: 'affiliate' },
+      { label: '7-Day content plan ready',   done: hasCalendar, page: 'affiliate' },
+      { label: 'Daily Routine built',        done: !!(typeof customRoutineBlocks !== 'undefined' && customRoutineBlocks && customRoutineBlocks.filter(b=>!b.section).length>0), page:'routine' },
+      { label: 'First sale logged',          done: sales > 0,   page: 'affiliate' },
+    ];
+    const doneCount = steps.filter(s => s.done).length;
+    const setupPct  = Math.round((doneCount / steps.length) * 100);
+    setEl('db-setup-pct', setupPct + '%');
+    const setupBar = document.getElementById('db-setup-bar');
+    if (setupBar) setupBar.style.width = setupPct + '%';
+    const setupList = document.getElementById('db-setup-list');
+    if (setupList) {
+      setupList.innerHTML = steps.map(s => `
+        <div class="setup-step ${s.done ? 'done' : ''}" onclick="window.showPage('${s.page}', document.getElementById('nav-${s.page}'))">
+          <div class="setup-check">${s.done ? '✓' : ''}</div>
+          <div style="font-size:11px;color:${s.done ? 'var(--dim)' : 'var(--muted)'};text-decoration:${s.done ? 'line-through' : 'none'}">${s.label}</div>
+        </div>`).join('');
+    }
+
+    const note = 'Every link click is a potential commission. Every DM is a potential buyer. Focus on volume today — the law of numbers always wins. Post, DM, track, repeat.';
+    setEl('db-coach-text', note);
+
   } else {
-    if (hasCalendar && calDone < 7) missions.push({ n:missions.length+1, col:'var(--teal)',   title:'Post Day '+(calDone+1)+' content',       sub:'Open the Content Calendar tab in your offer and post today\'s scripts.',   page:'affiliate', btnIdx:1 });
-    else if (!hasCalendar)          missions.push({ n:missions.length+1, col:'var(--teal)',   title:'Generate your content plan',             sub:'Go to Offer Setup and click Analyse — your 7-day plan will be written.',   page:'affiliate', btnIdx:1 });
-    if (dmsLeft > 0)                missions.push({ n:missions.length+1, col:'var(--purple)', title:'Send '+dmsLeft+' more DMs today',        sub:dmsTarget+' DMs per day minimum. '+dmsDone+' done. '+dmsLeft+' to go.',    page:'affiliate', btnIdx:1 });
-    else                            missions.push({ n:missions.length+1, col:'var(--teal)',   title:'DMs done ✅ — engage your comments',     sub:'Reply to every comment on today\'s posts. Engagement builds reach.',       page:'affiliate', btnIdx:1 });
-    missions.push({ n:missions.length+1, col:'var(--orange)', title:'Log your clicks and sales',             sub:'Track every link click and sale in the Commission Tracker tab.',              page:'affiliate', btnIdx:1 });
+    // ══════════════════════════════════════════════════
+    // EXPERT DASHBOARD
+    // ══════════════════════════════════════════════════
+    const price  = window._appliedPrice  || 0;
+    const target = window._appliedTarget || 0;
+    const niche  = window._appliedNiche  || '';
+    const tracker= window._trackerState  || {};
+    const deals  = tracker.closedDeals   || 0;
+    const earned = deals * price;
+    const gap    = Math.max(0, target - earned);
+    const dealsLeft = price > 0 ? Math.ceil(gap / price) : 0;
+    const revPct = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
+    const calDone= window._calDone ? window._calDone.size : 0;
+    const hasAvatar  = !!(window._avatarData && window._avatarData.job);
+    const hasOffer   = !!((document.getElementById('offer_name')||{}).value || (window._lastOfferOutput));
+    const hasCalendar= !!(window._aiCalendar30 && window._aiCalendar30.length > 0);
+    const hasPlan    = !!(price && target && niche);
+
+    // Metric labels — expert version
+    const lbl1 = document.querySelector('#db-metrics-row .db-metric:nth-child(1) .db-lbl');
+    const lbl2 = document.querySelector('#db-metrics-row .db-metric:nth-child(2) .db-lbl');
+    const lbl3 = document.querySelector('#db-metrics-row .db-metric:nth-child(3) .db-lbl');
+    const sub2 = document.getElementById('db-earned-sub');
+    const sub3 = document.getElementById('db-gap-sub');
+    if (lbl1) lbl1.textContent = 'Monthly Target';
+    if (lbl2) lbl2.textContent = 'Revenue Closed';
+    if (lbl3) lbl3.textContent = 'Gap to Close';
+
+    setEl('db-target',    target ? fmt(target) : '—');
+    setEl('db-earned',    price  ? fmt(earned) : '—');
+    // Animate numbers counting up
+    if (target && window.EOSLoader) { setTimeout(() => { window.EOSLoader.countUp('db-target', target, '$', '', 1000); }, 100); }
+    if (earned && window.EOSLoader) { setTimeout(() => { window.EOSLoader.countUp('db-earned', earned, '$', '', 900); }, 200); }
+    if (gap > 0 && window.EOSLoader) { setTimeout(() => { window.EOSLoader.countUp('db-gap', gap, '$', '', 800); }, 300); }
+    if (sub2) sub2.textContent = deals + ' deal' + (deals !== 1 ? 's' : '') + ' closed · $' + price.toLocaleString() + '/client';
+    setEl('db-gap',       gap > 0 ? fmt(gap) : '✅');
+    if (sub3) sub3.textContent = gap > 0 ? dealsLeft + ' deal' + (dealsLeft !== 1 ? 's' : '') + ' to close' : '🏆 Monthly target hit!';
+    setEl('db-cal-done',  calDone);
+    setEl('db-cal-sub',   'content days done — ' + (calDone >= 14 ? '🔥 on fire' : calDone >= 7 ? '💪 building' : '🎯 get started'));
+
+    const bar    = document.getElementById('db-rev-bar');
+    const pctEl  = document.getElementById('db-rev-pct');
+    const detail = document.getElementById('db-rev-deals');
+    if (bar)   { bar.style.width = revPct + '%'; bar.style.background = revPct >= 100 ? 'linear-gradient(90deg,var(--teal),#27c840)' : revPct >= 50 ? 'linear-gradient(90deg,var(--yellow),var(--teal))' : 'linear-gradient(90deg,var(--red),var(--orange))'; }
+    if (pctEl) { pctEl.textContent = revPct + '%'; pctEl.style.color = revPct >= 100 ? 'var(--teal)' : revPct >= 50 ? 'var(--yellow)' : 'var(--red)'; }
+    if (detail) {
+      if (!price) detail.textContent = 'Set your offer price and monthly target in the Revenue Plan to start tracking.';
+      else if (target > 0) detail.textContent = 'Closed $' + earned.toLocaleString() + ' of $' + target.toLocaleString() + ' target' + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + dealsLeft + ' more deal' + (dealsLeft !== 1 ? 's' : '') + ' at $' + price.toLocaleString() + ' each');
+      else detail.textContent = '$' + earned.toLocaleString() + ' earned · ' + deals + ' client' + (deals !== 1 ? 's' : '') + ' closed';
+    }
+
+    // Expert missions
+    let trackerToday = {};
+    try { trackerToday = JSON.parse(localStorage.getItem('eos_daily_tracker_' + new Date().toISOString().slice(0,10)) || '{}'); } catch(e) {}
+    const dmsDone  = trackerToday.dms || 0;
+    const dmsTarget= price > 0 ? Math.max(10, Math.ceil(dealsLeft * 8 / 30)) : 10;
+    const dmsLeft  = Math.max(0, dmsTarget - dmsDone);
+
+    const missions = [];
+    if (!hasPlan) missions.push({ n:1, col:'var(--yellow)', title:'Set your Revenue Plan', sub:'Enter your offer price, monthly target, and niche — then click Apply to Everything.', page:'plan', nav:'nav-plan' });
+    if (hasPlan && !hasOffer) missions.push({ n:missions.length+1, col:'var(--purple)', title:'Create your offer', sub:'Build your high-ticket offer in the Offer Creation section.', page:'offer', nav:'nav-offer' });
+    if (hasPlan && !hasAvatar) missions.push({ n:missions.length+1, col:'var(--teal)', title:'Generate your Ideal Customer', sub:'Fill in the Ideal Customer form and generate your buyer avatar.', page:'avatar', nav:'nav-avatar' });
+    if (!hasCalendar) missions.push({ n:missions.length+1, col:'var(--teal)', title:'Generate your Content Calendar', sub:'Build your 30-day content plan tailored to your niche and offer.', page:'calendar', nav:'nav-calendar' });
+    if (hasCalendar && calDone < 7) missions.push({ n:missions.length+1, col:'var(--teal)', title:'Post Day '+(calDone+1)+' content', sub:'Open your Content Calendar and post today\'s scripted content.', page:'calendar', nav:'nav-calendar' });
+    if (dmsLeft > 0) missions.push({ n:missions.length+1, col:'var(--purple)', title:'Send '+dmsLeft+' DMs today', sub:dmsTarget+' DMs per day minimum. '+dmsDone+' done. '+dmsLeft+' to go.', page:'scripts', nav:'nav-scripts' });
+    else missions.push({ n:missions.length+1, col:'var(--teal)', title:'DMs done ✅ — follow up open leads', sub:'Check your pipeline and follow up with anyone who hasn\'t replied.', page:'scripts', nav:'nav-scripts' });
+    missions.push({ n:missions.length+1, col:'var(--orange)', title:'Log today\'s activity', sub:'Track your DMs, content, and closed deals in the Daily Tracker.', page:'tracker', nav:'nav-tracker' });
+
+    const top3 = missions.slice(0, 3);
+    const missionEl = document.getElementById('db-mission');
+    if (missionEl && top3.length) {
+      missionEl.innerHTML = top3.map(m => `
+        <div class="mission-item" onclick="window.showPage('${m.page}', document.getElementById('${m.nav}'))">
+          <div class="mission-num" style="background:${m.col}">${m.n}</div>
+          <div style="flex:1">
+            <div style="font-size:12px;font-weight:800;color:var(--white);margin-bottom:2px">${m.title}</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.4">${m.sub}</div>
+          </div>
+          <div style="color:var(--dimmer);font-size:14px;flex-shrink:0">›</div>
+        </div>`).join('');
+    }
+
+    // Expert setup checklist
+    const steps = [
+      { label: 'Revenue Plan configured',      done: hasPlan,     page:'plan',     nav:'nav-plan' },
+      { label: 'Offer created',                done: hasOffer,    page:'offer',    nav:'nav-offer' },
+      { label: 'Ideal Customer generated',     done: hasAvatar,   page:'avatar',   nav:'nav-avatar' },
+      { label: 'Content Calendar generated',   done: hasCalendar, page:'calendar', nav:'nav-calendar' },
+      { label: 'Daily Routine built',          done: !!(typeof customRoutineBlocks !== 'undefined' && customRoutineBlocks && customRoutineBlocks.filter && customRoutineBlocks.filter(b=>!b.section).length>0), page:'routine', nav:'nav-routine' },
+      { label: 'First deal closed',            done: deals > 0,   page:'tracker',  nav:'nav-tracker' },
+    ];
+    const doneCount = steps.filter(s => s.done).length;
+    const setupPct  = Math.round((doneCount / steps.length) * 100);
+    setEl('db-setup-pct', setupPct + '%');
+    const setupBar = document.getElementById('db-setup-bar');
+    if (setupBar) setupBar.style.width = setupPct + '%';
+    const setupList = document.getElementById('db-setup-list');
+    if (setupList) {
+      setupList.innerHTML = steps.map(s => `
+        <div class="setup-step ${s.done ? 'done' : ''}" onclick="window.showPage('${s.page}', document.getElementById('${s.nav}'))">
+          <div class="setup-check">${s.done ? '✓' : ''}</div>
+          <div style="font-size:11px;color:${s.done ? 'var(--dim)' : 'var(--muted)'};text-decoration:${s.done ? 'line-through' : 'none'}">${s.label}</div>
+        </div>`).join('');
+    }
+
+    const note = !hasPlan
+      ? 'Your execution machine starts with a clear target. Set your offer price, monthly goal, and niche — everything else builds from there.'
+      : deals === 0
+      ? 'Revenue comes from conversations. ' + dmsTarget + ' DMs a day is your non-negotiable. Every day without outreach is a day without pipeline.'
+      : 'You\'ve closed ' + deals + ' deal' + (deals !== 1 ? 's' : '') + ' this month. Keep the momentum — ' + dealsLeft + ' more to hit your target. Volume and follow-up win.';
+    setEl('db-coach-text', note);
   }
 
-  const top3      = missions.slice(0, 3);
-  const missionEl = document.getElementById('db-mission');
-  if (missionEl && top3.length) {
-    missionEl.innerHTML = top3.map(m => `
-      <div class="mission-item" onclick="window.showPage('${m.page}', document.getElementById('nav-affiliate'))">
-        <div class="mission-num" style="background:${m.col}">${m.n}</div>
-        <div style="flex:1">
-          <div style="font-size:12px;font-weight:800;color:var(--white);margin-bottom:2px">${m.title}</div>
-          <div style="font-size:11px;color:var(--dim);line-height:1.4">${m.sub}</div>
-        </div>
-        <div style="color:var(--dimmer);font-size:14px;flex-shrink:0">›</div>
-      </div>`).join('');
+  // ── HEALTH SCORE (shared) ─────────────────────────────────────────────────
+  if (window.renderHealthScore) {
+    try {
+      const score = window.renderHealthScore(true);
+      if (score !== undefined) {
+        setEl('db-score-num', score);
+        setEl('db-score-lbl', score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : score >= 40 ? 'Building' : 'Getting started');
+      }
+    } catch(e) {}
   }
 
-  // ── SETUP CHECKLIST ───────────────────────────────────────────────────────
-  const steps = [
-    { label: 'Affiliate offer configured',   done: hasAffOffer,              page: 'affiliate' },
-    { label: 'Buyer profile generated',      done: hasAvatar,                page: 'affiliate' },
-    { label: '7-Day content plan ready',     done: hasCalendar,              page: 'affiliate' },
-    { label: 'Daily Routine built',          done: !!(typeof customRoutineBlocks !== 'undefined' && customRoutineBlocks && customRoutineBlocks.filter(b=>!b.section).length>0), page:'routine' },
-    { label: 'First sale logged',            done: sales > 0,                page: 'affiliate' },
-  ];
-  const doneCount  = steps.filter(s => s.done).length;
-  const setupPct   = Math.round((doneCount / steps.length) * 100);
-  setEl('db-setup-pct', setupPct + '%');
-  const setupBar = document.getElementById('db-setup-bar');
-  if (setupBar) setupBar.style.width = setupPct + '%';
-  const setupList = document.getElementById('db-setup-list');
-  if (setupList) {
-    setupList.innerHTML = steps.map(s => `
-      <div class="setup-step" onclick="window.showPage('${s.page}', document.getElementById('nav-${s.page === 'routine' ? 'routine' : 'affiliate'}'))">
-        <div class="setup-check ${s.done ? 'done' : ''}">
-          ${s.done ? '<svg width="11" height="9" viewBox="0 0 11 9" fill="none"><polyline points="1.5,4.5 4,7 9.5,1.5" stroke="#1a1a3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>' : ''}
-        </div>
-        <div style="font-size:12px;color:${s.done ? 'var(--muted)' : 'var(--dimmer)'};flex:1;font-weight:${s.done ? '500' : '600'}">${s.label}</div>
-        ${!s.done ? '<div style="font-size:10px;color:var(--purple);font-weight:700">Set up →</div>' : ''}
-      </div>`).join('');
-  }
-
-  // ── DAILY ACTIVITY ────────────────────────────────────────────────────────
-  const actEl = document.getElementById('db-activity');
-  if (actEl) {
-    actEl.innerHTML = [
-      { label:'Posts today',   done: ts.counts&&ts.counts.posts||0,  target:4,          col:'var(--purple)' },
-      { label:'DMs sent',      done: dmsDone,                         target:dmsTarget,  col:'var(--teal)'   },
-      { label:'Link clicks',   done: clicks,                          target:Math.max(10,clicks+5), col:'var(--yellow)' },
-      { label:'Sales made',    done: sales,                           target:Math.max(1, commission>0?Math.ceil(target/commission):5), col:'var(--orange)' },
-    ].map(it => {
-      const pct = it.target > 0 ? Math.min(100, Math.round((it.done/it.target)*100)) : 0;
-      return `<div>
-        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
-          <span style="color:var(--dim);font-weight:600">${it.label}</span>
-          <span style="font-weight:800;color:${pct>=100?'var(--teal)':'var(--white)'}">${it.done}<span style="color:var(--dimmer);font-weight:400">/${it.target}</span></span>
-        </div>
-        <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
-          <div style="width:${pct}%;height:100%;background:${it.col};border-radius:2px;transition:width .5s"></div>
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  // ── NEXT MILESTONE ────────────────────────────────────────────────────────
-  const milestoneAmounts = [1000, 5000, 10000, 25000, 50000, 100000];
-  const milestoneIcons   = ['🌱','🔥','💎','🚀','👑','🏆'];
-  const milestoneLabels  = ['$1K','$5K','$10K','$25K','$50K','$100K'];
-  let earnedMilestones = [];
-  try { earnedMilestones = JSON.parse(localStorage.getItem('eos_milestones')||'[]'); } catch(e) {}
-  const nextMile = milestoneAmounts.find(a => !earnedMilestones.includes(a));
-  const mileEl   = document.getElementById('db-next-milestone');
-  if (mileEl && nextMile) {
-    const idx      = milestoneAmounts.indexOf(nextMile);
-    const milePct  = earned > 0 ? Math.min(100, Math.round((earned/nextMile)*100)) : 0;
-    const salesAway= commission > 0 ? Math.ceil(Math.max(0,nextMile-earned)/commission) : '?';
-    mileEl.innerHTML = `
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-        <span style="font-size:18px">${milestoneIcons[idx]}</span>
-        <div style="flex:1">
-          <div style="font-size:11px;font-weight:900;color:var(--white)">Next: ${milestoneLabels[idx]} in commissions</div>
-          <div style="font-size:10px;color:var(--dim)">${salesAway} sale${salesAway!==1?'s':''} away${commission?(' at $'+commission.toLocaleString()+' each'):''}</div>
-        </div>
-        <div style="font-size:12px;font-weight:900;color:var(--yellow)">${milePct}%</div>
-      </div>
-      <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden">
-        <div style="width:${milePct}%;height:100%;background:linear-gradient(90deg,var(--yellow),var(--orange));border-radius:2px"></div>
-      </div>`;
-  }
-
-  // ── COACH NOTE ────────────────────────────────────────────────────────────
-  let note = '';
-  if (!hasAffOffer)        note = 'Start by setting up your affiliate offer. Paste your product link, enter your commission, and click Analyse — the AI will build your entire strategy, buyer profile, and content plan in one go.';
-  else if (sales === 0)    note = 'Your setup is done. Now execute. Post today\'s content, send 20 DMs minimum, and track every link click. Your first commission comes from consistent daily action — not from waiting.';
-  else if (revPct >= 100)  note = 'Target hit! This is the moment to raise your monthly target. The compounding effect is real — your content is building reach, your DM skills are sharpening. Set a bigger number and go again.';
-  else if (revPct >= 50)   note = 'You are over halfway to your target. The pipeline is working. Stay consistent with your content and DMs — the second half of the month is where most commissions close.';
-  else                     note = 'Every link click is a potential commission. Every DM is a potential buyer. Focus on volume today — the law of numbers always wins. Post, DM, track, repeat.';
-  setEl('db-coach-text', note);
+  // ── STREAK (shared) ───────────────────────────────────────────────────────
+  try {
+    const streakData = JSON.parse(localStorage.getItem('eos_streak') || '{"count":0}');
+    setEl('db-streak-num', streakData.count || 0);
+  } catch(e) {}
 }
+
 
 
 window.renderDashboard = renderDashboard;
@@ -12402,10 +13079,10 @@ Day 7: final soft CTA with affiliate link.`;
       ];
       const DN2 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
       window._aiCalendar30 = topics.map((t,d) => ([
-        { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:`FACEBOOK POST — Day ${d+1}\n\n${t}\n\n[Full post body will be generated — click Regenerate to get AI-written content]\n\nCALL TO ACTION: Comment below with your thoughts!`, weekDay:DN2[d], topic:t, dayNum:d+1, callToAction:'Comment below!', engagementTip:'Post 8–9am.' },
-        { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:`REEL SCRIPT — Day ${d+1}\n\nHOOK: ${t}\n\n[Full reel script — click Regenerate for AI-written content]`, weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for more.', engagementTip:'Post 9–11am.' },
-        { postType:'Reel 2', slotType:'reel2', viralHook:t+' (Part 2)', fullScript:`REEL 2 SCRIPT — Day ${d+1}\n\nHOOK: Here's what nobody tells you about ${pain.split(' ').slice(0,4).join(' ')}\n\n[Full script — click Regenerate for AI-written content]`, weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12–2pm.' },
-        { postType:'Email', slotType:'email', viralHook:`Day ${d+1}: ${t.slice(0,50)}`, fullScript:`EMAIL — Day ${d+1}\n\nSUBJECT: ${t.slice(0,60)}\n\n[Full email — click Regenerate for AI-written content]\n\n${d>=2?'Check out '+pn+' here: [YOUR AFFILIATE LINK]':''}`, weekDay:DN2[d], topic:t, dayNum:d+1, emailSubject:t.slice(0,60), callToAction:'Reply to this email.', engagementTip:'Send 8–10am.' },
+        { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:`FACEBOOK POST — Day ${d+1}\n\n${t}\n\n[Full post body — click Regenerate to load your content]\n\nCALL TO ACTION: Comment below with your thoughts!`, weekDay:DN2[d], topic:t, dayNum:d+1, callToAction:'Comment below!', engagementTip:'Post 8–9am.' },
+        { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:`REEL SCRIPT — Day ${d+1}\n\nHOOK: ${t}\n\n[Full reel script — click Regenerate to load your content]`, weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for more.', engagementTip:'Post 9–11am.' },
+        { postType:'Reel 2', slotType:'reel2', viralHook:t+' (Part 2)', fullScript:`REEL 2 SCRIPT — Day ${d+1}\n\nHOOK: Here's what nobody tells you about ${pain.split(' ').slice(0,4).join(' ')}\n\n[Full script — click Regenerate to load your content]`, weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12–2pm.' },
+        { postType:'Email', slotType:'email', viralHook:`Day ${d+1}: ${t.slice(0,50)}`, fullScript:`EMAIL — Day ${d+1}\n\nSUBJECT: ${t.slice(0,60)}\n\n[Full email — click Regenerate to load your content]\n\n${d>=2?'Check out '+pn+' here: [YOUR AFFILIATE LINK]':''}`, weekDay:DN2[d], topic:t, dayNum:d+1, emailSubject:t.slice(0,60), callToAction:'Reply to this email.', engagementTip:'Send 8–10am.' },
       ]));
     }
 
@@ -13393,7 +14070,7 @@ ABSOLUTE RULES — NEVER BREAK THESE:
         else console.error('Advisor error:',resp.status,await resp.text());
       } catch(fe) { console.error('Advisor fetch failed:',fe); }
 
-      if (!reply) reply='⚠️ Could not reach AI advisor (status: '+(resp?.status||'network error')+'). Make sure api/claude.js is deployed on Vercel with ANTHROPIC_API_KEY set.';
+      if (!reply) reply='⚠️ Could not reach Execution OS (status: '+(resp?.status||'network error')+'). Make sure api/claude.js is deployed on Vercel with ANTHROPIC_API_KEY set.';
       if (typingEl&&typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
       appendMsg('ai',reply);
       advisorHistory.push({role:'assistant',content:reply});
@@ -13653,8 +14330,8 @@ window._firebaseSignOut = () => _signOut(auth).then(() => { window.location.href
 // ── Auth state listener ───────────────────────────────────────────────────────
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    if (window._authDone) { window.location.href = 'auth.html'; }
-    else { setTimeout(() => { if (!auth.currentUser) window.location.href = 'auth.html'; }, 2000); }
+    if (window._authDone) { window.location.href = '/login'; }
+    else { setTimeout(() => { if (!auth.currentUser) window.location.href = '/login'; }, 2000); }
     return;
   }
   window._authDone = true;
@@ -13680,7 +14357,7 @@ onAuthStateChanged(auth, async (user) => {
   const isAdmin = user.email === 'itzevan.se@gmail.com';
   const hasAccess = isAdmin || userDocData.accessGranted || memberData.accessGranted || memberData.active === true;
   if (!hasAccess) {
-    window.location.href = 'auth.html?error=no-access';
+    window.location.href = '/login?error=no-access';
     return;
   }
 
@@ -13783,23 +14460,127 @@ onAuthStateChanged(auth, async (user) => {
     } catch(e) { console.warn('Save profile failed:',e.message); }
   };
 
+  // ── Voice Profile save ───────────────────────────────────────────────────
+  window.saveVoiceProfile = async () => {
+    const gv = id => (document.getElementById(id)||{}).value||'';
+    const voiceData = {
+      tone:    gv('voice_tone'),
+      style:   gv('voice_style'),
+      words:   gv('voice_words'),
+      avoid:   gv('voice_avoid'),
+      story:   gv('voice_story'),
+      method:  gv('voice_method'),
+      example: gv('voice_example'),
+    };
+    window._voiceProfile = voiceData;
+    try {
+      await setDoc(doc(db,'users',user.uid),{voiceProfile: voiceData},{merge:true});
+      const msg = document.getElementById('save-voice-msg');
+      if (msg) { msg.style.display='block'; setTimeout(()=>msg.style.display='none',3000); }
+      const btn = document.getElementById('save-voice-btn');
+      if (btn) { btn.textContent='✅ Saved!'; setTimeout(()=>btn.textContent='💾 Save My Voice Profile',2000); }
+    } catch(e) { console.warn('Save voice profile failed:',e.message); }
+  };
+
+  window.markVoiceDirty = () => {
+    const btn = document.getElementById('save-voice-btn');
+    if (btn && btn.textContent !== '💾 Save My Voice Profile — unsaved changes') {
+      btn.textContent = '💾 Save My Voice Profile — unsaved changes';
+    }
+  };
+
+  // ── Load voice profile from Firestore on login ────────────────────────────
+  if (userDocData.voiceProfile) {
+    window._voiceProfile = userDocData.voiceProfile;
+    const vp = userDocData.voiceProfile;
+    const sv = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+    sv('voice_tone',    vp.tone);
+    sv('voice_style',   vp.style);
+    sv('voice_words',   vp.words);
+    sv('voice_avoid',   vp.avoid);
+    sv('voice_story',   vp.story);
+    sv('voice_method',  vp.method);
+    sv('voice_example', vp.example);
+  }
+
   window.uploadProfilePhoto = async (input) => {
     if (!input.files||!input.files[0]) return;
     const statusEl = document.getElementById('photo-upload-status');
     if (statusEl) statusEl.textContent = 'Uploading…';
     try {
-      // Convert to base64 and store URL (use Cloudinary or similar if configured)
       const reader = new FileReader();
       reader.onload = async (e) => {
         const dataUrl = e.target.result;
         await setDoc(doc(db,'users',user.uid),{photoURL:dataUrl},{merge:true});
-        const imgs = ['profile-photo-img','user-avatar-img'];
-        imgs.forEach(id=>{const el=document.getElementById(id);if(el){el.src=dataUrl;el.style.display='block';}});
-        if (statusEl) statusEl.textContent = '✅ Photo saved';
+        // Update all avatar elements across the app
+        window._applyProfilePhoto(dataUrl);
+        if (statusEl) { statusEl.textContent = '✅ Photo saved'; setTimeout(()=>{ if(statusEl) statusEl.textContent=''; },3000); }
       };
       reader.readAsDataURL(input.files[0]);
     } catch(e) {
       if (statusEl) statusEl.textContent = '⚠️ Upload failed';
+    }
+  };
+
+  // ── Apply photo to all avatar elements ────────────────────────────────────
+  window._applyProfilePhoto = (dataUrl) => {
+    // Profile page large avatar
+    const profImg = document.getElementById('profile-photo-img');
+    if (profImg) { profImg.src = dataUrl; profImg.style.display = 'block'; }
+    const profInitials = document.getElementById('profile-initials-big');
+    if (profInitials) profInitials.style.display = 'none';
+
+    // Sidebar avatar
+    const sideImg = document.getElementById('user-avatar-img');
+    if (sideImg) { sideImg.src = dataUrl; sideImg.style.cssText = 'display:block;width:100%;height:100%;object-fit:cover;border-radius:50%;'; }
+    const sideInitials = document.getElementById('sidebar-initials');
+    if (sideInitials) sideInitials.style.display = 'none';
+
+    // Topbar avatar
+    const topImg = document.getElementById('topbar-avatar-img');
+    if (topImg) { topImg.src = dataUrl; topImg.style.cssText = 'display:block;width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;'; }
+    const topInitials = document.getElementById('topbar-initials');
+    if (topInitials) topInitials.style.display = 'none';
+
+    // Show delete button, keep upload button visible
+    const delBtn = document.getElementById('delete-photo-btn');
+    if (delBtn) delBtn.style.display = 'flex';
+  };
+
+  // ── Delete / remove profile photo ─────────────────────────────────────────
+  window.deleteProfilePhoto = async () => {
+    const statusEl = document.getElementById('photo-upload-status');
+    const delBtn   = document.getElementById('delete-photo-btn');
+    if (!confirm('Remove your profile photo?')) return;
+    try {
+      if (statusEl) statusEl.textContent = 'Removing…';
+      // Clear from Firestore
+      await setDoc(doc(db,'users',user.uid),{photoURL:''},{merge:true});
+
+      // Reset profile page avatar
+      const profImg = document.getElementById('profile-photo-img');
+      if (profImg) { profImg.src = ''; profImg.style.display = 'none'; }
+      const profInitials = document.getElementById('profile-initials-big');
+      if (profInitials) profInitials.style.display = '';
+
+      // Reset sidebar avatar
+      const sideImg = document.getElementById('user-avatar-img');
+      if (sideImg) { sideImg.src = ''; sideImg.style.display = 'none'; }
+      const sideInitials = document.getElementById('sidebar-initials');
+      if (sideInitials) sideInitials.style.display = '';
+
+      // Reset topbar avatar
+      const topImg = document.getElementById('topbar-avatar-img');
+      if (topImg) { topImg.src = ''; topImg.style.display = 'none'; }
+      const topInitials = document.getElementById('topbar-initials');
+      if (topInitials) topInitials.style.display = '';
+
+      // Hide delete button
+      if (delBtn) delBtn.style.display = 'none';
+
+      if (statusEl) { statusEl.textContent = '✅ Photo removed'; setTimeout(()=>{ if(statusEl) statusEl.textContent=''; },3000); }
+    } catch(e) {
+      if (statusEl) statusEl.textContent = '⚠️ Could not remove photo';
     }
   };
 
@@ -13829,14 +14610,24 @@ function renderUserUI(user, userDocData, memberData) {
   setTxt('profile-initials-big', initials);
 
   if (photo) {
-    const userImg = document.getElementById('user-avatar-img');
-    if (userImg) { userImg.src=photo; userImg.style.cssText='display:block;width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;'; }
-    const profImg = document.getElementById('profile-photo-img');
-    if (profImg) { profImg.src=photo; profImg.style.cssText='display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;position:absolute;top:0;left:0;'; }
-    const ti = document.getElementById('topbar-initials');
-    if (ti) ti.style.display='none';
-    const bi = document.getElementById('profile-initials-big');
-    if (bi) bi.style.display='none';
+    // Use shared helper if available (set up after auth), else apply directly
+    if (window._applyProfilePhoto) {
+      window._applyProfilePhoto(photo);
+    } else {
+      const userImg = document.getElementById('user-avatar-img');
+      if (userImg) { userImg.src=photo; userImg.style.cssText='display:block;width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0;'; }
+      const profImg = document.getElementById('profile-photo-img');
+      if (profImg) { profImg.src=photo; profImg.style.cssText='display:block;width:100%;height:100%;border-radius:50%;object-fit:cover;position:absolute;top:0;left:0;'; }
+      const topImg = document.getElementById('topbar-avatar-img');
+      if (topImg) { topImg.src=photo; topImg.style.cssText='display:block;width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0;'; }
+      const ti = document.getElementById('topbar-initials');
+      if (ti) ti.style.display='none';
+      const bi = document.getElementById('profile-initials-big');
+      if (bi) bi.style.display='none';
+      // Show delete button
+      const delBtn = document.getElementById('delete-photo-btn');
+      if (delBtn) delBtn.style.display = 'flex';
+    }
   }
 
   setVal('prof-name', name);
