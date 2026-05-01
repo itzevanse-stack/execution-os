@@ -7609,7 +7609,8 @@ window.showPostDetail30 = function(globalIdx) {
   const typeColors = { fb1:'var(--teal)', fb2:'var(--teal)', reel1:'var(--purple)', reel2:'var(--purple)', email:'var(--yellow)' };
   const col = typeColors[slot.slotType] || 'var(--teal)';
   const rawScript = slot.fullScript || '';
-  const isEmpty   = !rawScript || rawScript.includes('[Full post body') || rawScript.includes('[Full reel') || rawScript.includes('[Full script') || rawScript.includes('[Full email') || rawScript.trim().length < 20;
+  const STALE_MARKERS = ['[Full post body','[Full reel','[Full script','[Full email','click Regenerate','I cannot provide','placeholder'];
+  const isEmpty = !rawScript || rawScript.trim().length < 20 || STALE_MARKERS.some(m => rawScript.includes(m));
   const script    = isEmpty ? '' : rawScript.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   modal.innerHTML = `
@@ -7624,9 +7625,10 @@ window.showPostDetail30 = function(globalIdx) {
       <div style="padding:1.25rem 1.5rem" id="post-detail-body">
         ${isEmpty ? `
           <div style="text-align:center;padding:2rem 1rem">
-            <div style="font-size:28px;margin-bottom:12px">✍️</div>
-            <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:8px">Full content is generating…</div>
-            <div style="font-size:11px;color:var(--dim);margin-bottom:20px;line-height:1.6">Click Regenerate to generate the complete script for this post right now.</div>
+            <div style="font-size:32px;margin-bottom:14px">✍️</div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);margin-bottom:8px;font-family:'Poppins',sans-serif">This post needs to be written</div>
+            <div style="font-size:12px;color:var(--dim);margin-bottom:24px;line-height:1.7;max-width:320px;margin-left:auto;margin-right:auto">Click <strong style="color:var(--purple)">⚡ Regenerate</strong> below and Execution OS will write the full script for this post right now — tailored to your niche, offer, and ideal customer.</div>
+            <button onclick="window._regenPost(${globalIdx})" style="padding:12px 28px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;cursor:pointer;letter-spacing:.3px">⚡ Write This Post Now</button>
           </div>` : `
           <pre style="font-size:12px;color:rgba(255,255,255,.85);line-height:1.9;white-space:pre-wrap;font-family:'Inter',sans-serif;margin:0;border-radius:10px;background:rgba(255,255,255,.03);padding:1rem">${script}</pre>`}
       </div>
@@ -11390,7 +11392,15 @@ window.showPostDetail30 = function(globalIdx) {
   (async () => {
     try {
       const script = d.fullScript;
-      if(!script || script.length < 80) return;
+      // Never run cleanup on empty content or old placeholder text
+      const isPlaceholder = !script || script.length < 80 ||
+        script.includes('[Full post body') ||
+        script.includes('[Full reel script') ||
+        script.includes('[Full script') ||
+        script.includes('[Full email') ||
+        script.includes('click Regenerate') ||
+        script.includes('click Regenerate');
+      if (isPlaceholder) return;
       const improved = await callClaude('Fix ALL grammar errors and unnatural phrasing in this script. Keep exact format, structure and length. Return ONLY the fixed script.\n\n' + script, 1500).catch(()=>null);
       if(!improved || improved.length < 50) return;
       // Update the stored script
@@ -15069,7 +15079,23 @@ function loadCalendar(data) {
     return;
   }
   try {
-    window._aiCalendar30 = JSON.parse(data.data);
+    const parsedCal = JSON.parse(data.data);
+
+    // Detect stale placeholder content — if any slot has placeholder text, clear fullScript
+    // so user sees the Regenerate button instead of broken API responses
+    const PLACEHOLDER_MARKERS = ['[Full post body', '[Full reel', '[Full script', '[Full email', 'click Regenerate'];
+    if (Array.isArray(parsedCal)) {
+      parsedCal.forEach(day => {
+        if (!Array.isArray(day)) return;
+        day.forEach(slot => {
+          if (!slot) return;
+          const hasPlaceholder = PLACEHOLDER_MARKERS.some(m => (slot.fullScript||'').includes(m));
+          if (hasPlaceholder) slot.fullScript = '';
+        });
+      });
+    }
+
+    window._aiCalendar30 = parsedCal;
     window._postsPerDay  = data.postsPerDay||6;
     window._calDone      = new Set(data.calDone||[]);
     const banner = document.getElementById('cal-ai-banner');
