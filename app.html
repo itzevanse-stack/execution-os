@@ -1880,6 +1880,232 @@ button[onclick="generateOffer()"] {
   animation: eos-typewriter-cursor .7s infinite;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════
+   TRAINING PORTAL
+═══════════════════════════════════════════════════════════════════ */
+.training-wrap {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: calc(100vh - 56px);
+  gap: 0;
+}
+@media (max-width: 700px) {
+  .training-wrap { grid-template-columns: 1fr; }
+  .training-sidebar { display: none; }
+  .training-sidebar.open { display: flex; position: fixed; top: 56px; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--bg2); }
+}
+.training-sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border2);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: sticky;
+  top: 56px;
+  max-height: calc(100vh - 56px);
+}
+.training-sidebar-header {
+  padding: 1rem 1.25rem .75rem;
+  border-bottom: 1px solid var(--border2);
+  flex-shrink: 0;
+}
+.training-sidebar-title {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--dimmer);
+  font-weight: 800;
+  font-family: Poppins, sans-serif;
+  margin-bottom: 4px;
+}
+.training-course-name {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--white);
+  font-family: Poppins, sans-serif;
+  line-height: 1.3;
+}
+.training-progress-bar-wrap {
+  margin-top: 10px;
+  height: 4px;
+  background: rgba(255,255,255,.08);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.training-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--teal), var(--purple));
+  border-radius: 99px;
+  transition: width .6s ease;
+}
+.training-module-wrap { padding: .5rem 0; }
+.training-module-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: .65rem 1.25rem;
+  cursor: pointer;
+  user-select: none;
+  transition: background .15s;
+}
+.training-module-header:hover { background: rgba(255,255,255,.04); }
+.training-module-chevron {
+  font-size: 10px;
+  color: var(--dimmer);
+  transition: transform .2s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.training-module-chevron.open { transform: rotate(90deg); }
+.training-module-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(78,204,163,.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.training-module-name {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--white);
+  font-family: Poppins, sans-serif;
+  line-height: 1.3;
+  flex: 1;
+}
+.training-module-meta {
+  font-size: 10px;
+  color: var(--dimmer);
+  margin-top: 2px;
+}
+.training-lessons-wrap {
+  overflow: hidden;
+  max-height: 0;
+  transition: max-height .3s ease;
+}
+.training-lessons-wrap.open { max-height: 2000px; }
+.training-lesson-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: .6rem 1.25rem .6rem 2.75rem;
+  cursor: pointer;
+  transition: background .15s;
+  border-left: 2px solid transparent;
+}
+.training-lesson-item:hover { background: rgba(255,255,255,.04); }
+.training-lesson-item.active {
+  background: rgba(78,204,163,.07);
+  border-left-color: var(--teal);
+}
+.training-lesson-item.completed .training-lesson-check { background: var(--teal); color: #fff; }
+.training-lesson-check {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+  transition: all .2s;
+}
+.training-lesson-title {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.4;
+  flex: 1;
+}
+.training-lesson-item.active .training-lesson-title { color: var(--white); font-weight: 700; }
+.training-lesson-duration {
+  font-size: 10px;
+  color: var(--dimmer);
+  flex-shrink: 0;
+}
+/* Main content */
+.training-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.training-video-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  background: #000;
+  flex-shrink: 0;
+}
+.training-video-wrap iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+.training-video-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: linear-gradient(145deg, var(--bg2), var(--bg3));
+}
+.training-lesson-body {
+  padding: 1.5rem;
+  flex: 1;
+}
+.training-lesson-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--teal);
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+.training-lesson-heading {
+  font-size: clamp(18px, 3vw, 26px);
+  font-weight: 900;
+  color: var(--white);
+  font-family: Poppins, sans-serif;
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+.training-lesson-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.8;
+  margin-bottom: 1.5rem;
+  max-width: 680px;
+}
+.training-nav-btns {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+/* Admin builder */
+.training-admin-wrap {
+  background: rgba(255,217,61,.05);
+  border: 1px solid rgba(255,217,61,.2);
+  border-radius: 16px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.training-admin-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--yellow);
+  font-family: Poppins, sans-serif;
+  margin-bottom: 1rem;
+}
+
 </style>
 </head>
 <body>
@@ -1988,6 +2214,15 @@ button[onclick="generateOffer()"] {
         <div class="ni-dot"></div>
       </button>
 
+      <button class="nav-item ripple-container expert-only" onclick="showPage('market',this)" id="nav-market" style="display:none">
+        <div class="ni-icon">🌍</div>
+        <div class="ni-text">
+          <div class="ni-label">MARKET OPPORTUNITY</div>
+          <div class="ni-step">Your TAM &amp; growth path</div>
+        </div>
+        <div class="ni-dot"></div>
+      </button>
+
       <button class="nav-item ripple-container" onclick="showPage('scripts',this)" id="nav-scripts" style="display:none">
         <div class="ni-icon">💬</div>
         <div class="ni-text">
@@ -2019,6 +2254,15 @@ button[onclick="generateOffer()"] {
       <div class="nav-section-label">Growth</div>
 
       <!-- Affiliate Hub removed — replaced by mode system -->
+
+      <button class="nav-item ripple-container" onclick="showPage('training',this)" id="nav-training">
+        <div class="ni-icon">🎓</div>
+        <div class="ni-text">
+          <div class="ni-label">TRAINING HUB</div>
+          <div class="ni-step">Modules &amp; lessons</div>
+        </div>
+        <div class="ni-dot"></div>
+      </button>
 
       <button class="nav-item ripple-container" onclick="showPage('growth',this)" id="nav-growth">
         <div class="ni-icon">📚</div>
@@ -2909,6 +3153,23 @@ button[onclick="generateOffer()"] {
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════════════════
+       MARKET OPPORTUNITY & CONSISTENCY ENGINE — Expert Mode
+  ═══════════════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-market" style="display:none">
+    <div class="page-header">
+      <div class="page-header-title">Your Market <em>Opportunity</em></div>
+      <div class="page-header-sub" id="tam-header-sub">The size of your niche, the exact numbers behind your goal, and what daily consistency looks like to get there.</div>
+    </div>
+    <div class="page-content" id="tam-expert-content">
+      <div style="text-align:center;padding:3rem 1rem">
+        <div style="font-size:32px;margin-bottom:12px">📊</div>
+        <div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:8px">Complete your Revenue Plan first</div>
+        <div style="font-size:12px;color:var(--dim)">Set your niche, offer price, and monthly target in Step 1 — then come back here to see your full market opportunity.</div>
+      </div>
+    </div>
+  </div>
+
   <!-- DM & SALES SCRIPTS PAGE -->
   <div class="page" id="page-scripts">
     <div class="hero-strip">
@@ -3317,6 +3578,7 @@ button[onclick="generateOffer()"] {
         <button class="tab" onclick="showAffActiveTab('calendar',this)">📅 Content Calendar</button>
         <button class="tab" onclick="showAffActiveTab('dms',this)">💬 DM Scripts</button>
         <button class="tab" onclick="showAffActiveTab('tracker',this)">📊 Commissions</button>
+        <button class="tab" onclick="showAffActiveTab('tam',this)">🌍 Market Opportunity</button>
       </div>
 
       <div id="aff-tab-strategy"><div id="aff-strategy-body"></div></div>
@@ -3333,6 +3595,13 @@ button[onclick="generateOffer()"] {
       <div id="aff-tab-dms"      style="display:none"><div id="aff-dms-body"></div></div>
       <div id="aff-tab-tracker"  style="display:none"><div id="aff-tracker-body"></div></div>
       <div id="aff-tab-dailytracker" style="display:none"><div id="aff-daily-tracker-body"></div></div>
+      <div id="aff-tab-tam" style="display:none"><div id="tam-affiliate-content">
+        <div style="text-align:center;padding:3rem 1rem">
+          <div style="font-size:32px;margin-bottom:12px">📊</div>
+          <div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:8px">Analyse your offer first</div>
+          <div style="font-size:12px;color:var(--dim)">Click Analyse &amp; Build Everything to unlock your Market Opportunity report.</div>
+        </div>
+      </div></div>
 
     </div><!-- end aff-active-view -->
 
@@ -3394,6 +3663,69 @@ button[onclick="generateOffer()"] {
       </div>
 
     </div>
+
+
+  <!-- TRAINING HUB -->
+  <div class="page" id="page-training" style="display:none;padding:0">
+    <div id="training-admin-panel" style="display:none;padding:1.25rem;border-bottom:1px solid var(--border2);background:rgba(255,217,61,.04)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-size:12px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">Training Builder <span style="font-size:10px;background:rgba(255,217,61,.15);color:var(--yellow);padding:2px 8px;border-radius:99px;margin-left:6px">ADMIN</span></div>
+          <div style="font-size:11px;color:var(--dim);margin-top:2px">Create modules, add lessons, embed video training for your members.</div>
+        </div>
+        <button onclick="window.showAddModuleForm()" style="padding:9px 18px;background:linear-gradient(135deg,var(--yellow),#e6ac00);color:#0a1628;border:none;border-radius:8px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap">+ New Module</button>
+      </div>
+      <div id="training-admin-form" style="display:none"></div>
+    </div>
+    <div class="training-wrap">
+      <div class="training-sidebar" id="training-sidebar">
+        <div class="training-sidebar-header">
+          <div class="training-sidebar-title">Execution OS</div>
+          <div class="training-course-name" id="training-course-title">Training Hub</div>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:6px">
+            <span id="training-progress-label">0 of 0 complete</span>
+            <span id="training-progress-pct" style="color:var(--teal);font-weight:700">0%</span>
+          </div>
+          <div class="training-progress-bar-wrap"><div class="training-progress-bar" id="training-progress-bar" style="width:0%"></div></div>
+        </div>
+        <div class="training-module-wrap" id="training-modules-list">
+          <div style="padding:2rem 1.25rem;text-align:center;color:var(--dimmer);font-size:12px">
+            <div style="font-size:28px;margin-bottom:8px">📚</div>Loading modules...
+          </div>
+        </div>
+      </div>
+      <div class="training-main" id="training-main">
+        <div id="training-welcome" style="padding:3rem 1.5rem;text-align:center;max-width:540px;margin:0 auto">
+          <div style="font-size:48px;margin-bottom:16px">🎓</div>
+          <div style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Welcome to the Training Hub</div>
+          <div style="font-size:13px;color:var(--dim);line-height:1.8;margin-bottom:24px">Select a lesson from the sidebar to get started. Track your progress as you learn.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-modules" style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Modules</div></div>
+            <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-lessons" style="font-size:22px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Lessons</div></div>
+            <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-done" style="font-size:22px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Completed</div></div>
+          </div>
+        </div>
+        <div id="training-active-lesson" style="display:none">
+          <div class="training-video-wrap" id="training-video-wrap">
+            <div class="training-video-placeholder" id="training-video-placeholder">
+              <div style="font-size:36px">🎬</div>
+              <div style="font-size:12px;color:var(--dim);margin-top:8px">No video added for this lesson</div>
+            </div>
+          </div>
+          <div class="training-lesson-body">
+            <div class="training-lesson-tag" id="training-lesson-module-name"></div>
+            <div class="training-lesson-heading" id="training-lesson-title"></div>
+            <div class="training-lesson-desc" id="training-lesson-desc"></div>
+            <div class="training-nav-btns">
+              <button id="training-mark-btn" onclick="window.markLessonComplete()" style="padding:11px 22px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:10px;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer">Mark Complete</button>
+              <button onclick="window.trainingNav(-1)" style="padding:11px 18px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:10px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer">Previous</button>
+              <button onclick="window.trainingNav(1)" style="padding:11px 18px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:10px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
     <div class="page" id="page-growth">
     <div class="hero-strip" style="background:linear-gradient(145deg,rgba(78,204,163,.12),var(--card));border-color:rgba(78,204,163,.35)">
@@ -3560,7 +3892,7 @@ button[onclick="generateOffer()"] {
       </div>
 
       <!-- ══ VOICE & STYLE PROFILE ══ -->
-      <div class="av-sec" id="voice-profile-section">
+      <div class="av-sec" id="voice-profile-section" style="display:none">
         <div class="av-sec-head">
           <div class="av-sec-icon" style="background:rgba(78,204,163,.1)">✍️</div>
           <div>
@@ -3691,7 +4023,11 @@ button[onclick="generateOffer()"] {
 </div><!-- end app -->
 
 <script>
-window.PROXY_URL = 'https://build.skillslibry.com/api/claude';
+window.PROXY_URL = (function() {
+  // Use relative path so the API is always on the same domain as the app
+  // Works on execution-os-xi.vercel.app, executionos.com, and localhost
+  return window.location.origin + '/api/claude';
+})();
 
 // ============================================================
 // CORE DATA
@@ -4085,6 +4421,13 @@ window._updateAvatarPlaceholders = function(niche) {
       const niche = window._appliedNiche || (document.getElementById('niche') || {}).value || '';
       if (niche) window._updateAvatarPlaceholders && window._updateAvatarPlaceholders(niche);
     }
+    if (n === 'profile') {
+      const voiceSection = document.getElementById('voice-profile-section');
+      if (voiceSection) {
+        const isAffiliate = (window._appMode || window._currentMode || localStorage.getItem('eos_app_mode')) === 'affiliate';
+        voiceSection.style.display = isAffiliate ? 'none' : '';
+      }
+    }
   };
 })();
 
@@ -4242,7 +4585,7 @@ function generate(){
       {label:'Week 3: Scale Winners',budget:dailyBudget,desc:'Scale the top 1–2 ads to full daily budget ($'+dailyBudget+'/day). Retarget video viewers and page visitors with an offer ad.',col:'rgba(108,99,255,.07)',border:'rgba(108,99,255,.25)',textCol:'var(--purple)'},
       {label:'Week 4: Optimise & Close',budget:Math.round(dailyBudget*1.3),desc:'Increase budget on ROAS-positive ad sets by 20%. Add lookalike audiences. Run urgency offers to hot leads.',col:'rgba(255,217,61,.07)',border:'rgba(255,217,61,.25)',textCol:'var(--yellow)'},
     ];
-    document.getElementById('ads-budget-grid').innerHTML=phases.map(p=>`<div style="background:${p.col};border:1px solid ${p.border};border-radius:12px;padding:14px 16px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:${p.textCol};font-weight:900;margin-bottom:6px">${p.label}</div><div style="font-size:22px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:6px">$${p.budget}<span style="font-size:11px;color:var(--dimmer);font-weight:500">/day</span></div><div style="font-size:11px;color:var(--dim);line-height:1.55">${p.desc}</div></div>`).join('');
+    document.getElementById('ads-budget-grid').innerHTML=phases.map(p=>`<div style="background:${p.col};border:1px solid ${p.border};border-radius:12px;padding:14px 16px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:${p.textCol};font-weight:900;margin-bottom:6px">${p.label}</div><div style="font-size:22px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:6px">$${p.budget}<span style="font-size:11px;color:var(--dimmer);font-weight:500">/day</span></div><div style="font-size:11px;color:var(--dim);line-height:1.55">${p.desc}</div></div>`).join('');
     document.getElementById('ads-strategy-box').innerHTML=`<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:12px">⚡ Paid Ads Execution Strategy</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${[['🎯 Targeting',`Cold: Interest-based (competitors, relevant topics). Warm: Website visitors + video viewers. Hot: Lead retargeting → book a call.`],['📸 Ad Format',`Video performs best for high-ticket ($${price.toLocaleString()}+). 30–60 sec face-to-camera hook. Carousel for social proof. Image for retargeting.`],['🔗 Funnel',`Ad → VSL/Landing page → Opt-in form → Calendar → Call → Close. Never send cold ads directly to DMs without a landing page.`],['📊 Key KPIs',`CTR > 2.5% (cold), CPL < $${cpl+2}, Show rate > 55%, Close rate > 25%, ROAS > 200%.`],['💡 Budget Rule',`Never scale an ad set that hasn't spent at least 2× your CPL. Give every new ad set 48–72 hrs before judging.`],['⚠️ Warning',`Paid ads amplify your funnel — not fix it. Make sure your VSL, landing page, and close rate are solid on free traffic first.`]].map(([h,b])=>`<div style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;padding:11px 13px"><div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:4px">${h}</div><div style="font-size:11px;color:var(--dim);line-height:1.5">${b}</div></div>`).join('')}</div>`;
   }
   const weeks=mode==='free'
@@ -5264,7 +5607,7 @@ function addStackRow(){
   const row=document.createElement('div');
   row.className='offer-stack-row';
   row.style.cssText='display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center';
-  row.innerHTML=`<input class="fi" placeholder="Add another component or bonus..." style="font-size:12px"><input class="fi" placeholder="Value $" style="width:110px;font-size:12px"><button onclick="removeStackRow(this)" style="background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:12px;font-family:'Poppins',sans-serif;font-weight:700">✕</button>`;
+  row.innerHTML=`<input class="fi" placeholder="Add another component or bonus..." style="font-size:12px"><input class="fi" placeholder="Value $" style="width:110px;font-size:12px"><button onclick="removeStackRow(this)" style="background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:12px;font-family:Poppins,sans-serif;font-weight:700">✕</button>`;
   const items=document.getElementById('offer-stack-items');
   if(items){items.appendChild(row);row.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',calcStackTotal));}
 }
@@ -6107,7 +6450,7 @@ function generateOffer(){
             <div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:1rem">
               <div>
                 <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Offer Name</div>
-                <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;letter-spacing:-.3px">${offerData.offerName||''}</div>
+                <div style="font-size:20px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;letter-spacing:-.3px">${offerData.offerName||''}</div>
               </div>
               <div>
                 <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Headline</div>
@@ -6128,11 +6471,11 @@ function generateOffer(){
                 <div style="display:flex;flex-direction:column;gap:5px">
                   ${offerData.valueStack.map(v=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px">
                     <div><div style="font-size:12px;font-weight:700;color:var(--white)">${v.item||''}</div><div style="font-size:10px;color:var(--dim);margin-top:2px">${v.description||''}</div></div>
-                    <div style="font-size:14px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif;white-space:nowrap;margin-left:12px">$${(v.value||0).toLocaleString()}</div>
+                    <div style="font-size:14px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif;white-space:nowrap;margin-left:12px">$${(v.value||0).toLocaleString()}</div>
                   </div>`).join('')}
                   <div style="display:flex;align-items:center;justify-content:space-between;padding:11px 13px;background:rgba(255,217,61,.08);border:1px solid rgba(255,217,61,.22);border-radius:9px">
                     <div style="font-size:13px;font-weight:800;color:var(--white)">Total Value</div>
-                    <div style="font-size:20px;font-weight:900;color:var(--yellow);font-family:'Poppins',sans-serif">$${(offerData.totalValue||0).toLocaleString()}</div>
+                    <div style="font-size:20px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">$${(offerData.totalValue||0).toLocaleString()}</div>
                   </div>
                 </div>
               </div>` : ''}
@@ -6189,13 +6532,13 @@ function renderTracker(dmsDay,salesGoal){
   document.getElementById('tracker-card').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
       <div style="background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:12px 16px">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-family:'Poppins',sans-serif;font-weight:700;margin-bottom:4px">Monthly Income Target</div>
-        <div style="font-size:22px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--teal)">$${target.toLocaleString()}</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-family:Poppins,sans-serif;font-weight:700;margin-bottom:4px">Monthly Income Target</div>
+        <div style="font-size:22px;font-weight:800;font-family:Poppins,sans-serif;color:var(--teal)">$${target.toLocaleString()}</div>
         <div style="font-size:11px;color:var(--dimmer);margin-top:2px">at $${price.toLocaleString()} per deal</div>
       </div>
       <div style="background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.2);border-radius:12px;padding:12px 16px">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-family:'Poppins',sans-serif;font-weight:700;margin-bottom:4px">Remaining Target</div>
-        <div id="income-remaining-val" style="font-size:22px;font-weight:800;font-family:'Poppins',sans-serif;color:${incomeLeft===0?'var(--teal)':'var(--red)'}">$${incomeLeft.toLocaleString()}</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-family:Poppins,sans-serif;font-weight:700;margin-bottom:4px">Remaining Target</div>
+        <div id="income-remaining-val" style="font-size:22px;font-weight:800;font-family:Poppins,sans-serif;color:${incomeLeft===0?'var(--teal)':'var(--red)'}">$${incomeLeft.toLocaleString()}</div>
         <div id="income-remaining-sub" style="font-size:11px;color:var(--dimmer);margin-top:2px">${s.closedDeals} deal${s.closedDeals!==1?'s':''} closed</div>
       </div>
     </div>
@@ -6203,7 +6546,7 @@ function renderTracker(dmsDay,salesGoal){
       ${items.map(item=>{const cur=s.counts[item.key]||0;return`<div class="tr-row"><div class="tr-lbl">${item.label}</div><div class="tr-bar"><div class="tr-fill" id="fill-${item.key}" style="width:${Math.min(100,Math.round(cur/item.target*100))}%;background:${item.color}"></div></div><div class="tr-val"><span id="val-${item.key}">${cur}</span><span style="color:var(--dimmer);font-weight:400">/${item.target}</span></div><div class="adj-btns"><button class="adj" onclick="adj('${item.key}',-1,${item.target},${!!item.isClose})">−</button><button class="adj plus" onclick="adj('${item.key}',1,${item.target},${!!item.isClose})">+</button></div></div>`}).join('')}
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1.25rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.07)">
-      <button onclick="resetTracker()" style="font-size:10px;color:var(--dimmer);border:1px solid var(--border2);border-radius:50px;padding:6px 14px;cursor:pointer;background:transparent;font-family:'Poppins',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Reset day</button>
+      <button onclick="resetTracker()" style="font-size:10px;color:var(--dimmer);border:1px solid var(--border2);border-radius:50px;padding:6px 14px;cursor:pointer;background:transparent;font-family:Poppins,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Reset day</button>
       <div style="font-size:11px;color:var(--dimmer)">Every action closes the gap</div>
     </div>`;
 }
@@ -6212,7 +6555,7 @@ function adj(key,delta,target,isClose){const s=window._trackerState;if(!s)return
 const API_BASE = 'https://api.anthropic.com';
 
 async function callClaude(prompt, maxTokens) {
-  const resp = await fetch(window.PROXY_URL || 'https://build.skillslibry.com/api/claude', {
+  const resp = await fetch(window.PROXY_URL || window.PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -6453,7 +6796,7 @@ ${(()=>{
 })()}`;
 
     // For multi-turn, use the messages array directly with system prompt
-    return fetch(window.PROXY_URL || 'https://build.skillslibry.com/api/claude', {
+    return fetch(window.PROXY_URL || window.PROXY_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -6471,7 +6814,7 @@ ${(()=>{
     prompt = body._rawPrompt || JSON.stringify(body);
   }
 
-  const resp = await fetch(window.PROXY_URL || 'https://build.skillslibry.com/api/claude', {
+  const resp = await fetch(window.PROXY_URL || window.PROXY_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -7092,7 +7435,7 @@ window.toggleRQArea=function(area){const el=document.getElementById('rqa_'+area)
 let routineDone=new Set();
 let customRoutineBlocks=null;
 function updateRoutineProgress(){const blocks=customRoutineBlocks||[];const total=blocks.length;const done=routineDone.size;const pct=total>0?Math.round(done/total*100):0;document.getElementById('routine-pct').textContent=pct+'%';document.getElementById('routine-done-count').textContent=done;document.getElementById('routine-total-count').textContent=total;document.getElementById('routine-progress-bar').style.width=pct+'%';document.getElementById('routine-pct').style.color=pct===100?'var(--teal)':'var(--orange)';}
-function renderRoutineBlocks(){if(!customRoutineBlocks||!customRoutineBlocks.length)return;let blockIdx=0;document.getElementById('routine-blocks').innerHTML=customRoutineBlocks.map((b)=>{if(b.section){return`<div style="margin-top:1.75rem;margin-bottom:.5rem;display:flex;align-items:center;gap:10px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-family:'Poppins',sans-serif;font-weight:800;white-space:nowrap">${b.section}</div><div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.1),transparent)"></div></div>`;}const i=blockIdx++;const isDone=routineDone.has(i);const accent=b.accent||'var(--orange)';const tagColor=b.tagColor||'rgba(255,140,66,.12)';const tagText=b.tagText||'var(--orange)';return`<div class="rblock${isDone?' done':''}" onclick="toggleRoutine(${i})"><div style="position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:16px 0 0 16px;background:${accent};opacity:${isDone?.35:1}"></div><div style="display:flex;flex-direction:column;align-items:flex-start;min-width:66px"><div class="rblock-time">${b.time}</div><div style="font-size:9px;color:var(--dimmer);font-weight:600;margin-top:2px;font-family:'Poppins',sans-serif">${b.dur||''}</div></div><div class="rblock-icon" style="background:${tagColor}">${b.icon||'⚡'}</div><div class="rblock-body"><div class="rblock-title">${b.title}</div><div class="rblock-why">${b.why}</div><span class="rblock-tag" style="background:${tagColor};color:${tagText}">${b.tag||''}</span></div><div class="rblock-check"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div></div>`;}).join('');updateRoutineProgress();}
+function renderRoutineBlocks(){if(!customRoutineBlocks||!customRoutineBlocks.length)return;let blockIdx=0;document.getElementById('routine-blocks').innerHTML=customRoutineBlocks.map((b)=>{if(b.section){return`<div style="margin-top:1.75rem;margin-bottom:.5rem;display:flex;align-items:center;gap:10px"><div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-family:Poppins,sans-serif;font-weight:800;white-space:nowrap">${b.section}</div><div style="flex:1;height:1px;background:linear-gradient(90deg,rgba(255,255,255,.1),transparent)"></div></div>`;}const i=blockIdx++;const isDone=routineDone.has(i);const accent=b.accent||'var(--orange)';const tagColor=b.tagColor||'rgba(255,140,66,.12)';const tagText=b.tagText||'var(--orange)';return`<div class="rblock${isDone?' done':''}" onclick="toggleRoutine(${i})"><div style="position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:16px 0 0 16px;background:${accent};opacity:${isDone?.35:1}"></div><div style="display:flex;flex-direction:column;align-items:flex-start;min-width:66px"><div class="rblock-time">${b.time}</div><div style="font-size:9px;color:var(--dimmer);font-weight:600;margin-top:2px;font-family:Poppins,sans-serif">${b.dur||''}</div></div><div class="rblock-icon" style="background:${tagColor}">${b.icon||'⚡'}</div><div class="rblock-body"><div class="rblock-title">${b.title}</div><div class="rblock-why">${b.why}</div><span class="rblock-tag" style="background:${tagColor};color:${tagText}">${b.tag||''}</span></div><div class="rblock-check"><svg viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div></div>`;}).join('');updateRoutineProgress();}
 function renderRoutine(){updateRoutineProgress();if(customRoutineBlocks&&customRoutineBlocks.length){document.getElementById('routine-questionnaire').style.display='none';document.getElementById('routine-result').style.display='block';renderRoutineBlocks();}else{document.getElementById('routine-questionnaire').style.display='block';document.getElementById('routine-result').style.display='none';}}
 function toggleRoutine(i){if(routineDone.has(i))routineDone.delete(i);else routineDone.add(i);renderRoutineBlocks();}
 window.toggleRoutine=toggleRoutine;
@@ -7618,7 +7961,7 @@ window.showPostDetail30 = function(globalIdx) {
       <div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#1a1a3e;z-index:1">
         <div>
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:${col};font-weight:900;margin-bottom:3px">Day ${(dayIdx+1)} · ${slot.postType||'Post'}</div>
-          <div style="font-size:14px;font-weight:900;color:#fff;font-family:'Poppins',sans-serif;line-height:1.3">${slot.topic||slot.viralHook||'Content Script'}</div>
+          <div style="font-size:14px;font-weight:900;color:#fff;font-family:Poppins,sans-serif;line-height:1.3">${slot.topic||slot.viralHook||'Content Script'}</div>
         </div>
         <button onclick="document.getElementById('post-detail-modal').style.display='none'" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;flex-shrink:0">×</button>
       </div>
@@ -7626,19 +7969,19 @@ window.showPostDetail30 = function(globalIdx) {
         ${isEmpty ? `
           <div style="text-align:center;padding:2rem 1rem">
             <div style="font-size:32px;margin-bottom:14px">✍️</div>
-            <div style="font-size:14px;font-weight:900;color:var(--white);margin-bottom:8px;font-family:'Poppins',sans-serif">This post needs to be written</div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);margin-bottom:8px;font-family:Poppins,sans-serif">This post needs to be written</div>
             <div style="font-size:12px;color:var(--dim);margin-bottom:24px;line-height:1.7;max-width:320px;margin-left:auto;margin-right:auto">Click <strong style="color:var(--purple)">⚡ Regenerate</strong> below and Execution OS will write the full script for this post right now — tailored to your niche, offer, and ideal customer.</div>
-            <button onclick="window._regenPost(${globalIdx})" style="padding:12px 28px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;cursor:pointer;letter-spacing:.3px">⚡ Write This Post Now</button>
+            <button onclick="window._regenPost(${globalIdx})" style="padding:12px 28px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:12px;font-family:Poppins,sans-serif;font-weight:800;font-size:13px;cursor:pointer;letter-spacing:.3px">⚡ Write This Post Now</button>
           </div>` : `
           <pre style="font-size:12px;color:rgba(255,255,255,.85);line-height:1.9;white-space:pre-wrap;font-family:'Inter',sans-serif;margin:0;border-radius:10px;background:rgba(255,255,255,.03);padding:1rem">${script}</pre>`}
       </div>
       <div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;position:sticky;bottom:0;background:#1a1a3e">
         <button onclick="window._regenPost(${globalIdx})" id="regen-post-btn"
-          style="padding:11px 16px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer;flex-shrink:0">⚡ Regenerate</button>
+          style="padding:11px 16px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:10px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer;flex-shrink:0">⚡ Regenerate</button>
         <button onclick="navigator.clipboard.writeText((document.querySelector('#post-detail-modal pre')||{}).textContent||'').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy',2000)})"
-          style="flex:1;padding:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer">📋 Copy Script</button>
+          style="flex:1;padding:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:10px;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer">📋 Copy Script</button>
         <button onclick="document.getElementById('post-detail-modal').style.display='none'"
-          style="padding:11px 20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:10px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer">Close</button>
+          style="padding:11px 20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:10px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer">Close</button>
       </div>
     </div>`;
   modal.style.display = 'flex';
@@ -7651,7 +7994,7 @@ window.toggleDay30=toggleDay30;
 // No plan gate modal — all registered members have full access
 window.showPlanGateModal = function(){ /* no-op — full access model */ };
 
-function showCalendarCountdown(daysLeft){let el=document.getElementById('cal-countdown');if(!el){el=document.createElement('div');el.id='cal-countdown';const calPage=document.getElementById('page-calendar');if(calPage)calPage.insertBefore(el,calPage.querySelector('.tab-strip'));}el.style.cssText='background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:10px 16px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px';el.innerHTML=`<div style="font-size:12px;color:var(--muted);font-weight:600">🗓 Your 7-day content plan refreshes in <strong style="color:var(--teal)">${daysLeft} day${daysLeft!==1?'s':''}</strong></div><button onclick="window.refreshCalendar30()" style="font-size:10px;padding:6px 14px;background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.3);color:var(--teal);border-radius:50px;font-family:'Poppins',sans-serif;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Refresh Now</button>`;}
+function showCalendarCountdown(daysLeft){let el=document.getElementById('cal-countdown');if(!el){el=document.createElement('div');el.id='cal-countdown';const calPage=document.getElementById('page-calendar');if(calPage)calPage.insertBefore(el,calPage.querySelector('.tab-strip'));}el.style.cssText='background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:10px 16px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px';el.innerHTML=`<div style="font-size:12px;color:var(--muted);font-weight:600">🗓 Your 7-day content plan refreshes in <strong style="color:var(--teal)">${daysLeft} day${daysLeft!==1?'s':''}</strong></div><button onclick="window.refreshCalendar30()" style="font-size:10px;padding:6px 14px;background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.3);color:var(--teal);border-radius:50px;font-family:Poppins,sans-serif;font-weight:700;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Refresh Now</button>`;}
 window.refreshCalendar30=function(){if(!window._avatarData){window.showPage('avatar',document.querySelectorAll('.nav-btn')[3]);return;}window._aiCalendar30=null;window._calDone=new Set();window.generate30DayCalendar();};
 window.saveCalendarState=async function(){};
 window.saveProfile=function(){const msg=document.getElementById('save-profile-msg');if(msg){msg.style.display='block';setTimeout(()=>msg.style.display='none',2500);}};
@@ -7737,7 +8080,7 @@ window.adminLoadMembers = async function(){
         </div>
         ${m.dealValue?`<div style="background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.2);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;color:var(--yellow)">${m.dealValue}</div>`:''}
         <div style="font-size:10px;color:var(--dimmer);text-align:right;flex-shrink:0">${m.grantedAt?new Date(m.grantedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):''}</div>
-        <button onclick="adminRevokeMember('${m.id}','${(m.name||'').replace(/'/g,'')}')" style="font-size:10px;padding:5px 12px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-family:'Poppins',sans-serif;font-weight:700;cursor:pointer;flex-shrink:0">Revoke</button>
+        <button onclick="adminRevokeMember('${m.id}','${(m.name||'').replace(/'/g,'')}')" style="font-size:10px;padding:5px 12px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-family:Poppins,sans-serif;font-weight:700;cursor:pointer;flex-shrink:0">Revoke</button>
       </div>`).join('');
   } catch(e) {
     listEl.innerHTML=`<div style="font-size:12px;color:var(--red);padding:16px">Error loading members: ${e.message||e}</div>`;
@@ -11374,7 +11717,7 @@ window.showPostDetail30 = function(globalIdx) {
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:8px">
-        <button onclick="copyPostScript30(${globalIdx})" style="width:100%;padding:12px;background:linear-gradient(135deg,${accentColor === 'var(--purple)' ? 'var(--purple),var(--purple2)' : accentColor === 'var(--red)' ? '#ff6b6b,#ff4500' : 'var(--teal),var(--teal2)'});color:${isEmail || isReel ? '#fff' : 'var(--text-dark)'};border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px" id="copy-btn-30">📋 Copy script to clipboard</button>
+        <button onclick="copyPostScript30(${globalIdx})" style="width:100%;padding:12px;background:linear-gradient(135deg,${accentColor === 'var(--purple)' ? 'var(--purple),var(--purple2)' : accentColor === 'var(--red)' ? '#ff6b6b,#ff4500' : 'var(--teal),var(--teal2)'});color:${isEmail || isReel ? '#fff' : 'var(--text-dark)'};border:none;border-radius:12px;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px" id="copy-btn-30">📋 Copy script to clipboard</button>
         ${isReel ? '<button onclick="window.openVideoConverter('+globalIdx+',\'heygen\')" style="width:100%;padding:12px;background:linear-gradient(135deg,#ff4f4f,#c0392b);color:#fff;border:none;border-radius:12px;font-family:\'Poppins\',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px">🎬 Convert to Video with HeyGen</button>' : ''}
       </div>
     </div>
@@ -11429,7 +11772,17 @@ window.copyPostScript30 = function(globalIdx) {
   const daySlots = window._aiCalendar30[dayIdx];
   if(!daySlots || !daySlots[slotIdx]) return;
   const d = daySlots[slotIdx];
-  const text = `${d.weekDay || 'Day ' + (dayIdx+1)} — ${d.topic || d.postType || ''}\n${'='.repeat(50)}\n\nTYPE: ${d.postType}\nPLATFORM: ${d.postType || ''}\n\nHOOK:\n"${d.viralHook}"\n\nFULL CONTENT:\n${d.fullScript}\n\nCALL TO ACTION:\n${d.callToAction}\n\nPOSTING TIP:\n${d.engagementTip}`;
+  const STALE = ['[Full post body','[Full reel','[Full script','[Full email','click Regenerate','Regenerate to get'];
+  const isStale = !d.fullScript || d.fullScript.trim().length < 30 || STALE.some(m => (d.fullScript||'').includes(m));
+  if (isStale) {
+    const btn = document.getElementById('copy-btn-30');
+    if (btn) { btn.textContent = '⚠️ No content yet — click Regenerate'; setTimeout(() => { btn.textContent = '📋 Copy to clipboard'; }, 3000); }
+    // Open modal to let user regenerate
+    const globalIdx = dayIdx * 6 + slotIdx;
+    window.showPostDetail30 && window.showPostDetail30(globalIdx);
+    return;
+  }
+  const text = `${d.weekDay || 'Day ' + (dayIdx+1)} — ${d.topic || d.postType || ''}\n${'='.repeat(50)}\n\n${d.fullScript}\n\nCALL TO ACTION:\n${d.callToAction}\n\nPOSTING TIP:\n${d.engagementTip}`;
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('copy-btn-30');
     if(btn) { btn.textContent = '✅ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy to clipboard'; }, 2000); }
@@ -12135,7 +12488,7 @@ function renderHealthScore() {
   html += `<div>`;
   html += `<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:6px">📊 Business Health Score · ${s.weekKey}</div>`;
   html += `<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:6px">`;
-  html += `<div id="bhs-total" style="font-size:52px;font-weight:900;font-family:'Poppins',sans-serif;color:${rat.color};line-height:1">${s.total}</div>`;
+  html += `<div id="bhs-total" style="font-size:52px;font-weight:900;font-family:Poppins,sans-serif;color:${rat.color};line-height:1">${s.total}</div>`;
   html += `<div style="font-size:14px;font-weight:700;color:${rat.color}">/100</div>`;
   html += `<div style="background:${rat.bg};border:1px solid ${rat.border};border-radius:50px;padding:4px 14px;font-size:11px;font-weight:900;color:${rat.color};text-transform:uppercase;letter-spacing:.5px">${rat.label}</div>`;
   html += `</div>`;
@@ -12172,7 +12525,7 @@ function renderHealthScore() {
     if (p.meta) html += `<div style="font-size:10px;color:var(--dimmer);margin-top:4px">${p.meta}</div>`;
     html += `</div></div>`;
     html += `<div style="text-align:right;flex-shrink:0">`;
-    html += `<div style="font-size:18px;font-weight:900;font-family:'Poppins',sans-serif;color:${p.color}">${p.score}<span style="font-size:11px;color:var(--dimmer);font-weight:400">/${p.max}</span></div>`;
+    html += `<div style="font-size:18px;font-weight:900;font-family:Poppins,sans-serif;color:${p.color}">${p.score}<span style="font-size:11px;color:var(--dimmer);font-weight:400">/${p.max}</span></div>`;
     html += `</div></div>`;
 
     // Foundation checklist
@@ -12201,7 +12554,7 @@ function renderHealthScore() {
   // ── Score Refresh note ──
   html += `<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">`;
   html += `<div style="font-size:10px;color:var(--dimmer)">Score updates live as you log activity in the Daily Tracker, Calendar, and Routine.</div>`;
-  html += `<button onclick="renderHealthScore()" style="font-size:10px;color:var(--teal);border:1px solid rgba(78,204,163,.3);border-radius:50px;padding:5px 14px;cursor:pointer;background:rgba(78,204,163,.06);font-family:'Poppins',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px">↻ Refresh Score</button>`;
+  html += `<button onclick="renderHealthScore()" style="font-size:10px;color:var(--teal);border:1px solid rgba(78,204,163,.3);border-radius:50px;padding:5px 14px;cursor:pointer;background:rgba(78,204,163,.06);font-family:Poppins,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.5px">↻ Refresh Score</button>`;
   html += `</div>`;
 
   el.innerHTML = html;
@@ -12277,12 +12630,12 @@ function showMilestoneCertificate(m) {
       <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,${m.color},rgba(255,255,255,.3),${m.color})"></div>
       <div style="position:absolute;inset:0;background:radial-gradient(ellipse 70% 60% at 50% 0%,${m.glow.replace('.','0.').replace(',.4)',', 0.08)')},transparent);pointer-events:none"></div>
       <div style="font-size:52px;animation:mileFloat 3s ease-in-out infinite;margin-bottom:8px">${m.icon}</div>
-      <div style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:${m.color};font-weight:900;margin-bottom:12px;font-family:'Poppins',sans-serif">Execution OS · Achievement Unlocked</div>
-      <div style="font-size:clamp(24px,5vw,38px);font-weight:900;font-family:'Poppins',sans-serif;color:#fff;line-height:1.1;margin-bottom:6px">${m.title}</div>
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:3px;color:${m.color};font-weight:900;margin-bottom:12px;font-family:Poppins,sans-serif">Execution OS · Achievement Unlocked</div>
+      <div style="font-size:clamp(24px,5vw,38px);font-weight:900;font-family:Poppins,sans-serif;color:#fff;line-height:1.1;margin-bottom:6px">${m.title}</div>
       <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:1.5rem;line-height:1.5">Achieved in <strong style="color:#fff">${niche}</strong></div>
       <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;position:relative">
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-bottom:8px">This certifies that</div>
-        <div style="font-size:20px;font-weight:900;font-family:'Poppins',sans-serif;color:${m.color};margin-bottom:4px">${userName}</div>
+        <div style="font-size:20px;font-weight:900;font-family:Poppins,sans-serif;color:${m.color};margin-bottom:4px">${userName}</div>
         <div style="font-size:12px;color:rgba(255,255,255,.6);line-height:1.6">generated a <strong style="color:#fff">${m.label}/month</strong> income from their digital business<br>on <strong style="color:#fff">${dateStr}</strong></div>
         <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">
           <div style="font-size:9px;color:rgba(255,255,255,.3);text-align:left">EXECUTION OS<br>CERTIFIED</div>
@@ -12290,8 +12643,8 @@ function showMilestoneCertificate(m) {
         </div>
       </div>
       <div style="display:flex;gap:10px;justify-content:center">
-        <button onclick="downloadCertificate('${m.label}','${userName}','${m.title}','${niche}','${dateStr}','${monthStr}','${m.icon}','${m.color}')" style="flex:1;padding:12px;background:linear-gradient(135deg,${m.color},${m.color}cc);color:#1a1a3e;border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:900;font-size:12px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase">⬇ Save Certificate</button>
-        <button onclick="document.getElementById('milestone-overlay').remove()" style="padding:12px 20px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Continue</button>
+        <button onclick="downloadCertificate('${m.label}','${userName}','${m.title}','${niche}','${dateStr}','${monthStr}','${m.icon}','${m.color}')" style="flex:1;padding:12px;background:linear-gradient(135deg,${m.color},${m.color}cc);color:#1a1a3e;border:none;border-radius:12px;font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase">⬇ Save Certificate</button>
+        <button onclick="document.getElementById('milestone-overlay').remove()" style="padding:12px 20px;background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.1);border-radius:12px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Continue</button>
       </div>
       <div style="margin-top:12px;font-size:10px;color:rgba(255,255,255,.3)">Screenshot this and share your win 🚀</div>
     </div>
@@ -12439,9 +12792,9 @@ function renderMilestoneGrid() {
       const done = earned.includes(m.amount);
       return `<div style="background:${done ? 'rgba(255,255,255,.07)' : 'rgba(255,255,255,.02)'};border:1px solid ${done ? m.color.replace('var(--teal)','rgba(78,204,163,.5)').replace('var(--yellow)','rgba(255,217,61,.5)').replace('var(--purple)','rgba(108,99,255,.5)').replace('var(--orange)','rgba(255,140,66,.5)').replace('var(--red)','rgba(255,107,107,.5)') : 'rgba(255,255,255,.06)'};border-radius:12px;padding:12px 10px;text-align:center;transition:all .2s;${done?'':'opacity:.4'}">
         <div style="font-size:22px;margin-bottom:5px">${done ? m.icon : '🔒'}</div>
-        <div style="font-size:13px;font-weight:900;font-family:'Poppins',sans-serif;color:${done ? 'var(--white)' : 'var(--dimmer)'}">${m.label}</div>
+        <div style="font-size:13px;font-weight:900;font-family:Poppins,sans-serif;color:${done ? 'var(--white)' : 'var(--dimmer)'}">${m.label}</div>
         <div style="font-size:9px;color:${done ? m.color : 'var(--dimmer)'};margin-top:2px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">${done ? '✅ Earned' : 'Locked'}</div>
-        ${done ? `<button onclick="redownloadCertificate(${m.amount})" style="margin-top:8px;font-size:9px;padding:4px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;color:var(--dim);cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.3px">⬇ Cert</button>` : ''}
+        ${done ? `<button onclick="redownloadCertificate(${m.amount})" style="margin-top:8px;font-size:9px;padding:4px 10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;color:var(--dim);cursor:pointer;font-family:Poppins,sans-serif;font-weight:700;text-transform:uppercase;letter-spacing:.3px">⬇ Cert</button>` : ''}
       </div>`;
     }).join('');
   }
@@ -12464,11 +12817,11 @@ function renderMilestoneGrid() {
             <div style="display:flex;align-items:center;gap:12px">
               <div style="font-size:28px">${m.icon}</div>
               <div>
-                <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">${m.title}</div>
+                <div style="font-size:14px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">${m.title}</div>
                 <div style="font-size:11px;color:var(--dim);margin-top:2px">Revenue milestone — permanently on your record</div>
               </div>
             </div>
-            <button onclick="redownloadCertificate(${m.amount})" style="flex-shrink:0;padding:8px 16px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);color:var(--teal);border-radius:50px;font-family:'Poppins',sans-serif;font-weight:800;font-size:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">⬇ Download</button>
+            <button onclick="redownloadCertificate(${m.amount})" style="flex-shrink:0;padding:8px 16px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);color:var(--teal);border-radius:50px;font-family:Poppins,sans-serif;font-weight:800;font-size:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">⬇ Download</button>
           </div>`).join('') +
         `</div>`;
     }
@@ -12490,13 +12843,13 @@ function renderMilestoneGrid() {
           <div style="display:flex;align-items:center;gap:10px">
             <div style="font-size:28px">${nextMile.icon}</div>
             <div>
-              <div style="font-size:15px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">${nextMile.title}</div>
+              <div style="font-size:15px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">${nextMile.title}</div>
               <div style="font-size:12px;color:var(--dim);margin-top:2px">$${gap.toLocaleString()} to go · ${dealsNeeded} more deal${dealsNeeded !== 1 ? 's' : ''} at $${price.toLocaleString()}</div>
             </div>
           </div>
           <div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:10px;padding:8px 16px;text-align:center">
             <div style="font-size:9px;color:var(--dimmer);text-transform:uppercase;font-weight:700">Gap to close</div>
-            <div style="font-size:20px;font-weight:900;color:var(--yellow);font-family:'Poppins',sans-serif">$${gap.toLocaleString()}</div>
+            <div style="font-size:20px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">$${gap.toLocaleString()}</div>
           </div>
         </div>
         <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:14px;overflow:hidden">
@@ -13037,12 +13390,12 @@ window.analyseAffiliateProduct = async function() {
     if (steps && step) steps.innerHTML += '<div style="color:var(--teal);font-size:11px">✓ '+step+'</div>';
   };
 
-  // ── Always show results at the end ────────────────────────────────────
+  // ── Show results panel when done ──────────────────────────────────────
   const showResults = () => {
     const av    = window._avatarData    || {};
     const offer = window._affiliateOffer|| {};
     if (statusEl) statusEl.style.display='none';
-    if (btnEl)    { btnEl.disabled=false; btnEl.textContent='⚡ Regenerate'; }
+    if (btnEl)    { btnEl.disabled=false; btnEl.innerHTML='⚡ Regenerate'; }
     const setupPanel = document.getElementById('aff-setup-panel');
     const activeView = document.getElementById('aff-active-view');
     if (setupPanel) setupPanel.style.display='none';
@@ -13051,18 +13404,16 @@ window.analyseAffiliateProduct = async function() {
     const metaEl = document.getElementById('aff-active-meta');
     if (nameEl) nameEl.textContent = offer.name||productName||'Your Offer';
     if (metaEl) metaEl.textContent = '$'+(offer.commission||commission).toLocaleString()+' commission · '+(offer.niche||productNiche);
-    // Render all tabs
     window.renderAffStrategy      && window.renderAffStrategy(av);
     window.renderAffAvatarView    && window.renderAffAvatarView(av);
     window.renderAffDMScripts     && window.renderAffDMScripts(av, offer.name||productName, offer.commission||commission);
     window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission||commission);
-    // Calendar
     if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
-      // Switch to the strategy tab first, calendar tab renders on click
       window.showAffActiveTab && window.showAffActiveTab('strategy', document.querySelector('#aff-active-tabs .tab'));
     }
     window.setAffTraffic && window.setAffTraffic(window._affTrafficMode||'organic');
-    // Save to localStorage
+    // Render TAM for affiliate mode
+    setTimeout(() => window.renderTAM && window.renderTAM('affiliate'), 400);
     try {
       localStorage.setItem('eos_affiliate_offer', JSON.stringify(window._affiliateOffer));
       localStorage.setItem('eos_avatar_data', JSON.stringify(window._avatarData));
@@ -13072,44 +13423,55 @@ window.analyseAffiliateProduct = async function() {
 
   try {
     // ═══════════════════════════════════════════════════════════════════
-    // STEP 1 — Fetch and analyse the actual sales page via the proxy
+    // STEP 1 — Read the sales page + build deep buyer psychology profile
     // ═══════════════════════════════════════════════════════════════════
     setProgress(10, 'Reading the sales page…', null);
 
-    const avatarPrompt = `You are an expert affiliate marketing strategist and conversion copywriter.
+    const avatarPrompt = `You are a world-class affiliate marketing strategist and buyer psychology expert.
 
-I will give you the content of an affiliate product sales page. Read it carefully — extract the product name, what it does, who it's for, the pain points it solves, the benefits and transformation it promises.
+You will be given the full content of a product sales page. Read every word. Your job is to deeply understand who is in so much pain they would buy this — what they tell themselves at 2am, what they have already tried and why it failed, what transformation they are desperately chasing, and what makes them trust someone promoting this.
 
-Then generate a complete, accurate buyer avatar for the BUYER of this product (not the affiliate marketer promoting it).
-
-Niche: ${productNiche}
+Product niche: ${productNiche}
 Commission per sale: $${commission}
-Monthly target: $${monthlyTarget}
-Traffic mode: ${window._affTrafficMode||'organic'}
+Monthly revenue target: $${monthlyTarget}
 
-Respond ONLY with valid JSON (no markdown, no backticks, no explanation):
+Return ONLY valid JSON — no markdown, no backticks, no explanation:
 {
   "productName": "exact product name from the sales page",
-  "productTagline": "the product's main promise or tagline",
-  "productBenefits": ["benefit 1", "benefit 2", "benefit 3"],
-  "name": "realistic buyer persona name e.g. Sarah Mitchell",
+  "productTagline": "the product core promise in one line",
+  "productBenefits": ["3 most emotionally compelling benefits from the sales page"],
+  "name": "realistic buyer persona name",
   "age": "age range e.g. 28-42",
   "gender": "Male / Female / Mixed",
-  "location": "primary markets e.g. USA, UK, Canada, Australia",
-  "job": "their current job or situation",
-  "industry": "their industry",
-  "income": "current income level",
-  "pain": "their single biggest pain point that this product solves (from the sales page)",
-  "transformation": "what they desperately want to achieve (from the sales page promises)",
-  "fear": "their biggest fear or objection about buying",
-  "tried": "what they have already tried and failed with",
-  "motivation": "what drives them emotionally",
-  "personality": "key personality traits",
-  "influences": "who they follow or what they read",
-  "objections": "top 2-3 objections before buying",
-  "keywords": ["keyword1", "keyword2", "keyword3", "keyword4", "keyword5"],
-  "contentAngles": ["angle 1", "angle 2", "angle 3", "angle 4", "angle 5"],
-  "dmHooks": ["hook 1", "hook 2", "hook 3"],
+  "location": "primary geographic markets",
+  "job": "their exact current situation or role",
+  "industry": "the world they live and work in",
+  "income": "current income or financial situation",
+  "pain": "their #1 daily pain in their own raw words — what wakes them up at 3am",
+  "deeperPain": "the emotional wound beneath the surface pain — shame, identity, fear of judgment",
+  "fear": "their biggest fear about buying something like this again",
+  "tried": "exactly what they have tried before and the specific way it failed them",
+  "transformation": "what their life looks and feels like 6 months after it works — specific and sensory",
+  "motivation": "the real emotional driver beneath the goal — what they are truly chasing",
+  "identity": "who they want to become, not just what they want to achieve",
+  "objections": ["their top 3 objections before buying"],
+  "contentAngles": [
+    "angle that makes them feel deeply seen",
+    "angle that challenges a false belief they hold",
+    "angle that names the real villain keeping them stuck",
+    "angle that paints their new identity",
+    "angle that tells the uncomfortable truth no one else says"
+  ],
+  "dmHooks": [
+    "DM opener so specific they think you know them personally",
+    "DM opener that challenges a belief they hold",
+    "DM opener that names their exact pain with precision"
+  ],
+  "emailSubjectLines": [
+    "subject line that feels like a personal message not an ad",
+    "subject line based on a shared struggle",
+    "subject line that creates genuine curiosity"
+  ],
   "productName": "${productName || 'the product'}",
   "niche": "${productNiche}",
   "commission": ${commission}
@@ -13117,62 +13479,71 @@ Respond ONLY with valid JSON (no markdown, no backticks, no explanation):
 
     let av = {};
     try {
-      // Use fetchUrl so the proxy reads the actual sales page
+      setProgress(15, 'Reading the sales page content…', null);
       const resp = await fetch(window.PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           fetchUrl: url,
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
+          max_tokens: 2500,
           messages: [{ role: 'user', content: avatarPrompt }]
         })
       });
       if (!resp.ok) throw new Error('API error ' + resp.status);
       const data = await resp.json();
       const text = (data.content && data.content[0] && data.content[0].text) || '';
-      const clean = text.replace(/```json|```/g,'').trim();
-      av = JSON.parse(clean);
-      setProgress(40, 'Sales page analysed ✅ — building buyer profile…', 'Sales page read ✅');
+      av = JSON.parse(text.replace(/```json|```/g,'').trim());
+      setProgress(40, 'Sales page analysed — building buyer profile…', 'Sales page read ✅');
     } catch(e) {
-      console.warn('Avatar generation failed:', e.message);
-      // Fallback avatar without page content
+      console.warn('Sales page fetch failed, using niche-based fallback:', e.message);
+      setProgress(30, 'Building buyer profile from niche data…', null);
       try {
         const fallbackResp = await fetch(window.PROXY_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: 'claude-sonnet-4-20250514',
-            max_tokens: 1500,
-            messages: [{ role: 'user', content: `Generate a buyer avatar for a ${productNiche} affiliate product at $${commission} commission. URL: ${url}. Product name: ${productName||'not specified'}. Return valid JSON only with fields: productName, productTagline, name, age, gender, location, job, industry, income, pain, transformation, fear, tried, motivation, personality, influences, objections, keywords (array), contentAngles (array), dmHooks (array), niche, commission.` }]
+            max_tokens: 2000,
+            messages: [{ role: 'user', content: `Build a deep buyer psychology profile for a ${productNiche} affiliate product.
+Product URL: ${url}
+Product name: ${productName || 'not specified'}
+Commission: $${commission} per sale
+Monthly target: $${monthlyTarget}
+
+Return ONLY valid JSON with all these fields:
+productName, productTagline, productBenefits (array), name, age, gender, location, job, industry, income, pain, deeperPain, fear, tried, transformation, motivation, identity, objections (array of 3), contentAngles (array of 5), dmHooks (array of 3), emailSubjectLines (array of 3), niche, commission` }]
           })
         });
         const fd = await fallbackResp.json();
-        const ft = (fd.content&&fd.content[0]&&fd.content[0].text)||'';
-        av = JSON.parse(ft.replace(/```json|```/g,'').trim());
+        av = JSON.parse(((fd.content&&fd.content[0]&&fd.content[0].text)||'').replace(/```json|```/g,'').trim());
+        setProgress(40, 'Buyer profile built — writing content…', 'Profile built ✅');
       } catch(e2) {
         av = {
-          productName: productName||'Affiliate Product', productTagline: 'Transform your results',
-          name:'Ideal Buyer', job:'Online entrepreneur', age:'28-45', gender:'Mixed',
-          location:'USA, UK, Australia', industry: productNiche,
-          income:'$30k-$60k/year', pain:'Struggling to get consistent results online',
-          transformation:'Build a profitable online income stream',
-          fear:'Wasting money on something that doesn\'t work',
-          tried:'Various courses and programmes without lasting results',
-          motivation:'Financial freedom and time flexibility',
-          personality:'Action-taker who has tried before',
-          influences:'Online business influencers and coaches',
-          objections:'Price, time commitment, whether it works for them',
-          keywords:['online income','affiliate marketing','passive income','work from home','digital business'],
-          contentAngles:['Pain story','Result proof','Myth busting','Step-by-step value','Behind the scenes'],
-          dmHooks:['Are you still dealing with [pain]?','I found something that changed this for me…','Have you heard of [product]?'],
+          productName: productName||'Affiliate Product',
+          productTagline: 'Transform your results',
+          productBenefits: ['Proven system', 'Fast results', 'Expert support'],
+          name: 'Alex', age: '28-42', gender: 'Mixed',
+          location: 'USA, UK, Australia', job: 'Online entrepreneur',
+          industry: productNiche, income: '$30k-$60k/year',
+          pain: 'Struggling to get consistent results and income online',
+          deeperPain: 'Fear of being stuck in the same place in 12 months',
+          transformation: 'Build a consistent income stream with a proven system',
+          fear: 'Wasting money on something that will not work for them',
+          tried: 'Various courses and programmes that promised results but delivered nothing',
+          motivation: 'Financial freedom and proving it is possible for someone like them',
+          identity: 'Someone who finally has a system that works and results to show for it',
+          objections: ["It won't work for me", "I've tried this before", "I don't have time"],
+          contentAngles: ['Make them feel seen', 'Reframe the villain', 'Paint the identity', 'Tell the truth', 'Name the broken system'],
+          dmHooks: ['Are you still dealing with [pain]?', 'I found what was actually missing…', 'This changed everything for people like us'],
+          emailSubjectLines: ['I almost gave up on this', 'What I wish someone told me', 'The thing no one talks about'],
           niche: productNiche, commission
         };
+        setProgress(40, 'Using fallback profile — results may be less specific', 'Profile created');
       }
-      setProgress(40, 'Buyer profile created — writing content…', 'Profile created ✅');
     }
 
-    // ── Store everything ──────────────────────────────────────────────
+    // ── Store core data ───────────────────────────────────────────────
     window._avatarData = av;
     window._affiliateOffer = {
       name: av.productName||productName||url,
@@ -13186,65 +13557,48 @@ Respond ONLY with valid JSON (no markdown, no backticks, no explanation):
     window._appliedPrice  = commission;
     window._appliedTarget = monthlyTarget;
 
-    setProgress(55, 'Writing your 7-day content plan…', 'Buyer avatar locked ✅');
+    // ── Voice profile context ─────────────────────────────────────────
+    const vp = window._voiceProfile || {};
+    const vpCtx = (vp.tone||vp.style||vp.example)
+      ? `\nCREATOR VOICE PROFILE (match this exactly):
+Tone: ${vp.tone||'natural and honest'}
+Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.words:''}${vp.avoid?'\nNEVER use: '+vp.avoid:''}${vp.story?'\nCreator story: '+vp.story:''}${vp.method?'\nTheir framework: '+vp.method:''}${vp.example?'\nMatch this exact voice:\n'+vp.example.slice(0,400):''}`
+      : '';
 
     // ═══════════════════════════════════════════════════════════════════
-    // STEP 2 — Generate 7-day content calendar (affiliate-specific)
+    // STEP 2 — Generate 7-day content calendar using avatar data
     // ═══════════════════════════════════════════════════════════════════
-    const pn   = av.productName||productName||'the product';
-    const pain = av.pain||'their biggest challenge';
+    const pn     = av.productName||productName||'the product';
+    const pain   = av.pain||'their biggest challenge';
     const transf = av.transformation||'their desired outcome';
-    const job  = (av.job||'professional').split('/')[0].split(',')[0].trim();
-    const fear = av.fear||'wasting money';
-    const tried = av.tried||'other programmes';
-    const traffic = window._affTrafficMode||'organic';
+    const job    = (av.job||'professional').split('/')[0].split(',')[0].trim();
+    const fear   = av.fear||'wasting money';
+    const tried  = av.tried||'other programmes';
+    const deeper = av.deeperPain||fear;
 
-    const calPrompt = `You are an expert affiliate content strategist. Write a 7-day content plan for an affiliate marketer promoting: "${pn}" in the ${productNiche} niche.
+    // 7-day arc built from the actual avatar psychology
+    const topicArc = [
+      `The real reason ${job}s can't escape ${pain.split(' ').slice(0,6).join(' ')}`,
+      `The lie you have been told about ${transf.split(' ').slice(0,5).join(' ')} that is keeping you stuck`,
+      `The day I realised everything I believed about ${productNiche} was wrong`,
+      `Why most solutions fail for people like you — and what actually works`,
+      `What ${transf.split(' ').slice(0,5).join(' ')} actually looks like — and how ${pn} delivers it`,
+      `Real results: what happened when I stopped ${tried.split(' ').slice(0,5).join(' ')}`,
+      `If you are serious about ${transf.split(' ').slice(0,5).join(' ')} — read this`,
+    ];
 
-BUYER PROFILE:
-- Job: ${job}
-- Pain: ${pain}
-- Transformation: ${transf}
-- Fear: ${fear}
-- Previously tried: ${tried}
-- Motivation: ${av.motivation||'financial freedom'}
+    // Build skeleton calendar immediately so UI shows fast
+    const DN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    window._aiCalendar30 = topicArc.map((t,d) => ([
+      { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:'', weekDay:DN[d], topic:t, dayNum:d+1, callToAction:'Comment below!', engagementTip:'Post 8–9am.' },
+      { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:'', weekDay:DN[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for more.', engagementTip:'Post 9–11am.' },
+      { postType:'Reel 2', slotType:'reel2', viralHook:t+' (Part 2)', fullScript:'', weekDay:DN[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12–2pm.' },
+      { postType:'Email', slotType:'email', viralHook:'Day '+(d+1)+': '+t.slice(0,50), fullScript:'', weekDay:DN[d], topic:t, dayNum:d+1, emailSubject:t.slice(0,60), callToAction:'Reply to this email.', engagementTip:'Send 8–10am.' },
+    ]));
 
-PRODUCT: ${pn}
-Commission: $${commission} per sale
-Traffic: ${traffic}
-Affiliate link placeholder: [YOUR AFFILIATE LINK]
+    setProgress(55, 'Writing your 7-day content plan…', 'Buyer profile locked ✅');
 
-Write 7 days of content. For EACH day follow this EXACT format with these EXACT headers:
-
-DAY 1: [Topic Title]
-
-FACEBOOK POST
-HOOK: [attention-grabbing opening line under 15 words]
-[3-4 paragraph post body — educational, builds trust, no hard sell, mentions the problem]
-CALL TO ACTION: [soft CTA that doesn't sound salesy]
-
-REEL 1 SCRIPT
-HOOK: [5-second verbal hook for video opening]
-[Full 45-60 second reel script, conversational, problem-focused, no direct pitch on Days 1-2]
-ENGAGEMENT TIP: [best time to post]
-
-REEL 2 SCRIPT
-HOOK: [different angle hook]
-[Full 45-60 second reel script, solution-focused]
-ENGAGEMENT TIP: [posting tip]
-
-EMAIL
-SUBJECT: [email subject line]
-[Full email body — personal story or value, soft mention of product on Days 3-7 only]
-
----
-
-Repeat for DAY 2 through DAY 7. Each day must have a completely different topic.
-Days 1-2: pure trust/value, no product mention.
-Days 3-4: introduce the problem the product solves, soft mention.
-Days 5-6: social proof angle, product as the solution.
-Day 7: final soft CTA with affiliate link.`;
-
+    // Generate full content via API
     try {
       const calResp = await fetch(window.PROXY_URL, {
         method: 'POST',
@@ -13252,218 +13606,171 @@ Day 7: final soft CTA with affiliate link.`;
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
           max_tokens: 8000,
-          messages: [{ role: 'user', content: calPrompt }]
-        })
-      });
-      if (!calResp.ok) throw new Error('Calendar API error ' + calResp.status);
-      const calData = await calResp.json();
-      const calText = (calData.content&&calData.content[0]&&calData.content[0].text)||'';
-      setProgress(85, 'Content written ✅ — building calendar…', 'Content plan written ✅');
-
-      // ── Parse calendar into slots ──────────────────────────────────
-      window._aiCalendar30 = [];
-      const DN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-
-      // Split by DAY markers
-      const dayBlocks = calText.split(/\n(?=DAY\s*\d+\s*:)/i).filter(b => /DAY\s*\d+/i.test(b));
-
-      const extractSection = (text, startRe, endRe) => {
-        const lines = text.split('\n');
-        let si = -1;
-        for (let i=0; i<lines.length; i++) {
-          if (startRe.test(lines[i])) { si = i+1; break; }
-        }
-        if (si < 0) return '';
-        let ei = lines.length;
-        for (let i=si; i<lines.length; i++) {
-          if (endRe && endRe.test(lines[i])) { ei=i; break; }
-        }
-        return lines.slice(si, ei).join('\n').trim();
-      };
-
-      const getHook = (block) => {
-        const hookLine = block.split('\n').find(l => /^HOOK\s*:/i.test(l));
-        return hookLine ? hookLine.replace(/^HOOK\s*:\s*/i,'').trim() : block.split('\n').find(l=>l.trim().length>15)||'';
-      };
-
-      const getSubject = (block) => {
-        const subLine = block.split('\n').find(l => /^SUBJECT\s*:/i.test(l));
-        return subLine ? subLine.replace(/^SUBJECT\s*:\s*/i,'').trim() : block.split('\n')[0]||'';
-      };
-
-      for (let d=0; d<Math.min(dayBlocks.length,7); d++) {
-        const blk   = dayBlocks[d];
-        const topicMatch = blk.match(/DAY\s*\d+\s*:\s*(.+)/i);
-        const topic = topicMatch ? topicMatch[1].replace(/\*+/g,'').trim() : 'Day '+(d+1);
-        const wd    = DN[d%7];
-
-        const fbBlock  = extractSection(blk, /^FACEBOOK\s*POST/i, /^REEL\s*1/i);
-        const r1Block  = extractSection(blk, /^REEL\s*1\s*(SCRIPT)?/i, /^REEL\s*2/i);
-        const r2Block  = extractSection(blk, /^REEL\s*2\s*(SCRIPT)?/i, /^EMAIL/i);
-        const emBlock  = extractSection(blk, /^EMAIL/i, /^---|\n\nDAY/i);
-
-        const makeCTA = (b) => {
-          const ctaLine = b.split('\n').find(l=>/^CALL\s*TO\s*ACTION\s*:/i.test(l));
-          return ctaLine ? ctaLine.replace(/^CALL\s*TO\s*ACTION\s*:\s*/i,'').trim() : 'Comment below!';
-        };
-        const makeEngTip = (b) => {
-          const tipLine = b.split('\n').find(l=>/^ENGAGEMENT\s*TIP\s*:/i.test(l));
-          return tipLine ? tipLine.replace(/^ENGAGEMENT\s*TIP\s*:\s*/i,'').trim() : 'Post during peak hours.';
-        };
-
-        window._aiCalendar30.push([
-          {
-            postType:'Facebook Post', slotType:'fb1',
-            viralHook: getHook(fbBlock)||topic,
-            fullScript: fbBlock||'[Content not generated — regenerate your plan]',
-            weekDay:wd, topic, dayNum:d+1,
-            callToAction: makeCTA(fbBlock),
-            engagementTip:'Post 8–9am. Reply to all comments within 2 hours.'
-          },
-          {
-            postType:'Reel 1', slotType:'reel1',
-            viralHook: getHook(r1Block)||topic,
-            fullScript: r1Block||'[Content not generated — regenerate your plan]',
-            weekDay:wd, topic, dayNum:d+1, isReel:true,
-            callToAction:'Follow for more tips like this.',
-            engagementTip: makeEngTip(r1Block)
-          },
-          {
-            postType:'Reel 2', slotType:'reel2',
-            viralHook: getHook(r2Block)||topic,
-            fullScript: r2Block||'[Content not generated — regenerate your plan]',
-            weekDay:wd, topic, dayNum:d+1, isReel:true,
-            callToAction:'Save this for later.',
-            engagementTip: makeEngTip(r2Block)
-          },
-          {
-            postType:'Email', slotType:'email',
-            viralHook: getSubject(emBlock)||topic,
-            fullScript: emBlock||'[Content not generated — regenerate your plan]',
-            weekDay:wd, topic, dayNum:d+1,
-            emailSubject: getSubject(emBlock),
-            callToAction:'Reply and tell me your biggest takeaway.',
-            engagementTip:'Send 8–10am or 5–7pm for best open rates.'
-          },
-        ]);
-      }
-
-      // Fallback if parser got nothing
-      if (window._aiCalendar30.length === 0) throw new Error('Parse produced 0 days');
-
-    } catch(calErr) {
-      console.warn('Calendar error:', calErr.message);
-      setProgress(85, 'Using template content plan…', null);
-      // Build meaningful skeleton from avatar
-      const topics = [
-        `The real reason ${job}s can't escape ${pain.split(' ').slice(0,5).join(' ')}`,
-        `My honest story: what changed everything for me`,
-        `3 mistakes ${job}s make that keep them stuck — and the fix`,
-        `Why most solutions fail for people like you (and what actually works)`,
-        `What ${transf} actually looks like — and how ${pn} delivers it`,
-        `Real results: what happened when I stopped doing this`,
-        `If you're serious about ${transf} — read this`
-      ];
-      const DN2 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-
-      // Build skeleton calendar immediately so UI is visible
-      window._aiCalendar30 = topics.map((t,d) => ([
-        { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:'', weekDay:DN2[d], topic:t, dayNum:d+1, callToAction:'Comment below!', engagementTip:'Post 8–9am.' },
-        { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:'', weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for more.', engagementTip:'Post 9–11am.' },
-        { postType:'Reel 2', slotType:'reel2', viralHook:t+' (Part 2)', fullScript:'', weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12–2pm.' },
-        { postType:'Email', slotType:'email', viralHook:'Day '+(d+1)+': '+t.slice(0,50), fullScript:'', weekDay:DN2[d], topic:t, dayNum:d+1, emailSubject:t.slice(0,60), callToAction:'Reply to this email.', engagementTip:'Send 8–10am.' },
-      ]));
-
-      // Generate full content via API
-      try {
-        const vp = window._voiceProfile || {};
-        const vpCtx = (vp.tone||vp.style||vp.example) ? `\nVOICE: ${vp.tone||''} — ${vp.style||''}.${vp.words?' Use phrases like: '+vp.words+'.':''}${vp.avoid?' Never use: '+vp.avoid+'.':''}` : '';
-
-        const affCalResp = await callAPI('generate-calendar', {
-          niche: niche || 'Online Business',
-          price: commission || 1000,
-          avatar: { job, pain, transformation: transf },
-          offer: pn,
-          mode: 'affiliate',
-          _rawPrompt: `You are a world-class content writer who specialises in belief-shifting, emotionally resonant content for affiliate marketers. You write content that makes the audience feel deeply understood, challenges their current thinking, and naturally leads them toward a solution — without ever feeling like an ad.
+          messages: [{ role: 'user', content: `You are a world-class content writer who creates belief-shifting, emotionally resonant content for affiliate marketers. Your content makes audiences feel deeply seen, challenges what holds them back, and builds genuine trust — never feeling like an ad.
 
 WHO YOU ARE WRITING FOR:
 They are: ${job}
 Their #1 pain: "${pain}"
+The emotional wound beneath: "${deeper}"
+What they have tried: ${tried}
+Their deepest fear: "${fear}"
 What they truly want: "${transf}"
-Product being promoted: ${pn}
+Who they want to become: "${av.identity||transf}"
+Product: ${pn} (${productNiche})
 Commission: $${commission}/sale${vpCtx}
 
-THE CONTENT PHILOSOPHY — every piece must do at least ONE:
-1. MAKE THEM FEEL SEEN: name their exact internal struggle with such precision they stop scrolling
-2. SHIFT A BELIEF: replace a false belief that is keeping them stuck with a true one
-3. REFRAME THE ENEMY: show that the real problem is not who they are, it is what they have been told
-4. PAINT THE IDENTITY: speak to who they are becoming — not just what they want to buy
-5. TELL THE UNCOMFORTABLE TRUTH: say what others in the niche are afraid to say
-
 THE 7-DAY EMOTIONAL ARC:
-Day 1 — ${topics[0]}: MIRROR content — describe their daily reality so accurately they think this was written specifically for them
-Day 2 — ${topics[1]}: REFRAME content — challenge the #1 lie they believe about their situation, replace it with truth
-Day 3 — ${topics[2]}: RAW STORY — tell a vulnerable, specific personal story of struggle and the turning point (no product mention)
-Day 4 — ${topics[3]}: NAME THE VILLAIN — expose the specific bad advice, wrong system, or broken approach they have been following
-Day 5 — ${topics[4]}: THE OTHER SIDE — paint a vivid, emotionally real picture of their life after the transformation
-Day 6 — ${topics[5]}: PROOF THROUGH JOURNEY — show the transformation as a process, not an outcome. Natural mention of how the product helped.
-Day 7 — ${topics[6]}: CONVERSATION STARTER — one deeply honest question that makes people want to respond and share their story
+Day 1 — "${topicArc[0]}": MIRROR — describe their daily reality so precisely they think you wrote this for them personally
+Day 2 — "${topicArc[1]}": REFRAME — challenge the #1 false belief that is keeping them stuck, replace it with truth
+Day 3 — "${topicArc[2]}": RAW STORY — vulnerable, personal, the messy middle — not a success story, the moment before it clicked
+Day 4 — "${topicArc[3]}": NAME THE VILLAIN — expose the broken system, bad advice, or wrong approach they have been fed
+Day 5 — "${topicArc[4]}": THE OTHER SIDE — paint their transformed life in vivid emotional detail. Natural product mention here.
+Day 6 — "${topicArc[5]}": PROOF THROUGH JOURNEY — show transformation as a process with real moments. Organic product reference.
+Day 7 — "${topicArc[6]}": REAL CONVERSATION — one deeply honest question that makes people want to open up and reply
 
 WRITING RULES — NON-NEGOTIABLE:
-- Write like a real person, not a marketer. No pitching. No hype. No "click the link in bio."
-- ZERO generic phrases: no "game changer", no "life-changing", no "hustle harder", no "you got this"
-- Every hook must name a SPECIFIC emotion or situation — not a vague outcome
-- Facebook posts must feel personal, like the creator sat down and wrote from the heart
-- Reel scripts must feel like the creator is giving voice to what the viewer has been silently feeling
-- Emails must feel like a personal message from a trusted friend, not a newsletter blast
-- Every sentence must earn its place — cut filler, cut padding, never repeat a point
-- Use specifics: real numbers, real timeframes, real emotions — vague content gets ignored
-- Days 1-4: zero product mentions. Days 5-6: natural, story-based mentions only. Day 7: conversation, no pitch.
+- Write like a real human, not a marketer. No hype. No "click the link in bio."
+- BANNED words: "game changer", "life-changing", "hustle", "level up", "you got this", "transform your life", "synergy"
+- Every hook must name a SPECIFIC emotion, moment, or situation — never a vague benefit
+- Facebook posts: personal and honest, 220-300 words, end with a genuine question requiring a real personal answer
+- Reel scripts: say what the viewer has been silently feeling but could never put into words
+- Emails: write as a personal letter to ONE specific person, never a broadcast
+- Days 1-4: ZERO product mentions. Days 5-6: natural story-based mentions only. Day 7: real conversation, no pitch.
+- Use their actual objections, fears, and tried solutions from above — make it specific, not generic
 
-Return a JSON array of exactly 7 objects with COMPLETE, ready-to-post content in every field:
-{"topic":"the specific belief, emotion, or truth this day addresses","hook":"the exact opening line — specific, emotionally charged, impossible to scroll past","fb1":"complete Facebook post — personal and honest, 220-300 words, ends with a genuine question","reel1":"full spoken reel script — HOOK (5-sec punchy line) + CONTENT (45-60 sec spoken naturally, 3-4 points) + CTA (5 sec)","reel2":"full spoken reel script — completely different hook and emotional angle from reel1, same topic","email":"SUBJECT: [subject line that feels personal, not promotional]\n\n[full email — written as a letter to one specific person, 180-230 words, honest and warm]"}
+Return a JSON array of exactly 7 objects with COMPLETE ready-to-post content:
+{"topic":"exact topic from arc","hook":"opening line so specific it stops the scroll","fb1":"complete Facebook post — raw and honest, 220-300 words, ends with genuine question","reel1":"full spoken reel script: HOOK (5-sec punchy line) + CONTENT (45-60 sec naturally spoken) + CTA (5 sec)","reel2":"full spoken reel script — completely different hook and emotional angle","email":"SUBJECT: [subject feeling personal not promotional]\n\n[full email — letter to one person, 180-230 words]"}
 
-Return ONLY the JSON array. No markdown. No backticks. No explanation before or after.`
-        });
+Return ONLY the JSON array. No markdown. No backticks. No explanation.` }]
+        })
+      });
 
-        const affText = (affCalResp.text || '').replace(/\`\`\`json|\`\`\`/gi,'').trim();
-        let affDays = null;
-        try { affDays = JSON.parse(affText); } catch(e) {}
-        if (affDays && Array.isArray(affDays)) {
-          affDays.slice(0,7).forEach((day, d) => {
+      setProgress(80, 'Content written — building DM scripts…', 'Content plan written ✅');
+
+      if (calResp.ok) {
+        const calData = await calResp.json();
+        const calText = ((calData.content&&calData.content[0]&&calData.content[0].text)||'').replace(/```json|```/gi,'').trim();
+        let calDays = null;
+        try { calDays = JSON.parse(calText); } catch(e) {}
+        if (calDays && Array.isArray(calDays)) {
+          calDays.slice(0,7).forEach((day, d) => {
             if (!window._aiCalendar30[d]) return;
-            const getHookFrom = t => { if (!t) return topics[d]||''; const l=t.split('\n').find(x=>/^HOOK[\s:]/i.test(x)); return l?l.replace(/^HOOK[\s:]*/i,'').replace(/^["']|["']$/g,'').trim():(t.split('\n')[0]||topics[d]||'').slice(0,120); };
+            const getHookFrom = t => { if (!t) return topicArc[d]||''; const l=t.split('\n').find(x=>/^HOOK[\s:]/i.test(x)); return l?l.replace(/^HOOK[\s:]*/i,'').replace(/^["']|["']$/g,'').trim():(t.split('\n')[0]||topicArc[d]||'').slice(0,120); };
             const emailBody = day.email || '';
-            const emailSubj = emailBody.match(/^SUBJECT:\s*(.+)/im)?.[1] || ('Day '+(d+1)+' — '+topics[d]);
+            const emailSubj = emailBody.match(/^SUBJECT:\s*(.+)/im)?.[1] || ('Day '+(d+1)+' — '+topicArc[d]);
             window._aiCalendar30[d][0].fullScript = day.fb1   || '';
-            window._aiCalendar30[d][0].viralHook  = getHookFrom(day.fb1) || topics[d];
+            window._aiCalendar30[d][0].viralHook  = getHookFrom(day.fb1)  || day.hook || topicArc[d];
             window._aiCalendar30[d][1].fullScript = day.reel1 || '';
-            window._aiCalendar30[d][1].viralHook  = getHookFrom(day.reel1) || topics[d];
+            window._aiCalendar30[d][1].viralHook  = getHookFrom(day.reel1) || day.hook || topicArc[d];
             window._aiCalendar30[d][2].fullScript = day.reel2 || day.reel1 || '';
-            window._aiCalendar30[d][2].viralHook  = getHookFrom(day.reel2||day.reel1) || topics[d]+' (Part 2)';
+            window._aiCalendar30[d][2].viralHook  = getHookFrom(day.reel2||day.reel1) || day.hook || topicArc[d]+' (Part 2)';
             window._aiCalendar30[d][3].fullScript = emailBody;
             window._aiCalendar30[d][3].viralHook  = emailSubj;
             window._aiCalendar30[d][3].emailSubject = emailSubj;
             window._aiCalendar30[d][3].emailBody  = emailBody;
           });
-          // Re-render calendar with real content
-          window.renderAffCalendarInTab && window.renderAffCalendarInTab();
         }
-      } catch(calGenErr) {
-        console.warn('Affiliate calendar content generation failed:', calGenErr.message);
       }
+    } catch(calErr) {
+      console.warn('Calendar generation failed:', calErr.message);
     }
 
-    setProgress(100, 'Everything ready! 🎉', 'Calendar ready ✅');
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP 3 — Generate personalised DM scripts from avatar data
+    // ═══════════════════════════════════════════════════════════════════
+    setProgress(85, 'Writing your DM scripts…', 'Calendar ready ✅');
+
+    try {
+      const dmResp = await fetch(window.PROXY_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 3000,
+          messages: [{ role: 'user', content: `Write 5 high-converting DM scripts for an affiliate marketer promoting "${pn}" (${productNiche}).
+
+IDEAL BUYER:
+Role: ${job}
+Pain: "${pain}"
+Fear: "${fear}"
+Tried: "${tried}"
+Wants: "${transf}"${vpCtx}
+
+SCRIPT RULES:
+- Each script opens with something so specific the person feels you are talking directly to them
+- NO pitch in the first message — build rapport and curiosity first
+- BANNED: "hey", "I came across your profile", "I thought you might be interested", "game changer", "opportunity"
+- Write like a real person messaging someone they care about helping
+- Scripts should feel like a natural conversation starter, not a sales message
+- Each of the 5 must use a completely different angle and opener
+
+Return ONLY valid JSON — no markdown, no backticks:
+[
+  {"type": "Pain Mirror", "label": "Pain Mirror", "opener": "complete first DM message", "followUp": "follow-up if no reply after 24hrs", "close": "message when they respond positively"},
+  {"type": "Curiosity Hook", "label": "Curiosity Hook", "opener": "...", "followUp": "...", "close": "..."},
+  {"type": "Story Lead", "label": "Story Lead", "opener": "...", "followUp": "...", "close": "..."},
+  {"type": "Direct Question", "label": "Direct Question", "opener": "...", "followUp": "...", "close": "..."},
+  {"type": "Shared Struggle", "label": "Shared Struggle", "opener": "...", "followUp": "...", "close": "..."}
+]` }]
+        })
+      });
+
+      if (dmResp.ok) {
+        const dmData = await dmResp.json();
+        const dmText = ((dmData.content&&dmData.content[0]&&dmData.content[0].text)||'').replace(/```json|```/gi,'').trim();
+        try {
+          const dmScripts = JSON.parse(dmText);
+          if (Array.isArray(dmScripts)) {
+            window._affiliateOffer.dmScripts = dmScripts;
+            window._avatarData.dmScripts = dmScripts;
+          }
+        } catch(e) { console.warn('DM parse failed:', e.message); }
+        setProgress(92, 'DM scripts ready — saving everything…', 'DM scripts written ✅');
+      }
+    } catch(dmErr) {
+      console.warn('DM generation failed:', dmErr.message);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // STEP 4 — Save everything to Firestore
+    // ═══════════════════════════════════════════════════════════════════
+    setProgress(95, 'Saving to your account…', null);
+
+    try {
+      const uid = window._currentUserUid;
+      if (uid && window._db) {
+        const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        await setDoc(doc(window._db, 'users', uid), {
+          affiliateOffer:    window._affiliateOffer,
+          avatarData:        window._avatarData,
+          calendarData: {
+            data:        JSON.stringify(window._aiCalendar30),
+            generatedAt: new Date().toISOString(),
+            postsPerDay: 4,
+            calDone: [],
+          },
+          appliedNiche:  window._appliedNiche,
+          appliedPrice:  window._appliedPrice,
+          appliedTarget: window._appliedTarget,
+          lastUpdated:   new Date().toISOString(),
+        }, { merge: true });
+        setProgress(100, 'Everything saved to your account ✅', 'Saved to account ✅');
+      } else {
+        setProgress(100, 'Everything ready! 🎉', 'Complete ✅');
+      }
+    } catch(saveErr) {
+      console.warn('Firestore save failed:', saveErr.message);
+      setProgress(100, 'Everything ready! 🎉', 'Complete ✅');
+    }
 
   } catch(e) {
     console.error('Analysis failed:', e.message);
-    setProgress(100, 'Ready (with defaults) — check each tab', null);
+    setProgress(100, 'Ready — check each tab', null);
   }
 
   setTimeout(showResults, 500);
-};
+}
+;
 
 // ─── Affiliate calendar renderer (renders inside the affiliate tab) ─────────
 window.renderAffCalendarInTab = function() {
@@ -13552,8 +13859,8 @@ window.showAffPostDetail = function(dayIdx, slotIdx) {
       ${slot.engagementTip?`<div style="margin-top:5px;font-size:11px;color:var(--dim)">💡 ${slot.engagementTip}</div>`:''}
     </div>
     <div style="padding:1rem 1.5rem;border-top:1px solid var(--border2);display:flex;gap:8px">
-      <button id="aff-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('aff-post-modal').querySelector('pre').textContent).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy Script',2000)})" style="flex:1;padding:11px;background:linear-gradient(135deg,${col},${col}cc);color:#fff;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer">📋 Copy Script</button>
-      <button onclick="document.getElementById('aff-post-modal').remove()" style="padding:11px 18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:10px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer">Close</button>
+      <button id="aff-copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('aff-post-modal').querySelector('pre').textContent).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy Script',2000)})" style="flex:1;padding:11px;background:linear-gradient(135deg,${col},${col}cc);color:#fff;border:none;border-radius:10px;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer">📋 Copy Script</button>
+      <button onclick="document.getElementById('aff-post-modal').remove()" style="padding:11px 18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:10px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer">Close</button>
     </div>
   </div>`;
   document.body.appendChild(modal);
@@ -13623,7 +13930,7 @@ window.renderAffAvatarView = function renderAffAvatarView(av) {
     <div style="background:linear-gradient(145deg,rgba(108,99,255,.08),var(--card));border:1px solid rgba(108,99,255,.2);border-radius:16px;overflow:hidden;margin-bottom:1rem">
       <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(108,99,255,.15);display:flex;align-items:center;gap:12px">
         <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0">${(av.name||'A')[0]}</div>
-        <div><div style="font-size:15px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">${av.name||'Ideal Buyer'}</div><div style="font-size:11px;color:var(--dim);margin-top:2px">${av.age} · ${av.gender} · ${av.location} · ${js}</div></div>
+        <div><div style="font-size:15px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">${av.name||'Ideal Buyer'}</div><div style="font-size:11px;color:var(--dim);margin-top:2px">${av.age} · ${av.gender} · ${av.location} · ${js}</div></div>
       </div>
       <div style="padding:1rem 1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:10px">
         ${[['Core pain',av.pain],['Dream outcome',av.transformation],['Biggest fear',av.fear],['Already tried',av.tried],['Motivation',av.motivation],['Personality',av.personality],['Follows',av.influences],['Objections',av.objections]].map(([l,v])=>`<div style="background:rgba(255,255,255,.03);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);font-weight:700;margin-bottom:3px">${l}</div><div style="font-size:11px;color:var(--muted);line-height:1.5">${v||'—'}</div></div>`).join('')}
@@ -13665,7 +13972,7 @@ window.renderAffDMScripts = function renderAffDMScripts(av, productName, commiss
     <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;margin-bottom:10px">
       <div style="padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between">
         <div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px">${s.icon}</span><div style="font-size:11px;font-weight:800;color:${s.col}">${s.title}</div></div>
-        <button onclick="navigator.clipboard.writeText(this.closest('div').nextElementSibling.querySelector('pre').textContent).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy',2000)})" style="font-size:10px;padding:4px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:50px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">📋 Copy</button>
+        <button onclick="navigator.clipboard.writeText(this.closest('div').nextElementSibling.querySelector('pre').textContent).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy',2000)})" style="font-size:10px;padding:4px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:50px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">📋 Copy</button>
       </div>
       <div style="padding:.85rem 1rem"><pre style="font-size:11px;color:var(--muted);line-height:1.75;white-space:pre-wrap;font-family:'Inter',sans-serif;margin:0">${s.text}</pre></div>
     </div>`).join('');
@@ -13707,7 +14014,7 @@ window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
         ['💳 Sales Made', sales, 'var(--yellow)'],
         ['💰 Total Earned', '\$'+earned.toLocaleString(), 'var(--teal)'],
         ['📊 Conv. Rate', convRate+'%', convRate>=2?'var(--teal)':'var(--orange)']
-      ].map(([l,v,c])=>`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">${l}</div><div style="font-size:20px;font-weight:900;font-family:'Poppins',sans-serif;color:${c}">${v}</div></div>`).join('')}
+      ].map(([l,v,c])=>`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">${l}</div><div style="font-size:20px;font-weight:900;font-family:Poppins,sans-serif;color:${c}">${v}</div></div>`).join('')}
     </div>
     <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem">
       ${[['🖱 Track a link click','clicks'],['💳 Log a completed sale','sales']].map(([l,k])=>`
@@ -13770,6 +14077,12 @@ window.setAppMode = function(mode) {
   } catch(e) {}
 
   const isAffiliate = mode === 'affiliate';
+
+  // ── Show/hide Voice & Style Profile and Market Opportunity nav (Expert only) ──
+  const voiceSection = document.getElementById('voice-profile-section');
+  if (voiceSection) voiceSection.style.display = isAffiliate ? 'none' : '';
+  const marketNav = document.getElementById('nav-market');
+  if (marketNav) marketNav.style.display = isAffiliate ? 'none' : '';
 
   // ── Update toggle buttons ─────────────────────────────────────────────
   // Update both toggle buttons (topbar)
@@ -13927,7 +14240,7 @@ window.updateAffTarget = function() {
       ['What 1 extra sale =', '+$' + comm.toLocaleString() + '/mo', 'var(--teal)'   ],
     ].map(([l,v,c]) => `<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center">
       <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">${l}</div>
-      <div style="font-size:16px;font-weight:900;font-family:'Poppins',sans-serif;color:${c}">${v}</div>
+      <div style="font-size:16px;font-weight:900;font-family:Poppins,sans-serif;color:${c}">${v}</div>
     </div>`).join('');
     grid.style.gridTemplateColumns = 'repeat(4,1fr)';
   }
@@ -14023,8 +14336,8 @@ window.setAffTraffic = function(mode) {
       : 'linear-gradient(135deg,rgba(78,204,163,.12),rgba(78,204,163,.04))';
     banner.style.borderColor = isPaid ? 'rgba(108,99,255,.3)' : 'rgba(78,204,163,.25)';
     banner.innerHTML = isPaid
-      ? `<div style="font-size:13px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:3px">💸 Paid Ads Mode</div><div style="font-size:11px;color:var(--dim)">Running Facebook/Instagram ads to your affiliate link or bridge page. Budget = $${dailyBudget}/day minimum.</div>`
-      : `<div style="font-size:13px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:3px">🌿 Organic Growth Mode</div><div style="font-size:11px;color:var(--dim)">Content + DMs. Zero ad spend — pure consistency and relationship building.</div>`;
+      ? `<div style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:3px">💸 Paid Ads Mode</div><div style="font-size:11px;color:var(--dim)">Running Facebook/Instagram ads to your affiliate link or bridge page. Budget = $${dailyBudget}/day minimum.</div>`
+      : `<div style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:3px">🌿 Organic Growth Mode</div><div style="font-size:11px;color:var(--dim)">Content + DMs. Zero ad spend — pure consistency and relationship building.</div>`;
   }
 
   // ── Render the full strategy breakdown ──────────────────────────────────
@@ -14428,7 +14741,7 @@ ABSOLUTE RULES — NEVER BREAK THESE:
         ? [{role:'user',content:sys+'\n\n---\n\nUSER MESSAGE: '+advisorHistory[0].content},...advisorHistory.slice(1)]
         : [{role:'user',content:sys+'\n\n---\n\nGreet the user. Reference ONLY data that is actually set above (ignore NOT SET fields). If key data is missing, tell them which section to complete first. Be energetic and direct.'}];
 
-      const proxyUrl=window.PROXY_URL||'https://build.skillslibry.com/api/claude';
+      const proxyUrl=window.PROXY_URL||window.PROXY_URL;
       let resp, reply='';
       try {
         resp=await fetch(proxyUrl,{
@@ -14737,6 +15050,8 @@ onAuthStateChanged(auth, async (user) => {
       ap.style.display = 'block';
       window.adminLoadMembers && window.adminLoadMembers();
     }
+    // Expose admin flag for training portal
+    window._isAdmin = true;
   }
 
   // ── Render UI with real user data ─────────────────────────────────────────
@@ -14829,7 +15144,833 @@ onAuthStateChanged(auth, async (user) => {
     } catch(e) { console.warn('Save profile failed:',e.message); }
   };
 
-  // ── Voice Profile save ───────────────────────────────────────────────────
+  
+// ═══════════════════════════════════════════════════════════════════════
+// MARKET OPPORTUNITY & CONSISTENCY ENGINE
+// ═══════════════════════════════════════════════════════════════════════
+
+const TAM_DATA = {
+  "Coaching & Consulting": {
+    globalMarket: "USD 25 billion",
+    globalPeople: 80000000,
+    activeSeekers: 4200000,
+    growthRate: 6.7,
+    avgBuyerSpend: 4800,
+    platformSplit: { "Facebook / Instagram": 48, "LinkedIn": 31, "YouTube": 14, "Other": 7 },
+    insight: "The global coaching market grows at 6.7% annually. Demand consistently outpaces supply — there are more people searching for a coach than there are coaches able to serve them."
+  },
+  "Digital Products & Info Business": {
+    globalMarket: "USD 210 billion",
+    globalPeople: 320000000,
+    activeSeekers: 18000000,
+    growthRate: 14.2,
+    avgBuyerSpend: 1200,
+    platformSplit: { "Facebook / Instagram": 52, "YouTube": 28, "TikTok": 12, "Email": 8 },
+    insight: "The e-learning and digital products market is one of the fastest growing sectors globally — 14.2% annually. Low production cost and infinite scalability make this the highest-margin business model available to a solo creator."
+  },
+  "Health, Fitness & Wellness": {
+    globalMarket: "USD 1.8 trillion",
+    globalPeople: 450000000,
+    activeSeekers: 22000000,
+    growthRate: 9.1,
+    avgBuyerSpend: 780,
+    platformSplit: { "Instagram": 44, "YouTube": 33, "TikTok": 16, "Facebook": 7 },
+    insight: "Health and wellness is one of the most resilient markets in the world — people spend on their body and mind even in economic downturns. Online health coaching has grown at over 9% annually since 2020."
+  },
+  "Affiliate Marketing": {
+    globalMarket: "USD 17 billion",
+    globalPeople: 50000000,
+    activeSeekers: 3800000,
+    growthRate: 10.5,
+    avgBuyerSpend: 620,
+    platformSplit: { "Facebook / Instagram": 58, "YouTube": 22, "TikTok": 13, "Email": 7 },
+    insight: "Global affiliate marketing spend grows at 10.5% annually. Brands are spending more on affiliate channels than ever before — and the number of quality affiliates is still far below the demand."
+  },
+  "E-commerce & Amazon FBA": {
+    globalMarket: "USD 6.3 trillion",
+    globalPeople: 280000000,
+    activeSeekers: 9500000,
+    growthRate: 11.8,
+    avgBuyerSpend: 2400,
+    platformSplit: { "Facebook Ads": 41, "Amazon Search": 35, "Google": 16, "TikTok Ads": 8 },
+    insight: "Global e-commerce represents over 20% of all retail and grows at 11.8% per year. Amazon FBA alone generates over $600 billion in third-party seller revenue annually."
+  },
+  "Real Estate": {
+    globalMarket: "USD 330 trillion",
+    globalPeople: 12000000,
+    activeSeekers: 2100000,
+    growthRate: 5.2,
+    avgBuyerSpend: 8000,
+    platformSplit: { "Facebook / Instagram": 62, "YouTube": 21, "LinkedIn": 12, "Other": 5 },
+    insight: "Real estate consistently creates more millionaires than any other asset class. The market for real estate education, mentorship, and investment advice is worth billions and grows year on year."
+  },
+  "Financial Education & Investing": {
+    globalMarket: "USD 45 billion",
+    globalPeople: 160000000,
+    activeSeekers: 14000000,
+    growthRate: 12.4,
+    avgBuyerSpend: 1800,
+    platformSplit: { "YouTube": 38, "Facebook / Instagram": 34, "Twitter/X": 19, "LinkedIn": 9 },
+    insight: "Demand for financial education has exploded post-2020. Over 160 million people actively seek investment and financial literacy content online — the gap between demand and quality supply is enormous."
+  }
+};
+
+window.renderTAM = function(mode) {
+  mode = mode || window._appMode || 'expert';
+  const isAffiliate = mode === 'affiliate';
+
+  const niche     = window._appliedNiche  || '';
+  const price     = window._appliedPrice  || 0;
+  const target    = window._appliedTarget || 0;
+  const av        = window._avatarData    || {};
+  const offer     = window._affiliateOffer|| {};
+  const commission = isAffiliate ? (offer.commission || price) : price;
+
+  // Pull offer-specific details
+  const offerName     = isAffiliate ? (offer.name || av.productName || 'your affiliate product') : ((document.getElementById('offer_name')||{}).value || 'your offer');
+  const buyerJob      = av.job         || 'your ideal client';
+  const buyerPain     = av.pain        || 'their biggest struggle';
+  const buyerTried    = av.tried       || 'other solutions';
+  const buyerTransf   = av.transformation || 'their desired outcome';
+  const buyerFear     = av.fear        || 'wasting money on something that does not work';
+  const buyerDeeper   = av.deeperPain  || av.fear || '';
+  const buyerIdentity = av.identity    || buyerTransf;
+  const buyerAngles   = av.contentAngles || [];
+  const buyerHooks    = av.dmHooks || [];
+  const userName      = (document.getElementById('prof-name')||{}).value || 'You';
+
+  const containerId = isAffiliate ? 'tam-affiliate-content' : 'tam-expert-content';
+  const el = document.getElementById(containerId);
+  if (!el) return;
+
+  if (!niche || !commission || !target) {
+    el.innerHTML = `<div style="text-align:center;padding:3rem 1rem">
+      <div style="font-size:36px;margin-bottom:14px">📊</div>
+      <div style="font-size:15px;font-weight:900;color:var(--white);margin-bottom:8px;font-family:Poppins,sans-serif">${isAffiliate ? 'Analyse your offer first' : 'Complete your Revenue Plan first'}</div>
+      <div style="font-size:12px;color:var(--dim);line-height:1.7;max-width:300px;margin:0 auto">${isAffiliate ? 'Click Analyse &amp; Build Everything to unlock your full Market Opportunity report.' : 'Set your niche, offer price, and monthly target in Step 1 — then come back here to see your full market opportunity.'}</div>
+    </div>`;
+    return;
+  }
+
+  // ── TAM data per niche ──────────────────────────────────────────────
+  const TAM = {
+    "Coaching & Consulting":          { market:"USD 25 billion", people:80000000,  seekers:4200000,  growth:6.7,  spend:4800, platforms:{"Facebook / Instagram":48,"LinkedIn":31,"YouTube":14,"Other":7} },
+    "Digital Products & Info Business":{ market:"USD 210 billion",people:320000000, seekers:18000000, growth:14.2, spend:1200, platforms:{"Facebook / Instagram":52,"YouTube":28,"TikTok":12,"Email":8} },
+    "Health, Fitness & Wellness":     { market:"USD 1.8 trillion", people:450000000, seekers:22000000, growth:9.1,  spend:780,  platforms:{"Instagram":44,"YouTube":33,"TikTok":16,"Facebook":7} },
+    "Affiliate Marketing":            { market:"USD 17 billion",  people:50000000,  seekers:3800000,  growth:10.5, spend:620,  platforms:{"Facebook / Instagram":58,"YouTube":22,"TikTok":13,"Email":7} },
+    "E-commerce & Amazon FBA":        { market:"USD 6.3 trillion", people:280000000, seekers:9500000,  growth:11.8, spend:2400, platforms:{"Facebook Ads":41,"Amazon Search":35,"Google":16,"TikTok Ads":8} },
+    "Real Estate":                    { market:"USD 330 trillion", people:12000000,  seekers:2100000,  growth:5.2,  spend:8000, platforms:{"Facebook / Instagram":62,"YouTube":21,"LinkedIn":12,"Other":5} },
+    "Financial Education & Investing":{ market:"USD 45 billion",  people:160000000, seekers:14000000, growth:12.4, spend:1800, platforms:{"YouTube":38,"Facebook / Instagram":34,"Twitter/X":19,"LinkedIn":9} },
+  };
+  const tam = TAM[niche] || { market:"USD 20 billion", people:50000000, seekers:2000000, growth:8.5, spend:1500, platforms:{"Facebook / Instagram":50,"YouTube":25,"Other":25} };
+
+  // ── Core maths ──────────────────────────────────────────────────────
+  const salesNeeded   = Math.ceil(target / commission);
+  const convRate      = isAffiliate ? 0.02 : 0.12;
+  const convsNeeded   = Math.ceil(salesNeeded / convRate);
+  const dmsPerDay     = Math.ceil(convsNeeded / 30);
+  const annualTarget  = target * 12;
+  const annualSales   = salesNeeded * 12;
+  const marketSharePct= (annualSales / tam.seekers) * 100;
+  const pctLabel      = marketSharePct < 0.01 ? "less than 0.01%" : marketSharePct.toFixed(2) + "%";
+  const reachable     = Math.round(tam.seekers * 0.03);
+  const compound30    = Math.round(dmsPerDay * 30 * convRate);
+  const compound30Val = compound30 * commission;
+
+  const fmt  = n => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n.toLocaleString();
+  const fmtM = n => '$' + (n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(0)+'K' : n.toLocaleString());
+
+  // ── Platform bars ───────────────────────────────────────────────────
+  const platformBars = Object.entries(tam.platforms).map(([p, pct]) => `
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
+        <span style="color:var(--muted)">${p}</span>
+        <span style="color:var(--white);font-weight:700">${pct}%</span>
+      </div>
+      <div style="height:5px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:99px"></div>
+      </div>
+    </div>`).join('');
+
+  // ── Tailored milestone copy using their actual offer + avatar ───────
+  const milestones = [
+    {
+      label: "Month 1 — First traction",
+      col: "var(--teal)",
+      desc: `You are learning what messaging lands for ${buyerJob}. You post about "${buyerPain}" and start ${dmsPerDay} DMs a day. Goal: ${Math.ceil(salesNeeded*0.3)} ${isAffiliate?'sales from '+offerName:'clients into '+offerName}. Not perfect — consistent.`
+    },
+    {
+      label: "Month 3 — Momentum builds",
+      col: "var(--purple)",
+      desc: `Your content about "${buyerPain}" starts compounding. People who resonate with your message on ${Object.keys(tam.platforms)[0]} share it. Pipeline fills. Goal: consistently hit ${fmtM(target)}/month. A few people will tell you "${offerName} changed everything for them."`
+    },
+    {
+      label: "Month 6 — You are known",
+      col: "var(--yellow)",
+      desc: `${fmt(annualSales/2)} total ${isAffiliate?'sales':'clients'}. ${fmtM(target*6)} earned. ${buyerJob}s who follow you know exactly what you stand for. Inbound enquiries start replacing cold outreach. Your content on "${buyerTransf}" is what people share.`
+    },
+    {
+      label: "Month 12 — Authority",
+      col: "var(--orange)",
+      desc: `${fmtM(annualTarget)} annual run rate. You are one of the recognised names in ${niche} for helping ${buyerJob}s achieve "${buyerTransf}". ${buyerJob}s find you — you do not always find them. This is what ${dmsPerDay} DMs a day for 365 days actually builds.`
+    },
+  ];
+
+  // ── Content angles from avatar (if available) ───────────────────────
+  const anglesSection = buyerAngles.length > 0 ? `
+    <div style="background:rgba(255,255,255,.04);border-radius:14px;padding:1.25rem;margin-top:12px">
+      <div style="font-size:11px;color:var(--dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700">Content angles that hit hardest for ${buyerJob}s</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${buyerAngles.slice(0,5).map((angle, i) => `
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;margin-top:1px">${i+1}</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6">${angle}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  // ── DM hooks from avatar (if available) ────────────────────────────
+  const dmSection = buyerHooks.length > 0 ? `
+    <div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:14px;padding:1.25rem;margin-top:12px">
+      <div style="font-size:11px;color:var(--purple);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;font-weight:800">Your proven DM openers for this audience</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${buyerHooks.slice(0,3).map((hook, i) => `
+          <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px 14px">
+            <div style="font-size:10px;color:var(--dimmer);margin-bottom:5px;text-transform:uppercase;letter-spacing:1px">Opener ${i+1}</div>
+            <div style="font-size:12px;color:var(--white);line-height:1.7;font-style:italic">"${hook}"</div>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  el.innerHTML = `
+    <!-- HERO: TAM -->
+    <div style="background:linear-gradient(145deg,rgba(78,204,163,.08),rgba(108,99,255,.06));border:1px solid rgba(78,204,163,.2);border-radius:20px;padding:1.75rem;margin-bottom:1.25rem;text-align:center">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--teal);font-weight:800;margin-bottom:10px;font-family:Poppins,sans-serif">Total Addressable Market · ${niche}</div>
+      <div style="font-size:clamp(30px,6vw,50px);font-weight:900;color:var(--white);font-family:Poppins,sans-serif;line-height:1;margin-bottom:6px">${tam.market}</div>
+      <div style="font-size:12px;color:var(--dim);margin-bottom:18px">Growing at <span style="color:var(--teal);font-weight:800">${tam.growth}%</span> per year · ${fmt(tam.people)} people globally</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 8px">
+          <div style="font-size:18px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">${fmt(tam.seekers)}</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:3px;line-height:1.4">actively seeking a solution right now</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 8px">
+          <div style="font-size:18px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif">${fmt(reachable)}</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:3px;line-height:1.4">reachable with consistent content</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:12px 8px">
+          <div style="font-size:18px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">${fmtM(tam.spend)}</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:3px;line-height:1.4">avg annual spend per buyer in your niche</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAILORED INSIGHT: who they serve + what they offer -->
+    <div style="background:rgba(255,217,61,.05);border:1px solid rgba(255,217,61,.2);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem;display:flex;gap:14px;align-items:flex-start">
+      <div style="font-size:24px;flex-shrink:0">💡</div>
+      <div>
+        <div style="font-size:12px;font-weight:800;color:var(--yellow);margin-bottom:6px;font-family:Poppins,sans-serif">YOUR SPECIFIC OPPORTUNITY</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8">
+          You serve <strong style="color:var(--white)">${buyerJob}s</strong> who are dealing with "${buyerPain}". 
+          They have tried ${buyerTried} and it has not worked. 
+          What they truly want is "${buyerTransf}" — and <strong style="color:var(--white)">${offerName}</strong> is the vehicle to get them there. 
+          There are <strong style="color:var(--teal)">${fmt(tam.seekers)}</strong> people in ${niche} actively searching for this exact transformation. 
+          You only need <strong style="color:var(--white)">${salesNeeded}</strong> of them this month.
+        </div>
+      </div>
+    </div>
+
+    <!-- THE EXACT MATH -->
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:1.5rem;margin-bottom:1.25rem">
+      <div style="font-size:13px;font-weight:900;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">The Exact Numbers to Hit ${fmtM(target)}/month with ${offerName}</div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:1.25rem">Every number below is calculated from your actual offer and goal. This is not an estimate — this is your execution formula.</div>
+      <div style="display:grid;gap:10px">
+        <div style="display:flex;gap:14px;align-items:center;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.15);border-radius:12px;padding:14px">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🎯</div>
+          <div style="flex:1">
+            <div style="font-size:10px;color:var(--dim);margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px">${isAffiliate?'Sales':'Clients'} needed per month</div>
+            <div style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">${salesNeeded} ${isAffiliate?'sales':'clients'}</div>
+            <div style="font-size:10px;color:var(--dimmer);margin-top:2px">${fmtM(target)} ÷ ${fmtM(commission)} ${isAffiliate?'commission per sale':'per client'} = ${salesNeeded}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.15);border-radius:12px;padding:14px">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💬</div>
+          <div style="flex:1">
+            <div style="font-size:10px;color:var(--dim);margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px">Conversations needed per month</div>
+            <div style="font-size:22px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif">${fmt(convsNeeded)} conversations</div>
+            <div style="font-size:10px;color:var(--dimmer);margin-top:2px">At ${Math.round(convRate*100)}% conversion — standard for ${isAffiliate?'affiliate offers':'high-ticket '+niche}</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:center;background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:14px">
+          <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--yellow),#e6ac00);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📨</div>
+          <div style="flex:1">
+            <div style="font-size:10px;color:var(--dim);margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px">DMs to send every single day</div>
+            <div style="font-size:28px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">${dmsPerDay} DMs/day</div>
+            <div style="font-size:10px;color:var(--dimmer);margin-top:2px">Your non-negotiable daily number to hit ${fmtM(target)}</div>
+          </div>
+        </div>
+      </div>
+      ${dmSection}
+    </div>
+
+    <!-- OPPORTUNITY IN PERSPECTIVE -->
+    <div style="background:linear-gradient(145deg,rgba(108,99,255,.08),rgba(78,204,163,.05));border:1px solid rgba(108,99,255,.2);border-radius:20px;padding:1.5rem;margin-bottom:1.25rem">
+      <div style="font-size:13px;font-weight:900;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">How Small Your Goal Actually Is</div>
+      <div style="background:rgba(255,255,255,.04);border-radius:14px;padding:1.25rem;margin-bottom:12px">
+        <div style="font-size:34px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif;margin-bottom:6px">${pctLabel}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8">
+          of ${fmt(tam.seekers)} ${buyerJob}s actively looking for "${buyerTransf}" right now.
+          To earn <strong style="color:var(--white)">${fmtM(annualTarget)}</strong> this year with <strong style="color:var(--white)">${offerName}</strong>, 
+          you need <strong style="color:var(--white)">${annualSales}</strong> ${isAffiliate?'sales':'clients'} out of ${fmt(tam.seekers)} people already searching. 
+          The market is not your problem. <strong style="color:var(--orange)">Daily consistency is the only variable.</strong>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;font-weight:700">Where ${buyerJob}s spend their time</div>
+      ${platformBars}
+      ${anglesSection}
+    </div>
+
+    <!-- CONSISTENCY TIMELINE -->
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:1.5rem;margin-bottom:1.25rem">
+      <div style="font-size:13px;font-weight:900;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">What Consistency Does to Your Business</div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:1.5rem">This is what happens when ${userName} shows up for ${buyerJob}s every day with ${offerName}.</div>
+      <div style="position:relative;padding-left:26px">
+        <div style="position:absolute;left:9px;top:6px;bottom:6px;width:2px;background:linear-gradient(180deg,var(--teal),var(--purple),var(--yellow),var(--orange));opacity:.4;border-radius:99px"></div>
+        ${milestones.map((m, i) => `
+          <div style="position:relative;margin-bottom:${i<3?'1.25rem':'0'}">
+            <div style="position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:${m.col}"></div>
+            <div style="font-size:12px;font-weight:900;color:${m.col};margin-bottom:4px;font-family:Poppins,sans-serif">${m.label}</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.7">${m.desc}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- COMPOUND EFFECT CLOSER -->
+    <div style="background:linear-gradient(145deg,rgba(255,140,66,.08),rgba(255,107,107,.05));border:1px solid rgba(255,140,66,.25);border-radius:20px;padding:1.5rem">
+      <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:1.25rem">
+        <div style="font-size:28px">🔥</div>
+        <div>
+          <div style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:3px">The Compound Effect in Your Numbers</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.6">What ${dmsPerDay} DMs a day actually produces over 30 days — with your exact offer and commission.</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:22px;font-weight:900;color:var(--orange);font-family:Poppins,sans-serif">${dmsPerDay*30}</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:3px">conversations in 30 days</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:12px;padding:14px;text-align:center">
+          <div style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">${compound30} ${isAffiliate?'sales':'clients'}</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:3px">at ${Math.round(convRate*100)}% conversion</div>
+        </div>
+      </div>
+      <div style="background:rgba(255,255,255,.05);border-radius:14px;padding:1.25rem;text-align:center">
+        <div style="font-size:11px;color:var(--dim);margin-bottom:6px">30 days of ${dmsPerDay} DMs/day with ${offerName}</div>
+        <div style="font-size:32px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif;margin-bottom:4px">${fmtM(compound30Val)}</div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7">Add content compounding to that — where ${buyerJob}s who resonate with "${buyerPain}" find you organically — and that number grows every single month without proportionally more effort. <strong style="color:var(--white)">That is what consistency in ${niche} actually builds.</strong></div>
+      </div>
+    </div>
+  `;
+};
+;
+
+// Auto-render when page is visited
+(function() {
+  const origShowPage = window.showPage;
+  if (!origShowPage) return;
+  window.showPage = function(n, btn) {
+    origShowPage(n, btn);
+    if (n === 'market') {
+      setTimeout(() => window.renderTAM('expert'), 60);
+    }
+  };
+})();
+
+// Wire TAM to affiliate tab
+window.showAffActiveTab_orig_tam = window.showAffActiveTab;
+window.showAffActiveTab = function(tab, btn) {
+  if (window.showAffActiveTab_orig_tam) window.showAffActiveTab_orig_tam(tab, btn);
+  if (tab === 'tam') {
+    setTimeout(() => window.renderTAM('affiliate'), 60);
+  }
+};
+
+// Also render when applyAll is called (expert) or analyseAffiliateProduct completes (affiliate)
+const _origApplyAll = window.applyAll;
+if (_origApplyAll) {
+  window.applyAll = function() {
+    _origApplyAll.apply(this, arguments);
+    setTimeout(() => {
+      if ((window._appMode || 'expert') === 'expert') window.renderTAM('expert');
+    }, 800);
+  };
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════
+// TRAINING HUB — Full LMS Engine
+// ═══════════════════════════════════════════════════════════════════════
+
+window._trainingModules  = [];   // [{id, name, icon, order, description}]
+window._trainingLessons  = [];   // [{id, moduleId, title, desc, videoUrl, order, duration}]
+window._trainingComplete = new Set(); // completed lesson IDs
+window._trainingCurrent  = null; // current lesson id
+window._trainingIsAdmin  = false;
+
+// ── Convert video URL to embed URL ──────────────────────────────────────
+window._trainingEmbedUrl = function(url) {
+  if (!url) return null;
+  url = url.trim();
+  // YouTube
+  const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) return 'https://www.youtube.com/embed/' + ytMatch[1] + '?rel=0&modestbranding=1';
+  // Vimeo
+  const vmMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vmMatch) return 'https://player.vimeo.com/video/' + vmMatch[1] + '?color=4ECCA3&byline=0&portrait=0';
+  // Loom
+  const lmMatch = url.match(/loom\.com\/share\/([a-zA-Z0-9]+)/);
+  if (lmMatch) return 'https://www.loom.com/embed/' + lmMatch[1];
+  // Wistia
+  const wsMatch = url.match(/wistia\.com\/medias\/([a-zA-Z0-9]+)/);
+  if (wsMatch) return 'https://fast.wistia.net/embed/iframe/' + wsMatch[1];
+  // Already an embed URL
+  if (url.includes('/embed/') || url.includes('player.vimeo') || url.includes('wistia.net/embed')) return url;
+  return null;
+};
+
+// ── Load training data from Firestore ───────────────────────────────────
+window.loadTrainingData = async function() {
+  try {
+    const { collection, getDocs, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const db = window._db;
+    if (!db) return;
+
+    // Load modules
+    const modSnap = await getDocs(query(collection(db, 'training_modules'), orderBy('order', 'asc')));
+    window._trainingModules = modSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Load lessons
+    const lesSnap = await getDocs(query(collection(db, 'training_lessons'), orderBy('moduleOrder', 'asc')));
+    window._trainingLessons = lesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // Load user progress
+    const uid = window._currentUserUid;
+    if (uid) {
+      const { doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const progSnap = await getDoc(doc(db, 'users', uid));
+      if (progSnap.exists()) {
+        const data = progSnap.data();
+        window._trainingComplete = new Set(data.trainingComplete || []);
+      }
+    }
+  } catch(e) {
+    console.warn('Training load failed:', e.message);
+    window._trainingModules = [];
+    window._trainingLessons = [];
+  }
+
+  window.renderTrainingSidebar();
+};
+
+// ── Render sidebar modules + lessons ────────────────────────────────────
+window.renderTrainingSidebar = function() {
+  const list = document.getElementById('training-modules-list');
+  if (!list) return;
+
+  const modules  = window._trainingModules || [];
+  const lessons  = window._trainingLessons || [];
+  const done     = window._trainingComplete || new Set();
+  const totalLes = lessons.filter(l => l.isPublished !== false).length;
+  const doneCnt  = lessons.filter(l => done.has(l.id)).length;
+  const pct      = totalLes > 0 ? Math.round((doneCnt / totalLes) * 100) : 0;
+
+  // Update stats
+  const setEl = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  setEl('training-progress-label', doneCnt + ' of ' + totalLes + ' complete');
+  setEl('training-progress-pct', pct + '%');
+  const bar = document.getElementById('training-progress-bar');
+  if (bar) bar.style.width = pct + '%';
+  setEl('tw-modules', modules.length);
+  setEl('tw-lessons', totalLes);
+  setEl('tw-done', doneCnt);
+
+  if (modules.length === 0) {
+    list.innerHTML = window._trainingIsAdmin
+      ? '<div style="padding:1.5rem 1.25rem;text-align:center"><div style="font-size:22px;margin-bottom:8px">📭</div><div style="font-size:11px;color:var(--dim);line-height:1.6">No modules yet. Click <strong style="color:var(--yellow)">+ New Module</strong> above to create your first training module.</div></div>'
+      : '<div style="padding:1.5rem 1.25rem;text-align:center"><div style="font-size:22px;margin-bottom:8px">📭</div><div style="font-size:11px;color:var(--dim)">No training modules available yet. Check back soon!</div></div>';
+    return;
+  }
+
+  list.innerHTML = modules.map((mod, mi) => {
+    const modLessons = lessons.filter(l => l.moduleId === mod.id && l.isPublished !== false).sort((a,b) => (a.order||0)-(b.order||0));
+    const modDone = modLessons.filter(l => done.has(l.id)).length;
+    const isOpen = mi === 0; // first module open by default
+
+    const lessonsHtml = modLessons.map((les, li) => {
+      const isDone = done.has(les.id);
+      const isCurrent = window._trainingCurrent === les.id;
+      return `<div class="training-lesson-item ${isDone ? 'completed' : ''} ${isCurrent ? 'active' : ''}" onclick="window.openLesson('${les.id}')">
+        <div class="training-lesson-check">${isDone ? '✓' : ''}</div>
+        <div class="training-lesson-title">${les.title || 'Untitled Lesson'}</div>
+        ${les.duration ? '<div class="training-lesson-duration">' + les.duration + '</div>' : ''}
+        ${window._trainingIsAdmin ? '<button onclick="event.stopPropagation();window.showEditLessonForm(\''+les.id+'\')" style="padding:2px 7px;background:rgba(255,217,61,.15);color:var(--yellow);border:none;border-radius:4px;font-size:9px;cursor:pointer;flex-shrink:0">Edit</button>' : ''}
+      </div>`;
+    }).join('');
+
+    return `<div class="training-module" id="tmod-${mod.id}">
+      <div class="training-module-header" onclick="window.toggleTrainingModule('${mod.id}')">
+        <div class="training-module-icon" style="background:rgba(${mi%2===0?'78,204,163':'108,99,255'},.12)">${mod.icon || '📖'}</div>
+        <div style="flex:1">
+          <div class="training-module-name">${mod.name || 'Module ' + (mi+1)}</div>
+          <div class="training-module-meta">${modLessons.length} lesson${modLessons.length!==1?'s':''} · ${modDone}/${modLessons.length} done</div>
+        </div>
+        <div class="training-module-chevron ${isOpen ? 'open' : ''}" id="tmchev-${mod.id}">▶</div>
+        ${window._trainingIsAdmin ? '<button onclick="event.stopPropagation();window.showAddLessonForm(\''+mod.id+'\')" style="padding:2px 7px;background:rgba(255,217,61,.15);color:var(--yellow);border:none;border-radius:4px;font-size:9px;cursor:pointer;margin-right:4px">+ Lesson</button>' : ''}
+        ${window._trainingIsAdmin ? '<button onclick="event.stopPropagation();window.deleteTrainingModule(\''+mod.id+'\')" style="padding:2px 7px;background:rgba(255,107,107,.15);color:var(--red);border:none;border-radius:4px;font-size:9px;cursor:pointer;margin-right:4px">Del</button>' : ''}
+      </div>
+      <div class="training-lessons-wrap ${isOpen ? 'open' : ''}" id="tles-${mod.id}">${lessonsHtml || '<div style="padding:.75rem 1.25rem 0 2.75rem;font-size:11px;color:var(--dimmer)">' + (window._trainingIsAdmin ? 'No lessons yet — click + Lesson above.' : 'Coming soon.') + '</div>'}</div>
+    </div>`;
+  }).join('');
+};
+
+window.toggleTrainingModule = function(moduleId) {
+  const wrap = document.getElementById('tles-' + moduleId);
+  const chev = document.getElementById('tmchev-' + moduleId);
+  if (!wrap) return;
+  const isOpen = wrap.classList.contains('open');
+  wrap.classList.toggle('open', !isOpen);
+  if (chev) chev.classList.toggle('open', !isOpen);
+};
+
+// ── Open a lesson ────────────────────────────────────────────────────────
+window.openLesson = function(lessonId) {
+  const lesson = (window._trainingLessons || []).find(l => l.id === lessonId);
+  if (!lesson) return;
+  const mod = (window._trainingModules || []).find(m => m.id === lesson.moduleId);
+
+  window._trainingCurrent = lessonId;
+
+  // Hide welcome, show lesson
+  const welcome = document.getElementById('training-welcome');
+  const active  = document.getElementById('training-active-lesson');
+  if (welcome) welcome.style.display = 'none';
+  if (active)  active.style.display  = 'block';
+
+  // Set content
+  const setEl = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  setEl('training-lesson-module-name', mod ? mod.name : '');
+  setEl('training-lesson-title', lesson.title || 'Untitled Lesson');
+  setEl('training-lesson-desc', lesson.description || '');
+
+  // Video
+  const vWrap = document.getElementById('training-video-wrap');
+  const vPlaceholder = document.getElementById('training-video-placeholder');
+  if (vWrap) {
+    const embedUrl = window._trainingEmbedUrl(lesson.videoUrl);
+    if (embedUrl) {
+      vWrap.innerHTML = '<iframe src="' + embedUrl + '" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>';
+    } else {
+      vWrap.innerHTML = '<div class="training-video-placeholder"><div style="font-size:36px">🎬</div><div style="font-size:12px;color:var(--dim);margin-top:8px">No video added for this lesson</div>' + (window._trainingIsAdmin ? '<button onclick="window.showEditLessonForm(\''+lessonId+'\')" style="margin-top:12px;padding:8px 16px;background:rgba(255,217,61,.2);color:var(--yellow);border:1px solid rgba(255,217,61,.3);border-radius:8px;font-size:11px;cursor:pointer">Add Video URL</button>' : '') + '</div>';
+    }
+  }
+
+  // Mark complete button
+  const isDone = window._trainingComplete && window._trainingComplete.has(lessonId);
+  const markBtn = document.getElementById('training-mark-btn');
+  if (markBtn) {
+    if (isDone) {
+      markBtn.textContent = '✅ Completed';
+      markBtn.style.background = 'rgba(78,204,163,.15)';
+      markBtn.style.color = 'var(--teal)';
+      markBtn.style.border = '1px solid rgba(78,204,163,.3)';
+    } else {
+      markBtn.textContent = 'Mark Complete';
+      markBtn.style.background = 'linear-gradient(135deg,var(--teal),var(--teal2))';
+      markBtn.style.color = 'var(--text-dark)';
+      markBtn.style.border = 'none';
+    }
+  }
+
+  // Open the module in sidebar
+  if (lesson.moduleId) {
+    const wrap = document.getElementById('tles-' + lesson.moduleId);
+    const chev = document.getElementById('tmchev-' + lesson.moduleId);
+    if (wrap) wrap.classList.add('open');
+    if (chev) chev.classList.add('open');
+  }
+
+  // Re-render sidebar to update active state
+  window.renderTrainingSidebar();
+};
+
+// ── Mark lesson complete ─────────────────────────────────────────────────
+window.markLessonComplete = async function() {
+  const id = window._trainingCurrent;
+  if (!id) return;
+  if (!window._trainingComplete) window._trainingComplete = new Set();
+  const wasDone = window._trainingComplete.has(id);
+  if (wasDone) window._trainingComplete.delete(id);
+  else window._trainingComplete.add(id);
+
+  // Update UI immediately
+  window.openLesson(id);
+
+  // Save to Firestore
+  try {
+    const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const uid = window._currentUserUid;
+    if (uid && window._db) {
+      await setDoc(doc(window._db, 'users', uid), { trainingComplete: Array.from(window._trainingComplete) }, { merge: true });
+    }
+  } catch(e) { console.warn('Progress save failed:', e.message); }
+
+  // Auto-advance to next lesson if just marked complete
+  if (!wasDone) setTimeout(() => window.trainingNav(1), 800);
+};
+
+// ── Previous / Next navigation ───────────────────────────────────────────
+window.trainingNav = function(dir) {
+  const lessons = (window._trainingLessons || []).filter(l => l.isPublished !== false).sort((a,b) => {
+    const ai = (window._trainingModules || []).findIndex(m => m.id === a.moduleId);
+    const bi = (window._trainingModules || []).findIndex(m => m.id === b.moduleId);
+    if (ai !== bi) return ai - bi;
+    return (a.order || 0) - (b.order || 0);
+  });
+  const idx = lessons.findIndex(l => l.id === window._trainingCurrent);
+  const next = lessons[idx + dir];
+  if (next) window.openLesson(next.id);
+};
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADMIN BUILDER FUNCTIONS
+// ═══════════════════════════════════════════════════════════════════════
+
+window.showAddModuleForm = function() {
+  const form = document.getElementById('training-admin-form');
+  if (!form) return;
+  const modCount = (window._trainingModules || []).length;
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:1.25rem;margin-top:.75rem">
+      <div style="font-size:12px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:1rem">New Training Module</div>
+      <div style="display:grid;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Module Name *</div>
+          <input id="tmod-name-input" class="fi" placeholder="e.g. Module 1: Getting Started" style="width:100%;box-sizing:border-box">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Icon (emoji)</div>
+            <input id="tmod-icon-input" class="fi" placeholder="e.g. 🚀" maxlength="4" value="📖">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Order</div>
+            <input id="tmod-order-input" class="fi" type="number" value="${modCount + 1}" min="1">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Description (optional)</div>
+          <textarea id="tmod-desc-input" class="fi" rows="2" placeholder="Short description of this module..." style="min-height:60px"></textarea>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="document.getElementById('training-admin-form').style.display='none'" style="padding:9px 16px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:8px;font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer">Cancel</button>
+          <button onclick="window.saveTrainingModule()" style="padding:9px 20px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:8px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">Save Module</button>
+        </div>
+      </div>
+    </div>`;
+};
+
+window.saveTrainingModule = async function() {
+  const name  = (document.getElementById('tmod-name-input') ||{}).value?.trim();
+  const icon  = (document.getElementById('tmod-icon-input') ||{}).value?.trim() || '📖';
+  const order = parseInt((document.getElementById('tmod-order-input')||{}).value) || 99;
+  const desc  = (document.getElementById('tmod-desc-input') ||{}).value?.trim() || '';
+  if (!name) { alert('Module name is required.'); return; }
+  try {
+    const { collection, addDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const docRef = await addDoc(collection(window._db, 'training_modules'), {
+      name, icon, order, description: desc, isPublished: true, createdAt: new Date().toISOString()
+    });
+    window._trainingModules.push({ id: docRef.id, name, icon, order, description: desc, isPublished: true });
+    window._trainingModules.sort((a,b) => (a.order||0)-(b.order||0));
+    document.getElementById('training-admin-form').style.display = 'none';
+    window.renderTrainingSidebar();
+  } catch(e) { alert('Save failed: ' + e.message); }
+};
+
+window.deleteTrainingModule = async function(moduleId) {
+  if (!confirm('Delete this module and all its lessons? This cannot be undone.')) return;
+  try {
+    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await deleteDoc(doc(window._db, 'training_modules', moduleId));
+    window._trainingModules = window._trainingModules.filter(m => m.id !== moduleId);
+    // Delete lessons in that module from local state
+    window._trainingLessons = window._trainingLessons.filter(l => l.moduleId !== moduleId);
+    window.renderTrainingSidebar();
+  } catch(e) { alert('Delete failed: ' + e.message); }
+};
+
+window.showAddLessonForm = function(moduleId) {
+  const form = document.getElementById('training-admin-form');
+  if (!form) return;
+  const mod = (window._trainingModules || []).find(m => m.id === moduleId);
+  const lesCount = (window._trainingLessons || []).filter(l => l.moduleId === moduleId).length;
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:1.25rem;margin-top:.75rem">
+      <div style="font-size:12px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:3px">New Lesson</div>
+      <div style="font-size:11px;color:var(--dim);margin-bottom:1rem">Adding to: <strong style="color:var(--teal)">${mod ? mod.name : 'Module'}</strong></div>
+      <div style="display:grid;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Lesson Title *</div>
+          <input id="tles-title-input" class="fi" placeholder="e.g. Welcome to the Programme" style="width:100%;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Video URL <span style="color:var(--dimmer)">(YouTube, Vimeo, Loom, or Wistia)</span></div>
+          <input id="tles-video-input" class="fi" placeholder="https://www.youtube.com/watch?v=..." style="width:100%;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Lesson Description</div>
+          <textarea id="tles-desc-input" class="fi" rows="3" placeholder="What will members learn in this lesson? What should they do after watching?" style="min-height:80px"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Duration (optional)</div>
+            <input id="tles-dur-input" class="fi" placeholder="e.g. 12 min">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Order</div>
+            <input id="tles-order-input" class="fi" type="number" value="${lesCount + 1}" min="1">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="document.getElementById('training-admin-form').style.display='none'" style="padding:9px 16px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:8px;font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer">Cancel</button>
+          <button onclick="window.saveTrainingLesson('${moduleId}')" style="padding:9px 20px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:8px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">Save Lesson</button>
+        </div>
+      </div>
+    </div>`;
+};
+
+window.saveTrainingLesson = async function(moduleId) {
+  const title  = (document.getElementById('tles-title-input') ||{}).value?.trim();
+  const video  = (document.getElementById('tles-video-input') ||{}).value?.trim() || '';
+  const desc   = (document.getElementById('tles-desc-input') ||{}).value?.trim() || '';
+  const dur    = (document.getElementById('tles-dur-input')  ||{}).value?.trim() || '';
+  const order  = parseInt((document.getElementById('tles-order-input')||{}).value) || 99;
+  const mod    = (window._trainingModules || []).find(m => m.id === moduleId);
+  const modOrder = mod ? (mod.order || 0) : 0;
+  if (!title) { alert('Lesson title is required.'); return; }
+  try {
+    const { collection, addDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const docRef = await addDoc(collection(window._db, 'training_lessons'), {
+      moduleId, title, videoUrl: video, description: desc, duration: dur,
+      order, moduleOrder: modOrder * 1000 + order,
+      isPublished: true, createdAt: new Date().toISOString()
+    });
+    window._trainingLessons.push({ id: docRef.id, moduleId, title, videoUrl: video, description: desc, duration: dur, order, moduleOrder: modOrder * 1000 + order, isPublished: true });
+    document.getElementById('training-admin-form').style.display = 'none';
+    window.renderTrainingSidebar();
+  } catch(e) { alert('Save failed: ' + e.message); }
+};
+
+window.showEditLessonForm = function(lessonId) {
+  const les = (window._trainingLessons || []).find(l => l.id === lessonId);
+  if (!les) return;
+  const form = document.getElementById('training-admin-form');
+  if (!form) return;
+  form.style.display = 'block';
+  form.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:1.25rem;margin-top:.75rem">
+      <div style="font-size:12px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:1rem">Edit Lesson</div>
+      <div style="display:grid;gap:10px">
+        <div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Lesson Title *</div>
+          <input id="tles-edit-title" class="fi" value="${(les.title||'').replace(/"/g,'&quot;')}" style="width:100%;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Video URL</div>
+          <input id="tles-edit-video" class="fi" value="${(les.videoUrl||'').replace(/"/g,'&quot;')}" placeholder="https://www.youtube.com/watch?v=..." style="width:100%;box-sizing:border-box">
+        </div>
+        <div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Description</div>
+          <textarea id="tles-edit-desc" class="fi" rows="3" style="min-height:80px">${les.description||''}</textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Duration</div>
+            <input id="tles-edit-dur" class="fi" value="${les.duration||''}">
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:5px">Order</div>
+            <input id="tles-edit-order" class="fi" type="number" value="${les.order||1}" min="1">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:space-between">
+          <button onclick="window.deleteTrainingLesson('${lessonId}')" style="padding:9px 14px;background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.25);color:var(--red);border-radius:8px;font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer">Delete Lesson</button>
+          <div style="display:flex;gap:8px">
+            <button onclick="document.getElementById('training-admin-form').style.display='none'" style="padding:9px 16px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:8px;font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer">Cancel</button>
+            <button onclick="window.updateTrainingLesson('${lessonId}')" style="padding:9px 20px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:8px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+};
+
+window.updateTrainingLesson = async function(lessonId) {
+  const title = (document.getElementById('tles-edit-title')||{}).value?.trim();
+  const video = (document.getElementById('tles-edit-video')||{}).value?.trim() || '';
+  const desc  = (document.getElementById('tles-edit-desc') ||{}).value?.trim() || '';
+  const dur   = (document.getElementById('tles-edit-dur')  ||{}).value?.trim() || '';
+  const order = parseInt((document.getElementById('tles-edit-order')||{}).value) || 99;
+  if (!title) { alert('Lesson title is required.'); return; }
+  try {
+    const { doc, updateDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await updateDoc(doc(window._db, 'training_lessons', lessonId), { title, videoUrl: video, description: desc, duration: dur, order });
+    const les = window._trainingLessons.find(l => l.id === lessonId);
+    if (les) { les.title = title; les.videoUrl = video; les.description = desc; les.duration = dur; les.order = order; }
+    document.getElementById('training-admin-form').style.display = 'none';
+    window.renderTrainingSidebar();
+    if (window._trainingCurrent === lessonId) window.openLesson(lessonId);
+  } catch(e) { alert('Update failed: ' + e.message); }
+};
+
+window.deleteTrainingLesson = async function(lessonId) {
+  if (!confirm('Delete this lesson? This cannot be undone.')) return;
+  try {
+    const { doc, deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    await deleteDoc(doc(window._db, 'training_lessons', lessonId));
+    window._trainingLessons = window._trainingLessons.filter(l => l.id !== lessonId);
+    if (window._trainingCurrent === lessonId) {
+      window._trainingCurrent = null;
+      const welcome = document.getElementById('training-welcome');
+      const active  = document.getElementById('training-active-lesson');
+      if (welcome) welcome.style.display = 'block';
+      if (active)  active.style.display  = 'none';
+    }
+    document.getElementById('training-admin-form').style.display = 'none';
+    window.renderTrainingSidebar();
+  } catch(e) { alert('Delete failed: ' + e.message); }
+};
+
+// ── Init training when page is opened ────────────────────────────────────
+(function patchShowPageTraining() {
+  const orig = window.showPage;
+  if (!orig) return;
+  window.showPage = function(n, btn) {
+    orig(n, btn);
+    if (n === 'training') {
+      // Check admin status
+      const isAdmin = window._isAdmin || window._currentUserRole === 'admin';
+      window._trainingIsAdmin = isAdmin;
+      const adminPanel = document.getElementById('training-admin-panel');
+      if (adminPanel) adminPanel.style.display = isAdmin ? 'block' : 'none';
+      // Load training data from Firestore
+      window.loadTrainingData();
+    }
+  };
+})();
+
+
+// ── Voice Profile save ───────────────────────────────────────────────────
   window.saveVoiceProfile = async () => {
     const gv = id => (document.getElementById(id)||{}).value||'';
     const voiceData = {
@@ -15081,16 +16222,16 @@ function loadCalendar(data) {
   try {
     const parsedCal = JSON.parse(data.data);
 
-    // Detect stale placeholder content — if any slot has placeholder text, clear fullScript
-    // so user sees the Regenerate button instead of broken API responses
-    const PLACEHOLDER_MARKERS = ['[Full post body', '[Full reel', '[Full script', '[Full email', 'click Regenerate'];
+    // Detect stale placeholder content
+    const PLACEHOLDER_MARKERS = ['[Full post body','[Full reel','[Full script','[Full email','click Regenerate','Regenerate to get'];
+    let staleCount = 0;
     if (Array.isArray(parsedCal)) {
       parsedCal.forEach(day => {
         if (!Array.isArray(day)) return;
         day.forEach(slot => {
           if (!slot) return;
           const hasPlaceholder = PLACEHOLDER_MARKERS.some(m => (slot.fullScript||'').includes(m));
-          if (hasPlaceholder) slot.fullScript = '';
+          if (hasPlaceholder) { slot.fullScript = ''; staleCount++; }
         });
       });
     }
@@ -15098,12 +16239,31 @@ function loadCalendar(data) {
     window._aiCalendar30 = parsedCal;
     window._postsPerDay  = data.postsPerDay||6;
     window._calDone      = new Set(data.calDone||[]);
-    const banner = document.getElementById('cal-ai-banner');
-    if (banner) {
-      banner.style.display='flex';
-      const divs = banner.querySelectorAll('div div');
-      if (divs[0]) divs[0].textContent='✅ 7-Day Content Plan Loaded';
-      if (divs[1]) divs[1].textContent='Your niche-tailored plan is active. Click any post to view the full script.';
+
+    if (staleCount > 0) {
+      // Old calendar — show regen banner
+      const banner = document.getElementById('cal-ai-banner');
+      if (banner) {
+        banner.style.cssText = 'display:flex;align-items:center;gap:14px;background:rgba(255,140,66,.08);border:1px solid rgba(255,140,66,.3);border-radius:16px;padding:1rem 1.25rem;margin-bottom:1.5rem;flex-wrap:wrap';
+        banner.innerHTML = [
+          '<div style="font-size:22px">⚠️</div>',
+          '<div style="flex:1">',
+            '<div style="font-size:13px;font-weight:900;color:var(--orange);font-family:Poppins,sans-serif;margin-bottom:3px">Your content plan needs to be regenerated</div>',
+            '<div style="font-size:11px;color:var(--dim);line-height:1.6">Your saved calendar has outdated placeholder content. Click Regenerate to get real, full posts.</div>',
+          '</div>',
+          '<button onclick="window.generate30DayCalendar&&window.generate30DayCalendar()" ',
+            'style="padding:10px 20px;background:linear-gradient(135deg,var(--orange),var(--yellow));color:#0a1628;border:none;border-radius:10px;font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer;white-space:nowrap;flex-shrink:0">',
+            '⚡ Regenerate Now</button>',
+        ].join('');
+      }
+    } else {
+      const banner = document.getElementById('cal-ai-banner');
+      if (banner) {
+        banner.style.display='flex';
+        const divs = banner.querySelectorAll('div div');
+        if (divs[0]) divs[0].textContent='✅ 7-Day Content Plan Loaded';
+        if (divs[1]) divs[1].textContent='Your niche-tailored plan is active. Click any post to view the full script.';
+      }
     }
   } catch(e) { console.warn('Calendar restore failed:',e); }
 }
