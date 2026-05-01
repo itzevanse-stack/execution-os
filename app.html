@@ -1887,7 +1887,8 @@ button[onclick="generateOffer()"] {
 .training-wrap {
   display: grid;
   grid-template-columns: 280px 1fr;
-  min-height: calc(100vh - 56px);
+  height: calc(100vh - 120px);
+  overflow: hidden;
   gap: 0;
 }
 @media (max-width: 700px) {
@@ -1901,9 +1902,9 @@ button[onclick="generateOffer()"] {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  height: calc(100vh - 120px);
   position: sticky;
   top: 56px;
-  max-height: calc(100vh - 56px);
 }
 .training-sidebar-header {
   padding: 1rem 1.25rem .75rem;
@@ -2032,6 +2033,8 @@ button[onclick="generateOffer()"] {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow-y: auto;
+  height: 100%;
 }
 .training-video-wrap {
   position: relative;
@@ -2254,15 +2257,6 @@ button[onclick="generateOffer()"] {
       <div class="nav-section-label">Growth</div>
 
       <!-- Affiliate Hub removed — replaced by mode system -->
-
-      <button class="nav-item ripple-container" onclick="showPage('training',this)" id="nav-training">
-        <div class="ni-icon">🎓</div>
-        <div class="ni-text">
-          <div class="ni-label">TRAINING HUB</div>
-          <div class="ni-step">Modules &amp; lessons</div>
-        </div>
-        <div class="ni-dot"></div>
-      </button>
 
       <button class="nav-item ripple-container" onclick="showPage('growth',this)" id="nav-growth">
         <div class="ni-icon">📚</div>
@@ -3665,68 +3659,6 @@ button[onclick="generateOffer()"] {
     </div>
 
 
-  <!-- TRAINING HUB -->
-  <div class="page" id="page-training" style="display:none;padding:0">
-    <div id="training-admin-panel" style="display:none;padding:1.25rem;border-bottom:1px solid var(--border2);background:rgba(255,217,61,.04)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:10px">
-        <div>
-          <div style="font-size:12px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">Training Builder <span style="font-size:10px;background:rgba(255,217,61,.15);color:var(--yellow);padding:2px 8px;border-radius:99px;margin-left:6px">ADMIN</span></div>
-          <div style="font-size:11px;color:var(--dim);margin-top:2px">Create modules, add lessons, embed video training for your members.</div>
-        </div>
-        <button onclick="window.showAddModuleForm()" style="padding:9px 18px;background:linear-gradient(135deg,var(--yellow),#e6ac00);color:#0a1628;border:none;border-radius:8px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap">+ New Module</button>
-      </div>
-      <div id="training-admin-form" style="display:none"></div>
-    </div>
-    <div class="training-wrap">
-      <div class="training-sidebar" id="training-sidebar">
-        <div class="training-sidebar-header">
-          <div class="training-sidebar-title">Execution OS</div>
-          <div class="training-course-name" id="training-course-title">Training Hub</div>
-          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:6px">
-            <span id="training-progress-label">0 of 0 complete</span>
-            <span id="training-progress-pct" style="color:var(--teal);font-weight:700">0%</span>
-          </div>
-          <div class="training-progress-bar-wrap"><div class="training-progress-bar" id="training-progress-bar" style="width:0%"></div></div>
-        </div>
-        <div class="training-module-wrap" id="training-modules-list">
-          <div style="padding:2rem 1.25rem;text-align:center;color:var(--dimmer);font-size:12px">
-            <div style="font-size:28px;margin-bottom:8px">📚</div>Loading modules...
-          </div>
-        </div>
-      </div>
-      <div class="training-main" id="training-main">
-        <div id="training-welcome" style="padding:3rem 1.5rem;text-align:center;max-width:540px;margin:0 auto">
-          <div style="font-size:48px;margin-bottom:16px">🎓</div>
-          <div style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Welcome to the Training Hub</div>
-          <div style="font-size:13px;color:var(--dim);line-height:1.8;margin-bottom:24px">Select a lesson from the sidebar to get started. Track your progress as you learn.</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
-            <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-modules" style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Modules</div></div>
-            <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-lessons" style="font-size:22px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Lessons</div></div>
-            <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-done" style="font-size:22px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Completed</div></div>
-          </div>
-        </div>
-        <div id="training-active-lesson" style="display:none">
-          <div class="training-video-wrap" id="training-video-wrap">
-            <div class="training-video-placeholder" id="training-video-placeholder">
-              <div style="font-size:36px">🎬</div>
-              <div style="font-size:12px;color:var(--dim);margin-top:8px">No video added for this lesson</div>
-            </div>
-          </div>
-          <div class="training-lesson-body">
-            <div class="training-lesson-tag" id="training-lesson-module-name"></div>
-            <div class="training-lesson-heading" id="training-lesson-title"></div>
-            <div class="training-lesson-desc" id="training-lesson-desc"></div>
-            <div class="training-nav-btns">
-              <button id="training-mark-btn" onclick="window.markLessonComplete()" style="padding:11px 22px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:10px;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer">Mark Complete</button>
-              <button onclick="window.trainingNav(-1)" style="padding:11px 18px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:10px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer">Previous</button>
-              <button onclick="window.trainingNav(1)" style="padding:11px 18px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:10px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer">Next</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
     <div class="page" id="page-growth">
     <div class="hero-strip" style="background:linear-gradient(145deg,rgba(78,204,163,.12),var(--card));border-color:rgba(78,204,163,.35)">
       <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--purple),var(--yellow));border-radius:20px 20px 0 0"></div>
@@ -3753,10 +3685,68 @@ button[onclick="generateOffer()"] {
       <button class="tab" onclick="showGrowthTab('announcements',this)">📢 Updates</button>
     </div>
 
-    <!-- TRAINING MODULES -->
-    <div id="growth-pane-modules">
-      <div class="sec-label">Core training modules</div>
-      <div id="growth-modules-grid" style="display:flex;flex-direction:column;gap:14px;margin-bottom:2rem"></div>
+    <!-- TRAINING MODULES — Full LMS portal -->
+    <div id="growth-pane-modules" style="padding:0;margin:-1rem -1.5rem -1.5rem">
+      <!-- Admin builder panel -->
+      <div id="training-admin-panel" style="display:none;padding:1.25rem;border-bottom:1px solid var(--border2);background:rgba(255,217,61,.04)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:12px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">Training Builder <span style="font-size:10px;background:rgba(255,217,61,.15);color:var(--yellow);padding:2px 8px;border-radius:99px;margin-left:6px">ADMIN</span></div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px">Create modules, add lessons, embed video training for your members.</div>
+          </div>
+          <button onclick="window.showAddModuleForm()" style="padding:9px 18px;background:linear-gradient(135deg,var(--yellow),#e6ac00);color:#0a1628;border:none;border-radius:8px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap">+ New Module</button>
+        </div>
+        <div id="training-admin-form" style="display:none"></div>
+      </div>
+      <!-- Portal layout -->
+      <div class="training-wrap">
+        <div class="training-sidebar" id="training-sidebar">
+          <div class="training-sidebar-header">
+            <div class="training-sidebar-title">Execution OS</div>
+            <div class="training-course-name" id="training-course-title">Training Hub</div>
+            <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:6px">
+              <span id="training-progress-label">0 of 0 complete</span>
+              <span id="training-progress-pct" style="color:var(--teal);font-weight:700">0%</span>
+            </div>
+            <div class="training-progress-bar-wrap"><div class="training-progress-bar" id="training-progress-bar" style="width:0%"></div></div>
+          </div>
+          <div class="training-module-wrap" id="training-modules-list">
+            <div style="padding:2rem 1.25rem;text-align:center;color:var(--dimmer);font-size:12px">
+              <div style="font-size:28px;margin-bottom:8px">📚</div>Loading modules...
+            </div>
+          </div>
+        </div>
+        <div class="training-main" id="training-main">
+          <div id="training-welcome" style="padding:3rem 1.5rem;text-align:center;max-width:540px;margin:0 auto">
+            <div style="font-size:48px;margin-bottom:16px">🎓</div>
+            <div style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Welcome to the Training Hub</div>
+            <div style="font-size:13px;color:var(--dim);line-height:1.8;margin-bottom:24px">Select a lesson from the sidebar to get started. Track your progress as you learn.</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+              <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-modules" style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Modules</div></div>
+              <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-lessons" style="font-size:22px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Lessons</div></div>
+              <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem"><div id="tw-done" style="font-size:22px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">0</div><div style="font-size:10px;color:var(--dim);margin-top:3px">Completed</div></div>
+            </div>
+          </div>
+          <div id="training-active-lesson" style="display:none">
+            <div class="training-video-wrap" id="training-video-wrap">
+              <div class="training-video-placeholder" id="training-video-placeholder">
+                <div style="font-size:36px">🎬</div>
+                <div style="font-size:12px;color:var(--dim);margin-top:8px">No video added for this lesson</div>
+              </div>
+            </div>
+            <div class="training-lesson-body">
+              <div class="training-lesson-tag" id="training-lesson-module-name"></div>
+              <div class="training-lesson-heading" id="training-lesson-title"></div>
+              <div class="training-lesson-desc" id="training-lesson-desc"></div>
+              <div class="training-nav-btns">
+                <button id="training-mark-btn" onclick="window.markLessonComplete()" style="padding:11px 22px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:10px;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer">Mark Complete</button>
+                <button onclick="window.trainingNav(-1)" style="padding:11px 18px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:10px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer">← Previous</button>
+                <button onclick="window.trainingNav(1)" style="padding:11px 18px;background:rgba(255,255,255,.07);border:1px solid var(--border2);color:var(--muted);border-radius:10px;font-family:Poppins,sans-serif;font-weight:700;font-size:12px;cursor:pointer">Next →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- SESSION REPLAYS -->
@@ -13286,13 +13276,14 @@ window.adj = window.adj; // keep reference
 
 // ─── Tab switcher ─────────────────────────────────────────────────────────
 window.showAffActiveTab = function(tab, btn) {
-  ['strategy','avatar','calendar','dms','tracker','dailytracker'].forEach(t => {
+  ['strategy','avatar','calendar','dms','tracker','dailytracker','tam'].forEach(t => {
     const el = document.getElementById('aff-tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
   document.querySelectorAll('#aff-active-tabs .tab').forEach(b => b.classList.remove('on'));
   if (btn) btn.classList.add('on');
   if (tab === 'tracker')  window.renderAffCommTracker && window.renderAffCommTracker();
+  if (tab === 'tam') setTimeout(() => window.renderTAM && window.renderTAM('affiliate'), 60);
   if (tab === 'dms') {
     const av = window._avatarData || {};
     const offer = window._affiliateOffer || {};
@@ -13462,6 +13453,13 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
     "angle that paints their new identity",
     "angle that tells the uncomfortable truth no one else says"
   ],
+  "personality": "one of: Skeptical but curious / Ambitious but overwhelmed / Results-driven / Desperate for change / Cautious researcher",
+  "influences": "3-5 real influencers, YouTube channels, Facebook groups, or communities they actively follow in this niche",
+  "income": "their current income range e.g. $30K-$60K/year",
+  "personality": "one of: Skeptical but curious / Ambitious but overwhelmed / Results-driven / Desperate for change / Cautious researcher",
+  "influences": "3-5 real influencers, YouTube channels, Facebook groups, or communities they actively follow in this niche",
+  "objections": ["their top 3 objections written out in full as separate items — what they say before buying"],
+  "keywords": ["exact phrase they search on Google", "exact phrase they search", "exact phrase they search", "exact phrase they search", "exact phrase they search", "exact phrase they search", "exact phrase they search", "exact phrase they search"],
   "dmHooks": [
     "DM opener so specific they think you know them personally",
     "DM opener that challenges a belief they hold",
@@ -13471,6 +13469,13 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
     "subject line that feels like a personal message not an ad",
     "subject line based on a shared struggle",
     "subject line that creates genuine curiosity"
+  ],
+  "contentAngles": [
+    "angle that makes them feel deeply seen based on their specific pain",
+    "angle that challenges a false belief they hold about getting results in this niche",
+    "angle that names the real villain keeping them stuck",
+    "angle that paints their new identity after the transformation",
+    "angle that tells the uncomfortable truth no one else says in this niche"
   ],
   "productName": "${productName || 'the product'}",
   "niche": "${productNiche}",
@@ -13519,29 +13524,39 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
         av = JSON.parse(((fd.content&&fd.content[0]&&fd.content[0].text)||'').replace(/```json|```/g,'').trim());
         setProgress(40, 'Buyer profile built — writing content…', 'Profile built ✅');
       } catch(e2) {
+        // Niche-specific rich fallback data
+        const _nf = {
+          "Digital Products & Info Business": { name:"Sarah", age:"28-42", gender:"Mixed", location:"USA, UK, Australia, Canada", job:"Corporate employee trying to build income online", income:"$35K-$65K/year", pain:"I know I have knowledge worth sharing but I have no idea how to package it into something people actually pay for", deeperPain:"Fear of being seen as a fraud or wasting months building something nobody buys", transformation:"Launch a digital product that earns $5K-$10K/month without depending on a 9-5 job", fear:"Creating a course and hearing crickets — wasting months on something nobody wants", tried:"YouTube tutorials, free challenges, cheap courses — all gave information but no real system", motivation:"Proving to myself and my family that I can build something real outside a traditional job", identity:"A recognised creator who earns from their expertise on their own terms", personality:"Skeptical but curious", influences:"Alex Hormozi, Dan Koe, Amy Porterfield, Creator Economy Facebook groups", objections:["This won't work for someone like me with no audience","I don't know what to sell","I've tried this before and got nowhere"], keywords:["how to make money online","how to sell digital products","passive income ideas","how to start an online business","digital product business","make money from home","online income streams"] },
+          "Coaching & Consulting": { name:"Marcus", age:"30-48", gender:"Mixed", location:"USA, UK, Australia", job:"Experienced coach undercharging for their expertise", income:"$40K-$80K/year from 1:1 work", pain:"I am fully booked with clients at low rates and exhausted — I have no system to attract premium clients who pay what I am worth", deeperPain:"Fear of being seen as just another coach without real credibility", transformation:"Build a premium coaching practice earning $15K-$25K/month with fewer, better clients", fear:"Raising my prices and losing all my clients, or being told no by high-ticket prospects", tried:"Posting daily on social, free discovery calls that lead nowhere, low-ticket group programmes", motivation:"Building a business that creates real financial freedom and recognises my expertise", identity:"A sought-after authority who attracts premium clients without chasing them", personality:"Ambitious but overwhelmed", influences:"Brendon Burchard, Jay Shetty, high-ticket coaching Facebook groups", objections:["The market is too saturated","People won't pay that much","I don't have a big enough following"], keywords:["how to get high ticket clients","high ticket coaching","how to scale a coaching business","premium coaching clients","how to charge more for coaching"] },
+          "Affiliate Marketing": { name:"Jordan", age:"24-38", gender:"Mixed", location:"USA, UK, Canada, Australia", job:"Content creator or aspiring online entrepreneur", income:"Under $30K/year or inconsistent", pain:"I have been promoting products for months and barely making commissions — I feel like I am doing something fundamentally wrong", deeperPain:"Fear of never making real money online and having to give up on the dream", transformation:"Earn $3K-$10K/month in affiliate commissions with a content system that compounds", fear:"Spending months creating content with nothing to show, or picking the wrong products", tried:"Amazon Associates earning pennies, ClickBank scammy products, random YouTube tutorials", motivation:"Proving that online income is real and accessible for someone willing to work for it", identity:"Someone who earns money online consistently without trading time for a salary", personality:"Results-driven", influences:"Pat Flynn, Income School, affiliate marketing Reddit and Facebook groups", objections:["The market is too competitive","It takes too long to see results","I don't have enough followers"], keywords:["affiliate marketing for beginners","how to make money with affiliate marketing","best affiliate programmes","passive income affiliate","how to promote affiliate products"] },
+          "Health, Fitness & Wellness": { name:"Emma", age:"26-42", gender:"Mixed", location:"USA, UK, Australia", job:"Personal trainer or wellness coach trading time for money", income:"$25K-$55K/year from 1:1 sessions", pain:"I am fully booked and still not earning what I deserve — my income is completely capped by the hours I can work", deeperPain:"Fear of burning out completely with nothing to show for years of expertise", transformation:"Run a profitable online programme that earns $10K-$15K/month from anywhere", fear:"Going online and getting ignored, or clients not committing to virtual coaching", tried:"Local PT clients, posting fitness content that gets likes but no sales, fitness affiliate programmes", motivation:"Creating a business that lets me help more people without sacrificing my own health", identity:"An online fitness authority who earns well and has time and location freedom", personality:"Ambitious but overwhelmed", influences:"Andrew Huberman, fitness Facebook groups, wellness YouTube channels", objections:["Can I really coach people online","What if clients don't get results","The fitness space is too crowded"], keywords:["online personal trainer","how to become an online fitness coach","online workout programme","fitness coach online","how to make money as a personal trainer"] },
+        }[productNiche] || {};
         av = {
-          productName: productName||'Affiliate Product',
-          productTagline: 'Transform your results',
-          productBenefits: ['Proven system', 'Fast results', 'Expert support'],
-          name: 'Alex', age: '28-42', gender: 'Mixed',
-          location: 'USA, UK, Australia', job: 'Online entrepreneur',
-          industry: productNiche, income: '$30k-$60k/year',
-          pain: 'Struggling to get consistent results and income online',
-          deeperPain: 'Fear of being stuck in the same place in 12 months',
-          transformation: 'Build a consistent income stream with a proven system',
-          fear: 'Wasting money on something that will not work for them',
-          tried: 'Various courses and programmes that promised results but delivered nothing',
-          motivation: 'Financial freedom and proving it is possible for someone like them',
-          identity: 'Someone who finally has a system that works and results to show for it',
-          objections: ["It won't work for me", "I've tried this before", "I don't have time"],
-          contentAngles: ['Make them feel seen', 'Reframe the villain', 'Paint the identity', 'Tell the truth', 'Name the broken system'],
-          dmHooks: ['Are you still dealing with [pain]?', 'I found what was actually missing…', 'This changed everything for people like us'],
-          emailSubjectLines: ['I almost gave up on this', 'What I wish someone told me', 'The thing no one talks about'],
+          productName: productName||"Affiliate Product",
+          productTagline: "The system that gets results",
+          productBenefits: ["Proven step-by-step system","Fast time to first results","Expert-level support"],
+          name: _nf.name||"Alex", age: _nf.age||"28-42", gender: _nf.gender||"Mixed",
+          location: _nf.location||"USA, UK, Australia",
+          job: _nf.job||"Online entrepreneur wanting to build income",
+          industry: productNiche, income: _nf.income||"$30K-$60K/year",
+          pain: _nf.pain||"Struggling to get consistent results online",
+          deeperPain: _nf.deeperPain||"Fear of being in the same place in 12 months",
+          transformation: _nf.transformation||"Build a consistent income stream with a proven system",
+          fear: _nf.fear||"Wasting money on something that will not work for them",
+          tried: _nf.tried||"Various courses and programmes that promised results but delivered nothing",
+          motivation: _nf.motivation||"Financial freedom and proving it is possible",
+          identity: _nf.identity||"Someone who finally has a system that works",
+          personality: _nf.personality||"Skeptical but curious",
+          influences: _nf.influences||"Online business communities and YouTube creators",
+          objections: _nf.objections||["It won't work for me","I've tried this before","I don't have time"],
+          keywords: _nf.keywords||["how to make money online","passive income","work from home","online business"],
+          contentAngles: ["Make them feel deeply seen","Challenge the false belief keeping them stuck","Name the real villain in their situation","Paint their new identity vividly","Say the uncomfortable truth no one else is saying"],
+          dmHooks: ["Quick question — are you still dealing with [their pain]?","I found what was actually missing for people in [niche]…","What changed everything for me in [niche] — can I share it?"],
+          emailSubjectLines: ["I almost gave up on this","What I wish someone told me earlier","The thing everyone gets wrong about [niche]"],
           niche: productNiche, commission
         };
-        setProgress(40, 'Using fallback profile — results may be less specific', 'Profile created');
-      }
-    }
+      }   // close catch(e2)
+    }     // close catch(e)
 
     // ── Store core data ───────────────────────────────────────────────
     window._avatarData = av;
@@ -13919,27 +13934,99 @@ window.renderAffAvatarView = function renderAffAvatarView(av) {
   if (!el) return;
   if (!av || Object.keys(av).length === 0) {
     const offer = window._affiliateOffer || {};
-    av = { name: 'Your Ideal Buyer', job: 'professional', age: '32-45',
-           location: 'USA, UK, Australia', pain: 'struggling to grow income',
-           transformation: offer.name ? 'achieve results with ' + offer.name : 'financial freedom',
-           fear: 'wasting money on the wrong solution', tried: 'various courses and programmes',
-           motivation: 'freedom, flexibility, and financial security', niche: offer.niche || '' };
+    av = { name: 'Your Ideal Buyer', job: 'online entrepreneur', age: '28-42',
+           gender: 'Mixed', location: 'USA, UK, Australia',
+           pain: 'struggling to get consistent results online',
+           transformation: offer.name ? 'achieve results with ' + offer.name : 'build a consistent income online',
+           fear: 'wasting money on the wrong solution again',
+           tried: 'various courses and programmes that promised results',
+           motivation: 'financial freedom and proving it is possible',
+           personality: 'Skeptical but curious',
+           influences: 'Online business communities, YouTube creators in the space',
+           objections: "It won't work for me, I've tried this before, I don't have time",
+           keywords: ['how to make money online', 'passive income', 'work from home', 'online business'],
+           niche: offer.niche || '' };
   }
+
   const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
+  const objArr = Array.isArray(av.objections) ? av.objections : (av.objections||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const kwArr  = Array.isArray(av.keywords) ? av.keywords : [];
+  const bens   = Array.isArray(av.productBenefits) ? av.productBenefits : [];
+
   el.innerHTML = `
+    <!-- AVATAR CARD -->
     <div style="background:linear-gradient(145deg,rgba(108,99,255,.08),var(--card));border:1px solid rgba(108,99,255,.2);border-radius:16px;overflow:hidden;margin-bottom:1rem">
-      <div style="padding:1rem 1.25rem;border-bottom:1px solid rgba(108,99,255,.15);display:flex;align-items:center;gap:12px">
-        <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#fff;flex-shrink:0">${(av.name||'A')[0]}</div>
-        <div><div style="font-size:15px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">${av.name||'Ideal Buyer'}</div><div style="font-size:11px;color:var(--dim);margin-top:2px">${av.age} · ${av.gender} · ${av.location} · ${js}</div></div>
+      <!-- Header -->
+      <div style="padding:1.1rem 1.25rem;border-bottom:1px solid rgba(108,99,255,.15);display:flex;align-items:center;gap:14px">
+        <div style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;flex-shrink:0">${(av.name||'A')[0]}</div>
+        <div style="flex:1">
+          <div style="font-size:16px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">${av.name||'Ideal Buyer'}</div>
+          <div style="font-size:11px;color:var(--dim);margin-top:3px">${[av.age, av.gender, av.location, js].filter(Boolean).join(' · ')}</div>
+        </div>
+        ${av.personality ? `<div style="background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:99px;padding:4px 12px;font-size:10px;color:var(--purple);font-weight:700;white-space:nowrap">${av.personality}</div>` : ''}
       </div>
+
+      <!-- Core fields grid -->
       <div style="padding:1rem 1.25rem;display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        ${[['Core pain',av.pain],['Dream outcome',av.transformation],['Biggest fear',av.fear],['Already tried',av.tried],['Motivation',av.motivation],['Personality',av.personality],['Follows',av.influences],['Objections',av.objections]].map(([l,v])=>`<div style="background:rgba(255,255,255,.03);border-radius:9px;padding:9px 11px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);font-weight:700;margin-bottom:3px">${l}</div><div style="font-size:11px;color:var(--muted);line-height:1.5">${v||'—'}</div></div>`).join('')}
+        ${[
+          ['🔥 Core Pain', av.pain],
+          ['🌟 Dream Outcome', av.transformation],
+          ['😰 Biggest Fear', av.fear],
+          ['💪 Motivation', av.motivation],
+          ['❌ Already Tried', av.tried],
+          ['🧠 Personality', av.personality],
+          ['👀 Follows / Communities', av.influences],
+          ['💰 Income Level', av.income],
+        ].map(([l,v]) => `<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);font-weight:700;margin-bottom:5px">${l}</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.6">${v||'—'}</div>
+        </div>`).join('')}
       </div>
+
+      <!-- Objections — full width -->
+      ${objArr.length > 0 ? `<div style="padding:0 1.25rem 1rem">
+        <div style="background:rgba(255,107,107,.05);border:1px solid rgba(255,107,107,.15);border-radius:10px;padding:12px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--red);font-weight:700;margin-bottom:8px">⚠️ Objections before buying</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${objArr.map((o,i) => `<div style="display:flex;gap:8px;align-items:flex-start">
+              <div style="width:18px;height:18px;border-radius:50%;background:rgba(255,107,107,.2);color:var(--red);font-size:9px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.5">${o}</div>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>` : ''}
     </div>
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:1rem 1.25rem">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:900;margin-bottom:8px">🔑 Search Keywords (for targeting)</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px">${(av.keywords||[]).map(k=>`<span style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:50px;padding:4px 12px;font-size:11px;color:var(--teal);font-weight:600">${k}</span>`).join('')}</div>
-    </div>`;
+
+    <!-- Search Keywords -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:10px">🔑 Search Keywords (for targeting)</div>
+      ${kwArr.length > 0
+        ? `<div style="display:flex;flex-wrap:wrap;gap:7px">${kwArr.map(k => `<span style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:50px;padding:5px 13px;font-size:11px;color:var(--teal);font-weight:600">${k}</span>`).join('')}</div>`
+        : `<div style="font-size:11px;color:var(--dimmer)">No keywords generated yet — regenerate your buyer profile to populate this section.</div>`}
+    </div>
+
+    <!-- Content Angles -->
+    ${av.contentAngles && av.contentAngles.length > 0 ? `<div style="background:rgba(255,255,255,.03);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:10px">🎯 Content Angles That Hit Hardest</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${av.contentAngles.slice(0,5).map((a,i) => `<div style="display:flex;gap:10px;align-items:flex-start">
+          <div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">${i+1}</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.6">${a}</div>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- Product Benefits -->
+    ${bens.length > 0 ? `<div style="background:rgba(78,204,163,.04);border:1px solid rgba(78,204,163,.15);border-radius:12px;padding:1rem 1.25rem">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:10px">✅ Why This Offer Resonates</div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        ${bens.map(b => `<div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="color:var(--teal);font-size:13px;flex-shrink:0;margin-top:1px">•</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5">${b}</div>
+        </div>`).join('')}
+      </div>
+    </div>` : ''}
+  `;
 }
 
 // ─── Render DM Scripts ────────────────────────────────────────────────────
@@ -15219,25 +15306,90 @@ window.renderTAM = function(mode) {
   mode = mode || window._appMode || 'expert';
   const isAffiliate = mode === 'affiliate';
 
-  const niche     = window._appliedNiche  || '';
-  const price     = window._appliedPrice  || 0;
-  const target    = window._appliedTarget || 0;
+  const offer     = window._affiliateOffer || {};
   const av        = window._avatarData    || {};
-  const offer     = window._affiliateOffer|| {};
-  const commission = isAffiliate ? (offer.commission || price) : price;
 
-  // Pull offer-specific details
-  const offerName     = isAffiliate ? (offer.name || av.productName || 'your affiliate product') : ((document.getElementById('offer_name')||{}).value || 'your offer');
-  const buyerJob      = av.job         || 'your ideal client';
-  const buyerPain     = av.pain        || 'their biggest struggle';
-  const buyerTried    = av.tried       || 'other solutions';
-  const buyerTransf   = av.transformation || 'their desired outcome';
-  const buyerFear     = av.fear        || 'wasting money on something that does not work';
-  const buyerDeeper   = av.deeperPain  || av.fear || '';
-  const buyerIdentity = av.identity    || buyerTransf;
-  const buyerAngles   = av.contentAngles || [];
-  const buyerHooks    = av.dmHooks || [];
-  const userName      = (document.getElementById('prof-name')||{}).value || 'You';
+  // Pull niche/price/target — affiliate uses offer data, expert uses applied plan
+  const niche     = window._appliedNiche  || offer.niche || av.niche || '';
+  const commission = isAffiliate ? (offer.commission || window._appliedPrice || 0) : (window._appliedPrice || 0);
+  const target    = window._appliedTarget || offer.monthlyTarget || 0;
+  const price     = commission;
+  const userName  = (document.getElementById('prof-name')||{}).value || 'You';
+
+  // ── Niche-specific defaults — used when avatar doesn't match current niche ──
+  const NICHE_DEFAULTS = {
+    "Digital Products & Info Business": {
+      job: "course creators, coaches, and digital entrepreneurs",
+      pain: "having valuable knowledge but no system to package and sell it consistently",
+      tried: "random free content, cheap Udemy courses, and generic advice that gave no real results",
+      transformation: "earn $10K+/month from digital products while working 4 hours a day",
+      fear: "creating something no one buys or investing time and money with nothing to show for it",
+    },
+    "Coaching & Consulting": {
+      job: "coaches and consultants",
+      pain: "trading time for money with no system to attract premium clients consistently",
+      tried: "posting on social media with no traction, low-ticket offers, and free sessions that led nowhere",
+      transformation: "build a fully-booked premium coaching practice earning $20K+/month",
+      fear: "charging high prices and being told no, or not being seen as credible enough",
+    },
+    "Health, Fitness & Wellness": {
+      job: "personal trainers, nutritionists, and wellness coaches",
+      pain: "being fully booked with 1:1 clients but still not earning what their expertise is worth",
+      tried: "local PT clients, posting fitness content with no conversions, and fitness affiliate programmes",
+      transformation: "run profitable online programmes and earn $15K/month helping people transform their health",
+      fear: "the market being too saturated, or clients not committing long-term to online coaching",
+    },
+    "Affiliate Marketing": {
+      job: "content creators, bloggers, and side-hustlers",
+      pain: "promoting offers and getting clicks but almost no commissions — the system feels broken",
+      tried: "Amazon Associates, ClickBank programmes, random YouTube tutorials, posting and hoping",
+      transformation: "earn $5K–$20K/month in affiliate commissions with content that works while they sleep",
+      fear: "picking the wrong products, getting account banned, or algorithms changing and killing reach",
+    },
+    "E-commerce & Amazon FBA": {
+      job: "e-commerce entrepreneurs and Amazon sellers",
+      pain: "running a store that generates revenue but never enough profit — ads eat everything",
+      tried: "dropshipping failures, private label products that flopped, and Shopify stores with no traffic",
+      transformation: "build a $50K+/month store with strong margins, a recognisable brand, and consistent reorders",
+      fear: "Amazon banning their account, stock running out, or copycats stealing their products",
+    },
+    "Real Estate": {
+      job: "aspiring and active real estate investors",
+      pain: "wanting to build wealth through property but not knowing where to start or how to fund deals",
+      tried: "YouTube education, real estate books, and free seminars that gave theory but no action plan",
+      transformation: "close their first (or next) profitable property deal and build a real estate portfolio",
+      fear: "making a costly mistake on their first deal or being unable to get financing",
+    },
+    "Financial Education & Investing": {
+      job: "young professionals and self-directed investors",
+      pain: "earning a good income but watching it sit in a savings account losing value to inflation",
+      tried: "following generic financial advice, investing apps, and influencer stock tips that never panned out",
+      transformation: "build a diversified investment strategy that grows wealth consistently without gambling",
+      fear: "losing their savings on the wrong investment or not understanding what they are actually buying",
+    },
+  };
+
+  // ── Check if avatar matches current niche — if not, use defaults ───────────
+  const avatarNiche   = av.niche || av.industry || '';
+  const nicheMatches  = avatarNiche && (avatarNiche.toLowerCase().includes((niche||'').toLowerCase().split(' ')[0].toLowerCase()) || (niche||'').toLowerCase().includes(avatarNiche.toLowerCase().split(' ')[0].toLowerCase()));
+  const defaults      = NICHE_DEFAULTS[niche] || {};
+  const hasValidAvatar= !!(av.job && av.pain && nicheMatches);
+
+  // Use avatar data if it matches current niche, otherwise use niche defaults
+  const buyerJob    = hasValidAvatar ? av.job               : (defaults.job          || 'your ideal clients in ' + niche);
+  const buyerPain   = hasValidAvatar ? av.pain              : (defaults.pain         || 'their biggest challenge in ' + niche);
+  const buyerTried  = hasValidAvatar ? av.tried             : (defaults.tried        || 'various solutions that have not delivered results');
+  const buyerTransf = hasValidAvatar ? av.transformation    : (defaults.transformation|| 'achieve their goals in ' + niche);
+  const buyerFear   = hasValidAvatar ? av.fear              : (defaults.fear         || 'investing time and money on something that does not work');
+  const buyerDeeper = hasValidAvatar ? (av.deeperPain||av.fear) : (defaults.fear    || '');
+  const buyerIdentity= hasValidAvatar ? (av.identity||buyerTransf) : buyerTransf;
+  const buyerAngles  = (hasValidAvatar && av.contentAngles) ? av.contentAngles : [];
+  const buyerHooks   = (hasValidAvatar && av.dmHooks)       ? av.dmHooks       : [];
+
+  // Offer name — from offer field, affiliate offer, or avatar
+  const offerName = isAffiliate
+    ? (offer.name || av.productName || 'your affiliate product')
+    : ((document.getElementById('offer_name')||{}).value || av.productName || '');
 
   const containerId = isAffiliate ? 'tam-affiliate-content' : 'tam-expert-content';
   const el = document.getElementById(containerId);
@@ -15297,7 +15449,7 @@ window.renderTAM = function(mode) {
     {
       label: "Month 1 — First traction",
       col: "var(--teal)",
-      desc: `You are learning what messaging lands for ${buyerJob}. You post about "${buyerPain}" and start ${dmsPerDay} DMs a day. Goal: ${Math.ceil(salesNeeded*0.3)} ${isAffiliate?'sales from '+offerName:'clients into '+offerName}. Not perfect — consistent.`
+      desc: `You are learning what messaging lands for ${buyerJob}. You post about "${buyerPain}" and start ${dmsPerDay} DMs a day. Goal: ${Math.ceil(salesNeeded*0.3)} ${isAffiliate?'sales'+(offerName?' from '+offerName:''):'clients'+(offerName?' into '+offerName:'')}. Not perfect — consistent.`
     },
     {
       label: "Month 3 — Momentum builds",
@@ -15370,11 +15522,13 @@ window.renderTAM = function(mode) {
       <div>
         <div style="font-size:12px;font-weight:800;color:var(--yellow);margin-bottom:6px;font-family:Poppins,sans-serif">YOUR SPECIFIC OPPORTUNITY</div>
         <div style="font-size:12px;color:var(--muted);line-height:1.8">
-          You serve <strong style="color:var(--white)">${buyerJob}s</strong> who are dealing with "${buyerPain}". 
-          They have tried ${buyerTried} and it has not worked. 
-          What they truly want is "${buyerTransf}" — and <strong style="color:var(--white)">${offerName}</strong> is the vehicle to get them there. 
-          There are <strong style="color:var(--teal)">${fmt(tam.seekers)}</strong> people in ${niche} actively searching for this exact transformation. 
-          You only need <strong style="color:var(--white)">${salesNeeded}</strong> of them this month.
+          You serve <strong style="color:var(--white)">${buyerJob}</strong> who are dealing with 
+          <strong style="color:var(--white)">"${buyerPain}"</strong>. 
+          They have already tried ${buyerTried} — and it has not worked. 
+          What they truly want is to <strong style="color:var(--white)">"${buyerTransf}"</strong>${offerName ? ' — and <strong style="color:var(--teal)">'+offerName+'</strong> is the vehicle that gets them there' : ''}. 
+          Right now, <strong style="color:var(--teal)">${fmt(tam.seekers)}</strong> people in ${niche} are actively searching for exactly this. 
+          To hit ${fmtM(target)}/month, you need just <strong style="color:var(--white)">${salesNeeded}</strong> of them. 
+          <strong style="color:var(--orange)">The market is not your problem — visibility and consistency are.</strong>
         </div>
       </div>
     </div>
@@ -15568,6 +15722,7 @@ window.loadTrainingData = async function() {
     window._trainingLessons = [];
   }
 
+  window._trainingLoaded = true;
   window.renderTrainingSidebar();
 };
 
@@ -15666,10 +15821,14 @@ window.openLesson = function(lessonId) {
   const vPlaceholder = document.getElementById('training-video-placeholder');
   if (vWrap) {
     const embedUrl = window._trainingEmbedUrl(lesson.videoUrl);
+    vWrap.style.display = 'block';
     if (embedUrl) {
-      vWrap.innerHTML = '<iframe src="' + embedUrl + '" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>';
+      vWrap.innerHTML = '<iframe src="' + embedUrl + '" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" style="position:absolute;top:0;left:0;width:100%;height:100%;border:none"></iframe>';
     } else {
-      vWrap.innerHTML = '<div class="training-video-placeholder"><div style="font-size:36px">🎬</div><div style="font-size:12px;color:var(--dim);margin-top:8px">No video added for this lesson</div>' + (window._trainingIsAdmin ? '<button onclick="window.showEditLessonForm(\''+lessonId+'\')" style="margin-top:12px;padding:8px 16px;background:rgba(255,217,61,.2);color:var(--yellow);border:1px solid rgba(255,217,61,.3);border-radius:8px;font-size:11px;cursor:pointer">Add Video URL</button>' : '') + '</div>';
+      const adminAddBtn = window._trainingIsAdmin
+        ? '<button onclick="window.showEditLessonForm(\''+lessonId+'\')" style="margin-top:14px;padding:9px 18px;background:rgba(255,217,61,.15);color:var(--yellow);border:1px solid rgba(255,217,61,.3);border-radius:8px;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">+ Add Video URL</button>'
+        : '';
+      vWrap.innerHTML = '<div class="training-video-placeholder"><div style="font-size:40px;margin-bottom:10px">🎬</div><div style="font-size:12px;color:var(--dim)">No video for this lesson</div>' + adminAddBtn + '</div>';
     }
   }
 
@@ -15957,17 +16116,29 @@ window.deleteTrainingLesson = async function(lessonId) {
   if (!orig) return;
   window.showPage = function(n, btn) {
     orig(n, btn);
-    if (n === 'training') {
-      // Check admin status
-      const isAdmin = window._isAdmin || window._currentUserRole === 'admin';
+    if (n === 'growth') {
+      // Load training data when Growth Support page is opened
+      const isAdmin = window._isAdmin || false;
       window._trainingIsAdmin = isAdmin;
       const adminPanel = document.getElementById('training-admin-panel');
       if (adminPanel) adminPanel.style.display = isAdmin ? 'block' : 'none';
-      // Load training data from Firestore
       window.loadTrainingData();
     }
   };
 })();
+
+// Also load training when Training Modules tab is clicked
+window._origShowGrowthTab = window.showGrowthTab;
+window.showGrowthTab = function(tab, btn) {
+  if (window._origShowGrowthTab) window._origShowGrowthTab(tab, btn);
+  if (tab === 'modules') {
+    const isAdmin = window._isAdmin || false;
+    window._trainingIsAdmin = isAdmin;
+    const adminPanel = document.getElementById('training-admin-panel');
+    if (adminPanel) adminPanel.style.display = isAdmin ? 'block' : 'none';
+    if (!window._trainingLoaded) window.loadTrainingData();
+  }
+};
 
 
 // ── Voice Profile save ───────────────────────────────────────────────────
