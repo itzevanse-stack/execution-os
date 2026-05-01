@@ -7608,7 +7608,9 @@ window.showPostDetail30 = function(globalIdx) {
 
   const typeColors = { fb1:'var(--teal)', fb2:'var(--teal)', reel1:'var(--purple)', reel2:'var(--purple)', email:'var(--yellow)' };
   const col = typeColors[slot.slotType] || 'var(--teal)';
-  const script = (slot.fullScript || slot.viralHook || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const rawScript = slot.fullScript || '';
+  const isEmpty   = !rawScript || rawScript.includes('[Full post body') || rawScript.includes('[Full reel') || rawScript.includes('[Full script') || rawScript.includes('[Full email') || rawScript.trim().length < 20;
+  const script    = isEmpty ? '' : rawScript.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   modal.innerHTML = `
     <div style="background:linear-gradient(145deg,#1a1a3e,#12122a);border:1px solid rgba(255,255,255,.1);border-radius:20px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;position:relative">
@@ -7619,11 +7621,19 @@ window.showPostDetail30 = function(globalIdx) {
         </div>
         <button onclick="document.getElementById('post-detail-modal').style.display='none'" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer;flex-shrink:0">×</button>
       </div>
-      <div style="padding:1.25rem 1.5rem">
-        <pre style="font-size:12px;color:rgba(255,255,255,.8);line-height:1.8;white-space:pre-wrap;font-family:'Inter',sans-serif;margin:0">${script}</pre>
+      <div style="padding:1.25rem 1.5rem" id="post-detail-body">
+        ${isEmpty ? `
+          <div style="text-align:center;padding:2rem 1rem">
+            <div style="font-size:28px;margin-bottom:12px">✍️</div>
+            <div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:8px">Full content is generating…</div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:20px;line-height:1.6">Click Regenerate to generate the complete script for this post right now.</div>
+          </div>` : `
+          <pre style="font-size:12px;color:rgba(255,255,255,.85);line-height:1.9;white-space:pre-wrap;font-family:'Inter',sans-serif;margin:0;border-radius:10px;background:rgba(255,255,255,.03);padding:1rem">${script}</pre>`}
       </div>
       <div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);display:flex;gap:8px;position:sticky;bottom:0;background:#1a1a3e">
-        <button onclick="navigator.clipboard.writeText(document.querySelector('#post-detail-modal pre').textContent).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy Script',2000)})"
+        <button onclick="window._regenPost(${globalIdx})" id="regen-post-btn"
+          style="padding:11px 16px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer;flex-shrink:0">⚡ Regenerate</button>
+        <button onclick="navigator.clipboard.writeText((document.querySelector('#post-detail-modal pre')||{}).textContent||'').then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy',2000)})"
           style="flex:1;padding:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer">📋 Copy Script</button>
         <button onclick="document.getElementById('post-detail-modal').style.display='none'"
           style="padding:11px 20px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:10px;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer">Close</button>
@@ -11003,37 +11013,49 @@ window.generate30DayCalendar = async function() {
       avatar: av,
       offer: offerName,
       mode: 'expert',
-      _rawPrompt: `You are an elite content strategist for high-ticket coaches and experts. Generate a 7-day social media content calendar.
+      _rawPrompt: `You are a world-class content writer who specialises in belief-shifting, emotionally resonant content for online coaches, consultants, and experts. Your content does not just inform — it makes people feel deeply seen, challenges what they believe is holding them back, and creates an undeniable desire to change.
 
-NICHE: ${niche}
-OFFER: ${offerName}${price > 0 ? ' — $'+Number(price).toLocaleString() : ''}
-IDEAL CLIENT: ${(av.job||'professional')} struggling with "${av.pain||'their current situation'}"
-THEIR GOAL: ${av.transformation||'achieving a major transformation'}
-THEIR FEAR: ${av.fear||'wasting time and money'}
-THEIR MOTIVATION: ${av.motivation||'freedom and success'}
-WHAT THEY'VE TRIED: ${av.tried||'various solutions'}
+WHO YOU ARE WRITING FOR:
+They are: ${av.job || 'an ambitious professional'}
+Their #1 pain: "${av.pain || 'feeling stuck and not making progress'}"
+What they have tried: ${av.tried || 'courses, programmes, and free advice that got them nowhere'}
+Their deepest fear: "${av.fear || 'wasting more time and money and still being in the same place'}"
+What they truly want: "${av.transformation || 'real freedom, real income, real results'}"
+What drives them: "${av.motivation || 'proving to themselves and their family that they can do this'}"
+Niche: ${niche}
+Offer: ${offerName}${price > 0 ? ' — $' + Number(price).toLocaleString() : ''}
 
-CONTENT RULES — FOLLOW EXACTLY:
-- Each of the 7 days must cover a COMPLETELY DIFFERENT topic, hook, and angle
-- Write content for a REAL human, not a generic template
-- Address the ideal client's EXACT pain, fear, and desire in every piece
-- Days 1-2: Pure value and authority — zero selling
-- Days 3-4: Problem awareness — name their specific pain
-- Days 5-6: Social proof / desire — transformation stories
-- Day 7: Soft call to action — open a conversation
+THE CONTENT PHILOSOPHY — every piece must do at least ONE:
+1. MAKE THEM FEEL SEEN: describe their internal world so accurately they think you read their diary
+2. SHIFT A BELIEF: challenge a lie they believe about why they are not succeeding, replace it with the truth
+3. REFRAME THE ENEMY: show them the real reason they are stuck is not their fault — it is the wrong system or wrong advice
+4. PAINT THE IDENTITY: describe who they are becoming, not just what they will achieve
+5. TELL THE TRUTH: say the uncomfortable thing no one else is saying in this niche
 
-Return a JSON array of exactly 7 objects. Each MUST have all these fields with COMPLETE, ready-to-post content:
-{
-  "topic": "specific topic for this day",
-  "hook": "exact first sentence that stops mid-scroll",
-  "fb1": "complete Facebook post (200-300 words, 3-4 paragraphs, end with an engagement question)",
-  "fb2": "complete Facebook post — different angle, story or listicle format",
-  "reel1": "full reel script: hook (5 sec) + content (45-60 sec) + CTA — written as speech",
-  "reel2": "full reel script — completely different hook and topic angle from reel1",
-  "email": "SUBJECT: [subject line]\n\n[full email body — personal, 200-300 words, soft product mention]"
-}
+THE 7-DAY EMOTIONAL ARC:
+Day 1 — MIRROR: Describe exactly where they are right now. So specific and accurate they feel you wrote it for them personally.
+Day 2 — REFRAME: Challenge the #1 belief keeping them stuck. Flip their worldview. Give them a new lens for their situation.
+Day 3 — RAW STORY: Tell a deeply personal, vulnerable story of the struggle. Not a success story — the messy middle. The 3am doubt. The moment before the breakthrough.
+Day 4 — NAME THE VILLAIN: Identify the real reason they are failing — not laziness, but a specific broken system or bad advice they have been fed.
+Day 5 — THE OTHER SIDE: Paint an emotionally vivid picture of life after the transformation. Specific. Sensory. Make them feel it before they have it.
+Day 6 — PROOF THROUGH STORY: Show the transformation as a journey. What changed first. What was hard. What surprised them. What they wish they knew sooner.
+Day 7 — CONVERSATION STARTER: Ask a question so honest and direct that readers feel compelled to respond. Not a pitch. A real human conversation.
 
-Return ONLY valid JSON. No markdown. No backticks. No explanation.`
+WRITING RULES — NON-NEGOTIABLE:
+- Write like a real human writing to one specific person, not a marketer broadcasting to a crowd
+- ZERO generic phrases: no "unleash your potential", no "game changer", no "transform your life", no "hustle", no "level up", no "synergy"
+- Every hook must name a SPECIFIC emotion, situation, or belief — never a vague benefit
+- Facebook posts must feel like someone wrote them at 11pm after a day of reflection — raw, honest, with personality
+- Reel scripts must feel like the creator is saying what the viewer has been thinking but could never articulate
+- Emails must feel like a personal letter, not a newsletter — write to "you", not "you all"
+- Every sentence must earn its place. Cut filler. Cut padding. Say more with less.
+- Use specific details: numbers, ages, times, amounts — specificity creates credibility and relatability
+- End Facebook posts with a question that requires a real, personal answer
+
+Return a JSON array of exactly 7 objects with COMPLETE, ready-to-post content in every field:
+{"topic":"the specific belief or emotion this day addresses","hook":"the exact opening line — specific, charged, impossible to scroll past","fb1":"complete Facebook post — raw and honest, 220-300 words, ends with a genuine question","fb2":"complete Facebook post — different format (story, numbered reframe, or confession), same topic different angle","reel1":"full spoken reel script — HOOK (one punchy 5-sec line) + CONTENT (45-60 sec, 3-4 points spoken naturally) + CTA (5 sec)","reel2":"full spoken reel script — completely different hook and emotional angle from reel1","email":"SUBJECT: [subject line that feels personal not promotional]\n\n[full email — written as a letter to one person, 200-250 words, honest and direct]"}
+
+Return ONLY the JSON array. No markdown. No backticks. No explanation before or after.`
     });
 
     const calText = resp.text || '';
@@ -11041,60 +11063,108 @@ Return ONLY valid JSON. No markdown. No backticks. No explanation.`
 
     setProgress(70);
 
-    // Parse 7 days × 4 slots
+    // Parse 7 days — JSON-first parser (matches the JSON prompt format)
     window._aiCalendar30 = [];
     const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 
-    const rawDays = calText.split('\nDAY').map((s,i) => i===0 ? s : 'DAY'+s).filter(s => s.trim());
+    let parsedDays = null;
 
-    const getSec = (text, startPat, endPats) => {
-      const ls = text.split('\n');
-      let si = -1;
-      for (let i=0;i<ls.length;i++) { if (new RegExp(startPat,'i').test(ls[i])) { si=i+1; break; } }
-      if (si < 0) return text.trim();
-      let ei = ls.length;
-      for (let i=si;i<ls.length;i++) { if (endPats.some(p=>new RegExp(p,'i').test(ls[i]))) { ei=i; break; } }
-      return ls.slice(si,ei).join('\n').trim();
-    };
+    // ── Try JSON parse first (API instructed to return JSON) ─────────────────
+    try {
+      const clean = calText.replace(/```json|```/gi,'').trim();
+      const parsed = JSON.parse(clean);
+      if (Array.isArray(parsed) && parsed.length >= 7) parsedDays = parsed;
+      // Handle nested {days:[...]} response
+      else if (parsed && Array.isArray(parsed.days) && parsed.days.length >= 7) parsedDays = parsed.days;
+    } catch(e) { /* fall through to text parser */ }
 
-    const getHook = t => { const l=t.split('\n').find(x=>/^HOOK[\s:]/i.test(x)); return l?l.replace(/^HOOK[\s:]*/i,'').trim():t.split('\n').find(l=>l.trim().length>20)||t.slice(0,100); };
-    const getSubj = t => { const l=t.split('\n').find(x=>/^SUBJECT[\s:]/i.test(x)); return l?l.replace(/^SUBJECT[\s:]*/i,'').trim():t.split('\n')[0]||''; };
+    if (parsedDays) {
+      // ── JSON path — map {topic, hook, fb1, fb2, reel1, reel2, email} ───────
+      parsedDays.slice(0,7).forEach((day, d) => {
+        const wd    = DAY_NAMES[d];
+        const topic = day.topic || ('Day ' + (d+1));
+        const hook  = day.hook  || topic;
 
-    for (let d=0;d<Math.min(rawDays.length,7);d++) {
-      const block = rawDays[d];
-      const tm = block.match(/DAY\s*\d+\s*[:\-]?\s*(.+)/i);
-      const topic = tm ? tm[1].replace(/\*+/g,'').trim() : 'Day '+(d+1);
+        const fb1Body   = day.fb1   || day.facebook1 || day.facebook || '';
+        const fb2Body   = day.fb2   || day.facebook2 || fb1Body;
+        const reel1Body = day.reel1 || day.reel       || '';
+        const reel2Body = day.reel2 || reel1Body;
+        const emailBody = day.email || '';
+        const emailSubj = emailBody.match(/^SUBJECT:\s*(.+)/im)?.[1] || ('Day ' + (d+1) + ' — ' + topic);
 
-      const fb = getSec(block,'FACEBOOK\s*POST',['REEL\s*1','REEL\s*ONE']);
-      const r1 = getSec(block,'REEL\s*1|REEL\s*ONE',['REEL\s*2','REEL\s*TWO']);
-      const r2 = getSec(block,'REEL\s*2|REEL\s*TWO',['EMAIL']);
-      const em = getSec(block,'EMAIL',['===','---','DAY\s*\d']);
+        const getHookFrom = t => {
+          if (!t) return hook;
+          const l = t.split('\n').find(x => /^HOOK[\s:]/i.test(x));
+          return l ? l.replace(/^HOOK[\s:]*/i,'').replace(/^["']|["']$/g,'').trim() : (t.split('\n')[0] || hook).slice(0,120);
+        };
 
-      const wd = DAY_NAMES[d];
-      const fb2 = getSec(block,'FACEBOOK\\s*POST\\s*2',['REEL\\s*1','REEL\\s*SCRIPT\\s*1','===','---']);
-      window._aiCalendar30.push([
-        { postType:'Facebook Post 1', slotType:'fb1', viralHook:getHook(fb), videoScript:fb,
-          fullScript:fb, weekDay:wd, topic, dayNum:d+1,
-          callToAction:'Comment your biggest takeaway below.',
-          engagementTip:'Post 8–9am. Reply to every comment within 2 hours.' },
-        { postType:'Facebook Post 2', slotType:'fb2', viralHook:getHook(fb2)||'Educational post',
-          videoScript:fb2, fullScript:fb2||fb, weekDay:wd, topic, dayNum:d+1,
-          callToAction:'Save this post and share it with someone who needs it.',
-          engagementTip:'Post 12–2pm. Works great as a teaching framework post.' },
-        { postType:'Reel 1', slotType:'reel1', viralHook:getHook(r1), videoScript:r1,
-          fullScript:r1, weekDay:wd, topic, dayNum:d+1, isReel:true,
-          callToAction:'Follow for daily content like this.',
-          engagementTip:'Post 9–11am. High energy in the first 3 seconds.' },
-        { postType:'Reel 2', slotType:'reel2', viralHook:getHook(r2), videoScript:r2,
-          fullScript:r2, weekDay:wd, topic, dayNum:d+1, isReel:true,
-          callToAction:'Save this — come back to it every week.',
-          engagementTip:'Post 12–2pm. Use text overlays for each point.' },
-        { postType:'Email', slotType:'email', viralHook:getSubj(em), videoScript:em,
-          fullScript:em, weekDay:wd, topic, dayNum:d+1,
-          emailSubject:getSubj(em), emailBody:em,
-          callToAction:'Reply and tell me your biggest takeaway.',
-          engagementTip:'Send 8–10am or 5–7pm. Keep subject under 50 chars.' },
-      ]);
+        window._aiCalendar30.push([
+          { postType:'Facebook Post 1', slotType:'fb1',
+            viralHook: getHookFrom(fb1Body) || hook,
+            fullScript: fb1Body, videoScript: fb1Body,
+            weekDay:wd, topic, dayNum:d+1,
+            callToAction:'Comment your biggest takeaway below.',
+            engagementTip:'Post 8–9am. Reply to every comment within 2 hours.' },
+          { postType:'Facebook Post 2', slotType:'fb2',
+            viralHook: getHookFrom(fb2Body) || hook,
+            fullScript: fb2Body, videoScript: fb2Body,
+            weekDay:wd, topic, dayNum:d+1,
+            callToAction:'Save this post and share it with someone who needs it.',
+            engagementTip:'Post 12–2pm. Works great as a teaching framework post.' },
+          { postType:'Reel 1', slotType:'reel1',
+            viralHook: getHookFrom(reel1Body) || hook,
+            fullScript: reel1Body, videoScript: reel1Body,
+            weekDay:wd, topic, dayNum:d+1, isReel:true,
+            callToAction:'Follow for daily content like this.',
+            engagementTip:'Post 9–11am. High energy in the first 3 seconds.' },
+          { postType:'Reel 2', slotType:'reel2',
+            viralHook: getHookFrom(reel2Body) || hook,
+            fullScript: reel2Body, videoScript: reel2Body,
+            weekDay:wd, topic, dayNum:d+1, isReel:true,
+            callToAction:'Save this — come back to it every week.',
+            engagementTip:'Post 12–2pm. Use text overlays for each point.' },
+          { postType:'Email', slotType:'email',
+            viralHook: emailSubj,
+            fullScript: emailBody, videoScript: emailBody,
+            weekDay:wd, topic, dayNum:d+1,
+            emailSubject: emailSubj, emailBody: emailBody,
+            callToAction:'Reply and tell me your biggest takeaway.',
+            engagementTip:'Send 8–10am or 5–7pm. Keep subject under 50 chars.' },
+        ]);
+      });
+
+    } else {
+      // ── Text fallback parser (legacy format split by DAY sections) ───────────
+      const getHook = t => { const l=t.split('\n').find(x=>/^HOOK[\s:]/i.test(x)); return l?l.replace(/^HOOK[\s:]*/i,'').trim():t.split('\n').find(l=>l.trim().length>20)||t.slice(0,100); };
+      const getSubj = t => { const l=t.split('\n').find(x=>/^SUBJECT[\s:]/i.test(x)); return l?l.replace(/^SUBJECT[\s:]*/i,'').trim():t.split('\n')[0]||''; };
+      const getSec  = (text, startPat, endPats) => {
+        const ls = text.split('\n'); let si=-1;
+        for (let i=0;i<ls.length;i++) { if (new RegExp(startPat,'i').test(ls[i])) { si=i+1; break; } }
+        if (si<0) return text.trim();
+        let ei=ls.length;
+        for (let i=si;i<ls.length;i++) { if (endPats.some(p=>new RegExp(p,'i').test(ls[i]))) { ei=i; break; } }
+        return ls.slice(si,ei).join('\n').trim();
+      };
+
+      const rawDays = calText.split('\nDAY').map((s,i)=>i===0?s:'DAY'+s).filter(s=>s.trim());
+      for (let d=0;d<Math.min(rawDays.length,7);d++) {
+        const block = rawDays[d];
+        const tm    = block.match(/DAY\s*\d+\s*[:\-]?\s*(.+)/i);
+        const topic = tm ? tm[1].replace(/\*+/g,'').trim() : 'Day '+(d+1);
+        const fb    = getSec(block,'FACEBOOK\s*POST',['REEL\s*1','REEL\s*ONE']);
+        const fb2t  = getSec(block,'FACEBOOK\s*POST\s*2',['REEL\s*1','REEL\s*SCRIPT\s*1','===','---']);
+        const r1    = getSec(block,'REEL\s*1|REEL\s*ONE',['REEL\s*2','REEL\s*TWO']);
+        const r2    = getSec(block,'REEL\s*2|REEL\s*TWO',['EMAIL']);
+        const em    = getSec(block,'EMAIL',['===','---','DAY\s*\d']);
+        const wd    = DAY_NAMES[d];
+        window._aiCalendar30.push([
+          { postType:'Facebook Post 1', slotType:'fb1', viralHook:getHook(fb), fullScript:fb, videoScript:fb, weekDay:wd, topic, dayNum:d+1, callToAction:'Comment your biggest takeaway below.', engagementTip:'Post 8–9am. Reply to every comment within 2 hours.' },
+          { postType:'Facebook Post 2', slotType:'fb2', viralHook:getHook(fb2t)||'Educational post', fullScript:fb2t||fb, videoScript:fb2t||fb, weekDay:wd, topic, dayNum:d+1, callToAction:'Save this post and share it.', engagementTip:'Post 12–2pm.' },
+          { postType:'Reel 1', slotType:'reel1', viralHook:getHook(r1), fullScript:r1, videoScript:r1, weekDay:wd, topic, dayNum:d+1, isReel:true, callToAction:'Follow for daily content.', engagementTip:'Post 9–11am.' },
+          { postType:'Reel 2', slotType:'reel2', viralHook:getHook(r2), fullScript:r2, videoScript:r2, weekDay:wd, topic, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12–2pm.' },
+          { postType:'Email', slotType:'email', viralHook:getSubj(em), fullScript:em, videoScript:em, weekDay:wd, topic, dayNum:d+1, emailSubject:getSubj(em), emailBody:em, callToAction:'Reply and tell me your biggest takeaway.', engagementTip:'Send 8–10am or 5–7pm.' },
+        ]);
+      }
     }
 
     setProgress(90);
@@ -11119,6 +11189,120 @@ Return ONLY valid JSON. No markdown. No backticks. No explanation.`
       btn.disabled = false;
       btn.textContent = '⚡ Generate my personalised 7-day content plan — unique posts, Reel scripts & emails';
     }
+  }
+};
+
+// ── Regenerate single post content ───────────────────────────────────────────
+window._regenPost = async function(globalIdx) {
+  const dayIdx  = Math.floor(globalIdx / 6);
+  const slotIdx = globalIdx % 6;
+  const slot    = window._aiCalendar30 && window._aiCalendar30[dayIdx] && window._aiCalendar30[dayIdx][slotIdx];
+  if (!slot) return;
+
+  const btn  = document.getElementById('regen-post-btn');
+  const body = document.getElementById('post-detail-body');
+  if (btn)  { btn.disabled = true; btn.innerHTML = '<span style="display:inline-flex;align-items:center;gap:6px">Writing… <span class="eos-dots"><span></span><span></span><span></span></span></span>'; }
+  if (body) { body.innerHTML = '<div style="padding:2rem;text-align:center"><div class="eos-loader-icon" style="margin:0 auto 1rem"><div class="eos-loader-icon-ring"></div><div class="eos-loader-icon-pulse"></div><div class="eos-loader-icon-emoji">✍️</div></div><div style="font-size:12px;color:var(--dim)">Writing your content…</div></div>'; }
+
+  try {
+    const av  = window._avatarData || {};
+    const vp  = window._voiceProfile || {};
+    const vpCtx = (vp.tone||vp.words) ? `\nWrite in this voice: ${vp.tone||''}. ${vp.words?'Use phrases like: '+vp.words+'.':''} ${vp.avoid?'Never use: '+vp.avoid+'.':''}` : '';
+
+    const isReel  = slot.isReel || slot.slotType === 'reel1' || slot.slotType === 'reel2';
+    const isEmail = slot.slotType === 'email';
+    const isFb    = slot.slotType === 'fb1' || slot.slotType === 'fb2';
+
+    let prompt = '';
+    if (isEmail) {
+      prompt = `You are a world-class copywriter. Write a personal, belief-shifting email — not a newsletter, a letter.
+
+TOPIC: ${slot.topic}
+WHO THEY ARE: ${av.job||'online entrepreneur'}
+THEIR PAIN: "${av.pain||'feeling stuck and not seeing results'}"
+WHAT THEY WANT: "${av.transformation||'real freedom and real income'}"${vpCtx}
+
+WRITING RULES:
+- Write to ONE specific person, not an audience
+- Open with a line that describes their exact internal state right now
+- Challenge one false belief they hold about their situation
+- Be honest and direct — no hype, no fluff, no generic motivational language
+- Close with something that feels like a friend speaking truth to them
+- ZERO phrases like: game-changer, transform your life, hustle, level up
+
+Write the complete email now:
+SUBJECT: [a subject line that feels personal — like a message from a friend, not a promotion]
+
+[Full email body — 200-250 words. Raw, warm, honest. Written like a letter.]`;
+    } else if (isReel) {
+      prompt = `You are a world-class short-form video scriptwriter. Write a reel/TikTok script that makes the viewer feel like you are reading their mind.
+
+TOPIC: ${slot.topic}
+OPENING HOOK: ${slot.viralHook}
+WHO IS WATCHING: ${av.job||'online entrepreneur'} who is dealing with "${av.pain||'getting stuck'}"
+WHAT THEY SECRETLY WANT: "${av.transformation||'real results and real freedom'}"${vpCtx}
+
+WRITING RULES:
+- The hook must name a specific emotion or situation — not a vague benefit
+- The content must say what the viewer has been FEELING but could not put into words
+- Speak naturally — as if talking to one person, not filming a video
+- Use specifics: real numbers, real moments, real emotions
+- ZERO generic phrases: no "hustle", no "game changer", no "you've got this"
+- The CTA must feel natural, not pushy
+
+Write the complete spoken script:
+HOOK (5 seconds — one punchy line that stops the scroll):
+[hook]
+
+CONTENT (45-60 seconds — 3-4 points spoken naturally, like a real conversation):
+[content]
+
+CTA (5 seconds — natural, low-pressure):
+[cta]`;
+    } else {
+      prompt = `You are a world-class content writer. Write a Facebook post that feels like a real person wrote it at midnight after a day of deep reflection — honest, raw, and impossible to scroll past.
+
+TOPIC: ${slot.topic}
+OPENING LINE: ${slot.viralHook}
+WHO IS READING: ${av.job||'online entrepreneur'} dealing with "${av.pain||'feeling stuck'}"
+WHAT THEY TRULY WANT: "${av.transformation||'real freedom and real income'}"${vpCtx}
+
+WRITING RULES:
+- Open with a line so specific and accurate that readers stop and think "how did they know?"
+- Write as a real human reflecting, not as a marketer selling
+- Challenge one belief or name one uncomfortable truth
+- Use specific details: real numbers, real moments, real emotions — vague content gets ignored
+- ZERO generic phrases: no "game changer", no "transform your life", no "hustle harder", no "you've got this"
+- End with a question that requires a REAL personal answer — not "what do you think?"
+
+Write the complete Facebook post:
+[Hook line — specific, emotionally charged, must stop the scroll]
+
+[3-4 paragraphs — 220-300 words total — raw, honest, feels like a real person speaking]
+
+[Genuine question that makes people want to share their experience]`;
+    }
+
+    const resp = await callAPI('generate-calendar', { _rawPrompt: prompt, _maxTokens: 1200 });
+    const content = (resp.text || '').trim();
+
+    if (content && window._aiCalendar30[dayIdx] && window._aiCalendar30[dayIdx][slotIdx]) {
+      window._aiCalendar30[dayIdx][slotIdx].fullScript  = content;
+      window._aiCalendar30[dayIdx][slotIdx].videoScript = content;
+      if (isEmail) {
+        const subjMatch = content.match(/^SUBJECT:\s*(.+)/im);
+        if (subjMatch) window._aiCalendar30[dayIdx][slotIdx].emailSubject = subjMatch[1].trim();
+      }
+      // Re-open the modal with new content
+      window.showPostDetail30(globalIdx);
+      // Save updated calendar to Firestore
+      window.saveCalendarState && window.saveCalendarState();
+    }
+  } catch(e) {
+    const btn  = document.getElementById('regen-post-btn');
+    const body = document.getElementById('post-detail-body');
+    if (btn)  { btn.disabled = false; btn.innerHTML = '⚡ Regenerate'; }
+    if (body) { body.innerHTML = '<div style="padding:1rem;color:var(--red);font-size:12px">⚠️ Generation failed: ' + e.message + '</div>'; }
   }
 };
 
@@ -13171,12 +13355,94 @@ Day 7: final soft CTA with affiliate link.`;
         `If you're serious about ${transf} — read this`
       ];
       const DN2 = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+      // Build skeleton calendar immediately so UI is visible
       window._aiCalendar30 = topics.map((t,d) => ([
-        { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:`FACEBOOK POST — Day ${d+1}\n\n${t}\n\n[Full post body — click Regenerate to load your content]\n\nCALL TO ACTION: Comment below with your thoughts!`, weekDay:DN2[d], topic:t, dayNum:d+1, callToAction:'Comment below!', engagementTip:'Post 8–9am.' },
-        { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:`REEL SCRIPT — Day ${d+1}\n\nHOOK: ${t}\n\n[Full reel script — click Regenerate to load your content]`, weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for more.', engagementTip:'Post 9–11am.' },
-        { postType:'Reel 2', slotType:'reel2', viralHook:t+' (Part 2)', fullScript:`REEL 2 SCRIPT — Day ${d+1}\n\nHOOK: Here's what nobody tells you about ${pain.split(' ').slice(0,4).join(' ')}\n\n[Full script — click Regenerate to load your content]`, weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12–2pm.' },
-        { postType:'Email', slotType:'email', viralHook:`Day ${d+1}: ${t.slice(0,50)}`, fullScript:`EMAIL — Day ${d+1}\n\nSUBJECT: ${t.slice(0,60)}\n\n[Full email — click Regenerate to load your content]\n\n${d>=2?'Check out '+pn+' here: [YOUR AFFILIATE LINK]':''}`, weekDay:DN2[d], topic:t, dayNum:d+1, emailSubject:t.slice(0,60), callToAction:'Reply to this email.', engagementTip:'Send 8–10am.' },
+        { postType:'Facebook Post', slotType:'fb1', viralHook:t, fullScript:'', weekDay:DN2[d], topic:t, dayNum:d+1, callToAction:'Comment below!', engagementTip:'Post 8–9am.' },
+        { postType:'Reel 1', slotType:'reel1', viralHook:t, fullScript:'', weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Follow for more.', engagementTip:'Post 9–11am.' },
+        { postType:'Reel 2', slotType:'reel2', viralHook:t+' (Part 2)', fullScript:'', weekDay:DN2[d], topic:t, dayNum:d+1, isReel:true, callToAction:'Save this.', engagementTip:'Post 12–2pm.' },
+        { postType:'Email', slotType:'email', viralHook:'Day '+(d+1)+': '+t.slice(0,50), fullScript:'', weekDay:DN2[d], topic:t, dayNum:d+1, emailSubject:t.slice(0,60), callToAction:'Reply to this email.', engagementTip:'Send 8–10am.' },
       ]));
+
+      // Generate full content via API
+      try {
+        const vp = window._voiceProfile || {};
+        const vpCtx = (vp.tone||vp.style||vp.example) ? `\nVOICE: ${vp.tone||''} — ${vp.style||''}.${vp.words?' Use phrases like: '+vp.words+'.':''}${vp.avoid?' Never use: '+vp.avoid+'.':''}` : '';
+
+        const affCalResp = await callAPI('generate-calendar', {
+          niche: niche || 'Online Business',
+          price: commission || 1000,
+          avatar: { job, pain, transformation: transf },
+          offer: pn,
+          mode: 'affiliate',
+          _rawPrompt: `You are a world-class content writer who specialises in belief-shifting, emotionally resonant content for affiliate marketers. You write content that makes the audience feel deeply understood, challenges their current thinking, and naturally leads them toward a solution — without ever feeling like an ad.
+
+WHO YOU ARE WRITING FOR:
+They are: ${job}
+Their #1 pain: "${pain}"
+What they truly want: "${transf}"
+Product being promoted: ${pn}
+Commission: $${commission}/sale${vpCtx}
+
+THE CONTENT PHILOSOPHY — every piece must do at least ONE:
+1. MAKE THEM FEEL SEEN: name their exact internal struggle with such precision they stop scrolling
+2. SHIFT A BELIEF: replace a false belief that is keeping them stuck with a true one
+3. REFRAME THE ENEMY: show that the real problem is not who they are, it is what they have been told
+4. PAINT THE IDENTITY: speak to who they are becoming — not just what they want to buy
+5. TELL THE UNCOMFORTABLE TRUTH: say what others in the niche are afraid to say
+
+THE 7-DAY EMOTIONAL ARC:
+Day 1 — ${topics[0]}: MIRROR content — describe their daily reality so accurately they think this was written specifically for them
+Day 2 — ${topics[1]}: REFRAME content — challenge the #1 lie they believe about their situation, replace it with truth
+Day 3 — ${topics[2]}: RAW STORY — tell a vulnerable, specific personal story of struggle and the turning point (no product mention)
+Day 4 — ${topics[3]}: NAME THE VILLAIN — expose the specific bad advice, wrong system, or broken approach they have been following
+Day 5 — ${topics[4]}: THE OTHER SIDE — paint a vivid, emotionally real picture of their life after the transformation
+Day 6 — ${topics[5]}: PROOF THROUGH JOURNEY — show the transformation as a process, not an outcome. Natural mention of how the product helped.
+Day 7 — ${topics[6]}: CONVERSATION STARTER — one deeply honest question that makes people want to respond and share their story
+
+WRITING RULES — NON-NEGOTIABLE:
+- Write like a real person, not a marketer. No pitching. No hype. No "click the link in bio."
+- ZERO generic phrases: no "game changer", no "life-changing", no "hustle harder", no "you got this"
+- Every hook must name a SPECIFIC emotion or situation — not a vague outcome
+- Facebook posts must feel personal, like the creator sat down and wrote from the heart
+- Reel scripts must feel like the creator is giving voice to what the viewer has been silently feeling
+- Emails must feel like a personal message from a trusted friend, not a newsletter blast
+- Every sentence must earn its place — cut filler, cut padding, never repeat a point
+- Use specifics: real numbers, real timeframes, real emotions — vague content gets ignored
+- Days 1-4: zero product mentions. Days 5-6: natural, story-based mentions only. Day 7: conversation, no pitch.
+
+Return a JSON array of exactly 7 objects with COMPLETE, ready-to-post content in every field:
+{"topic":"the specific belief, emotion, or truth this day addresses","hook":"the exact opening line — specific, emotionally charged, impossible to scroll past","fb1":"complete Facebook post — personal and honest, 220-300 words, ends with a genuine question","reel1":"full spoken reel script — HOOK (5-sec punchy line) + CONTENT (45-60 sec spoken naturally, 3-4 points) + CTA (5 sec)","reel2":"full spoken reel script — completely different hook and emotional angle from reel1, same topic","email":"SUBJECT: [subject line that feels personal, not promotional]\n\n[full email — written as a letter to one specific person, 180-230 words, honest and warm]"}
+
+Return ONLY the JSON array. No markdown. No backticks. No explanation before or after.`
+        });
+
+        const affText = (affCalResp.text || '').replace(/\`\`\`json|\`\`\`/gi,'').trim();
+        let affDays = null;
+        try { affDays = JSON.parse(affText); } catch(e) {}
+        if (affDays && Array.isArray(affDays)) {
+          affDays.slice(0,7).forEach((day, d) => {
+            if (!window._aiCalendar30[d]) return;
+            const getHookFrom = t => { if (!t) return topics[d]||''; const l=t.split('\n').find(x=>/^HOOK[\s:]/i.test(x)); return l?l.replace(/^HOOK[\s:]*/i,'').replace(/^["']|["']$/g,'').trim():(t.split('\n')[0]||topics[d]||'').slice(0,120); };
+            const emailBody = day.email || '';
+            const emailSubj = emailBody.match(/^SUBJECT:\s*(.+)/im)?.[1] || ('Day '+(d+1)+' — '+topics[d]);
+            window._aiCalendar30[d][0].fullScript = day.fb1   || '';
+            window._aiCalendar30[d][0].viralHook  = getHookFrom(day.fb1) || topics[d];
+            window._aiCalendar30[d][1].fullScript = day.reel1 || '';
+            window._aiCalendar30[d][1].viralHook  = getHookFrom(day.reel1) || topics[d];
+            window._aiCalendar30[d][2].fullScript = day.reel2 || day.reel1 || '';
+            window._aiCalendar30[d][2].viralHook  = getHookFrom(day.reel2||day.reel1) || topics[d]+' (Part 2)';
+            window._aiCalendar30[d][3].fullScript = emailBody;
+            window._aiCalendar30[d][3].viralHook  = emailSubj;
+            window._aiCalendar30[d][3].emailSubject = emailSubj;
+            window._aiCalendar30[d][3].emailBody  = emailBody;
+          });
+          // Re-render calendar with real content
+          window.renderAffCalendarInTab && window.renderAffCalendarInTab();
+        }
+      } catch(calGenErr) {
+        console.warn('Affiliate calendar content generation failed:', calGenErr.message);
+      }
     }
 
     setProgress(100, 'Everything ready! 🎉', 'Calendar ready ✅');
