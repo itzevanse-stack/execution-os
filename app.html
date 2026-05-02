@@ -3233,11 +3233,15 @@ button[onclick="generateOffer()"] {
       <button class="tab" id="stab-call" onclick="setScriptsMode('call',this)" style="flex:1;min-width:130px">📞 Sales Call Close</button>
       <button class="tab" id="stab-objection" onclick="setScriptsMode('objection',this)" style="flex:1;min-width:130px">🛡 Objection Kill</button>
       <button class="tab" id="stab-follow" onclick="setScriptsMode('follow',this)" style="flex:1;min-width:120px">↩️ Follow-Up</button>
+      <button class="tab" id="stab-queue" onclick="setScriptsMode('queue',this)" style="flex:1;min-width:120px">⚡ DM Queue</button>
+      <button class="tab" id="stab-manychat" onclick="setScriptsMode('manychat',this)" style="flex:1;min-width:120px">🔗 ManyChat</button>
     </div>
 
     <div id="scripts-niche-notice" style="display:none;background:rgba(255,217,61,.07);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:11px 16px;margin-bottom:1.25rem;font-size:11px;color:var(--dim)">⚡ <strong style="color:var(--yellow)">Select your niche + generate your avatar</strong> first — these scripts personalise to your exact niche, offer price, audience pain points, and transformation promise.</div>
 
     <div id="scripts-grid" class="scripts-grid"></div>
+    <div id="scripts-queue-panel" style="display:none"></div>
+    <div id="scripts-manychat-panel" style="display:none"></div>
 
     <div class="divider"></div>
     <div class="sec-label">Daily commandments</div>
@@ -4819,26 +4823,53 @@ window.setScriptsMode = function(mode, btn) {
   window._scriptsMode = mode;
   document.querySelectorAll('#page-scripts .tab').forEach(function(t){ t.classList.remove('on'); });
   if(btn) btn.classList.add('on');
-  var labels = {dm:'DM Outreach', warm:'Warm Lead Close', call:'Sales Call Close', objection:'Objection Kill', follow:'Follow-Up'};
+  var labels = {dm:'DM Outreach', warm:'Warm Lead Close', call:'Sales Call Close', objection:'Objection Kill', follow:'Follow-Up', queue:'DM Queue', manychat:'ManyChat'};
   var lbl = document.getElementById('scripts-mode-label');
   if(lbl) lbl.textContent = labels[mode]||mode;
-  renderScripts();
+  var grid = document.getElementById('scripts-grid');
+  var queuePanel = document.getElementById('scripts-queue-panel');
+  var mcPanel = document.getElementById('scripts-manychat-panel');
+  if(mode === 'queue') {
+    if(grid) grid.style.display = 'none';
+    if(queuePanel) { queuePanel.style.display = 'block'; renderDMQueue('expert'); }
+    if(mcPanel) mcPanel.style.display = 'none';
+  } else if(mode === 'manychat') {
+    if(grid) grid.style.display = 'none';
+    if(queuePanel) queuePanel.style.display = 'none';
+    if(mcPanel) { mcPanel.style.display = 'block'; renderManyChatPanel('expert'); }
+  } else {
+    if(grid) grid.style.display = '';
+    if(queuePanel) queuePanel.style.display = 'none';
+    if(mcPanel) mcPanel.style.display = 'none';
+    renderScripts();
+  }
 };
 
 function buildScriptSet(mode) {
+  // Affiliate mode uses product-data-driven scripts, not expert offer fields
+  if ((window._appMode || 'affiliate') === 'affiliate') {
+    return buildAffiliateScriptSet(mode);
+  }
   var niche = (document.getElementById('niche')||{}).value || '';
   var av = window._avatarData || {};
   var cfg = window.NICHE_DM_CONFIG ? (window.NICHE_DM_CONFIG[niche] || {}) : {};
   var offerPrice = window._appliedPrice || 1000;
   var offerName = (document.getElementById('offer_name')||{}).value || 'my programme';
-  var offerResult = (document.getElementById('offer_result')||{}).value || cfg.result || 'your desired result';
+  // clip helper — prevents full-sentence field values breaking script templates
+  var clipS = function(str, maxWords) {
+    if (!str) return '';
+    var words = str.trim().replace(/[\u2192\u2013\u2014]/g,' ').split(/\s+/).filter(Boolean);
+    if (words.length <= maxWords) return str.trim();
+    return words.slice(0, maxWords).join(' ') + '\u2026';
+  };
+  var offerResult = clipS((document.getElementById('offer_result')||{}).value || cfg.result || 'your desired result', 7);
   var offerDuration = (document.getElementById('offer_duration')||{}).value || '90 days';
   var audType = cfg.audience || 'people in your niche';
-  var painPoint = av.pain || cfg.metric || 'their biggest challenge';
-  var motivation = av.motivation || 'financial freedom';
-  var fear = av.fear || 'wasting money on something that does not work';
-  var tried = av.tried || 'other approaches';
-  var transformation = av.transformation || offerResult;
+  var painPoint    = clipS(av.pain || cfg.metric || 'their biggest challenge', 6);
+  var motivation   = clipS(av.motivation || 'financial freedom', 6);
+  var fear         = clipS(av.fear || 'wasting money on something that does not work', 8);
+  var tried        = clipS(av.tried || 'other approaches', 5);
+  var transformation = clipS(av.transformation || offerResult, 7);
   var resource = cfg.resource || 'Free Assessment';
   var jobLabel = av.job ? av.job.split('/')[0].split(',')[0].trim() : audType.split(' ').slice(0,2).join(' ');
   var incFmt = '$' + Number(offerPrice).toLocaleString();
@@ -5219,6 +5250,739 @@ function buildScriptSet(mode) {
   return [];
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// AFFILIATE SCRIPT ENGINE — powered by product analysis data
+// ═══════════════════════════════════════════════════════════════════════════
+function buildAffiliateScriptSet(mode) {
+  const offer = window._affiliateOffer || {};
+  const av    = window._avatarData || {};
+  const productName = offer.name || 'this product';
+  const pain        = av.pain || offer.pain || 'their biggest challenge';
+  const deeperPain  = av.deeperPain || av.fear || offer.pain || pain;
+  const trans       = av.transformation || offer.transformation || 'their desired outcome';
+  const tried       = av.tried || 'other things';
+  const jobLabel    = (av.job || 'professional').split('/')[0].split(',')[0].trim();
+  const nicheName   = offer.niche || av.niche || 'your niche';
+  const benefits    = (offer.benefits || []).slice(0,2).join(' and ') || 'real, practical results';
+  const affLink     = '[YOUR AFFILIATE LINK]';
+  const surveyLink  = '[YOUR FREE OVERVIEW / SURVEY LINK]';
+
+  // COLD DM — structured as a 4-step sequence, product name NEVER used
+  // Rule: lead with pain, never the product. Push to survey, not a call.
+  if (mode === 'dm') return [
+    {
+      title: 'Step 1 — Curiosity opener (pain only, zero pitch)',
+      tag: 'Send within 1 hour of someone engaging · ' + nicheName,
+      when: 'Someone liked, commented, followed, or saved your post',
+      lines: [
+        'Hey [Name]! Noticed you engaging with my content — genuinely appreciate it.',
+        'Quick honest question — is ' + pain + ' something you are still actively working on, or have you figured it out?',
+        'No agenda at all. Just ask everyone who engages because I want to actually understand where people are, not assume.'
+      ]
+    },
+    {
+      title: 'Step 2 — Pain agitation (after they reply)',
+      tag: 'After they confirm the problem is real · ' + nicheName,
+      when: 'They replied and confirmed they are still dealing with the problem',
+      lines: [
+        '[Name] — honestly, that is exactly what I expected to hear. ' + pain + ' is one of those things that feels like it should be simpler than it is.',
+        'Can I ask — how long have you been dealing with it? And have you tried anything to fix it, or has it just been something you have been putting up with?',
+        'I ask because the reason most people stay stuck with ' + pain + ' is almost never what they think it is. And understanding that makes everything click differently.'
+      ]
+    },
+    {
+      title: 'Step 3 — "I found something" (hint at solution, still no product name)',
+      tag: 'After 2–3 exchanges — they are engaged and curious · ' + nicheName,
+      when: 'They have shared their situation and are clearly open',
+      lines: [
+        '[Name] — based on everything you just shared, I think I know exactly what is going on. I went through the exact same thing with ' + tried + ' not working.',
+        'A while back I came across something that completely changed how I was approaching ' + pain + '. It is not a course or a quick fix — it is the most practical thing I have found for actually getting to ' + trans + '.',
+        'I do not want to just throw a link at you without context. Would it help if I sent you a free overview — 3 minutes — so you can see if it actually applies to your situation?'
+      ]
+    },
+    {
+      title: 'Step 4 — Survey / VSL link (push to overview, not a call)',
+      tag: 'When they say yes to seeing more · ' + nicheName,
+      when: 'They agreed they want to see the free overview',
+      lines: [
+        'Perfect — here is the link: ' + surveyLink,
+        'It walks through exactly who it works for, what the result looks like, and why it is different from ' + tried + '. Takes about 3 minutes.',
+        'Once you have had a look — let me know what you think. I genuinely only share this when I think it fits someone\'s situation, and based on what you shared, it fits yours.'
+      ]
+    },
+    {
+      title: 'Facebook Group opener — value first, no pitch',
+      tag: 'For group members who posted a struggle · ' + nicheName,
+      when: 'Someone posted a question or struggle in your niche group',
+      lines: [
+        'Hey [Name] — saw your post in [Group Name] about ' + pain + '. Most of the replies were generic so I wanted to give you something actually useful.',
+        '[Give one specific, actionable 2–3 sentence tip about ' + pain + ' — real value, no pitch, nothing to sell].',
+        'That is it — no link, no ask. If that resonated and you want to go deeper on your specific situation, I am happy to. Just say the word.'
+      ]
+    },
+    {
+      title: 'Engaged follower opener — warm audience, pull them in',
+      tag: 'For followers who watch your content but never DM · ' + nicheName,
+      when: 'Someone who views 5+ stories or saves posts without engaging',
+      lines: [
+        'Hey [Name] — I have seen you around my content for a while and figured it was time I actually reached out.',
+        'I post about ' + pain + ' and the path to ' + trans + ' — is that something you are actively working on right now?',
+        'Either way — I would love to actually know you rather than just have you as a quiet viewer. What is going on in your world?'
+      ]
+    }
+  ];
+
+  // WARM — product can now be named, push to survey still (not call)
+  if (mode === 'warm') return [
+    {
+      title: 'Pain cost reframe — make staying stuck feel expensive',
+      tag: 'For warm leads who are interested but hesitating · ' + nicheName,
+      when: 'They have seen the overview and are curious but not committing',
+      lines: [
+        '[Name], can I ask you something directly? You mentioned ' + pain + ' has been going on for a while. What has that actually cost you — not just money, but time, energy, and the outcome you have not reached yet?',
+        'Most people who put this off are in the exact same place 6 months later. Only more frustrated. And more certain they missed their window.',
+        'What would actually change for you if ' + pain + ' was no longer the thing holding you back?'
+      ]
+    },
+    {
+      title: 'Social proof bridge — let a result do the persuading',
+      tag: 'When they need evidence it works for someone like them · ' + nicheName,
+      when: 'They are interested but need to see proof before deciding',
+      lines: [
+        'I want to share something. Someone I know was in almost exactly your situation — ' + pain + ', had tried ' + tried + ', was not sure anything would actually work.',
+        'After going through ' + productName + ' they got ' + trans + '. [Share a specific result — real numbers, real timeframe if you have it].',
+        'I only brought it up because your situation matched theirs closely. Does that shift how you are seeing it?'
+      ]
+    },
+    {
+      title: 'Honest affiliate disclosure — transparency close',
+      tag: 'When they ask directly what you are recommending · ' + nicheName,
+      when: 'They are warm, ready to hear the full recommendation',
+      lines: [
+        '[Name] — I want to be straight with you. I am an affiliate for ' + productName + ', which means I earn a commission if you buy through my link. I am telling you upfront because transparency matters more to me than a sale.',
+        'I share it because it is genuinely the most practical thing I have found for ' + pain + '. The commission is a bonus — your result is the actual point.',
+        'Here is my link: ' + affLink + '. Go through it at your own pace. I am here for any questions before you decide — no pressure either way.'
+      ]
+    },
+    {
+      title: 'Urgency — real reason to move now',
+      tag: 'For leads who keep saying soon · ' + nicheName,
+      when: 'They are genuinely interested but keep delaying without a real reason',
+      lines: [
+        '[Name] — I am not going to pressure you. But one honest thing to consider.',
+        productName + ' is priced the way it is right now. These offers do change as demand grows — I cannot tell you when, I just know I would hate for you to come back ready and find it has shifted.',
+        'If the timing genuinely is not right — just say the word. But if the only thing stopping you is the decision itself — what would make that easier today?'
+      ]
+    }
+  ];
+
+  // OBJECTION — shorter sequence for affiliates, push back to survey not call
+  if (mode === 'objection') return [
+    {
+      title: '"I cannot afford it" — cost vs consequence',
+      tag: 'Most common objection · ' + nicheName,
+      when: 'They say the price is too high after seeing the overview',
+      lines: [
+        'I hear you — that is fair. Can I ask though? ' + pain + ' has been going on for a while. What has that actually cost you — in time, frustration, and the outcome you have not reached yet?',
+        'Most people measure the price against their bank balance. The right comparison is what staying stuck costs every single month.',
+        'Take a proper look at what comes with it before you decide: ' + affLink + '. There is also a guarantee on it — so the risk is minimal either way.'
+      ]
+    },
+    {
+      title: '"Is this legit / too good to be true"',
+      tag: 'Skeptical leads burned by past purchases · ' + nicheName,
+      when: 'They question the legitimacy of the product',
+      lines: [
+        'Completely fair — there is a lot of rubbish out there and you are right to question it. I did the same before I shared it.',
+        'Here is what gave me confidence: [specific credibility signal — the creator\'s track record, testimonials on the page, the platform it is hosted on, the guarantee]. I do not put my name behind things I have not looked into.',
+        'Go read through it yourself: ' + affLink + '. Make your own judgment. I am here for any questions — I just want you to decide based on facts, not fear.'
+      ]
+    },
+    {
+      title: '"I need to think about it"',
+      tag: 'The most common stall · ' + nicheName,
+      when: 'They ask for time after showing real interest',
+      lines: [
+        'Of course — I would never rush you. Can I ask what specifically you want to think about? The price, whether it applies to your situation, or something else?',
+        'Most of the time there is one specific thing underneath it. I would rather help you work through it now than have you leave with an unresolved question that gets in the way.',
+        'What is the one thing that if I could answer it honestly — would make this a clear yes or a clear no for you?'
+      ]
+    },
+    {
+      title: '"I tried something like this and it did not work"',
+      tag: 'Leads burned by a past similar product · ' + nicheName,
+      when: 'They have been let down by a similar product or programme before',
+      lines: [
+        'That is important to say — thank you for being honest about it. You invested real hope and it did not deliver. That is not okay.',
+        'Can I ask what specifically did not work? Because there is a difference between the product being rubbish and not having the right structure to implement it. Both are valid — I just want to understand which one.',
+        productName + ' was built around [the gap that most similar products miss — use the product\'s own unique angle]. That is why I chose to share this one specifically. See for yourself: ' + affLink
+      ]
+    }
+  ];
+
+  // FOLLOW-UP — shorter sequence, affiliates do not nurture long-term like experts
+  if (mode === 'follow') return [
+    {
+      title: '24-hour follow-up — no response to first message',
+      tag: 'Send exactly 24 hours after your opening message · ' + nicheName,
+      when: 'They did not reply to your first DM',
+      lines: [
+        'Hey [Name] — just bumping this up in case it got buried. No pressure at all.',
+        'I reached out because ' + pain + ' seemed relevant to where you are right now. Might not be — just thought it was worth asking.',
+        'If the timing is off — completely fine. If you are dealing with it and want a quick perspective — just say the word.'
+      ]
+    },
+    {
+      title: 'Value drop — re-engage with something genuinely useful',
+      tag: 'For leads who went quiet after showing interest · ' + nicheName,
+      when: 'They showed interest but stopped replying',
+      lines: [
+        '[Name] — I was not going to follow up again but I came across something that immediately made me think of you.',
+        '[Share one specific, useful insight about ' + pain + ' — something actionable on its own, no link, no pitch].',
+        'Thought it was useful regardless of anything else. If it sparks something — I am here.'
+      ]
+    },
+    {
+      title: 'Final follow-up — close the loop with respect',
+      tag: 'Last message, remove from pipeline after this · ' + nicheName,
+      when: 'Final outreach after 2 previous follow-ups with no response',
+      lines: [
+        '[Name] — this will be my last message.',
+        'If the timing is not right — that is completely okay. No hard feelings.',
+        'When ' + pain + ' becomes something you are ready to do something about — I will still be here. Hope you find what works for you.'
+      ]
+    }
+  ];
+
+  return [];
+}
+
+// ─── Affiliate DM tab renderer (used inside Affiliate Setup → DM Scripts tab) ────
+window.setAffDMTab = function(mode, btn) {
+  window._affDMTab = mode;
+  document.querySelectorAll('#aff-dm-tabs .tab').forEach(t => t.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  const grid  = document.getElementById('aff-dm-scripts-grid');
+  const qp    = document.getElementById('aff-dm-queue-panel');
+  const mcp   = document.getElementById('aff-dm-manychat-panel');
+  if (mode === 'queue') {
+    if (grid) grid.style.display = 'none';
+    if (qp)   { qp.style.display = 'block'; renderDMQueue('affiliate'); }
+    if (mcp)  mcp.style.display = 'none';
+  } else if (mode === 'manychat') {
+    if (grid) grid.style.display = 'none';
+    if (qp)   qp.style.display = 'none';
+    if (mcp)  { mcp.style.display = 'block'; renderManyChatPanel('affiliate'); }
+  } else {
+    if (grid) { grid.style.display = ''; renderAffDMTab(mode); }
+    if (qp)   qp.style.display = 'none';
+    if (mcp)  mcp.style.display = 'none';
+  }
+};
+
+function renderAffDMTab(mode) {
+  const grid = document.getElementById('aff-dm-scripts-grid');
+  if (!grid) return;
+  const scripts = buildAffiliateScriptSet(mode);
+  const offer = window._affiliateOffer || {};
+  const av    = window._avatarData || {};
+  const modeColors = {
+    dm:        {color:'var(--teal)',   bg:'rgba(78,204,163,.07)',  border:'rgba(78,204,163,.25)',  icon:'💬'},
+    warm:      {color:'var(--orange)', bg:'rgba(255,140,66,.07)', border:'rgba(255,140,66,.25)', icon:'🔥'},
+    objection: {color:'var(--red)',    bg:'rgba(255,107,107,.07)',border:'rgba(255,107,107,.25)',icon:'🛡'},
+    follow:    {color:'var(--yellow)', bg:'rgba(255,217,61,.07)', border:'rgba(255,217,61,.25)', icon:'↩️'}
+  };
+  const mc = modeColors[mode] || modeColors.dm;
+
+  // ── Product Analysis card — shows what the AI pulled from the link ──────
+  const productName  = offer.name        || '—';
+  const tagline      = offer.tagline     || '—';
+  const painPoint    = av.pain  || offer.pain          || '—';
+  const transformation = av.transformation || offer.transformation || '—';
+  const benefits     = Array.isArray(offer.benefits) && offer.benefits.length
+                        ? offer.benefits.slice(0,3)
+                        : ['—'];
+  const niche        = offer.niche || av.niche || '—';
+  const platform     = offer.platform    || '—';
+
+  const analysisCard = `
+    <div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.2);border-radius:16px;padding:1.1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:10px">🔍 Product Analysis — What's Powering Your Scripts</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Product</div>
+          <div style="font-size:12px;font-weight:800;color:var(--white)">${productName}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Niche</div>
+          <div style="font-size:12px;font-weight:800;color:var(--white)">${niche}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;grid-column:1/-1">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Tagline / Promise</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5">${tagline}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Target Pain Point</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5">${painPoint}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Transformation Promise</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.5">${transformation}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;grid-column:1/-1">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">Key Benefits</div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px">${benefits.map(b=>`<span style="font-size:10px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.2);color:var(--teal);border-radius:6px;padding:3px 9px">${b}</span>`).join('')}</div>
+        </div>
+      </div>
+      <div style="margin-top:10px;font-size:10px;color:var(--dimmer);line-height:1.5">
+        ⚠️ <strong style="color:var(--dim)">Cold DM rule:</strong> Never mention the product name in your first message — lead only with the pain point. The product name appears only after trust is built (Step 3+).
+      </div>
+    </div>`;
+
+  const modeDesc = {
+    dm: 'Your 4-step cold DM sequence — curiosity opener → pain agitation → "I found something" → survey link. Product name is never used in Steps 1–2.',
+    warm: 'Close scripts for leads who have already seen the overview and are considering. Push to the affiliate link, not a call — affiliates do not close on calls.',
+    objection: 'Handle the most common objections. Validate first, reframe second, redirect to the link or overview. Never be defensive.',
+    follow: 'Short, 3-message follow-up sequence. Affiliates keep follow-up tight — faster decisions, not long nurture.'
+  };
+
+  grid.innerHTML = analysisCard + `<div style="background:${mc.bg};border:1px solid ${mc.border};border-radius:12px;padding:12px 16px;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:10px"><span style="font-size:18px;flex-shrink:0">${mc.icon}</span><div style="font-size:11px;color:var(--dim);line-height:1.65">${modeDesc[mode]||''}</div></div>` +
+    scripts.map((s,i) => {
+      const whenBadge = s.when ? `<div style="font-size:9px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;color:var(--dimmer);margin-top:4px;display:inline-block">When: ${s.when}</div>` : '';
+      return `<div class="sc-card" style="border-color:${mc.border}"><div class="sc-head"><div style="flex:1;min-width:0"><div class="sc-title" style="color:${mc.color}">${s.title}</div><div class="sc-use" style="margin-top:2px">${s.tag}</div>${whenBadge}</div><button class="copy-btn" onclick="copyAffScript(${i},'${mode}',this)" style="flex-shrink:0">Copy</button></div><div class="sc-body">${s.lines.map(l=>`<p style="border-left:2px solid ${mc.border};padding-left:10px;margin-bottom:10px;color:var(--muted)">${l}</p>`).join('')}</div></div>`;
+    }).join('');
+}
+
+window.copyAffScript = function(i, mode, btn) {
+  const scripts = buildAffiliateScriptSet(mode);
+  if (!scripts[i]) return;
+  const text = scripts[i].lines.join('\n\n');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 2000);
+  }).catch(() => { btn.textContent = 'Done'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); });
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MANYCHAT INTEGRATION ENGINE
+// ═══════════════════════════════════════════════════════════════════════════
+
+window._mcApiKey      = '';
+window._mcAccountInfo = null;
+window._mcLastSync    = null;
+
+// Save API key to Firebase (persists across sessions)
+window.saveMCApiKey = async function(key) {
+  window._mcApiKey = key;
+  try {
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      await window._setDoc(
+        window._doc(window._db, 'users', window._currentUserUid),
+        { manychatApiKey: key },
+        { merge: true }
+      );
+    }
+  } catch(e) { console.warn('ManyChat key save failed:', e); }
+};
+
+// Verify API key against ManyChat and store account info
+window.connectManyChat = async function(context) {
+  const input   = document.getElementById('mc-api-input-' + context);
+  const btn     = document.getElementById('mc-connect-btn-' + context);
+  const statusEl= document.getElementById('mc-conn-status-' + context);
+  if (!input || !statusEl) return;
+  const key = input.value.trim();
+  if (!key) { statusEl.textContent = '⚠️ Paste your ManyChat API key first.'; statusEl.style.color = 'var(--orange)'; return; }
+  btn.disabled = true; btn.textContent = 'Connecting…';
+  statusEl.textContent = 'Verifying your API key…'; statusEl.style.color = 'var(--dim)';
+  try {
+    const res  = await fetch('https://api.manychat.com/fb/account', { headers: { 'Authorization': 'Bearer ' + key } });
+    const data = await res.json();
+    if (data.status === 'success' && data.data) {
+      window._mcApiKey      = key;
+      window._mcAccountInfo = data.data;
+      await window.saveMCApiKey(key);
+      renderManyChatPanel(context);
+    } else {
+      statusEl.textContent = '⚠️ Invalid API key — check ManyChat → Settings → API.';
+      statusEl.style.color = 'var(--red)';
+      btn.disabled = false; btn.textContent = 'Connect';
+    }
+  } catch(e) {
+    statusEl.textContent = '⚠️ Could not reach ManyChat. Check your connection.';
+    statusEl.style.color = 'var(--red)';
+    btn.disabled = false; btn.textContent = 'Connect';
+  }
+};
+
+// Disconnect ManyChat
+window.disconnectManyChat = async function(context) {
+  window._mcApiKey = ''; window._mcAccountInfo = null;
+  await window.saveMCApiKey('');
+  renderManyChatPanel(context);
+};
+
+// Sync subscriber count from ManyChat → auto-log DMs to tracker
+window.syncAndLogMC = async function(context, btn) {
+  if (!window._mcApiKey) return;
+  const statusEl = document.getElementById('mc-sync-status-' + context);
+  btn.disabled = true; btn.textContent = '⏳ Syncing…';
+  if (statusEl) { statusEl.textContent = 'Fetching stats from ManyChat…'; statusEl.style.color = 'var(--dim)'; }
+  try {
+    const res  = await fetch('https://api.manychat.com/fb/subscribers?limit=1', { headers: { 'Authorization': 'Bearer ' + window._mcApiKey } });
+    const data = await res.json();
+    if (data.status === 'success') {
+      const total   = data.data?.total_count || 0;
+      const prev    = parseInt(localStorage.getItem('eos_mc_sub_count') || '0');
+      const newOnes = Math.max(0, total - prev);
+      localStorage.setItem('eos_mc_sub_count', String(total));
+      window._mcLastSync = new Date().toLocaleTimeString();
+      // Auto-increment tracker if new subs found
+      if (newOnes > 0 && window.affTrack) {
+        for (let i = 0; i < newOnes; i++) window.affTrack('dms', 1);
+      }
+      if (statusEl) {
+        statusEl.textContent = newOnes > 0
+          ? '✅ ' + newOnes + ' new DM' + (newOnes !== 1 ? 's' : '') + ' auto-logged to tracker. Total subscribers: ' + total + '.'
+          : '✅ All up to date — ' + total + ' total subscribers. Synced at ' + window._mcLastSync;
+        statusEl.style.color = 'var(--teal)';
+      }
+    } else {
+      if (statusEl) { statusEl.textContent = '⚠️ Could not fetch stats. Check your ManyChat connection.'; statusEl.style.color = 'var(--red)'; }
+    }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '⚠️ Sync failed. Check your connection and try again.'; statusEl.style.color = 'var(--red)'; }
+  }
+  btn.disabled = false; btn.textContent = '🔄 Sync DM Stats from ManyChat';
+};
+
+// Main panel renderer — handles both connected and disconnected states
+function renderManyChatPanel(context) {
+  const panelId = context === 'affiliate' ? 'aff-dm-manychat-panel' : 'scripts-manychat-panel';
+  const panel   = document.getElementById(panelId);
+  if (!panel) return;
+
+  const isAffiliate = context === 'affiliate';
+  const isConnected = !!(window._mcApiKey && window._mcAccountInfo);
+  const acct        = window._mcAccountInfo || {};
+  const keyword     = isAffiliate ? 'INFO' : 'APPLY';
+  const cta         = isAffiliate
+    ? 'Comment "' + keyword + '" below to get the free overview'
+    : 'Comment "' + keyword + '" below to book a free call';
+
+  // Get scripts for display
+  const scripts  = isAffiliate ? buildAffiliateScriptSet('dm') : buildScriptSet('dm');
+  const scriptLabels = [
+    { auto: true,  label: 'ManyChat Flow — Message 1', sub: 'Auto-sent when they comment "' + keyword + '"',    note: 'Fires automatically. Never names the product — pure curiosity.' },
+    { auto: false, label: 'Manual Step 2',              sub: 'Send yourself after they reply',                   note: 'Pain agitation — go deeper before hinting at solution.' },
+    { auto: false, label: 'Manual Step 3',              sub: 'After they confirm the pain is real',              note: '"I found something" — still no product name.' },
+    { auto: false, label: 'Manual Step 4',              sub: 'When they say yes to seeing more',                 note: isAffiliate ? 'Drop the survey/VSL link — not a call.' : 'Book the discovery call.' },
+  ];
+
+  // ── DISCONNECTED STATE ────────────────────────────────────────────────────
+  if (!isConnected) {
+    panel.innerHTML = `
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem;margin-bottom:1rem">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
+          <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 16px rgba(0,102,255,.3)">💬</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Connect ManyChat</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px">Automate your DM opener — zero manual sending for inbound leads</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(0,178,255,.06);border:1px solid rgba(0,178,255,.18);border-radius:12px;padding:12px 14px;margin-bottom:1.25rem">
+          <div style="font-size:11px;color:var(--muted);line-height:1.75">
+            Once connected, ManyChat fires your <strong style="color:var(--white)">Step 1 cold opener automatically</strong> whenever someone comments the keyword on your post. Steps 2–4 stay manual — those conversations need a human touch. Execution OS keeps your scripts, ManyChat handles the delivery.
+          </div>
+        </div>
+
+        <div style="margin-bottom:1rem">
+          <div style="font-size:10px;font-weight:700;color:var(--dimmer);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">ManyChat API Key</div>
+          <div style="display:flex;gap:8px">
+            <input id="mc-api-input-${context}" type="password" placeholder="Paste your ManyChat API key here…" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--white);font-family:'Inter',sans-serif;outline:none" />
+            <button id="mc-connect-btn-${context}" onclick="connectManyChat('${context}')" style="padding:10px 22px;background:linear-gradient(135deg,#00b2ff,#0066ff);color:#fff;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(0,102,255,.3)">Connect</button>
+          </div>
+          <div id="mc-conn-status-${context}" style="font-size:11px;margin-top:6px;min-height:16px"></div>
+        </div>
+
+        <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px 14px">
+          <div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:8px">Where to find your API key:</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${['Log in to <strong style="color:var(--white)">app.manychat.com</strong>','Go to <strong style="color:var(--white)">Settings → API</strong>','Click <strong style="color:var(--white)">Generate API Token</strong>','Copy and paste it above'].map((s,i)=>`<div style="display:flex;gap:8px;align-items:flex-start"><div style="width:18px;height:18px;border-radius:50%;background:rgba(0,178,255,.2);border:1px solid rgba(0,178,255,.3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#00b2ff;flex-shrink:0">${i+1}</div><div style="font-size:11px;color:var(--dim);line-height:1.5">${s}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  // ── CONNECTED STATE ───────────────────────────────────────────────────────
+  panel.innerHTML = `
+    <!-- Account pill -->
+    <div style="background:linear-gradient(135deg,rgba(0,178,255,.1),rgba(0,102,255,.06));border:1px solid rgba(0,178,255,.25);border-radius:14px;padding:.9rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">✅</div>
+        <div>
+          <div style="font-size:11px;font-weight:900;color:#00b2ff;font-family:'Poppins',sans-serif">ManyChat Connected</div>
+          <div style="font-size:10px;color:var(--dim)">${acct.name || 'Your ManyChat Account'}</div>
+        </div>
+      </div>
+      <button onclick="disconnectManyChat('${context}')" style="font-size:10px;padding:5px 14px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:50px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Disconnect</button>
+    </div>
+
+    <!-- How it flows -->
+    <div style="margin-bottom:1.25rem">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:10px">Your Automation Flow</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+        ${[
+          ['📣','Post content','About the pain point — no product mention'],
+          ['💬','They comment "' + keyword + '"','Your CTA tells them to use this keyword'],
+          ['🤖','ManyChat fires Step 1','Sends the opener instantly — fully automated'],
+          ['🤝','They reply — you take over','Steps 2–4 are manual — you close the conversation'],
+        ].map(([icon,title,desc],i)=>`
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;position:relative;overflow:hidden">
+            ${i<3?`<div style="position:absolute;top:50%;right:-8px;transform:translateY(-50%);font-size:10px;color:var(--dimmer);z-index:1">▶</div>`:''}
+            <div style="font-size:20px;margin-bottom:6px">${icon}</div>
+            <div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:3px;line-height:1.3">${title}</div>
+            <div style="font-size:9px;color:var(--dim);line-height:1.4">${desc}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <!-- Trigger keyword -->
+    <div style="background:rgba(255,217,61,.07);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:12px 16px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:900;margin-bottom:4px">⚡ Your Comment Trigger Keyword</div>
+        <div style="font-size:26px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;letter-spacing:3px">${keyword}</div>
+        <div style="font-size:10px;color:var(--dim);margin-top:3px">Set this as your keyword trigger in ManyChat</div>
+      </div>
+      <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px;max-width:260px">
+        <div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Add to your posts</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.5;font-style:italic">"${cta}"</div>
+      </div>
+    </div>
+
+    <!-- Scripts formatted for ManyChat -->
+    <div style="margin-bottom:1.25rem">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:10px">Scripts Ready for ManyChat</div>
+      ${scripts.slice(0,4).map((s, i) => {
+        const sl = scriptLabels[i] || {};
+        const txt = s.lines.join('\n\n');
+        return `<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;margin-bottom:8px">
+          <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:11px;font-weight:800;color:${sl.auto?'#00b2ff':'var(--teal)'}">${sl.label||s.title}</div>
+              <div style="font-size:10px;color:var(--dimmer);margin-top:1px">${sl.sub||s.tag}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="font-size:9px;padding:2px 8px;border-radius:50px;font-weight:700;${sl.auto?'background:linear-gradient(135deg,#00b2ff,#0066ff);color:#fff':'background:rgba(255,255,255,.06);color:var(--dimmer)'}">${sl.auto?'🤖 AUTO':'MANUAL'}</div>
+              <button onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(txt)}')).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='Copy',2000)})" style="font-size:10px;padding:5px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);border-radius:50px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Copy</button>
+            </div>
+          </div>
+          <div style="padding:10px 14px;font-size:11px;color:var(--muted);line-height:1.75;white-space:pre-wrap;font-family:'Inter',sans-serif">${txt}</div>
+          <div style="padding:4px 14px 10px;font-size:10px;color:var(--dimmer)">💡 ${sl.note||''}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <!-- ManyChat setup guide -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:14px">🛠 ManyChat Setup — Do This Once</div>
+      ${[
+        ['Connect your page','Go to ManyChat → <strong style="color:var(--white)">Settings → Channels</strong> and connect your Instagram or Facebook page.'],
+        ['Create a new flow','Go to <strong style="color:var(--white)">Automation → New Flow</strong>. Name it "' + (isAffiliate?'Affiliate Cold DM':'Expert Cold Opener') + '".'],
+        ['Set the comment trigger','Add a <strong style="color:var(--white)">Trigger → Comment</strong>. Set keyword: <strong style="color:var(--yellow)">' + keyword + '</strong>. Select "Exact match".'],
+        ['Add the message','Add a <strong style="color:var(--white)">Send Message</strong> action. Paste the "ManyChat Flow — Message 1" script above verbatim.'],
+        ['Activate the flow','Toggle the flow <strong style="color:var(--white)">ON</strong>. Every comment with "' + keyword + '" now triggers the DM automatically.'],
+        ['Add CTA to every post','End every post with: <em style="color:var(--yellow)">"' + cta + '"</em>. This is what drives the trigger.'],
+      ].map(([title,desc],i)=>`
+        <div style="display:flex;gap:12px;margin-bottom:${i<5?'12px':'0'}">
+          <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;margin-top:1px">${i+1}</div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--white)">${title}</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:2px;line-height:1.55">${desc}</div>
+          </div>
+        </div>`).join('')}
+    </div>
+
+    <!-- Sync stats -->
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <button onclick="syncAndLogMC('${context}', this)" style="flex:1;padding:10px 16px;background:rgba(0,178,255,.1);border:1px solid rgba(0,178,255,.25);color:#00b2ff;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer;min-width:200px">🔄 Sync DM Stats from ManyChat</button>
+    </div>
+    <div id="mc-sync-status-${context}" style="font-size:11px;min-height:18px;line-height:1.5"></div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DAILY DM QUEUE — Personalised messages for up to 20 prospects
+// Works in both Expert and Affiliate mode
+// ═══════════════════════════════════════════════════════════════════════════
+function renderDMQueue(context) {
+  const panelId = context === 'affiliate' ? 'aff-dm-queue-panel' : 'scripts-queue-panel';
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const isAffiliate = context === 'affiliate';
+  const offer = isAffiliate ? (window._affiliateOffer || {}) : {};
+  const offerName = isAffiliate ? (offer.name || 'your product') : ((document.getElementById('offer_name')||{}).value || 'your programme');
+  const pain = (window._avatarData||{}).pain || offer.pain || 'their challenge';
+  const trans = (window._avatarData||{}).transformation || offer.transformation || 'their goal';
+  const contextOptions = ['Liked my post','Commented on my post','New follower','Saved my post','Viewed my story','Posted in Facebook group','Mutual connection referral','Old conversation, reconnecting'];
+
+  panel.innerHTML = `
+    <div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.25);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <span style="font-size:24px;flex-shrink:0">⚡</span>
+        <div>
+          <div style="font-size:13px;font-weight:900;color:var(--purple);font-family:'Poppins',sans-serif;margin-bottom:4px">Daily DM Queue</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.65">Add up to 20 prospects — enter their name and how they engaged. Hit Generate and get a personalised, ready-to-send message for each one. One tap to copy and send.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dmq-rows-${context}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem"></div>
+
+    <div style="display:flex;gap:8px;margin-bottom:1.5rem;flex-wrap:wrap">
+      <button onclick="addDMQRow('${context}')" style="padding:9px 18px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--white);border-radius:10px;font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer">+ Add Prospect</button>
+      <button id="dmq-gen-btn-${context}" onclick="generateDMQueue('${context}')" style="padding:9px 24px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer;flex:1">⚡ Generate All Messages</button>
+    </div>
+
+    <div id="dmq-status-${context}" style="font-size:11px;color:var(--teal);font-weight:700;min-height:20px;margin-bottom:8px;text-align:center"></div>
+    <div id="dmq-results-${context}"></div>
+  `;
+
+  // Add initial 5 rows
+  for (let i = 0; i < 5; i++) addDMQRow(context);
+}
+
+window.addDMQRow = function(context) {
+  const wrap = document.getElementById('dmq-rows-' + context);
+  if (!wrap) return;
+  const rows = wrap.querySelectorAll('.dmq-row');
+  if (rows.length >= 20) return;
+  const idx = rows.length;
+  const contextOptions = ['Liked my post','Commented on my post','New follower','Saved my post','Viewed my story','Posted in Facebook group','Mutual connection referral','Old conversation – reconnecting'];
+  const row = document.createElement('div');
+  row.className = 'dmq-row';
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:center;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px';
+  row.innerHTML = `
+    <input placeholder="Prospect name or @handle" class="dmq-name fi" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--white);font-family:'Inter',sans-serif;outline:none" />
+    <select class="dmq-ctx" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted);font-family:'Inter',sans-serif;outline:none;cursor:pointer">
+      ${contextOptions.map(o => `<option value="${o}">${o}</option>`).join('')}
+    </select>
+    <button onclick="this.closest('.dmq-row').remove()" style="width:28px;height:28px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:7px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
+  `;
+  wrap.appendChild(row);
+};
+
+window.generateDMQueue = async function(context) {
+  const wrap = document.getElementById('dmq-rows-' + context);
+  const statusEl = document.getElementById('dmq-status-' + context);
+  const resultsEl = document.getElementById('dmq-results-' + context);
+  const btn = document.getElementById('dmq-gen-btn-' + context);
+  if (!wrap || !statusEl || !resultsEl) return;
+
+  const rows = wrap.querySelectorAll('.dmq-row');
+  const prospects = [];
+  rows.forEach(r => {
+    const name = r.querySelector('.dmq-name').value.trim();
+    const ctx  = r.querySelector('.dmq-ctx').value;
+    if (name) prospects.push({ name, ctx });
+  });
+
+  if (prospects.length === 0) {
+    statusEl.textContent = '⚠️ Add at least one prospect name first.';
+    statusEl.style.color = 'var(--orange)';
+    return;
+  }
+
+  const isAffiliate = context === 'affiliate';
+  const offer = isAffiliate ? (window._affiliateOffer || {}) : {};
+  const av = window._avatarData || {};
+  const offerName = isAffiliate ? (offer.name || 'the product') : ((document.getElementById('offer_name')||{}).value || 'my programme');
+  const pain = av.pain || offer.pain || 'their main challenge';
+  const trans = av.transformation || offer.transformation || 'their desired outcome';
+  const niche = offer.niche || (document.getElementById('niche')||{}).value || 'general';
+  const positioning = isAffiliate
+    ? 'You are an affiliate who discovered this product and genuinely recommends it — you are NOT the creator. Never position yourself as an authority or expert. Lead with curiosity, never pitch in the first message.'
+    : 'You are the expert and creator of the offer. Lead with authority, empathy, and genuine curiosity about their situation.';
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating…';
+  statusEl.style.color = 'var(--teal)';
+  statusEl.textContent = 'Writing personalised messages for ' + prospects.length + ' prospect' + (prospects.length > 1 ? 's' : '') + '…';
+
+  const prompt = `You are a world-class DM copywriter writing personalised outreach messages.
+
+OFFER: ${offerName}
+NICHE: ${niche}
+TARGET AUDIENCE PAIN: ${pain}
+DESIRED TRANSFORMATION: ${trans}
+POSITIONING RULE: ${positioning}
+
+Write ONE short, personalised, human-sounding DM for EACH of these prospects. Use their name and tailor the message to how they engaged. NEVER pitch in the first message — open with curiosity or value. Keep each message under 80 words. Sound like a real person, not a copywriter.
+
+PROSPECTS:
+${prospects.map((p, i) => `${i + 1}. Name: ${p.name} | How they engaged: ${p.ctx}`).join('\n')}
+
+Respond ONLY with a JSON array in this exact format, no markdown, no preamble:
+[{"name":"prospect name","message":"the DM message"}]`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    const data = await res.json();
+    const raw = (data.content || []).map(b => b.text || '').join('');
+    let messages = [];
+    try {
+      const clean = raw.replace(/```json|```/g, '').trim();
+      messages = JSON.parse(clean);
+    } catch(e) {
+      statusEl.textContent = '⚠️ Could not parse response. Try again.';
+      statusEl.style.color = 'var(--red)';
+      btn.disabled = false; btn.textContent = '⚡ Generate All Messages';
+      return;
+    }
+
+    statusEl.textContent = '✅ ' + messages.length + ' messages ready — tap Copy to send each one.';
+    statusEl.style.color = 'var(--teal)';
+
+    resultsEl.innerHTML = messages.map((m, i) => `
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(108,99,255,.2);border-radius:12px;overflow:hidden;margin-bottom:10px">
+        <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:8px">
+            <div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:#fff;flex-shrink:0">${(m.name||'?')[0].toUpperCase()}</div>
+            <div style="font-size:12px;font-weight:800;color:var(--white)">${m.name||prospects[i]?.name||'Prospect '+(i+1)}</div>
+            <div style="font-size:10px;color:var(--dimmer);background:rgba(255,255,255,.05);padding:2px 8px;border-radius:50px">${prospects[i]?.ctx||''}</div>
+          </div>
+          <button onclick="copyDMQMessage(this)" data-msg="${encodeURIComponent(m.message||'')}" style="font-size:10px;padding:5px 14px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:50px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Copy</button>
+        </div>
+        <div style="padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.75;white-space:pre-wrap;font-family:'Inter',sans-serif">${m.message||''}</div>
+      </div>
+    `).join('');
+
+    btn.disabled = false; btn.textContent = '⚡ Regenerate All Messages';
+  } catch(e) {
+    statusEl.textContent = '⚠️ Something went wrong. Check your connection and try again.';
+    statusEl.style.color = 'var(--red)';
+    btn.disabled = false; btn.textContent = '⚡ Generate All Messages';
+  }
+};
+
+window.copyDMQMessage = function(btn) {
+  const msg = decodeURIComponent(btn.getAttribute('data-msg') || '');
+  navigator.clipboard.writeText(msg).then(() => {
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  }).catch(() => { btn.textContent = 'Done'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); });
+};
+
 function renderScripts() {
   var mode = window._scriptsMode || 'dm';
   var scripts = buildScriptSet(mode);
@@ -5242,17 +6006,33 @@ function renderScripts() {
   var mc = modeColors[mode] || modeColors.dm;
 
   var modeDesc = {
-    dm: 'Your <strong style="color:var(--white)">conversation starters</strong> — engineered to feel human, not scripted. Each is calibrated to your niche, avatar pain point, and offer transformation. Never copy verbatim — adapt the tone to how you naturally speak.',
+    dm: 'Your <strong style="color:var(--white)">authority openers</strong> — lead with your credibility and genuine curiosity about their situation. Position yourself as the expert solving a specific problem. Never copy verbatim — adapt the tone to how you naturally speak.',
     warm: 'Your <strong style="color:var(--white)">close-readiness scripts</strong> — for leads who already know you and your offer. Every script is built around the psychology of someone who wants the result but is hesitating. Make staying stuck feel more expensive than investing.',
     call: 'Your <strong style="color:var(--white)">discovery call frameworks</strong> — run them in sequence: open → diagnose → bridge → close. Every word builds trust, uncovers real pain, and creates a decision. Memorise the questions. Let the conversation breathe.',
     objection: 'Your <strong style="color:var(--white)">objection killers</strong>. Each script validates the concern first (never dismiss it), then reframes the logic, then moves back to the close. Be curious and confident — never defensive or desperate.',
     follow: 'Your <strong style="color:var(--white)">follow-up sequences</strong>. The difference between a 20% and 60% close rate is almost entirely follow-up discipline. Most sales happen on the 3rd-7th contact. Each script is calibrated for a specific stage of silence.'
   };
 
-  var nicheLabel = niche ? ('Scripts tailored for: ' + niche + (hasAvatar ? ' · Personalised to your avatar' : '')) : 'Select your niche + generate avatar for fully personalised scripts';
+  // Expert offer card — confirms what is driving the scripts
+  var offerName     = (document.getElementById('offer_name')||{}).value || '';
+  var offerPrice    = window._appliedPrice || 0;
+  var offerResult   = (document.getElementById('offer_result')||{}).value || '';
+  var offerCard = '';
+  if (offerName || offerPrice || offerResult) {
+    offerCard = '<div style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(108,99,255,.03));border:1px solid rgba(108,99,255,.25);border-radius:16px;padding:1rem 1.25rem;margin-bottom:1.25rem;grid-column:1/-1">' +
+      '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:10px">⚡ What\'s Driving Your Scripts</div>' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px">' +
+      (offerName ? '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Offer</div><div style="font-size:12px;font-weight:800;color:var(--white)">' + offerName + '</div></div>' : '') +
+      (offerPrice ? '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Price</div><div style="font-size:14px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">$' + Number(offerPrice).toLocaleString() + '</div></div>' : '') +
+      (offerResult ? '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Transformation</div><div style="font-size:11px;color:var(--muted);line-height:1.4">' + offerResult + '</div></div>' : '') +
+      (niche ? '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Niche</div><div style="font-size:11px;color:var(--muted)">' + niche + '</div></div>' : '') +
+      '</div><div style="margin-top:8px;font-size:10px;color:var(--dimmer)">Scripts push to a <strong style="color:var(--white)">discovery call</strong> — you are the authority closing on your own expertise.</div></div>';
+  }
+
+  var nicheLabel = niche ? ('Scripts tailored for: ' + niche + (hasAvatar ? ' · Personalised to your avatar' : '')) : 'Set up your offer + generate avatar for fully personalised scripts';
   var banner = '<div style="background:' + mc.bg + ';border:1px solid ' + mc.border + ';border-radius:14px;padding:14px 18px;margin-bottom:1.5rem;grid-column:1/-1"><div style="display:flex;align-items:flex-start;gap:10px"><span style="font-size:20px;flex-shrink:0">' + mc.icon + '</span><div><div style="font-size:11px;font-weight:900;color:' + mc.color + ';margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">' + nicheLabel + '</div><div style="font-size:11px;color:var(--dim);line-height:1.65">' + (modeDesc[mode]||'') + '</div></div></div></div>';
 
-  grid.innerHTML = banner + scripts.map(function(s,i) {
+  grid.innerHTML = offerCard + banner + scripts.map(function(s,i) {
     var whenBadge = s.when ? '<div style="font-size:9px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;padding:3px 8px;color:var(--dimmer);margin-top:4px;display:inline-block">When: ' + s.when + '</div>' : '';
     return '<div class="sc-card" style="border-color:' + mc.border + '"><div class="sc-head"><div style="flex:1;min-width:0"><div class="sc-title" style="color:' + mc.color + '">' + s.title + '</div><div class="sc-use" style="margin-top:2px">' + s.tag + '</div>' + whenBadge + '</div><button class="copy-btn" onclick="copyPowerScript(' + i + ',this)" style="flex-shrink:0">Copy</button></div><div class="sc-body">' + s.lines.map(function(l){ return '<p style="border-left:2px solid ' + mc.border + ';padding-left:10px;margin-bottom:10px;color:var(--muted)">' + l + '</p>'; }).join('') + '</div></div>';
   }).join('');
@@ -6030,7 +6810,7 @@ function generateOffer(){
   ];
   const whyHighTicket = niRaw ? niRaw.whyHighTicket : 'Clients who invest seriously get 5x better results. High-ticket creates commitment. Commitment creates transformation. Transformation creates testimonials that fill your next cohort automatically.';
   const biggestOpp = niRaw ? niRaw.biggestOpp : 'The ' + nicheLabel + ' market is saturated with generic low-ticket advice. The gap is a premium results-guaranteed programme speaking directly to ' + audType + ' who are ready to solve ' + pain + ' once and for all.';
-  const coreMsg = 'I help ' + audType + ' go from ' + pain + ' to ' + result + ' in ' + duration + (noEffort ? ' — without ' + noEffort : '') + '.';
+  const coreMsg = 'I help ' + audType + ' go from ' + painShort + ' to ' + resultShort + ' in ' + duration + (noEffortShort && noEffortShort !== 'Starting Over' ? ' — without ' + noEffortShort : '') + '.';
 
   // ── PROGRAMME OUTLINE ENGINE ──────────────────────────────────
   const weeksNum = parseInt(duration) || (duration.toLowerCase().includes('12')?12:duration.toLowerCase().includes('6')?6:duration.toLowerCase().includes('8')?8:12);
@@ -6184,12 +6964,28 @@ function generateOffer(){
   };
 
   // ── HEADLINES ─────────────────────────────────────────────────
+  // clip() trims full-sentence field values to a short usable phrase
+  // so templates never swallow entire paragraphs as variables
+  const clip = (str, maxWords) => {
+    if (!str) return '';
+    const words = str.trim().replace(/[→–—]/g,' ').split(/\s+/).filter(Boolean);
+    if (words.length <= maxWords) return str.trim();
+    return words.slice(0, maxWords).join(' ') + '\u2026';
+  };
+
+  const resultShort     = clip(result, 7);
+  const painShort       = clip(pain, 6);
+  const motivationShort = clip(motivation, 6);
+  const noEffortShort   = clip(noEffort, 7) || 'Starting Over';
+  const transShort      = clip(transformation, 7);
+  const guarShort       = guarantee.split('(')[0].trim();
+
   const headlines = [];
-  headlines.push('How ' + audType + ' Are Finally Achieving ' + result + ' in ' + duration + ' — Without ' + (noEffort||'Starting Over'));
-  headlines.push('The ' + duration + ' System That Takes ' + audType + ' From ' + pain + ' to ' + motivation + ' — Step by Step');
-  headlines.push('Stop Trying to Figure Out ' + pain + ' Alone — Here Is the Exact System That Works');
-  headlines.push('Why Most ' + audType + ' Never Reach ' + result + ' (And the One Change That Fixes Everything)');
-  headlines.push('From ' + pain + ' to ' + result + ' in ' + duration + ' — With a ' + guarantee.split('(')[0].trim());
+  headlines.push('How ' + audType + ' Are Finally Achieving ' + resultShort + ' in ' + duration + ' — Without ' + noEffortShort);
+  headlines.push('The ' + duration + ' System That Takes ' + audType + ' From ' + painShort + ' to ' + motivationShort + ' — Step by Step');
+  headlines.push('Stop Trying to Figure Out ' + painShort + ' Alone — Here Is the Exact System That Works');
+  headlines.push('Why Most ' + audType + ' Never Reach ' + resultShort + ' (And the One Change That Fixes Everything)');
+  headlines.push('From ' + painShort + ' to ' + resultShort + ' in ' + duration + ' — With a ' + guarShort);
 
   // ── VALUE STACK ───────────────────────────────────────────────
   const stackRows = document.querySelectorAll('#offer-stack-items .offer-stack-row');
@@ -6230,7 +7026,7 @@ function generateOffer(){
   html += '<div style="padding:1.1rem 1.25rem;border-bottom:1px solid rgba(78,204,163,.2);background:rgba(78,204,163,.06)">';
   html += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:4px">📚 Your Programme Outline</div>';
   html += '<div style="font-size:15px;font-weight:900;color:var(--white)">' + offerName + ' — ' + duration + ' Roadmap</div>';
-  html += '<div style="font-size:11px;color:var(--dim);margin-top:3px">Engineered specifically for ' + audType + ' going from ' + pain + ' to ' + result + '</div>';
+  html += '<div style="font-size:11px;color:var(--dim);margin-top:3px">Engineered specifically for ' + audType + ' going from ' + painShort + ' to ' + resultShort + '</div>';
   html += '</div><div style="padding:1.25rem">';
   html += '<div style="display:flex;flex-direction:column;gap:8px">';
   modulesToShow.forEach(function(mod, i) {
@@ -14078,35 +14874,61 @@ window.renderAffDMScripts = function renderAffDMScripts(av, productName, commiss
   if (!el) return;
   const offer = window._affiliateOffer || {};
   productName = productName || offer.name || 'the product';
-  commission  = commission  || offer.commission || 1000;
-  if (!av || Object.keys(av).length === 0) {
-    av = { job: 'professional', pain: 'struggling to grow income',
-           transformation: 'financial freedom', niche: offer.niche || '' };
-  }
-  const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
-  const pain = av.pain || 'their challenge';
-  const trans = av.transformation || 'their goal';
-  const scripts = [
-    { title:'Cold Outreach — Problem First', icon:'❄️', col:'var(--teal)',
-      text:`Hey [Name] 👋 I came across your profile and noticed you're a ${js}.\n\nI've been posting a lot lately about ${pain} — it's something I dealt with for a long time.\n\nCurious — is this something you're still working through, or have you figured it out?\n\nEither way, I've found something that's made a big difference for me and I'm happy to share if it's relevant to your situation.` },
-    { title:'Warm Follow-Up — After They Engage', icon:'🔥', col:'var(--orange)',
-      text:`Hey [Name]! Thanks for engaging with my post about ${pain} — really appreciate it.\n\nOut of curiosity, where are you at with this right now? Are you actively looking for a solution or just researching?\n\nI've been using something that's genuinely helped and I'd love to know if it sounds relevant for your situation before I share anything.` },
-    { title:'Soft Recommendation — Ready Buyer', icon:'💡', col:'var(--purple)',
-      text:`[Name] — based on what you shared about ${pain}, I want to point you toward something.\n\nIt's called ${productName}. It's designed specifically for people in your situation who want to achieve ${trans}.\n\nHere's my honest review and affiliate link: [YOUR LINK]\n\nI earn a commission if you buy — that said, I'd only share it if I genuinely believed in it. Happy to answer any questions you have first.` },
-    { title:'Objection Handler — "I Cannot Afford It"', icon:'💰', col:'var(--yellow)',
-      text:`I completely understand that, [Name].\n\nHere's a different way to look at it: ${pain} is costing you more every month — in time, in frustration, in income you're not generating.\n\nThe question isn't really "can I afford this." It's "what is staying stuck actually costing me?"\n\nMost people who invest say they wish they'd done it 6 months earlier. But it's your call — I just want to make sure you have the full picture.` },
-    { title:'48-Hour Follow-Up — No Response', icon:'↩️', col:'var(--dim)',
-      text:`Hey [Name] — just circling back on this.\n\nI know things get busy. I shared ${productName} because I genuinely think it's the most practical solution I've seen for ${pain}.\n\nIf the timing isn't right, no pressure at all. But if you want to look before anything changes, here's the link: [YOUR LINK]\n\nHappy to answer questions either way.` },
-  ];
-  el.innerHTML = scripts.map(s => `
-    <div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:12px;overflow:hidden;margin-bottom:10px">
-      <div style="padding:.75rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:8px"><span style="font-size:15px">${s.icon}</span><div style="font-size:11px;font-weight:800;color:${s.col}">${s.title}</div></div>
-        <button onclick="navigator.clipboard.writeText(this.closest('div').nextElementSibling.querySelector('pre').textContent).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy',2000)})" style="font-size:10px;padding:4px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--dim);border-radius:50px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">📋 Copy</button>
+
+  // Build the product analysis summary card
+  const benefits = (offer.benefits || []);
+  const benefitsList = benefits.length
+    ? benefits.map(b => `<div style="display:flex;align-items:flex-start;gap:6px;margin-bottom:5px"><span style="color:var(--teal);font-size:11px;flex-shrink:0;margin-top:1px">✓</span><span style="font-size:11px;color:var(--muted)">${b}</span></div>`).join('')
+    : '<div style="font-size:11px;color:var(--dimmer)">Analyse your product first to see benefits here.</div>';
+  const tagline   = offer.tagline || '';
+  const pain      = (av && av.pain) || offer.pain || '—';
+  const trans     = (av && av.transformation) || offer.transformation || '—';
+  const audience  = (av && av.job) || 'your target audience';
+  const niche     = offer.niche || '—';
+
+  el.innerHTML = `
+    <div style="background:linear-gradient(135deg,rgba(78,204,163,.07),rgba(108,99,255,.05));border:1px solid rgba(78,204,163,.2);border-radius:16px;padding:1.1rem 1.25rem;margin-bottom:1.25rem">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:10px">🔍 What's Powering Your Scripts</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Product</div>
+          <div style="font-size:12px;font-weight:800;color:var(--white)">${productName}</div>
+          ${tagline ? `<div style="font-size:10px;color:var(--dim);margin-top:3px;line-height:1.4">${tagline}</div>` : ''}
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Target Audience</div>
+          <div style="font-size:12px;font-weight:700;color:var(--white)">${audience}</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:2px">${niche}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Core Pain Point</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.45">${pain}</div>
+        </div>
+        <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px">
+          <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Transformation Promise</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.45">${trans}</div>
+        </div>
       </div>
-      <div style="padding:.85rem 1rem"><pre style="font-size:11px;color:var(--muted);line-height:1.75;white-space:pre-wrap;font-family:'Inter',sans-serif;margin:0">${s.text}</pre></div>
-    </div>`).join('');
-}
+      ${benefits.length ? `<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Key Benefits Driving Scripts</div>${benefitsList}</div>` : ''}
+      <div style="margin-top:10px;font-size:10px;color:var(--dimmer);line-height:1.5">⚡ Cold DM scripts <strong style="color:var(--white)">never name the product</strong> — they lead with the pain point only. The product name appears only after trust is built in warm and objection scripts.</div>
+    </div>
+
+    <div style="display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:50px;margin-bottom:1.25rem;overflow-x:auto;scrollbar-width:none" id="aff-dm-tabs">
+      <button class="tab on" onclick="setAffDMTab('dm',this)" style="flex:1;min-width:90px;font-size:10px">💬 Cold DM</button>
+      <button class="tab" onclick="setAffDMTab('warm',this)" style="flex:1;min-width:90px;font-size:10px">🔥 Warm Close</button>
+      <button class="tab" onclick="setAffDMTab('objection',this)" style="flex:1;min-width:90px;font-size:10px">🛡 Objections</button>
+      <button class="tab" onclick="setAffDMTab('follow',this)" style="flex:1;min-width:90px;font-size:10px">↩️ Follow-Up</button>
+      <button class="tab" onclick="setAffDMTab('queue',this)" style="flex:1;min-width:90px;font-size:10px">⚡ DM Queue</button>
+      <button class="tab" onclick="setAffDMTab('manychat',this)" style="flex:1;min-width:90px;font-size:10px">🔗 ManyChat</button>
+    </div>
+    <div id="aff-dm-scripts-grid"></div>
+    <div id="aff-dm-queue-panel" style="display:none"></div>
+    <div id="aff-dm-manychat-panel" style="display:none"></div>
+  `;
+
+  window._affDMTab = 'dm';
+  renderAffDMTab('dm');
+};
 
 // ─── Commission Tracker ───────────────────────────────────────────────────
 window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
@@ -15219,6 +16041,16 @@ onAuthStateChanged(auth, async (user) => {
     window._appliedNiche   = userDocData.affiliateOffer.niche;
     window._appliedPrice   = userDocData.affiliateOffer.commission;
     window._appliedTarget  = userDocData.affiliateOffer.monthlyTarget;
+  }
+
+  // ── Restore ManyChat connection ───────────────────────────────────────────
+  if (userDocData.manychatApiKey) {
+    window._mcApiKey = userDocData.manychatApiKey;
+    // Silently verify the saved key is still valid
+    fetch('https://api.manychat.com/fb/account', { headers: { 'Authorization': 'Bearer ' + userDocData.manychatApiKey } })
+      .then(r => r.json())
+      .then(d => { if (d.status === 'success' && d.data) window._mcAccountInfo = d.data; })
+      .catch(() => {});
   }
 
   // ── Restore Routine ───────────────────────────────────────────────────────
