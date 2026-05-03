@@ -4294,6 +4294,8 @@ function addRipple(btn, e) {
 }
 
 function showPage(n,btn){
+  // Save current page so it survives refresh
+  try { localStorage.setItem('eos_last_page', n); } catch(e) {}
   if(n==='aff-offer'){setTimeout(()=>{window.renderDashboard&&window.renderDashboard();},80);}
   if(n==='perfhq'){setTimeout(()=>{window.renderHealthScore&&window.renderHealthScore();window.renderPHQHero&&window.renderPHQHero();window.renderMilestoneGrid&&window.renderMilestoneGrid();},80);}
   document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('on'); p.style.display=''; p.style.opacity=''; });
@@ -15208,9 +15210,16 @@ window.setAppMode = function(mode) {
   // ── Navigate to correct starting point ───────────────────────────────
   if (isAffiliate) {
     const hasOffer = window._affiliateOffer && window._affiliateOffer.name;
-    window.showPage(hasOffer ? 'affiliate' : 'affiliate', document.getElementById('nav-affiliate'));
-  } else {
-    window.showPage('dashboard', document.getElementById('nav-dashboard'));
+    // Restore last visited page — don't always drop user back to dashboard
+    let lastPage = null;
+    try { lastPage = localStorage.getItem('eos_last_page'); } catch(e) {}
+    const validPages = ['dashboard','plan','offer','avatar','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer'];
+    if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
+      const navBtn = document.getElementById('nav-' + lastPage);
+      window.showPage(lastPage, navBtn || null);
+    } else {
+      window.showPage('dashboard', document.getElementById('nav-dashboard'));
+    }
   }
 
   // ── Animate toggle ────────────────────────────────────────────────────
