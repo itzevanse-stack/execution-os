@@ -1,9 +1,6 @@
 /**
  * Execution OS — ManyChat Verify
  * Vercel Serverless Function
- *
- * POST /api/manychat-verify
- * Body: { apiKey: "..." }
  */
 
 const https = require('https');
@@ -26,12 +23,22 @@ function setCORS(req, res) {
 
 function httpsGet(url, headers) {
   return new Promise((resolve, reject) => {
-    const req = https.request(url, { headers }, (res) => {
+    const options = {
+      hostname: 'api.manychat.com',
+      path: url.replace('https://api.manychat.com', ''),
+      method: 'GET',
+      headers: headers,
+    };
+    const req = https.request(options, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
       res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch(e) { reject(new Error('Invalid JSON from ManyChat')); }
+        // Return both raw and parsed so we can debug
+        try {
+          resolve({ parsed: JSON.parse(data), raw: data, status: res.statusCode });
+        } catch(e) {
+          resolve({ parsed: null, raw: data, status: res.statusCode });
+        }
       });
     });
     req.on('error', reject);
@@ -49,15 +56,33 @@ module.exports = async function handler(req, res) {
 
   const { apiKey } = req.body || {};
 
-  if (!apiKey || String(apiKey).length < 20) {
+  if (!apiKey || String(apiKey).trim().length < 20) {
     return res.status(400).json({ ok: false, error: 'Missing or invalid API key' });
   }
 
+  const key = String(apiKey).trim();
+
   try {
-    const data = await httpsGet('https://api.manychat.com/fb/account', {
-      'Authorization': 'Bearer ' + apiKey,
+    const result = await httpsGet('https://api.manychat.com/fb/account', {
+      'Authorization': 'Bearer ' + key,
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
     });
+
+    console.log('ManyChat status:', result.status);
+    console.log('ManyChat raw (first 300):', result.raw.substring(0, 300));
+
+    const data = result.parsed;
+
+    // Could not parse — return raw for debugging
+    if (!data) {
+      return res.status(500).json({
+        ok: false,
+        error: 'ManyChat returned unexpected response',
+        debug: result.raw.substring(0, 200),
+        httpStatus: result.status,
+      });
+    }
 
     if (data.status === 'success' && data.data) {
       return res.status(200).json({
@@ -73,6 +98,7 @@ module.exports = async function handler(req, res) {
     return res.status(401).json({
       ok: false,
       error: data.message || 'Invalid API key — check ManyChat → Settings → API',
+      debug: JSON.stringify(data).substring(0, 200),
     });
 
   } catch (err) {
