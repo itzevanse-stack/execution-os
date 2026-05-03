@@ -1,7 +1,6 @@
 /**
  * Execution OS — ManyChat Verify
  * Vercel Serverless Function (Node 18)
- * Uses native fetch which follows redirects automatically
  */
 
 module.exports = async function handler(req, res) {
@@ -21,49 +20,44 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ ok: false, error: 'Missing or invalid API key' });
   }
 
+  // Confirmed working ManyChat API endpoints
   const endpoints = [
-    'https://api.manychat.com/fb/account',
-    'https://api.manychat.com/fb/subscriber/getList?limit=1',
+    { path: '/fb/page/getTags',         name: 'getTags'         },
+    { path: '/fb/page/getGrowthTools',  name: 'getGrowthTools'  },
+    { path: '/fb/page/getCustomFields', name: 'getCustomFields' },
   ];
 
   try {
-    for (const url of endpoints) {
+    for (const ep of endpoints) {
       let response, text;
-
       try {
-        response = await fetch(url, {
+        response = await fetch('https://api.manychat.com' + ep.path, {
           method: 'GET',
           headers: {
             'Authorization': 'Bearer ' + key,
             'Accept': 'application/json',
-            'Content-Type': 'application/json',
           },
         });
         text = await response.text();
-      } catch (fetchErr) {
-        console.log('Fetch error for', url, ':', fetchErr.message);
+      } catch (e) {
+        console.log('Fetch error on', ep.name, ':', e.message);
         continue;
       }
 
-      console.log('URL:', url, '| Status:', response.status, '| Body:', text.substring(0, 200));
+      console.log(ep.name, '| HTTP:', response.status, '| Body:', text.substring(0, 200));
 
-      // Skip HTML responses
       if (text.trim().startsWith('<')) {
-        console.log('Got HTML response — skipping');
+        console.log(ep.name, 'returned HTML — skipping');
         continue;
       }
 
       let data;
-      try { data = JSON.parse(text); } catch(e) {
-        console.log('JSON parse error:', e.message);
-        continue;
-      }
+      try { data = JSON.parse(text); } catch(e) { continue; }
 
       if (data.status === 'success') {
-        const name = (data.data && (data.data.name || data.data.page_name)) || 'ManyChat Account';
         return res.status(200).json({
           ok: true,
-          account: { name, id: (data.data && data.data.id) || null },
+          account: { name: 'ManyChat Account', id: null },
         });
       }
 
@@ -75,14 +69,12 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Nothing worked
     return res.status(200).json({
       ok: false,
-      error: 'Could not verify with ManyChat. Check your API key in ManyChat → Settings → API and try again.',
+      error: 'Could not connect to ManyChat. Please regenerate your API key in ManyChat → Settings → API and try again.',
     });
 
   } catch (err) {
-    console.error('Handler error:', err.message);
     return res.status(500).json({ ok: false, error: 'Server error: ' + err.message });
   }
 };
