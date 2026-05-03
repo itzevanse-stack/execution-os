@@ -5685,25 +5685,6 @@ window.saveMCKeyword = async function(keyword, context) {
   } catch(e) { console.warn('MC keyword save failed:', e); }
 };
 
-// Log DMs manually to tracker
-window.syncAndLogMC = function(context) {
-  const statusEl = document.getElementById('mc-sync-status-' + context);
-  const inputEl  = document.getElementById('mc-sync-count-' + context);
-  if (!inputEl) return;
-  const count = parseInt(inputEl.value) || 0;
-  if (count <= 0) {
-    if (statusEl) { statusEl.textContent = '⚠️ Enter the number of new DMs ManyChat sent today.'; statusEl.style.color = 'var(--orange)'; }
-    return;
-  }
-  if (window.affTrack) { for (let i = 0; i < count; i++) window.affTrack('dms', 1); }
-  localStorage.setItem('eos_mc_last_log', JSON.stringify({ count, date: new Date().toLocaleDateString() }));
-  if (statusEl) {
-    statusEl.textContent = '✅ ' + count + ' DM' + (count !== 1 ? 's' : '') + ' logged to your Daily Tracker.';
-    statusEl.style.color = 'var(--teal)';
-  }
-  inputEl.value = '';
-};
-
 // Render the full ManyChat setup guide panel
 function renderManyChatPanel(context) {
   const panelId = context === 'affiliate' ? 'aff-dm-manychat-panel' : 'scripts-manychat-panel';
@@ -5780,8 +5761,7 @@ function renderManyChatPanel(context) {
       <div style="font-size:10px;color:var(--dim);margin-bottom:10px">Enter the exact keyword you use (or plan to use) in ManyChat. It updates your scripts and post CTA automatically.</div>
       <div style="display:flex;gap:8px;align-items:center">
         <input id="mc-kw-input-${context}" type="text" placeholder="${suggestedKW}" value="${savedKeyword}"
-          style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(0,178,255,.3);border-radius:8px;padding:9px 14px;font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;outline:none;text-transform:uppercase;letter-spacing:2px"
-          oninput="this.value=this.value.toUpperCase();renderManyChatPanel('${context}')" />
+          style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(0,178,255,.3);border-radius:8px;padding:9px 14px;font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;outline:none;text-transform:uppercase;letter-spacing:2px" />
         <button onclick="saveMCKeyword(document.getElementById('mc-kw-input-${context}').value,'${context}');document.getElementById('mc-kw-saved-${context}').textContent='Saved ✅';setTimeout(()=>document.getElementById('mc-kw-saved-${context}').textContent='',2000)"
           style="padding:9px 18px;background:linear-gradient(135deg,#00b2ff,#0066ff);color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer">Save</button>
       </div>
