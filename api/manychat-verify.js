@@ -5,49 +5,11 @@
 
 const https = require('https');
 
-const ALLOWED_ORIGINS = [
-  'https://execution-os-xi.vercel.app',
-  'https://build.skillslibry.com',
-  'http://localhost',
-  'http://127.0.0.1',
-];
-
-function setCORS(req, res) {
-  const origin = req.headers.origin || '';
-  if (ALLOWED_ORIGINS.some(o => origin.startsWith(o)) || !origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin || '*');
-  }
+module.exports = async function handler(req, res) {
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-}
-
-function httpsGet(url, headers) {
-  return new Promise((resolve, reject) => {
-    const options = {
-      hostname: 'api.manychat.com',
-      path: url.replace('https://api.manychat.com', ''),
-      method: 'GET',
-      headers: headers,
-    };
-    const req = https.request(options, (res) => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        // Return both raw and parsed so we can debug
-        try {
-          resolve({ parsed: JSON.parse(data), raw: data, status: res.statusCode });
-        } catch(e) {
-          resolve({ parsed: null, raw: data, status: res.statusCode });
-        }
-      });
-    });
-    req.on('error', reject);
-    req.end();
-  });
-}
-
-module.exports = async function handler(req, res) {
-  setCORS(req, res);
 
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') {
@@ -55,32 +17,50 @@ module.exports = async function handler(req, res) {
   }
 
   const { apiKey } = req.body || {};
+  const key = String(apiKey || '').trim();
 
-  if (!apiKey || String(apiKey).trim().length < 20) {
+  if (key.length < 20) {
     return res.status(400).json({ ok: false, error: 'Missing or invalid API key' });
   }
 
-  const key = String(apiKey).trim();
-
   try {
-    const result = await httpsGet('https://api.manychat.com/fb/account', {
-      'Authorization': 'Bearer ' + key,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
+    const raw = await new Promise((resolve, reject) => {
+      const options = {
+        hostname: 'api.manychat.com',
+        path: '/fb/account',
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + key,
+          'Accept': 'application/json',
+        },
+      };
+
+      const request = https.request(options, (response) => {
+        let body = '';
+        response.on('data', chunk => body += chunk);
+        response.on('end', () => resolve({ body, statusCode: response.statusCode }));
+      });
+
+      request.on('error', err => reject(err));
+      request.setTimeout(8000, () => {
+        request.destroy();
+        reject(new Error('Request timed out'));
+      });
+      request.end();
     });
 
-    console.log('ManyChat status:', result.status);
-    console.log('ManyChat raw (first 300):', result.raw.substring(0, 300));
+    console.log('ManyChat HTTP status:', raw.statusCode);
+    console.log('ManyChat response body:', raw.body.substring(0, 500));
 
-    const data = result.parsed;
-
-    // Could not parse — return raw for debugging
-    if (!data) {
+    let data;
+    try {
+      data = JSON.parse(raw.body);
+    } catch (e) {
       return res.status(500).json({
         ok: false,
-        error: 'ManyChat returned unexpected response',
-        debug: result.raw.substring(0, 200),
-        httpStatus: result.status,
+        error: 'ManyChat returned non-JSON response',
+        httpStatus: raw.statusCode,
+        rawPreview: raw.body.substring(0, 300),
       });
     }
 
@@ -88,21 +68,19 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({
         ok: true,
         account: {
-          name:     data.data.name     || 'ManyChat Account',
-          id:       data.data.id       || null,
-          timezone: data.data.timezone || null,
+          name: data.data.name || 'ManyChat Account',
+          id:   data.data.id   || null,
         },
       });
     }
 
-    return res.status(401).json({
+    return res.status(200).json({
       ok: false,
-      error: data.message || 'Invalid API key — check ManyChat → Settings → API',
-      debug: JSON.stringify(data).substring(0, 200),
+      error: data.message || 'Invalid API key — verify in ManyChat → Settings → API',
+      mcStatus: data.status,
     });
 
   } catch (err) {
-    console.error('manychat-verify error:', err.message);
-    return res.status(500).json({ ok: false, error: 'Server error: ' + err.message });
+    return res.status(500).json({ ok: false, error: err.message });
   }
 };
