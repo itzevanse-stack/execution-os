@@ -1,12 +1,10 @@
 /**
  * Execution OS — ManyChat Verify
- * Vercel Serverless Function
+ * Vercel Serverless Function (Node 18)
+ * Uses native fetch which follows redirects automatically
  */
 
-const https = require('https');
-
 module.exports = async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -23,64 +21,68 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ ok: false, error: 'Missing or invalid API key' });
   }
 
+  const endpoints = [
+    'https://api.manychat.com/fb/account',
+    'https://api.manychat.com/fb/subscriber/getList?limit=1',
+  ];
+
   try {
-    const raw = await new Promise((resolve, reject) => {
-      const options = {
-        hostname: 'api.manychat.com',
-        path: '/fb/account',
-        method: 'GET',
-        headers: {
-          'Authorization': 'Bearer ' + key,
-          'Accept': 'application/json',
-        },
-      };
+    for (const url of endpoints) {
+      let response, text;
 
-      const request = https.request(options, (response) => {
-        let body = '';
-        response.on('data', chunk => body += chunk);
-        response.on('end', () => resolve({ body, statusCode: response.statusCode }));
-      });
+      try {
+        response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer ' + key,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          },
+        });
+        text = await response.text();
+      } catch (fetchErr) {
+        console.log('Fetch error for', url, ':', fetchErr.message);
+        continue;
+      }
 
-      request.on('error', err => reject(err));
-      request.setTimeout(8000, () => {
-        request.destroy();
-        reject(new Error('Request timed out'));
-      });
-      request.end();
-    });
+      console.log('URL:', url, '| Status:', response.status, '| Body:', text.substring(0, 200));
 
-    console.log('ManyChat HTTP status:', raw.statusCode);
-    console.log('ManyChat response body:', raw.body.substring(0, 500));
+      // Skip HTML responses
+      if (text.trim().startsWith('<')) {
+        console.log('Got HTML response — skipping');
+        continue;
+      }
 
-    let data;
-    try {
-      data = JSON.parse(raw.body);
-    } catch (e) {
-      return res.status(500).json({
-        ok: false,
-        error: 'ManyChat returned non-JSON response',
-        httpStatus: raw.statusCode,
-        rawPreview: raw.body.substring(0, 300),
-      });
+      let data;
+      try { data = JSON.parse(text); } catch(e) {
+        console.log('JSON parse error:', e.message);
+        continue;
+      }
+
+      if (data.status === 'success') {
+        const name = (data.data && (data.data.name || data.data.page_name)) || 'ManyChat Account';
+        return res.status(200).json({
+          ok: true,
+          account: { name, id: (data.data && data.data.id) || null },
+        });
+      }
+
+      if (data.status === 'error') {
+        return res.status(200).json({
+          ok: false,
+          error: data.message || 'Invalid API key — check ManyChat → Settings → API',
+        });
+      }
     }
 
-    if (data.status === 'success' && data.data) {
-      return res.status(200).json({
-        ok: true,
-        account: {
-          name: data.data.name || 'ManyChat Account',
-          id:   data.data.id   || null,
-        },
-      });
-    }
-
+    // Nothing worked
     return res.status(200).json({
       ok: false,
-      error: data.message || 'Invalid API key — verify in ManyChat → Settings → API',
-      mcStatus: data.status,
+      error: 'Could not verify with ManyChat. Check your API key in ManyChat → Settings → API and try again.',
     });
 
   } catch (err) {
-    return res.status(500).json({ ok: false, error: err.message });
+    console.error('Handler error:', err.message);
+    return res.status(500).json({ ok: false, error: 'Server error: ' + err.message });
   }
 };
