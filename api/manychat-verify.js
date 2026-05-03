@@ -4,9 +4,9 @@
  *
  * POST /api/manychat-verify
  * Body: { apiKey: "..." }
- * Returns: { ok: true, account: { name, id } }
- *       or { ok: false, error: "..." }
  */
+
+const https = require('https');
 
 const ALLOWED_ORIGINS = [
   'https://execution-os-xi.vercel.app',
@@ -24,24 +24,40 @@ function setCORS(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
+function httpsGet(url, headers) {
+  return new Promise((resolve, reject) => {
+    const req = https.request(url, { headers }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)); }
+        catch(e) { reject(new Error('Invalid JSON from ManyChat')); }
+      });
+    });
+    req.on('error', reject);
+    req.end();
+  });
+}
+
 module.exports = async function handler(req, res) {
   setCORS(req, res);
 
   if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  }
 
   const { apiKey } = req.body || {};
 
-  if (!apiKey || apiKey.length < 20) {
+  if (!apiKey || String(apiKey).length < 20) {
     return res.status(400).json({ ok: false, error: 'Missing or invalid API key' });
   }
 
   try {
-    const mc = await fetch('https://api.manychat.com/fb/account', {
-      headers: { Authorization: `Bearer ${apiKey}` },
+    const data = await httpsGet('https://api.manychat.com/fb/account', {
+      'Authorization': 'Bearer ' + apiKey,
+      'Content-Type': 'application/json',
     });
-
-    const data = await mc.json();
 
     if (data.status === 'success' && data.data) {
       return res.status(200).json({
@@ -60,7 +76,7 @@ module.exports = async function handler(req, res) {
     });
 
   } catch (err) {
-    console.error('manychat-verify error:', err);
-    return res.status(500).json({ ok: false, error: 'Could not reach ManyChat. Try again.' });
+    console.error('manychat-verify error:', err.message);
+    return res.status(500).json({ ok: false, error: 'Server error: ' + err.message });
   }
 };
