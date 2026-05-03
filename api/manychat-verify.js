@@ -16,49 +16,84 @@ module.exports = async function handler(req, res) {
   const { apiKey } = req.body || {};
   const key = String(apiKey || '').trim();
 
+  console.log('Key length:', key.length, '| First 4:', key.substring(0, 4), '| Last 4:', key.substring(key.length - 4));
+
   if (key.length < 20) {
     return res.status(400).json({ ok: false, error: 'Missing or invalid API key' });
   }
 
-  // Confirmed working ManyChat API endpoints
   const endpoints = [
-    { path: '/fb/page/getTags',         name: 'getTags'         },
-    { path: '/fb/page/getGrowthTools',  name: 'getGrowthTools'  },
-    { path: '/fb/page/getCustomFields', name: 'getCustomFields' },
+    '/fb/page/getTags',
+    '/fb/page/getGrowthTools',
+    '/fb/page/getCustomFields',
   ];
 
   try {
-    for (const ep of endpoints) {
+    for (const path of endpoints) {
       let response, text;
       try {
-        response = await fetch('https://api.manychat.com' + ep.path, {
+        // redirect: 'manual' stops fetch from following redirects
+        // so we can see the real HTTP status and Location header
+        response = await fetch('https://api.manychat.com' + path, {
           method: 'GET',
+          redirect: 'manual',
           headers: {
             'Authorization': 'Bearer ' + key,
             'Accept': 'application/json',
+            'Content-Type': 'application/json',
           },
         });
-        text = await response.text();
+
+        text = await response.text().catch(() => '');
       } catch (e) {
-        console.log('Fetch error on', ep.name, ':', e.message);
+        console.log('Fetch error on', path, ':', e.message);
         continue;
       }
 
-      console.log(ep.name, '| HTTP:', response.status, '| Body:', text.substring(0, 200));
+      console.log(
+        'Path:', path,
+        '| HTTP:', response.status,
+        '| Type:', response.type,
+        '| Redirected to:', response.headers.get('location') || 'none',
+        '| Body:', text.substring(0, 150)
+      );
+
+      // Detect redirect — this means auth header was stripped
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get('location') || 'unknown';
+        console.log('Redirect detected to:', location);
+        // Follow manually WITH auth header preserved
+        try {
+          const r2 = await fetch(location, {
+            method: 'GET',
+            headers: {
+              'Authorization': 'Bearer ' + key,
+              'Accept': 'application/json',
+            },
+          });
+          text = await r2.text();
+          console.log('After manual redirect | HTTP:', r2.status, '| Body:', text.substring(0, 150));
+        } catch(e2) {
+          console.log('Manual redirect error:', e2.message);
+          continue;
+        }
+      }
 
       if (text.trim().startsWith('<')) {
-        console.log(ep.name, 'returned HTML — skipping');
+        console.log('Still HTML after redirect handling — skipping', path);
         continue;
       }
 
       let data;
-      try { data = JSON.parse(text); } catch(e) { continue; }
+      try { data = JSON.parse(text); } catch(e) {
+        console.log('JSON parse error on', path, ':', e.message, '| text:', text.substring(0, 100));
+        continue;
+      }
+
+      console.log('Parsed response status:', data.status);
 
       if (data.status === 'success') {
-        return res.status(200).json({
-          ok: true,
-          account: { name: 'ManyChat Account', id: null },
-        });
+        return res.status(200).json({ ok: true, account: { name: 'ManyChat Account', id: null } });
       }
 
       if (data.status === 'error') {
@@ -71,10 +106,11 @@ module.exports = async function handler(req, res) {
 
     return res.status(200).json({
       ok: false,
-      error: 'Could not connect to ManyChat. Please regenerate your API key in ManyChat → Settings → API and try again.',
+      error: 'ManyChat API returned unexpected responses for all endpoints. Check the Vercel logs for details.',
     });
 
   } catch (err) {
+    console.error('Handler error:', err.message);
     return res.status(500).json({ ok: false, error: 'Server error: ' + err.message });
   }
 };
