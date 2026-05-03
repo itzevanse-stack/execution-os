@@ -15210,16 +15210,7 @@ window.setAppMode = function(mode) {
   // ── Navigate to correct starting point ───────────────────────────────
   if (isAffiliate) {
     const hasOffer = window._affiliateOffer && window._affiliateOffer.name;
-    // Restore last visited page — don't always drop user back to dashboard
-    let lastPage = null;
-    try { lastPage = localStorage.getItem('eos_last_page'); } catch(e) {}
-    const validPages = ['dashboard','plan','offer','avatar','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer'];
-    if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
-      const navBtn = document.getElementById('nav-' + lastPage);
-      window.showPage(lastPage, navBtn || null);
-    } else {
-      window.showPage('dashboard', document.getElementById('nav-dashboard'));
-    }
+    window.showPage('dashboard', document.getElementById('nav-dashboard'));
   }
 
   // ── Animate toggle ────────────────────────────────────────────────────
@@ -16100,6 +16091,17 @@ onAuthStateChanged(auth, async (user) => {
   const applyMode = (attempts) => {
     if (window.setAppMode) {
       window.setAppMode(savedMode);
+      // After mode is applied, restore the last visited page
+      setTimeout(() => {
+        try {
+          const lastPage = localStorage.getItem('eos_last_page');
+          const validPages = ['dashboard','plan','offer','avatar','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer'];
+          if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
+            const navBtn = document.getElementById('nav-' + lastPage);
+            window.showPage(lastPage, navBtn || null);
+          }
+        } catch(e) {}
+      }, 200);
     } else if (attempts > 0) {
       setTimeout(() => applyMode(attempts - 1), 150);
     }
