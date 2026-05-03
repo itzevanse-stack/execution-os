@@ -4745,8 +4745,8 @@ function buildNicheDMScripts(){
   // Pull deeply from avatar data
   const jobLabel=av.job||(cfg.audience.split(' ').slice(0,2).join(' '))||'professional';
   const aud0=jobLabel.split('/')[0].split(',')[0].trim();
-  const painPoint=(av.pain||cfg.metric||'achieving your goal').toLowerCase();
-  const motivation=(av.motivation||cfg.result||'your dream outcome').toLowerCase();
+  const painPoint=toYou((av.pain||cfg.metric||'achieving your goal').toLowerCase());
+  const motivation=toYou((av.motivation||cfg.result||'your dream outcome').toLowerCase());
   const fear=(av.fear||'it not working for them').toLowerCase();
   const tried=(av.tried||'other approaches').split(',')[0].trim().toLowerCase();
   const transformation=av.transformation||(cfg.result)||'a life-changing result';
@@ -4755,61 +4755,59 @@ function buildNicheDMScripts(){
   const incomeGoal=av.incomeGoal?('$'+Number(av.incomeGoal).toLocaleString()+'/month'):'your income goal';
 
   return [
-    {title:`Opener — new ${aud0} connection`,tag:`Send within 24 hrs of connecting · ${niche}`,lines:[
-      `Hey [Name]! Really glad we're connected — I actually looked at your profile and you're exactly the kind of ${aud0} I love connecting with. 🙌`,
-      `Quick honest question — what's your #1 challenge right now when it comes to ${painPoint}?`,
-      `I'm not selling anything — I just make it a habit to actually know who I'm connected to in the ${niche} world. What's really going on for you right now?`
+    {title:`Opener — new ${aud0} connection`,tag:`Send within 24 hrs of connecting · ${niche}`,when:'Someone just connected or followed you',lines:[
+      `Hey [Name]! Noticed we just connected — took a look at your profile and you're clearly someone who takes ${niche} seriously.`,
+      `Quick honest question — are you currently ${painPoint}, or have you found something that's actually working for you?`,
+      `No pitch here — I just make it a habit to actually know who I'm connecting with. What's going on for you right now?`
     ]},
-    {title:`Cold opener — commenters & active group members`,tag:`For people who commented on your posts or are active in groups · ${niche}`,lines:[
-      `Hey [Name], I saw your comment earlier and it genuinely resonated — you're clearly someone who takes ${niche} seriously.`,
-      `Quick question — do you know your exact roadmap for going from ${painPoint} to ${motivation}? Like a clear, step-by-step plan specific to your situation?`,
-      `I ask because I built a free tool called the ${resource} that helps ${cfg.audience} get a personalised answer in 3 minutes. Want me to drop the link?`
+    {title:`Cold opener — after they comment or engage`,tag:`For commenters and active group members · ${niche}`,when:'Someone commented on your post or is active in your niche group',lines:[
+      `Hey [Name] — I saw your comment earlier and it genuinely stood out. You're clearly thinking about this stuff properly.`,
+      `Quick question — are you ${painPoint} right now, or do you already have a clear plan that's working?`,
+      `I ask because most ${audType} I speak to are in one of two places — and which one you're in changes everything about the conversation. Which is it for you?`
     ]},
-    {title:`Hook-based opener — after they engage with a reel or post`,tag:`Best sent within 1–2 hours of someone liking or sharing your content · ${niche}`,lines:[
-      `[Name] — I noticed you engaged with my post on ${painPoint}. That tells me you're probably in the thick of it right now.`,
-      `Can I ask — have you ever had a clear plan for getting from where you are to ${motivation}? Or does it still feel like you're figuring it out as you go?`,
-      `Because I've helped a lot of ${cfg.audience} do exactly that — and I'd love to send you something free that maps out the first real step. Would that help?`
+    {title:`Content engagement opener — reel or post`,tag:`Send within 1–2 hours of them engaging with your content · ${niche}`,when:'They liked, saved, or shared one of your posts',lines:[
+      `[Name] — noticed you engaged with my post. That usually means one of two things: either you're ${painPoint} right now, or it reminded you of someone who is.`,
+      `Which one is it? Genuinely asking — not trying to sell you anything.`,
+      `Because the answer changes what I'd say next. Where are you actually at with ${niche} right now?`
     ]},
-    {title:`Follow-up — no reply after 24 hours`,tag:`One follow-up only, 24 hrs after first message · ${niche}`,lines:[
-      `[Name], just bumping this up — I know DMs get buried fast.`,
-      `I genuinely think the ${resource} would help you get clarity on your path from ${painPoint} to ${result}.`,
-      `It's free, takes 3 minutes, and gives you a personalised answer — not generic advice. Worth a look?`
+    {title:`Follow-up — no reply after 24 hours`,tag:`One follow-up only · Send 24 hrs after first message · ${niche}`,when:'No reply to your first message after 24 hours',lines:[
+      `[Name] — just bumping this up in case it got buried.`,
+      `I reached out because based on your profile, you looked like someone who might be ${painPoint}. Am I completely off?`,
+      `Either way — yes or no answer is fine. I just don't like leaving conversations half-started.`
     ]},
-    {title:`Closer — after they show genuine interest`,tag:`For warm leads who replied positively · ${niche}`,lines:[
-      `I'm glad that resonated — and honestly what you just shared tells me you're further along than most ${cfg.audience} I speak to.`,
-      `Here's what I do: I help ${cfg.audience} achieve ${result}, without ${cfg.pain}.`,
-      `I've got a free ${resource} that shows exactly how my system works for someone in your exact situation — no fluff, no pitch, just the actual process.`,
-      `Let me send it to you — give me 3 minutes of your time and you'll walk away with more clarity than most people get from hours of research. Fair?`
+    {title:`Warm close — after they show genuine interest`,tag:`For leads who replied positively and want to know more · ${niche}`,when:'They replied with interest and want to understand what you do',lines:[
+      `What you just shared tells me you're exactly who I work with.`,
+      `Here is what I do: I help ${audType} who are ${painPoint} get to ${motivation} — with a clear system, not guesswork.`,
+      `I have a free ${resource} that shows exactly how it works for someone in your exact situation. No fluff, no pitch — just the actual process.`,
+      `Can I send it? Takes 3 minutes and you'll walk away with more clarity than most ${audType} get from hours of research.`
     ]},
-    {title:`Objection handler — "I don't have time"`,tag:`For leads who say they're too busy · ${niche}`,lines:[
-      `I hear you — every single ${aud0} I work with said the exact same thing before we started.`,
-      `But let me ask you this: if ${painPoint} stays exactly the same for the next 12 months, will that actually be okay for you?`,
-      `Because what I teach takes 2–3 focused hours per week. Most ${cfg.audience} already have that time — they're just spending it on things that aren't moving them toward ${motivation}.`,
-      `Can I send you the free ${resource}? It takes 3 minutes and will show you exactly where your time is actually going wrong. That alone is worth it.`
+    {title:`Objection — "I don't have time"`,tag:`For leads who say they're too busy · ${niche}`,when:'They express interest but say timing is wrong or they are too busy',lines:[
+      `I hear you. Every ${aud0} I work with said exactly that before we started.`,
+      `But real question — if you're still ${painPoint} twelve months from now, is that actually going to be okay?`,
+      `What I teach takes 2–3 focused hours a week. Most ${audType} already have that — they're just spending it on things that aren't moving them toward ${motivation}.`,
+      `Let me send you the free ${resource} — 3 minutes, personalised to your exact situation. See if it even applies before you decide anything.`
     ]},
-    {title:`Objection handler — "I've tried things before and it didn't work"`,tag:`For skeptical leads who've been burned before · ${niche}`,lines:[
-      `Honestly? I'm glad you told me that. Because that tells me you've been putting in effort — just with the wrong approach.`,
-      `When people say they've tried ${tried} and it didn't work, it's almost never because they weren't trying hard enough. It's because the method wasn't built for their specific situation.`,
-      `What I do is different because [explain your unique system — e.g. "I don't teach generic strategies, I build a personalised plan around your exact situation, ${painPoint}, and goals"].`,
-      `Would you be willing to take 3 minutes on the free ${resource}? I genuinely want you to see for yourself what's different before making any decision.`
+    {title:`Objection — "I've tried things and they didn't work"`,tag:`For skeptical leads burned by past courses or coaches · ${niche}`,when:'They have tried other solutions before and are hesitant',lines:[
+      `I am glad you said that. Because that tells me you have been putting in the effort — just with the wrong approach for your specific situation.`,
+      `When ${audType} say they tried ${tried} and it did not work — it is almost never because they were not trying hard enough. It is because the method was not built around their situation.`,
+      `What makes what I do different is [your unique mechanism — be specific here: the thing you do that others do not]. That is why it works for people who have already tried the generic stuff.`,
+      `Would you take 3 minutes on the free ${resource}? I want you to see what's different before you make any decision about anything.`
     ]},
-    {title:`Re-engagement — gone cold`,tag:`For leads who replied but went silent · ${niche}`,lines:[
-      `Hey [Name] — I wasn't going to reach out again, but I thought about what you mentioned about ${painPoint} and I genuinely want to help.`,
-      `Are you still working on getting to ${motivation}? Or has something changed on your end?`,
-      `Either way, no pressure — I just find the ${cfg.audience} I end up working with are the ones who are honest about where they actually are right now. Where are you?`
+    {title:`Re-engagement — gone cold`,tag:`For leads who replied warmly but went silent · ${niche}`,when:'They were warm but have not replied in 5+ days',lines:[
+      `Hey [Name] — not going to keep following up after this, so wanted to be honest.`,
+      `You mentioned you were ${painPoint}. That stuck with me because it is exactly the situation I built my work around.`,
+      `Are you still working on getting to ${motivation}, or has something shifted on your end? Either answer is fine — I just do not like leaving things open.`
     ]},
-    {title:`Value drop — warm followers who haven't booked`,tag:`Warm audience who engages with your content but hasn't DM'd · ${niche}`,lines:[
-      `[Name] — I've been building something for ${cfg.audience} and I think you'd genuinely benefit from seeing it.`,
-      `It's a free ${resource}. You answer 5 questions about your specific situation and get a personalised action plan for ${result}.`,
-      `Over 500 ${cfg.audience} have used it this month and the most common response is "why didn't someone show me this sooner."`,
-      `Here's the link: [YOUR LINK]`,
-      `Takes 3 minutes. Tell me what it says — I'll personally help you map out the next move.`
+    {title:`Authority value drop — warm audience, no DM yet`,tag:`For followers who engage with content but have never reached out · ${niche}`,when:'Someone who regularly engages with your content but has never messaged',lines:[
+      `[Name] — I have seen you engaging with my content for a while and I figured it was time I actually reached out.`,
+      `I work specifically with ${audType} who are ${painPoint} and want to get to ${motivation} without starting from scratch.`,
+      `I have a free ${resource} that gives you a personalised action plan for your exact situation — not generic advice. Want me to send it? Takes 3 minutes.`
     ]},
-    {title:`Post-call follow-up — didn't close on the day`,tag:`For prospects who had a call but didn't commit · ${niche}`,lines:[
-      `[Name], really enjoyed our conversation earlier. I want to be straight with you.`,
-      `Based on everything you shared — ${painPoint}, wanting to reach ${motivation}, and having already tried ${tried} — you're exactly who I built this programme for.`,
-      `The only question is: are you ready to stop being in the same place 90 days from now?`,
-      `I have [X spots] left this month. If you want one of them, reply "YES" and I'll send you the details to get started today. If the timing isn't right — no hard feelings, genuinely.`
+    {title:`Post-call follow-up — did not close on the day`,tag:`After a discovery call where they did not commit · ${niche}`,when:'They had a call with you but did not buy on the day',lines:[
+      `[Name] — really valued our conversation. I want to be straight with you.`,
+      `Based on everything you shared — you are ${painPoint}, you want ${motivation}, and you have already tried ${tried}. That is exactly the situation I built this programme for.`,
+      `The only question is whether you are ready to stop being in the same place 90 days from now.`,
+      `I have [X] spots left this month. Reply YES and I will send you everything to get started today. If the timing is not right — no hard feelings. My door stays open.`
     ]}
   ];
 }
@@ -4867,11 +4865,11 @@ function buildScriptSet(mode) {
   // Prefer user's exact job label — only fall back to niche config or generic
   var rawJobLabel = av.job ? av.job.split('/')[0].split(',')[0].trim() : '';
   var audType = rawJobLabel ? toPlural(rawJobLabel) : (cfg.audience || 'your ideal clients');
-  var painPoint    = clipS(av.pain || cfg.metric || 'their biggest challenge', 6);
-  var motivation   = clipS(av.motivation || 'financial freedom', 6);
-  var fear         = clipS(av.fear || 'wasting money on something that does not work', 8);
+  var painPoint    = toYou(clipS(av.pain || cfg.metric || 'their biggest challenge', 6));
+  var motivation   = toYou(clipS(av.motivation || 'financial freedom', 6));
+  var fear         = toYou(clipS(av.fear || 'wasting money on something that does not work', 8));
   var tried        = clipS(av.tried || 'other approaches', 5);
-  var transformation = clipS(av.transformation || offerResult, 7);
+  var transformation = toYou(clipS(av.transformation || offerResult, 7));
   var resource = cfg.resource || 'Free Assessment';
   var jobLabel = av.job ? av.job.split('/')[0].split(',')[0].trim() : (rawJobLabel || 'your ideal client');
   var incFmt = '$' + Number(offerPrice).toLocaleString();
@@ -5259,9 +5257,9 @@ function buildAffiliateScriptSet(mode) {
   const offer = window._affiliateOffer || {};
   const av    = window._avatarData || {};
   const productName = offer.name || 'this product';
-  const pain        = av.pain || offer.pain || 'their biggest challenge';
-  const deeperPain  = av.deeperPain || av.fear || offer.pain || pain;
-  const trans       = av.transformation || offer.transformation || 'their desired outcome';
+  const pain        = toYou(av.pain || offer.pain || 'their biggest challenge');
+  const deeperPain  = toYou(av.deeperPain || av.fear || offer.pain || pain);
+  const trans       = toYou(av.transformation || offer.transformation || 'their desired outcome');
   const tried       = av.tried || 'other things';
   const jobLabel    = (av.job || 'professional').split('/')[0].split(',')[0].trim();
   const nicheName   = offer.niche || av.niche || 'your niche';
@@ -5278,8 +5276,8 @@ function buildAffiliateScriptSet(mode) {
       when: 'Someone liked, commented, followed, or saved your post',
       lines: [
         'Hey [Name]! Noticed you engaging with my content — genuinely appreciate it.',
-        'Quick honest question — is ' + pain + ' something you are still actively working on, or have you figured it out?',
-        'No agenda at all. Just ask everyone who engages because I want to actually understand where people are, not assume.'
+        'Quick honest question — are you still ' + pain + ', or have you found something that actually works for you?',
+        'No agenda. I just ask everyone who engages because I want to understand where people actually are — not assume.'
       ]
     },
     {
@@ -5287,7 +5285,7 @@ function buildAffiliateScriptSet(mode) {
       tag: 'After they confirm the problem is real · ' + nicheName,
       when: 'They replied and confirmed they are still dealing with the problem',
       lines: [
-        '[Name] — honestly, that is exactly what I expected to hear. ' + pain + ' is one of those things that feels like it should be simpler than it is.',
+        '[Name] — honestly, that is exactly what I expected to hear. Being ' + pain + ' is one of those things that feels like it should be simpler than it is.',
         'Can I ask — how long have you been dealing with it? And have you tried anything to fix it, or has it just been something you have been putting up with?',
         'I ask because the reason most people stay stuck with ' + pain + ' is almost never what they think it is. And understanding that makes everything click differently.'
       ]
@@ -5569,224 +5567,261 @@ window.copyAffScript = function(i, mode, btn) {
 // MANYCHAT INTEGRATION ENGINE
 // ═══════════════════════════════════════════════════════════════════════════
 
-window._mcApiKey      = '';
-window._mcAccountInfo = null;
-window._mcLastSync    = null;
+// ═══════════════════════════════════════════════════════════════════════════
+// MANYCHAT INTEGRATION — powered by Firebase Cloud Functions backend
+// The browser calls our Cloud Function, which calls ManyChat server-side.
+// This resolves the CORS restriction completely.
+// ═══════════════════════════════════════════════════════════════════════════
 
-// Save API key to Firebase (persists across sessions)
-window.saveMCApiKey = async function(key) {
-  window._mcApiKey = key;
-  try {
-    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
-      await window._setDoc(
-        window._doc(window._db, 'users', window._currentUserUid),
-        { manychatApiKey: key },
-        { merge: true }
-      );
-    }
-  } catch(e) { console.warn('ManyChat key save failed:', e); }
-};
+const MC_BACKEND = window.location.origin + '/api';
 
-// Verify API key against ManyChat and store account info
+// Verify ManyChat API key via backend — real connection, real account data
 window.connectManyChat = async function(context) {
-  const input   = document.getElementById('mc-api-input-' + context);
-  const btn     = document.getElementById('mc-connect-btn-' + context);
-  const statusEl= document.getElementById('mc-conn-status-' + context);
+  const input    = document.getElementById('mc-api-input-' + context);
+  const btn      = document.getElementById('mc-connect-btn-' + context);
+  const statusEl = document.getElementById('mc-conn-status-' + context);
   if (!input || !statusEl) return;
   const key = input.value.trim();
-  if (!key) {
-    statusEl.textContent = '⚠️ Paste your ManyChat API key first.';
-    statusEl.style.color = 'var(--orange)';
-    return;
+  if (!key || key.length < 20) {
+    statusEl.textContent = '⚠️ Paste your ManyChat API key first (ManyChat → Settings → API).';
+    statusEl.style.color = 'var(--orange)'; return;
   }
-  // Basic format check — ManyChat API keys are long alphanumeric strings
-  if (key.length < 20) {
-    statusEl.textContent = '⚠️ That does not look like a valid ManyChat API key. Copy it from ManyChat → Settings → API.';
-    statusEl.style.color = 'var(--orange)';
-    return;
+  btn.disabled = true; btn.textContent = 'Connecting…';
+  statusEl.textContent = 'Verifying with ManyChat…'; statusEl.style.color = 'var(--dim)';
+  try {
+    const res  = await fetch(MC_BACKEND + '/manychat-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: key })
+    });
+    const data = await res.json();
+    if (data.ok && data.account) {
+      window._mcApiKey      = key;
+      window._mcAccountInfo = data.account;
+      await window.saveMCKeyword('', context); // triggers Firebase save with key
+      // Save key to Firebase
+      try {
+        if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+          const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+          await setDoc(doc(window._db, 'users', window._currentUserUid), { manychatApiKey: key }, { merge: true });
+        }
+      } catch(e) {}
+      renderManyChatPanel(context);
+    } else {
+      statusEl.textContent = '⚠️ ' + (data.error || 'Invalid API key — check ManyChat → Settings → API.');
+      statusEl.style.color = 'var(--red)';
+      btn.disabled = false; btn.textContent = 'Connect';
+    }
+  } catch(e) {
+    statusEl.textContent = '⚠️ Could not reach the server. Check your internet connection.';
+    statusEl.style.color = 'var(--red)';
+    btn.disabled = false; btn.textContent = 'Connect';
   }
-  btn.disabled = true; btn.textContent = 'Saving…';
-  // ManyChat's API blocks browser requests due to CORS — verification must be server-side.
-  // We save the key directly and trust it. The key will be validated naturally
-  // the first time ManyChat fires a flow from the user's account.
-  window._mcApiKey = key;
-  window._mcAccountInfo = { name: 'ManyChat Account' }; // placeholder until verified
-  await window.saveMCApiKey(key);
-  renderManyChatPanel(context);
 };
 
 // Disconnect ManyChat
 window.disconnectManyChat = async function(context) {
   window._mcApiKey = ''; window._mcAccountInfo = null;
-  await window.saveMCApiKey('');
+  try {
+    if (window._db && window._currentUserUid) {
+      const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      await setDoc(doc(window._db, 'users', window._currentUserUid), { manychatApiKey: '' }, { merge: true });
+    }
+  } catch(e) { console.warn('MC disconnect save failed:', e); }
   renderManyChatPanel(context);
 };
 
-// Sync DMs to tracker — manual count entry (ManyChat API blocks browser requests due to CORS)
+// Sync real subscriber count from ManyChat via backend → auto-log to tracker
+window.syncAndLogMC = async function(context) {
+  if (!window._mcApiKey) return;
+  const statusEl = document.getElementById('mc-sync-status-' + context);
+  const btn      = document.getElementById('mc-sync-btn-' + context);
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Fetching from ManyChat…'; }
+  if (statusEl) { statusEl.textContent = 'Pulling real data from ManyChat…'; statusEl.style.color = 'var(--dim)'; }
+  const lastCount = parseInt(localStorage.getItem('eos_mc_sub_count') || '0');
+  try {
+    const res  = await fetch(MC_BACKEND + '/manychat-subscribers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: window._mcApiKey, lastCount })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      localStorage.setItem('eos_mc_sub_count', String(data.total));
+      if (data.newSince > 0 && window.affTrack) {
+        for (let i = 0; i < data.newSince; i++) window.affTrack('dms', 1);
+      }
+      if (statusEl) {
+        statusEl.textContent = data.newSince > 0
+          ? '✅ ' + data.newSince + ' new conversation' + (data.newSince !== 1 ? 's' : '') + ' auto-logged to tracker. Total: ' + data.total + ' subscribers.'
+          : '✅ All up to date — ' + data.total + ' total subscribers. No new conversations since last sync.';
+        statusEl.style.color = 'var(--teal)';
+      }
+    } else {
+      if (statusEl) { statusEl.textContent = '⚠️ ' + (data.error || 'Could not fetch data. Try reconnecting.'); statusEl.style.color = 'var(--red)'; }
+    }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '⚠️ Could not reach server. Check your connection.'; statusEl.style.color = 'var(--red)'; }
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '🔄 Sync from ManyChat'; }
+};
+
+// Save user's ManyChat keyword to Firebase
+window.saveMCKeyword = async function(keyword, context) {
+  const key = 'mc_keyword_' + context;
+  try {
+    localStorage.setItem(key, keyword);
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      const data = {};
+      data['manychatKeyword_' + context] = keyword;
+      await window._setDoc(
+        window._doc(window._db, 'users', window._currentUserUid),
+        data,
+        { merge: true }
+      );
+    }
+  } catch(e) { console.warn('MC keyword save failed:', e); }
+};
+
+// Log DMs manually to tracker
 window.syncAndLogMC = function(context) {
-  const statusEl  = document.getElementById('mc-sync-status-' + context);
-  const inputEl   = document.getElementById('mc-sync-count-' + context);
+  const statusEl = document.getElementById('mc-sync-status-' + context);
+  const inputEl  = document.getElementById('mc-sync-count-' + context);
   if (!inputEl) return;
   const count = parseInt(inputEl.value) || 0;
   if (count <= 0) {
     if (statusEl) { statusEl.textContent = '⚠️ Enter the number of new DMs ManyChat sent today.'; statusEl.style.color = 'var(--orange)'; }
     return;
   }
-  // Auto-log to tracker
-  if (window.affTrack) {
-    for (let i = 0; i < count; i++) window.affTrack('dms', 1);
-  }
-  const today = new Date().toLocaleDateString();
-  localStorage.setItem('eos_mc_last_log', JSON.stringify({ count, date: today }));
+  if (window.affTrack) { for (let i = 0; i < count; i++) window.affTrack('dms', 1); }
+  localStorage.setItem('eos_mc_last_log', JSON.stringify({ count, date: new Date().toLocaleDateString() }));
   if (statusEl) {
-    statusEl.textContent = '✅ ' + count + ' DM' + (count !== 1 ? 's' : '') + ' logged to your Daily Tracker. Keep it updated daily for accurate stats.';
+    statusEl.textContent = '✅ ' + count + ' DM' + (count !== 1 ? 's' : '') + ' logged to your Daily Tracker.';
     statusEl.style.color = 'var(--teal)';
   }
   inputEl.value = '';
 };
 
-// Main panel renderer — handles both connected and disconnected states
+// Render the full ManyChat setup guide panel
 function renderManyChatPanel(context) {
   const panelId = context === 'affiliate' ? 'aff-dm-manychat-panel' : 'scripts-manychat-panel';
   const panel   = document.getElementById(panelId);
   if (!panel) return;
 
   const isAffiliate = context === 'affiliate';
-  const isConnected = !!(window._mcApiKey && window._mcAccountInfo);
-  const acct        = window._mcAccountInfo || {};
-  const keyword     = isAffiliate ? 'INFO' : 'APPLY';
-  const cta         = isAffiliate
-    ? 'Comment "' + keyword + '" below to get the free overview'
-    : 'Comment "' + keyword + '" below to book a free call';
+  const storageKey  = 'mc_keyword_' + context;
+  const savedKeyword = localStorage.getItem(storageKey) || '';
+  const suggestedKW  = isAffiliate ? 'INFO' : 'APPLY';
+  const isConnected  = !!(window._mcApiKey && window._mcAccountInfo);
+  const acct         = window._mcAccountInfo || {};
 
-  // Get scripts for display
-  const scripts  = isAffiliate ? buildAffiliateScriptSet('dm') : buildScriptSet('dm');
-  const scriptLabels = [
-    { auto: true,  label: 'ManyChat Flow — Message 1', sub: 'Auto-sent when they comment "' + keyword + '"',    note: 'Fires automatically. Never names the product — pure curiosity.' },
-    { auto: false, label: 'Manual Step 2',              sub: 'Send yourself after they reply',                   note: 'Pain agitation — go deeper before hinting at solution.' },
-    { auto: false, label: 'Manual Step 3',              sub: 'After they confirm the pain is real',              note: '"I found something" — still no product name.' },
-    { auto: false, label: 'Manual Step 4',              sub: 'When they say yes to seeing more',                 note: isAffiliate ? 'Drop the survey/VSL link — not a call.' : 'Book the discovery call.' },
-  ];
+  const scripts   = isAffiliate ? buildAffiliateScriptSet('dm') : buildScriptSet('dm');
+  const step1     = scripts[0] || {};
+  const step1Text = (step1.lines || []).join('\n\n');
+  const kw        = savedKeyword || suggestedKW;
+  const cta       = isAffiliate
+    ? 'Comment \"' + kw + '\" below and I will send you the free overview'
+    : 'Comment \"' + kw + '\" below and I will send you the details';
 
-  // ── DISCONNECTED STATE ────────────────────────────────────────────────────
+  // ── DISCONNECTED STATE ──────────────────────────────────────────────────
   if (!isConnected) {
     panel.innerHTML = `
-      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem;margin-bottom:1rem">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
-          <div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 16px rgba(0,102,255,.3)">💬</div>
+      <div style="background:linear-gradient(135deg,rgba(0,178,255,.08),rgba(0,102,255,.04));border:1px solid rgba(0,178,255,.2);border-radius:16px;padding:1.1rem 1.25rem;margin-bottom:1.25rem">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">💬</div>
           <div>
-            <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Connect ManyChat</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:2px">Automate your DM opener — zero manual sending for inbound leads</div>
+            <div style="font-size:13px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Connect ManyChat</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:1px">Real connection via secure backend — no CORS issues</div>
           </div>
         </div>
-
-        <div style="background:rgba(0,178,255,.06);border:1px solid rgba(0,178,255,.18);border-radius:12px;padding:12px 14px;margin-bottom:1.25rem">
-          <div style="font-size:11px;color:var(--muted);line-height:1.75">
-            Once connected, ManyChat fires your <strong style="color:var(--white)">Step 1 cold opener automatically</strong> whenever someone comments the keyword on your post. Steps 2–4 stay manual — those conversations need a human touch. Execution OS keeps your scripts, ManyChat handles the delivery.
-          </div>
+        <div style="font-size:11px;color:var(--dim);line-height:1.7;background:rgba(255,255,255,.04);border-radius:8px;padding:10px 12px;margin-bottom:1rem">
+          Execution OS uses a secure backend to connect with ManyChat. Your API key is verified directly with ManyChat's servers — <strong style="color:var(--white)">not stored in the browser</strong>. Once connected, subscriber data syncs automatically to your Daily Tracker.
         </div>
-
-        <div style="margin-bottom:1rem">
+        <div style="margin-bottom:6px">
           <div style="font-size:10px;font-weight:700;color:var(--dimmer);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">ManyChat API Key</div>
           <div style="display:flex;gap:8px">
-            <input id="mc-api-input-${context}" type="password" placeholder="Paste your ManyChat API key here…" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--white);font-family:'Inter',sans-serif;outline:none" />
-            <button id="mc-connect-btn-${context}" onclick="connectManyChat('${context}')" style="padding:10px 22px;background:linear-gradient(135deg,#00b2ff,#0066ff);color:#fff;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(0,102,255,.3)">Connect</button>
+            <input id="mc-api-input-${context}" type="password" placeholder="Paste your ManyChat API key…"
+              style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(0,178,255,.25);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--white);font-family:'Inter',sans-serif;outline:none" />
+            <button id="mc-connect-btn-${context}" onclick="connectManyChat('${context}')"
+              style="padding:10px 22px;background:linear-gradient(135deg,#00b2ff,#0066ff);color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(0,102,255,.25)">Connect</button>
           </div>
           <div id="mc-conn-status-${context}" style="font-size:11px;margin-top:6px;min-height:16px"></div>
         </div>
-
-        <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:12px 14px">
-          <div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:8px">Where to find your API key:</div>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            ${['Log in to <strong style="color:var(--white)">app.manychat.com</strong>','Go to <strong style="color:var(--white)">Settings → API</strong>','Click <strong style="color:var(--white)">Generate API Token</strong>','Copy and paste it above'].map((s,i)=>`<div style="display:flex;gap:8px;align-items:flex-start"><div style="width:18px;height:18px;border-radius:50%;background:rgba(0,178,255,.2);border:1px solid rgba(0,178,255,.3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#00b2ff;flex-shrink:0">${i+1}</div><div style="font-size:11px;color:var(--dim);line-height:1.5">${s}</div></div>`).join('')}
-          </div>
+        <div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px 14px">
+          <div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:6px">Where to find your API key</div>
+          ${['Log in to <strong style="color:var(--white)">app.manychat.com</strong>','Go to <strong style="color:var(--white)">Settings → API</strong>','Click <strong style="color:var(--white)">Generate API Token</strong>','Copy and paste it above'].map((s,i)=>`<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:${i<3?'6px':'0'}"><div style="width:16px;height:16px;border-radius:50%;background:rgba(0,178,255,.2);border:1px solid rgba(0,178,255,.3);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#00b2ff;flex-shrink:0;margin-top:1px">${i+1}</div><div style="font-size:10px;color:var(--dim);line-height:1.5">${s}</div></div>`).join('')}
         </div>
       </div>`;
     return;
   }
 
-  // ── CONNECTED STATE ───────────────────────────────────────────────────────
+  // ── CONNECTED STATE ─────────────────────────────────────────────────────
   panel.innerHTML = `
-    <!-- Account pill -->
-    <div style="background:linear-gradient(135deg,rgba(0,178,255,.1),rgba(0,102,255,.06));border:1px solid rgba(0,178,255,.25);border-radius:14px;padding:.9rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <!-- Connected pill -->
+    <div style="background:linear-gradient(135deg,rgba(0,178,255,.1),rgba(0,102,255,.05));border:1px solid rgba(0,178,255,.3);border-radius:14px;padding:.9rem 1.25rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
       <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">✅</div>
+        <div style="width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✅</div>
         <div>
           <div style="font-size:11px;font-weight:900;color:#00b2ff;font-family:'Poppins',sans-serif">ManyChat Connected</div>
-          <div style="font-size:10px;color:var(--dim)">${acct.name || 'Your ManyChat Account'}</div>
+          <div style="font-size:10px;color:var(--dim);margin-top:1px">${acct.name || 'Your ManyChat Account'} · Live data syncing active</div>
         </div>
       </div>
       <button onclick="disconnectManyChat('${context}')" style="font-size:10px;padding:5px 14px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:50px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Disconnect</button>
     </div>
 
-    <!-- How it flows -->
-    <div style="margin-bottom:1.25rem">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:10px">Your Automation Flow</div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-        ${[
-          ['📣','Post content','About the pain point — no product mention'],
-          ['💬','They comment "' + keyword + '"','Your CTA tells them to use this keyword'],
-          ['🤖','ManyChat fires Step 1','Sends the opener instantly — fully automated'],
-          ['🤝','They reply — you take over','Steps 2–4 are manual — you close the conversation'],
-        ].map(([icon,title,desc],i)=>`
-          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px;position:relative;overflow:hidden">
-            ${i<3?`<div style="position:absolute;top:50%;right:-8px;transform:translateY(-50%);font-size:10px;color:var(--dimmer);z-index:1">▶</div>`:''}
-            <div style="font-size:20px;margin-bottom:6px">${icon}</div>
-            <div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:3px;line-height:1.3">${title}</div>
-            <div style="font-size:9px;color:var(--dim);line-height:1.4">${desc}</div>
-          </div>`).join('')}
+    <!-- Your keyword -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:1rem 1.25rem;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0">1</div>
+        <div style="font-size:11px;font-weight:800;color:var(--white)">Your ManyChat trigger keyword</div>
       </div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:10px">Enter the exact keyword you use (or plan to use) in ManyChat. It updates your scripts and post CTA automatically.</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="mc-kw-input-${context}" type="text" placeholder="${suggestedKW}" value="${savedKeyword}"
+          style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(0,178,255,.3);border-radius:8px;padding:9px 14px;font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;outline:none;text-transform:uppercase;letter-spacing:2px"
+          oninput="this.value=this.value.toUpperCase();renderManyChatPanel('${context}')" />
+        <button onclick="saveMCKeyword(document.getElementById('mc-kw-input-${context}').value,'${context}');document.getElementById('mc-kw-saved-${context}').textContent='Saved ✅';setTimeout(()=>document.getElementById('mc-kw-saved-${context}').textContent='',2000)"
+          style="padding:9px 18px;background:linear-gradient(135deg,#00b2ff,#0066ff);color:#fff;border:none;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer">Save</button>
+      </div>
+      <div id="mc-kw-saved-${context}" style="font-size:10px;color:var(--teal);margin-top:5px;min-height:14px"></div>
     </div>
 
-    <!-- Trigger keyword -->
-    <div style="background:rgba(255,217,61,.07);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:12px 16px;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <!-- CTA preview -->
+    <div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.18);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:8px">
+      <span style="font-size:14px;flex-shrink:0">📝</span>
       <div>
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:900;margin-bottom:4px">⚡ Your Comment Trigger Keyword</div>
-        <div style="font-size:26px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;letter-spacing:3px">${keyword}</div>
-        <div style="font-size:10px;color:var(--dim);margin-top:3px">Set this as your keyword trigger in ManyChat</div>
-      </div>
-      <div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px;max-width:260px">
-        <div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px">Add to your posts</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.5;font-style:italic">"${cta}"</div>
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:900;margin-bottom:3px">Add to every post</div>
+        <div style="font-size:11px;color:var(--white);line-height:1.55;font-style:italic">"${cta}"</div>
       </div>
     </div>
 
-    <!-- Scripts formatted for ManyChat -->
-    <div style="margin-bottom:1.25rem">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:10px">Scripts Ready for ManyChat</div>
-      ${scripts.slice(0,4).map((s, i) => {
-        const sl = scriptLabels[i] || {};
-        const txt = s.lines.join('\n\n');
-        return `<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;margin-bottom:8px">
-          <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-            <div>
-              <div style="font-size:11px;font-weight:800;color:${sl.auto?'#00b2ff':'var(--teal)'}">${sl.label||s.title}</div>
-              <div style="font-size:10px;color:var(--dimmer);margin-top:1px">${sl.sub||s.tag}</div>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px">
-              <div style="font-size:9px;padding:2px 8px;border-radius:50px;font-weight:700;${sl.auto?'background:linear-gradient(135deg,#00b2ff,#0066ff);color:#fff':'background:rgba(255,255,255,.06);color:var(--dimmer)'}">${sl.auto?'🤖 AUTO':'MANUAL'}</div>
-              <button onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(txt)}')).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='Copy',2000)})" style="font-size:10px;padding:5px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--white);border-radius:50px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Copy</button>
-            </div>
-          </div>
-          <div style="padding:10px 14px;font-size:11px;color:var(--muted);line-height:1.75;white-space:pre-wrap;font-family:'Inter',sans-serif">${txt}</div>
-          <div style="padding:4px 14px 10px;font-size:10px;color:var(--dimmer)">💡 ${sl.note||''}</div>
-        </div>`;
-      }).join('')}
+    <!-- Script ready to paste -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;margin-bottom:10px">
+      <div style="padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">
+        <div>
+          <div style="font-size:11px;font-weight:800;color:#00b2ff">Paste into ManyChat</div>
+          <div style="font-size:9px;color:var(--dimmer);margin-top:2px">Your personalised opener — built from your avatar + offer data</div>
+        </div>
+        <button onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(step1Text)}')).then(()=>{this.textContent='✅ Copied!';setTimeout(()=>this.textContent='📋 Copy',2000)})"
+          style="font-size:10px;padding:5px 16px;background:linear-gradient(135deg,#00b2ff,#0066ff);color:#fff;border:none;border-radius:50px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">📋 Copy</button>
+      </div>
+      <div style="padding:12px 14px;font-size:11px;color:var(--muted);line-height:1.8;white-space:pre-wrap;font-family:'Inter',sans-serif">${step1Text}</div>
+      <div style="padding:4px 14px 10px;font-size:10px;color:var(--dimmer)">⚠️ Replace [Name] with ManyChat's name variable: <strong style="color:var(--white)">{{first name}}</strong></div>
     </div>
 
-    <!-- ManyChat setup guide -->
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1.25rem">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:14px">🛠 ManyChat Setup — Do This Once</div>
+    <!-- Setup steps -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1rem 1.25rem;margin-bottom:10px">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:14px">🛠 Set Up in ManyChat — Do This Once</div>
       ${[
-        ['Connect your page','Go to ManyChat → <strong style="color:var(--white)">Settings → Channels</strong> and connect your Instagram or Facebook page.'],
-        ['Create a new flow','Go to <strong style="color:var(--white)">Automation → New Flow</strong>. Name it "' + (isAffiliate?'Affiliate Cold DM':'Expert Cold Opener') + '".'],
-        ['Set the comment trigger','Add a <strong style="color:var(--white)">Trigger → Comment</strong>. Set keyword: <strong style="color:var(--yellow)">' + keyword + '</strong>. Select "Exact match".'],
-        ['Add the message','Add a <strong style="color:var(--white)">Send Message</strong> action. Paste the "ManyChat Flow — Message 1" script above verbatim.'],
-        ['Activate the flow','Toggle the flow <strong style="color:var(--white)">ON</strong>. Every comment with "' + keyword + '" now triggers the DM automatically.'],
-        ['Add CTA to every post','End every post with: <em style="color:var(--yellow)">"' + cta + '"</em>. This is what drives the trigger.'],
-      ].map(([title,desc],i)=>`
-        <div style="display:flex;gap:12px;margin-bottom:${i<5?'12px':'0'}">
-          <div style="width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,#00b2ff,#0066ff);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;flex-shrink:0;margin-top:1px">${i+1}</div>
+        ['Connect your page',    'ManyChat → <strong style="color:var(--white)">Settings → Channels</strong> → Connect your Instagram or Facebook Page.'],
+        ['Create a new flow',    '<strong style="color:var(--white)">Automation → New Flow</strong>. Name it anything — e.g. "DM Opener".'],
+        ['Set the trigger',      'Add <strong style="color:var(--white)">Trigger → Comment</strong>. Set keyword: <strong style="color:var(--yellow)">' + kw + '</strong>. Choose "Exact match".'],
+        ['Add the message',      'Add <strong style="color:var(--white)">Send Message → Text</strong>. Paste the script above. Replace [Name] with <strong style="color:var(--white)">{{first name}}</strong>.'],
+        ['Activate the flow',    'Toggle the flow <strong style="color:var(--white)">ON</strong>. Anyone who comments <strong style="color:var(--yellow)">' + kw + '</strong> gets your opener automatically.'],
+        ['Steps 2–4 are yours',  'When they reply — <strong style="color:var(--white)">you take over</strong>. Use the Cold DM tab scripts for Steps 2–4. That conversation needs a human.'],
+      ].map(([title, desc], i) => `
+        <div style="display:flex;gap:12px;margin-bottom:${i < 5 ? '12px' : '0'}">
+          <div style="width:22px;height:22px;border-radius:50%;background:${i === 5 ? 'rgba(255,217,61,.2)' : 'linear-gradient(135deg,#00b2ff,#0066ff)'};border:${i === 5 ? '1px solid rgba(255,217,61,.4)' : 'none'};display:flex;align-items:center;justify-content:center;font-size:${i === 5 ? '11px' : '10px'};font-weight:900;color:${i === 5 ? 'var(--yellow)' : '#fff'};flex-shrink:0;margin-top:1px">${i === 5 ? '👤' : i + 1}</div>
           <div>
             <div style="font-size:11px;font-weight:700;color:var(--white)">${title}</div>
             <div style="font-size:10px;color:var(--dim);margin-top:2px;line-height:1.55">${desc}</div>
@@ -5794,18 +5829,19 @@ function renderManyChatPanel(context) {
         </div>`).join('')}
     </div>
 
-    <!-- Log DMs to tracker -->
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1rem 1.25rem;margin-bottom:8px">
-      <div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:4px">📊 Log Today's ManyChat DMs to Tracker</div>
-      <div style="font-size:10px;color:var(--dim);margin-bottom:10px">Check your ManyChat dashboard for today's sent messages, enter the count below, and it will auto-log to your Daily Tracker.</div>
-      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <input id="mc-sync-count-${context}" type="number" min="0" placeholder="e.g. 12" style="width:90px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--white);font-family:'Poppins',sans-serif;outline:none;text-align:center" />
-        <button onclick="syncAndLogMC('${context}')" style="flex:1;padding:9px 16px;background:rgba(0,178,255,.1);border:1px solid rgba(0,178,255,.25);color:#00b2ff;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer;min-width:160px">✅ Log to Daily Tracker</button>
-      </div>
+    <!-- Live sync from ManyChat -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1rem 1.25rem">
+      <div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:3px">📊 Sync Live Data from ManyChat</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:10px">Pulls your real subscriber count directly from ManyChat and auto-logs new conversations to your Daily Tracker.</div>
+      <button id="mc-sync-btn-${context}" onclick="syncAndLogMC('${context}')"
+        style="width:100%;padding:10px 16px;background:linear-gradient(135deg,rgba(0,178,255,.15),rgba(0,102,255,.1));border:1px solid rgba(0,178,255,.3);color:#00b2ff;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer">
+        🔄 Sync from ManyChat
+      </button>
+      <div id="mc-sync-status-${context}" style="font-size:11px;min-height:16px;margin-top:8px;line-height:1.5"></div>
     </div>
-    <div id="mc-sync-status-${context}" style="font-size:11px;min-height:18px;line-height:1.5;padding:0 2px"></div>
   `;
 }
+
 
 // ═══════════════════════════════════════════════════════════════════════════
 // DAILY DM QUEUE — Personalised messages for up to 20 prospects
@@ -6664,7 +6700,7 @@ function generateOffer(){
   const rawJob     = av.job || (document.getElementById('av_job')||{}).value || '';
   const audType    = rawJob ? toPlural(rawJob.split('/')[0].split(',')[0].trim()) : 'your ideal clients';
   const motivation= av.motivation  || 'financial and time freedom';
-  const pain      = av.pain || (document.getElementById('av_current')||{}).value?.split(/[.!?\n]/)[0]?.trim() || 'their current challenge';
+  const pain      = toYou(av.pain || (document.getElementById('av_current')||{}).value?.split(/[.!?\n]/)[0]?.trim() || 'their current challenge');
   const incomeGoal= av.incomeGoal  || '10000';
   const fear      = av.fear        || 'it not working';
   const tried     = av.tried ? av.tried.split(',')[0].trim() : 'other programmes';
@@ -9502,6 +9538,40 @@ function getNicheContent() {
 // ─── COPY-SAFE TEXT NORMALISER ───────────────────────────────────────────────
 // Converts raw user textarea input (full sentences) into clean short copy fragments
 // so generated headlines, hooks and posts read naturally when interpolated.
+
+// Convert first-person avatar language to second-person for DM copy
+// "I hate my job" -> "you hate your job"
+// "Trapped in a job I hate" -> "trapped in a job you hate"
+function toYou(str) {
+  if (!str) return str;
+  return str
+    .replace(/\bI'm\b/gi, "you're")
+    .replace(/\bI've\b/gi, "you've")
+    .replace(/\bI'd\b/gi, "you'd")
+    .replace(/\bI'll\b/gi, "you'll")
+    .replace(/\bI can't\b/gi, "you can't")
+    .replace(/\bI don't\b/gi, "you don't")
+    .replace(/\bI feel\b/gi, "you feel")
+    .replace(/\bI hate\b/gi, "you hate")
+    .replace(/\bI want\b/gi, "you want")
+    .replace(/\bI need\b/gi, "you need")
+    .replace(/\bI am\b/gi, "you are")
+    .replace(/\bI was\b/gi, "you were")
+    .replace(/\bI have\b/gi, "you have")
+    .replace(/\bI know\b/gi, "you know")
+    .replace(/\bI keep\b/gi, "you keep")
+    .replace(/\bI get\b/gi, "you get")
+    .replace(/\bI work\b/gi, "you work")
+    .replace(/\bI spend\b/gi, "you spend")
+    .replace(/\bI make\b/gi, "you make")
+    .replace(/\bI earn\b/gi, "you earn")
+    .replace(/\bI \b/gi, "you ")
+    .replace(/\bmy \b/gi, "your ")
+    .replace(/\bme\b/gi, "you")
+    .replace(/\bmine\b/gi, "yours")
+    .replace(/\bmyself\b/gi, "yourself");
+}
+
 function toFragment(str, mode) {
   if(!str) return '';
   str = str.trim();
@@ -16050,9 +16120,17 @@ onAuthStateChanged(auth, async (user) => {
   // ── Restore ManyChat connection ───────────────────────────────────────────
   if (userDocData.manychatApiKey) {
     window._mcApiKey = userDocData.manychatApiKey;
-    // Restore account info placeholder — full verification requires server-side call
-    window._mcAccountInfo = { name: 'ManyChat Account' };
+    // Re-verify key via backend on load (non-blocking)
+    fetch(window.location.origin + '/api/manychat-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: userDocData.manychatApiKey })
+    }).then(r => r.json()).then(d => {
+      if (d.ok && d.account) window._mcAccountInfo = d.account;
+    }).catch(() => {});
   }
+  if (userDocData.manychatKeyword_expert)    localStorage.setItem('mc_keyword_expert',    userDocData.manychatKeyword_expert);
+  if (userDocData.manychatKeyword_affiliate) localStorage.setItem('mc_keyword_affiliate', userDocData.manychatKeyword_affiliate);
 
   // ── Restore Routine ───────────────────────────────────────────────────────
   if (userDocData.routine) restoreRoutine(JSON.stringify(userDocData.routine));
