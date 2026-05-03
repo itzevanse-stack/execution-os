@@ -4864,14 +4864,16 @@ function buildScriptSet(mode) {
   };
   var offerResult = clipS((document.getElementById('offer_result')||{}).value || cfg.result || 'your desired result', 7);
   var offerDuration = (document.getElementById('offer_duration')||{}).value || '90 days';
-  var audType = cfg.audience || 'people in your niche';
+  // Prefer user's exact job label — only fall back to niche config or generic
+  var rawJobLabel = av.job ? av.job.split('/')[0].split(',')[0].trim() : '';
+  var audType = rawJobLabel ? toPlural(rawJobLabel) : (cfg.audience || 'your ideal clients');
   var painPoint    = clipS(av.pain || cfg.metric || 'their biggest challenge', 6);
   var motivation   = clipS(av.motivation || 'financial freedom', 6);
   var fear         = clipS(av.fear || 'wasting money on something that does not work', 8);
   var tried        = clipS(av.tried || 'other approaches', 5);
   var transformation = clipS(av.transformation || offerResult, 7);
   var resource = cfg.resource || 'Free Assessment';
-  var jobLabel = av.job ? av.job.split('/')[0].split(',')[0].trim() : audType.split(' ').slice(0,2).join(' ');
+  var jobLabel = av.job ? av.job.split('/')[0].split(',')[0].trim() : (rawJobLabel || 'your ideal client');
   var incFmt = '$' + Number(offerPrice).toLocaleString();
   var nicheName = niche || 'your niche';
   var vp = window._voiceProfile || {};
@@ -5592,27 +5594,25 @@ window.connectManyChat = async function(context) {
   const statusEl= document.getElementById('mc-conn-status-' + context);
   if (!input || !statusEl) return;
   const key = input.value.trim();
-  if (!key) { statusEl.textContent = '⚠️ Paste your ManyChat API key first.'; statusEl.style.color = 'var(--orange)'; return; }
-  btn.disabled = true; btn.textContent = 'Connecting…';
-  statusEl.textContent = 'Verifying your API key…'; statusEl.style.color = 'var(--dim)';
-  try {
-    const res  = await fetch('https://api.manychat.com/fb/account', { headers: { 'Authorization': 'Bearer ' + key } });
-    const data = await res.json();
-    if (data.status === 'success' && data.data) {
-      window._mcApiKey      = key;
-      window._mcAccountInfo = data.data;
-      await window.saveMCApiKey(key);
-      renderManyChatPanel(context);
-    } else {
-      statusEl.textContent = '⚠️ Invalid API key — check ManyChat → Settings → API.';
-      statusEl.style.color = 'var(--red)';
-      btn.disabled = false; btn.textContent = 'Connect';
-    }
-  } catch(e) {
-    statusEl.textContent = '⚠️ Could not reach ManyChat. Check your connection.';
-    statusEl.style.color = 'var(--red)';
-    btn.disabled = false; btn.textContent = 'Connect';
+  if (!key) {
+    statusEl.textContent = '⚠️ Paste your ManyChat API key first.';
+    statusEl.style.color = 'var(--orange)';
+    return;
   }
+  // Basic format check — ManyChat API keys are long alphanumeric strings
+  if (key.length < 20) {
+    statusEl.textContent = '⚠️ That does not look like a valid ManyChat API key. Copy it from ManyChat → Settings → API.';
+    statusEl.style.color = 'var(--orange)';
+    return;
+  }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  // ManyChat's API blocks browser requests due to CORS — verification must be server-side.
+  // We save the key directly and trust it. The key will be validated naturally
+  // the first time ManyChat fires a flow from the user's account.
+  window._mcApiKey = key;
+  window._mcAccountInfo = { name: 'ManyChat Account' }; // placeholder until verified
+  await window.saveMCApiKey(key);
+  renderManyChatPanel(context);
 };
 
 // Disconnect ManyChat
@@ -5622,38 +5622,27 @@ window.disconnectManyChat = async function(context) {
   renderManyChatPanel(context);
 };
 
-// Sync subscriber count from ManyChat → auto-log DMs to tracker
-window.syncAndLogMC = async function(context, btn) {
-  if (!window._mcApiKey) return;
-  const statusEl = document.getElementById('mc-sync-status-' + context);
-  btn.disabled = true; btn.textContent = '⏳ Syncing…';
-  if (statusEl) { statusEl.textContent = 'Fetching stats from ManyChat…'; statusEl.style.color = 'var(--dim)'; }
-  try {
-    const res  = await fetch('https://api.manychat.com/fb/subscribers?limit=1', { headers: { 'Authorization': 'Bearer ' + window._mcApiKey } });
-    const data = await res.json();
-    if (data.status === 'success') {
-      const total   = data.data?.total_count || 0;
-      const prev    = parseInt(localStorage.getItem('eos_mc_sub_count') || '0');
-      const newOnes = Math.max(0, total - prev);
-      localStorage.setItem('eos_mc_sub_count', String(total));
-      window._mcLastSync = new Date().toLocaleTimeString();
-      // Auto-increment tracker if new subs found
-      if (newOnes > 0 && window.affTrack) {
-        for (let i = 0; i < newOnes; i++) window.affTrack('dms', 1);
-      }
-      if (statusEl) {
-        statusEl.textContent = newOnes > 0
-          ? '✅ ' + newOnes + ' new DM' + (newOnes !== 1 ? 's' : '') + ' auto-logged to tracker. Total subscribers: ' + total + '.'
-          : '✅ All up to date — ' + total + ' total subscribers. Synced at ' + window._mcLastSync;
-        statusEl.style.color = 'var(--teal)';
-      }
-    } else {
-      if (statusEl) { statusEl.textContent = '⚠️ Could not fetch stats. Check your ManyChat connection.'; statusEl.style.color = 'var(--red)'; }
-    }
-  } catch(e) {
-    if (statusEl) { statusEl.textContent = '⚠️ Sync failed. Check your connection and try again.'; statusEl.style.color = 'var(--red)'; }
+// Sync DMs to tracker — manual count entry (ManyChat API blocks browser requests due to CORS)
+window.syncAndLogMC = function(context) {
+  const statusEl  = document.getElementById('mc-sync-status-' + context);
+  const inputEl   = document.getElementById('mc-sync-count-' + context);
+  if (!inputEl) return;
+  const count = parseInt(inputEl.value) || 0;
+  if (count <= 0) {
+    if (statusEl) { statusEl.textContent = '⚠️ Enter the number of new DMs ManyChat sent today.'; statusEl.style.color = 'var(--orange)'; }
+    return;
   }
-  btn.disabled = false; btn.textContent = '🔄 Sync DM Stats from ManyChat';
+  // Auto-log to tracker
+  if (window.affTrack) {
+    for (let i = 0; i < count; i++) window.affTrack('dms', 1);
+  }
+  const today = new Date().toLocaleDateString();
+  localStorage.setItem('eos_mc_last_log', JSON.stringify({ count, date: today }));
+  if (statusEl) {
+    statusEl.textContent = '✅ ' + count + ' DM' + (count !== 1 ? 's' : '') + ' logged to your Daily Tracker. Keep it updated daily for accurate stats.';
+    statusEl.style.color = 'var(--teal)';
+  }
+  inputEl.value = '';
 };
 
 // Main panel renderer — handles both connected and disconnected states
@@ -5805,11 +5794,16 @@ function renderManyChatPanel(context) {
         </div>`).join('')}
     </div>
 
-    <!-- Sync stats -->
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-      <button onclick="syncAndLogMC('${context}', this)" style="flex:1;padding:10px 16px;background:rgba(0,178,255,.1);border:1px solid rgba(0,178,255,.25);color:#00b2ff;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer;min-width:200px">🔄 Sync DM Stats from ManyChat</button>
+    <!-- Log DMs to tracker -->
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1rem 1.25rem;margin-bottom:8px">
+      <div style="font-size:10px;font-weight:800;color:var(--white);margin-bottom:4px">📊 Log Today's ManyChat DMs to Tracker</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:10px">Check your ManyChat dashboard for today's sent messages, enter the count below, and it will auto-log to your Daily Tracker.</div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <input id="mc-sync-count-${context}" type="number" min="0" placeholder="e.g. 12" style="width:90px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:700;color:var(--white);font-family:'Poppins',sans-serif;outline:none;text-align:center" />
+        <button onclick="syncAndLogMC('${context}')" style="flex:1;padding:9px 16px;background:rgba(0,178,255,.1);border:1px solid rgba(0,178,255,.25);color:#00b2ff;border-radius:8px;font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer;min-width:160px">✅ Log to Daily Tracker</button>
+      </div>
     </div>
-    <div id="mc-sync-status-${context}" style="font-size:11px;min-height:18px;line-height:1.5"></div>
+    <div id="mc-sync-status-${context}" style="font-size:11px;min-height:18px;line-height:1.5;padding:0 2px"></div>
   `;
 }
 
@@ -6666,9 +6660,11 @@ function generateOffer(){
   const bonus         = gv('offer_bonus');
 
   const av        = window._avatarData || {};
-  const audType   = av.job ? (av.job.split('/')[0].split(',')[0].trim()+'s') : 'entrepreneurs';
+  // Preserve exact user-input language — never override with generic 'entrepreneurs'
+  const rawJob     = av.job || (document.getElementById('av_job')||{}).value || '';
+  const audType    = rawJob ? toPlural(rawJob.split('/')[0].split(',')[0].trim()) : 'your ideal clients';
   const motivation= av.motivation  || 'financial and time freedom';
-  const pain      = av.pain        || 'feeling stuck';
+  const pain      = av.pain || (document.getElementById('av_current')||{}).value?.split(/[.!?\n]/)[0]?.trim() || 'their current challenge';
   const incomeGoal= av.incomeGoal  || '10000';
   const fear      = av.fear        || 'it not working';
   const tried     = av.tried ? av.tried.split(',')[0].trim() : 'other programmes';
@@ -7407,17 +7403,21 @@ async function callAPI(endpoint, body) {
     const price = body.price || 0;
     const target = body.target || 0;
     const job = body.av_job || 'professional';
-    const pain = body.av_current || 'feeling stuck';
+    const pain = body.av_current || body.av_pain || 'their current situation';
     const fear = body.av_fear || 'failure';
     const transformation = body.av_transformation || 'achieving their goals';
-    prompt = `You are an expert marketing strategist. Generate a detailed buyer avatar and market intelligence report for:
+    prompt = `You are an expert marketing strategist. Generate a detailed buyer avatar and market intelligence report.
+
+CRITICAL LANGUAGE RULE: You MUST use the user's EXACT words and phrases wherever they have provided them. Do NOT replace their language with generic marketing terms. If they say "faith-rooted women called to build", use that exact phrase — never replace it with "entrepreneurs" or "business owners". If they describe a pain in their own words, preserve that language exactly in the output.
+
+Input data:
 Niche: ${niche}
 Offer price: $${price}
 Monthly revenue target: $${target}
-Target customer job: ${job}
-Their current situation: ${pain}
+Target customer job/identity (USE THESE EXACT WORDS): ${job}
+Their current situation in their words (PRESERVE THIS LANGUAGE): ${pain}
 Their biggest fear: ${fear}
-Their desired transformation: ${transformation}
+Their desired transformation (PRESERVE EXACT WORDING): ${transformation}
 
 Respond ONLY with valid JSON (no markdown, no backticks) in this exact structure:
 {
@@ -7707,7 +7707,7 @@ function generateAvatar(){
   const influences=document.getElementById('av_influences').value||'Online communities.';
   const objections=document.getElementById('av_objections').value||'I don\'t have time.';
   const pains=(window._nichePains||[]).filter((_,i)=>selectedPains.has(i));
-  const pain=pains[0]||'feeling stuck';
+  const pain=pains[0]||(document.getElementById('av_current')||{}).value?.split(/[.!?\n]/)[0]?.trim()||'their current challenge';
   const incFmt='$'+Number(incomeGoal).toLocaleString();
   const tried_clean=tried.split(',')[0].trim()||'other methods';
   const transformation_clean=transformation.split(' ').slice(0,6).join(' ');
@@ -7719,7 +7719,11 @@ function generateAvatar(){
 
   const duration=(document.getElementById('offer_duration')||{}).value||'90 days';
   const offerName=(document.getElementById('offer_name')||{}).value||'my offer';
-  window._avatarData={name,age,gender,location,edu,income,job,industry,employ,transformation,pain:pains[0]||'feeling stuck',motivation,fear,tried,objections,incomeGoal,personality,influences,keywords:Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll?.('.tag')||[]).map(t=>t.textContent.replace('×','').trim())};
+  // Preserve user's exact language — fall back to their own words, never generic defaults
+  const userCurrentSituation = (document.getElementById('av_current')||{}).value || '';
+  const painFromCurrent = userCurrentSituation.split(/[.!?\n]/)[0].trim(); // first sentence only
+  const resolvedPain = pains[0] || painFromCurrent || current || 'their current challenge';
+  window._avatarData={name,age,gender,location,edu,income,job,industry,employ,transformation,pain:resolvedPain,motivation,fear,tried,objections,incomeGoal,personality,influences,keywords:Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll?.('.tag')||[]).map(t=>t.textContent.replace('×','').trim())};
   window.saveAvatarData&&window.saveAvatarData();
 
   const hooks=[
@@ -9539,7 +9543,7 @@ function toWithout(str) {
 
 // Make plural job title safe for copy: "freelancer" → "freelancers"
 function toPlural(str) {
-  if(!str) return 'entrepreneurs';
+  if(!str) return 'your ideal clients';
   str = str.split('/')[0].split(',')[0].trim().toLowerCase();
   if(str.endsWith('s') || str.endsWith('x') || str.endsWith('z')) return str + 'es';
   if(str.endsWith('y') && !/[aeiou]y$/.test(str)) return str.slice(0,-1) + 'ies';
@@ -9602,7 +9606,7 @@ function get30DayPlan(av, nc) {
   const niche = (document.getElementById('niche')||{}).value || 'Online Business';
   const job = av.job || 'professional';
   const js = job.split('/')[0].split(',')[0].trim();
-  const pain = toKeyword(av.pain) || 'feeling stuck';
+  const pain = toKeyword(av.pain || (document.getElementById('av_current')||{}).value?.split(/[.!?\n]/)[0]?.trim()) || 'their challenge';
   const motivation = toKeyword(av.motivation) || 'financial freedom';
   const fear = toKeyword(av.fear) || 'wasting money';
   const tried = toWithout(av.tried) || 'other methods';
@@ -12191,7 +12195,7 @@ window.generate30DayCalendar = async function() {
 
 WHO YOU ARE WRITING FOR:
 They are: ${av.job || 'an ambitious professional'}
-Their #1 pain: "${av.pain || 'feeling stuck and not making progress'}"
+Their #1 pain: "${av.pain || av.current || 'their current challenge'}"
 What they have tried: ${av.tried || 'courses, programmes, and free advice that got them nowhere'}
 Their deepest fear: "${av.fear || 'wasting more time and money and still being in the same place'}"
 What they truly want: "${av.transformation || 'real freedom, real income, real results'}"
@@ -12393,7 +12397,7 @@ window._regenPost = async function(globalIdx) {
 
 TOPIC: ${slot.topic}
 WHO THEY ARE: ${av.job||'online entrepreneur'}
-THEIR PAIN: "${av.pain||'feeling stuck and not seeing results'}"
+THEIR PAIN: "${av.pain||av.current||'their current challenge'}"
 WHAT THEY WANT: "${av.transformation||'real freedom and real income'}"${vpCtx}
 
 WRITING RULES:
@@ -12438,7 +12442,7 @@ CTA (5 seconds — natural, low-pressure):
 
 TOPIC: ${slot.topic}
 OPENING LINE: ${slot.viralHook}
-WHO IS READING: ${av.job||'online entrepreneur'} dealing with "${av.pain||'feeling stuck'}"
+WHO IS READING: ${av.job||'your ideal client'} dealing with "${av.pain||av.current||'their current challenge'}"
 WHAT THEY TRULY WANT: "${av.transformation||'real freedom and real income'}"${vpCtx}
 
 WRITING RULES:
@@ -13717,7 +13721,7 @@ async function generateMarketIntelligence(av, niche) {
   if (!el) return;
 
   const js = av.job ? av.job.split('/')[0].split(',')[0].trim() : 'entrepreneur';
-  const pain = av.pain || 'feeling stuck';
+  const pain = av.pain || av.current || 'their current challenge';
   const transformation = av.transformation || 'their desired outcome';
   const incomeGoal = '$' + Number(av.incomeGoal || 10000).toLocaleString();
   const tried = av.tried || 'other methods';
@@ -16046,11 +16050,8 @@ onAuthStateChanged(auth, async (user) => {
   // ── Restore ManyChat connection ───────────────────────────────────────────
   if (userDocData.manychatApiKey) {
     window._mcApiKey = userDocData.manychatApiKey;
-    // Silently verify the saved key is still valid
-    fetch('https://api.manychat.com/fb/account', { headers: { 'Authorization': 'Bearer ' + userDocData.manychatApiKey } })
-      .then(r => r.json())
-      .then(d => { if (d.status === 'success' && d.data) window._mcAccountInfo = d.data; })
-      .catch(() => {});
+    // Restore account info placeholder — full verification requires server-side call
+    window._mcAccountInfo = { name: 'ManyChat Account' };
   }
 
   // ── Restore Routine ───────────────────────────────────────────────────────
