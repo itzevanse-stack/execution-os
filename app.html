@@ -18325,52 +18325,111 @@ function fbGetPagesForType(type) {
 }
 
 async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
-  const painPoint = avatar.currentSituation || 'struggling to get consistent results';
-  const desire    = avatar.desiredTransformation || 'build a profitable digital product business';
-  const fear      = avatar.biggestFear || 'wasting time on something that won\'t work';
+  var painPoint  = (avatar && avatar.currentSituation)        || 'stuck despite knowing what to do';
+  var desire     = (avatar && avatar.desiredTransformation)   || 'build a wildly profitable online business';
+  var fear       = (avatar && avatar.biggestFear)             || 'wasting time on something that never works';
+  var objections = (avatar && avatar.mainObjections)          || 'not sure if this will work for me';
+  var tried      = (avatar && avatar.whatTheyHaveTried)       || 'courses and coaching that did not deliver';
+  var influences = (avatar && avatar.influences)              || 'industry leaders in their space';
+  var job        = (avatar && avatar.jobTitle)                || 'entrepreneur';
+  var income     = (avatar && avatar.incomeGoal)              || '$10,000/month';
 
-  const prompt = `You are an expert direct-response copywriter and web designer.
+  var pageConfigs = {
+    landing:  { goal: 'capture leads and build desire for the offer', cta: 'Get Instant Access', sections: 'ticker bar, hero with bold headline + subheadline, 3 pain-point bullets, what you get list, social proof quote, opt-in form with name+email, urgency footer' },
+    sales:    { goal: 'convert cold readers into buyers with a long-form sales letter', cta: 'Yes, I Want This Now', sections: 'ticker bar, headline + subheadline, personal story opening, pain agitation, big promise, what you get bullet stack, who this is for, testimonials section, price reveal with anchoring, guarantee, urgent CTA, FAQ' },
+    bridge:   { goal: 'warm up affiliate traffic and pre-sell them before the merchant page', cta: 'See The Full Offer', sections: 'ticker bar, attention headline, personal story hook, what I discovered, how it changed everything, tease the solution, CTA button' },
+    presell:  { goal: 'build curiosity and emotional desire before showing the offer', cta: 'Show Me How', sections: 'ticker bar, curiosity headline, story intro, the problem, the breakthrough, 3 key insights, call to action' },
+    checkout: { goal: 'complete the sale with a friction-free order form', cta: 'Complete My Order', sections: 'order summary box, value stack with strikethrough pricing, secure order form (name/email/card placeholders), guarantee badge, next steps' },
+    thankyou: { goal: 'confirm purchase and onboard with next steps', cta: 'Access My Purchase', sections: 'celebration hero, confirmation message, 3 clear next steps, access button' },
+    vsl:      { goal: 'hold attention and convert below the video', cta: 'Get Instant Access', sections: 'ticker bar, pre-headline hook, video player placeholder, 3 bullets below video, CTA section' },
+    order:    { goal: 'take payment with minimal friction', cta: 'Complete Order Now', sections: 'order summary, price display, name/email/card form placeholders, security badges, guarantee' },
+    register: { goal: 'register leads for a live or recorded webinar', cta: 'Reserve My Free Seat', sections: 'ticker bar, webinar title, date and time, 3 what-you-will-learn bullets, host bio, registration form, urgency' },
+    confirm:  { goal: 'confirm registration and prime them to attend', cta: 'Add to Calendar', sections: 'confirmation hero, webinar details, what to prepare, calendar add buttons' },
+    tripwire: { goal: 'make an irresistible low-ticket offer', cta: 'Get It Now', sections: 'ticker bar, curiosity headline, what you get, value stack, price reveal, CTA, guarantee' },
+    upsell:   { goal: 'present a one-time upgrade offer', cta: 'Yes, Upgrade My Order', sections: 'congratulations opener, what you are missing, upgrade benefits, one-time price, yes/no buttons' },
+  };
+  var cfg = pageConfigs[page.id] || pageConfigs.landing;
 
-Generate a complete, high-converting ${page.label} HTML page for:
-- Niche: ${niche}
-- Offer: ${offer}
-- Target customer pain: ${painPoint}
-- Target customer desire: ${desire}
-- Target customer fear: ${fear}
-- Page type: ${page.id}
+  var prompt = 'You are a world-class conversion copywriter and premium UI/UX designer who has built funnel pages generating millions in revenue. Your work looks like it was made by a top agency, not a template generator.\n\n'
+    + 'BUILD: A stunning, high-converting ' + page.label + ' for a ' + niche + ' business.\n\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + 'BUSINESS PROFILE\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + 'Niche: ' + niche + '\n'
+    + 'Offer: ' + offer + '\n'
+    + 'Audience: ' + job + '\n'
+    + 'Their income goal: ' + income + '\n'
+    + 'Their pain: ' + painPoint + '\n'
+    + 'Their desire: ' + desire + '\n'
+    + 'Their fear: ' + fear + '\n'
+    + 'Their objections: ' + objections + '\n'
+    + 'What they have tried: ' + tried + '\n'
+    + 'Who they follow: ' + influences + '\n\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + 'PAGE GOAL\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + 'Goal: ' + cfg.goal + '\n'
+    + 'Primary CTA button text: ' + cfg.cta + '\n'
+    + 'Include these sections: ' + cfg.sections + '\n\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + 'MANDATORY DESIGN SYSTEM — follow exactly\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + 'Background: #06060f (near black) — use everywhere\n'
+    + 'Card bg: #0d0d1e with border 1px solid rgba(78,204,163,0.15) and border-radius 16px\n'
+    + 'Section bg: #111128 for alternating sections\n'
+    + 'Primary accent (teal): #4ecca3 — buttons, borders, highlights, checkmarks\n'
+    + 'Secondary accent (gold): #f0c040 — prices, urgency, badges\n'
+    + 'Purple: #6c63ff — subtle gradients, tags\n'
+    + 'White: #ffffff for headlines\n'
+    + 'Body text: #c8cde8\n'
+    + 'Muted text: #7a7a9d\n\n'
+    + 'Font: Poppins from Google Fonts (weights 400,600,700,800,900)\n'
+    + 'H1: font-weight 900, font-size clamp(28px,5vw,56px), letter-spacing -1px, color white\n'
+    + 'H2: font-weight 800, font-size clamp(22px,3.5vw,38px), color white\n'
+    + 'Body: font-size 15-16px, line-height 1.75, color #c8cde8\n'
+    + 'CTA buttons: background linear-gradient(135deg,#4ecca3,#38b48e), color #06060f, font-weight 800, text-transform uppercase, letter-spacing 0.5px, border-radius 8px, padding 16px 32px, box-shadow 0 0 40px rgba(78,204,163,0.35)\n'
+    + 'Ticker bar at very top: background rgba(78,204,163,0.08), border-bottom 1px solid rgba(78,204,163,0.15), scrolling text, teal color\n'
+    + 'Hero section: large gradient radial glow behind headline (teal to transparent)\n'
+    + 'Section dividers: height 1px, background linear-gradient(90deg,transparent,#4ecca3,transparent)\n'
+    + 'Mobile responsive with meta viewport tag\n'
+    + 'Smooth hover effects on buttons and cards\n\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + 'COPY RULES — non-negotiable\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + '- Write like a top 1% direct-response copywriter\n'
+    + '- Open with the customer pain or dream, never the product\n'
+    + '- Use you language throughout\n'
+    + '- Headlines must stop the scroll: bold, specific, emotionally charged\n'
+    + '- No generic phrases like transform your life or game-changer\n'
+    + '- Use specific numbers and timeframes\n'
+    + '- Build real urgency\n'
+    + '- Short punchy sentences that land hard\n\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + 'TECHNICAL REQUIREMENTS\n'
+    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
+    + '- Return complete standalone HTML file from <!DOCTYPE html> to </html>\n'
+    + '- First line of <style> block: @import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap\');\n'
+    + '- All CSS in one <style> block in <head> — no external files\n'
+    + '- No JavaScript required\n'
+    + '- Form fields: styled inputs only, no form action needed\n'
+    + '- Video placeholder: dark div with centered play button icon\n'
+    + '- Return ONLY raw HTML — no markdown, no code fences, no explanation\n\n'
+    + 'Make it so impressive that when the business owner sees it, they feel proud and confident sending traffic to it. Make it stand out and outperform every competitor in the ' + niche + ' niche.';
 
-Requirements:
-- Complete standalone HTML page (include <!DOCTYPE>, <head>, <body>)
-- Modern, professional design with dark background (#0f0f1a), teal (#4ecca3) and purple (#6c63ff) accents
-- Mobile responsive with meta viewport
-- Poppins font from Google Fonts
-- High-converting direct response copy
-- Clear CTA button
-- NO Lorem ipsum, all real persuasive copy
-- If checkout page: include a simple payment form placeholder (no real payment code)
-- If lead capture: include email/name form
-- Page should be fully styled inline or with a <style> block
-- Make it look premium and professional
-
-Return ONLY the complete HTML. No explanation, no markdown, just raw HTML.`;
-
-  // Use window.PROXY_URL directly — same as rest of app
-  // Use dedicated funnel endpoint — works across all domains
-  const proxyUrl = window.location.origin + '/api/generate-funnel';
-  const resp = await fetch(proxyUrl, {
+  var proxyUrl = window.location.origin + '/api/generate-funnel';
+  var resp = await fetch(proxyUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: prompt, max_tokens: 3000 })
+    body: JSON.stringify({ prompt: prompt, max_tokens: 4096 })
   });
   if (!resp.ok) {
-    const errText = await resp.text().catch(() => '');
+    var errText = await resp.text().catch(function() { return ''; });
     throw new Error('API error ' + resp.status + ': ' + errText.substring(0, 200));
   }
-  const data = await resp.json();
+  var data = await resp.json();
   return (data.content && data.content[0] && data.content[0].text) || '';
 }
 
-// ── EDITOR SETUP ──
 function fbSetupEditor(funnel) {
   // Set funnel name
   const nameEl = document.getElementById('fb-editor-funnel-name');
