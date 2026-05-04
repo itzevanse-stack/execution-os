@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Apply — Execution OS</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/favicon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
@@ -597,7 +600,13 @@ footer {
       </div>
       <div class="form-group">
         <label>Phone Number (WhatsApp preferred)</label>
-        <input type="tel" id="fieldPhone" placeholder="e.g. +1 234 567 8900" autocomplete="tel" />
+        <div style="display:flex;gap:8px;align-items:stretch;">
+          <div id="countryCodeBox" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:0 12px;font-size:14px;color:var(--white);white-space:nowrap;min-width:80px;cursor:default;transition:border-color .2s;">
+            <span id="countryFlag" style="font-size:18px;">🌍</span>
+            <span id="countryCode">+...</span>
+          </div>
+          <input type="tel" id="fieldPhone" placeholder="e.g. 234 567 8900" autocomplete="tel" style="flex:1;" />
+        </div>
       </div>
 
       <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
@@ -630,18 +639,94 @@ footer {
 </footer>
 
 <script src="https://fast.wistia.com/assets/external/E-v1.js" async></script>
-<!-- Force Wistia containers to match page background -->
 <script>
   window._wq = window._wq || [];
-  _wq.push({ id: "vtcfyf0f2o", options: { playerColor: "00d68f" }, onReady: function(video) {
-    var containers = document.querySelectorAll('.wistia_embed, .wistia_async_vtcfyf0f2o, [class*="wistia_"]');
-    containers.forEach(function(el) { el.style.background = '#06060f'; });
-    var iframes = document.querySelectorAll('.video-wrap iframe');
-    iframes.forEach(function(f) { f.style.background = '#06060f'; });
-  }});
+  _wq.push({
+    id: "vtcfyf0f2o",
+    options: {
+      playerColor: "00d68f",
+      letterboxColor: "06060f"
+    },
+    onReady: function(video) {
+      var containers = document.querySelectorAll('.wistia_embed, .wistia_async_vtcfyf0f2o, [class*="wistia_"]');
+      containers.forEach(function(el) { el.style.background = '#06060f'; });
+      var iframes = document.querySelectorAll('.video-wrap iframe');
+      iframes.forEach(function(f) { f.style.background = '#06060f'; });
+      // Also set background on the shadow DOM inside the iframe if possible
+      video.bind('letterboxColor', '06060f');
+    }
+  });
 </script>
 
 <script>
+  // ── AUTO COUNTRY CODE DETECTION ──
+  const COUNTRY_DATA = {
+    AF:{code:'+93',flag:'🇦🇫'},DZ:{code:'+213',flag:'🇩🇿'},AR:{code:'+54',flag:'🇦🇷'},
+    AU:{code:'+61',flag:'🇦🇺'},AT:{code:'+43',flag:'🇦🇹'},BE:{code:'+32',flag:'🇧🇪'},
+    BR:{code:'+55',flag:'🇧🇷'},CA:{code:'+1',flag:'🇨🇦'},CL:{code:'+56',flag:'🇨🇱'},
+    CN:{code:'+86',flag:'🇨🇳'},CO:{code:'+57',flag:'🇨🇴'},EG:{code:'+20',flag:'🇪🇬'},
+    ET:{code:'+251',flag:'🇪🇹'},FR:{code:'+33',flag:'🇫🇷'},DE:{code:'+49',flag:'🇩🇪'},
+    GH:{code:'+233',flag:'🇬🇭'},GR:{code:'+30',flag:'🇬🇷'},IN:{code:'+91',flag:'🇮🇳'},
+    ID:{code:'+62',flag:'🇮🇩'},IE:{code:'+353',flag:'🇮🇪'},IL:{code:'+972',flag:'🇮🇱'},
+    IT:{code:'+39',flag:'🇮🇹'},JP:{code:'+81',flag:'🇯🇵'},KE:{code:'+254',flag:'🇰🇪'},
+    MX:{code:'+52',flag:'🇲🇽'},MA:{code:'+212',flag:'🇲🇦'},NL:{code:'+31',flag:'🇳🇱'},
+    NZ:{code:'+64',flag:'🇳🇿'},NG:{code:'+234',flag:'🇳🇬'},NO:{code:'+47',flag:'🇳🇴'},
+    PK:{code:'+92',flag:'🇵🇰'},PE:{code:'+51',flag:'🇵🇪'},PH:{code:'+63',flag:'🇵🇭'},
+    PL:{code:'+48',flag:'🇵🇱'},PT:{code:'+351',flag:'🇵🇹'},RO:{code:'+40',flag:'🇷🇴'},
+    RU:{code:'+7',flag:'🇷🇺'},SA:{code:'+966',flag:'🇸🇦'},ZA:{code:'+27',flag:'🇿🇦'},
+    ES:{code:'+34',flag:'🇪🇸'},SE:{code:'+46',flag:'🇸🇪'},CH:{code:'+41',flag:'🇨🇭'},
+    TZ:{code:'+255',flag:'🇹🇿'},TH:{code:'+66',flag:'🇹🇭'},TR:{code:'+90',flag:'🇹🇷'},
+    UG:{code:'+256',flag:'🇺🇬'},UA:{code:'+380',flag:'🇺🇦'},AE:{code:'+971',flag:'🇦🇪'},
+    GB:{code:'+44',flag:'🇬🇧'},US:{code:'+1',flag:'🇺🇸'},VN:{code:'+84',flag:'🇻🇳'},
+    ZW:{code:'+263',flag:'🇿🇼'},SN:{code:'+221',flag:'🇸🇳'},CI:{code:'+225',flag:'🇨🇮'},
+    CM:{code:'+237',flag:'🇨🇲'},RW:{code:'+250',flag:'🇷🇼'},TN:{code:'+216',flag:'🇹🇳'},
+    ZM:{code:'+260',flag:'🇿🇲'},MZ:{code:'+258',flag:'🇲🇿'},SG:{code:'+65',flag:'🇸🇬'},
+    MY:{code:'+60',flag:'🇲🇾'},BD:{code:'+880',flag:'🇧🇩'},LK:{code:'+94',flag:'🇱🇰'},
+  };
+
+  let detectedCode = '+1';
+  let detectedFlag = '🌍';
+
+  async function detectCountry() {
+    try {
+      const r = await fetch('https://ipapi.co/json/');
+      const d = await r.json();
+      const country = COUNTRY_DATA[d.country_code];
+      if (country) {
+        detectedCode = country.code;
+        detectedFlag = country.flag;
+      } else if (d.country_calling_code) {
+        detectedCode = d.country_calling_code.startsWith('+') ? d.country_calling_code : '+' + d.country_calling_code;
+      }
+    } catch(e) {
+      // fallback — keep default
+    }
+    document.getElementById('countryFlag').textContent = detectedFlag;
+    document.getElementById('countryCode').textContent = detectedCode;
+  }
+  detectCountry();
+
+  // ── READ URL PARAMS — pre-fill or skip form for returning leads ──
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const name  = params.get('name');
+    const email = params.get('email');
+    const phone = params.get('phone');
+
+    if (name && email && phone) {
+      // All details present — open modal and skip straight to Calendly
+      document.getElementById('applyModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      document.getElementById('stepForm').classList.add('hidden');
+      document.getElementById('stepCalendly').classList.add('active');
+    } else if (name || email || phone) {
+      // Partial details — pre-fill what we have
+      if (name)  document.getElementById('fieldName').value  = decodeURIComponent(name);
+      if (email) document.getElementById('fieldEmail').value = decodeURIComponent(email);
+      if (phone) document.getElementById('fieldPhone').value = decodeURIComponent(phone);
+    }
+  })();
+
   // ── MODAL CONTROLS ──
   function openModal() {
     document.getElementById('applyModal').classList.add('active');
@@ -659,7 +744,8 @@ footer {
   async function handleSubmit() {
     const name    = document.getElementById('fieldName').value.trim();
     const email   = document.getElementById('fieldEmail').value.trim();
-    const phone   = document.getElementById('fieldPhone').value.trim();
+    const rawPhone = document.getElementById('fieldPhone').value.trim();
+    const phone   = rawPhone ? (detectedCode + ' ' + rawPhone) : '';
     const btn     = document.getElementById('submitBtn');
     const errBox  = document.getElementById('formError');
 
