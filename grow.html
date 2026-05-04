@@ -253,12 +253,55 @@ h1 .hl { background: linear-gradient(100deg, var(--teal), var(--gold)); -webkit-
 .roadmap-outcome-sub { font-size: 14px; color: rgba(255,255,255,.7); line-height: 1.7; max-width: 480px; margin: 0 auto; }
 
 @media (max-width: 768px) {
-  .roadmap-track { left: 26px; }
-  .roadmap-row { grid-template-columns: 52px 1fr; gap: 14px; }
-  .roadmap-row.right .roadmap-card { grid-column: 2; }
-  .roadmap-row.right .roadmap-spacer { display: none; }
-  .roadmap-spacer { display: none; }
-  .roadmap-connector { grid-column: 1; height: 28px; justify-content: center; }
+  .roadmap-track { left: 20px; }
+
+  /* Stack every row as full-width single column */
+  .roadmap-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 14px;
+    grid-template-columns: unset;
+  }
+
+  /* Hide the spacer divs entirely */
+  .roadmap-spacer { display: none !important; }
+
+  /* Node stays as a small column on the left */
+  .roadmap-node {
+    flex-shrink: 0;
+    width: 44px;
+    align-items: center;
+  }
+  .roadmap-circle {
+    width: 44px;
+    height: 44px;
+    font-size: 18px;
+  }
+
+  /* Card takes all remaining width */
+  .roadmap-card {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Connector sits flush left under the node */
+  .roadmap-connector {
+    grid-column: unset;
+    display: flex;
+    justify-content: flex-start;
+    padding-left: 20px;
+    height: 28px;
+    width: 100%;
+  }
+
+  /* Force node before card on all rows */
+  .roadmap-row .roadmap-node { order: -1; }
+  .roadmap-row .roadmap-card { order: 0; }
+
+  /* Outcome box full width */
+  .roadmap-outcome { padding: 1.4rem 1rem; }
+  .roadmap-outcome-title { font-size: 18px; }
 }
 
 /* ── BOOKING ── */
@@ -554,11 +597,10 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <div class="roadmap-card">
           <div class="roadmap-card-step">Step 1</div>
           <div class="roadmap-card-title">Revenue Target</div>
-          <div class="roadmap-card-desc">Set your price, monthly goal, and niche. The system instantly calculates your exact numbers, how many DMs, calls, and closes you need every single day, then generates your complete 4-week execution roadmap.</div>
+          <div class="roadmap-card-desc">Set your niche, your income target, and your offer price. The system instantly builds your complete 4-week execution roadmap with your daily non-negotiables already mapped out. You wake up every morning knowing exactly what to do and why.</div>
         </div>
         <div class="roadmap-node">
           <div class="roadmap-circle">📈</div>
-          <div class="roadmap-day-tag">Day 1</div>
         </div>
         <div class="roadmap-spacer"></div>
       </div>
@@ -570,7 +612,6 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <div class="roadmap-spacer"></div>
         <div class="roadmap-node">
           <div class="roadmap-circle">💎</div>
-          <div class="roadmap-day-tag">Days 1–3</div>
         </div>
         <div class="roadmap-card">
           <div class="roadmap-card-step">Step 2</div>
@@ -586,11 +627,10 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <div class="roadmap-card">
           <div class="roadmap-card-step">Step 3</div>
           <div class="roadmap-card-title">Customer Avatar</div>
-          <div class="roadmap-card-desc">The system generates your full buyer profile, their exact fears, what they've already tried, what makes them finally say yes. Every piece of content, every DM, every sales conversation becomes surgically targeted from day one. No more guessing.</div>
+          <div class="roadmap-card-desc">The system generates your full buyer profile, their exact fears, what they've already tried, what makes them finally say yes. Every piece of content, every automated message, every sales conversation becomes surgically targeted from day one. No more guessing who you're talking to.</div>
         </div>
         <div class="roadmap-node">
           <div class="roadmap-circle">🎯</div>
-          <div class="roadmap-day-tag">Days 3–5</div>
         </div>
         <div class="roadmap-spacer"></div>
       </div>
@@ -602,7 +642,6 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <div class="roadmap-spacer"></div>
         <div class="roadmap-node">
           <div class="roadmap-circle">📅</div>
-          <div class="roadmap-day-tag">Days 5–7</div>
         </div>
         <div class="roadmap-card">
           <div class="roadmap-card-step">Step 4</div>
@@ -617,12 +656,11 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
       <div class="roadmap-row">
         <div class="roadmap-card">
           <div class="roadmap-card-step">Step 5</div>
-          <div class="roadmap-card-title">DM & Sales Scripts</div>
-          <div class="roadmap-card-desc">Niche-tailored scripts for every stage, cold DM openers that get replies, warm follow-ups that don't feel pushy, and high-ticket close frameworks matched to your exact offer and avatar. You always know what to say and when to say it.</div>
+          <div class="roadmap-card-title">Automated Outreach & Sales Scripts</div>
+          <div class="roadmap-card-desc">The system generates your full outreach and conversion script library, cold message templates that get replies on autopilot, follow-up sequences that nurture without feeling pushy, and high-ticket close frameworks matched to your exact offer and avatar. The heavy lifting is automated. You just show up to close.</div>
         </div>
         <div class="roadmap-node">
           <div class="roadmap-circle">💬</div>
-          <div class="roadmap-day-tag">Days 7–10</div>
         </div>
         <div class="roadmap-spacer"></div>
       </div>
@@ -634,12 +672,11 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <div class="roadmap-spacer"></div>
         <div class="roadmap-node">
           <div class="roadmap-circle">⏰</div>
-          <div class="roadmap-day-tag">Day 10 → 60</div>
         </div>
         <div class="roadmap-card">
           <div class="roadmap-card-step">Step 6</div>
           <div class="roadmap-card-title">Daily Execution Routine</div>
-          <div class="roadmap-card-desc">A personalised daily routine built around your schedule, goals, and lifestyle. Log your DMs, calls, and closes every day. Your Health Score tracks momentum in real time. You execute the same non-negotiable actions every day, until $20K in 60 days becomes your new baseline.</div>
+          <div class="roadmap-card-desc">A personalised daily routine built around your schedule, goals, and lifestyle. Every action is pre-planned and pre-prioritised. Your Health Score tracks your momentum in real time and your milestone tracker updates as results come in. You just execute the same non-negotiable actions every day, until $20K in 60 days becomes your new baseline.</div>
         </div>
       </div>
 
@@ -668,7 +705,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <span class="inside-icon">📈</span>
         <div class="inside-tag">Step 1</div>
         <div class="inside-title">Revenue Plan</div>
-        <div class="inside-desc">Enter your price point, monthly target, and niche. Execution OS instantly calculates your exact daily numbers, DMs to send, calls to book, deals to close, and generates your complete 4-week roadmap. No guesswork, just a plan.</div>
+        <div class="inside-desc">Enter your price point, monthly target, and niche. Execution OS instantly builds your complete 4-week roadmap with your daily non-negotiables already mapped out. Every action is pre-planned so you wake up knowing exactly what to execute. No guesswork, just a plan.</div>
       </div>
 
       <div class="inside-card">
@@ -682,7 +719,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <span class="inside-icon">🎯</span>
         <div class="inside-tag">Step 3</div>
         <div class="inside-title">Ideal Customer Avatar</div>
-        <div class="inside-desc">An AI-generated full buyer profile specific to your niche and offer, their fears, objections, desires, and what finally makes them buy. Your content, DMs, and conversations become targeted to the exact person most likely to pay you.</div>
+        <div class="inside-desc">An AI-generated full buyer profile specific to your niche and offer, their fears, objections, desires, and what finally makes them buy. Your content, your automated outreach, and your sales conversations become targeted to the exact person most likely to pay you.</div>
       </div>
 
       <div class="inside-card">
@@ -695,22 +732,22 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
       <div class="inside-card">
         <span class="inside-icon">💬</span>
         <div class="inside-tag">Step 5</div>
-        <div class="inside-title">DM & Sales Scripts</div>
-        <div class="inside-desc">Cold openers that get replies. Warm follow-ups that don't feel pushy. High-ticket close frameworks for product sellers. Affiliate conversion scripts that drive clicks and commissions. Matched to your exact offer and avatar, you'll never wonder what to say again.</div>
+        <div class="inside-title">Automated Outreach & Sales Scripts</div>
+        <div class="inside-desc">The system generates your complete outreach and conversion script library. Automated message templates that get replies without you lifting a finger. Follow-up sequences that nurture leads on autopilot. High-ticket close frameworks for product sellers. Affiliate conversion scripts that drive clicks and commissions. Everything matched to your exact offer and avatar, so when a conversation does need you, you always know exactly what to say.</div>
       </div>
 
       <div class="inside-card">
         <span class="inside-icon">⏰</span>
         <div class="inside-tag">Step 6</div>
         <div class="inside-title">Daily Routine & Tracker</div>
-        <div class="inside-desc">A personalised daily routine built around your schedule and income goals. Log your DMs, calls, and closes every day. Your Health Score tracks momentum in real time and your milestone tracker shows exactly where you stand on the path to $20K and beyond.</div>
+        <div class="inside-desc">A personalised daily routine built around your schedule and income goals. Your Health Score tracks momentum in real time and your milestone tracker shows exactly where you stand on the path to $20K and beyond. The system keeps you accountable so nothing falls through the cracks.</div>
       </div>
 
       <div class="inside-card special" style="grid-column: 1 / -1;">
         <span class="inside-icon">🧠</span>
         <div class="inside-tag">Always On</div>
         <div class="inside-title">E-OS Intelligent, Your 24/7 Business Advisor</div>
-        <div class="inside-desc">An AI advisor that knows your full profile, niche, offer type, avatar, revenue target, and daily activity. It gives you personalised strategic guidance based on your exact situation. Stuck on a DM? Not converting? Revenue stalling? Ask E-OS Intelligent and get a real answer built for your business, not generic advice.</div>
+        <div class="inside-desc">An AI advisor that knows your full profile, niche, offer type, avatar, revenue target, and daily activity. It gives you personalised strategic guidance based on your exact situation. Not converting? Funnel not working? Revenue stalling? Ask E-OS Intelligent and get a real answer built for your business, not generic advice.</div>
       </div>
 
     </div>
@@ -724,10 +761,10 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
       <div class="ba-card ba-before">
         <div class="ba-label">❌ Before Execution OS</div>
         <div class="ba-item"><span class="ba-icon">😩</span>Buying courses and coaching that teach theory but never implement anything</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>Waking up with no clear plan, winging content, DMs, and sales every day</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>Waking up with no clear plan, winging your content and sales every day</div>
         <div class="ba-item"><span class="ba-icon">😩</span>Inconsistent revenue, some months okay, most months far below where you should be</div>
         <div class="ba-item"><span class="ba-icon">😩</span>Posting content that gets likes but never converts to actual sales or commissions</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>No clear DM strategy, awkward conversations that go nowhere</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>No clear outreach strategy, awkward sales conversations that go nowhere</div>
         <div class="ba-item"><span class="ba-icon">😩</span>As an affiliate, no idea how to actually promote offers and drive consistent sales</div>
         <div class="ba-item"><span class="ba-icon">😩</span>Working hard with nothing to show for it at the end of the month</div>
       </div>
@@ -737,7 +774,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <div class="ba-item"><span class="ba-icon">🔥</span>Your exact revenue plan, daily targets, and 4-week roadmap always visible in your dashboard</div>
         <div class="ba-item"><span class="ba-icon">🔥</span>Consistent $2K–$50K months built on daily non-negotiables that compound over time</div>
         <div class="ba-item"><span class="ba-icon">🔥</span>30 days of niche-matched content generated for you, promoting your product or affiliate offer</div>
-        <div class="ba-item"><span class="ba-icon">🔥</span>Proven DM and close scripts that convert strangers into buyers or affiliate sales</div>
+        <div class="ba-item"><span class="ba-icon">🔥</span>Automated outreach and proven close scripts that convert your audience into buyers or affiliate commissions</div>
         <div class="ba-item"><span class="ba-icon">🔥</span>A Health Score and milestone tracker so you always know where you are and what to do next</div>
         <div class="ba-item"><span class="ba-icon">🔥</span>A 24/7 AI advisor that knows your business and guides every move, not generic advice</div>
       </div>
@@ -754,7 +791,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <div class="fit-item"><span>✓</span> You sell or want to sell your own digital product, course, or coaching offer</div>
         <div class="fit-item"><span>✓</span> You're an affiliate marketer who wants a real system to promote offers and scale commissions</div>
         <div class="fit-item"><span>✓</span> You're done consuming content and ready to execute a complete operating system daily</div>
-        <div class="fit-item"><span>✓</span> You're committed to showing up consistently, DMs, content, and follow-ups, every single day</div>
+        <div class="fit-item"><span>✓</span> You're committed to showing up consistently, posting content and executing the system, every single day</div>
         <div class="fit-item"><span>✓</span> You want to hit $20K in 60 days and scale to 6–7 figures with a proven repeatable system</div>
       </div>
       <div class="fit-card no">
@@ -762,7 +799,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
         <div class="fit-item"><span>✗</span> You're looking for a shortcut that requires zero effort, content, or conversations</div>
         <div class="fit-item"><span>✗</span> You want to paste an affiliate link and hope for passive income without doing the work</div>
         <div class="fit-item"><span>✗</span> You've never sold anything and aren't willing to put in the daily execution to change that</div>
-        <div class="fit-item"><span>✗</span> You're not willing to send DMs, create content, or talk to potential buyers or leads</div>
+        <div class="fit-item"><span>✗</span> You're not willing to create content, engage your audience, or show up consistently for your business</div>
         <div class="fit-item"><span>✗</span> You're not serious about hitting real income milestones in the next 30–90 days</div>
       </div>
     </div>
