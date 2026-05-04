@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Apply — Execution OS</title>
+<title>Apply, Execution OS</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNjQgNjQiIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYm9sdCIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMDBkNjhmIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2YwYzA0MCIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwNjA2MGYiLz4KICA8cG9seWdvbiBwb2ludHM9IjI4LDYgMTQsMzYgMjYsMzYgMjAsNTggNTAsMjggMzgsMjggNDYsNiIgZmlsbD0idXJsKCNib2x0KSIvPgo8L3N2Zz4K">
 <link rel="icon" type="image/x-icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/favicon-192.png">
@@ -125,6 +125,141 @@ h1 .hl { background: linear-gradient(100deg, var(--teal), var(--gold)); -webkit-
 .spots-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gold); animation: pulse-glow 1.5s ease-in-out infinite; flex-shrink: 0; }
 .spots-text { font-size: 13px; font-weight: 700; color: var(--gold); }
 .spots-text strong { font-weight: 900; }
+
+/* ── ROADMAP ── */
+.roadmap-wrap {
+  position: relative;
+  margin-top: 3rem;
+  padding-bottom: 1rem;
+}
+
+/* Vertical center line */
+.roadmap-track {
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: rgba(255,255,255,.07);
+  transform: translateX(-50%);
+  z-index: 0;
+}
+.roadmap-track-fill {
+  width: 100%;
+  background: linear-gradient(180deg, var(--teal), var(--gold));
+  animation: trackGrow 2s ease forwards;
+  animation-delay: .3s;
+  height: 0%;
+}
+@keyframes trackGrow { to { height: 100%; } }
+
+.roadmap-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 1fr;
+  align-items: center;
+  margin-bottom: 0;
+  position: relative;
+  z-index: 1;
+}
+
+/* Node in center column */
+.roadmap-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+  z-index: 2;
+}
+.roadmap-circle {
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 2px solid var(--teal);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  box-shadow: 0 0 20px rgba(0,214,143,.2);
+  position: relative;
+  z-index: 2;
+}
+.roadmap-circle.gold {
+  border-color: var(--gold);
+  box-shadow: 0 0 28px rgba(240,192,64,.35);
+  background: linear-gradient(135deg, rgba(240,192,64,.12), var(--card-bg));
+}
+.roadmap-day-tag {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--teal);
+  background: rgba(0,214,143,.08);
+  border: 1px solid rgba(0,214,143,.2);
+  border-radius: 20px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.roadmap-day-tag.gold {
+  color: var(--gold);
+  background: rgba(240,192,64,.08);
+  border-color: rgba(240,192,64,.2);
+}
+
+/* Content cards, alternate left/right */
+.roadmap-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(0,214,143,.15);
+  border-radius: 14px;
+  padding: 1.1rem 1.3rem;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.roadmap-card:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0,214,143,.12); }
+.roadmap-card.gold { border-color: rgba(240,192,64,.25); }
+.roadmap-card.gold:hover { box-shadow: 0 10px 30px rgba(240,192,64,.18); }
+.roadmap-card-step { font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--teal); margin-bottom: 4px; }
+.roadmap-card-step.gold { color: var(--gold); }
+.roadmap-card-title { font-size: 15px; font-weight: 900; color: var(--white); margin-bottom: 5px; letter-spacing: -.2px; }
+.roadmap-card-desc { font-size: 12px; color: var(--muted); line-height: 1.65; }
+
+/* Empty column spacer */
+.roadmap-spacer { visibility: hidden; }
+
+/* Connector vertical segment between rows */
+.roadmap-connector {
+  grid-column: 2;
+  display: flex;
+  justify-content: center;
+  height: 36px;
+}
+.roadmap-connector-line {
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--teal), var(--teal));
+}
+.roadmap-connector-line.gold { background: linear-gradient(180deg, var(--teal), var(--gold)); }
+
+/* Outcome block */
+.roadmap-outcome {
+  text-align: center;
+  margin-top: 1rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, rgba(240,192,64,.1), rgba(0,214,143,.06));
+  border: 1px solid rgba(240,192,64,.3);
+  border-radius: 18px;
+  position: relative;
+  z-index: 1;
+}
+.roadmap-outcome-icon { font-size: 36px; margin-bottom: .6rem; }
+.roadmap-outcome-title { font-size: clamp(20px,2.5vw,30px); font-weight: 900; color: var(--gold); margin-bottom: .4rem; letter-spacing: -.3px; }
+.roadmap-outcome-sub { font-size: 14px; color: rgba(255,255,255,.7); line-height: 1.7; max-width: 480px; margin: 0 auto; }
+
+@media (max-width: 768px) {
+  .roadmap-track { left: 26px; }
+  .roadmap-row { grid-template-columns: 52px 1fr; gap: 14px; }
+  .roadmap-row.right .roadmap-card { grid-column: 2; }
+  .roadmap-row.right .roadmap-spacer { display: none; }
+  .roadmap-spacer { display: none; }
+  .roadmap-connector { grid-column: 1; height: 28px; justify-content: center; }
+}
 
 /* ── BOOKING ── */
 .booking-block { text-align: center; margin-bottom: 5rem; }
@@ -345,7 +480,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
   <!-- SPOTS COUNTER -->
   <div class="spots-bar" id="spotsBar">
     <div class="spots-dot"></div>
-    <div class="spots-text">⚡ Only <strong><span id="spotsCount">7</span> spots remaining</strong> this month — we limit intake to protect the quality of implementation for every member</div>
+    <div class="spots-text">⚡ Only <strong><span id="spotsCount">7</span> spots remaining</strong> this month, we limit intake to protect the quality of implementation for every member</div>
   </div>
 
   <!-- WAITLIST (shown when spots = 0) -->
@@ -358,7 +493,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
       <input type="email" id="waitlistEmail" placeholder="Your email address" style="flex:1;min-width:220px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:.85rem 1rem;font-family:'Poppins',sans-serif;font-size:14px;color:var(--white);outline:none;" />
       <button onclick="joinWaitlist()" style="background:linear-gradient(135deg,#ff6b6b,#d63031);color:#fff;font-family:'Poppins',sans-serif;font-size:13px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:.85rem 1.4rem;border:none;border-radius:8px;cursor:pointer;white-space:nowrap;">Notify Me →</button>
     </div>
-    <div id="waitlistConfirm" style="display:none;font-size:13px;color:var(--teal);margin-top:1rem;font-weight:700;">✅ You're on the list — we'll reach out as soon as spots open.</div>
+    <div id="waitlistConfirm" style="display:none;font-size:13px;color:var(--teal);margin-top:1rem;font-weight:700;">✅ You're on the list, we'll reach out as soon as spots open.</div>
   </div>
 
   <!-- BOOKING -->
@@ -370,7 +505,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
       <span>APPLY NOW TO SCALE WITH EXECUTION-OS</span>
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </button>
-    <div class="apply-urgency">⚡ Only a handful of spots open this month — don't miss your window</div>
+    <div class="apply-urgency">⚡ Only a handful of spots open this month, don't miss your window</div>
   </div>
 
   <!-- TESTIMONIALS -->
@@ -405,129 +540,240 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
     <div class="t-card bg"><script src="https://fast.wistia.com/embed/medias/feawaqnn1r.jsonp" async></script><div class="wistia_responsive_padding"><div class="wistia_responsive_wrapper"><div class="wistia_embed wistia_async_feawaqnn1r videoFoam=true" style="height:100%;position:relative;width:100%"></div></div></div></div>
   </div>
 
+  <!-- 60-DAY ROADMAP -->
+  <div style="margin-bottom:5rem;">
+    <div class="section-label">The 60-Day Process</div>
+    <div class="section-heading">Your Exact Path To $20K In 60 Days</div>
+    <div class="section-sub">Whether you're selling your own digital product or promoting as an affiliate, every step is built inside your dashboard. You don't figure it out. You execute it.</div>
+
+    <div class="roadmap-wrap">
+      <div class="roadmap-track"><div class="roadmap-track-fill"></div></div>
+
+      <!-- Step 1, LEFT -->
+      <div class="roadmap-row">
+        <div class="roadmap-card">
+          <div class="roadmap-card-step">Step 1</div>
+          <div class="roadmap-card-title">Revenue Target</div>
+          <div class="roadmap-card-desc">Set your price, monthly goal, and niche. The system instantly calculates your exact numbers, how many DMs, calls, and closes you need every single day, then generates your complete 4-week execution roadmap.</div>
+        </div>
+        <div class="roadmap-node">
+          <div class="roadmap-circle">📈</div>
+          <div class="roadmap-day-tag">Day 1</div>
+        </div>
+        <div class="roadmap-spacer"></div>
+      </div>
+
+      <div class="roadmap-row"><div class="roadmap-spacer"></div><div class="roadmap-connector"><div class="roadmap-connector-line"></div></div><div class="roadmap-spacer"></div></div>
+
+      <!-- Step 2, RIGHT -->
+      <div class="roadmap-row">
+        <div class="roadmap-spacer"></div>
+        <div class="roadmap-node">
+          <div class="roadmap-circle">💎</div>
+          <div class="roadmap-day-tag">Days 1–3</div>
+        </div>
+        <div class="roadmap-card">
+          <div class="roadmap-card-step">Step 2</div>
+          <div class="roadmap-card-title">Offer Setup</div>
+          <div class="roadmap-card-desc"><strong style="color:var(--white);">Own a product?</strong> The system engineers your high-ticket offer using Alex Hormozi's Grand Slam framework, worth $2,000–$10,000+, then builds 3 custom funnel strategies for your niche.<br><br><strong style="color:var(--gold);">Affiliate?</strong> Just paste your link. The system reads your offer, analyses the commission structure, and builds your complete promotion strategy, content plan, and funnel automatically.</div>
+        </div>
+      </div>
+
+      <div class="roadmap-row"><div class="roadmap-spacer"></div><div class="roadmap-connector"><div class="roadmap-connector-line"></div></div><div class="roadmap-spacer"></div></div>
+
+      <!-- Step 3, LEFT -->
+      <div class="roadmap-row">
+        <div class="roadmap-card">
+          <div class="roadmap-card-step">Step 3</div>
+          <div class="roadmap-card-title">Customer Avatar</div>
+          <div class="roadmap-card-desc">The system generates your full buyer profile, their exact fears, what they've already tried, what makes them finally say yes. Every piece of content, every DM, every sales conversation becomes surgically targeted from day one. No more guessing.</div>
+        </div>
+        <div class="roadmap-node">
+          <div class="roadmap-circle">🎯</div>
+          <div class="roadmap-day-tag">Days 3–5</div>
+        </div>
+        <div class="roadmap-spacer"></div>
+      </div>
+
+      <div class="roadmap-row"><div class="roadmap-spacer"></div><div class="roadmap-connector"><div class="roadmap-connector-line"></div></div><div class="roadmap-spacer"></div></div>
+
+      <!-- Step 4, RIGHT -->
+      <div class="roadmap-row">
+        <div class="roadmap-spacer"></div>
+        <div class="roadmap-node">
+          <div class="roadmap-circle">📅</div>
+          <div class="roadmap-day-tag">Days 5–7</div>
+        </div>
+        <div class="roadmap-card">
+          <div class="roadmap-card-step">Step 4</div>
+          <div class="roadmap-card-title">Content Calendar</div>
+          <div class="roadmap-card-desc">A full 30-day content plan for Facebook and Instagram, niche-matched posts, Reels, and Carousels with hooks and CTAs written specifically for your audience and offer. Whether you own the product or promote one, you know exactly what to post and why every single day.</div>
+        </div>
+      </div>
+
+      <div class="roadmap-row"><div class="roadmap-spacer"></div><div class="roadmap-connector"><div class="roadmap-connector-line"></div></div><div class="roadmap-spacer"></div></div>
+
+      <!-- Step 5, LEFT -->
+      <div class="roadmap-row">
+        <div class="roadmap-card">
+          <div class="roadmap-card-step">Step 5</div>
+          <div class="roadmap-card-title">DM & Sales Scripts</div>
+          <div class="roadmap-card-desc">Niche-tailored scripts for every stage, cold DM openers that get replies, warm follow-ups that don't feel pushy, and high-ticket close frameworks matched to your exact offer and avatar. You always know what to say and when to say it.</div>
+        </div>
+        <div class="roadmap-node">
+          <div class="roadmap-circle">💬</div>
+          <div class="roadmap-day-tag">Days 7–10</div>
+        </div>
+        <div class="roadmap-spacer"></div>
+      </div>
+
+      <div class="roadmap-row"><div class="roadmap-spacer"></div><div class="roadmap-connector"><div class="roadmap-connector-line"></div></div><div class="roadmap-spacer"></div></div>
+
+      <!-- Step 6, RIGHT -->
+      <div class="roadmap-row">
+        <div class="roadmap-spacer"></div>
+        <div class="roadmap-node">
+          <div class="roadmap-circle">⏰</div>
+          <div class="roadmap-day-tag">Day 10 → 60</div>
+        </div>
+        <div class="roadmap-card">
+          <div class="roadmap-card-step">Step 6</div>
+          <div class="roadmap-card-title">Daily Execution Routine</div>
+          <div class="roadmap-card-desc">A personalised daily routine built around your schedule, goals, and lifestyle. Log your DMs, calls, and closes every day. Your Health Score tracks momentum in real time. You execute the same non-negotiable actions every day, until $20K in 60 days becomes your new baseline.</div>
+        </div>
+      </div>
+
+      <div class="roadmap-row"><div class="roadmap-spacer"></div><div class="roadmap-connector"><div class="roadmap-connector-line gold"></div></div><div class="roadmap-spacer"></div></div>
+
+      <!-- OUTCOME -->
+      <div class="roadmap-outcome">
+        <div class="roadmap-outcome-icon">🏆</div>
+        <div class="roadmap-outcome-title">$20K In 60 Days → 6–7 Figure Digital Product Business</div>
+        <div class="roadmap-outcome-sub">Whether you own your product or promote as an affiliate, this is the system that gets you there. Consistent, compounding, automated income built on daily execution.</div>
+      </div>
+
+    </div>
+  </div>
+
+
+
   <!-- WHAT'S INSIDE -->
   <div class="inside-section">
     <div class="section-label">Inside Execution OS</div>
-    <div class="section-heading">Everything You Need. Nothing You Don't.</div>
-    <div class="section-sub">A complete operating system for your digital product business — 6 connected steps that work together from day one.</div>
+    <div class="section-heading">Everything Built. Nothing Left To Figure Out.</div>
+    <div class="section-sub">One system. Two paths. Whether you sell your own digital product or scale as an affiliate, Execution OS builds everything around your specific offer and executes it with you daily.</div>
     <div class="inside-grid">
 
       <div class="inside-card">
         <span class="inside-icon">📈</span>
         <div class="inside-tag">Step 1</div>
         <div class="inside-title">Revenue Plan</div>
-        <div class="inside-desc">Enter your offer price, monthly target, and niche. The system instantly calculates your exact numbers — calls to book, DMs to send, deals to close — and generates your full 4-week roadmap.</div>
+        <div class="inside-desc">Enter your price point, monthly target, and niche. Execution OS instantly calculates your exact daily numbers, DMs to send, calls to book, deals to close, and generates your complete 4-week roadmap. No guesswork, just a plan.</div>
       </div>
 
       <div class="inside-card">
         <span class="inside-icon">💎</span>
         <div class="inside-tag">Step 2</div>
-        <div class="inside-title">Offer Creation</div>
-        <div class="inside-desc">Using Alex Hormozi's Grand Slam Offer framework, Execution OS engineers your high-ticket offer worth $2,000–$10,000+. Then generates 3 custom funnel strategies to hit $20K–$50K/month.</div>
+        <div class="inside-title">Offer Setup, Built For You</div>
+        <div class="inside-desc"><strong style="color:var(--teal);">Own a digital product?</strong> The system engineers your high-ticket offer using Alex Hormozi's Grand Slam framework, $2,000–$10,000+, plus 3 custom funnels for your niche.<br><br><strong style="color:var(--gold);">Affiliate marketer?</strong> Paste your link. The system reads it, analyses the commission structure, and automatically builds your entire promotion strategy, avatar, content, scripts, and funnel. No product creation needed.</div>
       </div>
 
       <div class="inside-card">
         <span class="inside-icon">🎯</span>
         <div class="inside-tag">Step 3</div>
         <div class="inside-title">Ideal Customer Avatar</div>
-        <div class="inside-desc">The system generates your full buyer profile — their fears, what they've tried, what makes them buy. Your content, DMs, and sales calls become surgically targeted from day one.</div>
+        <div class="inside-desc">An AI-generated full buyer profile specific to your niche and offer, their fears, objections, desires, and what finally makes them buy. Your content, DMs, and conversations become targeted to the exact person most likely to pay you.</div>
       </div>
 
       <div class="inside-card">
         <span class="inside-icon">📅</span>
         <div class="inside-tag">Step 4</div>
         <div class="inside-title">30-Day Content Calendar</div>
-        <div class="inside-desc">A full month of niche-matched content for Facebook and Instagram — posts, Reels, Carousels — with hooks and CTAs written for your exact audience. You don't think about what to post. You execute.</div>
+        <div class="inside-desc">A full month of ready-to-post content for Facebook and Instagram, posts, Reels, Carousels, written for your niche, your offer, and your avatar. Whether you own your product or promote an affiliate offer, you always know exactly what to post and why.</div>
       </div>
 
       <div class="inside-card">
         <span class="inside-icon">💬</span>
         <div class="inside-tag">Step 5</div>
         <div class="inside-title">DM & Sales Scripts</div>
-        <div class="inside-desc">Niche-tailored scripts for every stage — cold DM openers, warm follow-ups, and high-ticket close frameworks matched to your exact offer and avatar. You'll never wonder what to say again.</div>
+        <div class="inside-desc">Cold openers that get replies. Warm follow-ups that don't feel pushy. High-ticket close frameworks for product sellers. Affiliate conversion scripts that drive clicks and commissions. Matched to your exact offer and avatar, you'll never wonder what to say again.</div>
       </div>
 
       <div class="inside-card">
         <span class="inside-icon">⏰</span>
         <div class="inside-tag">Step 6</div>
         <div class="inside-title">Daily Routine & Tracker</div>
-        <div class="inside-desc">A personalised daily routine built around your schedule and goals. Log your DMs, calls, and closes every day. Your Health Score updates in real time so you always know exactly where you stand.</div>
+        <div class="inside-desc">A personalised daily routine built around your schedule and income goals. Log your DMs, calls, and closes every day. Your Health Score tracks momentum in real time and your milestone tracker shows exactly where you stand on the path to $20K and beyond.</div>
       </div>
 
       <div class="inside-card special" style="grid-column: 1 / -1;">
         <span class="inside-icon">🧠</span>
-        <div class="inside-tag">Included</div>
-        <div class="inside-title">E-OS Intelligent — Your Personal Business Advisor</div>
-        <div class="inside-desc">An AI advisor that knows your full profile — your niche, offer, avatar, revenue target, and daily activity history. It gives you personalised strategic guidance based on your actual situation, not generic advice. Available 24/7 inside the dashboard.</div>
+        <div class="inside-tag">Always On</div>
+        <div class="inside-title">E-OS Intelligent, Your 24/7 Business Advisor</div>
+        <div class="inside-desc">An AI advisor that knows your full profile, niche, offer type, avatar, revenue target, and daily activity. It gives you personalised strategic guidance based on your exact situation. Stuck on a DM? Not converting? Revenue stalling? Ask E-OS Intelligent and get a real answer built for your business, not generic advice.</div>
       </div>
 
     </div>
   </div>
-
   <!-- BEFORE / AFTER -->
   <div class="ba-section">
     <div class="section-label">The Transformation</div>
     <div class="section-heading">Before Execution OS vs After</div>
-    <div class="section-sub">This is the difference between running a business on guesswork and running one on a system.</div>
+    <div class="section-sub">This is the difference between running a digital product business on guesswork, and running one on a real system.</div>
     <div class="ba-grid">
       <div class="ba-card ba-before">
         <div class="ba-label">❌ Before Execution OS</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>Buying courses and coaching programs that teach but never implement</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>Waking up with no clear plan — winging content, DMs, and sales every day</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>Inconsistent revenue — some months okay, most months far below target</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>Posting content that gets likes but never converts to actual sales</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>No system for DMs — awkward conversations that go nowhere</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>Watching competitors scale while feeling stuck at the same level</div>
-        <div class="ba-item"><span class="ba-icon">😩</span>Working hard but having nothing to show for it at the end of the month</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>Buying courses and coaching that teach theory but never implement anything</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>Waking up with no clear plan, winging content, DMs, and sales every day</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>Inconsistent revenue, some months okay, most months far below where you should be</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>Posting content that gets likes but never converts to actual sales or commissions</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>No clear DM strategy, awkward conversations that go nowhere</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>As an affiliate, no idea how to actually promote offers and drive consistent sales</div>
+        <div class="ba-item"><span class="ba-icon">😩</span>Working hard with nothing to show for it at the end of the month</div>
       </div>
       <div class="ba-card ba-after">
         <div class="ba-label">✅ After Execution OS</div>
-        <div class="ba-item"><span class="ba-icon">🔥</span>A complete operating system you log into and execute from — every single day</div>
-        <div class="ba-item"><span class="ba-icon">🔥</span>Your exact revenue plan, daily targets, and 4-week roadmap — always visible</div>
-        <div class="ba-item"><span class="ba-icon">🔥</span>Consistent $2K–$50K months built on daily non-negotiables that compound</div>
-        <div class="ba-item"><span class="ba-icon">🔥</span>30 days of niche-matched content generated for you — ready to post</div>
-        <div class="ba-item"><span class="ba-icon">🔥</span>Proven DM scripts and close frameworks that convert strangers into buyers</div>
-        <div class="ba-item"><span class="ba-icon">🔥</span>A real-time Health Score and milestone tracker so you never lose momentum</div>
-        <div class="ba-item"><span class="ba-icon">🔥</span>A business advisor that knows your profile and guides your next move 24/7</div>
+        <div class="ba-item"><span class="ba-icon">🔥</span>A complete operating system you log into daily, built for your exact offer and path</div>
+        <div class="ba-item"><span class="ba-icon">🔥</span>Your exact revenue plan, daily targets, and 4-week roadmap always visible in your dashboard</div>
+        <div class="ba-item"><span class="ba-icon">🔥</span>Consistent $2K–$50K months built on daily non-negotiables that compound over time</div>
+        <div class="ba-item"><span class="ba-icon">🔥</span>30 days of niche-matched content generated for you, promoting your product or affiliate offer</div>
+        <div class="ba-item"><span class="ba-icon">🔥</span>Proven DM and close scripts that convert strangers into buyers or affiliate sales</div>
+        <div class="ba-item"><span class="ba-icon">🔥</span>A Health Score and milestone tracker so you always know where you are and what to do next</div>
+        <div class="ba-item"><span class="ba-icon">🔥</span>A 24/7 AI advisor that knows your business and guides every move, not generic advice</div>
       </div>
     </div>
   </div>
-
   <!-- WHO IT'S FOR -->
   <div class="fit-section">
     <div class="section-label">Is This For You?</div>
     <div class="section-heading">Who Execution OS Is Built For</div>
-    <div class="section-sub">We limit spots because we only work with people who are genuinely ready to execute.</div>
+    <div class="section-sub">We limit spots because we only work with people who are genuinely ready to execute, regardless of whether you sell your own product or promote as an affiliate.</div>
     <div class="fit-grid">
       <div class="fit-card yes">
         <div class="fit-label">✅ This IS for you if...</div>
-        <div class="fit-item"><span>✓</span> You're already selling or want to sell a digital product, course, or coaching offer</div>
-        <div class="fit-item"><span>✓</span> You're tired of consuming content and ready to actually execute a real system</div>
-        <div class="fit-item"><span>✓</span> You're committed to showing up daily and doing the work the system lays out</div>
-        <div class="fit-item"><span>✓</span> You want to hit consistent $2K–$50K months without burning out or guessing</div>
-        <div class="fit-item"><span>✓</span> You understand that a system beats motivation every single time</div>
+        <div class="fit-item"><span>✓</span> You sell or want to sell your own digital product, course, or coaching offer</div>
+        <div class="fit-item"><span>✓</span> You're an affiliate marketer who wants a real system to promote offers and scale commissions</div>
+        <div class="fit-item"><span>✓</span> You're done consuming content and ready to execute a complete operating system daily</div>
+        <div class="fit-item"><span>✓</span> You're committed to showing up consistently, DMs, content, and follow-ups, every single day</div>
+        <div class="fit-item"><span>✓</span> You want to hit $20K in 60 days and scale to 6–7 figures with a proven repeatable system</div>
       </div>
       <div class="fit-card no">
         <div class="fit-label">❌ This is NOT for you if...</div>
-        <div class="fit-item"><span>✗</span> You're looking for a magic shortcut that requires zero effort or consistency</div>
-        <div class="fit-item"><span>✗</span> You've never sold anything and aren't willing to start</div>
-        <div class="fit-item"><span>✗</span> You want to buy something and passively hope results appear</div>
-        <div class="fit-item"><span>✗</span> You're not willing to send DMs, create content, or talk to potential buyers</div>
-        <div class="fit-item"><span>✗</span> You're not serious about hitting income goals in the next 30–90 days</div>
+        <div class="fit-item"><span>✗</span> You're looking for a shortcut that requires zero effort, content, or conversations</div>
+        <div class="fit-item"><span>✗</span> You want to paste an affiliate link and hope for passive income without doing the work</div>
+        <div class="fit-item"><span>✗</span> You've never sold anything and aren't willing to put in the daily execution to change that</div>
+        <div class="fit-item"><span>✗</span> You're not willing to send DMs, create content, or talk to potential buyers or leads</div>
+        <div class="fit-item"><span>✗</span> You're not serious about hitting real income milestones in the next 30–90 days</div>
       </div>
     </div>
   </div>
-
-  <!-- TESTIMONIALS -->
 
 </div><!-- /main-section -->
 
 <!-- STICKY BAR -->
 <div class="sticky-bar" id="stickyBar">
-  <div class="sticky-bar-text">⚡ <span>7 spots left this month</span> — Don't lose your window to scale</div>
-  <button class="sticky-bar-btn" onclick="openModal()">
-    APPLY NOW →
-  </button>
+  <div class="sticky-bar-text">⚡ <span id="stickySpots">7 spots left this month</span>, Don't lose your window to scale</div>
+  <button class="sticky-bar-btn" onclick="openModal()">APPLY NOW →</button>
 </div>
 
 <!-- APPLY MODAL -->
@@ -537,7 +783,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
     <div class="step-form" id="stepForm">
       <div class="modal-label">One Step Away</div>
       <div class="modal-title">Claim Your Spot Inside Execution OS</div>
-      <div class="modal-sub">Enter your details below and we'll show you how to get started — plus we'll send you a message that breaks down exactly how the system works.</div>
+      <div class="modal-sub">Enter your details below and we'll show you how to get started, plus we'll send you a message that breaks down exactly how the system works.</div>
       <div class="form-group">
         <label>Your Full Name</label>
         <input type="text" id="fieldName" placeholder="e.g. John Smith" autocomplete="name" />
@@ -556,7 +802,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
           <input type="tel" id="fieldPhone" placeholder="e.g. 234 567 8900" autocomplete="tel" style="flex:1;" />
         </div>
       </div>
-      <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">YES — SHOW ME HOW TO SCALE TO $50K/MONTH →</button>
+      <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">YES, SHOW ME HOW TO SCALE TO $50K/MONTH →</button>
       <div id="formError" style="color:#ff6b6b;font-size:12px;text-align:center;margin-top:.6rem;display:none;"></div>
       <p class="form-disclaimer">🔒 Your information is 100% private. We never spam or share your details.</p>
     </div>
@@ -635,7 +881,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
     const stickyText = document.querySelector('.sticky-bar-text');
 
     if (spots === 0) {
-      // CLOSED STATE — hide everything apply-related
+      // CLOSED STATE, hide everything apply-related
       document.getElementById('spotsBar').style.display     = 'none';
       document.getElementById('waitlistBlock').style.display = 'block';
       document.getElementById('apply').style.display         = 'none';
@@ -644,7 +890,7 @@ footer { border-top: 1px solid var(--border); padding: 1.5rem 2rem; display: fle
     } else {
       // Update sticky bar text with live count
       if (stickyText) {
-        stickyText.innerHTML = '⚡ <span>' + spots + ' spot' + (spots === 1 ? '' : 's') + ' left this month</span> — Don\'t lose your window to scale';
+        stickyText.innerHTML = '⚡ <span>' + spots + ' spot' + (spots === 1 ? '' : 's') + ' left this month</span>, Don\'t lose your window to scale';
       }
     }
   })();
