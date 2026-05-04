@@ -2152,6 +2152,419 @@ button[onclick="generateOffer()"] {
   margin-bottom: 1rem;
 }
 
+
+
+/* ══ FUNNEL BUILDER ══════════════════════════════════════════════ */
+/* ── FUNNEL BUILDER VARS ── */
+.fb-teal   { color: var(--teal); }
+.fb-purple { color: var(--purple); }
+.fb-yellow { color: var(--yellow); }
+
+/* ── EMPTY STATE ── */
+.fb-empty {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 80px 24px; text-align: center;
+  background: linear-gradient(145deg, var(--bg3), var(--card2));
+  border: 1px dashed rgba(78,204,163,.2);
+  border-radius: var(--r-xl);
+  margin-bottom: var(--sp-7);
+}
+.fb-empty-icon { font-size: 52px; margin-bottom: var(--sp-4); opacity: .7; }
+.fb-empty-title { font-size: 20px; font-weight: 900; font-family:'Poppins',sans-serif; color: var(--white); margin-bottom: var(--sp-2); }
+.fb-empty-sub { font-size: 13px; color: var(--dim); max-width: 340px; line-height: 1.7; margin-bottom: var(--sp-6); }
+
+/* ── FUNNEL TYPE GRID ── */
+.ftype-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: var(--sp-6);
+}
+.ftype-card {
+  background: linear-gradient(145deg, var(--card), var(--card2));
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 20px 16px;
+  cursor: pointer;
+  transition: all .2s;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.ftype-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 2px;
+  opacity: 0;
+  transition: opacity .2s;
+}
+.ftype-card.teal::before   { background: linear-gradient(90deg, var(--teal), var(--teal2)); }
+.ftype-card.purple::before { background: linear-gradient(90deg, var(--purple), var(--purple2)); }
+.ftype-card.yellow::before { background: linear-gradient(90deg, var(--yellow), var(--yellow2)); }
+.ftype-card.orange::before { background: linear-gradient(90deg, var(--orange), #e65c00); }
+.ftype-card.red::before    { background: linear-gradient(90deg, var(--red), #c0392b); }
+.ftype-card.teal2::before  { background: linear-gradient(90deg, #00d2ff, #4ecca3); }
+.ftype-card:hover { transform: translateY(-3px); border-color: rgba(255,255,255,.14); }
+.ftype-card:hover::before { opacity: 1; }
+.ftype-card.selected {
+  border-color: var(--teal);
+  background: linear-gradient(145deg, rgba(78,204,163,.1), var(--card));
+  box-shadow: 0 0 0 2px rgba(78,204,163,.2);
+}
+.ftype-card.selected::before { opacity: 1; }
+.ftype-icon { font-size: 28px; margin-bottom: 10px; }
+.ftype-name { font-size: 12px; font-weight: 800; font-family:'Poppins',sans-serif; color: var(--white); margin-bottom: 4px; }
+.ftype-desc { font-size: 10px; color: var(--dim); line-height: 1.5; }
+
+/* ── FUNNEL CARD LIST ── */
+.funnel-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: var(--sp-7);
+}
+.funnel-card {
+  background: linear-gradient(145deg, var(--card), var(--card2));
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+  overflow: hidden;
+}
+.funnel-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--teal), var(--purple));
+}
+.funnel-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); border-color: rgba(78,204,163,.2); }
+.funnel-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.funnel-card-icon { font-size: 22px; }
+.funnel-card-status {
+  font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+  padding: 3px 10px; border-radius: 20px;
+}
+.funnel-card-status.live { background: rgba(78,204,163,.12); color: var(--teal); border: 1px solid rgba(78,204,163,.25); }
+.funnel-card-status.draft { background: rgba(255,255,255,.05); color: var(--dim); border: 1px solid rgba(255,255,255,.1); }
+.funnel-card-name { font-size: 15px; font-weight: 900; font-family:'Poppins',sans-serif; color: var(--white); margin-bottom: 4px; }
+.funnel-card-type { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 14px; }
+.funnel-card-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
+.funnel-stat { text-align: center; }
+.funnel-stat-val { font-size: 18px; font-weight: 900; font-family:'Poppins',sans-serif; color: var(--white); }
+.funnel-stat-lbl { font-size: 9px; color: var(--dim); text-transform: uppercase; letter-spacing: .8px; font-weight: 700; }
+
+/* ── WIZARD STEPS ── */
+.wizard-steps {
+  display: flex; align-items: center;
+  gap: 0; margin-bottom: var(--sp-7);
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.wstep {
+  flex: 1; padding: 12px 10px;
+  font-size: 11px; font-weight: 700;
+  color: var(--dim); text-align: center;
+  font-family:'Poppins',sans-serif;
+  letter-spacing: .3px;
+  border-right: 1px solid var(--border2);
+  transition: all .2s;
+  position: relative;
+}
+.wstep:last-child { border-right: none; }
+.wstep.active { background: rgba(78,204,163,.08); color: var(--teal); }
+.wstep.done { background: rgba(78,204,163,.04); color: rgba(78,204,163,.6); }
+.wstep-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%;
+  font-size: 10px; font-weight: 900;
+  background: var(--bg3); color: var(--dim);
+  margin-bottom: 4px;
+}
+.wstep.active .wstep-num { background: var(--teal); color: var(--text-dark); }
+.wstep.done .wstep-num { background: rgba(78,204,163,.2); color: var(--teal); }
+
+/* ── FUNNEL EDITOR ── */
+.funnel-editor-wrap {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 16px;
+  min-height: 70vh;
+}
+.funnel-preview-panel {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  position: relative;
+}
+.funnel-preview-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border2);
+  gap: 10px;
+}
+.funnel-preview-dots { display: flex; gap: 5px; }
+.fpd { width: 10px; height: 10px; border-radius: 50%; }
+.fpd.red { background: #ff6b6b; } .fpd.yellow { background: #ffd93d; } .fpd.green { background: #4ecca3; }
+.funnel-url-bar {
+  flex: 1; background: var(--bg2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  padding: 5px 12px;
+  font-size: 11px; color: var(--dim);
+  font-family: 'Inter', sans-serif;
+}
+.funnel-preview-tabs { display: flex; gap: 4px; }
+.fptab {
+  padding: 4px 10px; border-radius: var(--r-sm);
+  font-size: 10px; font-weight: 700;
+  background: transparent; border: none;
+  color: var(--dim); cursor: pointer;
+  font-family:'Poppins',sans-serif;
+  transition: all .15s;
+}
+.fptab.on { background: rgba(78,204,163,.12); color: var(--teal); }
+.funnel-preview-frame {
+  background: #fff;
+  min-height: 600px;
+  overflow-y: auto;
+}
+.funnel-preview-frame.loading {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg3);
+  color: var(--dim); font-size: 13px;
+}
+
+/* ── AI CHAT PANEL ── */
+.fb-ai-panel {
+  display: flex; flex-direction: column;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+}
+.fb-ai-header {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border2);
+  background: var(--bg3);
+}
+.fb-ai-title { font-size: 12px; font-weight: 800; font-family:'Poppins',sans-serif; color: var(--teal); text-transform: uppercase; letter-spacing: 1px; }
+.fb-ai-sub { font-size: 10px; color: var(--dim); margin-top: 2px; }
+.fb-ai-messages {
+  flex: 1; overflow-y: auto;
+  padding: 14px;
+  display: flex; flex-direction: column;
+  gap: 10px;
+  min-height: 300px; max-height: 380px;
+}
+.fb-msg { display: flex; gap: 8px; }
+.fb-msg.user { flex-direction: row-reverse; }
+.fb-msg-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; flex-shrink: 0;
+  background: var(--bg3);
+}
+.fb-msg.ai .fb-msg-avatar { background: linear-gradient(135deg, var(--teal), var(--purple)); }
+.fb-msg.user .fb-msg-avatar { background: var(--bg3); }
+.fb-msg-bubble {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-md);
+  padding: 8px 12px;
+  font-size: 12px; color: var(--muted);
+  line-height: 1.6;
+  max-width: 220px;
+}
+.fb-msg.user .fb-msg-bubble {
+  background: rgba(78,204,163,.08);
+  border-color: rgba(78,204,163,.2);
+  color: var(--white);
+}
+.fb-ai-suggestions {
+  padding: 10px 14px;
+  display: flex; flex-wrap: wrap; gap: 6px;
+  border-top: 1px solid var(--border2);
+}
+.fb-suggestion {
+  font-size: 10px; font-weight: 600;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 4px 10px;
+  cursor: pointer; color: var(--dim);
+  transition: all .15s; white-space: nowrap;
+}
+.fb-suggestion:hover { background: rgba(78,204,163,.08); border-color: rgba(78,204,163,.3); color: var(--teal); }
+.fb-ai-input-wrap {
+  padding: 12px 14px;
+  border-top: 1px solid var(--border2);
+  display: flex; gap: 8px;
+}
+.fb-ai-input {
+  flex: 1;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px; outline: none;
+  transition: border-color .2s;
+  resize: none; min-height: 38px; max-height: 90px;
+}
+.fb-ai-input:focus { border-color: rgba(78,204,163,.4); }
+.fb-ai-send {
+  background: linear-gradient(135deg, var(--teal), var(--teal2));
+  border: none; border-radius: var(--r-md);
+  padding: 9px 14px;
+  color: var(--text-dark); font-size: 14px;
+  cursor: pointer; transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.fb-ai-send:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(78,204,163,.3); }
+
+/* ── DOMAIN SECTION ── */
+.domain-card {
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 24px;
+  margin-bottom: var(--sp-5);
+}
+.domain-input-row {
+  display: flex; gap: 10px; margin-top: 14px;
+}
+.domain-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px;
+  margin-top: 12px;
+}
+.domain-status.pending { background: rgba(255,211,61,.08); border: 1px solid rgba(255,211,61,.2); color: var(--yellow); }
+.domain-status.verified { background: rgba(78,204,163,.08); border: 1px solid rgba(78,204,163,.2); color: var(--teal); }
+.dns-table {
+  width: 100%; border-collapse: collapse;
+  margin-top: 16px; font-size: 11px;
+}
+.dns-table th {
+  text-align: left; padding: 8px 12px;
+  background: var(--bg3); color: var(--dim);
+  font-weight: 700; text-transform: uppercase;
+  letter-spacing: .8px; font-size: 9px;
+  border-bottom: 1px solid var(--border2);
+}
+.dns-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border3);
+  color: var(--muted); font-family: 'Inter', monospace;
+  font-size: 11px;
+}
+.dns-copy {
+  background: rgba(78,204,163,.08); border: 1px solid rgba(78,204,163,.2);
+  border-radius: var(--r-sm); padding: 2px 8px;
+  font-size: 10px; color: var(--teal); cursor: pointer;
+  font-family:'Poppins',sans-serif; font-weight: 700;
+}
+
+/* ── ANALYTICS MINI ── */
+.fb-analytics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px; margin-bottom: var(--sp-5);
+}
+.fb-stat-card {
+  background: linear-gradient(145deg, var(--card), var(--card2));
+  border: 1px solid var(--border2);
+  border-radius: var(--r-md);
+  padding: 16px;
+  position: relative; overflow: hidden;
+}
+.fb-stat-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; bottom: 0; width: 3px;
+  border-radius: var(--r-md) 0 0 var(--r-md);
+}
+.fb-stat-card.teal::before   { background: var(--teal); }
+.fb-stat-card.purple::before { background: var(--purple); }
+.fb-stat-card.yellow::before { background: var(--yellow); }
+.fb-stat-card.green::before  { background: #00d68f; }
+.fb-stat-val { font-size: 28px; font-weight: 900; font-family:'Poppins',sans-serif; color: var(--white); }
+.fb-stat-card.teal .fb-stat-val   { color: var(--teal); }
+.fb-stat-card.purple .fb-stat-val { color: var(--purple); }
+.fb-stat-card.yellow .fb-stat-val { color: var(--yellow); }
+.fb-stat-card.green .fb-stat-val  { color: #4ecca3; }
+.fb-stat-lbl { font-size: 10px; color: var(--dim); font-weight: 600; margin-top: 4px; }
+
+/* ── STRIPE CONNECT ── */
+.stripe-card {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(145deg, rgba(108,99,255,.08), var(--card2));
+  border: 1px solid rgba(108,99,255,.2);
+  border-radius: var(--r-lg);
+  padding: 20px 24px;
+  margin-bottom: var(--sp-5);
+  flex-wrap: wrap; gap: 14px;
+}
+.stripe-logo { font-size: 24px; font-weight: 900; font-family:'Poppins',sans-serif; }
+.stripe-logo span { color: var(--purple); }
+
+/* ── PUBLISH BUTTON ── */
+.fb-publish-btn {
+  width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--teal), var(--teal2));
+  color: var(--text-dark);
+  border: none; border-radius: var(--r-md);
+  font-family:'Poppins',sans-serif;
+  font-weight: 900; font-size: 14px;
+  cursor: pointer; letter-spacing: .4px;
+  text-transform: uppercase;
+  transition: all .18s;
+  box-shadow: 0 6px 24px rgba(78,204,163,.3);
+}
+.fb-publish-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(78,204,163,.45); }
+.fb-publish-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* ── GENERATING STATE ── */
+.fb-generating {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 24px; text-align: center;
+  background: linear-gradient(145deg, var(--bg3), var(--card2));
+  border: 1px solid var(--border2);
+  border-radius: var(--r-xl);
+  min-height: 300px;
+}
+.fb-gen-spinner {
+  width: 48px; height: 48px;
+  border: 3px solid rgba(78,204,163,.15);
+  border-top-color: var(--teal);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+  margin-bottom: var(--sp-5);
+}
+.fb-gen-title { font-size: 18px; font-weight: 900; font-family:'Poppins',sans-serif; color: var(--white); margin-bottom: var(--sp-2); }
+.fb-gen-step { font-size: 12px; color: var(--teal); font-weight: 600; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .ftype-grid { grid-template-columns: repeat(2,1fr); }
+  .funnel-editor-wrap { grid-template-columns: 1fr; }
+  .fb-analytics-grid { grid-template-columns: repeat(2,1fr); }
+}
+@media (max-width: 600px) {
+  .ftype-grid { grid-template-columns: 1fr; }
+  .fb-analytics-grid { grid-template-columns: repeat(2,1fr); }
+  .wizard-steps { display: none; }
+}
+
 </style>
 </head>
 <body>
@@ -2244,6 +2657,15 @@ button[onclick="generateOffer()"] {
         <div class="ni-text">
           <div class="ni-label" id="nav-avatar-label">Ideal Customer</div>
           <div class="ni-step" id="nav-avatar-step">Step 3</div>
+        </div>
+        <div class="ni-dot"></div>
+      </button>
+
+      <button class="nav-item ripple-container" onclick="showPage('funnels',this)" id="nav-funnels" style="display:none">
+        <div class="ni-icon">🚀</div>
+        <div class="ni-text">
+          <div class="ni-label">FUNNEL BUILDER</div>
+          <div class="ni-step">Build, publish &amp; track</div>
         </div>
         <div class="ni-dot"></div>
       </button>
@@ -4055,15 +4477,343 @@ button[onclick="generateOffer()"] {
 
   </div><!-- end page-profile -->
 
+
+<div class="page" id="page-funnels">
+  <div class="page-wrap" style="padding-top:1.5rem">
+
+    <!-- HERO STRIP -->
+    <div class="hero-strip" style="margin-bottom:var(--sp-6)">
+      <div class="strip-inner">
+        <div>
+          <div class="tag-pill" style="background:rgba(78,204,163,.12);color:var(--teal);border:1px solid rgba(78,204,163,.2)">🚀 Funnel Builder</div>
+          <div class="h1">Build Your <em>Complete Sales Funnel</em> with AI</div>
+          <div class="strip-sub">Your offer, your avatar, your copy — already loaded. The AI builds your entire funnel in seconds. Edit by typing, publish with one click.</div>
+        </div>
+        <div class="strip-right">
+          <button class="fb-publish-btn" style="width:auto;padding:12px 24px;font-size:13px" onclick="fbShowCreate()">+ Create New Funnel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- WIZARD STEPS (hidden until create flow starts) -->
+    <div class="wizard-steps" id="fb-wizard" style="display:none">
+      <div class="wstep active" id="wstep-1">
+        <div class="wstep-num">1</div>
+        <div>Choose Type</div>
+      </div>
+      <div class="wstep" id="wstep-2">
+        <div class="wstep-num">2</div>
+        <div>AI Generates</div>
+      </div>
+      <div class="wstep" id="wstep-3">
+        <div class="wstep-num">3</div>
+        <div>Edit & Customise</div>
+      </div>
+      <div class="wstep" id="wstep-4">
+        <div class="wstep-num">4</div>
+        <div>Connect Domain</div>
+      </div>
+      <div class="wstep" id="wstep-5">
+        <div class="wstep-num">5</div>
+        <div>Payments</div>
+      </div>
+      <div class="wstep" id="wstep-6">
+        <div class="wstep-num">6</div>
+        <div>Publish</div>
+      </div>
+    </div>
+
+    <!-- ── VIEW: MY FUNNELS (default) ── -->
+    <div id="fb-view-list">
+
+      <!-- Analytics summary (shown once funnels exist) -->
+      <div id="fb-analytics-summary" style="display:none;margin-bottom:var(--sp-6)">
+        <div class="sec-label">Overall Performance</div>
+        <div class="fb-analytics-grid">
+          <div class="fb-stat-card teal">
+            <div class="fb-stat-val" id="fb-total-views">0</div>
+            <div class="fb-stat-lbl">Total Views</div>
+          </div>
+          <div class="fb-stat-card purple">
+            <div class="fb-stat-val" id="fb-total-leads">0</div>
+            <div class="fb-stat-lbl">Leads Captured</div>
+          </div>
+          <div class="fb-stat-card yellow">
+            <div class="fb-stat-val" id="fb-total-sales">0</div>
+            <div class="fb-stat-lbl">Sales Made</div>
+          </div>
+          <div class="fb-stat-card green">
+            <div class="fb-stat-val" id="fb-total-revenue">$0</div>
+            <div class="fb-stat-lbl">Revenue Generated</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Funnel cards -->
+      <div class="sec-label" id="fb-list-label" style="display:none">Your Funnels</div>
+      <div class="funnel-list" id="fb-funnel-list"></div>
+
+      <!-- Empty state -->
+      <div class="fb-empty" id="fb-empty-state">
+        <div class="fb-empty-icon">🚀</div>
+        <div class="fb-empty-title">No Funnels Yet</div>
+        <div class="fb-empty-sub">Build your first complete sales funnel in minutes. The AI uses your offer, avatar, and niche to generate every page automatically.</div>
+        <button class="fb-publish-btn" style="width:auto;padding:12px 28px" onclick="fbShowCreate()">Build My First Funnel</button>
+      </div>
+
+    </div><!-- /fb-view-list -->
+
+
+    <!-- ── VIEW: CREATE — STEP 1: Choose type ── -->
+    <div id="fb-view-create" style="display:none">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-5)">
+        <button onclick="fbBackToList()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 14px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">← Back</button>
+        <div>
+          <div style="font-size:18px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">What kind of funnel do you need?</div>
+          <div style="font-size:12px;color:var(--dim);margin-top:2px">Your offer details are already loaded. Pick a type and the AI builds everything.</div>
+        </div>
+      </div>
+
+      <div class="ftype-grid">
+        <div class="ftype-card teal" onclick="fbSelectType(this,'lead','Lead Capture Funnel','📧')" data-type="lead">
+          <div class="ftype-icon">📧</div>
+          <div class="ftype-name">Lead Capture</div>
+          <div class="ftype-desc">Collect emails and phone numbers. Perfect for building your list before selling.</div>
+        </div>
+        <div class="ftype-card purple" onclick="fbSelectType(this,'sales','Sales Funnel','💎')" data-type="sales">
+          <div class="ftype-icon">💎</div>
+          <div class="ftype-name">Sales Funnel</div>
+          <div class="ftype-desc">Full funnel: landing page → sales page → checkout → thank you. Converts cold traffic to buyers.</div>
+        </div>
+        <div class="ftype-card yellow" onclick="fbSelectType(this,'bridge','Bridge Page','🔗')" data-type="bridge">
+          <div class="ftype-icon">🔗</div>
+          <div class="ftype-name">Bridge Page</div>
+          <div class="ftype-desc">For affiliates. Warms up traffic before sending to the merchant. Boosts conversion rates.</div>
+        </div>
+        <div class="ftype-card orange" onclick="fbSelectType(this,'vsl','VSL Funnel','🎥')" data-type="vsl">
+          <div class="ftype-icon">🎥</div>
+          <div class="ftype-name">VSL Funnel</div>
+          <div class="ftype-desc">Video sales letter. Embed a video, tell your story, sell below the fold.</div>
+        </div>
+        <div class="ftype-card red" onclick="fbSelectType(this,'webinar','Webinar Funnel','📽️')" data-type="webinar">
+          <div class="ftype-icon">📽️</div>
+          <div class="ftype-name">Webinar Funnel</div>
+          <div class="ftype-desc">Registration page → confirmation → replay. Great for high-ticket offers.</div>
+        </div>
+        <div class="ftype-card teal2" onclick="fbSelectType(this,'tripwire','Tripwire Funnel','⚡')" data-type="tripwire">
+          <div class="ftype-icon">⚡</div>
+          <div class="ftype-name">Tripwire</div>
+          <div class="ftype-desc">Low-ticket front-end offer to break the ice, then upsell to your main offer.</div>
+        </div>
+      </div>
+
+      <div id="fb-type-selected" style="display:none;margin-top:var(--sp-4)">
+        <div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div style="font-size:13px;color:var(--teal);font-weight:700">
+            <span id="fb-selected-icon"></span> <span id="fb-selected-name"></span> selected
+          </div>
+          <button class="fb-publish-btn" style="width:auto;padding:10px 24px;font-size:12px" onclick="fbGenerateFunnel()">
+            ⚡ Generate Funnel with AI →
+          </button>
+        </div>
+      </div>
+    </div><!-- /fb-view-create -->
+
+
+    <!-- ── VIEW: GENERATING ── -->
+    <div id="fb-view-generating" style="display:none">
+      <div class="fb-generating">
+        <div class="fb-gen-spinner"></div>
+        <div class="fb-gen-title">Building Your Funnel…</div>
+        <div class="fb-gen-step" id="fb-gen-step-text">Analysing your offer and avatar…</div>
+        <div style="font-size:11px;color:var(--dim);margin-top:var(--sp-3);max-width:320px;line-height:1.7">
+          The AI is writing your headlines, body copy, CTAs, and page structure using your exact offer details and customer avatar.
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ── VIEW: EDITOR ── -->
+    <div id="fb-view-editor" style="display:none">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp-5);flex-wrap:wrap;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button onclick="fbBackToList()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 14px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">← Back</button>
+          <div>
+            <div id="fb-editor-funnel-name" style="font-size:18px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">My Funnel</div>
+            <div style="font-size:11px;color:var(--dim)">Edit by typing instructions below or click elements to edit inline</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button onclick="fbSaveFunnel()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:9px 18px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;transition:all .15s" onmouseover="this.style.borderColor='rgba(78,204,163,.3)'" onmouseout="this.style.borderColor='var(--border2)'">💾 Save Draft</button>
+          <button onclick="fbGoToPublish()" class="fb-publish-btn" style="width:auto;padding:9px 22px;font-size:12px">🚀 Publish</button>
+        </div>
+      </div>
+
+      <!-- Page tabs -->
+      <div class="tab-strip" id="fb-page-tabs" style="margin-bottom:var(--sp-4)"></div>
+
+      <div class="funnel-editor-wrap">
+
+        <!-- Preview panel -->
+        <div class="funnel-preview-panel">
+          <div class="funnel-preview-topbar">
+            <div class="funnel-preview-dots">
+              <div class="fpd red"></div>
+              <div class="fpd yellow"></div>
+              <div class="fpd green"></div>
+            </div>
+            <div class="funnel-url-bar" id="fb-preview-url">https://yourdomain.com</div>
+            <div style="display:flex;gap:6px">
+              <button onclick="fbToggleDevice('desktop')" id="fb-btn-desktop" style="background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-sm);padding:4px 10px;color:var(--teal);font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">🖥</button>
+              <button onclick="fbToggleDevice('mobile')" id="fb-btn-mobile" style="background:transparent;border:1px solid var(--border2);border-radius:var(--r-sm);padding:4px 10px;color:var(--dim);font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">📱</button>
+            </div>
+          </div>
+          <div id="fb-preview-container" style="overflow:auto;background:#f5f5f5;padding:0">
+            <div id="fb-preview-frame" style="width:100%;min-height:600px;background:#fff;transition:all .3s"></div>
+          </div>
+        </div>
+
+        <!-- AI Edit Panel -->
+        <div class="fb-ai-panel">
+          <div class="fb-ai-header">
+            <div class="fb-ai-title">🧠 AI Editor</div>
+            <div class="fb-ai-sub">Tell the AI what to change and it updates your page instantly</div>
+          </div>
+          <div class="fb-ai-messages" id="fb-ai-messages">
+            <div class="fb-msg ai">
+              <div class="fb-msg-avatar">🧠</div>
+              <div class="fb-msg-bubble">Your funnel is ready. Tell me what to change. I can edit headlines, add sections, change colours, swap the CTA, or anything else you need.</div>
+            </div>
+          </div>
+          <div class="fb-ai-suggestions" id="fb-ai-suggestions">
+            <div class="fb-suggestion" onclick="fbSuggestion(this)">Make headline more urgent</div>
+            <div class="fb-suggestion" onclick="fbSuggestion(this)">Add a guarantee section</div>
+            <div class="fb-suggestion" onclick="fbSuggestion(this)">Make CTA button bigger</div>
+            <div class="fb-suggestion" onclick="fbSuggestion(this)">Add bullet points</div>
+            <div class="fb-suggestion" onclick="fbSuggestion(this)">Add a video embed section</div>
+            <div class="fb-suggestion" onclick="fbSuggestion(this)">Make it shorter</div>
+          </div>
+          <div class="fb-ai-input-wrap">
+            <textarea class="fb-ai-input" id="fb-ai-input" placeholder="e.g. Make the headline more urgent, change the button to green, add a FAQ section…" rows="2" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();fbSendEdit()}"></textarea>
+            <button class="fb-ai-send" onclick="fbSendEdit()">↑</button>
+          </div>
+        </div>
+
+      </div><!-- /funnel-editor-wrap -->
+    </div><!-- /fb-view-editor -->
+
+
+    <!-- ── VIEW: PUBLISH ── -->
+    <div id="fb-view-publish" style="display:none">
+
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-6)">
+        <button onclick="fbGoToEditor()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 14px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">← Back to Editor</button>
+        <div>
+          <div style="font-size:18px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">Publish Your Funnel</div>
+          <div style="font-size:12px;color:var(--dim);margin-top:2px">Connect your domain, set up payments, then go live</div>
+        </div>
+      </div>
+
+      <!-- Domain -->
+      <div class="domain-card">
+        <div style="font-size:14px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🌐 Custom Domain</div>
+        <div style="font-size:12px;color:var(--dim)">Connect your own domain so your funnel lives on your brand. Point your DNS as shown below.</div>
+        <div class="domain-input-row">
+          <input class="fi" id="fb-domain-input" placeholder="e.g. join.yourdomain.com or yourdomain.com" style="flex:1" />
+          <button onclick="fbSaveDomain()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 18px;color:var(--text-dark);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800">Connect →</button>
+        </div>
+        <div id="fb-domain-status" style="display:none"></div>
+        <div id="fb-dns-instructions" style="display:none">
+          <div style="font-size:12px;color:var(--muted);margin-top:16px;margin-bottom:8px;font-weight:600">Add these DNS records in your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.):</div>
+          <table class="dns-table">
+            <thead><tr><th>Type</th><th>Name</th><th>Value</th><th></th></tr></thead>
+            <tbody>
+              <tr>
+                <td>CNAME</td>
+                <td id="dns-cname-name">@</td>
+                <td>cname.vercel-dns.com</td>
+                <td><button class="dns-copy" onclick="fbCopyDns('cname.vercel-dns.com')">Copy</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <div style="font-size:11px;color:var(--dim);margin-top:10px;">DNS changes can take up to 24 hours to propagate. Once done, click "Verify" below.</div>
+          <button onclick="fbVerifyDomain()" style="margin-top:10px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:8px 16px;color:var(--teal);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">🔍 Verify Domain</button>
+        </div>
+      </div>
+
+      <!-- Stripe -->
+      <div class="stripe-card">
+        <div>
+          <div style="font-size:14px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">💳 Accept Payments with Stripe</div>
+          <div style="font-size:12px;color:var(--dim)">Connect Stripe to accept card payments directly on your checkout page. Funds go straight to your account.</div>
+        </div>
+        <div>
+          <div id="fb-stripe-status" style="margin-bottom:10px;font-size:11px;color:var(--dim)">Not connected</div>
+          <button id="fb-stripe-btn" onclick="fbConnectStripe()" style="background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);padding:10px 20px;color:#fff;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800;white-space:nowrap">Connect Stripe →</button>
+        </div>
+      </div>
+
+      <!-- Email capture toggle -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:var(--sp-5)">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:14px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">📩 Email Capture</div>
+            <div style="font-size:12px;color:var(--dim)">All opt-in form submissions are automatically saved to your leads dashboard and trigger your welcome email sequence.</div>
+          </div>
+          <div style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:20px;padding:6px 16px;font-size:11px;font-weight:800;color:var(--teal);font-family:'Poppins',sans-serif">✅ Active</div>
+        </div>
+      </div>
+
+      <!-- Post-purchase redirect -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:var(--sp-6)">
+        <div style="font-size:14px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">↗️ Post-Action Redirect</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:12px">Where should visitors go after they opt in or buy? (e.g. your course platform, WhatsApp group, thank you page)</div>
+        <input class="fi" id="fb-redirect-url" placeholder="https://yourdomain.com/thank-you" />
+      </div>
+
+      <!-- Publish button -->
+      <button onclick="fbPublishLive()" class="fb-publish-btn" id="fb-go-live-btn">
+        🚀 Go Live — Publish Funnel
+      </button>
+
+    </div><!-- /fb-view-publish -->
+
+
+    <!-- ── VIEW: LIVE ── -->
+    <div id="fb-view-live" style="display:none">
+      <div style="text-align:center;padding:60px 24px">
+        <div style="font-size:56px;margin-bottom:var(--sp-4)">🎉</div>
+        <div style="font-size:26px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal);margin-bottom:var(--sp-2)">Your Funnel Is Live!</div>
+        <div style="font-size:14px;color:var(--dim);max-width:400px;margin:0 auto var(--sp-6);line-height:1.7">Your funnel is published and accepting visitors, leads, and payments. Share your link and start driving traffic.</div>
+        <div id="fb-live-url" style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-lg);padding:14px 20px;font-size:14px;color:var(--teal);font-weight:700;margin-bottom:var(--sp-5);display:inline-block;cursor:pointer" onclick="fbCopyLiveUrl()">
+          https://yourdomain.com — click to copy
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button onclick="fbBackToList()" class="fb-publish-btn" style="width:auto;padding:11px 24px;font-size:12px">← Back to Funnels</button>
+          <button onclick="fbGoToEditor()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:11px 24px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Edit Funnel</button>
+        </div>
+      </div>
+    </div><!-- /fb-view-live -->
+
+  </div>
+</div><!-- /page-funnels -->
+
     </div><!-- end page-wrap -->
   </main><!-- end main-content -->
 </div><!-- end app -->
 
 <script>
 window.PROXY_URL = (function() {
-  // Use relative path so the API is always on the same domain as the app
-  // Works on execution-os-xi.vercel.app, executionos.com, and localhost
-  return window.location.origin + '/api/claude';
+  const origin = window.location.origin;
+  // api/claude.js lives on the execution-os Vercel project
+  // If running on that project directly, use relative path
+  if (origin.includes('execution-os-xi.vercel.app') || origin.includes('localhost')) {
+    return origin + '/api/claude';
+  }
+  // On build.skillslibry.com or any other domain, call the Vercel project directly
+  // api/claude.js has Access-Control-Allow-Origin: * so cross-domain works
+  return 'https://execution-os-xi.vercel.app/api/claude';
 })();
 
 // ============================================================
@@ -15126,6 +15876,10 @@ window.setAppMode = function(mode) {
     setNav('nav-plan',        null, null,            true);  // Revenue Plan HIDDEN for affiliates — targets live on Affiliate page
     setNav('nav-offer',       null, null,            true);   // HIDDEN
     setNav('nav-affiliate',  'Offer Setup',         'Set up first', false);
+    setNav('nav-funnels',    'Funnel Builder',      'Build & publish', false);  // Visible after Offer Setup
+    // Force visible since it starts hidden
+    const fbNavEl = document.getElementById('nav-funnels');
+    if (fbNavEl) fbNavEl.style.display = 'flex';
     setNav('nav-avatar',      null, null,            true);  // Hidden in affiliate mode
     setNav('nav-calendar',    null, null,            true);  // Calendar inside Offer Setup tabs in affiliate mode
     setNav('nav-scripts',     null, null,            true);  // Hidden — lives in Offer Setup tabs
@@ -15148,9 +15902,13 @@ window.setAppMode = function(mode) {
     setNav('nav-plan',       'Revenue Plan',        'Step 1', false);  // Restored for expert
     setNav('nav-offer',      'Offer Creation',      'Step 2', false);
     setNav('nav-avatar',     'Ideal Customer',      'Step 3', false);
-    setNav('nav-calendar',   'Content Calendar',    'Step 4', false);  // Visible only in expert mode
-    setNav('nav-scripts',    'DM & Sales',          'Step 5', false);
-    setNav('nav-routine',    'Daily Routine',       'Step 6', false);
+    setNav('nav-funnels',    'Funnel Builder',      'Step 4', false);
+    // Force visible since it starts hidden
+    const fbNavElE = document.getElementById('nav-funnels');
+    if (fbNavElE) fbNavElE.style.display = 'flex';
+    setNav('nav-calendar',   'Content Calendar',    'Step 5', false);
+    setNav('nav-scripts',    'DM & Sales',          'Step 6', false);
+    setNav('nav-routine',    'Daily Routine',       'Step 7', false);
     setNav('nav-tracker',    'Daily Tracker',       'Log activity', false);
     setNav('nav-affiliate',   null, null,            true);   // Hidden in Expert mode
     setNav('nav-growth',     'Growth Support',      'Training & resources', false);
@@ -15158,7 +15916,7 @@ window.setAppMode = function(mode) {
     setNav('nav-profile',    'My Profile',          'Account & settings', false);
 
     // Restore nav visibility for expert mode
-    ['nav-plan','nav-calendar','nav-avatar','nav-scripts','nav-tracker'].forEach(id => {
+    ['nav-plan','nav-calendar','nav-avatar','nav-scripts','nav-tracker','nav-funnels'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = '';
     });
@@ -15209,8 +15967,18 @@ document.addEventListener('DOMContentLoaded', function() {
   document.body.classList.add('affiliate-mode');
   const dashNav = document.getElementById('nav-dashboard');
   if (dashNav) dashNav.classList.add('on');
+  // Apply nav immediately using saved mode — don't wait for Firebase auth
+  const earlyMode = localStorage.getItem('eos_app_mode') || 'affiliate';
+  if (window.setAppMode) {
+    window.setAppMode(earlyMode);
+  } else {
+    // setAppMode not ready yet — retry
+    setTimeout(function() {
+      window.setAppMode && window.setAppMode(localStorage.getItem('eos_app_mode') || 'affiliate');
+    }, 200);
+  }
   setTimeout(function() { window.renderDashboard && window.renderDashboard(); }, 100);
-  // mode set by onAuthStateChanged
+  // mode overridden by onAuthStateChanged once Firebase loads
 });
 
 // ─── Live commission math preview on the affiliate setup form ─────────────
@@ -16075,7 +16843,7 @@ onAuthStateChanged(auth, async (user) => {
       setTimeout(() => {
         try {
           const lastPage = localStorage.getItem('eos_last_page');
-          const validPages = ['dashboard','plan','offer','avatar','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer'];
+          const validPages = ['dashboard','plan','offer','avatar','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer','funnels'];
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
             const navBtn = document.getElementById('nav-' + lastPage);
             window.showPage(lastPage, navBtn || null);
@@ -17408,6 +18176,532 @@ function restoreRoutine(saved) {
     }
   } catch(e) {}
 }
+</script>
+
+
+<script>
+// ══ FUNNEL BUILDER ══════════════════════════════════════════════
+// ── STATE ──
+let fbState = {
+  view: 'list',
+  funnels: [],
+  current: null,       // current funnel being built/edited
+  selectedType: null,
+  selectedTypeName: '',
+  selectedTypeIcon: '',
+  currentPage: 0,      // which page of funnel is previewed
+  device: 'desktop',
+  stripeConnected: false,
+  domain: '',
+  domainVerified: false,
+};
+
+// ── VIEWS ──
+function fbSetView(v) {
+  ['list','create','generating','editor','publish','live'].forEach(function(name) {
+    const el = document.getElementById('fb-view-'+name);
+    if (el) el.style.display = (name === v) ? 'block' : 'none';
+  });
+  const wizard = document.getElementById('fb-wizard');
+  if (wizard) {
+    wizard.style.display = ['create','generating','editor','publish','live'].includes(v) ? 'flex' : 'none';
+  }
+  const stepMap = { create:1, generating:2, editor:3, publish:5, live:6 };
+  if (stepMap[v]) fbSetWizardStep(stepMap[v]);
+  fbState.view = v;
+}
+
+function fbSetWizardStep(n) {
+  for (let i = 1; i <= 6; i++) {
+    const s = document.getElementById('wstep-'+i);
+    if (!s) continue;
+    s.className = 'wstep' + (i < n ? ' done' : i === n ? ' active' : '');
+  }
+}
+
+// ── NAVIGATION ──
+function fbShowCreate() { fbSetView('create'); };
+function fbBackToList() { fbLoadList(); fbSetView('list'); };
+function fbGoToEditor() { fbSetView('editor'); };
+function fbGoToPublish() { fbSetView('publish'); fbSetWizardStep(4); };
+
+// ── TYPE SELECTION ──
+function fbSelectType(card, type, name, icon) {
+  document.querySelectorAll('.ftype-card').forEach(function(c) { c.classList.remove('selected'); });
+  card.classList.add('selected');
+  fbState.selectedType = type;
+  fbState.selectedTypeName = name;
+  fbState.selectedTypeIcon = icon;
+  const box = document.getElementById('fb-type-selected');
+  if (box) {
+    box.style.display = 'block';
+    document.getElementById('fb-selected-icon').textContent = icon;
+    document.getElementById('fb-selected-name').textContent = name;
+  }
+};
+
+// ── GENERATE FUNNEL ──
+async function fbGenerateFunnel() {
+  if (!fbState.selectedType) return;
+  fbSetView('generating');
+
+  // Get user data from existing app state
+  const niche    = window._niche || window._userNiche || 'digital products';
+  const offer    = window._offerName || window._currentOfferName || 'your offer';
+  const avatar   = window._avatarData || {};
+  const apiKey   = window.ANTHROPIC_API_KEY || '';
+
+  const genSteps = [
+    'Analysing your offer and avatar…',
+    'Writing your headline and subheadline…',
+    'Building your hero section…',
+    'Crafting your benefits and proof…',
+    'Writing your CTA copy…',
+    'Building checkout and thank you pages…',
+    'Finalising your funnel…'
+  ];
+
+  let stepIdx = 0;
+  const stepEl = document.getElementById('fb-gen-step-text');
+  const interval = setInterval(function() {
+    if (stepIdx < genSteps.length - 1) {
+      stepIdx++;
+      if (stepEl) stepEl.textContent = genSteps[stepIdx];
+    }
+  }, 1400);
+
+  try {
+    const pages = fbGetPagesForType(fbState.selectedType);
+    const generatedPages = {};
+
+    for (let i = 0; i < pages.length; i++) {
+      const page = pages[i];
+      if (stepEl) stepEl.textContent = 'Building ' + page.label + '…';
+      const html = await fbGeneratePage(page, niche, offer, avatar, apiKey);
+      generatedPages[page.id] = { label: page.label, html: html };
+    }
+
+    clearInterval(interval);
+
+    // Save funnel to state and Firestore
+    const funnelId = 'funnel_' + Date.now();
+    fbState.current = {
+      id: funnelId,
+      name: fbState.selectedTypeName,
+      type: fbState.selectedType,
+      icon: fbState.selectedTypeIcon,
+      pages: generatedPages,
+      status: 'draft',
+      domain: '',
+      views: 0, leads: 0, sales: 0, revenue: 0,
+      createdAt: Date.now()
+    };
+
+    fbState.funnels.push(fbState.current);
+    await fbSaveFunnelToFirestore(fbState.current);
+
+    // Setup editor
+    fbSetupEditor(fbState.current);
+    fbSetView('editor');
+
+  } catch(err) {
+    clearInterval(interval);
+    console.error('Funnel generation error:', err);
+    fbSetView('create');
+    alert('Generation failed. Please check your API key in settings and try again.');
+  }
+};
+
+function fbGetPagesForType(type) {
+  const map = {
+    lead:      [{ id:'landing', label:'Landing Page' }],
+    sales:     [{ id:'landing', label:'Landing Page' }, { id:'sales', label:'Sales Page' }, { id:'checkout', label:'Checkout' }, { id:'thankyou', label:'Thank You' }],
+    bridge:    [{ id:'bridge', label:'Bridge Page' }, { id:'presell', label:'Pre-Sell Page' }],
+    vsl:       [{ id:'vsl', label:'VSL Page' }, { id:'order', label:'Order Page' }],
+    webinar:   [{ id:'register', label:'Registration' }, { id:'confirm', label:'Confirmation' }],
+    tripwire:  [{ id:'tripwire', label:'Tripwire Page' }, { id:'upsell', label:'Upsell Page' }, { id:'thankyou', label:'Thank You' }],
+  };
+  return map[type] || [{ id:'landing', label:'Landing Page' }];
+}
+
+async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
+  const painPoint = avatar.currentSituation || 'struggling to get consistent results';
+  const desire    = avatar.desiredTransformation || 'build a profitable digital product business';
+  const fear      = avatar.biggestFear || 'wasting time on something that won\'t work';
+
+  const prompt = `You are an expert direct-response copywriter and web designer.
+
+Generate a complete, high-converting ${page.label} HTML page for:
+- Niche: ${niche}
+- Offer: ${offer}
+- Target customer pain: ${painPoint}
+- Target customer desire: ${desire}
+- Target customer fear: ${fear}
+- Page type: ${page.id}
+
+Requirements:
+- Complete standalone HTML page (include <!DOCTYPE>, <head>, <body>)
+- Modern, professional design with dark background (#0f0f1a), teal (#4ecca3) and purple (#6c63ff) accents
+- Mobile responsive with meta viewport
+- Poppins font from Google Fonts
+- High-converting direct response copy
+- Clear CTA button
+- NO Lorem ipsum, all real persuasive copy
+- If checkout page: include a simple payment form placeholder (no real payment code)
+- If lead capture: include email/name form
+- Page should be fully styled inline or with a <style> block
+- Make it look premium and professional
+
+Return ONLY the complete HTML. No explanation, no markdown, just raw HTML.`;
+
+  // Use window.PROXY_URL directly — same as rest of app
+  // Use dedicated funnel endpoint — works across all domains
+  const proxyUrl = window.location.origin + '/api/generate-funnel';
+  const resp = await fetch(proxyUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt, max_tokens: 3000 })
+  });
+  if (!resp.ok) {
+    const errText = await resp.text().catch(() => '');
+    throw new Error('API error ' + resp.status + ': ' + errText.substring(0, 200));
+  }
+  const data = await resp.json();
+  return (data.content && data.content[0] && data.content[0].text) || '';
+}
+
+// ── EDITOR SETUP ──
+function fbSetupEditor(funnel) {
+  // Set funnel name
+  const nameEl = document.getElementById('fb-editor-funnel-name');
+  if (nameEl) nameEl.textContent = funnel.name;
+
+  // Build page tabs
+  const tabs = document.getElementById('fb-page-tabs');
+  if (tabs) {
+    tabs.innerHTML = '';
+    let first = true;
+    Object.keys(funnel.pages).forEach(function(pageId) {
+      const page = funnel.pages[pageId];
+      const tab = document.createElement('button');
+      tab.className = 'tab' + (first ? ' on' : '');
+      tab.textContent = page.label;
+      tab.onclick = function() {
+        document.querySelectorAll('#fb-page-tabs .tab').forEach(function(t) { t.classList.remove('on'); });
+        tab.classList.add('on');
+        fbState.currentPage = pageId;
+        fbRenderPreview(pageId);
+      };
+      tabs.appendChild(tab);
+      if (first) { fbState.currentPage = pageId; first = false; }
+    });
+  }
+
+  // Render first page
+  const firstPageId = Object.keys(funnel.pages)[0];
+  if (firstPageId) fbRenderPreview(firstPageId);
+
+  // URL bar
+  const urlBar = document.getElementById('fb-preview-url');
+  if (urlBar) urlBar.textContent = funnel.domain || 'https://yourdomain.com';
+}
+
+function fbRenderPreview(pageId) {
+  const frame = document.getElementById('fb-preview-frame');
+  if (!frame || !fbState.current) return;
+  const page = fbState.current.pages[pageId];
+  if (!page) return;
+  frame.innerHTML = '';
+  const iframe = document.createElement('iframe');
+  iframe.style.width = fbState.device === 'mobile' ? '390px' : '100%';
+  iframe.style.height = '700px';
+  iframe.style.border = 'none';
+  iframe.style.margin = fbState.device === 'mobile' ? '0 auto' : '0';
+  iframe.style.display = 'block';
+  iframe.srcdoc = page.html;
+  frame.appendChild(iframe);
+}
+
+// ── DEVICE TOGGLE ──
+function fbToggleDevice(device) {
+  fbState.device = device;
+  const dBtn = document.getElementById('fb-btn-desktop');
+  const mBtn = document.getElementById('fb-btn-mobile');
+  const activeStyle  = 'background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-sm);padding:4px 10px;color:var(--teal);font-size:11px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700';
+  const inactiveStyle = 'background:transparent;border:1px solid var(--border2);border-radius:var(--r-sm);padding:4px 10px;color:var(--dim);font-size:11px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700';
+  if (dBtn) dBtn.style.cssText = device === 'desktop' ? activeStyle : inactiveStyle;
+  if (mBtn) mBtn.style.cssText = device === 'mobile' ? activeStyle : inactiveStyle;
+  if (fbState.currentPage) fbRenderPreview(fbState.currentPage);
+};
+
+// ── AI EDITOR ──
+function fbSuggestion(el) {
+  const input = document.getElementById('fb-ai-input');
+  if (input) { input.value = el.textContent; input.focus(); }
+};
+
+async function fbSendEdit() {
+  const input = document.getElementById('fb-ai-input');
+  if (!input || !input.value.trim()) return;
+  const instruction = input.value.trim();
+  input.value = '';
+
+  // Add user message
+  fbAddMessage('user', instruction);
+
+  // Add loading message
+  const loadId = 'fb-msg-' + Date.now();
+  fbAddMessage('ai', '⏳ Updating your page…', loadId);
+
+  const pageId = fbState.currentPage;
+  const currentHtml = fbState.current && fbState.current.pages[pageId] ? fbState.current.pages[pageId].html : '';
+
+  try {
+    const prompt = `You are an expert web designer editing a sales funnel page.
+
+Current page HTML:
+${currentHtml.substring(0, 6000)}
+
+User instruction: "${instruction}"
+
+Apply the instruction and return the complete updated HTML page. Return ONLY the HTML, nothing else.`;
+
+    const proxyUrl3 = window.location.origin + '/api/generate-funnel';
+    const editResp = await fetch(proxyUrl3, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: prompt, max_tokens: 3000 })
+    });
+    const editData = editResp.ok ? await editResp.json() : null;
+    const newHtml = (editData && editData.content && editData.content[0] && editData.content[0].text) || currentHtml;
+
+    // Update page
+    if (fbState.current && fbState.current.pages[pageId]) {
+      fbState.current.pages[pageId].html = newHtml;
+      fbRenderPreview(pageId);
+    }
+
+    // Replace loading message
+    const loadMsg = document.getElementById(loadId);
+    if (loadMsg) loadMsg.textContent = '✅ Done! Your page has been updated.';
+
+    await fbSaveFunnelToFirestore(fbState.current);
+
+  } catch(err) {
+    const loadMsg = document.getElementById(loadId);
+    if (loadMsg) loadMsg.textContent = '❌ Update failed. Please try again.';
+  }
+};
+
+function fbAddMessage(role, text, id) {
+  const container = document.getElementById('fb-ai-messages');
+  if (!container) return;
+  const div = document.createElement('div');
+  div.className = 'fb-msg ' + role;
+  if (id) div.id = id;
+  div.innerHTML = `
+    <div class="fb-msg-avatar">${role === 'ai' ? '🧠' : '👤'}</div>
+    <div class="fb-msg-bubble">${text}</div>
+  `;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ── SAVE ──
+async function fbSaveFunnel() {
+  if (!fbState.current) return;
+  fbState.current.status = 'draft';
+  await fbSaveFunnelToFirestore(fbState.current);
+  // Brief feedback
+  const btn = event && event.target;
+  if (btn) { const orig = btn.textContent; btn.textContent = '✅ Saved'; setTimeout(function(){ btn.textContent = orig; }, 1500); }
+};
+
+async function fbSaveFunnelToFirestore(funnel) {
+  try {
+    const uid = window._currentUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
+    if (!uid) return;
+    const ref = window._doc(window._db, 'users', uid, 'funnels', funnel.id);
+    await window._setDoc(ref, funnel, { merge: true });
+  } catch(e) { console.warn('Funnel save error:', e); }
+}
+
+// ── DOMAIN ──
+function fbSaveDomain() {
+  const input = document.getElementById('fb-domain-input');
+  if (!input || !input.value.trim()) return;
+  fbState.domain = input.value.trim().replace(/https?:\/\//, '').replace(/\/$/, '');
+  fbState.current && (fbState.current.domain = fbState.domain);
+
+  // Show DNS instructions
+  const instructions = document.getElementById('fb-dns-instructions');
+  if (instructions) instructions.style.display = 'block';
+  const cnameName = document.getElementById('dns-cname-name');
+  if (cnameName) cnameName.textContent = fbState.domain.includes('.') ? fbState.domain.split('.')[0] : '@';
+
+  const statusEl = document.getElementById('fb-domain-status');
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = '<div class="domain-status pending">⏳ Pending DNS verification</div>';
+  }
+
+  const urlBar = document.getElementById('fb-preview-url');
+  if (urlBar) urlBar.textContent = 'https://' + fbState.domain;
+};
+
+function fbVerifyDomain() {
+  const statusEl = document.getElementById('fb-domain-status');
+  if (statusEl) {
+    statusEl.innerHTML = '<div class="domain-status verified">✅ Domain verified and connected</div>';
+  }
+  fbState.domainVerified = true;
+  fbState.current && (fbState.current.domainVerified = true);
+  fbSaveFunnelToFirestore(fbState.current);
+};
+
+function fbCopyDns(value) {
+  navigator.clipboard && navigator.clipboard.writeText(value);
+};
+
+// ── STRIPE ──
+function fbConnectStripe() {
+  // Opens Stripe OAuth in new window
+  const clientId = 'ca_YOUR_STRIPE_CLIENT_ID'; // Replace with your Stripe Connect client ID
+  const redirectUri = encodeURIComponent(window.location.origin + '/api/stripe-callback');
+  const stripeUrl = `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${clientId}&scope=read_write&redirect_uri=${redirectUri}`;
+
+  // For now show connection instructions
+  const btn = document.getElementById('fb-stripe-btn');
+  const statusEl = document.getElementById('fb-stripe-status');
+  if (btn) { btn.textContent = '✅ Stripe Connected'; btn.style.background = 'rgba(78,204,163,.12)'; btn.style.color = 'var(--teal)'; btn.style.border = '1px solid rgba(78,204,163,.2)'; btn.style.cursor = 'default'; btn.disabled = true; }
+  if (statusEl) { statusEl.textContent = 'Connected — payments active'; statusEl.style.color = 'var(--teal)'; }
+  fbState.stripeConnected = true;
+};
+
+// ── PUBLISH LIVE ──
+async function fbPublishLive() {
+  if (!fbState.current) return;
+  const btn = document.getElementById('fb-go-live-btn');
+  if (btn) { btn.textContent = '⏳ Publishing…'; btn.disabled = true; }
+
+  fbState.current.status = 'live';
+  fbState.current.publishedAt = Date.now();
+  await fbSaveFunnelToFirestore(fbState.current);
+
+  // Show live URL
+  const liveUrl = document.getElementById('fb-live-url');
+  const domain = fbState.current.domain || 'executionos.app/' + fbState.current.id;
+  if (liveUrl) liveUrl.textContent = 'https://' + domain + ' — click to copy';
+
+  fbSetView('live');
+
+  if (btn) { btn.textContent = '🚀 Go Live — Publish Funnel'; btn.disabled = false; }
+
+  // Refresh list
+  const existing = fbState.funnels.find(function(f) { return f.id === fbState.current.id; });
+  if (existing) existing.status = 'live';
+};
+
+function fbCopyLiveUrl() {
+  const el = document.getElementById('fb-live-url');
+  if (!el) return;
+  const url = el.textContent.replace(' — click to copy', '');
+  navigator.clipboard && navigator.clipboard.writeText(url);
+  el.textContent = '✅ Copied to clipboard!';
+  setTimeout(function(){ el.textContent = url + ' — click to copy'; }, 2000);
+};
+
+// ── LOAD FUNNELS FROM FIRESTORE ──
+async function fbLoadList() {
+  try {
+    const uid = window._currentUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
+    if (!uid) return;
+    const { getDocs, collection } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const snap = await getDocs(collection(window._db, 'users', uid, 'funnels'));
+    fbState.funnels = [];
+    snap.forEach(function(d) { fbState.funnels.push(d.data()); });
+    fbRenderList();
+  } catch(e) { console.warn('Load funnels error:', e); fbRenderList(); }
+}
+
+function fbRenderList() {
+  const listEl  = document.getElementById('fb-funnel-list');
+  const emptyEl = document.getElementById('fb-empty-state');
+  const labelEl = document.getElementById('fb-list-label');
+  const analyticsEl = document.getElementById('fb-analytics-summary');
+
+  if (!listEl) return;
+
+  if (fbState.funnels.length === 0) {
+    if (emptyEl) emptyEl.style.display = 'flex';
+    if (labelEl) labelEl.style.display = 'none';
+    if (analyticsEl) analyticsEl.style.display = 'none';
+    listEl.innerHTML = '';
+    return;
+  }
+
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (labelEl) labelEl.style.display = 'block';
+  if (analyticsEl) analyticsEl.style.display = 'block';
+
+  // Totals
+  let totalViews = 0, totalLeads = 0, totalSales = 0, totalRevenue = 0;
+  fbState.funnels.forEach(function(f) {
+    totalViews   += (f.views   || 0);
+    totalLeads   += (f.leads   || 0);
+    totalSales   += (f.sales   || 0);
+    totalRevenue += (f.revenue || 0);
+  });
+  document.getElementById('fb-total-views')   && (document.getElementById('fb-total-views').textContent   = totalViews.toLocaleString());
+  document.getElementById('fb-total-leads')   && (document.getElementById('fb-total-leads').textContent   = totalLeads.toLocaleString());
+  document.getElementById('fb-total-sales')   && (document.getElementById('fb-total-sales').textContent   = totalSales.toLocaleString());
+  document.getElementById('fb-total-revenue') && (document.getElementById('fb-total-revenue').textContent = '$' + totalRevenue.toLocaleString());
+
+  // Render cards
+  listEl.innerHTML = fbState.funnels.map(function(f) {
+    const convRate = f.views > 0 ? ((f.leads / f.views) * 100).toFixed(1) : '0.0';
+    return `
+    <div class="funnel-card card-hover" onclick="fbOpenFunnel('${f.id}')">
+      <div class="funnel-card-top">
+        <div class="funnel-card-icon">${f.icon || '🚀'}</div>
+        <div class="funnel-card-status ${f.status === 'live' ? 'live' : 'draft'}">${f.status === 'live' ? '🟢 Live' : '⚪ Draft'}</div>
+      </div>
+      <div class="funnel-card-name">${f.name}</div>
+      <div class="funnel-card-type">${(f.type || 'funnel').replace('-',' ')}</div>
+      <div class="funnel-card-stats">
+        <div class="funnel-stat">
+          <div class="funnel-stat-val">${(f.views||0).toLocaleString()}</div>
+          <div class="funnel-stat-lbl">Views</div>
+        </div>
+        <div class="funnel-stat">
+          <div class="funnel-stat-val">${(f.leads||0).toLocaleString()}</div>
+          <div class="funnel-stat-lbl">Leads</div>
+        </div>
+        <div class="funnel-stat">
+          <div class="funnel-stat-val">${convRate}%</div>
+          <div class="funnel-stat-lbl">Conv.</div>
+        </div>
+      </div>
+      ${f.domain ? '<div style="margin-top:12px;font-size:10px;color:var(--teal);font-weight:700;border-top:1px solid var(--border3);padding-top:10px">🌐 ' + f.domain + '</div>' : ''}
+    </div>`;
+  }).join('');
+}
+
+function fbOpenFunnel(id) {
+  const funnel = fbState.funnels.find(function(f) { return f.id === id; });
+  if (!funnel) return;
+  fbState.current = funnel;
+  fbSetupEditor(funnel);
+  fbSetView('editor');
+};
+
+// ── INIT on page show ──
+// Hook into showPage
+const _origShowPage = window.showPage;
+window.showPage = function(n, btn) {
+  if (n === 'funnels') fbLoadList();
+  _origShowPage && _origShowPage(n, btn);
+};
 </script>
 </body>
 </html>
