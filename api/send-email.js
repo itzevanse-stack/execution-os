@@ -8,18 +8,13 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const { name, email, phone } = req.body || {};
+  if (!name || !email || !phone) return res.status(400).json({ error: 'Missing fields' });
 
-  if (!name || !email || !phone) {
-    return res.status(400).json({ error: 'Missing fields' });
-  }
-
-  const firstName  = name.split(' ')[0];
+  const firstName    = name.split(' ')[0];
   const encodedName  = encodeURIComponent(name);
   const encodedEmail = encodeURIComponent(email);
   const encodedPhone = encodeURIComponent(phone);
-
-  // Pre-filled apply link — skips the form when they click
-  const applyUrl = `https://build.skillslibry.com/grow?name=${encodedName}&email=${encodedEmail}&phone=${encodedPhone}#apply`;
+  const applyUrl     = `https://build.skillslibry.com/grow?name=${encodedName}&email=${encodedEmail}&phone=${encodedPhone}#apply`;
 
   try {
     const response = await fetch('https://api.resend.com/emails', {
@@ -32,7 +27,7 @@ module.exports = async function handler(req, res) {
         from:     'Evan <evan@build.skillslibry.com>',
         to:       [email],
         reply_to: 'evan@build.skillslibry.com',
-        subject:  `${firstName} — quick message`,
+        subject:  `${firstName} — this is why your digital product business isn't where it should be`,
         html:     getHtml(firstName, applyUrl),
         text:     getText(firstName, applyUrl),
         headers: {
@@ -57,48 +52,60 @@ module.exports = async function handler(req, res) {
   }
 };
 
-// ── Plain text (primary inbox signals) ───────────────────────────────────────
 function getText(firstName, applyUrl) {
   return `Hey ${firstName},
 
-Glad you made it over — wanted to reach out personally.
+I want to be straight with you about something most people in this space won't say.
 
-Most people I speak to who are building digital product businesses aren't struggling because they don't know enough. They're struggling because they're not executing consistently.
+The reason your digital product business isn't where you want it to be isn't because you don't know enough. You probably know exactly what you need to do.
 
-They've got the courses. They've watched the videos. They know what a funnel is.
+The problem is you don't have a system that makes you do it — consistently, every single day, in the right order.
 
-But nothing is actually moving.
+That's what Execution OS actually is. Not a course. Not a coaching program. A complete operating system for your business that you log into daily and execute from.
 
-That's the gap Execution OS closes.
+Here's what happens when you plug in:
 
-It's not a course. It's not coaching. It's the exact system we run our own business on — the one getting us to $50K months — structured so you can plug straight in and start executing this week.
+Step 1 — Revenue Plan
+You enter your offer price, monthly target, and niche. The system instantly calculates your exact numbers — how many calls you need to book, how many DMs to send, how many sales to close — and builds your complete 4-week roadmap.
 
-Here's what it gives you:
+Step 2 — Offer Creation
+Using Alex Hormozi's Grand Slam Offer framework, Execution OS engineers your high-ticket offer worth $2,000–$10,000+. Then it generates 3 custom funnel strategies specific to your niche and price point so you know exactly how to hit $20K–$50K/month.
 
-- A proven offer that sells even in saturated markets
-- An automated traffic system that works while you sleep
-- A conversion system that turns cold audiences into buyers
-- A scale playbook that compounds month after month
-- Done-with-you implementation from day one
+Step 3 — Ideal Customer Avatar
+The system generates your full buyer avatar and market intelligence — who they are, what they fear, what they've tried, what makes them buy. Your content, DMs, and sales calls become surgically targeted.
 
-If you're serious about finally getting your digital product business to where it should be, I want to get on a quick call and show you exactly how this works for your situation.
+Step 4 — 30-Day Content Calendar
+Execution OS builds you a full month of niche-matched content for Facebook and Instagram — posts, Reels, Carousels — with hooks, goals, and CTAs written for your exact audience. You don't think about what to post. You just execute.
 
-Click below to book your spot — I've already saved your details so you won't need to fill anything in again:
+Step 5 — DM & Sales Scripts
+Niche-tailored scripts for every stage: cold DM openers, warm follow-ups, and high-ticket close frameworks matched to your offer and avatar. You never wonder what to say again.
+
+Step 6 — Daily Routine
+Answer a few questions about your schedule and goals and Execution OS builds you a personalised daily routine around your life — so execution becomes automatic, not motivational.
+
+Daily Tracker + Performance HQ
+Every day you log your DMs sent, calls booked, and deals closed. Your Health Score updates in real time. Milestones unlock. You see exactly where you are and what needs to happen next.
+
+E-OS Intelligent — Your Business Advisor
+An AI advisor that knows your full profile — your niche, offer, avatar, revenue target, and activity history — giving you personalised guidance, not generic advice.
+
+This is a complete operating system. Everything is connected, everything is personalised, and everything is built to keep you executing — not consuming.
+
+If you're ready to stop piecing things together and finally run your business on a system that actually produces $20K–$50K months, book a call with me. I've saved your details so you won't need to fill anything in:
 
 ${applyUrl}
 
-Spots are limited this month. Don't sit on this.
+Spots this month are almost gone.
 
 Talk soon,
 Evan
 
-P.S. — Most people who book a call with me walk away with more clarity in 30 minutes than they got from months of courses. The call is free. The system works. The only question is whether you're ready.
+P.S. — The people inside Execution OS aren't smarter or more talented than you. They just stopped winging it and started executing on a real system. That's the only difference.
 
 ---
 To unsubscribe reply with "unsubscribe" in the subject.`;
 }
 
-// ── HTML (minimal — looks personal, not like a newsletter) ───────────────────
 function getHtml(firstName, applyUrl) {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -110,77 +117,96 @@ function getHtml(firstName, applyUrl) {
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#ffffff;padding:40px 20px;">
   <tr><td align="center">
     <table width="100%" style="max-width:560px;">
-
       <tr>
-        <td style="padding:0 0 32px;">
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            Hey ${firstName},
-          </p>
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            Glad you made it over — wanted to reach out personally.
-          </p>
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            Most people I speak to who are building digital product businesses aren't struggling because they don't know enough. They're struggling because they're <strong>not executing consistently.</strong>
-          </p>
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            They've got the courses. They've watched the videos. They know what a funnel is.
-          </p>
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            But nothing is actually moving.
-          </p>
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            That's the gap <strong>Execution OS</strong> closes.
-          </p>
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            It's not a course. It's not coaching. It's the exact system we run our own business on — the one getting us to $50K months — structured so you can plug straight in and start executing this week.
-          </p>
+        <td style="padding:0 0 40px;">
 
-          <p style="font-size:15px;color:#111;margin:0 0 10px;line-height:1.7;">Here's what it gives you:</p>
-          <p style="font-size:15px;color:#111;margin:0 0 6px;line-height:1.7;">✓ &nbsp;A proven offer that sells even in saturated markets</p>
-          <p style="font-size:15px;color:#111;margin:0 0 6px;line-height:1.7;">✓ &nbsp;An automated traffic system that works while you sleep</p>
-          <p style="font-size:15px;color:#111;margin:0 0 6px;line-height:1.7;">✓ &nbsp;A conversion system that turns cold audiences into buyers</p>
-          <p style="font-size:15px;color:#111;margin:0 0 6px;line-height:1.7;">✓ &nbsp;A scale playbook that compounds month after month</p>
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">✓ &nbsp;Done-with-you implementation from day one</p>
+          <p style="font-size:15px;color:#111;margin:0 0 20px;line-height:1.8;">Hey ${firstName},</p>
 
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            If you're serious about finally getting your digital product business to where it should be, I want to get on a quick call and show you exactly how this works for your situation.
-          </p>
+          <p style="font-size:15px;color:#111;margin:0 0 20px;line-height:1.8;">I want to be straight with you about something most people in this space won't say.</p>
 
-          <!-- CTA — simple text link style, not a big button -->
-          <p style="font-size:15px;color:#111;margin:0 0 8px;line-height:1.7;">
-            Click below to book your spot — <strong>I've already saved your details so you won't need to fill anything in again:</strong>
-          </p>
-          <p style="margin:0 0 28px;">
-            <a href="${applyUrl}"
-               style="display:inline-block;background:#00d68f;color:#06060f;font-family:Arial,sans-serif;font-size:14px;font-weight:700;padding:13px 28px;border-radius:6px;text-decoration:none;letter-spacing:0.3px;">
+          <p style="font-size:15px;color:#111;margin:0 0 20px;line-height:1.8;">The reason your digital product business isn't where you want it to be isn't because you don't know enough. You probably know exactly what you need to do.</p>
+
+          <p style="font-size:15px;color:#111;margin:0 0 20px;line-height:1.8;"><strong>The problem is you don't have a system that makes you do it</strong> — consistently, every single day, in the right order.</p>
+
+          <p style="font-size:15px;color:#111;margin:0 0 20px;line-height:1.8;">That's what Execution OS actually is. Not a course. Not a coaching program. A complete operating system for your business that you log into daily and execute from.</p>
+
+          <p style="font-size:15px;color:#111;margin:0 0 16px;line-height:1.8;">Here's what happens when you plug in:</p>
+
+          <!-- Step 1 -->
+          <div style="border-left:3px solid #00d68f;padding:12px 16px;margin:0 0 16px;background:#f9fdfb;">
+            <p style="font-size:13px;font-weight:bold;color:#00856a;margin:0 0 4px;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Step 1 — Revenue Plan</p>
+            <p style="font-size:14px;color:#111;margin:0;line-height:1.7;">You enter your offer price, monthly target, and niche. The system instantly calculates your exact numbers — calls to book, DMs to send, sales to close — and generates your complete 4-week roadmap.</p>
+          </div>
+
+          <!-- Step 2 -->
+          <div style="border-left:3px solid #00d68f;padding:12px 16px;margin:0 0 16px;background:#f9fdfb;">
+            <p style="font-size:13px;font-weight:bold;color:#00856a;margin:0 0 4px;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Step 2 — Offer Creation</p>
+            <p style="font-size:14px;color:#111;margin:0;line-height:1.7;">Using Alex Hormozi's Grand Slam Offer framework, Execution OS engineers your high-ticket offer worth $2,000–$10,000+. Then it generates 3 custom funnel strategies for your niche so you know exactly how to hit $20K–$50K/month.</p>
+          </div>
+
+          <!-- Step 3 -->
+          <div style="border-left:3px solid #00d68f;padding:12px 16px;margin:0 0 16px;background:#f9fdfb;">
+            <p style="font-size:13px;font-weight:bold;color:#00856a;margin:0 0 4px;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Step 3 — Ideal Customer Avatar</p>
+            <p style="font-size:14px;color:#111;margin:0;line-height:1.7;">The system generates your full buyer profile — their fears, what they've tried, what makes them buy. Your content, DMs, and sales calls become surgically targeted.</p>
+          </div>
+
+          <!-- Step 4 -->
+          <div style="border-left:3px solid #00d68f;padding:12px 16px;margin:0 0 16px;background:#f9fdfb;">
+            <p style="font-size:13px;font-weight:bold;color:#00856a;margin:0 0 4px;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Step 4 — 30-Day Content Calendar</p>
+            <p style="font-size:14px;color:#111;margin:0;line-height:1.7;">A full month of niche-matched content for Facebook and Instagram — posts, Reels, Carousels — with hooks and CTAs written for your exact audience. You don't think about what to post. You just execute.</p>
+          </div>
+
+          <!-- Step 5 -->
+          <div style="border-left:3px solid #00d68f;padding:12px 16px;margin:0 0 16px;background:#f9fdfb;">
+            <p style="font-size:13px;font-weight:bold;color:#00856a;margin:0 0 4px;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Step 5 — DM & Sales Scripts</p>
+            <p style="font-size:14px;color:#111;margin:0;line-height:1.7;">Niche-tailored scripts for every stage: cold DM openers, warm follow-ups, and high-ticket close frameworks matched to your offer and avatar. You never wonder what to say again.</p>
+          </div>
+
+          <!-- Step 6 -->
+          <div style="border-left:3px solid #00d68f;padding:12px 16px;margin:0 0 16px;background:#f9fdfb;">
+            <p style="font-size:13px;font-weight:bold;color:#00856a;margin:0 0 4px;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:0.5px;">Step 6 — Daily Routine + Tracker</p>
+            <p style="font-size:14px;color:#111;margin:0;line-height:1.7;">A personalised daily routine built around your schedule and goals. Every day you log your DMs, calls, and closes. Your Health Score updates in real time. You always know exactly where you stand.</p>
+          </div>
+
+          <!-- E-OS Intelligent -->
+          <div style="border-left:3px solid #f0c040;padding:12px 16px;margin:0 0 24px;background:#fdfdf5;">
+            <p style="font-size:13px;font-weight:bold;color:#b8880a;margin:0 0 4px;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:0.5px;">E-OS Intelligent — Your Business Advisor</p>
+            <p style="font-size:14px;color:#111;margin:0;line-height:1.7;">An AI advisor that knows your full profile — niche, offer, avatar, revenue target, and daily activity — giving you personalised strategic guidance, not generic advice.</p>
+          </div>
+
+          <p style="font-size:15px;color:#111;margin:0 0 20px;line-height:1.8;">This is a <strong>complete operating system</strong>. Everything is connected, personalised, and built to keep you executing — not consuming.</p>
+
+          <p style="font-size:15px;color:#111;margin:0 0 20px;line-height:1.8;">If you're ready to stop piecing things together and finally run your business on a system that produces $20K–$50K months, book a call. I've already saved your details so you won't need to fill anything in:</p>
+
+          <p style="margin:0 0 28px;text-align:left;">
+            <a href="${applyUrl}" style="display:inline-block;background:#00d68f;color:#06060f;font-family:Arial,sans-serif;font-size:14px;font-weight:700;padding:14px 30px;border-radius:6px;text-decoration:none;">
               Book My Strategy Call →
             </a>
           </p>
 
-          <p style="font-size:15px;color:#111;margin:0 0 18px;line-height:1.7;">
-            Spots are limited this month. Don't sit on this.
-          </p>
+          <p style="font-size:15px;color:#111;margin:0 0 20px;line-height:1.8;">Spots this month are almost gone.</p>
 
-          <p style="font-size:15px;color:#111;margin:0 0 6px;line-height:1.7;">Talk soon,</p>
+          <p style="font-size:15px;color:#111;margin:0 0 6px;line-height:1.8;">Talk soon,</p>
           <p style="font-size:15px;color:#111;font-weight:bold;margin:0 0 4px;">Evan</p>
-          <p style="font-size:13px;color:#666;margin:0 0 28px;">Execution OS</p>
+          <p style="font-size:13px;color:#666;margin:0 0 28px;font-family:Arial,sans-serif;">Execution OS</p>
 
-          <p style="font-size:14px;color:#111;margin:0;line-height:1.7;border-top:1px solid #eee;padding-top:18px;">
-            <em><strong>P.S.</strong> — Most people who book a call with me walk away with more clarity in 30 minutes than they got from months of courses. The call is free. The system works. The only question is whether you're ready.</em>
-          </p>
+          <div style="border-top:1px solid #eee;padding-top:18px;">
+            <p style="font-size:14px;color:#111;line-height:1.8;font-style:italic;margin:0;">
+              <strong>P.S.</strong> — The people inside Execution OS aren't smarter or more talented than you. They stopped winging it and started executing on a real system. That's the only difference.
+            </p>
+          </div>
+
         </td>
       </tr>
-
       <tr>
         <td style="border-top:1px solid #eee;padding-top:16px;text-align:center;">
-          <p style="font-size:11px;color:#999;line-height:1.7;margin:0;">
+          <p style="font-size:11px;color:#999;line-height:1.7;margin:0;font-family:Arial,sans-serif;">
             Evan | Execution OS · evan@build.skillslibry.com<br/>
             You received this because you opted in at build.skillslibry.com<br/>
             <a href="mailto:evan@build.skillslibry.com?subject=unsubscribe" style="color:#999;">Unsubscribe</a>
           </p>
         </td>
       </tr>
-
     </table>
   </td></tr>
 </table>
