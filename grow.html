@@ -119,19 +119,17 @@ h1 .hl {
   position: relative;
 }
 
-/* Override any background Wistia injects into its container */
+/* Override Wistia background — targeted only, not all divs */
 .video-wrap .wistia_embed,
-.video-wrap .wistia_async_vtcfyf0f2o,
-.video-wrap [class*="wistia"],
-.video-wrap iframe,
-.video-wrap div {
+.video-wrap .wistia_async_vtcfyf0f2o {
   background: var(--bg) !important;
 }
 
-/* Kill white letterbox Wistia injects for non-16:9 videos */
-.wistia_responsive_padding,
-.wistia_responsive_wrapper,
-.wistia_embed {
+/* Kill white letterbox for non-16:9 videos */
+.video-wrap .wistia_responsive_padding {
+  background: var(--bg) !important;
+}
+.video-wrap .wistia_responsive_wrapper {
   background: var(--bg) !important;
 }
 
@@ -693,186 +691,12 @@ footer {
     document.querySelector('.modal-box').scrollTop = 0;
   }
 
-  // ── RESEND EMAIL ──
+  // ── RESEND EMAIL via Vercel Serverless Function ──
   async function sendWelcomeEmail(name, email, phone) {
-    const firstName = name.split(' ')[0];
-    const pageUrl = window.location.href.split('?')[0];
-
-    const htmlBody = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>You're One System Away — Execution OS</title>
-</head>
-<body style="margin:0;padding:0;background:#06060f;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#06060f;padding:40px 20px;">
-  <tr><td align="center">
-    <table width="100%" style="max-width:600px;background:#0d0d1e;border-radius:16px;border:1px solid rgba(0,214,143,0.18);overflow:hidden;">
-
-      <!-- HEADER -->
-      <tr>
-        <td style="background:linear-gradient(135deg,#06060f,#0d0d1e);padding:32px 40px 24px;text-align:center;border-bottom:1px solid rgba(0,214,143,0.12);">
-          <div style="font-size:22px;font-weight:900;color:#ffffff;letter-spacing:-0.5px;">
-            <span style="color:#00d68f;">Execution</span>OS
-          </div>
-          <div style="font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:#8080a8;margin-top:6px;">The System Behind $50K/Month Digital Product Businesses</div>
-        </td>
-      </tr>
-
-      <!-- BODY -->
-      <tr>
-        <td style="padding:36px 40px;">
-
-          <p style="font-size:16px;color:#00d68f;font-weight:700;margin:0 0 6px;">Hey ${firstName},</p>
-          <p style="font-size:15px;color:#ffffff;font-weight:800;line-height:1.4;margin:0 0 20px;">
-            You just made one of the most important decisions for your digital product business.
-          </p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 16px;">
-            Let me be direct with you — because I respect your time too much to waste it.
-          </p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 16px;">
-            <strong style="color:#ffffff;">Most people building digital product businesses are NOT failing because they lack information.</strong> They have access to the same YouTube videos, the same $997 courses, the same free PDFs. They know what a funnel is. They know they need an offer. They know they should be creating content.
-          </p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 24px;">
-            And yet — <strong style="color:#f0c040;">they're still stuck.</strong> Still posting without sales. Still tweaking their funnel for the 9th time. Still watching other people hit $20K, $30K, $50K months while wondering what they're doing differently.
-          </p>
-
-          <!-- DIVIDER -->
-          <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,214,143,0.3),transparent);margin:28px 0;"></div>
-
-          <p style="font-size:18px;color:#ffffff;font-weight:900;line-height:1.3;margin:0 0 16px;">
-            Here's the uncomfortable truth nobody will tell you:
-          </p>
-
-          <div style="background:rgba(0,214,143,0.07);border-left:3px solid #00d68f;border-radius:0 8px 8px 0;padding:18px 20px;margin:0 0 24px;">
-            <p style="font-size:15px;color:#ffffff;font-weight:700;line-height:1.6;margin:0;">
-              "You don't have an information problem. You have an <span style="color:#00d68f;">execution problem.</span>"
-            </p>
-          </div>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 16px;">
-            Every week you spend consuming more content, buying more courses, and "getting ready to start" is a week your competitors are <strong style="color:#ffffff;">actually executing</strong> — building their audience, launching their offers, and stacking their income.
-          </p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 28px;">
-            The gap between where you are and $50K/month is not knowledge. It's a <strong style="color:#f0c040;">system</strong> — a repeatable, proven, automated execution system that removes the guesswork and replaces it with daily actions that compound into life-changing income.
-          </p>
-
-          <!-- DIVIDER -->
-          <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(240,192,64,0.3),transparent);margin:28px 0;"></div>
-
-          <p style="font-size:18px;color:#ffffff;font-weight:900;margin:0 0 14px;">Why Execution OS Is Different</p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 14px;">This is <strong style="color:#ffffff;">not</strong> a course you buy and forget. It's <strong style="color:#ffffff;">not</strong> a coaching program where you pay $5,000 to get on a group Zoom call and get generic advice.</p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 20px;">Execution OS is the <strong style="color:#00d68f;">exact operating system</strong> we run our own digital product business on — the same one that's producing $50K months — handed directly to you, plug-and-play, so you can implement it in your business starting this week.</p>
-
-          <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-            <tr>
-              <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-                <span style="color:#00d68f;font-weight:800;">✓</span>
-                <span style="font-size:14px;color:#c0c0d8;margin-left:10px;">A <strong style="color:#fff;">proven offer framework</strong> that sells even in saturated markets</span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-                <span style="color:#00d68f;font-weight:800;">✓</span>
-                <span style="font-size:14px;color:#c0c0d8;margin-left:10px;">An <strong style="color:#fff;">automated traffic system</strong> that fills your funnel while you sleep</span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-                <span style="color:#00d68f;font-weight:800;">✓</span>
-                <span style="font-size:14px;color:#c0c0d8;margin-left:10px;">A <strong style="color:#fff;">conversion system</strong> that turns cold audiences into paying customers</span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06);">
-                <span style="color:#00d68f;font-weight:800;">✓</span>
-                <span style="font-size:14px;color:#c0c0d8;margin-left:10px;">A <strong style="color:#fff;">scale playbook</strong> that compounds your results month after month</span>
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:10px 0;">
-                <span style="color:#00d68f;font-weight:800;">✓</span>
-                <span style="font-size:14px;color:#c0c0d8;margin-left:10px;"><strong style="color:#fff;">Done-with-you implementation</strong> — not "watch this video and figure it out"</span>
-              </td>
-            </tr>
-          </table>
-
-          <!-- DIVIDER -->
-          <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(0,214,143,0.3),transparent);margin:28px 0;"></div>
-
-          <p style="font-size:18px;color:#ffffff;font-weight:900;margin:0 0 14px;">This Is The Only Thing Missing In Your Business</p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 16px;">
-            I've spoken to hundreds of digital product creators. And the pattern is always the same — they're smart, they're motivated, they work hard. But they're running on <strong style="color:#f0c040;">strategy fragments</strong> instead of a complete system.
-          </p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 16px;">
-            A piece of this guru's funnel. A bit of that coach's content strategy. A random ad approach they saw in a Facebook group. None of it connected. None of it compounding.
-          </p>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 28px;">
-            <strong style="color:#ffffff;">Execution OS gives you the complete picture.</strong> One system. One direction. One path to 6 and 7 figures — executed consistently, week after week, until the results are undeniable.
-          </p>
-
-          <!-- CTA BOX -->
-          <div style="background:linear-gradient(135deg,rgba(0,214,143,0.1),rgba(240,192,64,0.08));border:1px solid rgba(0,214,143,0.25);border-radius:12px;padding:28px;text-align:center;margin:0 0 28px;">
-            <p style="font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#00d68f;margin:0 0 8px;">If You Haven't Applied Yet</p>
-            <p style="font-size:20px;color:#ffffff;font-weight:900;line-height:1.3;margin:0 0 6px;">Your $50K/Month Business<br/>Is One Click Away</p>
-            <p style="font-size:13px;color:#8080a8;line-height:1.6;margin:0 0 20px;">Spots are limited and filling fast. Every day you wait is a day someone else takes your spot — and your income.</p>
-            <a href="${pageUrl}#apply" style="display:inline-block;background:linear-gradient(135deg,#00d68f,#00b87a);color:#06060f;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px;padding:14px 32px;border-radius:6px;text-decoration:none;box-shadow:0 0 30px rgba(0,214,143,0.4);">
-              APPLY NOW — CLAIM YOUR SPOT →
-            </a>
-            <p style="font-size:11px;color:#44445a;margin:12px 0 0;">⚡ Limited spots open this month</p>
-          </div>
-
-          <p style="font-size:14px;color:#c0c0d8;line-height:1.8;margin:0 0 8px;">Talk soon,</p>
-          <p style="font-size:15px;color:#ffffff;font-weight:800;margin:0 0 4px;">Evan S.E</p>
-          <p style="font-size:12px;color:#8080a8;margin:0;">Founder, Execution OS</p>
-
-        </td>
-      </tr>
-
-      <!-- FOOTER -->
-      <tr>
-        <td style="padding:20px 40px;border-top:1px solid rgba(255,255,255,0.06);text-align:center;">
-          <p style="font-size:11px;color:#44445a;line-height:1.7;margin:0;">
-            You're receiving this because you opted in at build.skillslibry.com<br/>
-            © 2025 Execution OS · All Rights Reserved
-          </p>
-        </td>
-      </tr>
-
-    </table>
-  </td></tr>
-</table>
-</body>
-</html>`;
-
-    await fetch('https://api.resend.com/emails', {
+    await fetch('/api/send-email', {
       method: 'POST',
-      headers: {
-        'Authorization': 'Bearer re_3WjdYWJe_AaJk5cmBQ91uk33H7zk8G9Qs',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'Evan | Execution OS <evan@build.skillslibry.com>',
-        to: [email],
-        subject: `${firstName}, you're one system away from $50K/month — read this`,
-        html: htmlBody,
-        reply_to: 'evan@build.skillslibry.com',
-        tags: [
-          { name: 'source', value: 'apply-page' },
-          { name: 'phone', value: phone.replace(/[^0-9+\-\s]/g,'').substring(0,30) }
-        ]
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, phone })
     });
   }
 </script>
