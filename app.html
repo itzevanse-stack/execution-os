@@ -18350,77 +18350,175 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
   };
   var cfg = pageConfigs[page.id] || pageConfigs.landing;
 
-  var prompt = 'You are a world-class conversion copywriter and premium UI/UX designer who has built funnel pages generating millions in revenue. Your work looks like it was made by a top agency, not a template generator.\n\n'
-    + 'BUILD: A stunning, high-converting ' + page.label + ' for a ' + niche + ' business.\n\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + 'BUSINESS PROFILE\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + 'Niche: ' + niche + '\n'
-    + 'Offer: ' + offer + '\n'
-    + 'Audience: ' + job + '\n'
-    + 'Their income goal: ' + income + '\n'
-    + 'Their pain: ' + painPoint + '\n'
-    + 'Their desire: ' + desire + '\n'
-    + 'Their fear: ' + fear + '\n'
-    + 'Their objections: ' + objections + '\n'
-    + 'What they have tried: ' + tried + '\n'
-    + 'Who they follow: ' + influences + '\n\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + 'PAGE GOAL\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + 'Goal: ' + cfg.goal + '\n'
-    + 'Primary CTA button text: ' + cfg.cta + '\n'
-    + 'Include these sections: ' + cfg.sections + '\n\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + 'MANDATORY DESIGN SYSTEM — follow exactly\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + 'Background: #06060f (near black) — use everywhere\n'
-    + 'Card bg: #0d0d1e with border 1px solid rgba(78,204,163,0.15) and border-radius 16px\n'
-    + 'Section bg: #111128 for alternating sections\n'
-    + 'Primary accent (teal): #4ecca3 — buttons, borders, highlights, checkmarks\n'
-    + 'Secondary accent (gold): #f0c040 — prices, urgency, badges\n'
-    + 'Purple: #6c63ff — subtle gradients, tags\n'
-    + 'White: #ffffff for headlines\n'
-    + 'Body text: #c8cde8\n'
-    + 'Muted text: #7a7a9d\n\n'
-    + 'Font: Poppins from Google Fonts (weights 400,600,700,800,900)\n'
-    + 'H1: font-weight 900, font-size clamp(28px,5vw,56px), letter-spacing -1px, color white\n'
-    + 'H2: font-weight 800, font-size clamp(22px,3.5vw,38px), color white\n'
-    + 'Body: font-size 15-16px, line-height 1.75, color #c8cde8\n'
-    + 'CTA buttons: background linear-gradient(135deg,#4ecca3,#38b48e), color #06060f, font-weight 800, text-transform uppercase, letter-spacing 0.5px, border-radius 8px, padding 16px 32px, box-shadow 0 0 40px rgba(78,204,163,0.35)\n'
-    + 'Ticker bar at very top: background rgba(78,204,163,0.08), border-bottom 1px solid rgba(78,204,163,0.15), scrolling text, teal color\n'
-    + 'Hero section: large gradient radial glow behind headline (teal to transparent)\n'
-    + 'Section dividers: height 1px, background linear-gradient(90deg,transparent,#4ecca3,transparent)\n'
-    + 'Mobile responsive with meta viewport tag\n'
-    + 'Smooth hover effects on buttons and cards\n\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + 'COPY RULES — non-negotiable\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + '- Write like a top 1% direct-response copywriter\n'
-    + '- Open with the customer pain or dream, never the product\n'
-    + '- Use you language throughout\n'
-    + '- Headlines must stop the scroll: bold, specific, emotionally charged\n'
-    + '- No generic phrases like transform your life or game-changer\n'
-    + '- Use specific numbers and timeframes\n'
-    + '- Build real urgency\n'
-    + '- Short punchy sentences that land hard\n\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + 'TECHNICAL REQUIREMENTS\n'
-    + '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'
-    + '- Return complete standalone HTML file from <!DOCTYPE html> to </html>\n'
-    + '- First line of <style> block: @import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap\');\n'
-    + '- All CSS in one <style> block in <head> — no external files\n'
-    + '- No JavaScript required\n'
-    + '- Form fields: styled inputs only, no form action needed\n'
-    + '- Video placeholder: dark div with centered play button icon\n'
-    + '- Return ONLY raw HTML — no markdown, no code fences, no explanation\n\n'
-    + 'Make it so impressive that when the business owner sees it, they feel proud and confident sending traffic to it. Make it stand out and outperform every competitor in the ' + niche + ' niche.';
+  // ── PHASE 1: STRATEGIC ANALYSIS ─────────────────────────────────────────────
+  // Build a deep strategic brief from everything we know about this member
+  var offerType    = (avatar && avatar.offerType)          || 'digital product';
+  var pricePoint   = (avatar && avatar.pricePoint)         || '$197-$997';
+  var niche2       = niche || 'online business';
+  var audienceName = job || 'digital entrepreneurs';
+  var monthlyGoal  = income || '$10,000/month';
 
-  var proxyUrl = window.location.origin + '/api/generate-funnel';
+  // Determine funnel strategy based on page type + offer price
+  var funnelStrategy = '';
+  if (page.id === 'bridge' || page.id === 'presell') {
+    funnelStrategy = 'AFFILIATE BRIDGE STRATEGY: Interrupt pattern, build curiosity, tell a transformation story, introduce the product as the vehicle, drive to merchant. Never hard sell. Let the story do the work.';
+  } else if (page.id === 'sales') {
+    funnelStrategy = 'LONG-FORM SALES LETTER STRATEGY: Open with the biggest pain, agitate until it hurts, introduce the hero (you), reveal the solution, stack value relentlessly, handle every objection, make the price feel small, close with urgency. This page must be scroll-stopping from line one.';
+  } else if (page.id === 'landing' || page.id === 'vsl') {
+    funnelStrategy = 'LEAD CAPTURE STRATEGY: One job only — get the opt-in. Remove all friction. Big promise above the fold, 3 bullets that speak to their deepest desire, simple form, CTA that feels like the obvious next step.';
+  } else if (page.id === 'checkout' || page.id === 'order') {
+    funnelStrategy = 'CHECKOUT STRATEGY: Reinforce the buying decision. Show exactly what they are getting, stack the value one more time, make the form feel safe and simple, add a guarantee that removes all risk, keep it frictionless.';
+  } else if (page.id === 'upsell' || page.id === 'tripwire') {
+    funnelStrategy = 'UPSELL STRATEGY: They already said yes once. Now give them the logical next step. Show what they are missing without the upgrade, make the additional value obvious, price it so the no feels stupid.';
+  } else if (page.id === 'webinar' || page.id === 'register') {
+    funnelStrategy = 'WEBINAR REGISTRATION STRATEGY: Sell the event not the product. Make the training sound so valuable they would pay just to attend. Create FOMO. One job — get the registration.';
+  } else {
+    funnelStrategy = 'CONVERSION STRATEGY: Every element on this page has one job — move the visitor to the next step. Remove distractions. Amplify desire. Make the action feel safe and obvious.';
+  }
+
+  var prompt = 'You are simultaneously three experts working as one:\n'
+    + '1. A world-class STRATEGIST who understands buyer psychology, funnel architecture, and what makes offers convert in competitive niches\n'
+    + '2. A top 1% DIRECT-RESPONSE COPYWRITER who writes headlines that stop scrolls, copy that builds unstoppable desire, and CTAs that feel inevitable\n'
+    + '3. A premium UI/UX DESIGNER who builds pages that look like they cost $50,000 — dark, modern, brand-forward, and conversion-optimised\n\n'
+    + 'Your output will be a standalone HTML page that this business owner is PROUD to send traffic to. It must outperform every competitor in their niche visually and conversion-wise.\n\n'
+
+    + '════════════════════════════════════════\n'
+    + 'STRATEGIC ANALYSIS — READ THIS FIRST\n'
+    + '════════════════════════════════════════\n'
+    + 'Niche: ' + niche2 + '\n'
+    + 'Offer: ' + offer + '\n'
+    + 'Offer type: ' + offerType + '\n'
+    + 'Price point: ' + pricePoint + '\n'
+    + 'Target audience: ' + audienceName + '\n'
+    + 'Their income goal: ' + monthlyGoal + '\n'
+    + 'Their current pain: ' + painPoint + '\n'
+    + 'What they deeply want: ' + desire + '\n'
+    + 'What they fear most: ' + fear + '\n'
+    + 'Their objections: ' + objections + '\n'
+    + 'What they have already tried: ' + tried + '\n'
+    + 'Who they follow and trust: ' + influences + '\n\n'
+    + 'PAGE BEING BUILT: ' + page.label + '\n'
+    + 'FUNNEL STRATEGY: ' + funnelStrategy + '\n'
+    + 'PAGE GOAL: ' + cfg.goal + '\n'
+    + 'PRIMARY CTA: ' + cfg.cta + '\n'
+    + 'SECTIONS REQUIRED: ' + cfg.sections + '\n\n'
+
+    + '════════════════════════════════════════\n'
+    + 'DESIGN SYSTEM — IMPLEMENT EXACTLY\n'
+    + '════════════════════════════════════════\n'
+    + 'This page must match this exact premium dark design system:\n\n'
+    + 'CSS Variables to define in :root:\n'
+    + '  --bg: #06060f\n'
+    + '  --bg2: #0d0d1e\n'
+    + '  --bg3: #111128\n'
+    + '  --teal: #4ecca3\n'
+    + '  --teal2: #38b48e\n'
+    + '  --gold: #f0c040\n'
+    + '  --purple: #6c63ff\n'
+    + '  --white: #ffffff\n'
+    + '  --muted: #c8cde8\n'
+    + '  --dim: #7a7a9d\n'
+    + '  --border: rgba(78,204,163,0.15)\n'
+    + '  --card: #0d0d1e\n'
+    + '  --shadow: 0 20px 60px rgba(0,0,0,0.5)\n\n'
+    + 'Typography:\n'
+    + '  @import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap\');\n'
+    + '  body { font-family: Poppins, sans-serif; background: #06060f; color: #c8cde8; }\n'
+    + '  h1 { font-weight: 900; font-size: clamp(30px,5.5vw,62px); letter-spacing: -2px; color: #fff; line-height: 1.1; }\n'
+    + '  h2 { font-weight: 800; font-size: clamp(22px,3.5vw,40px); letter-spacing: -1px; color: #fff; }\n'
+    + '  h3 { font-weight: 700; font-size: clamp(17px,2.2vw,26px); color: #fff; }\n'
+    + '  p  { font-size: 16px; line-height: 1.8; color: #c8cde8; }\n\n'
+    + 'TICKER BAR (always at very top):\n'
+    + '  background: rgba(78,204,163,0.06); border-bottom: 1px solid rgba(78,204,163,0.15);\n'
+    + '  padding: 10px 0; overflow: hidden; white-space: nowrap;\n'
+    + '  Use CSS animation to scroll the text left. Text color: #4ecca3. Font-weight: 700.\n\n'
+    + 'HERO SECTION:\n'
+    + '  Full-width, padding 120px 24px 80px, text-align: center\n'
+    + '  Radial glow behind headline: background radial-gradient(ellipse 80% 60% at 50% 0%, rgba(78,204,163,0.12) 0%, transparent 70%)\n'
+    + '  GRADIENT HEADLINE HIGHLIGHT: key phrase wrapped in span with:\n'
+    + '    background: linear-gradient(100deg, #4ecca3, #f0c040);\n'
+    + '    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;\n\n'
+    + 'CARDS:\n'
+    + '  background: #0d0d1e; border: 1px solid rgba(78,204,163,0.15); border-radius: 16px; padding: 28px;\n'
+    + '  hover: transform translateY(-4px); box-shadow: 0 12px 40px rgba(78,204,163,0.12);\n\n'
+    + 'BUTTONS (primary CTA):\n'
+    + '  display: inline-flex; align-items: center; gap: 10px;\n'
+    + '  background: linear-gradient(135deg, #4ecca3, #38b48e);\n'
+    + '  color: #06060f; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;\n'
+    + '  padding: 18px 40px; border: none; border-radius: 8px; cursor: pointer;\n'
+    + '  box-shadow: 0 0 50px rgba(78,204,163,0.4);\n'
+    + '  hover: transform translateY(-3px); box-shadow: 0 0 70px rgba(78,204,163,0.6);\n'
+    + '  Add a right-arrow unicode character after button text\n\n'
+    + 'SECTION DIVIDERS:\n'
+    + '  height: 1px; background: linear-gradient(90deg, transparent, rgba(78,204,163,0.3), transparent); margin: 60px 0;\n\n'
+    + 'SECTION LABELS (small caps above headings):\n'
+    + '  font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #4ecca3;\n'
+    + '  margin-bottom: 8px; display: block;\n\n'
+    + 'OPT-IN FORM STYLING:\n'
+    + '  background: #0d0d1e; border: 1px solid rgba(78,204,163,0.2); border-radius: 16px; padding: 40px;\n'
+    + '  Input fields: width 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);\n'
+    + '  border-radius: 8px; padding: 14px 18px; color: #fff; font-size: 15px; font-family: Poppins;\n'
+    + '  focus: border-color: #4ecca3; outline: none;\n'
+    + '  Labels: font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #7a7a9d; margin-bottom: 6px;\n\n'
+    + 'CHECKMARKS & BULLETS:\n'
+    + '  Use teal checkmark (color #4ecca3) before each benefit. SVG or unicode ✓\n\n'
+    + 'GUARANTEE BADGE:\n'
+    + '  Circular badge or pill: border: 2px solid #f0c040; color: #f0c040; padding: 20px; text-align: center; border-radius: 50% or 16px\n\n'
+    + 'URGENCY ELEMENTS:\n'
+    + '  color: #f0c040; font-weight: 700; add ⚡ or 🔒 icons before text\n\n'
+    + 'PRICE DISPLAY:\n'
+    + '  Original price: font-size: 18px; text-decoration: line-through; color: #7a7a9d;\n'
+    + '  Sale price: font-size: 42px; font-weight: 900; color: #4ecca3;\n\n'
+    + 'SOCIAL PROOF / TESTIMONIAL CARDS:\n'
+    + '  background: #111128; border-left: 3px solid #4ecca3; border-radius: 0 12px 12px 0; padding: 20px 24px;\n\n'
+    + 'FOOTER:\n'
+    + '  background: #0d0d1e; border-top: 1px solid rgba(255,255,255,0.06); padding: 30px 24px; text-align: center;\n'
+    + '  font-size: 12px; color: #7a7a9d;\n\n'
+    + 'RESPONSIVE:\n'
+    + '  Use clamp() for all font sizes. Flexbox and Grid layouts. Mobile-first. Max-width containers: max-width 1100px; margin: 0 auto; padding: 0 24px;\n\n'
+
+    + '════════════════════════════════════════\n'
+    + 'COPY ARCHITECTURE\n'
+    + '════════════════════════════════════════\n'
+    + 'HEADLINE FORMULA: [Specific Outcome] + [Timeframe or Method] + [Pain Point Removal]\n'
+    + 'Example pattern: "Finally, a [specific thing] that [does what they want] without [what they hate most]"\n\n'
+    + 'SUBHEADLINE: Expand the promise. Call out who this is for. Add specificity.\n\n'
+    + 'COPY RULES:\n'
+    + '- Every sentence must earn the next one\n'
+    + '- Open with their pain or desire, never the product\n'
+    + '- Short sentences hit harder. Use them.\n'
+    + '- Specificity builds trust. Use real numbers and timeframes.\n'
+    + '- Handle objections before they arise\n'
+    + '- The CTA is a benefit, not a command. "Get instant access" not "Submit"\n'
+    + '- Write "you" not "our customers"\n'
+    + '- Zero generic phrases: no "game-changer", "transform", "unlock potential"\n'
+    + '- Commas not em dashes\n\n'
+
+    + '════════════════════════════════════════\n'
+    + 'TECHNICAL BUILD REQUIREMENTS\n'
+    + '════════════════════════════════════════\n'
+    + '- Complete standalone HTML from <!DOCTYPE html> to </html>\n'
+    + '- ALL styles in a single <style> block in <head>\n'
+    + '- First line of <style>: @import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap\');\n'
+    + '- :root { define all CSS variables }\n'
+    + '- Ticker animation: @keyframes ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }\n'
+    + '- Button hover: transition all 0.2s ease\n'
+    + '- Card hover: transition transform 0.22s ease\n'
+    + '- Mobile breakpoint @media (max-width: 768px) with adjusted font sizes, stacked layouts, full-width buttons\n'
+    + '- All forms: functional HTML structure, styled inputs, no backend needed\n'
+    + '- Video placeholders: dark div with centered play icon SVG\n'
+    + '- No JavaScript required\n'
+    + '- Return ONLY raw HTML. No markdown. No code fences. No explanation. Start your response with <!DOCTYPE html>\n\n'
+
+    + 'NOW BUILD: The most impressive ' + page.label + ' ever created for a ' + niche2 + ' business.\n'
+    + 'This person will look at this page and feel a rush of confidence. Their audience will look at it and immediately feel they are dealing with someone serious.\n'
+    + 'Make it convert. Make it beautiful. Make it theirs.';
+
+    var proxyUrl = window.location.origin + '/api/generate-funnel';
   var resp = await fetch(proxyUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: prompt, max_tokens: 4096 })
+    body: JSON.stringify({ prompt: prompt, max_tokens: 8000 })
   });
   if (!resp.ok) {
     var errText = await resp.text().catch(function() { return ''; });
