@@ -18684,55 +18684,182 @@ async function fbSaveFunnelToFirestore(funnel) {
 }
 
 // ── DOMAIN ──
+// ── DOMAIN CONNECTION ────────────────────────────────────────────────────────
 function fbSaveDomain() {
-  const input = document.getElementById('fb-domain-input');
+  var input = document.getElementById('fb-domain-input');
   if (!input || !input.value.trim()) return;
-  fbState.domain = input.value.trim().replace(/https?:\/\//, '').replace(/\/$/, '');
-  fbState.current && (fbState.current.domain = fbState.domain);
+
+  var raw = input.value.trim().replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase();
+  fbState.domain = raw;
+  if (fbState.current) fbState.current.domain = raw;
+
+  // Determine CNAME name — subdomain prefix or @ for root
+  var parts = raw.split('.');
+  var cnameName = parts.length > 2 ? parts[0] : '@';
+  var cnameEl = document.getElementById('dns-cname-name');
+  if (cnameEl) cnameEl.textContent = cnameName;
 
   // Show DNS instructions
-  const instructions = document.getElementById('fb-dns-instructions');
+  var instructions = document.getElementById('fb-dns-instructions');
   if (instructions) instructions.style.display = 'block';
-  const cnameName = document.getElementById('dns-cname-name');
-  if (cnameName) cnameName.textContent = fbState.domain.includes('.') ? fbState.domain.split('.')[0] : '@';
 
-  const statusEl = document.getElementById('fb-domain-status');
+  var statusEl = document.getElementById('fb-domain-status');
   if (statusEl) {
     statusEl.style.display = 'block';
-    statusEl.innerHTML = '<div class="domain-status pending">⏳ Pending DNS verification</div>';
+    statusEl.innerHTML = '<div class="domain-status pending">⏳ Add the DNS record below, then click Verify</div>';
   }
 
-  const urlBar = document.getElementById('fb-preview-url');
-  if (urlBar) urlBar.textContent = 'https://' + fbState.domain;
-};
+  var urlBar = document.getElementById('fb-preview-url');
+  if (urlBar) urlBar.textContent = 'https://' + raw;
 
-function fbVerifyDomain() {
-  const statusEl = document.getElementById('fb-domain-status');
-  if (statusEl) {
-    statusEl.innerHTML = '<div class="domain-status verified">✅ Domain verified and connected</div>';
-  }
-  fbState.domainVerified = true;
-  fbState.current && (fbState.current.domainVerified = true);
   fbSaveFunnelToFirestore(fbState.current);
 };
 
-function fbCopyDns(value) {
-  navigator.clipboard && navigator.clipboard.writeText(value);
+async function fbVerifyDomain() {
+  if (!fbState.domain) return;
+  var statusEl = document.getElementById('fb-domain-status');
+  var btn = document.querySelector('[onclick="fbVerifyDomain()"]');
+
+  if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">🔍 Checking DNS…</div>';
+  if (btn) btn.textContent = '⏳ Checking…';
+
+  try {
+    // Call our API to check if the CNAME is pointing correctly
+    var resp = await fetch(window.location.origin + '/api/verify-domain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ domain: fbState.domain, funnelId: fbState.current && fbState.current.id })
+    });
+
+    var data = await resp.json();
+
+    if (data.verified) {
+      if (statusEl) statusEl.innerHTML = '<div class="domain-status verified">✅ Domain verified and connected — ' + fbState.domain + ' is live</div>';
+      fbState.domainVerified = true;
+      if (fbState.current) {
+        fbState.current.domainVerified = true;
+        fbState.current.domain = fbState.domain;
+      }
+      fbSaveFunnelToFirestore(fbState.current);
+    } else {
+      var reason = data.reason || 'DNS not yet propagated';
+      if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">⏳ Not verified yet — ' + reason + '. DNS can take up to 24 hours. Try again later.</div>';
+    }
+  } catch(e) {
+    if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">❌ Verification failed — check your internet connection and try again.</div>';
+  }
+
+  if (btn) btn.textContent = '🔍 Verify Domain';
 };
 
-// ── STRIPE ──
-function fbConnectStripe() {
-  // Opens Stripe OAuth in new window
-  const clientId = 'ca_YOUR_STRIPE_CLIENT_ID'; // Replace with your Stripe Connect client ID
-  const redirectUri = encodeURIComponent(window.location.origin + '/api/stripe-callback');
-  const stripeUrl = `https://connect.stripe.com/oauth/authorize?response_type=code&client_id=${clientId}&scope=read_write&redirect_uri=${redirectUri}`;
+function fbCopyDns(value) {
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(value).then(function() {
+      var btns = document.querySelectorAll('.dns-copy');
+      btns.forEach(function(b) {
+        if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(value)) {
+          var orig = b.textContent;
+          b.textContent = 'Copied!';
+          b.style.color = 'var(--teal)';
+          setTimeout(function() { b.textContent = orig; b.style.color = ''; }, 1500);
+        }
+      });
+    });
+  }
+};
 
-  // For now show connection instructions
-  const btn = document.getElementById('fb-stripe-btn');
-  const statusEl = document.getElementById('fb-stripe-status');
-  if (btn) { btn.textContent = '✅ Stripe Connected'; btn.style.background = 'rgba(78,204,163,.12)'; btn.style.color = 'var(--teal)'; btn.style.border = '1px solid rgba(78,204,163,.2)'; btn.style.cursor = 'default'; btn.disabled = true; }
-  if (statusEl) { statusEl.textContent = 'Connected — payments active'; statusEl.style.color = 'var(--teal)'; }
+// ── STRIPE CONNECT ────────────────────────────────────────────────────────────
+function fbConnectStripe() {
+  var btn = document.getElementById('fb-stripe-btn');
+  var statusEl = document.getElementById('fb-stripe-status');
+
+  // Save current funnel ID to localStorage so callback can match it
+  if (fbState.current) {
+    localStorage.setItem('eos_stripe_funnel_id', fbState.current.id);
+  }
+
+  // Get the Stripe Connect URL from our backend (keeps client ID server-side)
+  fetch(window.location.origin + '/api/stripe-connect-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ funnelId: fbState.current && fbState.current.id })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.url) {
+      // Open Stripe OAuth in popup window
+      var popup = window.open(data.url, 'stripe-connect', 'width=600,height=700,scrollbars=yes');
+
+      // Poll for popup close and check if connected
+      var poll = setInterval(function() {
+        if (!popup || popup.closed) {
+          clearInterval(poll);
+          // Check Firestore if Stripe was connected
+          fbCheckStripeStatus();
+        }
+      }, 500);
+    } else {
+      // Fallback: show manual instructions
+      fbShowStripeManual();
+    }
+  })
+  .catch(function() { fbShowStripeManual(); });
+};
+
+function fbCheckStripeStatus() {
+  // Check Firestore for saved Stripe account ID
+  try {
+    var uid = window._currentUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
+    if (!uid || !fbState.current) return;
+
+    var ref = window._doc(window._db, 'users', uid, 'funnels', fbState.current.id);
+    window._getDoc(ref).then(function(snap) {
+      var d = snap.data && snap.data();
+      if (d && d.stripeAccountId) {
+        fbShowStripeConnected(d.stripeAccountId);
+      }
+    }).catch(function() {});
+  } catch(e) {}
+};
+
+function fbShowStripeConnected(accountId) {
+  var btn = document.getElementById('fb-stripe-btn');
+  var statusEl = document.getElementById('fb-stripe-status');
+  if (btn) {
+    btn.textContent = '✅ Stripe Connected';
+    btn.style.cssText = 'background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:var(--r-md);padding:10px 20px;color:var(--teal);font-size:12px;cursor:default;font-family:Poppins,sans-serif;font-weight:800;white-space:nowrap';
+    btn.disabled = true;
+  }
+  if (statusEl) {
+    statusEl.textContent = 'Connected, payments go directly to your account';
+    statusEl.style.color = 'var(--teal)';
+  }
   fbState.stripeConnected = true;
+  if (fbState.current) fbState.current.stripeAccountId = accountId;
+  fbSaveFunnelToFirestore(fbState.current);
+};
+
+function fbShowStripeManual() {
+  // If API not set up yet, show manual key entry
+  var statusEl = document.getElementById('fb-stripe-status');
+  var stripeCard = document.querySelector('.stripe-card');
+  if (stripeCard) {
+    stripeCard.innerHTML = stripeCard.innerHTML + '<div style="margin-top:14px;width:100%"><div style="font-size:11px;color:var(--dim);margin-bottom:8px;font-weight:600">Enter your Stripe Publishable Key to enable payments:</div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="fb-stripe-key" class="fi" placeholder="pk_live_..." style="flex:1;min-width:200px" /><button onclick="fbSaveStripeKey()" style="background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);padding:10px 16px;color:#fff;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:800">Save Key</button></div></div>';
+  }
+};
+
+function fbSaveStripeKey() {
+  var key = document.getElementById('fb-stripe-key') && document.getElementById('fb-stripe-key').value.trim();
+  if (!key || !key.startsWith('pk_')) {
+    alert('Please enter a valid Stripe Publishable Key starting with pk_');
+    return;
+  }
+  if (fbState.current) {
+    fbState.current.stripePublishableKey = key;
+    fbState.current.stripeConnected = true;
+  }
+  fbSaveFunnelToFirestore(fbState.current);
+  fbShowStripeConnected(key);
 };
 
 // ── PUBLISH LIVE ──
