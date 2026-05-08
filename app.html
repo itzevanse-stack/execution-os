@@ -8515,7 +8515,19 @@ function renderTracker(dmsDay,salesGoal){
   const items=[{key:'dms',label:'DMs sent',target:dmsDay,color:'var(--teal)'},{key:'posts',label:'Posts made',target:2,color:'var(--purple)'},{key:'surveys',label:'Survey clicks',target:5,color:'var(--yellow)'},{key:'calls',label:'Calls booked',target:Math.max(1,Math.ceil(salesGoal/4)),color:'var(--orange)'},{key:'closes',label:'Deals closed',target:Math.max(1,Math.ceil(salesGoal/30)),color:'var(--red)',isClose:true}];
   const totalActions=items.reduce((s,i)=>s+i.target,0);
   window._ti=items;window._price=price;window._target=target;window._totalActions=totalActions;
-  if(!window._trackerState||window._trackerLastTarget!==target||window._trackerLastPrice!==price){window._trackerState={counts:{},closedDeals:0,remainingIncome:target};window._trackerLastTarget=target;window._trackerLastPrice=price;}
+  if(!window._trackerState||window._trackerLastTarget!==target||window._trackerLastPrice!==price){
+  // Try to restore from localStorage first
+  var _tKey='eos_tracker_'+(window._currentUserUid||'local')+'_'+new Date().toISOString().slice(0,7);
+  var _tSaved={};
+  try{_tSaved=JSON.parse(localStorage.getItem(_tKey)||'{}');}catch(e){}
+  window._trackerState={
+    counts:_tSaved.counts||{},
+    closedDeals:_tSaved.closedDeals||0,
+    remainingIncome:_tSaved.remainingIncome!==undefined?_tSaved.remainingIncome:target
+  };
+  window._trackerLastTarget=target;
+  window._trackerLastPrice=price;
+}
   const s=window._trackerState;
   const totalDone=items.reduce((sum,it)=>sum+(s.counts[it.key]||0),0);
   const actionsLeft=Math.max(0,totalActions-totalDone);
@@ -8541,7 +8553,36 @@ function renderTracker(dmsDay,salesGoal){
       <div style="font-size:11px;color:var(--dimmer)">Every action closes the gap</div>
     </div>`;
 }
-function adj(key,delta,target,isClose){const s=window._trackerState;if(!s)return;const prev=s.counts[key]||0;const nv=Math.max(0,prev+delta);s.counts[key]=nv;const price=window._price||1000;if(isClose){const diff=nv-prev;s.closedDeals=Math.max(0,s.closedDeals+diff);s.remainingIncome=Math.max(0,window._target-(s.closedDeals*price));const rv=document.getElementById('income-remaining-val');const rs=document.getElementById('income-remaining-sub');if(rv){rv.textContent='$'+s.remainingIncome.toLocaleString();rv.style.color=s.remainingIncome===0?'var(--teal)':'var(--red)';}if(rs){rs.textContent=s.closedDeals+' deal'+(s.closedDeals!==1?'s':'')+' closed';}}const v=document.getElementById('val-'+key);const f=document.getElementById('fill-'+key);if(v)v.textContent=nv;if(f)f.style.width=Math.min(100,Math.round(nv/target*100))+'%';}
+function adj(key,delta,target,isClose){
+  const s=window._trackerState;
+  if(!s)return;
+  const prev=s.counts[key]||0;
+  const nv=Math.max(0,prev+delta);
+  s.counts[key]=nv;
+  const price=window._appliedPrice||window._price||1000;
+  if(isClose){
+    const diff=nv-prev;
+    s.closedDeals=Math.max(0,s.closedDeals+diff);
+    s.remainingIncome=Math.max(0,(window._appliedTarget||window._target||0)-(s.closedDeals*price));
+    const rv=document.getElementById('income-remaining-val');
+    const rs=document.getElementById('income-remaining-sub');
+    if(rv){rv.textContent='$'+s.remainingIncome.toLocaleString();rv.style.color=s.remainingIncome===0?'var(--teal)':'var(--red)';}
+    if(rs){rs.textContent=s.closedDeals+' deal'+(s.closedDeals!==1?'s':'')+' closed';}
+    // Save to Firestore on every close
+    if(window._db&&window._setDoc&&window._doc&&window._currentUserUid){
+      window._setDoc(window._doc(window._db,'users',window._currentUserUid),{trackerState:{closedDeals:s.closedDeals,remainingIncome:s.remainingIncome,counts:s.counts}},{merge:true}).catch(function(){});
+    }
+  }
+  const v=document.getElementById('val-'+key);
+  const f=document.getElementById('fill-'+key);
+  if(v)v.textContent=nv;
+  if(f)f.style.width=Math.min(100,Math.round(nv/target*100))+'%';
+  // Always persist to localStorage
+  try {
+    var lk='eos_tracker_'+(window._currentUserUid||'local')+'_'+new Date().toISOString().slice(0,7);
+    localStorage.setItem(lk,JSON.stringify({counts:s.counts,closedDeals:s.closedDeals,remainingIncome:s.remainingIncome}));
+  } catch(e){}
+}
 // ─── API helper — routes directly through Anthropic API ──────────────────
 const API_BASE = 'https://api.anthropic.com';
 
@@ -16205,6 +16246,10 @@ window.affTrack = function(key, delta) {
   try { data = JSON.parse(localStorage.getItem('eos_aff_tracker') || '{}'); } catch(e) {}
   data[key] = Math.max(0, (data[key] || 0) + delta);
   try { localStorage.setItem('eos_aff_tracker', JSON.stringify(data)); } catch(e) {}
+  // Also save to Firestore so it survives refresh
+  if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+    window._setDoc(window._doc(window._db,'users',window._currentUserUid),{affTracker:data},{merge:true}).catch(function(){});
+  }
   window.renderAffCommTracker && window.renderAffCommTracker();
   // Refresh dashboard metrics too
   const dbPage = document.getElementById('page-dashboard');
@@ -17258,6 +17303,28 @@ onAuthStateChanged(auth, async (user) => {
 
   // ── Restore saved Revenue Plan data ───────────────────────────────────────
   if (userDocData.revenuePlan) loadRevenuePlan(userDocData.revenuePlan);
+
+  // ── Restore tracker state from Firestore ──────────────────────────────────
+  if (userDocData.trackerState) {
+    window._trackerState = {
+      counts:          userDocData.trackerState.counts          || {},
+      closedDeals:     userDocData.trackerState.closedDeals     || 0,
+      remainingIncome: userDocData.trackerState.remainingIncome || 0,
+    };
+  } else {
+    try {
+      var _tKey2 = 'eos_tracker_' + user.uid + '_' + new Date().toISOString().slice(0,7);
+      var _tSaved2 = JSON.parse(localStorage.getItem(_tKey2) || '{}');
+      if (_tSaved2.closedDeals || (_tSaved2.counts && Object.keys(_tSaved2.counts).length)) {
+        window._trackerState = { counts: _tSaved2.counts || {}, closedDeals: _tSaved2.closedDeals || 0, remainingIncome: _tSaved2.remainingIncome || 0 };
+      }
+    } catch(e) {}
+  }
+
+  // ── Restore affiliate tracker ──────────────────────────────────────────────
+  if (userDocData.affTracker) {
+    try { localStorage.setItem('eos_aff_tracker', JSON.stringify(userDocData.affTracker)); } catch(e) {}
+  }
 
   // ── Restore saved Avatar data ─────────────────────────────────────────────
   if (userDocData.avatarData) {
