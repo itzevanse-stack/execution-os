@@ -18720,201 +18720,250 @@ function fbGetPagesForType(type) {
 }
 
 async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
-  var painPoint  = (avatar && avatar.currentSituation)        || 'stuck despite knowing what to do';
-  var desire     = (avatar && avatar.desiredTransformation)   || 'build a wildly profitable online business';
-  var fear       = (avatar && avatar.biggestFear)             || 'wasting time on something that never works';
-  var objections = (avatar && avatar.mainObjections)          || 'not sure if this will work for me';
-  var tried      = (avatar && avatar.whatTheyHaveTried)       || 'courses and coaching that did not deliver';
-  var influences = (avatar && avatar.influences)              || 'industry leaders in their space';
-  var job        = (avatar && avatar.jobTitle)                || 'entrepreneur';
-  var income     = (avatar && avatar.incomeGoal)              || '$10,000/month';
 
-  var pageConfigs = {
-    landing:  { goal: 'capture leads and build desire for the offer', cta: 'Get Instant Access', sections: 'ticker bar, hero with bold headline + subheadline, 3 pain-point bullets, what you get list, social proof quote, opt-in form with name+email, urgency footer' },
-    sales:    { goal: 'convert cold readers into buyers with a long-form sales letter', cta: 'Yes, I Want This Now', sections: 'ticker bar, headline + subheadline, personal story opening, pain agitation, big promise, what you get bullet stack, who this is for, testimonials section, price reveal with anchoring, guarantee, urgent CTA, FAQ' },
-    bridge:   { goal: 'warm up affiliate traffic and pre-sell them before the merchant page', cta: 'See The Full Offer', sections: 'ticker bar, attention headline, personal story hook, what I discovered, how it changed everything, tease the solution, CTA button' },
-    presell:  { goal: 'build curiosity and emotional desire before showing the offer', cta: 'Show Me How', sections: 'ticker bar, curiosity headline, story intro, the problem, the breakthrough, 3 key insights, call to action' },
-    checkout: { goal: 'complete the sale with a friction-free order form', cta: 'Complete My Order', sections: 'order summary box, value stack with strikethrough pricing, secure order form (name/email/card placeholders), guarantee badge, next steps' },
-    thankyou: { goal: 'confirm purchase and onboard with next steps', cta: 'Access My Purchase', sections: 'celebration hero, confirmation message, 3 clear next steps, access button' },
-    vsl:      { goal: 'hold attention and convert below the video', cta: 'Get Instant Access', sections: 'ticker bar, pre-headline hook, video player placeholder, 3 bullets below video, CTA section' },
-    order:    { goal: 'take payment with minimal friction', cta: 'Complete Order Now', sections: 'order summary, price display, name/email/card form placeholders, security badges, guarantee' },
-    register: { goal: 'register leads for a live or recorded webinar', cta: 'Reserve My Free Seat', sections: 'ticker bar, webinar title, date and time, 3 what-you-will-learn bullets, host bio, registration form, urgency' },
-    confirm:  { goal: 'confirm registration and prime them to attend', cta: 'Add to Calendar', sections: 'confirmation hero, webinar details, what to prepare, calendar add buttons' },
-    tripwire: { goal: 'make an irresistible low-ticket offer', cta: 'Get It Now', sections: 'ticker bar, curiosity headline, what you get, value stack, price reveal, CTA, guarantee' },
-    upsell:   { goal: 'present a one-time upgrade offer', cta: 'Yes, Upgrade My Order', sections: 'congratulations opener, what you are missing, upgrade benefits, one-time price, yes/no buttons' },
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PULL EVERY DATA POINT FROM THE USER'S ACTUAL PROFILE
+  // ═══════════════════════════════════════════════════════════════════════════
+  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  var av          = window._avatarData || avatar || {};
+  var affOffer    = window._affiliateOffer || {};
+  var voiceProfile = window._voiceProfile || {};
+
+  // ── OFFER DETAILS ──────────────────────────────────────────────────────────
+  var offerName        = isAffiliate
+    ? (affOffer.name || niche || 'the affiliate offer')
+    : (offer || window._currentOfferName || 'the offer');
+
+  var offerPrice       = isAffiliate
+    ? (affOffer.commission || window._appliedPrice || '')
+    : (window._appliedPrice || '');
+
+  var offerUrl         = isAffiliate ? (affOffer.url || '') : '';
+  var offerTagline     = isAffiliate ? (affOffer.tagline || '') : '';
+  var offerPlatform    = isAffiliate ? (affOffer.platform || '') : '';
+  var offerBenefits    = isAffiliate
+    ? ((affOffer.benefits || []).join(', ') || '')
+    : '';
+  var monthlyTarget    = window._appliedTarget || av.incomeGoal || '$10,000/month';
+  var nicheReal        = window._appliedNiche || affOffer.niche || av.industry || niche || 'digital products';
+
+  // ── AUDIENCE / AVATAR ─────────────────────────────────────────────────────
+  var audienceName     = av.job        || av.jobTitle    || 'entrepreneurs';
+  var audienceAge      = av.age        || '';
+  var audienceLocation = av.location   || '';
+  var audienceIncome   = av.income     || '';
+  var painPoint        = av.pain       || av.currentSituation   || 'stuck and not seeing results';
+  var deeperPain       = av.deeperPain || av.biggestFear        || painPoint;
+  var transformation   = av.transformation || av.desiredTransformation || 'build a profitable business';
+  var fear             = av.fear       || av.biggestFear        || 'wasting time and money on the wrong thing';
+  var objections       = av.objections || av.mainObjections     || 'not sure if this will work for me';
+  var tried            = av.tried      || av.whatTheyHaveTried  || 'courses and programs that did not deliver';
+  var motivation       = av.motivation || '';
+  var influences       = av.influences || '';
+  var personality      = av.personality|| '';
+  var keywords         = (av.keywords  || []).join(', ');
+
+  // ── VOICE PROFILE ──────────────────────────────────────────────────────────
+  var voiceTone        = voiceProfile.tone    || '';
+  var voiceStyle       = voiceProfile.style   || '';
+  var voiceWords       = voiceProfile.words   || '';
+  var voiceAvoid       = voiceProfile.avoid   || '';
+  var voiceStory       = voiceProfile.story   || '';
+  var voiceMethod      = voiceProfile.method  || '';
+  var voiceExample     = voiceProfile.example ? voiceProfile.example.substring(0, 400) : '';
+
+  // ── PAGE STRATEGY ──────────────────────────────────────────────────────────
+  var pageStrategies = {
+    landing:  {
+      goal: 'Capture the opt-in. One job only. The visitor must feel: "I need this now."',
+      sections: 'Ticker bar with rolling benefit statement, Hero with ONE bold promise headline (use gradient highlight on key phrase), subheadline that expands the promise and calls out the audience, 3 pain-agitation bullets that make them feel deeply seen, what they will get (3 bullet benefits), simple opt-in form (name + email), social proof stat or quote, urgency footer',
+      cta: 'Get Instant Access'
+    },
+    sales: {
+      goal: 'Long-form sales letter that takes a cold reader from skepticism to buying. Every section earns the next scroll.',
+      sections: 'Ticker bar, attention-grabbing headline (pattern interrupt), opening story that mirrors their exact situation, pain agitation section (make the problem feel real and urgent), the awakening (when I realised...), introduce the solution, what you get (full benefit stack with icons), who this is for, proof section (results, testimonials quotes), price reveal with anchoring (show value vs cost), 30-day guarantee, urgent CTA, FAQ section (handle every objection)',
+      cta: 'Yes, I Want This Now'
+    },
+    bridge: {
+      goal: 'Warm up affiliate traffic emotionally before sending them to the merchant. Must feel like a personal recommendation from a trusted friend, not an ad.',
+      sections: 'Short attention headline, personal story opening (I was exactly where you are...), the discovery (what changed for me), 3 specific things I noticed about this product, why I recommend it over everything else I have tried, what you will find on the other side, bridge CTA that goes to: ' + (offerUrl || 'the merchant page'),
+      cta: 'See What Changed Everything For Me'
+    },
+    presell: {
+      goal: 'Build desire and belief before the offer. The reader should be leaning forward by the end.',
+      sections: 'Curiosity headline (do not name the product yet), story-led opening, the problem most people do not see, the shift that changes everything, 3 key insights that reframe their thinking, tease the solution, CTA',
+      cta: 'Show Me The Solution'
+    },
+    checkout: {
+      goal: 'Eliminate buyer hesitation and complete the sale with zero friction.',
+      sections: 'Order summary with what they are getting, value stack (show everything included with retail prices crossed out), secure order form (name, email, card placeholder), 30-day money-back guarantee badge, what happens after purchase (next steps), trust badges',
+      cta: 'Complete My Order'
+    },
+    thankyou: {
+      goal: 'Confirm purchase, celebrate them, and prime them for the next step.',
+      sections: 'Celebration hero, confirmation message, 3 clear next steps numbered, access button, optional: introduce an upgrade or community',
+      cta: 'Access My Purchase'
+    },
+    vsl: {
+      goal: 'Hold attention above the fold and convert below it. Video does the selling.',
+      sections: 'Pre-headline hook (before you watch this...), video player placeholder with play button, "Watch before we take this down" urgency, 3 bullets visible below video that tease what they will see, CTA section below fold',
+      cta: 'Get Instant Access'
+    },
+    order: {
+      goal: 'Clean, fast, frictionless order form.',
+      sections: 'Order summary, price, name/email/card form, security badges, guarantee',
+      cta: 'Complete Order Now'
+    },
+    register: {
+      goal: 'Register for a live or recorded training. Sell the event like a product.',
+      sections: 'Webinar headline with clear promise, host credibility line, what you will discover (3-5 bullet outcomes), date and time display, registration form, urgency (limited seats / replay not guaranteed)',
+      cta: 'Reserve My Free Seat'
+    },
+    confirm: {
+      goal: 'Confirm registration and prime them to show up.',
+      sections: 'Confirmation hero, webinar details, what to prepare before joining, add to calendar buttons, share CTA',
+      cta: 'Add to Calendar'
+    },
+    tripwire: {
+      goal: 'Irresistible low-ticket offer that converts cold traffic. Must feel like a steal.',
+      sections: 'Ticker bar, headline focused on the specific quick win, what you get (be ultra specific), value stack with original prices, price reveal (discounted, time-limited), CTA, guarantee',
+      cta: 'Get It Now'
+    },
+    upsell: {
+      goal: 'One-time upgrade offer immediately after purchase. They already said yes — give them more.',
+      sections: 'Congratulations opener, what they are missing without the upgrade, what the upgrade includes (bullet stack), one-time price (emphasise never again), yes/no buttons',
+      cta: 'Yes, Upgrade My Order'
+    },
   };
-  var cfg = pageConfigs[page.id] || pageConfigs.landing;
 
-  // ── PHASE 1: STRATEGIC ANALYSIS ─────────────────────────────────────────────
-  // Build a deep strategic brief from everything we know about this member
-  var offerType    = (avatar && avatar.offerType)          || 'digital product';
-  var pricePoint   = (avatar && avatar.pricePoint)         || '$197-$997';
-  var niche2       = niche || 'online business';
-  var audienceName = job || 'digital entrepreneurs';
-  var monthlyGoal  = income || '$10,000/month';
+  var cfg = pageStrategies[page.id] || pageStrategies.landing;
 
-  // Determine funnel strategy based on page type + offer price
-  var funnelStrategy = '';
-  if (page.id === 'bridge' || page.id === 'presell') {
-    funnelStrategy = 'AFFILIATE BRIDGE STRATEGY: Interrupt pattern, build curiosity, tell a transformation story, introduce the product as the vehicle, drive to merchant. Never hard sell. Let the story do the work.';
-  } else if (page.id === 'sales') {
-    funnelStrategy = 'LONG-FORM SALES LETTER STRATEGY: Open with the biggest pain, agitate until it hurts, introduce the hero (you), reveal the solution, stack value relentlessly, handle every objection, make the price feel small, close with urgency. This page must be scroll-stopping from line one.';
-  } else if (page.id === 'landing' || page.id === 'vsl') {
-    funnelStrategy = 'LEAD CAPTURE STRATEGY: One job only — get the opt-in. Remove all friction. Big promise above the fold, 3 bullets that speak to their deepest desire, simple form, CTA that feels like the obvious next step.';
-  } else if (page.id === 'checkout' || page.id === 'order') {
-    funnelStrategy = 'CHECKOUT STRATEGY: Reinforce the buying decision. Show exactly what they are getting, stack the value one more time, make the form feel safe and simple, add a guarantee that removes all risk, keep it frictionless.';
-  } else if (page.id === 'upsell' || page.id === 'tripwire') {
-    funnelStrategy = 'UPSELL STRATEGY: They already said yes once. Now give them the logical next step. Show what they are missing without the upgrade, make the additional value obvious, price it so the no feels stupid.';
-  } else if (page.id === 'webinar' || page.id === 'register') {
-    funnelStrategy = 'WEBINAR REGISTRATION STRATEGY: Sell the event not the product. Make the training sound so valuable they would pay just to attend. Create FOMO. One job — get the registration.';
-  } else {
-    funnelStrategy = 'CONVERSION STRATEGY: Every element on this page has one job — move the visitor to the next step. Remove distractions. Amplify desire. Make the action feel safe and obvious.';
-  }
+  // ── BUILD THE PROMPT ────────────────────────────────────────────────────────
+  var prompt = 'You are simultaneously a world-class conversion strategist, a top 1% direct-response copywriter, and a premium UI/UX designer.\n\n'
+    + 'Your task: Build the highest-converting ' + page.label + ' ever created for this specific business. Not a template. A precision instrument built around this exact offer and audience.\n\n'
 
-  var prompt = 'You are simultaneously three experts working as one:\n'
-    + '1. A world-class STRATEGIST who understands buyer psychology, funnel architecture, and what makes offers convert in competitive niches\n'
-    + '2. A top 1% DIRECT-RESPONSE COPYWRITER who writes headlines that stop scrolls, copy that builds unstoppable desire, and CTAs that feel inevitable\n'
-    + '3. A premium UI/UX DESIGNER who builds pages that look like they cost $50,000 — dark, modern, brand-forward, and conversion-optimised\n\n'
-    + 'Your output will be a standalone HTML page that this business owner is PROUD to send traffic to. It must outperform every competitor in their niche visually and conversion-wise.\n\n'
+    + '═══════════════════════════════════════════\n'
+    + 'COMPLETE BUSINESS PROFILE — READ EVERY LINE\n'
+    + '═══════════════════════════════════════════\n'
+    + 'Mode: ' + (isAffiliate ? 'AFFILIATE MARKETER' : 'PRODUCT OWNER') + '\n'
+    + 'Niche: ' + nicheReal + '\n'
+    + 'Offer name: ' + offerName + '\n'
+    + (offerTagline ? 'Offer tagline: ' + offerTagline + '\n' : '')
+    + (offerPrice ? 'Price / Commission: $' + offerPrice + '\n' : '')
+    + (offerUrl ? 'Product URL (affiliate): ' + offerUrl + '\n' : '')
+    + (offerPlatform ? 'Platform: ' + offerPlatform + '\n' : '')
+    + (offerBenefits ? 'Product benefits: ' + offerBenefits + '\n' : '')
+    + 'Monthly income target: ' + monthlyTarget + '\n\n'
 
-    + '════════════════════════════════════════\n'
-    + 'STRATEGIC ANALYSIS — READ THIS FIRST\n'
-    + '════════════════════════════════════════\n'
-    + 'Niche: ' + niche2 + '\n'
-    + 'Offer: ' + offer + '\n'
-    + 'Offer type: ' + offerType + '\n'
-    + 'Price point: ' + pricePoint + '\n'
-    + 'Target audience: ' + audienceName + '\n'
-    + 'Their income goal: ' + monthlyGoal + '\n'
-    + 'Their current pain: ' + painPoint + '\n'
-    + 'What they deeply want: ' + desire + '\n'
+    + 'TARGET AUDIENCE:\n'
+    + 'Who they are: ' + audienceName + '\n'
+    + (audienceAge ? 'Age: ' + audienceAge + '\n' : '')
+    + (audienceLocation ? 'Location: ' + audienceLocation + '\n' : '')
+    + (audienceIncome ? 'Current income: ' + audienceIncome + '\n' : '')
+    + (personality ? 'Personality: ' + personality + '\n' : '')
+    + (influences ? 'Who they follow: ' + influences + '\n' : '')
+    + (keywords ? 'Language they use: ' + keywords + '\n' : '')
+    + '\n'
+
+    + 'PSYCHOGRAPHIC PROFILE:\n'
+    + 'Surface pain: ' + painPoint + '\n'
+    + 'Deeper fear: ' + deeperPain + '\n'
+    + 'What they want: ' + transformation + '\n'
     + 'What they fear most: ' + fear + '\n'
     + 'Their objections: ' + objections + '\n'
     + 'What they have already tried: ' + tried + '\n'
-    + 'Who they follow and trust: ' + influences + '\n\n'
-    + 'PAGE BEING BUILT: ' + page.label + '\n'
-    + 'FUNNEL STRATEGY: ' + funnelStrategy + '\n'
-    + 'PAGE GOAL: ' + cfg.goal + '\n'
-    + 'PRIMARY CTA: ' + cfg.cta + '\n'
-    + 'SECTIONS REQUIRED: ' + cfg.sections + '\n\n'
+    + (motivation ? 'What motivates them: ' + motivation + '\n' : '')
+    + '\n'
 
-    + '════════════════════════════════════════\n'
+    + (voiceTone || voiceStyle || voiceExample ? '═══════════════════════════════════════════\nCREATOR VOICE PROFILE — MATCH THIS EXACTLY\n═══════════════════════════════════════════\n'
+    + (voiceTone   ? 'Tone: ' + voiceTone + '\n' : '')
+    + (voiceStyle  ? 'Style: ' + voiceStyle + '\n' : '')
+    + (voiceWords  ? 'Phrases they always use: ' + voiceWords + '\n' : '')
+    + (voiceAvoid  ? 'NEVER use these words or phrases: ' + voiceAvoid + '\n' : '')
+    + (voiceStory  ? 'Their story: ' + voiceStory + '\n' : '')
+    + (voiceMethod ? 'Their method/framework: ' + voiceMethod + '\n' : '')
+    + (voiceExample ? 'Match this exact voice:\n' + voiceExample + '\n' : '')
+    + '\n' : '')
+
+    + '═══════════════════════════════════════════\n'
+    + 'PAGE STRATEGY\n'
+    + '═══════════════════════════════════════════\n'
+    + 'Page type: ' + page.label + '\n'
+    + 'Goal: ' + cfg.goal + '\n'
+    + 'Primary CTA: ' + cfg.cta + '\n'
+    + 'Sections to build: ' + cfg.sections + '\n\n'
+
+    + '═══════════════════════════════════════════\n'
     + 'DESIGN SYSTEM — IMPLEMENT EXACTLY\n'
-    + '════════════════════════════════════════\n'
-    + 'This page must match this exact premium dark design system:\n\n'
-    + 'CSS Variables to define in :root:\n'
-    + '  --bg: #06060f\n'
-    + '  --bg2: #0d0d1e\n'
-    + '  --bg3: #111128\n'
-    + '  --teal: #4ecca3\n'
-    + '  --teal2: #38b48e\n'
-    + '  --gold: #f0c040\n'
-    + '  --purple: #6c63ff\n'
-    + '  --white: #ffffff\n'
-    + '  --muted: #c8cde8\n'
-    + '  --dim: #7a7a9d\n'
-    + '  --border: rgba(78,204,163,0.15)\n'
-    + '  --card: #0d0d1e\n'
-    + '  --shadow: 0 20px 60px rgba(0,0,0,0.5)\n\n'
-    + 'Typography:\n'
-    + '  @import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap\');\n'
-    + '  body { font-family: Poppins, sans-serif; background: #06060f; color: #c8cde8; }\n'
-    + '  h1 { font-weight: 900; font-size: clamp(30px,5.5vw,62px); letter-spacing: -2px; color: #fff; line-height: 1.1; }\n'
-    + '  h2 { font-weight: 800; font-size: clamp(22px,3.5vw,40px); letter-spacing: -1px; color: #fff; }\n'
-    + '  h3 { font-weight: 700; font-size: clamp(17px,2.2vw,26px); color: #fff; }\n'
-    + '  p  { font-size: 16px; line-height: 1.8; color: #c8cde8; }\n\n'
-    + 'TICKER BAR (always at very top):\n'
-    + '  background: rgba(78,204,163,0.06); border-bottom: 1px solid rgba(78,204,163,0.15);\n'
-    + '  padding: 10px 0; overflow: hidden; white-space: nowrap;\n'
-    + '  Use CSS animation to scroll the text left. Text color: #4ecca3. Font-weight: 700.\n\n'
-    + 'HERO SECTION:\n'
-    + '  Full-width, padding 120px 24px 80px, text-align: center\n'
-    + '  Radial glow behind headline: background radial-gradient(ellipse 80% 60% at 50% 0%, rgba(78,204,163,0.12) 0%, transparent 70%)\n'
-    + '  GRADIENT HEADLINE HIGHLIGHT: key phrase wrapped in span with:\n'
-    + '    background: linear-gradient(100deg, #4ecca3, #f0c040);\n'
-    + '    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;\n\n'
-    + 'CARDS:\n'
-    + '  background: #0d0d1e; border: 1px solid rgba(78,204,163,0.15); border-radius: 16px; padding: 28px;\n'
-    + '  hover: transform translateY(-4px); box-shadow: 0 12px 40px rgba(78,204,163,0.12);\n\n'
-    + 'BUTTONS (primary CTA):\n'
-    + '  display: inline-flex; align-items: center; gap: 10px;\n'
-    + '  background: linear-gradient(135deg, #4ecca3, #38b48e);\n'
-    + '  color: #06060f; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px;\n'
-    + '  padding: 18px 40px; border: none; border-radius: 8px; cursor: pointer;\n'
-    + '  box-shadow: 0 0 50px rgba(78,204,163,0.4);\n'
-    + '  hover: transform translateY(-3px); box-shadow: 0 0 70px rgba(78,204,163,0.6);\n'
-    + '  Add a right-arrow unicode character after button text\n\n'
-    + 'SECTION DIVIDERS:\n'
-    + '  height: 1px; background: linear-gradient(90deg, transparent, rgba(78,204,163,0.3), transparent); margin: 60px 0;\n\n'
-    + 'SECTION LABELS (small caps above headings):\n'
-    + '  font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #4ecca3;\n'
-    + '  margin-bottom: 8px; display: block;\n\n'
-    + 'OPT-IN FORM STYLING:\n'
-    + '  background: #0d0d1e; border: 1px solid rgba(78,204,163,0.2); border-radius: 16px; padding: 40px;\n'
-    + '  Input fields: width 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);\n'
-    + '  border-radius: 8px; padding: 14px 18px; color: #fff; font-size: 15px; font-family: Poppins;\n'
-    + '  focus: border-color: #4ecca3; outline: none;\n'
-    + '  Labels: font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #7a7a9d; margin-bottom: 6px;\n\n'
-    + 'CHECKMARKS & BULLETS:\n'
-    + '  Use teal checkmark (color #4ecca3) before each benefit. SVG or unicode ✓\n\n'
-    + 'GUARANTEE BADGE:\n'
-    + '  Circular badge or pill: border: 2px solid #f0c040; color: #f0c040; padding: 20px; text-align: center; border-radius: 50% or 16px\n\n'
-    + 'URGENCY ELEMENTS:\n'
-    + '  color: #f0c040; font-weight: 700; add ⚡ or 🔒 icons before text\n\n'
-    + 'PRICE DISPLAY:\n'
-    + '  Original price: font-size: 18px; text-decoration: line-through; color: #7a7a9d;\n'
-    + '  Sale price: font-size: 42px; font-weight: 900; color: #4ecca3;\n\n'
-    + 'SOCIAL PROOF / TESTIMONIAL CARDS:\n'
-    + '  background: #111128; border-left: 3px solid #4ecca3; border-radius: 0 12px 12px 0; padding: 20px 24px;\n\n'
-    + 'FOOTER:\n'
-    + '  background: #0d0d1e; border-top: 1px solid rgba(255,255,255,0.06); padding: 30px 24px; text-align: center;\n'
-    + '  font-size: 12px; color: #7a7a9d;\n\n'
-    + 'RESPONSIVE:\n'
-    + '  Use clamp() for all font sizes. Flexbox and Grid layouts. Mobile-first. Max-width containers: max-width 1100px; margin: 0 auto; padding: 0 24px;\n\n'
+    + '═══════════════════════════════════════════\n'
+    + 'Background: #06060f everywhere\n'
+    + 'Card background: #0d0d1e with border 1px solid rgba(78,204,163,0.15) and border-radius 16px\n'
+    + 'Section alternating: #111128\n'
+    + 'Primary accent: #4ecca3 (teal)\n'
+    + 'Gradient accent end: #38b48e\n'
+    + 'Gold: #f0c040 (urgency, prices, badges)\n'
+    + 'Purple: #6c63ff (tags, subtle highlights)\n'
+    + 'White: #ffffff (headlines)\n'
+    + 'Body text: #c8cde8\n'
+    + 'Muted: #7a7a9d\n\n'
+    + 'Font: Poppins from Google Fonts (400,600,700,800,900)\n'
+    + 'H1: weight 900, size clamp(30px,5.5vw,62px), letter-spacing -2px, color white, line-height 1.1\n'
+    + 'H2: weight 800, size clamp(22px,3.5vw,40px), letter-spacing -1px\n'
+    + 'Body: size 16px, line-height 1.8, color #c8cde8\n\n'
+    + 'TICKER BAR: overflow hidden, background rgba(78,204,163,0.06), border-bottom 1px solid rgba(78,204,163,0.15), @keyframes ticker scroll text left, color #4ecca3, font-weight 700\n'
+    + 'HERO: padding 120px 24px 80px, text-align center, radial-gradient(ellipse 80% 60% at 50% 0%, rgba(78,204,163,0.12) 0%, transparent 70%) as background decoration\n'
+    + 'GRADIENT HEADLINE: wrap key phrase in span with background linear-gradient(100deg,#4ecca3,#f0c040), -webkit-background-clip text, -webkit-text-fill-color transparent\n'
+    + 'SECTION LABEL: font-size 11px, font-weight 800, letter-spacing 3px, text-transform uppercase, color #4ecca3, display block, margin-bottom 8px\n'
+    + 'SECTION DIVIDER: height 1px, background linear-gradient(90deg,transparent,rgba(78,204,163,0.3),transparent), margin 60px 0\n'
+    + 'BUTTON: background linear-gradient(135deg,#4ecca3,#38b48e), color #06060f, font-weight 800, text-transform uppercase, letter-spacing 0.5px, padding 18px 40px, border-radius 8px, box-shadow 0 0 50px rgba(78,204,163,0.4), hover transform translateY(-3px)\n'
+    + 'CARDS: background #0d0d1e, border 1px solid rgba(78,204,163,0.15), border-radius 16px, padding 28px, hover transform translateY(-4px)\n'
+    + 'FORM INPUTS: background rgba(255,255,255,0.05), border 1px solid rgba(255,255,255,0.1), border-radius 8px, padding 14px 18px, color white, focus border-color #4ecca3\n'
+    + 'GUARANTEE BADGE: circular or pill shape, border 2px solid #f0c040, color #f0c040\n'
+    + 'PRICE: sale price font-size 42px, font-weight 900, color #4ecca3; original crossed out in #7a7a9d\n'
+    + 'CHECKMARKS: color #4ecca3 before each benefit point\n'
+    + 'TESTIMONIAL CARDS: background #111128, border-left 3px solid #4ecca3, padding 20px 24px\n'
+    + 'Container: max-width 1100px, margin 0 auto, padding 0 24px\n'
+    + 'Mobile: @media(max-width:768px) with clamp sizes, stacked layouts, full-width buttons\n\n'
 
-    + '════════════════════════════════════════\n'
-    + 'COPY ARCHITECTURE\n'
-    + '════════════════════════════════════════\n'
-    + 'HEADLINE FORMULA: [Specific Outcome] + [Timeframe or Method] + [Pain Point Removal]\n'
-    + 'Example pattern: "Finally, a [specific thing] that [does what they want] without [what they hate most]"\n\n'
-    + 'SUBHEADLINE: Expand the promise. Call out who this is for. Add specificity.\n\n'
-    + 'COPY RULES:\n'
-    + '- Every sentence must earn the next one\n'
-    + '- Open with their pain or desire, never the product\n'
-    + '- Short sentences hit harder. Use them.\n'
-    + '- Specificity builds trust. Use real numbers and timeframes.\n'
-    + '- Handle objections before they arise\n'
-    + '- The CTA is a benefit, not a command. "Get instant access" not "Submit"\n'
-    + '- Write "you" not "our customers"\n'
-    + '- Zero generic phrases: no "game-changer", "transform", "unlock potential"\n'
-    + '- Commas not em dashes\n\n'
+    + '═══════════════════════════════════════════\n'
+    + 'COPYWRITING RULES — NON-NEGOTIABLE\n'
+    + '═══════════════════════════════════════════\n'
+    + '1. Open with THEIR pain or dream. Never the product.\n'
+    + '2. Every headline must use the words they would use to describe their own problem.\n'
+    + '3. Use "you" throughout. Never "our clients" or "people who".\n'
+    + '4. Specificity over vagueness: "$47" not "affordable price". "In 21 days" not "quickly".\n'
+    + '5. Short sentences hit harder. Then a longer one builds context and keeps them reading.\n'
+    + '6. Handle objections before they arise. If they think "this won\'t work for me" — address it.\n'
+    + '7. The CTA is a benefit statement not a command: "Get instant access" not "Submit".\n'
+    + '8. No generic filler: no "game-changer", "transform your life", "unlock your potential".\n'
+    + '9. Use commas not em dashes.\n'
+    + '10. Every section should answer: "so what does this mean for ME right now?"\n\n'
+    + (isAffiliate ? 'AFFILIATE SPECIFIC: This is a bridge/presell page. Do NOT hard sell. You are a trusted friend sharing what worked for you. Personal, honest, specific. Drive to: ' + (offerUrl || 'the product page') + '\n\n' : '')
 
-    + '════════════════════════════════════════\n'
-    + 'TECHNICAL BUILD REQUIREMENTS\n'
-    + '════════════════════════════════════════\n'
-    + '- Complete standalone HTML from <!DOCTYPE html> to </html>\n'
-    + '- ALL styles in a single <style> block in <head>\n'
-    + '- First line of <style>: @import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap\');\n'
-    + '- :root { define all CSS variables }\n'
-    + '- Ticker animation: @keyframes ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }\n'
-    + '- Button hover: transition all 0.2s ease\n'
-    + '- Card hover: transition transform 0.22s ease\n'
-    + '- Mobile breakpoint @media (max-width: 768px) with adjusted font sizes, stacked layouts, full-width buttons\n'
-    + '- All forms: functional HTML structure, styled inputs, no backend needed\n'
-    + '- Video placeholders: dark div with centered play icon SVG\n'
-    + '- No JavaScript required\n'
-    + '- Return ONLY raw HTML. No markdown. No code fences. No explanation. Start your response with <!DOCTYPE html>\n\n'
+    + '═══════════════════════════════════════════\n'
+    + 'TECHNICAL BUILD\n'
+    + '═══════════════════════════════════════════\n'
+    + 'Return complete standalone HTML from <!DOCTYPE html> to </html>\n'
+    + 'All CSS in one <style> block in <head>\n'
+    + 'First line of <style>: @import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap\');\n'
+    + ':root { define all CSS variables listed above }\n'
+    + 'Ticker @keyframes ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }\n'
+    + 'All hover transitions: transition all 0.2s ease\n'
+    + 'No JavaScript required\n'
+    + 'Form fields: styled HTML only, no backend\n'
+    + 'Video placeholder: dark div with centered SVG play button\n'
+    + 'Return ONLY raw HTML. Start with <!DOCTYPE html>. No markdown, no backticks, no explanation.\n\n'
+    + 'NOW BUILD: The highest-converting ' + page.label + ' this ' + audienceName + ' audience has ever seen. '
+    + 'Use every data point above. Make it so specific to this offer and this audience that it could not possibly be mistaken for a generic template. '
+    + 'When they read it, they should feel like you read their mind.';
 
-    + 'NOW BUILD: The most impressive ' + page.label + ' ever created for a ' + niche2 + ' business.\n'
-    + 'This person will look at this page and feel a rush of confidence. Their audience will look at it and immediately feel they are dealing with someone serious.\n'
-    + 'Make it convert. Make it beautiful. Make it theirs.';
-
-    var proxyUrl = window.location.origin + '/api/generate-funnel';
+  var proxyUrl = window.location.origin + '/api/generate-funnel';
   var resp = await fetch(proxyUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt: prompt, max_tokens: 8000 })
   });
+
   if (!resp.ok) {
     var errText = await resp.text().catch(function() { return ''; });
     throw new Error('API error ' + resp.status + ': ' + errText.substring(0, 200));
@@ -18923,19 +18972,18 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
   return (data.content && data.content[0] && data.content[0].text) || '';
 }
 
-function fbSetupEditor(funnel) {
-  // Set funnel name
-  const nameEl = document.getElementById('fb-editor-funnel-name');
-  if (nameEl) nameEl.textContent = funnel.name;
 
-  // Build page tabs
-  const tabs = document.getElementById('fb-page-tabs');
+// ── EDITOR SETUP ──
+function fbSetupEditor(funnel) {
+  var nameEl = document.getElementById('fb-editor-funnel-name');
+  if (nameEl) nameEl.textContent = funnel.name;
+  var tabs = document.getElementById('fb-page-tabs');
   if (tabs) {
     tabs.innerHTML = '';
-    let first = true;
-    Object.keys(funnel.pages).forEach(function(pageId) {
-      const page = funnel.pages[pageId];
-      const tab = document.createElement('button');
+    var first = true;
+    Object.keys(funnel.pages || {}).forEach(function(pageId) {
+      var page = funnel.pages[pageId];
+      var tab = document.createElement('button');
       tab.className = 'tab' + (first ? ' on' : '');
       tab.textContent = page.label;
       tab.onclick = function() {
@@ -18948,24 +18996,20 @@ function fbSetupEditor(funnel) {
       if (first) { fbState.currentPage = pageId; first = false; }
     });
   }
-
-  // Render first page
-  const firstPageId = Object.keys(funnel.pages)[0];
+  var firstPageId = Object.keys(funnel.pages || {})[0];
   if (firstPageId) fbRenderPreview(firstPageId);
-
-  // URL bar
-  const urlBar = document.getElementById('fb-preview-url');
-  if (urlBar) urlBar.textContent = funnel.domain || 'https://yourdomain.com';
+  var urlBar = document.getElementById('fb-preview-url');
+  if (urlBar) urlBar.textContent = funnel.domain ? 'https://' + funnel.domain : 'https://yourdomain.com';
 }
 
 function fbRenderPreview(pageId) {
-  const frame = document.getElementById('fb-preview-frame');
+  var frame = document.getElementById('fb-preview-frame');
   if (!frame || !fbState.current) return;
-  const page = fbState.current.pages[pageId];
+  var page = fbState.current.pages && fbState.current.pages[pageId];
   if (!page) return;
   frame.innerHTML = '';
-  const iframe = document.createElement('iframe');
-  iframe.style.width = fbState.device === 'mobile' ? '390px' : '100%';
+  var iframe = document.createElement('iframe');
+  iframe.style.width  = fbState.device === 'mobile' ? '390px' : '100%';
   iframe.style.height = '700px';
   iframe.style.border = 'none';
   iframe.style.margin = fbState.device === 'mobile' ? '0 auto' : '0';
@@ -18974,1166 +19018,362 @@ function fbRenderPreview(pageId) {
   frame.appendChild(iframe);
 }
 
-// ── DEVICE TOGGLE ──
 function fbToggleDevice(device) {
   fbState.device = device;
-  const dBtn = document.getElementById('fb-btn-desktop');
-  const mBtn = document.getElementById('fb-btn-mobile');
-  const activeStyle  = 'background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-sm);padding:4px 10px;color:var(--teal);font-size:11px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700';
-  const inactiveStyle = 'background:transparent;border:1px solid var(--border2);border-radius:var(--r-sm);padding:4px 10px;color:var(--dim);font-size:11px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700';
-  if (dBtn) dBtn.style.cssText = device === 'desktop' ? activeStyle : inactiveStyle;
-  if (mBtn) mBtn.style.cssText = device === 'mobile' ? activeStyle : inactiveStyle;
+  var dBtn = document.getElementById('fb-btn-desktop');
+  var mBtn = document.getElementById('fb-btn-mobile');
+  var aStyle = 'background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-sm);padding:4px 10px;color:var(--teal);font-size:11px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700';
+  var iStyle = 'background:transparent;border:1px solid var(--border2);border-radius:var(--r-sm);padding:4px 10px;color:var(--dim);font-size:11px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700';
+  if (dBtn) dBtn.style.cssText = device === 'desktop' ? aStyle : iStyle;
+  if (mBtn) mBtn.style.cssText = device === 'mobile'  ? aStyle : iStyle;
   if (fbState.currentPage) fbRenderPreview(fbState.currentPage);
-};
+}
 
-// ── AI EDITOR ──
 function fbSuggestion(el) {
-  const input = document.getElementById('fb-ai-input');
+  var input = document.getElementById('fb-ai-input');
   if (input) { input.value = el.textContent; input.focus(); }
-};
+}
 
 async function fbSendEdit() {
-  const input = document.getElementById('fb-ai-input');
+  var input = document.getElementById('fb-ai-input');
   if (!input || !input.value.trim()) return;
-  const instruction = input.value.trim();
+  var instruction = input.value.trim();
   input.value = '';
-
-  // Add user message
   fbAddMessage('user', instruction);
-
-  // Add loading message
-  const loadId = 'fb-msg-' + Date.now();
-  fbAddMessage('ai', '⏳ Updating your page…', loadId);
-
-  const pageId = fbState.currentPage;
-  const currentHtml = fbState.current && fbState.current.pages[pageId] ? fbState.current.pages[pageId].html : '';
-
+  var loadId = 'fb-msg-' + Date.now();
+  fbAddMessage('ai', '⏳ Applying your change…', loadId);
+  var pageId = fbState.currentPage;
+  var currentHtml = fbState.current && fbState.current.pages && fbState.current.pages[pageId] ? fbState.current.pages[pageId].html : '';
   try {
-    const prompt = `You are an expert web designer editing a sales funnel page.
-
-Current page HTML:
-${currentHtml.substring(0, 6000)}
-
-User instruction: "${instruction}"
-
-Apply the instruction and return the complete updated HTML page. Return ONLY the HTML, nothing else.`;
-
-    const proxyUrl3 = window.location.origin + '/api/generate-funnel';
-    const editResp = await fetch(proxyUrl3, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    var prompt = 'You are a precise HTML editor making ONLY the specific change requested.\n\n'
+      + 'CRITICAL RULES:\n'
+      + '- Make ONLY the change described in the instruction. Nothing else.\n'
+      + '- Do NOT rewrite headlines, copy, or any content that was not mentioned.\n'
+      + '- Do NOT change fonts, colors, or layout unless specifically asked.\n'
+      + '- Preserve ALL existing text and content exactly as-is.\n'
+      + '- Only modify the specific element or property mentioned.\n\n'
+      + 'INSTRUCTION: "' + instruction + '"\n\n'
+      + 'CURRENT PAGE HTML:\n' + currentHtml.substring(0, 8000) + '\n\n'
+      + 'Return the complete updated HTML with ONLY the requested change. Return ONLY raw HTML.';
+    var proxyUrl3 = window.location.origin + '/api/generate-funnel';
+    var editResp = await fetch(proxyUrl3, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt: prompt, max_tokens: 3000 })
     });
-    const editData = editResp.ok ? await editResp.json() : null;
-    const newHtml = (editData && editData.content && editData.content[0] && editData.content[0].text) || currentHtml;
-
-    // Update page
-    if (fbState.current && fbState.current.pages[pageId]) {
+    var editData = editResp.ok ? await editResp.json() : null;
+    var newHtml = (editData && editData.content && editData.content[0] && editData.content[0].text) || currentHtml;
+    if (fbState.current && fbState.current.pages && fbState.current.pages[pageId]) {
       fbState.current.pages[pageId].html = newHtml;
       fbRenderPreview(pageId);
     }
-
-    // Replace loading message
-    const loadMsg = document.getElementById(loadId);
-    if (loadMsg) loadMsg.textContent = '✅ Done! Your page has been updated.';
-
+    var loadMsg = document.getElementById(loadId);
+    if (loadMsg) loadMsg.querySelector('.fb-msg-bubble').textContent = '✅ Done! Your page has been updated.';
     await fbSaveFunnelToFirestore(fbState.current);
-
   } catch(err) {
-    const loadMsg = document.getElementById(loadId);
-    if (loadMsg) loadMsg.textContent = '❌ Update failed. Please try again.';
+    var loadMsg = document.getElementById(loadId);
+    if (loadMsg) loadMsg.querySelector('.fb-msg-bubble').textContent = '❌ Update failed. Please try again.';
   }
-};
+}
 
 function fbAddMessage(role, text, id) {
-  const container = document.getElementById('fb-ai-messages');
+  var container = document.getElementById('fb-ai-messages');
   if (!container) return;
-  const div = document.createElement('div');
+  var div = document.createElement('div');
   div.className = 'fb-msg ' + role;
   if (id) div.id = id;
-  div.innerHTML = `
-    <div class="fb-msg-avatar">${role === 'ai' ? '🧠' : '👤'}</div>
-    <div class="fb-msg-bubble">${text}</div>
-  `;
+  div.innerHTML = '<div class="fb-msg-avatar">' + (role === 'ai' ? '🧠' : '👤') + '</div><div class="fb-msg-bubble">' + text + '</div>';
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
 }
 
-// ── SAVE ──
 async function fbSaveFunnel() {
   if (!fbState.current) return;
   fbState.current.status = 'draft';
   await fbSaveFunnelToFirestore(fbState.current);
-  // Brief feedback
-  const btn = event && event.target;
-  if (btn) { const orig = btn.textContent; btn.textContent = '✅ Saved'; setTimeout(function(){ btn.textContent = orig; }, 1500); }
-};
+  var btn = event && event.target;
+  if (btn) { var orig = btn.textContent; btn.textContent = '✅ Saved'; setTimeout(function(){ btn.textContent = orig; }, 1500); }
+}
 
 async function fbSaveFunnelToFirestore(funnel) {
   if (!funnel || !funnel.id) return;
   try {
-    const uid = window._currentUserUid || window._currentUid ||
-      (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
+    var uid = window._currentUserUid || window._currentUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
     if (!uid || !window._db || !window._doc || !window._setDoc) {
-      // Firebase not ready — save to localStorage as backup
-      try {
-        var saved = JSON.parse(localStorage.getItem('eos_funnels') || '{}');
-        saved[funnel.id] = funnel;
-        localStorage.setItem('eos_funnels', JSON.stringify(saved));
-      } catch(le) {}
+      try { var lsKey2='eos_funnels_'+(window._currentUserUid||'anon'); var saved2=JSON.parse(localStorage.getItem(lsKey2)||'{}'); saved2[funnel.id]=funnel; localStorage.setItem(lsKey2,JSON.stringify(saved2)); } catch(le) {}
       return;
     }
-    // Save to Firestore under users/{uid}/funnels/{funnelId}
-    const ref = window._doc(window._db, 'users', uid, 'funnels', funnel.id);
-    const saveData = Object.assign({}, funnel);
-    // Don't save full page HTML in one doc if too large — save page refs separately
-    await window._setDoc(ref, saveData, { merge: true });
-    // Also backup to localStorage
-    try {
-      var saved = JSON.parse(localStorage.getItem('eos_funnels') || '{}');
-      saved[funnel.id] = saveData;
-      localStorage.setItem('eos_funnels', JSON.stringify(saved));
-    } catch(le) {}
+    funnel.ownerUid = uid;
+    var ref = window._doc(window._db, 'users', uid, 'funnels', funnel.id);
+    await window._setDoc(ref, Object.assign({}, funnel), { merge: true });
+    try { var lsKey2='eos_funnels_'+(uid||'anon'); var saved2=JSON.parse(localStorage.getItem(lsKey2)||'{}'); saved2[funnel.id]=funnel; localStorage.setItem(lsKey2,JSON.stringify(saved2)); } catch(le) {}
   } catch(e) {
-    console.warn('Funnel Firestore save error:', e);
-    // Always save to localStorage as fallback
-    try {
-      var saved = JSON.parse(localStorage.getItem('eos_funnels') || '{}');
-      saved[funnel.id] = funnel;
-      localStorage.setItem('eos_funnels', JSON.stringify(saved));
-    } catch(le) {}
+    console.warn('Funnel save error:', e);
+    try { var lsKey2='eos_funnels_'+(window._currentUserUid||'anon'); var saved2=JSON.parse(localStorage.getItem(lsKey2)||'{}'); saved2[funnel.id]=funnel; localStorage.setItem(lsKey2,JSON.stringify(saved2)); } catch(le) {}
   }
 }
 
 // ── DOMAIN ──
-// ── DOMAIN CONNECTION ────────────────────────────────────────────────────────
 function fbSaveDomain() {
   var input = document.getElementById('fb-domain-input');
   if (!input || !input.value.trim()) return;
-
   var raw = input.value.trim().replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase();
   fbState.domain = raw;
   if (fbState.current) fbState.current.domain = raw;
-
-  // Determine CNAME name — subdomain prefix or @ for root
-  var parts = raw.split('.');
-  var cnameName = parts.length > 2 ? parts[0] : '@';
-  var cnameEl = document.getElementById('dns-cname-name');
-  if (cnameEl) cnameEl.textContent = cnameName;
-
-  // Show DNS instructions
-  var instructions = document.getElementById('fb-dns-instructions');
-  if (instructions) instructions.style.display = 'block';
-
+  var parts = raw.split('.'); var cnameName = parts.length > 2 ? parts[0] : '@';
+  var cnameEl = document.getElementById('dns-cname-name'); if (cnameEl) cnameEl.textContent = cnameName;
+  var instructions = document.getElementById('fb-dns-instructions'); if (instructions) instructions.style.display = 'block';
   var statusEl = document.getElementById('fb-domain-status');
-  if (statusEl) {
-    statusEl.style.display = 'block';
-    statusEl.innerHTML = '<div class="domain-status pending">⏳ Add the DNS record below, then click Verify</div>';
-  }
-
-  var urlBar = document.getElementById('fb-preview-url');
-  if (urlBar) urlBar.textContent = 'https://' + raw;
-
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.innerHTML = '<div class="domain-status pending">⏳ Add the DNS record below, then click Verify</div>'; }
+  var urlBar = document.getElementById('fb-preview-url'); if (urlBar) urlBar.textContent = 'https://' + raw;
   fbSaveFunnelToFirestore(fbState.current);
-};
+}
 
 async function fbVerifyDomain() {
   if (!fbState.domain) return;
   var statusEl = document.getElementById('fb-domain-status');
   var btn = document.querySelector('[onclick="fbVerifyDomain()"]');
-
   if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">🔍 Checking DNS…</div>';
   if (btn) btn.textContent = '⏳ Checking…';
-
   try {
-    // Call our API to check if the CNAME is pointing correctly
     var resp = await fetch(window.location.origin + '/api/verify-domain', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ domain: fbState.domain, funnelId: fbState.current && fbState.current.id })
     });
-
     var data = await resp.json();
-
     if (data.verified) {
-      if (statusEl) statusEl.innerHTML = '<div class="domain-status verified">✅ Domain verified and connected — ' + fbState.domain + ' is live</div>';
+      if (statusEl) statusEl.innerHTML = '<div class="domain-status verified">✅ Domain verified and connected</div>';
       fbState.domainVerified = true;
-      if (fbState.current) {
-        fbState.current.domainVerified = true;
-        fbState.current.domain = fbState.domain;
-      }
+      if (fbState.current) { fbState.current.domainVerified = true; fbState.current.domain = fbState.domain; }
       fbSaveFunnelToFirestore(fbState.current);
     } else {
-      var reason = data.reason || 'DNS not yet propagated';
-      if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">⏳ Not verified yet — ' + reason + '. DNS can take up to 24 hours. Try again later.</div>';
+      if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">⏳ Not verified yet. ' + (data.reason || 'DNS can take up to 24 hours.') + '</div>';
     }
   } catch(e) {
-    if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">❌ Verification failed — check your internet connection and try again.</div>';
+    if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">❌ Verification failed. Try again.</div>';
   }
-
   if (btn) btn.textContent = '🔍 Verify Domain';
-};
+}
 
 function fbCopyDns(value) {
   if (navigator.clipboard) {
     navigator.clipboard.writeText(value).then(function() {
-      var btns = document.querySelectorAll('.dns-copy');
-      btns.forEach(function(b) {
+      document.querySelectorAll('.dns-copy').forEach(function(b) {
         if (b.getAttribute('onclick') && b.getAttribute('onclick').includes(value)) {
-          var orig = b.textContent;
-          b.textContent = 'Copied!';
-          b.style.color = 'var(--teal)';
-          setTimeout(function() { b.textContent = orig; b.style.color = ''; }, 1500);
+          var orig = b.textContent; b.textContent = 'Copied!';
+          setTimeout(function() { b.textContent = orig; }, 1500);
         }
       });
     });
   }
-};
+}
 
-// ── STRIPE CONNECT ────────────────────────────────────────────────────────────
+// ── STRIPE ──
 function fbConnectStripe() {
-  var btn = document.getElementById('fb-stripe-btn');
-  var statusEl = document.getElementById('fb-stripe-status');
-
-  // Save current funnel ID to localStorage so callback can match it
-  if (fbState.current) {
-    localStorage.setItem('eos_stripe_funnel_id', fbState.current.id);
-  }
-
-  // Get the Stripe Connect URL from our backend (keeps client ID server-side)
   fetch(window.location.origin + '/api/stripe-connect-url', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ funnelId: fbState.current && fbState.current.id })
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
+  }).then(function(r){return r.json();}).then(function(data){
     if (data.url) {
-      // Open Stripe OAuth in popup window
       var popup = window.open(data.url, 'stripe-connect', 'width=600,height=700,scrollbars=yes');
-
-      // Poll for popup close and check if connected
-      var poll = setInterval(function() {
-        if (!popup || popup.closed) {
-          clearInterval(poll);
-          // Check Firestore if Stripe was connected
-          fbCheckStripeStatus();
-        }
-      }, 500);
-    } else {
-      // Fallback: show manual instructions
-      fbShowStripeManual();
-    }
-  })
-  .catch(function() { fbShowStripeManual(); });
-};
+      var poll = setInterval(function() { if (!popup || popup.closed) { clearInterval(poll); fbCheckStripeStatus(); } }, 500);
+    } else { fbShowStripeManual(); }
+  }).catch(function() { fbShowStripeManual(); });
+}
 
 function fbCheckStripeStatus() {
-  // Check Firestore for saved Stripe account ID
   try {
-    var uid = window._currentUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
-    if (!uid || !fbState.current) return;
-
+    var uid = window._currentUserUid; if (!uid || !fbState.current) return;
     var ref = window._doc(window._db, 'users', uid, 'funnels', fbState.current.id);
-    window._getDoc(ref).then(function(snap) {
-      var d = snap.data && snap.data();
-      if (d && d.stripeAccountId) {
-        fbShowStripeConnected(d.stripeAccountId);
-      }
-    }).catch(function() {});
+    window._getDoc(ref).then(function(snap) { var d = snap.data && snap.data(); if (d && d.stripeAccountId) fbShowStripeConnected(d.stripeAccountId); }).catch(function(){});
   } catch(e) {}
-};
+}
 
 function fbShowStripeConnected(accountId) {
-  var btn = document.getElementById('fb-stripe-btn');
-  var statusEl = document.getElementById('fb-stripe-status');
-  if (btn) {
-    btn.textContent = '✅ Stripe Connected';
-    btn.style.cssText = 'background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:var(--r-md);padding:10px 20px;color:var(--teal);font-size:12px;cursor:default;font-family:Poppins,sans-serif;font-weight:800;white-space:nowrap';
-    btn.disabled = true;
-  }
-  if (statusEl) {
-    statusEl.textContent = 'Connected, payments go directly to your account';
-    statusEl.style.color = 'var(--teal)';
-  }
+  var btn = document.getElementById('fb-stripe-btn'), statusEl = document.getElementById('fb-stripe-status');
+  if (btn) { btn.textContent = '✅ Stripe Connected'; btn.style.cssText = 'background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:var(--r-md);padding:10px 20px;color:var(--teal);font-size:12px;cursor:default;font-family:Poppins,sans-serif;font-weight:800;white-space:nowrap'; btn.disabled = true; }
+  if (statusEl) { statusEl.textContent = 'Connected, payments go directly to your account'; statusEl.style.color = 'var(--teal)'; }
   fbState.stripeConnected = true;
   if (fbState.current) fbState.current.stripeAccountId = accountId;
   fbSaveFunnelToFirestore(fbState.current);
-};
+}
 
 function fbShowStripeManual() {
-  // If API not set up yet, show manual key entry
-  var statusEl = document.getElementById('fb-stripe-status');
-  var stripeCard = document.querySelector('.stripe-card');
-  if (stripeCard) {
-    stripeCard.innerHTML = stripeCard.innerHTML + '<div style="margin-top:14px;width:100%"><div style="font-size:11px;color:var(--dim);margin-bottom:8px;font-weight:600">Enter your Stripe Publishable Key to enable payments:</div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="fb-stripe-key" class="fi" placeholder="pk_live_..." style="flex:1;min-width:200px" /><button onclick="fbSaveStripeKey()" style="background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);padding:10px 16px;color:#fff;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:800">Save Key</button></div></div>';
+  var card = document.querySelector('.stripe-card');
+  if (card && !document.getElementById('fb-stripe-key')) {
+    card.innerHTML += '<div style="margin-top:14px;width:100%"><div style="font-size:11px;color:var(--dim);margin-bottom:8px;font-weight:600">Enter your Stripe Publishable Key:</div><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="fb-stripe-key" class="fi" placeholder="pk_live_..." style="flex:1;min-width:200px"/><button onclick="fbSaveStripeKey()" style="background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);padding:10px 16px;color:#fff;font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:800">Save Key</button></div></div>';
   }
-};
+}
 
 function fbSaveStripeKey() {
   var key = document.getElementById('fb-stripe-key') && document.getElementById('fb-stripe-key').value.trim();
-  if (!key || !key.startsWith('pk_')) {
-    alert('Please enter a valid Stripe Publishable Key starting with pk_');
-    return;
-  }
-  if (fbState.current) {
-    fbState.current.stripePublishableKey = key;
-    fbState.current.stripeConnected = true;
-  }
-  fbSaveFunnelToFirestore(fbState.current);
-  fbShowStripeConnected(key);
-};
+  if (!key || !key.startsWith('pk_')) { alert('Please enter a valid Stripe Publishable Key starting with pk_'); return; }
+  if (fbState.current) { fbState.current.stripePublishableKey = key; fbState.current.stripeConnected = true; }
+  fbSaveFunnelToFirestore(fbState.current); fbShowStripeConnected(key);
+}
 
-// ── PUBLISH LIVE ──
+// ── PUBLISH ──
+function fbGoToPublish() { fbSetView('publish'); fbSetWizardStep(4); }
+
 async function fbPublishLive() {
   if (!fbState.current) return;
-  const btn = document.getElementById('fb-go-live-btn');
+  var btn = document.getElementById('fb-go-live-btn');
   if (btn) { btn.textContent = '⏳ Publishing…'; btn.disabled = true; }
-
-  fbState.current.status = 'live';
-  fbState.current.publishedAt = Date.now();
+  fbState.current.status = 'live'; fbState.current.publishedAt = Date.now();
   await fbSaveFunnelToFirestore(fbState.current);
-
-  // Show live URL
-  const liveUrl = document.getElementById('fb-live-url');
-  const domain = fbState.current.domain || 'executionos.app/' + fbState.current.id;
+  var liveUrl = document.getElementById('fb-live-url');
+  var domain = fbState.current.domain || 'executionos.app/' + fbState.current.id;
   if (liveUrl) liveUrl.textContent = 'https://' + domain + ' — click to copy';
-
   fbSetView('live');
-
   if (btn) { btn.textContent = '🚀 Go Live — Publish Funnel'; btn.disabled = false; }
-
-  // Refresh list
-  const existing = fbState.funnels.find(function(f) { return f.id === fbState.current.id; });
+  var existing = fbState.funnels.find(function(f) { return f.id === fbState.current.id; });
   if (existing) existing.status = 'live';
-};
+}
 
 function fbCopyLiveUrl() {
-  const el = document.getElementById('fb-live-url');
-  if (!el) return;
-  const url = el.textContent.replace(' — click to copy', '');
-  navigator.clipboard && navigator.clipboard.writeText(url);
+  var el = document.getElementById('fb-live-url'); if (!el) return;
+  var url = el.textContent.replace(' — click to copy','');
+  if (navigator.clipboard) navigator.clipboard.writeText(url);
   el.textContent = '✅ Copied to clipboard!';
   setTimeout(function(){ el.textContent = url + ' — click to copy'; }, 2000);
-};
+}
 
-// ── LOAD FUNNELS FROM FIRESTORE ──
+// ── LOAD & RENDER ──
 async function fbLoadList() {
-  // Try Firestore first, fall back to localStorage
-  const uid = window._currentUserUid || window._currentUid ||
-    (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
-
+  var uid = window._currentUserUid || window._currentUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
   if (uid && window._db && window._getDocs && window._collection) {
     try {
-      const snap = await window._getDocs(
-        window._collection(window._db, 'users', uid, 'funnels')
-      );
+      var snap = await window._getDocs(window._collection(window._db, 'users', uid, 'funnels'));
       fbState.funnels = [];
       snap.forEach(function(d) {
         var data = d.data ? d.data() : d;
-        if (data && data.id) fbState.funnels.push(data);
+        if (data && data.id && (!data.ownerUid || data.ownerUid === uid)) fbState.funnels.push(data);
       });
-      // Merge with localStorage in case of any offline saves
       try {
-        var local = JSON.parse(localStorage.getItem('eos_funnels') || '{}');
-        Object.keys(local).forEach(function(id) {
-          if (!fbState.funnels.find(function(f) { return f.id === id; })) {
-            fbState.funnels.push(local[id]);
-          }
+        var lsKey='eos_funnels_'+(uid||'anon'); var local=JSON.parse(localStorage.getItem(lsKey)||'{}');
+        Object.keys(local).forEach(function(id){
+          if (!fbState.funnels.find(function(f){return f.id===id;})) fbState.funnels.push(local[id]);
         });
-      } catch(le) {}
-      fbRenderList();
-      return;
-    } catch(e) {
-      console.warn('Firestore load error, falling back to localStorage:', e);
-    }
+      } catch(le){}
+      fbRenderList(); return;
+    } catch(e) { console.warn('Firestore load error:', e); }
   }
-
-  // Fallback: load from localStorage
   try {
-    var local = JSON.parse(localStorage.getItem('eos_funnels') || '{}');
-    fbState.funnels = Object.values(local).filter(function(f) { return f && f.id; });
-  } catch(le) {
-    fbState.funnels = [];
-  }
+    var lsKey='eos_funnels_'+(window._currentUserUid||'anon');
+    var local=JSON.parse(localStorage.getItem(lsKey)||'{}');
+    fbState.funnels=Object.values(local).filter(function(f){return f&&f.id;});
+  } catch(le){ fbState.funnels=[]; }
   fbRenderList();
 }
 
 function fbRenderList() {
-  const listEl  = document.getElementById('fb-funnel-list');
-  const emptyEl = document.getElementById('fb-empty-state');
-  const labelEl = document.getElementById('fb-list-label');
-  const analyticsEl = document.getElementById('fb-analytics-summary');
-
+  var listEl  = document.getElementById('fb-funnel-list');
+  var emptyEl = document.getElementById('fb-empty-state');
+  var labelEl = document.getElementById('fb-list-label');
+  var analyticsEl = document.getElementById('fb-analytics-summary');
   if (!listEl) return;
-
   if (fbState.funnels.length === 0) {
     if (emptyEl) emptyEl.style.display = 'flex';
     if (labelEl) labelEl.style.display = 'none';
     if (analyticsEl) analyticsEl.style.display = 'none';
-    listEl.innerHTML = '';
-    return;
+    listEl.innerHTML = ''; return;
   }
-
   if (emptyEl) emptyEl.style.display = 'none';
   if (labelEl) labelEl.style.display = 'block';
   if (analyticsEl) analyticsEl.style.display = 'block';
-
-  // Totals
-  let totalViews = 0, totalLeads = 0, totalSales = 0, totalRevenue = 0;
-  fbState.funnels.forEach(function(f) {
-    totalViews   += (f.views   || 0);
-    totalLeads   += (f.leads   || 0);
-    totalSales   += (f.sales   || 0);
-    totalRevenue += (f.revenue || 0);
-  });
-  document.getElementById('fb-total-views')   && (document.getElementById('fb-total-views').textContent   = totalViews.toLocaleString());
-  document.getElementById('fb-total-leads')   && (document.getElementById('fb-total-leads').textContent   = totalLeads.toLocaleString());
-  document.getElementById('fb-total-sales')   && (document.getElementById('fb-total-sales').textContent   = totalSales.toLocaleString());
-  document.getElementById('fb-total-revenue') && (document.getElementById('fb-total-revenue').textContent = '$' + totalRevenue.toLocaleString());
-
-  // Render cards
+  var totalViews=0,totalLeads=0,totalSales=0,totalRevenue=0;
+  fbState.funnels.forEach(function(f){totalViews+=(f.views||0);totalLeads+=(f.leads||0);totalSales+=(f.sales||0);totalRevenue+=(f.revenue||0);});
+  var s=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
+  s('fb-total-views',totalViews.toLocaleString()); s('fb-total-leads',totalLeads.toLocaleString());
+  s('fb-total-sales',totalSales.toLocaleString()); s('fb-total-revenue','$'+totalRevenue.toLocaleString());
   listEl.innerHTML = fbState.funnels.map(function(f) {
-    const convRate = f.views > 0 ? ((f.leads / f.views) * 100).toFixed(1) : '0.0';
-    return `
-    <div class="funnel-card card-hover" onclick="fbOpenFunnel('${f.id}')">
-      <div class="funnel-card-top">
-        <div class="funnel-card-icon">${f.icon || '🚀'}</div>
-        <div class="funnel-card-status ${f.status === 'live' ? 'live' : 'draft'}">${f.status === 'live' ? '🟢 Live' : '⚪ Draft'}</div>
-      </div>
-      <div class="funnel-card-name">${f.name}</div>
-      <div class="funnel-card-type">${(f.type || 'funnel').replace('-',' ')}</div>
-      <div class="funnel-card-stats">
-        <div class="funnel-stat">
-          <div class="funnel-stat-val">${(f.views||0).toLocaleString()}</div>
-          <div class="funnel-stat-lbl">Views</div>
-        </div>
-        <div class="funnel-stat">
-          <div class="funnel-stat-val">${(f.leads||0).toLocaleString()}</div>
-          <div class="funnel-stat-lbl">Leads</div>
-        </div>
-        <div class="funnel-stat">
-          <div class="funnel-stat-val">${convRate}%</div>
-          <div class="funnel-stat-lbl">Conv.</div>
-        </div>
-      </div>
-      ${f.domain ? '<div style="margin-top:12px;font-size:10px;color:var(--teal);font-weight:700;border-top:1px solid var(--border3);padding-top:10px">🌐 ' + f.domain + '</div>' : ''}
-    </div>`;
-  }).join('');
-}
-
-function fbOpenFunnel(id) {
-  const funnel = fbState.funnels.find(function(f) { return f.id === id; });
-  if (!funnel) return;
-  fbState.current = funnel;
-  fbSetupEditor(funnel);
-  fbSetView('editor');
-};
-
-// ── INIT on page show ──
-// Hook into showPage
-const _origShowPage = window.showPage;
-window.showPage = function(n, btn) {
-  if (n === 'funnels') fbLoadList();
-  _origShowPage && _origShowPage(n, btn);
-};
-
-// ══ EMAIL MARKETING MODULE ════════════════════════════════════════════════════
-
-var emState = {
-  tab: 'campaigns',
-  campaigns: [],
-  contacts: [],
-  sequences: [],
-  sender: { name: '', email: '' },
-  composing: null,
-  sequenceLive: false,
-  connectedFunnel: '',
-  trigger: 'optin',
-};
-
-// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
-function emShowSettings() {
-  // Navigate to settings tab
-  var settingsTab = document.getElementById('em-tab-settings');
-  if (settingsTab) emTab(settingsTab, 'settings');
-}
-
-function emTab(el, tab) {
-  document.querySelectorAll('.em-tab').forEach(function(t) { t.classList.remove('on'); });
-  el.classList.add('on');
-  emState.tab = tab;
-  var views = ['campaigns','contacts','sequences','templates','settings','compose'];
-  views.forEach(function(v) {
-    var el2 = document.getElementById('em-view-' + v);
-    if (el2) el2.style.display = 'none';
-  });
-  var active = document.getElementById('em-view-' + tab);
-  if (active) active.style.display = 'block';
-
-  if (tab === 'contacts')   emLoadContacts();
-  if (tab === 'templates')  emRenderTemplates();
-  if (tab === 'settings')   emLoadSettings();
-  if (tab === 'sequences')  emLoadSequences();
-}
-
-// ── SHOW / HIDE COMPOSE ───────────────────────────────────────────────────────
-function emShowCompose(campaign) {
-  document.querySelectorAll('#em-view-campaigns,#em-view-contacts,#em-view-sequences,#em-view-templates,#em-view-settings').forEach(function(el) { el.style.display = 'none'; });
-  var v = document.getElementById('em-view-compose');
-  if (v) v.style.display = 'block';
-
-  if (campaign) {
-    document.getElementById('em-compose-title').textContent = 'Edit Campaign';
-    document.getElementById('em-compose-subject').value = campaign.subject || '';
-    document.getElementById('em-compose-preview').value = campaign.preview || '';
-    document.getElementById('em-compose-body').value = campaign.body || '';
-    emState.composing = campaign;
-  } else {
-    emState.composing = { id: 'c_' + Date.now(), status: 'draft', stats: { sent:0, opens:0, clicks:0 } };
-  }
-  emLoadFunnelsIntoSelects();
-  emUpdateRecipientCount();
-}
-
-function emCloseCompose() {
-  var v = document.getElementById('em-view-compose');
-  if (v) v.style.display = 'none';
-  var active = document.getElementById('em-view-' + emState.tab);
-  if (active) active.style.display = 'block';
-}
-
-// ── LOAD / SAVE ───────────────────────────────────────────────────────────────
-async function emSave() {
-  var uid = window._currentUserUid;
-  if (!uid || !window._db) return;
-  try {
-    await window._setDoc(
-      window._doc(window._db, 'users', uid, 'emailMarketing', 'data'),
-      {
-        campaigns:       emState.campaigns,
-        sender:          emState.sender,
-        sequences:       emState.sequences,
-        sequenceLive:    emState.sequenceLive,
-        connectedFunnel: emState.connectedFunnel,
-        trigger:         emState.trigger,
-        updatedAt:       Date.now(),
-      },
-      { merge: true }
-    );
-    // Backup to localStorage
-    localStorage.setItem('eos_email_state', JSON.stringify({
-      campaigns: emState.campaigns, sender: emState.sender,
-      sequenceLive: emState.sequenceLive, connectedFunnel: emState.connectedFunnel,
-    }));
-  } catch(e) {
-    console.warn('Email save error:', e);
-    localStorage.setItem('eos_email_state', JSON.stringify(emState));
-  }
-}
-
-async function emLoad() {
-  var uid = window._currentUserUid;
-  if (!uid || !window._db) {
-    // Load from localStorage
-    try {
-      var local = JSON.parse(localStorage.getItem('eos_email_state') || '{}');
-      if (local.campaigns) emState.campaigns = local.campaigns;
-      if (local.sender) emState.sender = local.sender;
-      if (local.sequenceLive !== undefined) emState.sequenceLive = local.sequenceLive;
-    } catch(e) {}
-    emUpdateStats();
-    emRenderCampaigns();
-    return;
-  }
-  try {
-    var snap = await window._getDoc(window._doc(window._db, 'users', uid, 'emailMarketing', 'data'));
-    if (snap.exists && snap.exists()) {
-      var d = snap.data();
-      if (d.campaigns)       emState.campaigns       = d.campaigns;
-      if (d.sender)          emState.sender          = d.sender;
-      if (d.sequences)       emState.sequences       = d.sequences;
-      if (d.sequenceLive !== undefined) emState.sequenceLive = d.sequenceLive;
-      if (d.connectedFunnel) emState.connectedFunnel = d.connectedFunnel;
-      if (d.trigger)         emState.trigger         = d.trigger;
-    }
-  } catch(e) {
-    console.warn('Email load error:', e);
-    try {
-      var local = JSON.parse(localStorage.getItem('eos_email_state') || '{}');
-      if (local.campaigns) emState.campaigns = local.campaigns;
-    } catch(le) {}
-  }
-  emUpdateStats();
-  emRenderCampaigns();
-}
-
-// ── SYNC FROM CALENDAR ────────────────────────────────────────────────────────
-function emSyncFromCalendar() {
-  if (!window._aiCalendar30 || !window._aiCalendar30.length) {
-    alert('Generate your Content Calendar first (Step 4), then sync emails from it here.');
-    return;
-  }
-  var newCampaigns = 0;
-  window._aiCalendar30.forEach(function(daySlots, dayIdx) {
-    if (!daySlots) return;
-    daySlots.forEach(function(slot) {
-      if (!slot || slot.type !== 'email') return;
-      var id = 'cal_' + dayIdx + '_' + Date.now();
-      var exists = emState.campaigns.find(function(c) { return c.calDay === dayIdx; });
-      if (!exists) {
-        var subjectMatch = slot.content && slot.content.match(/SUBJECT:\s*(.+)/);
-        var bodyMatch    = slot.content && slot.content.match(/\n\n([\s\S]+)/);
-        emState.campaigns.push({
-          id:        id,
-          calDay:    dayIdx,
-          subject:   subjectMatch ? subjectMatch[1].trim() : 'Email — Day ' + (dayIdx+1),
-          preview:   'From your Content Calendar',
-          body:      bodyMatch ? bodyMatch[1].substring(0,2000) : (slot.content || ''),
-          status:    'draft',
-          source:    'calendar',
-          createdAt: Date.now(),
-          stats:     { sent:0, opens:0, clicks:0 },
-        });
-        newCampaigns++;
-      }
-    });
-  });
-
-  if (newCampaigns > 0) {
-    emSave();
-    emRenderCampaigns();
-    emUpdateStats();
-    alert(newCampaigns + ' email' + (newCampaigns > 1 ? 's' : '') + ' imported from your Content Calendar.');
-  } else {
-    alert('All calendar emails are already imported, or no email slots found in your calendar.');
-  }
-}
-
-// ── RENDER CAMPAIGNS ──────────────────────────────────────────────────────────
-function emRenderCampaigns() {
-  var list = document.getElementById('em-campaigns-list');
-  if (!list) return;
-
-  if (emState.campaigns.length === 0) {
-    list.innerHTML = '<div style="background:var(--card2);border:1px dashed rgba(78,204,163,.2);border-radius:var(--r-xl);padding:60px 24px;text-align:center"><div style="font-size:40px;margin-bottom:12px">📣</div><div style="font-size:16px;font-weight:900;font-family:\'Poppins\',sans-serif;color:var(--white);margin-bottom:8px">No campaigns yet</div><div style="font-size:13px;color:var(--dim);max-width:360px;margin:0 auto 20px;line-height:1.7">Campaigns from your Content Calendar appear here automatically. Or create one from scratch.</div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button onclick="emSyncFromCalendar()" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:var(--r-md);padding:10px 20px;color:var(--gold);font-size:12px;font-weight:800;cursor:pointer;font-family:\'Poppins\',sans-serif">⚡ Import from Calendar</button><button onclick="emShowCompose()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 20px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:\'Poppins\',sans-serif">Write New Campaign</button></div></div>';
-    return;
-  }
-
-  list.innerHTML = emState.campaigns.map(function(c) {
-    var openRate  = c.stats && c.stats.sent > 0 ? Math.round((c.stats.opens  / c.stats.sent) * 100) : 0;
-    var clickRate = c.stats && c.stats.sent > 0 ? Math.round((c.stats.clicks / c.stats.sent) * 100) : 0;
-    var badge     = c.status === 'sent' ? 'sent' : c.status === 'live' ? 'live' : c.source === 'calendar' ? 'synced' : 'draft';
-    var badgeLabel = c.status === 'sent' ? 'Sent' : c.status === 'live' ? 'Live' : c.source === 'calendar' ? 'From Calendar' : 'Draft';
-    return '<div class="em-campaign-card" onclick="emShowCompose(emState.campaigns.find(function(x){return x.id===\'' + c.id + '\';}))">'
-      + '<div class="em-campaign-top"><div class="em-campaign-subject">' + (c.subject || 'No subject') + '</div><div class="em-badge ' + badge + '">' + badgeLabel + '</div></div>'
-      + '<div class="em-campaign-meta"><span>To: ' + (c.audience || 'All Contacts') + '</span>' + (c.scheduledAt ? '<span>📅 ' + new Date(c.scheduledAt).toLocaleDateString() + '</span>' : '') + (c.source === 'calendar' ? '<span>📅 Content Calendar Day ' + ((c.calDay||0)+1) + '</span>' : '') + '</div>'
-      + '<div class="em-campaign-stats">'
-      + '<div class="em-stat-mini"><div class="em-stat-mini-val">' + (c.stats && c.stats.sent ? c.stats.sent.toLocaleString() : '—') + '</div><div class="em-stat-mini-lbl">Sent</div></div>'
-      + '<div class="em-stat-mini"><div class="em-stat-mini-val">' + (c.stats && c.stats.sent ? openRate + '%' : '—') + '</div><div class="em-stat-mini-lbl">Opens</div></div>'
-      + '<div class="em-stat-mini"><div class="em-stat-mini-val">' + (c.stats && c.stats.sent ? clickRate + '%' : '—') + '</div><div class="em-stat-mini-lbl">Clicks</div></div>'
-      + '<div class="em-stat-mini"><div class="em-stat-mini-val">' + (c.stats && c.stats.clicks ? c.stats.clicks : '—') + '</div><div class="em-stat-mini-lbl">Clicks</div></div>'
-      + '</div></div>';
-  }).join('');
-}
-
-// ── LOAD CONTACTS ─────────────────────────────────────────────────────────────
-async function emLoadContacts(filter) {
-  var tbody = document.getElementById('em-contacts-tbody');
-  if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--dim)">Loading…</td></tr>';
-
-  var uid = window._currentUserUid;
-  var contacts = [];
-
-  // Load from Firestore leads collection
-  if (uid && window._db && window._getDocs && window._collection) {
-    try {
-      var snap = await window._getDocs(window._collection(window._db, 'leads'));
-      snap.forEach(function(d) {
-        var data = d.data ? d.data() : d;
-        if (data && data.email) contacts.push(data);
-      });
-    } catch(e) {
-      console.warn('Load contacts from leads error:', e);
-    }
-    // Also load from users/{uid}/leads subcollection
-    try {
-      var snap2 = await window._getDocs(window._collection(window._db, 'users', uid, 'leads'));
-      snap2.forEach(function(d) {
-        var data = d.data ? d.data() : d;
-        if (data && data.email && !contacts.find(function(c){return c.email===data.email;})) {
-          contacts.push(data);
-        }
-      });
-    } catch(e) {}
-  }
-
-  emState.contacts = contacts;
-  var countEl = document.getElementById('em-contacts-count');
-  if (countEl) countEl.textContent = '(' + contacts.length + ')';
-
-  if (contacts.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--dim)">No contacts yet. Contacts are captured automatically from your funnel opt-in forms.</td></tr>';
-    return;
-  }
-
-  var filtered = filter ? contacts.filter(function(c) {
-    return (c.name||'').toLowerCase().includes(filter) || (c.email||'').toLowerCase().includes(filter);
-  }) : contacts;
-
-  tbody.innerHTML = filtered.map(function(c) {
-    var date = c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'Unknown';
-    return '<tr>'
-      + '<td style="font-weight:600;color:var(--white)">' + (c.name || '—') + '</td>'
-      + '<td>' + (c.email || '—') + '</td>'
-      + '<td>' + (c.phone || '—') + '</td>'
-      + '<td><span class="em-badge synced">' + (c.source || 'funnel') + '</span></td>'
-      + '<td>' + date + '</td>'
-      + '<td><span class="em-badge live">Active</span></td>'
-      + '</tr>';
-  }).join('');
-
-  emUpdateStats();
-}
-
-function emSearchContacts(val) { emLoadContacts(val.toLowerCase()); }
-
-function emExportContacts() {
-  if (!emState.contacts.length) { alert('No contacts to export.'); return; }
-  var csv = 'Name,Email,Phone,Source,Date\n'
-    + emState.contacts.map(function(c) {
-      return [c.name||'',c.email||'',c.phone||'',c.source||'',c.createdAt?new Date(c.createdAt).toLocaleDateString():''].join(',');
-    }).join('\n');
-  var blob = new Blob([csv], { type: 'text/csv' });
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'execution-os-contacts.csv';
-  a.click();
-}
-
-// ── UPDATE STATS ──────────────────────────────────────────────────────────────
-function emUpdateStats() {
-  var totalSent   = emState.campaigns.reduce(function(s,c) { return s + ((c.stats&&c.stats.sent)||0); }, 0);
-  var totalOpens  = emState.campaigns.reduce(function(s,c) { return s + ((c.stats&&c.stats.opens)||0); }, 0);
-  var totalClicks = emState.campaigns.reduce(function(s,c) { return s + ((c.stats&&c.stats.clicks)||0); }, 0);
-  var openRate    = totalSent > 0 ? Math.round((totalOpens / totalSent) * 100) : 0;
-  var clickRate   = totalSent > 0 ? Math.round((totalClicks / totalSent) * 100) : 0;
-
-  var set = function(id, v) { var el = document.getElementById(id); if (el) el.textContent = v; };
-  set('em-stat-contacts',  emState.contacts.length || '—');
-  set('em-stat-campaigns', emState.campaigns.length);
-  set('em-stat-sent',      totalSent.toLocaleString());
-  set('em-stat-opens',     openRate + '%');
-  set('em-stat-clicks',    clickRate + '%');
-}
-
-// ── TEMPLATES ─────────────────────────────────────────────────────────────────
-function emRenderTemplates() {
-  var grid = document.getElementById('em-templates-grid');
-  if (!grid) return;
-  var templates = [
-    { icon:'👋', name:'Welcome Email', goal:'First impression. Set expectations. Build excitement.', tone:'Warm, personal' },
-    { icon:'🔥', name:'Re-engagement', goal:'Win back cold leads who stopped opening.', tone:'Direct, curious' },
-    { icon:'💎', name:'Value Drop',    goal:'Give something useful. Build trust before selling.', tone:'Generous, expert' },
-    { icon:'🚀', name:'Launch Announcement', goal:'Announce a new offer or opening.', tone:'Urgent, exciting' },
-    { icon:'🎯', name:'Sales Close',   goal:'Final push. Handle objections. Drive the decision.', tone:'Confident, urgent' },
-    { icon:'❓', name:'Story Email',   goal:'Tell a transformation story. Build belief.', tone:'Narrative, emotional' },
-    { icon:'📋', name:'Case Study',    goal:'Show proof. Real result from a real person.', tone:'Specific, credible' },
-    { icon:'⚡', name:'Flash Offer',   goal:'24-48 hour limited offer. Pure urgency.', tone:'Fast, high energy' },
-  ];
-  grid.innerHTML = templates.map(function(t) {
-    return '<div class="em-campaign-card" onclick="emUseTemplate(\'' + t.name + '\')">'
-      + '<div style="font-size:28px;margin-bottom:8px">' + t.icon + '</div>'
-      + '<div class="em-campaign-subject">' + t.name + '</div>'
-      + '<div style="font-size:12px;color:var(--dim);margin:6px 0;line-height:1.6">' + t.goal + '</div>'
-      + '<div style="font-size:10px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Tone: ' + t.tone + '</div>'
+    var convRate = f.views > 0 ? ((f.leads/f.views)*100).toFixed(1) : '0.0';
+    return '<div class="funnel-card" style="cursor:default">'
+      + '<div class="funnel-card-top">'
+      + '<div class="funnel-card-icon" style="cursor:pointer" onclick="fbOpenFunnel(\'' + f.id + '\')">' + (f.icon||'🚀') + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<div class="funnel-card-status ' + (f.status==='live'?'live':'draft') + '">' + (f.status==='live'?'🟢 Live':'⚪ Draft') + '</div>'
+      + '<button onclick="fbDeleteFunnel(\'' + f.id + '\',event)" style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.25);border-radius:6px;padding:3px 8px;color:#ff6b6b;font-size:11px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700">🗑</button>'
+      + '</div></div>'
+      + '<div class="funnel-card-name" style="cursor:pointer" onclick="fbOpenFunnel(\'' + f.id + '\')">' + f.name + '</div>'
+      + '<div class="funnel-card-type">' + (f.type||'funnel').replace('-',' ') + '</div>'
+      + '<div class="funnel-card-stats" style="cursor:pointer" onclick="fbOpenFunnel(\'' + f.id + '\')">'
+      + '<div class="funnel-stat"><div class="funnel-stat-val">' + (f.views||0).toLocaleString() + '</div><div class="funnel-stat-lbl">Views</div></div>'
+      + '<div class="funnel-stat"><div class="funnel-stat-val">' + (f.leads||0).toLocaleString() + '</div><div class="funnel-stat-lbl">Leads</div></div>'
+      + '<div class="funnel-stat"><div class="funnel-stat-val">' + convRate + '%</div><div class="funnel-stat-lbl">Conv.</div></div>'
+      + '</div>'
+      + (f.domain?'<div style="margin-top:12px;font-size:10px;color:var(--teal);font-weight:700;border-top:1px solid var(--border3);padding-top:10px">🌐 '+f.domain+'</div>':'')
       + '</div>';
   }).join('');
 }
 
-function emUseTemplate(name) {
-  emShowCompose({ id: 'c_' + Date.now(), status: 'draft', stats: {sent:0,opens:0,clicks:0}, _template: name });
-  var subject = document.getElementById('em-compose-subject');
-  if (subject) subject.placeholder = 'AI will generate subject for: ' + name;
-  setTimeout(function() { emAiWriteTemplate(name); }, 300);
+function fbOpenFunnel(id) {
+  var funnel = fbState.funnels.find(function(f){return f.id===id;});
+  if (!funnel) return;
+  fbState.current = funnel; fbSetupEditor(funnel); fbSetView('editor');
 }
 
-async function emAiWriteTemplate(templateName) {
-  var bodyEl = document.getElementById('em-compose-body');
-  if (!bodyEl) return;
-  bodyEl.value = 'Generating your ' + templateName + '…';
-
-  var niche  = window._niche || 'digital products';
-  var offer  = window._offerName || 'your offer';
-  var avatar = window._avatarData || {};
-  var pain   = (avatar && avatar.currentSituation) || 'struggling to grow online';
-  var desire = (avatar && avatar.desiredTransformation) || 'build a profitable business';
-
-  var prompt = 'Write a high-converting ' + templateName + ' email for a ' + niche + ' business.\n'
-    + 'Offer: ' + offer + '\n'
-    + 'Customer pain: ' + pain + '\n'
-    + 'Customer desire: ' + desire + '\n\n'
-    + 'Format:\nSUBJECT: [subject line]\nPREVIEW: [preview text]\n\n[email body — plain text, personal tone, no HTML]\n\n'
-    + 'Rules: plain text only, conversational, use "you" throughout, short punchy sentences, end with a CTA.';
-
+async function fbDeleteFunnel(id, event) {
+  if (event) { event.stopPropagation(); event.preventDefault(); }
+  if (!confirm('Delete this funnel? This cannot be undone.')) return;
+  fbState.funnels = fbState.funnels.filter(function(f){return f.id!==id;});
+  try { var lsKey='eos_funnels_'+(window._currentUserUid||'anon'); var saved=JSON.parse(localStorage.getItem(lsKey)||'{}'); delete saved[id]; localStorage.setItem(lsKey,JSON.stringify(saved)); } catch(e){}
   try {
-    var resp = await fetch(window.PROXY_URL || (window.location.origin + '/api/claude'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, messages: [{ role: 'user', content: prompt }] })
-    });
-    var data = await resp.json();
-    var text = data.content && data.content[0] && data.content[0].text || '';
-    var subjectMatch = text.match(/SUBJECT:\s*(.+)/);
-    var previewMatch = text.match(/PREVIEW:\s*(.+)/);
-    var bodyMatch    = text.match(/PREVIEW:.+\n\n([\s\S]+)/);
-    var subjectEl = document.getElementById('em-compose-subject');
-    var previewEl = document.getElementById('em-compose-preview');
-    if (subjectEl && subjectMatch) subjectEl.value = subjectMatch[1].trim();
-    if (previewEl && previewMatch) previewEl.value = previewMatch[1].trim();
-    if (bodyEl && bodyMatch) bodyEl.value = bodyMatch[1].trim();
-    else if (bodyEl) bodyEl.value = text;
-  } catch(e) {
-    if (bodyEl) bodyEl.value = 'Generation failed. Write your email here.';
-  }
-}
-
-// ── AI WRITE / REWRITE ────────────────────────────────────────────────────────
-async function emAiWrite() {
-  var bodyEl    = document.getElementById('em-compose-body');
-  var subjectEl = document.getElementById('em-compose-subject');
-  if (!bodyEl) return;
-
-  var niche   = window._niche || 'digital products';
-  var offer   = window._offerName || 'your offer';
-  var avatar  = window._avatarData || {};
-  var pain    = (avatar && avatar.currentSituation)      || 'not getting results';
-  var desire  = (avatar && avatar.desiredTransformation) || 'build a profitable business';
-  var hint    = (subjectEl && subjectEl.value.trim()) || '';
-
-  bodyEl.value = 'Writing your email…';
-  var prompt = 'Write a high-converting email for a ' + niche + ' business.\n'
-    + 'Offer: ' + offer + '\n'
-    + 'Customer pain: ' + pain + '\n'
-    + 'Customer desire: ' + desire + '\n'
-    + (hint ? 'Subject hint: ' + hint + '\n' : '')
-    + '\nFormat:\nSUBJECT: [compelling subject line]\nPREVIEW: [preview text]\n\n[email body]\n\n'
-    + 'Rules: plain text only, personal tone, "you" language, short punchy sentences, clear CTA at end.';
-
-  try {
-    var resp = await fetch(window.PROXY_URL || (window.location.origin + '/api/claude'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800, messages: [{ role: 'user', content: prompt }] })
-    });
-    var data = await resp.json();
-    var text = data.content && data.content[0] && data.content[0].text || '';
-    var subjectMatch = text.match(/SUBJECT:\s*(.+)/);
-    var previewMatch = text.match(/PREVIEW:\s*(.+)/);
-    var bodyMatch    = text.match(/PREVIEW:.+\n\n([\s\S]+)/);
-    var previewEl = document.getElementById('em-compose-preview');
-    if (subjectEl && subjectMatch && !subjectEl.value) subjectEl.value = subjectMatch[1].trim();
-    if (previewEl && previewMatch) previewEl.value = previewMatch[1].trim();
-    bodyEl.value = bodyMatch ? bodyMatch[1].trim() : text;
-  } catch(e) {
-    bodyEl.value = 'AI write failed. Write your email here or try again.';
-  }
-}
-
-async function emAiRewrite(instruction) {
-  var bodyEl = document.getElementById('em-compose-body');
-  if (!bodyEl || !bodyEl.value.trim()) { alert('Write or generate an email first.'); return; }
-  var orig = bodyEl.value;
-  bodyEl.value = 'Rewriting…';
-  try {
-    var resp = await fetch(window.PROXY_URL || (window.location.origin + '/api/claude'), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 800,
-        messages: [{ role: 'user', content: instruction + ' — rewrite this email:\n\n' + orig + '\n\nReturn ONLY the rewritten email body. No subject line, no explanation.' }] })
-    });
-    var data = await resp.json();
-    bodyEl.value = (data.content && data.content[0] && data.content[0].text) || orig;
-  } catch(e) { bodyEl.value = orig; }
-}
-
-// ── INBOX SCORE ANALYSER ──────────────────────────────────────────────────────
-function emAnalyzeEmail() {
-  var subject = (document.getElementById('em-compose-subject') || {}).value || '';
-  var body    = (document.getElementById('em-compose-body')    || {}).value || '';
-  var scoreEl = document.getElementById('em-inbox-score');
-  var tipsEl  = document.getElementById('em-inbox-tips');
-
-  var score = 100;
-  var tips  = [];
-
-  var spamWords = ['free','click here','buy now','limited time','act now','winner','guaranteed','cash','earn money','make money fast','urgent','congratulations'];
-  var found = spamWords.filter(function(w) { return (subject + ' ' + body).toLowerCase().includes(w); });
-  if (found.length > 0) { score -= found.length * 8; tips.push('Remove spam words: ' + found.join(', ')); }
-  if (subject.length > 60) { score -= 10; tips.push('Subject is too long (' + subject.length + ' chars). Keep under 60.'); }
-  if (subject.toUpperCase() === subject && subject.length > 3) { score -= 15; tips.push('Avoid ALL CAPS in subject line.'); }
-  if ((subject.match(/!|FREE|URGENT/g) || []).length > 1) { score -= 10; tips.push('Too many exclamation marks or caps in subject.'); }
-  if (body.length < 100) { score -= 20; tips.push('Email body is very short. Add more value.'); }
-  if (!body.includes('?')) { tips.push('Consider adding a question — it increases replies and inbox placement.'); }
-  if (body.includes('<') && body.includes('>')) { score -= 15; tips.push('Plain text only — remove HTML tags.'); }
-  if (score < 0) score = 0;
-
-  var color = score >= 80 ? 'var(--teal)' : score >= 60 ? 'var(--yellow)' : 'var(--red)';
-  var label = score >= 80 ? 'Great' : score >= 60 ? 'OK' : 'Needs Work';
-  if (scoreEl) { scoreEl.textContent = score + '/100'; scoreEl.style.color = color; }
-  if (tipsEl) {
-    tipsEl.innerHTML = '<div style="font-weight:700;color:' + color + ';margin-bottom:6px">' + label + '</div>'
-      + (tips.length > 0 ? tips.map(function(t){return '<div style="margin-bottom:4px">• ' + t + '</div>';}).join('') : '<div style="color:var(--teal)">Looks clean! Good chance of hitting primary inbox.</div>');
-  }
-}
-
-// ── SEND CAMPAIGN ─────────────────────────────────────────────────────────────
-async function emSendCampaign() {
-  var subject  = (document.getElementById('em-compose-subject') || {}).value || '';
-  var body     = (document.getElementById('em-compose-body')    || {}).value || '';
-  var audience = (document.getElementById('em-compose-audience')|| {}).value || 'all';
-  var schedule = (document.getElementById('em-compose-schedule')|| {}).value || 'now';
-  var btn = document.getElementById('em-send-btn');
-
-  if (!subject.trim() || !body.trim()) { alert('Please add a subject and email body.'); return; }
-  if (!emState.sender.email) { alert('Connect your sender email in Settings first.'); emTab(document.getElementById('em-tab-settings'), 'settings'); return; }
-
-  if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
-
-  var campaign = Object.assign({}, emState.composing || {}, {
-    subject:   subject,
-    body:      body,
-    preview:   (document.getElementById('em-compose-preview')||{}).value || '',
-    audience:  audience,
-    status:    schedule === 'now' ? 'sent' : 'live',
-    sentAt:    schedule === 'now' ? Date.now() : null,
-    scheduledAt: schedule === 'scheduled' ? new Date((document.getElementById('em-compose-datetime')||{}).value).getTime() : null,
-    stats:     { sent: 0, opens: 0, clicks: 0 },
-  });
-
-  // Filter contacts
-  var recipients = emState.contacts.filter(function(c) { return c && c.email; });
-  if (schedule === 'now' && recipients.length > 0) {
-    // Send via Resend through our API
-    try {
-      var resp = await fetch(window.location.origin + '/api/send-campaign', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          from:       emState.sender.name + ' <' + emState.sender.email + '>',
-          recipients: recipients.slice(0, 200).map(function(c) { return c.email; }),
-          subject:    subject,
-          text:       body,
-        })
-      });
-      var result = await resp.json();
-      campaign.stats.sent = result.sent || recipients.length;
-    } catch(e) {
-      campaign.stats.sent = recipients.length;
+    var uid = window._currentUserUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
+    if (uid && window._db) {
+      var { deleteDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      await deleteDoc(window._doc(window._db, 'users', uid, 'funnels', id));
     }
-    campaign.status = 'sent';
-    alert('Campaign sent to ' + campaign.stats.sent + ' contacts!');
-  } else if (schedule === 'scheduled') {
-    alert('Campaign scheduled for ' + new Date(campaign.scheduledAt).toLocaleString());
-  }
-
-  // Save campaign
-  var existingIdx = emState.campaigns.findIndex(function(c) { return c.id === campaign.id; });
-  if (existingIdx >= 0) emState.campaigns[existingIdx] = campaign;
-  else emState.campaigns.unshift(campaign);
-
-  await emSave();
-  emUpdateStats();
-  emCloseCompose();
-  emRenderCampaigns();
-  if (btn) { btn.textContent = 'Send Campaign →'; btn.disabled = false; }
+  } catch(e){ console.warn('Firestore delete error:', e); }
+  fbRenderList();
 }
 
-async function emSaveDraftCampaign() {
-  var campaign = Object.assign({}, emState.composing || {}, {
-    subject: (document.getElementById('em-compose-subject')||{}).value || '',
-    body:    (document.getElementById('em-compose-body')   ||{}).value || '',
-    preview: (document.getElementById('em-compose-preview')||{}).value || '',
-    status:  'draft',
-    savedAt: Date.now(),
-    stats:   emState.composing && emState.composing.stats || { sent:0, opens:0, clicks:0 },
-  });
-  var existingIdx = emState.campaigns.findIndex(function(c) { return c.id === campaign.id; });
-  if (existingIdx >= 0) emState.campaigns[existingIdx] = campaign;
-  else emState.campaigns.unshift(campaign);
-  await emSave();
-  emUpdateStats();
-  emCloseCompose();
-  emRenderCampaigns();
-}
-
-// ── SEQUENCES ─────────────────────────────────────────────────────────────────
-function emLoadSequences() {
-  var liveCheck = document.getElementById('em-sequence-live');
-  if (liveCheck) liveCheck.checked = emState.sequenceLive;
-  var seqLeads = document.getElementById('em-seq-leads');
-  if (seqLeads) seqLeads.textContent = emState.contacts.length + ' contacts enrolled';
-}
-
-async function emGenerateSequence() {
-  var niche  = window._niche || 'digital products';
-  var offer  = window._offerName || 'your offer';
-  var avatar = window._avatarData || {};
-  var pain   = (avatar && avatar.currentSituation) || 'stuck and not seeing results';
-  var desire = (avatar && avatar.desiredTransformation) || 'build a profitable business';
-  var applyUrl = 'https://build.skillslibry.com/grow';
-
-  alert('Regenerating your welcome sequence with AI… This may take 30 seconds.');
-
-  var prompt = 'Write a 5-email welcome sequence for a ' + niche + ' business.\n'
-    + 'Offer: ' + offer + '\nPain: ' + pain + '\nDesire: ' + desire + '\n\n'
-    + 'Format each email exactly like:\nEMAIL [N]\nDELAY: [when to send]\nSUBJECT: [subject]\nPREVIEW: [preview text]\nBODY:\n[email body]\n---\n\n'
-    + 'Rules: plain text, personal, "you" language, CTA in each email linking to: ' + applyUrl;
-
-  try {
-    var resp = await fetch(window.PROXY_URL || (window.location.origin + '/api/claude'), {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
-    });
-    var data = await resp.json();
-    var text = data.content && data.content[0] && data.content[0].text || '';
-    // Parse each email
-    var emailBlocks = text.split(/EMAIL \d+/).filter(function(b) { return b.trim(); });
-    emState.sequences = emailBlocks.map(function(block, i) {
-      var subjectMatch = block.match(/SUBJECT:\s*(.+)/);
-      var delayMatch   = block.match(/DELAY:\s*(.+)/);
-      var bodyMatch    = block.match(/BODY:\n([\s\S]+)/);
-      return {
-        delay:   delayMatch   ? delayMatch[1].trim()   : 'Day ' + (i+1),
-        subject: subjectMatch ? subjectMatch[1].trim() : 'Email ' + (i+1),
-        body:    bodyMatch    ? bodyMatch[1].replace(/---\s*$/, '').trim() : '',
-      };
-    });
-    await emSave();
-    alert('Sequence regenerated with ' + emState.sequences.length + ' emails.');
-  } catch(e) {
-    alert('Generation failed. Please try again.');
-  }
-}
-
-function emEditSequenceEmail(idx) {
-  var seq = emState.sequences[idx] || { subject: '', body: '', delay: '' };
-  emShowCompose({ id: 'seq_' + idx, status: 'draft', stats: {sent:0,opens:0,clicks:0}, _seqIdx: idx });
-  setTimeout(function() {
-    var subjectEl = document.getElementById('em-compose-subject');
-    var bodyEl    = document.getElementById('em-compose-body');
-    if (subjectEl) subjectEl.value = seq.subject || '';
-    if (bodyEl)    bodyEl.value    = seq.body    || '';
-    document.getElementById('em-compose-title').textContent = 'Edit Sequence Email ' + (idx+1) + ' — ' + (seq.delay || '');
-  }, 100);
-}
-
-function emToggleSequenceLive(checkbox) {
-  emState.sequenceLive = checkbox.checked;
-  emSave();
-}
-
-function emToggleSequence(btn) {
-  emState.sequenceLive = !emState.sequenceLive;
-  btn.textContent = emState.sequenceLive ? '⏸ Pause Sequence' : '▶ Resume Sequence';
-  var liveCheck = document.getElementById('em-sequence-live');
-  if (liveCheck) liveCheck.checked = emState.sequenceLive;
-  emSave();
-}
-
-// ── SETTINGS ──────────────────────────────────────────────────────────────────
-function emLoadSettings() {
-  var nameEl  = document.getElementById('em-sender-name');
-  var emailEl = document.getElementById('em-sender-email');
-  var trigEl  = document.getElementById('em-trigger-select');
-  var liveEl  = document.getElementById('em-sequence-live');
-  if (nameEl)  nameEl.value  = emState.sender.name  || '';
-  if (emailEl) emailEl.value = emState.sender.email || '';
-  if (trigEl)  trigEl.value  = emState.trigger      || 'optin';
-  if (liveEl)  liveEl.checked = emState.sequenceLive;
-  emLoadFunnelsIntoSelects();
-}
-
-function emLoadFunnelsIntoSelects() {
-  var selects = ['em-funnel-select','em-compose-funnel'];
-  selects.forEach(function(id) {
-    var sel = document.getElementById(id);
-    if (!sel) return;
-    var current = sel.value;
-    while (sel.options.length > 1) sel.remove(1);
-    fbState.funnels.forEach(function(f) {
-      var opt = document.createElement('option');
-      opt.value = f.id; opt.textContent = f.name || f.type || 'Untitled Funnel';
-      sel.appendChild(opt);
-    });
-    if (current) sel.value = current;
-  });
-  var connSel = document.getElementById('em-funnel-select');
-  if (connSel && emState.connectedFunnel) connSel.value = emState.connectedFunnel;
-}
-
-async function emSaveSender() {
-  var nameEl  = document.getElementById('em-sender-name');
-  var emailEl = document.getElementById('em-sender-email');
-  var statusEl = document.getElementById('em-sender-status');
-  emState.sender.name  = (nameEl  && nameEl.value.trim())  || '';
-  emState.sender.email = (emailEl && emailEl.value.trim()) || '';
-  await emSave();
-  if (statusEl) { statusEl.textContent = '✅ Saved'; statusEl.style.color = 'var(--teal)'; setTimeout(function(){ statusEl.textContent=''; },2000); }
-}
-
-async function emSaveFunnelConnection() {
-  var sel = document.getElementById('em-funnel-select');
-  emState.connectedFunnel = sel && sel.value || '';
-  await emSave();
-  alert('Funnel connected. New opt-ins from this funnel will automatically enrol in your welcome sequence.');
-}
-
-async function emSaveTrigger() {
-  var trigEl = document.getElementById('em-trigger-select');
-  var liveEl = document.getElementById('em-sequence-live');
-  emState.trigger       = (trigEl && trigEl.value) || 'optin';
-  emState.sequenceLive  = !!(liveEl && liveEl.checked);
-  await emSave();
-  alert('Trigger settings saved.');
-}
-
-function emToggleScheduleDate(val) {
-  var dt = document.getElementById('em-compose-datetime');
-  if (dt) dt.style.display = val === 'scheduled' ? 'block' : 'none';
-}
-
-function emUpdateRecipientCount() {
-  var el = document.getElementById('em-compose-recipient-count');
-  if (!el) return;
-  var count = emState.contacts.length;
-  el.textContent = count > 0 ? 'Sending to approximately ' + count + ' contacts' : 'No contacts yet — capture leads from your funnels first.';
-}
-
-function emCreateSequence() {
-  alert('Create custom sequence coming soon. For now, use the default welcome sequence or click Regenerate with AI to customise it.');
-}
-
-// ── INIT — hook into showPage ─────────────────────────────────────────────────
+// ── SHOWPAGE HOOK ──
 (function() {
-  var _origShowPageEM = window.showPage;
+  var _origFB = window.showPage;
   window.showPage = function(n, btn) {
-    if (n === 'email') {
-      emLoad();
-      // Reset tabs
-      document.querySelectorAll('.em-tab').forEach(function(t) { t.classList.remove('on'); });
-      var firstTab = document.getElementById('em-tab-campaigns');
-      if (firstTab) firstTab.classList.add('on');
-      var views = ['contacts','sequences','templates','settings','compose'];
-      views.forEach(function(v) { var el = document.getElementById('em-view-' + v); if (el) el.style.display = 'none'; });
-      var campView = document.getElementById('em-view-campaigns');
-      if (campView) campView.style.display = 'block';
-      emState.tab = 'campaigns';
-    }
-    if (_origShowPageEM) _origShowPageEM(n, btn);
+    if (n === 'funnels') fbLoadList();
+    if (_origFB) _origFB(n, btn);
   };
 })();
+
+// ══ EMAIL MARKETING MODULE ════════════════════════════════════════════════════
+var emState = {tab:'campaigns',campaigns:[],contacts:[],sequences:[],sender:{name:'',email:''},composing:null,sequenceLive:false,connectedFunnel:'',trigger:'optin'};
+
+function emShowSettings(){var t=document.getElementById('em-tab-settings');if(t)emTab(t,'settings');}
+function emTab(el,tab){document.querySelectorAll('.em-tab').forEach(function(t){t.classList.remove('on');});if(el)el.classList.add('on');emState.tab=tab;['campaigns','contacts','sequences','templates','settings','compose'].forEach(function(v){var e=document.getElementById('em-view-'+v);if(e)e.style.display='none';});var a=document.getElementById('em-view-'+tab);if(a)a.style.display='block';if(tab==='contacts')emLoadContacts();if(tab==='templates')emRenderTemplates();if(tab==='settings')emLoadSettings();if(tab==='sequences')emLoadSequences();}
+function emShowCompose(campaign){['campaigns','contacts','sequences','templates','settings'].forEach(function(v){var e=document.getElementById('em-view-'+v);if(e)e.style.display='none';});var v=document.getElementById('em-view-compose');if(v)v.style.display='block';if(campaign){document.getElementById('em-compose-title').textContent='Edit Campaign';document.getElementById('em-compose-subject').value=campaign.subject||'';document.getElementById('em-compose-preview').value=campaign.preview||'';document.getElementById('em-compose-body').value=campaign.body||'';emState.composing=campaign;}else{emState.composing={id:'c_'+Date.now(),status:'draft',stats:{sent:0,opens:0,clicks:0}};['em-compose-subject','em-compose-preview','em-compose-body'].forEach(function(id){var e=document.getElementById(id);if(e)e.value='';});}emLoadFunnelsIntoSelects();emUpdateRecipientCount();}
+function emCloseCompose(){var v=document.getElementById('em-view-compose');if(v)v.style.display='none';var a=document.getElementById('em-view-'+emState.tab);if(a)a.style.display='block';}
+async function emSave(){var uid=window._currentUserUid;try{if(uid&&window._db&&window._setDoc&&window._doc){await window._setDoc(window._doc(window._db,'users',uid,'emailMarketing','data'),{campaigns:emState.campaigns,sender:emState.sender,sequences:emState.sequences,sequenceLive:emState.sequenceLive,connectedFunnel:emState.connectedFunnel,trigger:emState.trigger,updatedAt:Date.now()},{merge:true});}localStorage.setItem('eos_email_'+(uid||'anon'),JSON.stringify({campaigns:emState.campaigns,sender:emState.sender,sequenceLive:emState.sequenceLive,connectedFunnel:emState.connectedFunnel}));}catch(e){localStorage.setItem('eos_email_'+(window._currentUserUid||'anon'),JSON.stringify(emState));}}
+async function emLoad(){var uid=window._currentUserUid;var lk='eos_email_'+(uid||'anon');if(uid&&window._db&&window._getDoc&&window._doc){try{var snap=await window._getDoc(window._doc(window._db,'users',uid,'emailMarketing','data'));if(snap.exists&&snap.exists()){var d=snap.data();if(d.campaigns)emState.campaigns=d.campaigns;if(d.sender)emState.sender=d.sender;if(d.sequences)emState.sequences=d.sequences;if(d.sequenceLive!==undefined)emState.sequenceLive=d.sequenceLive;if(d.connectedFunnel)emState.connectedFunnel=d.connectedFunnel;if(d.trigger)emState.trigger=d.trigger;emUpdateStats();emRenderCampaigns();return;}}catch(e){}}try{var local=JSON.parse(localStorage.getItem(lk)||'{}');if(local.campaigns)emState.campaigns=local.campaigns;if(local.sender)emState.sender=local.sender;if(local.sequenceLive!==undefined)emState.sequenceLive=local.sequenceLive;}catch(e){}emUpdateStats();emRenderCampaigns();}
+function emSyncFromCalendar(){if(!window._aiCalendar30||!window._aiCalendar30.length){alert('Generate your Content Calendar first, then sync emails from it here.');return;}var n=0;window._aiCalendar30.forEach(function(daySlots,i){if(!daySlots)return;daySlots.forEach(function(slot){if(!slot||slot.type!=='email')return;var ex=emState.campaigns.find(function(c){return c.calDay===i;});if(!ex){var sm=slot.content&&slot.content.match(/SUBJECT:\s*(.+)/),bm=slot.content&&slot.content.match(/\n\n([\s\S]+)/);emState.campaigns.push({id:'cal_'+i+'_'+Date.now(),calDay:i,subject:sm?sm[1].trim():'Email — Day '+(i+1),preview:'From your Content Calendar',body:bm?bm[1].substring(0,2000):(slot.content||''),status:'draft',source:'calendar',createdAt:Date.now(),stats:{sent:0,opens:0,clicks:0}});n++;}});});if(n>0){emSave();emRenderCampaigns();emUpdateStats();alert(n+' email'+(n>1?'s':'')+' imported from your Content Calendar.');}else{alert('All calendar emails already imported, or no email slots found.');}}
+function emRenderCampaigns(){var list=document.getElementById('em-campaigns-list');if(!list)return;if(emState.campaigns.length===0){list.innerHTML='<div style="background:var(--card2);border:1px dashed rgba(78,204,163,.2);border-radius:var(--r-xl);padding:60px 24px;text-align:center"><div style="font-size:40px;margin-bottom:12px">📣</div><div style="font-size:16px;font-weight:900;font-family:\'Poppins\',sans-serif;color:var(--white);margin-bottom:8px">No campaigns yet</div><div style="font-size:13px;color:var(--dim);max-width:360px;margin:0 auto 20px;line-height:1.7">Campaigns from your Content Calendar appear here automatically. Or create one from scratch.</div><div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button onclick="emSyncFromCalendar()" style="background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.25);border-radius:var(--r-md);padding:10px 20px;color:var(--gold);font-size:12px;font-weight:800;cursor:pointer;font-family:\'Poppins\',sans-serif">⚡ Import from Calendar</button><button onclick="emShowCompose()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 20px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:\'Poppins\',sans-serif">Write New Campaign</button></div></div>';return;}list.innerHTML=emState.campaigns.map(function(c){var or=c.stats&&c.stats.sent>0?Math.round((c.stats.opens/c.stats.sent)*100):0;var cr=c.stats&&c.stats.sent>0?Math.round((c.stats.clicks/c.stats.sent)*100):0;var badge=c.status==='sent'?'sent':c.status==='live'?'live':c.source==='calendar'?'synced':'draft';var bl=c.status==='sent'?'Sent':c.status==='live'?'Live':c.source==='calendar'?'From Calendar':'Draft';return'<div class="em-campaign-card" onclick="emShowCompose(emState.campaigns.find(function(x){return x.id===\''+c.id+'\';}))">'+'<div class="em-campaign-top"><div class="em-campaign-subject">'+(c.subject||'No subject')+'</div><div class="em-badge '+badge+'">'+bl+'</div></div>'+'<div class="em-campaign-meta"><span>To: '+(c.audience||'All Contacts')+'</span>'+(c.source==='calendar'?'<span>📅 Calendar Day '+((c.calDay||0)+1)+'</span>':'')+'</div>'+'<div class="em-campaign-stats"><div class="em-stat-mini"><div class="em-stat-mini-val">'+(c.stats&&c.stats.sent?c.stats.sent.toLocaleString():'—')+'</div><div class="em-stat-mini-lbl">Sent</div></div><div class="em-stat-mini"><div class="em-stat-mini-val">'+(c.stats&&c.stats.sent?or+'%':'—')+'</div><div class="em-stat-mini-lbl">Opens</div></div><div class="em-stat-mini"><div class="em-stat-mini-val">'+(c.stats&&c.stats.sent?cr+'%':'—')+'</div><div class="em-stat-mini-lbl">Clicks</div></div><div class="em-stat-mini"><div class="em-stat-mini-val">'+(c.stats&&c.stats.clicks?c.stats.clicks:'—')+'</div><div class="em-stat-mini-lbl">Conv.</div></div></div></div>';}).join('');}
+async function emLoadContacts(filter){var tbody=document.getElementById('em-contacts-tbody');if(!tbody)return;tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--dim)">Loading…</td></tr>';var uid=window._currentUserUid;var contacts=[];if(uid&&window._db&&window._getDocs&&window._collection){try{var s=await window._getDocs(window._collection(window._db,'leads'));s.forEach(function(d){var data=d.data?d.data():d;if(data&&data.email)contacts.push(data);});}catch(e){}try{var s2=await window._getDocs(window._collection(window._db,'users',uid,'leads'));s2.forEach(function(d){var data=d.data?d.data():d;if(data&&data.email&&!contacts.find(function(c){return c.email===data.email;}))contacts.push(data);});}catch(e){}}emState.contacts=contacts;var ce=document.getElementById('em-contacts-count');if(ce)ce.textContent='('+contacts.length+')';if(contacts.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--dim)">No contacts yet. Opt-ins from your funnels appear here automatically.</td></tr>';emUpdateStats();return;}var filtered=filter?contacts.filter(function(c){return(c.name||'').toLowerCase().includes(filter)||(c.email||'').toLowerCase().includes(filter);}):contacts;tbody.innerHTML=filtered.map(function(c){var date=c.createdAt?new Date(c.createdAt).toLocaleDateString():'Unknown';return'<tr><td style="font-weight:600;color:var(--white)">'+(c.name||'—')+'</td><td>'+(c.email||'—')+'</td><td>'+(c.phone||'—')+'</td><td><span class="em-badge synced">'+(c.source||'funnel')+'</span></td><td>'+date+'</td><td><span class="em-badge live">Active</span></td></tr>';}).join('');emUpdateStats();}
+function emSearchContacts(val){emLoadContacts(val.toLowerCase());}
+function emExportContacts(){if(!emState.contacts.length){alert('No contacts to export.');return;}var csv='Name,Email,Phone,Source,Date\n'+emState.contacts.map(function(c){return[c.name||'',c.email||'',c.phone||'',c.source||'',c.createdAt?new Date(c.createdAt).toLocaleDateString():''].join(',');}).join('\n');var blob=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='execution-os-contacts.csv';a.click();}
+function emUpdateStats(){var ts=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.sent)||0);},0);var to=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.opens)||0);},0);var tc=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.clicks)||0);},0);var or=ts>0?Math.round((to/ts)*100):0;var cr=ts>0?Math.round((tc/ts)*100):0;var s=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};s('em-stat-contacts',emState.contacts.length||'—');s('em-stat-campaigns',emState.campaigns.length);s('em-stat-sent',ts.toLocaleString());s('em-stat-opens',or+'%');s('em-stat-clicks',cr+'%');}
+function emRenderTemplates(){var grid=document.getElementById('em-templates-grid');if(!grid)return;var templates=[{icon:'👋',name:'Welcome Email',goal:'First impression. Set expectations.',tone:'Warm, personal'},{icon:'🔥',name:'Re-engagement',goal:'Win back cold leads.',tone:'Direct, curious'},{icon:'💎',name:'Value Drop',goal:'Give value. Build trust.',tone:'Generous, expert'},{icon:'🚀',name:'Launch Announcement',goal:'Announce a new offer.',tone:'Urgent, exciting'},{icon:'🎯',name:'Sales Close',goal:'Final push. Drive the decision.',tone:'Confident, urgent'},{icon:'❓',name:'Story Email',goal:'Tell a transformation story.',tone:'Narrative, emotional'},{icon:'📋',name:'Case Study',goal:'Show real proof.',tone:'Specific, credible'},{icon:'⚡',name:'Flash Offer',goal:'24-48 hour limited offer.',tone:'Fast, high energy'}];grid.innerHTML=templates.map(function(t){return'<div class="em-campaign-card" onclick="emUseTemplate(\''+t.name+'\')">'+'<div style="font-size:28px;margin-bottom:8px">'+t.icon+'</div>'+'<div class="em-campaign-subject">'+t.name+'</div>'+'<div style="font-size:12px;color:var(--dim);margin:6px 0;line-height:1.6">'+t.goal+'</div>'+'<div style="font-size:10px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Tone: '+t.tone+'</div>'+'</div>';}).join('');}
+function emUseTemplate(name){emShowCompose({id:'c_'+Date.now(),status:'draft',stats:{sent:0,opens:0,clicks:0}});setTimeout(function(){emAiWriteTemplate(name);},300);}
+async function emAiWriteTemplate(name){var bodyEl=document.getElementById('em-compose-body'),subjectEl=document.getElementById('em-compose-subject');if(!bodyEl)return;bodyEl.value='Generating your '+name+'…';var niche=window._appliedNiche||'digital products';var offer=(window._affiliateOffer&&window._affiliateOffer.name)||'your offer';var av=window._avatarData||{};var prompt='Write a high-converting '+name+' email.\nNiche: '+niche+'\nOffer: '+offer+'\nAudience pain: '+(av.pain||'not getting results')+'\nFormat:\nSUBJECT: [subject]\nPREVIEW: [preview]\n\n[body]\n\nPlain text only, conversational, clear CTA.';try{var resp=await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});var data=await resp.json();var text=data.content&&data.content[0]&&data.content[0].text||'';var sm=text.match(/SUBJECT:\s*(.+)/),pm=text.match(/PREVIEW:\s*(.+)/),bm=text.match(/PREVIEW:.+\n\n([\s\S]+)/);if(subjectEl&&sm)subjectEl.value=sm[1].trim();var pe=document.getElementById('em-compose-preview');if(pe&&pm)pe.value=pm[1].trim();bodyEl.value=bm?bm[1].trim():text;}catch(e){bodyEl.value='Generation failed. Write your email here.';}}
+async function emAiWrite(){var bodyEl=document.getElementById('em-compose-body'),subjectEl=document.getElementById('em-compose-subject');if(!bodyEl)return;var niche=window._appliedNiche||'digital products';var offer=(window._affiliateOffer&&window._affiliateOffer.name)||'your offer';var av=window._avatarData||{};bodyEl.value='Writing your email…';var prompt='Write a high-converting email.\nNiche: '+niche+'\nOffer: '+offer+'\nPain: '+(av.pain||'not getting results')+'\nDesire: '+(av.transformation||'build a profitable business')+'\n'+(subjectEl&&subjectEl.value?'Subject hint: '+subjectEl.value+'\n':'')+'\nFormat:\nSUBJECT: [subject]\nPREVIEW: [preview]\n\n[body]\n\nPlain text, personal, "you" language, CTA at end.';try{var resp=await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});var data=await resp.json();var text=data.content&&data.content[0]&&data.content[0].text||'';var sm=text.match(/SUBJECT:\s*(.+)/),pm=text.match(/PREVIEW:\s*(.+)/),bm=text.match(/PREVIEW:.+\n\n([\s\S]+)/);var pe=document.getElementById('em-compose-preview');if(subjectEl&&sm&&!subjectEl.value)subjectEl.value=sm[1].trim();if(pe&&pm)pe.value=pm[1].trim();bodyEl.value=bm?bm[1].trim():text;}catch(e){bodyEl.value='AI write failed. Try again.';}}
+async function emAiRewrite(instruction){var bodyEl=document.getElementById('em-compose-body');if(!bodyEl||!bodyEl.value.trim()){alert('Write or generate an email first.');return;}var orig=bodyEl.value;bodyEl.value='Rewriting…';try{var resp=await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:instruction+' — rewrite this email:\n\n'+orig+'\n\nReturn ONLY the rewritten body.'}]})});var data=await resp.json();bodyEl.value=(data.content&&data.content[0]&&data.content[0].text)||orig;}catch(e){bodyEl.value=orig;}}
+function emAnalyzeEmail(){var subject=(document.getElementById('em-compose-subject')||{}).value||'';var body=(document.getElementById('em-compose-body')||{}).value||'';var scoreEl=document.getElementById('em-inbox-score'),tipsEl=document.getElementById('em-inbox-tips');var score=100,tips=[];var sw=['free','click here','buy now','limited time','act now','winner','guaranteed','earn money','make money fast','urgent','congratulations'];var found=sw.filter(function(w){return(subject+' '+body).toLowerCase().includes(w);});if(found.length){score-=found.length*8;tips.push('Remove spam words: '+found.join(', '));}if(subject.length>60){score-=10;tips.push('Subject too long. Keep under 60 chars.');}if(subject===subject.toUpperCase()&&subject.length>3){score-=15;tips.push('Avoid ALL CAPS in subject.');}if(body.length<100){score-=20;tips.push('Email body too short.');}if(!body.includes('?')){tips.push('Add a question to increase replies.');}if(body.includes('<')&&body.includes('>')){score-=15;tips.push('Plain text only — remove HTML.');}score=Math.max(0,score);var color=score>=80?'var(--teal)':score>=60?'var(--yellow)':'#ff6b6b';var label=score>=80?'Great':score>=60?'OK':'Needs Work';if(scoreEl){scoreEl.textContent=score+'/100';scoreEl.style.color=color;}if(tipsEl){tipsEl.innerHTML='<div style="font-weight:700;color:'+color+';margin-bottom:6px">'+label+'</div>'+(tips.length?tips.map(function(t){return'<div style="margin-bottom:4px">• '+t+'</div>';}).join(''):'<div style="color:var(--teal)">Looks clean, good inbox placement expected.</div>');}}
+async function emSendCampaign(){var subject=(document.getElementById('em-compose-subject')||{}).value||'';var body=(document.getElementById('em-compose-body')||{}).value||'';var audience=(document.getElementById('em-compose-audience')||{}).value||'all';var schedule=(document.getElementById('em-compose-schedule')||{}).value||'now';var btn=document.getElementById('em-send-btn');if(!subject.trim()||!body.trim()){alert('Please add a subject and email body.');return;}if(!emState.sender.email){alert('Connect your sender email in Settings first.');emShowSettings();return;}if(btn){btn.textContent='Sending…';btn.disabled=true;}var campaign=Object.assign({},emState.composing||{},{subject,body,preview:(document.getElementById('em-compose-preview')||{}).value||'',audience,status:schedule==='now'?'sent':'live',sentAt:schedule==='now'?Date.now():null,scheduledAt:schedule==='scheduled'?new Date((document.getElementById('em-compose-datetime')||{}).value).getTime():null,stats:{sent:0,opens:0,clicks:0}});if(schedule==='now'&&emState.contacts.length>0){try{var resp=await fetch(window.location.origin+'/api/send-campaign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:emState.sender.name+' <'+emState.sender.email+'>',recipients:emState.contacts.slice(0,200).map(function(c){return c.email;}),subject,text:body})});var result=await resp.json();campaign.stats.sent=result.sent||emState.contacts.length;}catch(e){campaign.stats.sent=emState.contacts.length;}campaign.status='sent';alert('Campaign sent to '+campaign.stats.sent+' contacts!');}else if(schedule==='scheduled'){alert('Campaign scheduled for '+new Date(campaign.scheduledAt).toLocaleString());}var idx=emState.campaigns.findIndex(function(c){return c.id===campaign.id;});if(idx>=0)emState.campaigns[idx]=campaign;else emState.campaigns.unshift(campaign);await emSave();emUpdateStats();emCloseCompose();emRenderCampaigns();if(btn){btn.textContent='Send Campaign →';btn.disabled=false;}}
+async function emSaveDraftCampaign(){var campaign=Object.assign({},emState.composing||{},{subject:(document.getElementById('em-compose-subject')||{}).value||'',body:(document.getElementById('em-compose-body')||{}).value||'',preview:(document.getElementById('em-compose-preview')||{}).value||'',status:'draft',savedAt:Date.now(),stats:emState.composing&&emState.composing.stats||{sent:0,opens:0,clicks:0}});var idx=emState.campaigns.findIndex(function(c){return c.id===campaign.id;});if(idx>=0)emState.campaigns[idx]=campaign;else emState.campaigns.unshift(campaign);await emSave();emUpdateStats();emCloseCompose();emRenderCampaigns();}
+function emLoadSequences(){var lc=document.getElementById('em-sequence-live');if(lc)lc.checked=emState.sequenceLive;var sl=document.getElementById('em-seq-leads');if(sl)sl.textContent=emState.contacts.length+' contacts enrolled';}
+async function emGenerateSequence(){alert('Regenerating sequence with AI… This may take 30 seconds.');var niche=window._appliedNiche||'digital products';var offer=(window._affiliateOffer&&window._affiliateOffer.name)||'your offer';var av=window._avatarData||{};var prompt='Write a 5-email welcome sequence.\nNiche: '+niche+'\nOffer: '+offer+'\nPain: '+(av.pain||'stuck')+'\nDesire: '+(av.transformation||'build a profitable business')+'\n\nFormat each:\nEMAIL [N]\nDELAY: [when]\nSUBJECT: [subject]\nPREVIEW: [preview]\nBODY:\n[body]\n---\n\nPlain text, personal, CTA in each.';try{var resp=await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});var data=await resp.json();var text=data.content&&data.content[0]&&data.content[0].text||'';var blocks=text.split(/EMAIL \d+/).filter(function(b){return b.trim();});emState.sequences=blocks.map(function(block,i){var sm=block.match(/SUBJECT:\s*(.+)/),dm=block.match(/DELAY:\s*(.+)/),bm=block.match(/BODY:\n([\s\S]+)/);return{delay:dm?dm[1].trim():'Day '+(i+1),subject:sm?sm[1].trim():'Email '+(i+1),body:bm?bm[1].replace(/---\s*$/,'').trim():''};});await emSave();alert('Sequence regenerated with '+emState.sequences.length+' emails.');}catch(e){alert('Generation failed. Please try again.');}}
+function emEditSequenceEmail(idx){var seq=emState.sequences[idx]||{subject:'',body:'',delay:''};emShowCompose({id:'seq_'+idx,status:'draft',stats:{sent:0,opens:0,clicks:0}});setTimeout(function(){var se=document.getElementById('em-compose-subject'),be=document.getElementById('em-compose-body');if(se)se.value=seq.subject||'';if(be)be.value=seq.body||'';var te=document.getElementById('em-compose-title');if(te)te.textContent='Edit Sequence Email '+(idx+1)+' — '+(seq.delay||'');},100);}
+function emToggleSequenceLive(checkbox){emState.sequenceLive=checkbox.checked;emSave();}
+function emToggleSequence(btn){emState.sequenceLive=!emState.sequenceLive;btn.textContent=emState.sequenceLive?'⏸ Pause Sequence':'▶ Resume Sequence';var lc=document.getElementById('em-sequence-live');if(lc)lc.checked=emState.sequenceLive;emSave();}
+function emLoadSettings(){var ne=document.getElementById('em-sender-name'),ee=document.getElementById('em-sender-email'),te=document.getElementById('em-trigger-select'),le=document.getElementById('em-sequence-live');if(ne)ne.value=emState.sender.name||'';if(ee)ee.value=emState.sender.email||'';if(te)te.value=emState.trigger||'optin';if(le)le.checked=emState.sequenceLive;emLoadFunnelsIntoSelects();}
+function emLoadFunnelsIntoSelects(){['em-funnel-select','em-compose-funnel'].forEach(function(id){var sel=document.getElementById(id);if(!sel)return;var current=sel.value;while(sel.options.length>1)sel.remove(1);(typeof fbState!=='undefined'&&fbState.funnels||[]).forEach(function(f){var opt=document.createElement('option');opt.value=f.id;opt.textContent=f.name||f.type||'Untitled';sel.appendChild(opt);});if(current)sel.value=current;});var cs=document.getElementById('em-funnel-select');if(cs&&emState.connectedFunnel)cs.value=emState.connectedFunnel;}
+async function emSaveSender(){var ne=document.getElementById('em-sender-name'),ee=document.getElementById('em-sender-email'),se=document.getElementById('em-sender-status');emState.sender.name=(ne&&ne.value.trim())||'';emState.sender.email=(ee&&ee.value.trim())||'';await emSave();if(se){se.textContent='✅ Saved';se.style.color='var(--teal)';setTimeout(function(){se.textContent='';},2000);}}
+async function emSaveFunnelConnection(){var sel=document.getElementById('em-funnel-select');emState.connectedFunnel=sel&&sel.value||'';await emSave();alert('Funnel connected. New opt-ins will auto-enrol in your welcome sequence.');}
+async function emSaveTrigger(){var te=document.getElementById('em-trigger-select'),le=document.getElementById('em-sequence-live');emState.trigger=(te&&te.value)||'optin';emState.sequenceLive=!!(le&&le.checked);await emSave();alert('Trigger settings saved.');}
+function emToggleScheduleDate(val){var dt=document.getElementById('em-compose-datetime');if(dt)dt.style.display=val==='scheduled'?'block':'none';}
+function emUpdateRecipientCount(){var el=document.getElementById('em-compose-recipient-count');if(!el)return;el.textContent=emState.contacts.length>0?'Sending to approximately '+emState.contacts.length+' contacts':'No contacts yet, capture leads from your funnels first.';}
+function emCreateSequence(){alert('Custom sequences coming soon. Use the default welcome sequence or click Regenerate with AI.');}
+
+(function(){var _origEM=window.showPage;window.showPage=function(n,btn){if(n==='email'){emLoad();document.querySelectorAll('.em-tab').forEach(function(t){t.classList.remove('on');});var ft=document.getElementById('em-tab-campaigns');if(ft)ft.classList.add('on');['contacts','sequences','templates','settings','compose'].forEach(function(v){var el=document.getElementById('em-view-'+v);if(el)el.style.display='none';});var cv=document.getElementById('em-view-campaigns');if(cv)cv.style.display='block';emState.tab='campaigns';}if(_origEM)_origEM(n,btn);};})();
 // ══ END EMAIL MARKETING MODULE ════════════════════════════════════════════════
 
 </script>
