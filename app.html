@@ -9936,7 +9936,7 @@ window.renderAICalendar30 = function(week) {
     let slotsHtml = '';
     slotMeta.forEach((sm, si) => {
       const slot      = daySlots[si];
-      const globalIdx = d * 6 + si;
+      const globalIdx = d * 5 + si;  // 5 slots per day: fb1,fb2,reel1,reel2,email
       const hook      = slot ? (slot.viralHook || slot.postType || '—').slice(0, 60) : '—';
 
       slotsHtml += `<div class="cal-slot" onclick="window.showPostDetail30(${globalIdx})">
@@ -9973,12 +9973,12 @@ window.renderAICalendar30 = function(week) {
 };
 
 window.showPostDetail30 = function(globalIdx) {
-  const dayIdx  = Math.floor(globalIdx / 6);
-  const slotIdx = globalIdx % 6;
+  const dayIdx  = Math.floor(globalIdx / 5);
+  const slotIdx = globalIdx % 5;
   const daySlots = window._aiCalendar30 && window._aiCalendar30[dayIdx];
-  if (!daySlots) return;
+  if (!daySlots) { console.warn("No daySlots for dayIdx", dayIdx); return; }
   const slot = daySlots[slotIdx] || daySlots[Math.min(slotIdx, daySlots.length - 1)];
-  if (!slot) return;
+  if (!slot) { console.warn("No slot for slotIdx", slotIdx, "in daySlots", daySlots.length); return; }
 
   let modal = document.getElementById('post-detail-modal');
   if (!modal) {
@@ -9991,9 +9991,10 @@ window.showPostDetail30 = function(globalIdx) {
 
   const typeColors = { fb1:'var(--teal)', fb2:'var(--teal)', reel1:'var(--purple)', reel2:'var(--purple)', email:'var(--yellow)' };
   const col = typeColors[slot.slotType] || 'var(--teal)';
-  const rawScript = slot.fullScript || '';
-  const STALE_MARKERS = ['[Full post body','[Full reel','[Full script','[Full email','click Regenerate','I cannot provide','placeholder'];
-  const isEmpty = !rawScript || rawScript.trim().length < 20 || STALE_MARKERS.some(m => rawScript.includes(m));
+  const rawScript = slot.fullScript || slot.videoScript || '';
+  // Only flag as empty if the content is genuinely missing or a placeholder stub
+  const STALE_MARKERS = ['[Full post body','[Full reel','[Full script','[Full email','I cannot provide'];
+  const isEmpty = !rawScript.trim() || rawScript.trim().length < 15 || STALE_MARKERS.some(m => rawScript.includes(m));
   const script    = isEmpty ? '' : rawScript.replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
   modal.innerHTML = `
@@ -13383,11 +13384,13 @@ function buildNicheCalendar30(avatarData) {
 
 window.generate30DayCalendar = async function() {
   const av        = window._avatarData || {};
-  const niche     = window._appliedNiche || 'Online Business';
+  const niche     = window._appliedNiche
+    || (document.getElementById('niche') && document.getElementById('niche').value)
+    || 'Online Business';
   const price     = window._appliedPrice || 3000;
   const target    = window._appliedTarget || 25000;
   const offerName = (document.getElementById('offer_name')||{}).value || 'My Programme';
-  const btn       = document.getElementById('gen-calendar-btn');
+  const btn = document.getElementById('gen-calendar-btn') || document.querySelector('.gen-posts-btn');
 
   if (btn) {
     btn.disabled = true;
@@ -13596,8 +13599,20 @@ Return ONLY the JSON array. No markdown. No backticks. No explanation before or 
     // Save to localStorage
     try { localStorage.setItem('eos_calendar30', JSON.stringify(window._aiCalendar30)); } catch(e) {}
 
+    // Also save to Firestore so it survives logout and other devices
+    try {
+      const uid = window._currentUserUid;
+      if (uid && window._db && window._setDoc && window._doc) {
+        window._setDoc(
+          window._doc(window._db, 'users', uid),
+          { calendar: window._aiCalendar30, calendarGeneratedAt: Date.now() },
+          { merge: true }
+        ).catch(function(e){ console.warn('Calendar Firestore save error:', e); });
+      }
+    } catch(e) {}
+
     loadingEl.style.display = 'none';
-    if (btn) { btn.disabled = false; btn.textContent = '⚡ Regenerate my 7-day content plan'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '⚡ Regenerate my 7-day content plan'; }
 
     // Render
     window.renderAICalendar30 && window.renderAICalendar30(1);
@@ -13611,15 +13626,15 @@ Return ONLY the JSON array. No markdown. No backticks. No explanation before or 
     loadingEl.innerHTML = '<div style="color:var(--red);font-size:12px;padding:1rem">⚠️ Content generation failed: '+e.message+'<br><br><button onclick="window.generate30DayCalendar()" style="margin-top:8px;padding:8px 18px;background:var(--red);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:700">Try Again</button></div>';
     if (btn) {
       btn.disabled = false;
-      btn.textContent = '⚡ Generate my personalised 7-day content plan — unique posts, Reel scripts & emails';
+      btn.innerHTML = '⚡ Generate my personalised 7-day content plan';
     }
   }
 };
 
 // ── Regenerate single post content ───────────────────────────────────────────
 window._regenPost = async function(globalIdx) {
-  const dayIdx  = Math.floor(globalIdx / 6);
-  const slotIdx = globalIdx % 6;
+  const dayIdx  = Math.floor(globalIdx / 5);
+  const slotIdx = globalIdx % 5;
   const slot    = window._aiCalendar30 && window._aiCalendar30[dayIdx] && window._aiCalendar30[dayIdx][slotIdx];
   if (!slot) return;
 
