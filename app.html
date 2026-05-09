@@ -16776,92 +16776,160 @@ if (document.readyState !== 'loading') {
   function money(v) { return (v && Number(v) > 0) ? '$' + Number(v).toLocaleString() : null; }
 
   function buildPrompt(ctx) {
-    const av    = ctx.avatar  || {};
-    const off   = ctx.offer   || {};
-    const aff   = ctx.affOffer|| {};
+    const av    = ctx.avatar   || {};
+    const off   = ctx.offer    || {};
+    const aff   = ctx.affOffer || {};
     const isAff = ctx.mode === 'affiliate';
+    const voice = window._voiceProfile || {};
 
-    let biz = '';
+    // Pull every data point available
+    const niche      = ctx.niche || aff.niche || av.industry || null;
+    const price      = ctx.price > 0 ? ctx.price : null;
+    const target     = ctx.target > 0 ? ctx.target : null;
+    const offerName  = off.headline || off.name || aff.name || null;
+    const commission = aff.commission > 0 ? aff.commission : null;
+    const salesNeeded= (price && target) ? Math.ceil(target/price) : (commission && target) ? Math.ceil(target/commission) : null;
+
+    const avJob      = av.job || av.jobTitle || null;
+    const avPain     = av.pain || av.currentSituation || null;
+    const avDesire   = av.transformation || av.desiredTransformation || null;
+    const avFear     = av.fear || av.biggestFear || null;
+    const avTried    = av.tried || av.whatTheyHaveTried || null;
+    const avObjctn   = av.objections || av.mainObjections || null;
+    const avMotiv    = av.motivation || null;
+    const avInfluence= av.influences || null;
+    const avKeywords = (av.keywords || []).join(', ') || null;
+
+    const calReady   = ctx.calDays > 0;
+    const trackerState = window._trackerState || {};
+    const closedDeals  = trackerState.closedDeals || 0;
+    const monthTarget  = target ? '$' + Number(target).toLocaleString() : null;
+    const monthPrice   = price  ? '$' + Number(price).toLocaleString() : null;
+    const monthComm    = commission ? '$' + Number(commission).toLocaleString() : null;
+
+    // Funnel data
+    const funnels    = window.fbState && window.fbState.funnels ? window.fbState.funnels : [];
+    const liveFunnels= funnels.filter(function(f){return f.status==='live';}).length;
+
+    // Voice profile
+    const voiceTone  = voice.tone || null;
+    const voiceAvoid = voice.avoid || null;
+
+    // Build the business context section
+    let bizContext = '';
     if (isAff) {
-      const comm = money(aff.commission);
-      const tgt  = money(aff.monthlyTarget || ctx.target);
-      const sales= (comm && tgt) ? Math.ceil(Number(aff.monthlyTarget||ctx.target)/Number(aff.commission)) : null;
-      biz = `BUSINESS TYPE: Affiliate Marketing
-Product they promote: ${aff.name || 'NOT SET'}
-Commission per sale: ${comm || 'NOT SET — user must enter this in Offer Setup'}
-Monthly revenue target: ${tgt  || 'NOT SET — user must enter this in Offer Setup'}
-${sales ? 'Sales needed to hit target: '+sales : ''}
-Niche: ${aff.niche || ctx.niche || 'NOT SET'}
-Target audience: ${aff.buyer || av.job || 'NOT SET'}
-Audience pain: ${aff.pain || av.pain || 'NOT SET'}
-Audience result they want: ${aff.transformation || av.transformation || 'NOT SET'}
-Traffic strategy: ${ctx.trafficMode}
-Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days planned' : 'NOT GENERATED'}`;
+      bizContext = '== MEMBER BUSINESS PROFILE ==\n'
+        + 'Type: Affiliate Marketer\n'
+        + (offerName   ? 'Product promoting: ' + offerName + '\n' : 'Product: NOT SET — needs Offer Setup\n')
+        + (monthComm   ? 'Commission per sale: ' + monthComm + '\n' : 'Commission: NOT SET\n')
+        + (monthTarget  ? 'Monthly income target: ' + monthTarget + '\n' : 'Monthly target: NOT SET\n')
+        + (salesNeeded  ? 'Sales needed to hit target: ' + salesNeeded + '\n' : '')
+        + (niche        ? 'Niche: ' + niche + '\n' : 'Niche: NOT SET\n')
+        + (aff.url      ? 'Affiliate link: ' + aff.url + '\n' : '')
+        + (aff.platform ? 'Platform: ' + aff.platform + '\n' : '')
+        + (aff.trafficStrategy ? 'Traffic strategy: ' + aff.trafficStrategy + '\n' : '');
     } else {
-      const price = money(ctx.price);
-      const tgt   = money(ctx.target);
-      const sales = (price && tgt) ? Math.ceil(ctx.target/ctx.price) : null;
-      biz = `BUSINESS TYPE: Expert / High-Ticket Offer Owner
-Offer name: ${off.headline || 'NOT SET — complete Offer Creation (Step 2)'}
-Offer price: ${price || 'NOT SET — complete Revenue Plan (Step 1)'}
-Monthly revenue target: ${tgt || 'NOT SET — complete Revenue Plan (Step 1)'}
-${sales ? 'Clients needed to hit target: '+sales : ''}
-Niche: ${ctx.niche || 'NOT SET — complete Revenue Plan (Step 1)'}
-Ideal client role: ${av.job || 'NOT SET — complete Ideal Customer (Step 3)'}
-Client struggle: ${av.pain || 'NOT SET'}
-Client transformation: ${av.transformation || 'NOT SET'}
-Client fear: ${av.fear || 'NOT SET'}
-Client motivation: ${av.motivation || 'NOT SET'}
-Content calendar: ${ctx.calDays > 0 ? ctx.calDays+' days planned' : 'NOT GENERATED'}`;
+      bizContext = '== MEMBER BUSINESS PROFILE ==\n'
+        + 'Type: Digital Product Owner (Expert)\n'
+        + (offerName   ? 'Offer name: ' + offerName + '\n' : 'Offer: NOT SET — needs Offer Creation step\n')
+        + (monthPrice  ? 'Offer price: ' + monthPrice + '\n' : 'Price: NOT SET\n')
+        + (monthTarget ? 'Monthly revenue target: ' + monthTarget + '\n' : 'Monthly target: NOT SET\n')
+        + (salesNeeded ? 'Clients needed this month: ' + salesNeeded + '\n' : '')
+        + (niche       ? 'Niche: ' + niche + '\n' : 'Niche: NOT SET\n');
     }
 
-    const sections = isAff
-      ? 'DIRECT THEM TO:\n- "Offer Setup" → product, commission, niche, audience\n- "Content Calendar" → 30-day plan\n- "DM & Sales" → scripts\n- "Daily Routine" → schedule\n- "Daily Tracker" → log activity'
-      : 'DIRECT THEM TO:\n- "Revenue Plan (Step 1)" → niche, price, target\n- "Offer Creation (Step 2)" → build offer\n- "Ideal Customer (Step 3)" → define client\n- "Content Calendar (Step 4)" → 30-day plan\n- "DM & Sales (Step 5)" → scripts\n- "Daily Routine (Step 6)" → schedule\n- "Daily Tracker" → log activity';
+    // Audience section
+    const audienceLines = [
+      avJob       ? 'Target audience: ' + avJob              : null,
+      avPain      ? 'Their surface pain: ' + avPain           : null,
+      avDesire    ? 'What they deeply want: ' + avDesire      : null,
+      avFear      ? 'Their biggest fear: ' + avFear           : null,
+      avTried     ? 'What they\'ve tried: ' + avTried         : null,
+      avObjctn    ? 'Their objections: ' + avObjctn           : null,
+      avMotiv     ? 'What motivates them: ' + avMotiv         : null,
+      avInfluence ? 'Who they follow: ' + avInfluence         : null,
+      avKeywords  ? 'Language they use: ' + avKeywords        : null,
+    ].filter(Boolean).join('\n');
 
-    return `You are E-OS Intelligent — elite AI business advisor inside Execution OS. You coach like Alex Hormozi meets Dan Koe. Direct, motivating, accountable, persuasive. Built for people paying premium to get real results.
+    const audienceContext = audienceLines
+      ? '== IDEAL CUSTOMER AVATAR ==\n' + audienceLines + '\n'
+      : '== IDEAL CUSTOMER AVATAR ==\nNOT BUILT — member needs to complete the Customer Avatar step\n';
 
-THIS USER'S LIVE BUSINESS DATA:
-${biz}
+    // Execution context
+    const executionContext = '== CURRENT EXECUTION STATUS ==\n'
+      + 'Content calendar: ' + (calReady ? ctx.calDays + ' days of content ready' : 'NOT generated yet') + '\n'
+      + 'Deals closed this month: ' + closedDeals + '\n'
+      + 'Live funnels: ' + liveFunnels + '\n'
+      + (window.emState && window.emState.campaigns.length ? 'Email campaigns: ' + window.emState.campaigns.length + ' campaigns\n' : '')
+      + (window.emState && window.emState.contacts.length ? 'Email contacts: ' + window.emState.contacts.length + '\n' : '');
 
-${sections}
+    // Voice profile
+    const voiceContext = (voiceTone || voiceAvoid)
+      ? '== MEMBER VOICE PROFILE ==\n'
+        + (voiceTone  ? 'Their communication tone: ' + voiceTone + '\n' : '')
+        + (voiceAvoid ? 'Words/phrases they never use: ' + voiceAvoid + '\n' : '')
+      : '';
 
-ABSOLUTE RULES — NEVER BREAK THESE:
-1. NEVER start with "Great question", "Of course", "Certainly" or any filler.
-2. NEVER invent, guess, or assume ANY number — no dollar amounts, no targets, no commissions, no sales figures — unless they appear above as a real non-zero value. If something shows NOT SET, tell them where to set it.
-3. NEVER give advice that applies to everyone. Every answer must reference their specific data above.
-4. ALWAYS end with one clear next action.
-5. If data is NOT SET, tell them exactly which section to complete first, then offer to help with mindset or strategy in the meantime.
-6. Only show sales math if BOTH price/commission AND target are real non-zero values.
-7. Short paragraphs. Bold key points. Numbered steps for action plans. Scannable.`;
+    return `You are E-OS Intelligent — the AI business advisor built into Execution OS.
+
+Your personality and style:
+- You are direct, specific, and strategically sharp — like having a senior business advisor who has read every file about this person
+- You respond the way a brilliant friend with deep expertise would — honest, grounded, no corporate filler
+- You are warm but you do not waste words. You get to the point fast.
+- You notice patterns. If they are stuck, you name it. If they are winning, you acknowledge it and push harder.
+- You think in systems. Every answer connects to their bigger goal.
+- You never flatter. You never say "great question." You just answer.
+- When someone is frustrated, you acknowledge it in one sentence and move to solutions.
+- When someone asks something vague, you reframe it into the real question and answer that.
+- You are encouraging without being hollow. Your belief in them is earned through specificity, not cheerleading.
+
+` + bizContext + '\n'
+    + audienceContext + '\n'
+    + executionContext + '\n'
+    + voiceContext
+    + `
+== BEHAVIOUR RULES ==
+1. Every answer must reference their actual data above. Never give generic advice.
+2. If a field shows NOT SET, tell them exactly where to fix it — then offer what you CAN help with right now.
+3. Never invent numbers. If price or target is NOT SET, do not calculate anything.
+4. When they share a problem, diagnose the ROOT CAUSE before recommending an action.
+5. End every response with one clear next action — specific, time-bound, and tied to their data.
+6. Short paragraphs. Breathing room. Bold what matters most. Never write a wall of text.
+7. If they seem discouraged, validate the feeling briefly, then redirect to what IS in their control.
+8. When you recommend content, DMs, or copy — make it for their specific niche and audience, not a template.
+9. You have access to their funnel data, email campaigns, tracker stats, and avatar — use them.
+10. Respond as if you genuinely know this person and care about their success. Because in this context, you do.`;
   }
 
-  function buildStarters(ctx) {
-    const isAff   = ctx.mode === 'affiliate';
-    const niche   = ctx.niche || 'your niche';
-    const aff     = ctx.affOffer || {};
-    const av      = ctx.avatar || {};
-    const product = aff.name || 'your product';
-    const priceStr= (ctx.price > 0) ? '$'+Number(ctx.price).toLocaleString() : 'your offer';
+    function buildStarters(ctx) {
+    const isAff    = ctx.mode === 'affiliate';
+    const niche    = ctx.niche || (ctx.affOffer && ctx.affOffer.niche) || 'my niche';
+    const aff      = ctx.affOffer || {};
+    const av       = ctx.avatar || {};
+    const product  = aff.name || 'my product';
+    const price    = ctx.price > 0 ? '$' + Number(ctx.price).toLocaleString() : null;
+    const target   = ctx.target > 0 ? '$' + Number(ctx.target).toLocaleString() : null;
+    const job      = av.job || 'my audience';
+    const pain     = av.pain || 'their main struggle';
 
     return isAff ? [
-      'How do I get more clicks on my '+product+' link?',
-      'Write me a viral hook for '+niche+' content today',
-      'What DM should I send to warm up a lead for '+product+'?',
-      'What should I post today to attract buyers in '+niche+'?',
-      'How do I handle "Is this a scam?" objections for '+product+'?',
-      'Hold me accountable — what do I need to execute on today?',
+      'What is the biggest mistake affiliate marketers make in ' + niche + '?',
+      'Give me a DM opener that gets replies for ' + product,
+      'Write a hook for a ' + niche + ' Reel that stops the scroll',
+      'What should I do in the next 2 hours to move the needle today?',
+      'How do I handle "Is this a scam?" when promoting ' + product + '?',
+      'What content angle is working best for affiliates in ' + niche + ' right now?',
     ] : [
-      'Why am I not getting consistent leads in '+niche+'?',
-      'Give me a DM script to book discovery calls at '+priceStr,
-      'What should I post this week for '+(av.job||'my audience')+'?',
-      'How do I handle the "I need to think about it" objection?',
-      'What should I do TODAY to move closer to my monthly target?',
-      'Hold me accountable — what tasks should I complete today?',
+      'What is the most common reason ' + job + 's don\'t buy a ' + (price || 'high-ticket') + ' offer?',
+      'Give me a DM to start a conversation with someone who has ' + pain,
+      'What should I be posting this week to attract ' + job + 's?',
+      'Walk me through my numbers — am I on track' + (target ? ' for ' + target + ' this month' : '') + '?',
+      'What is the one thing I should fix first in my business right now?',
+      'Write me a follow-up message for a lead who said "let me think about it"',
     ];
   }
 
-  function initAdvisor() {
+    function initAdvisor() {
     const ctx   = buildCtx();
     const isAff = ctx.mode === 'affiliate';
     const aff   = ctx.affOffer || {};
@@ -16896,42 +16964,18 @@ ABSOLUTE RULES — NEVER BREAK THESE:
       } catch(e) {}
     }
 
-    // Fresh intro
+    // Fresh start — let the AI generate the intro based on real data
     const introEl = document.getElementById('advisor-intro-text');
     const msgs    = document.getElementById('advisor-messages');
     if (msgs) msgs.innerHTML = '';
 
-    let intro = '';
-    if (isAff) {
-      if (aff.name && (aff.niche || ctx.niche)) {
-        const comm  = money(aff.commission);
-        const tgt   = money(aff.monthlyTarget || ctx.target);
-        const sales = (comm && tgt) ? Math.ceil(Number(aff.monthlyTarget||ctx.target)/Number(aff.commission)) : null;
-        intro = `**Your affiliate brief is loaded.**\n\nYou're promoting **${aff.name}** in the **${aff.niche||ctx.niche}** space.`;
-        if (comm) intro += `\n\nCommission: **${comm} per sale**.`;
-        if (tgt)  intro += ` Monthly target: **${tgt}**.`;
-        if (sales && comm && tgt) intro += `\n\n**The math:** ${sales} sales × ${comm} = ${tgt}/month. That's the whole game. Let's build the machine.`;
-        intro += `\n\nAsk me anything — content, DMs, objections, daily execution. Every answer is built around your product, niche, and audience.\n\n**What's your biggest bottleneck right now?**`;
-      } else {
-        intro = `**I'm ready to coach you as an affiliate.**\n\nYour **Offer Setup isn't complete** yet — that's where I get your product name, commission, niche, and audience. Without that I can only give you general affiliate advice, not the personalised coaching you deserve.\n\n**Go to Offer Setup now** → fill in your product, commission, niche, and monthly target → come back.\n\nFor now, what do you want to work on?`;
-      }
-    } else {
-      const p  = money(ctx.price);
-      const t  = money(ctx.target);
-      const s  = (p && t) ? Math.ceil(ctx.target/ctx.price) : null;
-      if (ctx.niche && p) {
-        intro = `**Your business profile is loaded.**\n\nYou're building in **${ctx.niche}** with a **${p} offer**`;
-        if (t) intro += `, targeting **${t}/month**`;
-        intro += '.';
-        if (av.job && av.pain) intro += `\n\nYour ideal client is a **${av.job}** struggling with "${av.pain}".`;
-        if (s && p && t) intro += `\n\n**The math:** ${s} client${s!==1?'s':''} at ${p} = ${t}/month. That's the whole game.`;
-        intro += `\n\nEvery answer I give will be specific to your niche, offer, and client. No generic advice — ever.\n\n**What do you want to work on today?**`;
-      } else {
-        intro = `**I'm your E-OS business strategist.**\n\nTo give you fully personalised coaching, complete these first:\n\n**→ Revenue Plan (Step 1):** Set your niche, offer price, and monthly target\n**→ Offer Creation (Step 2):** Name and structure your offer\n**→ Ideal Customer (Step 3):** Define exactly who you're selling to\n\nOnce done, I'll know your exact numbers and every answer will be built around them.\n\nFor now — **what are you working on right now?**`;
-      }
-    }
+    // Show a loading state while the AI reads the profile and writes the intro
+    if (introEl) introEl.innerHTML = '<span style="opacity:.5;font-size:12px">Reading your profile…</span>';
 
-    if (introEl) introEl.innerHTML = fmtMsg(intro);
+    // Trigger an immediate AI greeting — it will read all the data from buildPrompt
+    setTimeout(function() {
+      window.advisorSend && window.advisorSend('__INIT__');
+    }, 300);
 
     const chips = document.getElementById('advisor-starter-chips');
     if (chips) {
@@ -16956,13 +17000,16 @@ ABSOLUTE RULES — NEVER BREAK THESE:
     const sendBtn = document.getElementById('advisor-send-btn');
     const text    = override||(input?input.value.trim():'');
     if (!text) return;
+    const isInit  = text === '__INIT__'; // silent greeting trigger
     if (input && !override) { input.value=''; input.style.height='auto'; }
     if (sendBtn) { sendBtn.disabled=true; sendBtn.textContent='…'; }
     const starters=document.getElementById('advisor-starters');
-    if (starters) starters.style.display='none';
+    if (starters && !isInit) starters.style.display='none';
 
-    appendMsg('user',text);
-    advisorHistory.push({role:'user',content:text});
+    if (!isInit) {
+      appendMsg('user',text);
+      advisorHistory.push({role:'user',content:text});
+    }
     if (advisorHistory.length>MAX_HISTORY) advisorHistory.splice(0,2);
     saveHistory();
 
@@ -16970,27 +17017,57 @@ ABSOLUTE RULES — NEVER BREAK THESE:
     try {
       const ctx=buildCtx();
       const sys=buildPrompt(ctx);
-      const msgs2send = advisorHistory.length>0
-        ? [{role:'user',content:sys+'\n\n---\n\nUSER MESSAGE: '+advisorHistory[0].content},...advisorHistory.slice(1)]
-        : [{role:'user',content:sys+'\n\n---\n\nGreet the user. Reference ONLY data that is actually set above (ignore NOT SET fields). If key data is missing, tell them which section to complete first. Be energetic and direct.'}];
 
-      const proxyUrl=window.PROXY_URL||window.PROXY_URL;
-      let resp, reply='';
-      try {
-        resp=await fetch(proxyUrl,{
-          method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:msgs2send})
+      // Build proper messages array with system prompt as first user message
+      // Then alternate user/assistant for conversation history
+      var msgs2send = [];
+      if (advisorHistory.length > 0) {
+        // Inject system into first user message to maintain context
+        msgs2send.push({ role:'user', content: sys + '\n\n---\n\nMESSAGE: ' + advisorHistory[0].content });
+        for (var hi = 1; hi < advisorHistory.length; hi++) {
+          msgs2send.push(advisorHistory[hi]);
+        }
+      } else {
+        msgs2send.push({
+          role: 'user',
+          content: sys + '\n\n---\n\nINSTRUCTION: Introduce yourself naturally. Read the business profile above. If their key data is set (niche, offer, target), reference the specific numbers and tell them what you see. If data is missing, tell them exactly what to complete first. Then ask one sharp question to understand where they are right now. Be direct and warm — like a trusted advisor who already knows their situation.'
         });
-        if (resp.ok) { const d=await resp.json(); reply=(d.content&&d.content[0]&&d.content[0].text)||''; }
-        else console.error('Advisor error:',resp.status,await resp.text());
-      } catch(fe) { console.error('Advisor fetch failed:',fe); }
+      }
 
-      if (!reply) reply='⚠️ Could not reach Execution OS (status: '+(resp?.status||'network error')+'). Make sure api/claude.js is deployed on Vercel with ANTHROPIC_API_KEY set.';
+      const proxyUrl = window.PROXY_URL || (window.location.origin + '/api/claude');
+      var resp, reply = '';
+      try {
+        resp = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            messages: msgs2send
+          })
+        });
+        if (resp.ok) {
+          var d = await resp.json();
+          reply = (d.content && d.content[0] && d.content[0].text) || '';
+        } else {
+          console.error('Advisor API error:', resp.status);
+        }
+      } catch(fe) {
+        console.error('Advisor fetch failed:', fe.message);
+      }
+
+      if (!reply) reply = 'I could not connect right now. Check that the API is deployed on Vercel with ANTHROPIC_API_KEY set, then try again.';
       if (typingEl&&typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
-      appendMsg('ai',reply);
-      advisorHistory.push({role:'assistant',content:reply});
-      if (advisorHistory.length>MAX_HISTORY) advisorHistory.splice(0,2);
-      saveHistory();
+      // For the init greeting, show in the intro area not the chat
+      if (isInit) {
+        const introEl2 = document.getElementById('advisor-intro-text');
+        if (introEl2) introEl2.innerHTML = fmtMsg(reply);
+      } else {
+        appendMsg('ai',reply);
+        advisorHistory.push({role:'assistant',content:reply});
+        if (advisorHistory.length>MAX_HISTORY) advisorHistory.splice(0,2);
+        saveHistory();
+      }
     } catch(e) {
       if (typingEl&&typingEl.parentNode) typingEl.parentNode.removeChild(typingEl);
       appendMsg('ai','⚠️ Something went wrong: '+e.message);
@@ -19130,40 +19207,98 @@ async function fbSendEdit() {
   input.value = '';
   fbAddMessage('user', instruction);
   var loadId = 'fb-msg-' + Date.now();
-  fbAddMessage('ai', '⏳ Applying your change…', loadId);
+  fbAddMessage('ai', 'Applying your change…', loadId);
   var pageId = fbState.currentPage;
-  var currentHtml = fbState.current && fbState.current.pages && fbState.current.pages[pageId] ? fbState.current.pages[pageId].html : '';
+  var currentHtml = fbState.current && fbState.current.pages && fbState.current.pages[pageId]
+    ? fbState.current.pages[pageId].html : '';
+  if (!currentHtml) {
+    document.getElementById(loadId).querySelector('.fb-msg-bubble').textContent = 'No page loaded.';
+    return;
+  }
+
+  var newHtml = currentHtml;
+  var apiUrl  = window.location.origin + '/api/generate-funnel';
+
   try {
-    var prompt = 'You are a precise HTML editor making ONLY the specific change requested.\n\n'
-      + 'CRITICAL RULES:\n'
-      + '- Make ONLY the change described in the instruction. Nothing else.\n'
-      + '- Do NOT rewrite headlines, copy, or any content that was not mentioned.\n'
-      + '- Do NOT change fonts, colors, or layout unless specifically asked.\n'
-      + '- Preserve ALL existing text and content exactly as-is.\n'
-      + '- Only modify the specific element or property mentioned.\n\n'
-      + 'INSTRUCTION: "' + instruction + '"\n\n'
-      + 'CURRENT PAGE HTML:\n' + currentHtml.substring(0, 8000) + '\n\n'
-      + 'Return the complete updated HTML with ONLY the requested change. Return ONLY raw HTML.';
-    var proxyUrl3 = window.location.origin + '/api/generate-funnel';
-    var editResp = await fetch(proxyUrl3, {
+    // Step 1: classify the type of edit
+    var cResp = await fetch(apiUrl, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: prompt, max_tokens: 3000 })
+      body: JSON.stringify({ prompt: 'Classify this page edit instruction into ONE word.\n\nInstruction: "' + instruction + '"\n\nCategories:\nCSS_ONLY — spacing, margin, padding, font-size, color, gap, border, background\nTEXT_CHANGE — change specific text, headline, button label, copy\nADD_ELEMENT — add a new section, block, row, video, form, button\nREMOVE_ELEMENT — remove or delete a section\nSTRUCTURAL — reorder sections, move elements, major layout change\n\nReply with ONLY the category name.', max_tokens: 15 })
     });
-    var editData = editResp.ok ? await editResp.json() : null;
-    var newHtml = (editData && editData.content && editData.content[0] && editData.content[0].text) || currentHtml;
-    if (fbState.current && fbState.current.pages && fbState.current.pages[pageId]) {
+    var cData = cResp.ok ? await cResp.json() : null;
+    var cat = ((cData && cData.content && cData.content[0] && cData.content[0].text) || 'STRUCTURAL').trim().toUpperCase().split(/\W/)[0];
+
+    if (cat === 'CSS_ONLY') {
+      // Inject a targeted <style> block — never touch copy
+      var cssResp = await fetch(apiUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: 'Write ONLY a <style> block to apply this CSS change:\n"' + instruction + '"\n\nPage HTML snippet for context:\n' + currentHtml.substring(0, 1500) + '\n\nReturn ONLY the <style>...</style> block. No explanation. No other HTML.', max_tokens: 300 })
+      });
+      var cssData = cssResp.ok ? await cssResp.json() : null;
+      var cssBlock = (cssData && cssData.content && cssData.content[0] && cssData.content[0].text) || '';
+      if (cssBlock.includes('<style')) {
+        if (currentHtml.includes('</head>')) {
+          newHtml = currentHtml.replace('</head>', cssBlock + '\n</head>');
+        } else {
+          newHtml = currentHtml + '\n' + cssBlock;
+        }
+      } else { cat = 'STRUCTURAL'; }
+
+    } else if (cat === 'TEXT_CHANGE') {
+      // Find and replace only the specific text — never regenerate
+      var tResp = await fetch(apiUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: 'The user wants to change text on this page:\n"' + instruction + '"\n\nPage HTML (first 5000 chars):\n' + currentHtml.substring(0, 5000) + '\n\nFind the exact text that needs changing and return ONLY this JSON:\n{"find":"exact current text from the HTML","replace":"new replacement text"}\n\nReturn ONLY the JSON. No markdown. No explanation.', max_tokens: 250 })
+      });
+      var tData = tResp.ok ? await tResp.json() : null;
+      var tText = (tData && tData.content && tData.content[0] && tData.content[0].text) || '';
+      try {
+        var parsed = JSON.parse(tText.replace(/```json|```/gi,'').trim());
+        if (parsed.find && currentHtml.includes(parsed.find)) {
+          newHtml = currentHtml.replace(parsed.find, parsed.replace || '');
+        } else { cat = 'STRUCTURAL'; }
+      } catch(e) { cat = 'STRUCTURAL'; }
+    }
+
+    if (cat !== 'CSS_ONLY' && cat !== 'TEXT_CHANGE') {
+      // Structural: return full page but with ULTRA-strict copy-preservation rules
+      var sResp = await fetch(apiUrl, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: 'TASK: Apply ONE specific change to this HTML page. Preserve everything else EXACTLY.\n\n'
+            + 'THE CHANGE: ' + instruction + '\n\n'
+            + 'PRESERVATION RULES — these override everything:\n'
+            + '1. Copy every headline WORD FOR WORD from the original. Do not rephrase a single word.\n'
+            + '2. Copy every paragraph, button text, list item EXACTLY as-is.\n'
+            + '3. Copy all colors, fonts, margins exactly.\n'
+            + '4. Only the element/property mentioned in THE CHANGE above should differ.\n'
+            + '5. If you feel like improving the copy — do not. Copy it verbatim.\n\n'
+            + 'ORIGINAL HTML:\n' + currentHtml.substring(0, 7000) + '\n\n'
+            + 'Return the HTML with ONLY the one change applied.',
+          max_tokens: 8000
+        })
+      });
+      var sData = sResp.ok ? await sResp.json() : null;
+      newHtml = (sData && sData.content && sData.content[0] && sData.content[0].text) || currentHtml;
+    }
+
+    // Apply
+    if (newHtml && newHtml !== currentHtml) {
       fbState.current.pages[pageId].html = newHtml;
       fbRenderPreview(pageId);
+      await fbSaveFunnelToFirestore(fbState.current);
+      var el = document.getElementById(loadId);
+      if (el) el.querySelector('.fb-msg-bubble').textContent = '\u2705 Done. Only the requested change was applied.';
+    } else {
+      var el = document.getElementById(loadId);
+      if (el) el.querySelector('.fb-msg-bubble').textContent = '\u26A0\uFE0F Could not locate what to change. Try being more specific, e.g. "reduce the gap between h1 and the video to 20px" or "change the CTA button text to Get Started Now".';
     }
-    var loadMsg = document.getElementById(loadId);
-    if (loadMsg) loadMsg.querySelector('.fb-msg-bubble').textContent = '✅ Done! Your page has been updated.';
-    await fbSaveFunnelToFirestore(fbState.current);
+
   } catch(err) {
-    var loadMsg = document.getElementById(loadId);
-    if (loadMsg) loadMsg.querySelector('.fb-msg-bubble').textContent = '❌ Update failed. Please try again.';
+    var el = document.getElementById(loadId);
+    if (el) el.querySelector('.fb-msg-bubble').textContent = '\u274C Failed: ' + err.message;
   }
 }
-
 function fbAddMessage(role, text, id) {
   var container = document.getElementById('fb-ai-messages');
   if (!container) return;
