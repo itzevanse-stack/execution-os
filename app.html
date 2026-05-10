@@ -4817,21 +4817,119 @@ button[onclick="generateOffer()"] {
           <button onclick="fbSaveDomain()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 18px;color:var(--text-dark);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800">Connect →</button>
         </div>
         <div id="fb-domain-status" style="display:none"></div>
-        <div id="fb-dns-instructions" style="display:none">
-          <div style="font-size:12px;color:var(--muted);margin-top:16px;margin-bottom:8px;font-weight:600">Add these DNS records in your domain registrar (GoDaddy, Namecheap, Cloudflare, etc.):</div>
-          <table class="dns-table">
-            <thead><tr><th>Type</th><th>Name</th><th>Value</th><th></th></tr></thead>
-            <tbody>
-              <tr>
-                <td>CNAME</td>
-                <td id="dns-cname-name">@</td>
-                <td>cname.vercel-dns.com</td>
-                <td><button class="dns-copy" onclick="fbCopyDns('cname.vercel-dns.com')">Copy</button></td>
-              </tr>
-            </tbody>
-          </table>
-          <div style="font-size:11px;color:var(--dim);margin-top:10px;">DNS changes can take up to 24 hours to propagate. Once done, click "Verify" below.</div>
-          <button onclick="fbVerifyDomain()" style="margin-top:10px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:8px 16px;color:var(--teal);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">🔍 Verify Domain</button>
+
+        <div id="fb-dns-instructions" style="display:none;margin-top:18px">
+
+          <!-- DNS Record Box -->
+          <div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:16px 18px;margin-bottom:16px">
+            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:10px">📋 Add This DNS Record</div>
+            <table class="dns-table" style="margin-bottom:0">
+              <thead><tr><th>Type</th><th>Name / Host</th><th>Value / Points To</th><th>TTL</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><span style="background:rgba(78,204,163,.1);color:var(--teal);font-weight:800;padding:2px 8px;border-radius:4px;font-size:10px">CNAME</span></td>
+                  <td><strong id="dns-cname-name" style="color:var(--white)">@</strong></td>
+                  <td style="color:var(--white);font-weight:600">cname.vercel-dns.com</td>
+                  <td style="color:var(--dim)">Auto / 3600</td>
+                  <td><button class="dns-copy" onclick="fbCopyDns('cname.vercel-dns.com')">Copy</button></td>
+                </tr>
+              </tbody>
+            </table>
+            <div style="font-size:10px;color:var(--dim);margin-top:10px">⚠️ If you are using a root domain (e.g. yourdomain.com with no subdomain), use <strong style="color:var(--white)">@</strong> as the Name. For a subdomain like <em>landing.yourdomain.com</em>, use <strong style="color:var(--white)">landing</strong> as the Name.</div>
+          </div>
+
+          <!-- Registrar selector -->
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Select your domain provider for exact steps:</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px" id="registrar-tabs">
+            <button onclick="showRegistrar('namecheap',this)" style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid rgba(78,204,163,.3);background:rgba(78,204,163,.1);color:var(--teal)">Namecheap</button>
+            <button onclick="showRegistrar('godaddy',this)" style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">GoDaddy</button>
+            <button onclick="showRegistrar('hostinger',this)" style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">Hostinger</button>
+            <button onclick="showRegistrar('cloudflare',this)" style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">Cloudflare</button>
+            <button onclick="showRegistrar('squarespace',this)" style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">Squarespace</button>
+            <button onclick="showRegistrar('bluehost',this)" style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">Bluehost</button>
+            <button onclick="showRegistrar('other',this)" style="padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">Other</button>
+          </div>
+
+          <!-- Registrar-specific steps -->
+          <div id="registrar-steps" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--muted);line-height:1.8">
+            <!-- Namecheap (default) -->
+            <div id="steps-namecheap">
+              <div style="font-weight:800;color:var(--white);margin-bottom:8px">Namecheap — Step by step</div>
+              <div>1. Log in at <strong style="color:var(--teal)">namecheap.com</strong> → click <strong style="color:var(--white)">Domain List</strong> in the left sidebar</div>
+              <div>2. Click <strong style="color:var(--white)">Manage</strong> next to your domain</div>
+              <div>3. Click the <strong style="color:var(--white)">Advanced DNS</strong> tab</div>
+              <div>4. Click <strong style="color:var(--white)">Add New Record</strong></div>
+              <div>5. Set Type to <strong style="color:var(--teal)">CNAME Record</strong></div>
+              <div>6. Host: <strong style="color:var(--white)" id="nc-host">your subdomain (or @ for root)</strong></div>
+              <div>7. Value: <strong style="color:var(--teal)">cname.vercel-dns.com</strong></div>
+              <div>8. TTL: <strong style="color:var(--white)">Automatic</strong> → click the ✓ checkmark to save</div>
+            </div>
+            <div id="steps-godaddy" style="display:none">
+              <div style="font-weight:800;color:var(--white);margin-bottom:8px">GoDaddy — Step by step</div>
+              <div>1. Log in at <strong style="color:var(--teal)">godaddy.com</strong> → click your name (top right) → <strong style="color:var(--white)">My Products</strong></div>
+              <div>2. Find your domain → click <strong style="color:var(--white)">DNS</strong></div>
+              <div>3. Scroll to the <strong style="color:var(--white)">CNAME</strong> section → click <strong style="color:var(--white)">Add</strong></div>
+              <div>4. Name: <strong style="color:var(--white)" id="gd-host">your subdomain (or @ for root)</strong></div>
+              <div>5. Value: <strong style="color:var(--teal)">cname.vercel-dns.com</strong></div>
+              <div>6. TTL: <strong style="color:var(--white)">1 Hour</strong> → click <strong style="color:var(--white)">Save</strong></div>
+              <div style="margin-top:8px;font-size:11px;color:var(--dim)">⚠️ GoDaddy does not allow CNAME on root (@) domains. Use a subdomain like <em>www</em> or <em>landing</em> instead.</div>
+            </div>
+            <div id="steps-hostinger" style="display:none">
+              <div style="font-weight:800;color:var(--white);margin-bottom:8px">Hostinger — Step by step</div>
+              <div>1. Log in at <strong style="color:var(--teal)">hostinger.com</strong> → go to <strong style="color:var(--white)">Domains</strong></div>
+              <div>2. Click <strong style="color:var(--white)">Manage</strong> next to your domain → click <strong style="color:var(--white)">DNS / Nameservers</strong></div>
+              <div>3. Click <strong style="color:var(--white)">Add Record</strong></div>
+              <div>4. Type: <strong style="color:var(--teal)">CNAME</strong></div>
+              <div>5. Name: <strong style="color:var(--white)" id="ho-host">your subdomain (or @ for root)</strong></div>
+              <div>6. Target: <strong style="color:var(--teal)">cname.vercel-dns.com</strong></div>
+              <div>7. TTL: <strong style="color:var(--white)">3600</strong> → click <strong style="color:var(--white)">Add</strong></div>
+            </div>
+            <div id="steps-cloudflare" style="display:none">
+              <div style="font-weight:800;color:var(--white);margin-bottom:8px">Cloudflare — Step by step</div>
+              <div>1. Log in at <strong style="color:var(--teal)">cloudflare.com</strong> → select your domain</div>
+              <div>2. Click <strong style="color:var(--white)">DNS</strong> in the left sidebar → click <strong style="color:var(--white)">Add Record</strong></div>
+              <div>3. Type: <strong style="color:var(--teal)">CNAME</strong></div>
+              <div>4. Name: <strong style="color:var(--white)" id="cf-host">your subdomain (or @ for root)</strong></div>
+              <div>5. Target: <strong style="color:var(--teal)">cname.vercel-dns.com</strong></div>
+              <div>6. <strong style="color:var(--red)">Proxy status: set to DNS Only (grey cloud, NOT orange)</strong></div>
+              <div>7. TTL: <strong style="color:var(--white)">Auto</strong> → click <strong style="color:var(--white)">Save</strong></div>
+              <div style="margin-top:8px;font-size:11px;color:var(--dim)">⚠️ Cloudflare MUST be set to DNS Only (grey cloud). Orange cloud proxying will break the connection.</div>
+            </div>
+            <div id="steps-squarespace" style="display:none">
+              <div style="font-weight:800;color:var(--white);margin-bottom:8px">Squarespace — Step by step</div>
+              <div>1. Log in → click <strong style="color:var(--white)">Domains</strong> in the main menu</div>
+              <div>2. Click your domain → click <strong style="color:var(--white)">DNS Settings</strong></div>
+              <div>3. Scroll to <strong style="color:var(--white)">Custom Records</strong> → click <strong style="color:var(--white)">Add Record</strong></div>
+              <div>4. Type: <strong style="color:var(--teal)">CNAME</strong></div>
+              <div>5. Host: <strong style="color:var(--white)" id="sq-host">your subdomain</strong></div>
+              <div>6. Data: <strong style="color:var(--teal)">cname.vercel-dns.com</strong></div>
+              <div>7. Click <strong style="color:var(--white)">Save</strong></div>
+            </div>
+            <div id="steps-bluehost" style="display:none">
+              <div style="font-weight:800;color:var(--white);margin-bottom:8px">Bluehost — Step by step</div>
+              <div>1. Log in at <strong style="color:var(--teal)">bluehost.com</strong> → go to <strong style="color:var(--white)">Domains</strong></div>
+              <div>2. Click <strong style="color:var(--white)">Manage</strong> → click <strong style="color:var(--white)">DNS</strong></div>
+              <div>3. Scroll to <strong style="color:var(--white)">CNAME (Alias)</strong> → click <strong style="color:var(--white)">Add Record</strong></div>
+              <div>4. Host Record: <strong style="color:var(--white)" id="bh-host">your subdomain</strong></div>
+              <div>5. Points To: <strong style="color:var(--teal)">cname.vercel-dns.com</strong></div>
+              <div>6. TTL: <strong style="color:var(--white)">4 Hours</strong> → click <strong style="color:var(--white)">Save</strong></div>
+            </div>
+            <div id="steps-other" style="display:none">
+              <div style="font-weight:800;color:var(--white);margin-bottom:8px">Any other registrar</div>
+              <div>Every domain registrar has a DNS management area. The steps are always the same:</div>
+              <div style="margin-top:8px">1. Log in to your registrar → find <strong style="color:var(--white)">DNS Management</strong> or <strong style="color:var(--white)">DNS Settings</strong></div>
+              <div>2. Look for <strong style="color:var(--white)">CNAME</strong> records → click Add or Create</div>
+              <div>3. <strong style="color:var(--white)">Name / Host:</strong> enter your subdomain (e.g. <em>landing</em>) or <strong>@</strong> for root</div>
+              <div>4. <strong style="color:var(--white)">Value / Target / Points To:</strong> <strong style="color:var(--teal)">cname.vercel-dns.com</strong></div>
+              <div>5. Save and wait up to 24 hours for DNS to propagate</div>
+              <div style="margin-top:8px;font-size:11px;color:var(--dim)">If you cannot find DNS settings, search: <em>"your registrar name + add CNAME record"</em> in Google for their specific guide.</div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;font-size:11px;color:var(--dim);line-height:1.7">
+            ⏱ DNS changes usually take <strong style="color:var(--white)">5 to 30 minutes</strong>, but can take up to 24 hours. Once done, click Verify below.
+          </div>
+          <button onclick="fbVerifyDomain()" style="margin-top:10px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:9px 18px;color:var(--teal);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">🔍 Verify Domain</button>
         </div>
       </div>
 
@@ -5204,15 +5302,41 @@ button[onclick="generateOffer()"] {
 <script>
 window.PROXY_URL = (function() {
   const origin = window.location.origin;
-  // api/claude.js lives on the execution-os Vercel project
-  // If running on that project directly, use relative path
+  // When running on the Vercel project itself, use relative path
   if (origin.includes('execution-os-xi.vercel.app') || origin.includes('localhost')) {
     return origin + '/api/claude';
   }
-  // On build.skillslibry.com or any other domain, call the Vercel project directly
-  // api/claude.js has Access-Control-Allow-Origin: * so cross-domain works
-  return 'https://execution-os-xi.vercel.app/api/claude';
+  // On any custom domain (build.skillslibry.com etc), the api/ folder
+  // lives at the same origin since app.html and api/ are in the same repo
+  return origin + '/api/claude';
 })();
+
+// Smart API caller — tries /api/claude first, falls back to /api/generate-funnel
+window.callAPI = async function(messages, maxTokens) {
+  var endpoints = [
+    window.location.origin + '/api/claude',
+    'https://execution-os-xi.vercel.app/api/claude',
+  ];
+  var body = JSON.stringify({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: maxTokens || 1000,
+    messages: messages
+  });
+  for (var i = 0; i < endpoints.length; i++) {
+    try {
+      var r = await fetch(endpoints[i], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: body
+      });
+      if (r.ok) {
+        var d = await r.json();
+        return (d.content && d.content[0] && d.content[0].text) || '';
+      }
+    } catch(e) { /* try next */ }
+  }
+  return null;
+};
 
 // ============================================================
 // CORE DATA
@@ -8587,18 +8711,32 @@ function adj(key,delta,target,isClose){
 const API_BASE = 'https://api.anthropic.com';
 
 async function callClaude(prompt, maxTokens) {
-  const resp = await fetch(window.PROXY_URL || window.PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: maxTokens || 2000,
-      messages: [{ role: 'user', content: prompt }]
-    })
-  });
-  if (!resp.ok) throw new Error('API error ' + resp.status);
-  const data = await resp.json();
-  return (data.content && data.content[0] && data.content[0].text) || '';
+  // Try multiple endpoints in order — first one that works wins
+  var endpoints = [
+    window.location.origin + '/api/claude',
+    window.location.origin + '/api/generate-funnel',
+  ];
+  var messages = [{ role: 'user', content: prompt }];
+  for (var i = 0; i < endpoints.length; i++) {
+    try {
+      var resp = await fetch(endpoints[i], {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: maxTokens || 2000,
+          messages: messages,
+          prompt: prompt,  // generate-funnel uses prompt field
+        })
+      });
+      if (resp.ok) {
+        var data = await resp.json();
+        var text = (data.content && data.content[0] && data.content[0].text) || '';
+        if (text) return text;
+      }
+    } catch(e) { /* try next endpoint */ }
+  }
+  throw new Error('All API endpoints failed. Check Vercel deployment and ANTHROPIC_API_KEY.');
 }
 
 async function callAPI(endpoint, body) {
@@ -17037,20 +17175,24 @@ Your personality and style:
       const proxyUrl = window.PROXY_URL || (window.location.origin + '/api/claude');
       var resp, reply = '';
       try {
-        resp = await fetch(proxyUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            messages: msgs2send
-          })
-        });
-        if (resp.ok) {
-          var d = await resp.json();
-          reply = (d.content && d.content[0] && d.content[0].text) || '';
+        // Use smart callAPI which tries multiple endpoints automatically
+        if (window.callAPI) {
+          reply = await window.callAPI(msgs2send, 1000) || '';
         } else {
-          console.error('Advisor API error:', resp.status);
+          // Fallback direct fetch
+          resp = await fetch(proxyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 1000,
+              messages: msgs2send
+            })
+          });
+          if (resp.ok) {
+            var d = await resp.json();
+            reply = (d.content && d.content[0] && d.content[0].text) || '';
+          }
         }
       } catch(fe) {
         console.error('Advisor fetch failed:', fe.message);
@@ -19337,6 +19479,23 @@ async function fbSaveFunnelToFirestore(funnel) {
 }
 
 // ── DOMAIN ──
+function showRegistrar(name, btn) {
+  var tabs = document.querySelectorAll('#registrar-tabs button');
+  tabs.forEach(function(t) {
+    t.style.borderColor = 'var(--border2)';
+    t.style.background  = 'rgba(255,255,255,.04)';
+    t.style.color       = 'var(--dim)';
+  });
+  if (btn) {
+    btn.style.borderColor = 'rgba(78,204,163,.3)';
+    btn.style.background  = 'rgba(78,204,163,.1)';
+    btn.style.color       = 'var(--teal)';
+  }
+  document.querySelectorAll('[id^="steps-"]').forEach(function(s) { s.style.display = 'none'; });
+  var target = document.getElementById('steps-' + name);
+  if (target) target.style.display = 'block';
+}
+
 function fbSaveDomain() {
   var input = document.getElementById('fb-domain-input');
   if (!input || !input.value.trim()) return;
@@ -19345,6 +19504,11 @@ function fbSaveDomain() {
   if (fbState.current) fbState.current.domain = raw;
   var parts = raw.split('.'); var cnameName = parts.length > 2 ? parts[0] : '@';
   var cnameEl = document.getElementById('dns-cname-name'); if (cnameEl) cnameEl.textContent = cnameName;
+  // Update host field in every registrar guide
+  ['nc-host','gd-host','ho-host','cf-host','sq-host','bh-host'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = cnameName;
+  });
   var instructions = document.getElementById('fb-dns-instructions'); if (instructions) instructions.style.display = 'block';
   var statusEl = document.getElementById('fb-domain-status');
   if (statusEl) { statusEl.style.display = 'block'; statusEl.innerHTML = '<div class="domain-status pending">⏳ Add the DNS record below, then click Verify</div>'; }
@@ -19359,9 +19523,14 @@ async function fbVerifyDomain() {
   if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">🔍 Checking DNS…</div>';
   if (btn) btn.textContent = '⏳ Checking…';
   try {
+    var verUid = window._currentUserUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
     var resp = await fetch(window.location.origin + '/api/verify-domain', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ domain: fbState.domain, funnelId: fbState.current && fbState.current.id })
+      body: JSON.stringify({
+        domain:   fbState.domain,
+        funnelId: fbState.current && fbState.current.id,
+        uid:      verUid,
+      })
     });
     var data = await resp.json();
     if (data.verified) {
@@ -19442,15 +19611,59 @@ async function fbPublishLive() {
   if (!fbState.current) return;
   var btn = document.getElementById('fb-go-live-btn');
   if (btn) { btn.textContent = '⏳ Publishing…'; btn.disabled = true; }
-  fbState.current.status = 'live'; fbState.current.publishedAt = Date.now();
+
+  var uid = window._currentUserUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
+
+  fbState.current.status      = 'live';
+  fbState.current.publishedAt = Date.now();
+  fbState.current.ownerUid    = uid;
+
+  // Save to user's funnels collection
   await fbSaveFunnelToFirestore(fbState.current);
-  var liveUrl = document.getElementById('fb-live-url');
-  var domain = fbState.current.domain || 'executionos.app/' + fbState.current.id;
-  if (liveUrl) liveUrl.textContent = 'https://' + domain + ' — click to copy';
+
+  // Also save to published-funnels top-level collection so api/funnel.js can serve it without uid
+  try {
+    if (uid && window._db && window._setDoc && window._doc) {
+      await window._setDoc(
+        window._doc(window._db, 'published-funnels', fbState.current.id),
+        {
+          id:          fbState.current.id,
+          name:        fbState.current.name,
+          type:        fbState.current.type,
+          pages:       fbState.current.pages,
+          domain:      fbState.current.domain || '',
+          ownerUid:    uid,
+          status:      'live',
+          publishedAt: fbState.current.publishedAt,
+        },
+        { merge: true }
+      );
+    }
+  } catch(e) { console.warn('Published funnels save error:', e); }
+
+  // Determine the correct live URL
+  var domain   = fbState.current.domain;
+  var liveUrl  = '';
+  if (domain && fbState.current.domainVerified) {
+    // Custom domain is verified — funnel serves from their domain
+    liveUrl = 'https://' + domain;
+  } else {
+    // No custom domain — serve via our API endpoint with funnel ID
+    var uidParam = uid ? '&uid=' + uid : '';
+    liveUrl = 'https://execution-os-xi.vercel.app/api/funnel?fid=' + fbState.current.id + uidParam;
+  }
+
+  fbState.current.liveUrl = liveUrl;
+  await fbSaveFunnelToFirestore(fbState.current);
+
+  var liveUrlEl = document.getElementById('fb-live-url');
+  if (liveUrlEl) liveUrlEl.textContent = liveUrl + ' — click to copy';
+
   fbSetView('live');
   if (btn) { btn.textContent = '🚀 Go Live — Publish Funnel'; btn.disabled = false; }
+
   var existing = fbState.funnels.find(function(f) { return f.id === fbState.current.id; });
-  if (existing) existing.status = 'live';
+  if (existing) { existing.status = 'live'; existing.liveUrl = liveUrl; }
 }
 
 function fbCopyLiveUrl() {
