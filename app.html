@@ -5157,18 +5157,104 @@ button[onclick="generateOffer()"] {
     <!-- ── SETTINGS TAB ── -->
     <div id="em-view-settings" style="display:none">
 
+      <!-- STEP 1: Resend API Key -->
+      <div class="em-sender-card" id="em-resend-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+          <div>
+            <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🔑 Step 1 — Connect Your Resend Account</div>
+            <div style="font-size:12px;color:var(--dim)">Resend is the email platform your campaigns send through. Free plan sends up to 3,000 emails/month.</div>
+          </div>
+          <div id="em-resend-status-badge"></div>
+        </div>
+
+        <!-- Not connected state -->
+        <div id="em-resend-setup" style="margin-top:14px">
+          <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.8">
+            <div style="font-weight:700;color:var(--white);margin-bottom:6px">How to get your Resend API key:</div>
+            <div>1. Go to <a href="https://resend.com" target="_blank" style="color:var(--teal);font-weight:700">resend.com</a> and create a free account</div>
+            <div>2. Click <strong style="color:var(--white)">API Keys</strong> in the left sidebar</div>
+            <div>3. Click <strong style="color:var(--white)">Create API Key</strong> → give it any name → copy it</div>
+            <div>4. Paste it below</div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Resend API Key</div>
+            <div style="display:flex;gap:8px">
+              <input class="fi" id="em-resend-key" type="password" placeholder="re_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" style="flex:1;font-family:monospace" />
+              <button onclick="emConnectResend()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 18px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap">Connect →</button>
+            </div>
+          </div>
+          <div id="em-resend-connect-status" style="font-size:12px;margin-top:6px"></div>
+        </div>
+
+        <!-- Connected state -->
+        <div id="em-resend-connected" style="display:none;margin-top:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div style="font-size:12px;color:var(--teal);font-weight:700">✅ Resend connected — API key saved</div>
+            <button onclick="emDisconnectResend()" style="background:rgba(255,91,91,.08);border:1px solid rgba(255,91,91,.2);border-radius:var(--r-sm);padding:5px 12px;color:#ff5b5b;font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">Disconnect</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: Verify sending domain -->
+      <div class="em-sender-card" id="em-domain-card">
+        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🌐 Step 2 — Verify Your Sending Domain</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Verifying your domain proves to Gmail, Outlook, and Yahoo that you own it — this is what gets you into the primary inbox.</div>
+
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Your Sending Domain</div>
+          <div style="display:flex;gap:8px">
+            <input class="fi" id="em-domain-input" placeholder="e.g. yourdomain.com" style="flex:1" />
+            <button onclick="emAddDomain()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 18px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap">Add Domain →</button>
+          </div>
+        </div>
+
+        <!-- DNS records shown after domain added -->
+        <div id="em-dns-records" style="display:none">
+          <div style="font-size:11px;font-weight:700;color:var(--white);margin-bottom:8px">Add these DNS records to your domain registrar:</div>
+          <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;overflow:hidden;margin-bottom:12px">
+            <table style="width:100%;border-collapse:collapse;font-size:11px">
+              <thead><tr style="border-bottom:1px solid var(--border2)">
+                <th style="padding:8px 12px;text-align:left;color:var(--dim);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.8px">Type</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--dim);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.8px">Name</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--dim);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.8px">Value</th>
+                <th style="padding:8px 12px;text-align:left;color:var(--dim);font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.8px"></th>
+              </tr></thead>
+              <tbody id="em-dns-tbody"></tbody>
+            </table>
+          </div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:10px">DNS changes can take up to 48 hours to propagate. Once added, click Verify below.</div>
+          <button onclick="emVerifyDomain()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:8px 16px;color:var(--teal);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">🔍 Verify Domain</button>
+          <div id="em-domain-verify-status" style="margin-top:8px;font-size:12px"></div>
+        </div>
+
+        <!-- Domain verified state -->
+        <div id="em-domain-verified" style="display:none">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:12px;color:var(--teal);font-weight:700">✅ Domain verified — <span id="em-verified-domain-name"></span></div>
+              <div style="font-size:11px;color:var(--dim);margin-top:2px">SPF, DKIM, and DMARC are active. Your emails are authenticated.</div>
+            </div>
+            <button onclick="emChangeDomain()" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--r-sm);padding:5px 12px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">Change Domain</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: Sender identity -->
       <div class="em-sender-card">
-        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:6px">📧 Sender Email</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">The email address your campaigns and sequences send from. Must be a domain you own.</div>
+        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">✍️ Step 3 — Set Your Sender Identity</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">This is the name and email your subscribers see in their inbox. Use a personal name for better open rates.</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">From Name</div>
-            <input class="fi" id="em-sender-name" placeholder="e.g. Evan from Execution OS" />
+            <input class="fi" id="em-sender-name" placeholder="e.g. John from HealthCoach" />
           </div>
           <div>
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">From Email</div>
-            <input class="fi" id="em-sender-email" placeholder="e.g. evan@yourdomain.com" />
+            <input class="fi" id="em-sender-email" placeholder="e.g. john@yourdomain.com" />
           </div>
+        </div>
+        <div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.12);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted);margin-bottom:12px;line-height:1.7">
+          💡 <strong style="color:var(--white)">Primary inbox tips:</strong> Use your first name only as the sender name (e.g. "John" not "John Smith Marketing"). Use a lowercase email. Never use "noreply@". Keep subject lines under 50 characters and conversational.
         </div>
         <button onclick="emSaveSender()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 20px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">Save Sender Details</button>
         <div id="em-sender-status" style="margin-top:10px;font-size:12px;"></div>
@@ -19794,16 +19880,332 @@ async function emAiWriteTemplate(name){var bodyEl=document.getElementById('em-co
 async function emAiWrite(){var bodyEl=document.getElementById('em-compose-body'),subjectEl=document.getElementById('em-compose-subject');if(!bodyEl)return;var niche=window._appliedNiche||'digital products';var offer=(window._affiliateOffer&&window._affiliateOffer.name)||'your offer';var av=window._avatarData||{};bodyEl.value='Writing your email…';var prompt='Write a high-converting email.\nNiche: '+niche+'\nOffer: '+offer+'\nPain: '+(av.pain||'not getting results')+'\nDesire: '+(av.transformation||'build a profitable business')+'\n'+(subjectEl&&subjectEl.value?'Subject hint: '+subjectEl.value+'\n':'')+'\nFormat:\nSUBJECT: [subject]\nPREVIEW: [preview]\n\n[body]\n\nPlain text, personal, "you" language, CTA at end.';try{var resp=await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});var data=await resp.json();var text=data.content&&data.content[0]&&data.content[0].text||'';var sm=text.match(/SUBJECT:\s*(.+)/),pm=text.match(/PREVIEW:\s*(.+)/),bm=text.match(/PREVIEW:.+\n\n([\s\S]+)/);var pe=document.getElementById('em-compose-preview');if(subjectEl&&sm&&!subjectEl.value)subjectEl.value=sm[1].trim();if(pe&&pm)pe.value=pm[1].trim();bodyEl.value=bm?bm[1].trim():text;}catch(e){bodyEl.value='AI write failed. Try again.';}}
 async function emAiRewrite(instruction){var bodyEl=document.getElementById('em-compose-body');if(!bodyEl||!bodyEl.value.trim()){alert('Write or generate an email first.');return;}var orig=bodyEl.value;bodyEl.value='Rewriting…';try{var resp=await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:instruction+' — rewrite this email:\n\n'+orig+'\n\nReturn ONLY the rewritten body.'}]})});var data=await resp.json();bodyEl.value=(data.content&&data.content[0]&&data.content[0].text)||orig;}catch(e){bodyEl.value=orig;}}
 function emAnalyzeEmail(){var subject=(document.getElementById('em-compose-subject')||{}).value||'';var body=(document.getElementById('em-compose-body')||{}).value||'';var scoreEl=document.getElementById('em-inbox-score'),tipsEl=document.getElementById('em-inbox-tips');var score=100,tips=[];var sw=['free','click here','buy now','limited time','act now','winner','guaranteed','earn money','make money fast','urgent','congratulations'];var found=sw.filter(function(w){return(subject+' '+body).toLowerCase().includes(w);});if(found.length){score-=found.length*8;tips.push('Remove spam words: '+found.join(', '));}if(subject.length>60){score-=10;tips.push('Subject too long. Keep under 60 chars.');}if(subject===subject.toUpperCase()&&subject.length>3){score-=15;tips.push('Avoid ALL CAPS in subject.');}if(body.length<100){score-=20;tips.push('Email body too short.');}if(!body.includes('?')){tips.push('Add a question to increase replies.');}if(body.includes('<')&&body.includes('>')){score-=15;tips.push('Plain text only — remove HTML.');}score=Math.max(0,score);var color=score>=80?'var(--teal)':score>=60?'var(--yellow)':'#ff6b6b';var label=score>=80?'Great':score>=60?'OK':'Needs Work';if(scoreEl){scoreEl.textContent=score+'/100';scoreEl.style.color=color;}if(tipsEl){tipsEl.innerHTML='<div style="font-weight:700;color:'+color+';margin-bottom:6px">'+label+'</div>'+(tips.length?tips.map(function(t){return'<div style="margin-bottom:4px">• '+t+'</div>';}).join(''):'<div style="color:var(--teal)">Looks clean, good inbox placement expected.</div>');}}
-async function emSendCampaign(){var subject=(document.getElementById('em-compose-subject')||{}).value||'';var body=(document.getElementById('em-compose-body')||{}).value||'';var audience=(document.getElementById('em-compose-audience')||{}).value||'all';var schedule=(document.getElementById('em-compose-schedule')||{}).value||'now';var btn=document.getElementById('em-send-btn');if(!subject.trim()||!body.trim()){alert('Please add a subject and email body.');return;}if(!emState.sender.email){alert('Connect your sender email in Settings first.');emShowSettings();return;}if(btn){btn.textContent='Sending…';btn.disabled=true;}var campaign=Object.assign({},emState.composing||{},{subject,body,preview:(document.getElementById('em-compose-preview')||{}).value||'',audience,status:schedule==='now'?'sent':'live',sentAt:schedule==='now'?Date.now():null,scheduledAt:schedule==='scheduled'?new Date((document.getElementById('em-compose-datetime')||{}).value).getTime():null,stats:{sent:0,opens:0,clicks:0}});if(schedule==='now'&&emState.contacts.length>0){try{var resp=await fetch(window.location.origin+'/api/send-campaign',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({from:emState.sender.name+' <'+emState.sender.email+'>',recipients:emState.contacts.slice(0,200).map(function(c){return c.email;}),subject,text:body})});var result=await resp.json();campaign.stats.sent=result.sent||emState.contacts.length;}catch(e){campaign.stats.sent=emState.contacts.length;}campaign.status='sent';alert('Campaign sent to '+campaign.stats.sent+' contacts!');}else if(schedule==='scheduled'){alert('Campaign scheduled for '+new Date(campaign.scheduledAt).toLocaleString());}var idx=emState.campaigns.findIndex(function(c){return c.id===campaign.id;});if(idx>=0)emState.campaigns[idx]=campaign;else emState.campaigns.unshift(campaign);await emSave();emUpdateStats();emCloseCompose();emRenderCampaigns();if(btn){btn.textContent='Send Campaign →';btn.disabled=false;}}
+async function emSendCampaign(){
+  var subject  = (document.getElementById('em-compose-subject')||{}).value||'';
+  var body     = (document.getElementById('em-compose-body')||{}).value||'';
+  var audience = (document.getElementById('em-compose-audience')||{}).value||'all';
+  var schedule = (document.getElementById('em-compose-schedule')||{}).value||'now';
+  var btn      = document.getElementById('em-send-btn');
+
+  if (!subject.trim()||!body.trim()) { alert('Please add a subject and email body.'); return; }
+
+  // Must have Resend API key AND verified domain
+  if (!emState.sender.resendApiKey) {
+    alert('You need to connect your Resend API key first. Go to Settings → Step 1.');
+    emShowSettings(); return;
+  }
+  if (!emState.sender.email) {
+    alert('Set your From Name and From Email in Settings → Step 3 first.');
+    emShowSettings(); return;
+  }
+
+  var hasDomain = emState.sender.domainVerified && emState.sender.domain;
+  if (!hasDomain) {
+    var proceed = confirm('Your sending domain is not verified yet. Emails may land in spam or promotions. Send anyway? (You can verify your domain in Settings → Step 2)');
+    if (!proceed) return;
+  }
+
+  if (btn) { btn.textContent='Sending…'; btn.disabled=true; }
+
+  var campaign = Object.assign({}, emState.composing||{}, {
+    subject,
+    body,
+    preview:     (document.getElementById('em-compose-preview')||{}).value||'',
+    audience,
+    status:      schedule==='now' ? 'sent' : 'live',
+    sentAt:      schedule==='now' ? Date.now() : null,
+    scheduledAt: schedule==='scheduled' ? new Date((document.getElementById('em-compose-datetime')||{}).value).getTime() : null,
+    stats:       { sent:0, opens:0, clicks:0 }
+  });
+
+  if (schedule==='now' && emState.contacts.length>0) {
+    try {
+      // Send using member's OWN Resend API key via our backend
+      var resp = await fetch(window.location.origin + '/api/send-campaign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          apiKey:     emState.sender.resendApiKey,  // member's own key
+          from:       (emState.sender.name||'') + ' <' + emState.sender.email + '>',
+          recipients: emState.contacts.slice(0,500).map(function(c){return c.email;}),
+          subject:    subject,
+          text:       body,
+          // Plain text only — no HTML — best for primary inbox
+        })
+      });
+      var result = await resp.json();
+      campaign.stats.sent = result.sent || emState.contacts.length;
+      campaign.status = 'sent';
+      alert('✅ Campaign sent to ' + campaign.stats.sent + ' contacts from ' + emState.sender.email + '!');
+    } catch(e) {
+      campaign.stats.sent = 0;
+      alert('❌ Send failed: ' + e.message + '. Check your Resend API key in Settings.');
+    }
+  } else if (schedule==='scheduled') {
+    alert('Campaign scheduled for ' + new Date(campaign.scheduledAt).toLocaleString());
+  }
+
+  var idx = emState.campaigns.findIndex(function(c){return c.id===campaign.id;});
+  if (idx>=0) emState.campaigns[idx]=campaign; else emState.campaigns.unshift(campaign);
+  await emSave(); emUpdateStats(); emCloseCompose(); emRenderCampaigns();
+  if (btn) { btn.textContent='Send Campaign →'; btn.disabled=false; }
+}
 async function emSaveDraftCampaign(){var campaign=Object.assign({},emState.composing||{},{subject:(document.getElementById('em-compose-subject')||{}).value||'',body:(document.getElementById('em-compose-body')||{}).value||'',preview:(document.getElementById('em-compose-preview')||{}).value||'',status:'draft',savedAt:Date.now(),stats:emState.composing&&emState.composing.stats||{sent:0,opens:0,clicks:0}});var idx=emState.campaigns.findIndex(function(c){return c.id===campaign.id;});if(idx>=0)emState.campaigns[idx]=campaign;else emState.campaigns.unshift(campaign);await emSave();emUpdateStats();emCloseCompose();emRenderCampaigns();}
 function emLoadSequences(){var lc=document.getElementById('em-sequence-live');if(lc)lc.checked=emState.sequenceLive;var sl=document.getElementById('em-seq-leads');if(sl)sl.textContent=emState.contacts.length+' contacts enrolled';}
 async function emGenerateSequence(){alert('Regenerating sequence with AI… This may take 30 seconds.');var niche=window._appliedNiche||'digital products';var offer=(window._affiliateOffer&&window._affiliateOffer.name)||'your offer';var av=window._avatarData||{};var prompt='Write a 5-email welcome sequence.\nNiche: '+niche+'\nOffer: '+offer+'\nPain: '+(av.pain||'stuck')+'\nDesire: '+(av.transformation||'build a profitable business')+'\n\nFormat each:\nEMAIL [N]\nDELAY: [when]\nSUBJECT: [subject]\nPREVIEW: [preview]\nBODY:\n[body]\n---\n\nPlain text, personal, CTA in each.';try{var resp=await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:2000,messages:[{role:'user',content:prompt}]})});var data=await resp.json();var text=data.content&&data.content[0]&&data.content[0].text||'';var blocks=text.split(/EMAIL \d+/).filter(function(b){return b.trim();});emState.sequences=blocks.map(function(block,i){var sm=block.match(/SUBJECT:\s*(.+)/),dm=block.match(/DELAY:\s*(.+)/),bm=block.match(/BODY:\n([\s\S]+)/);return{delay:dm?dm[1].trim():'Day '+(i+1),subject:sm?sm[1].trim():'Email '+(i+1),body:bm?bm[1].replace(/---\s*$/,'').trim():''};});await emSave();alert('Sequence regenerated with '+emState.sequences.length+' emails.');}catch(e){alert('Generation failed. Please try again.');}}
 function emEditSequenceEmail(idx){var seq=emState.sequences[idx]||{subject:'',body:'',delay:''};emShowCompose({id:'seq_'+idx,status:'draft',stats:{sent:0,opens:0,clicks:0}});setTimeout(function(){var se=document.getElementById('em-compose-subject'),be=document.getElementById('em-compose-body');if(se)se.value=seq.subject||'';if(be)be.value=seq.body||'';var te=document.getElementById('em-compose-title');if(te)te.textContent='Edit Sequence Email '+(idx+1)+' — '+(seq.delay||'');},100);}
 function emToggleSequenceLive(checkbox){emState.sequenceLive=checkbox.checked;emSave();}
 function emToggleSequence(btn){emState.sequenceLive=!emState.sequenceLive;btn.textContent=emState.sequenceLive?'⏸ Pause Sequence':'▶ Resume Sequence';var lc=document.getElementById('em-sequence-live');if(lc)lc.checked=emState.sequenceLive;emSave();}
-function emLoadSettings(){var ne=document.getElementById('em-sender-name'),ee=document.getElementById('em-sender-email'),te=document.getElementById('em-trigger-select'),le=document.getElementById('em-sequence-live');if(ne)ne.value=emState.sender.name||'';if(ee)ee.value=emState.sender.email||'';if(te)te.value=emState.trigger||'optin';if(le)le.checked=emState.sequenceLive;emLoadFunnelsIntoSelects();}
+function emLoadSettings(){
+  var ne=document.getElementById('em-sender-name');
+  var ee=document.getElementById('em-sender-email');
+  var te=document.getElementById('em-trigger-select');
+  var le=document.getElementById('em-sequence-live');
+  var di=document.getElementById('em-domain-input');
+  if(ne) ne.value=emState.sender.name||'';
+  if(ee) ee.value=emState.sender.email||'';
+  if(te) te.value=emState.trigger||'optin';
+  if(le) le.checked=emState.sequenceLive;
+
+  // Restore Resend connection state
+  if (emState.sender.resendApiKey) {
+    emShowResendConnected();
+    var ki = document.getElementById('em-resend-key');
+    if (ki) ki.value = emState.sender.resendApiKey;
+  }
+
+  // Restore domain verification state
+  if (emState.sender.domainVerified && emState.sender.domain) {
+    var verifiedEl  = document.getElementById('em-domain-verified');
+    var verifiedName= document.getElementById('em-verified-domain-name');
+    if (verifiedEl)  verifiedEl.style.display = 'block';
+    if (verifiedName) verifiedName.textContent = emState.sender.domain;
+  } else if (emState.sender.pendingDomain) {
+    var di2 = document.getElementById('em-domain-input');
+    if (di2) di2.value = emState.sender.pendingDomain;
+  }
+
+  emLoadFunnelsIntoSelects();
+}
 function emLoadFunnelsIntoSelects(){['em-funnel-select','em-compose-funnel'].forEach(function(id){var sel=document.getElementById(id);if(!sel)return;var current=sel.value;while(sel.options.length>1)sel.remove(1);(typeof fbState!=='undefined'&&fbState.funnels||[]).forEach(function(f){var opt=document.createElement('option');opt.value=f.id;opt.textContent=f.name||f.type||'Untitled';sel.appendChild(opt);});if(current)sel.value=current;});var cs=document.getElementById('em-funnel-select');if(cs&&emState.connectedFunnel)cs.value=emState.connectedFunnel;}
-async function emSaveSender(){var ne=document.getElementById('em-sender-name'),ee=document.getElementById('em-sender-email'),se=document.getElementById('em-sender-status');emState.sender.name=(ne&&ne.value.trim())||'';emState.sender.email=(ee&&ee.value.trim())||'';await emSave();if(se){se.textContent='✅ Saved';se.style.color='var(--teal)';setTimeout(function(){se.textContent='';},2000);}}
+// ── RESEND INTEGRATION ───────────────────────────────────────────────────────
+
+async function emConnectResend() {
+  var keyInput = document.getElementById('em-resend-key');
+  var statusEl = document.getElementById('em-resend-connect-status');
+  var key = keyInput ? keyInput.value.trim() : '';
+
+  if (!key || !key.startsWith('re_')) {
+    if (statusEl) { statusEl.textContent = '⚠️ Please enter a valid Resend API key starting with re_'; statusEl.style.color = 'var(--gold)'; }
+    return;
+  }
+
+  if (statusEl) { statusEl.textContent = '🔄 Verifying key…'; statusEl.style.color = 'var(--dim)'; }
+
+  // Validate the key by calling our backend
+  try {
+    var resp = await fetch(window.location.origin + '/api/email-setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'validate-key', apiKey: key })
+    });
+    var data = await resp.json();
+
+    if (data.valid) {
+      emState.sender.resendApiKey = key;
+      await emSave();
+      emShowResendConnected();
+      if (statusEl) statusEl.textContent = '';
+    } else {
+      if (statusEl) { statusEl.textContent = '❌ Invalid API key. Please check and try again.'; statusEl.style.color = 'var(--red)'; }
+    }
+  } catch(e) {
+    // If our backend isn't available, save the key and trust the user
+    emState.sender.resendApiKey = key;
+    await emSave();
+    emShowResendConnected();
+    if (statusEl) statusEl.textContent = '';
+  }
+}
+
+function emShowResendConnected() {
+  var setup = document.getElementById('em-resend-setup');
+  var connected = document.getElementById('em-resend-connected');
+  var badge = document.getElementById('em-resend-status-badge');
+  if (setup) setup.style.display = 'none';
+  if (connected) connected.style.display = 'block';
+  if (badge) badge.innerHTML = '<span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;padding:3px 10px;border-radius:20px;background:rgba(78,204,163,.1);color:var(--teal);border:1px solid rgba(78,204,163,.25)">✅ Connected</span>';
+}
+
+function emDisconnectResend() {
+  if (!confirm('Disconnect your Resend account? You will not be able to send emails until you reconnect.')) return;
+  emState.sender.resendApiKey = '';
+  emSave();
+  var setup = document.getElementById('em-resend-setup');
+  var connected = document.getElementById('em-resend-connected');
+  var badge = document.getElementById('em-resend-status-badge');
+  var keyInput = document.getElementById('em-resend-key');
+  if (setup) setup.style.display = 'block';
+  if (connected) connected.style.display = 'none';
+  if (badge) badge.innerHTML = '';
+  if (keyInput) keyInput.value = '';
+}
+
+function emCopyRecord(btn) {
+  var val = btn.getAttribute('data-val') || '';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(val).then(function() {
+      var orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(function() { btn.textContent = orig; }, 1500);
+    });
+  }
+}
+
+async function emAddDomain() {
+  var domainInput = document.getElementById('em-domain-input');
+  var domain = domainInput ? domainInput.value.trim().replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase() : '';
+  if (!domain || !domain.includes('.')) {
+    alert('Please enter a valid domain, e.g. yourdomain.com');
+    return;
+  }
+  if (!emState.sender.resendApiKey) {
+    alert('Please connect your Resend API key first (Step 1).');
+    return;
+  }
+
+  var statusEl = document.getElementById('em-domain-verify-status');
+  if (statusEl) { statusEl.textContent = '🔄 Adding domain to Resend…'; statusEl.style.color = 'var(--dim)'; }
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/email-setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'add-domain', domain: domain, apiKey: emState.sender.resendApiKey })
+    });
+    var data = await resp.json();
+
+    if (data.records && data.records.length) {
+      emState.sender.pendingDomain = domain;
+      emState.sender.domainId = data.domainId || '';
+      await emSave();
+
+      // Show DNS records
+      var tbody = document.getElementById('em-dns-tbody');
+      if (tbody) {
+        tbody.innerHTML = data.records.map(function(r) {
+          return '<tr style="border-bottom:1px solid var(--border3)">'
+            + '<td style="padding:8px 12px;color:var(--teal);font-weight:700;font-size:10px">' + (r.type || 'TXT') + '</td>'
+            + '<td style="padding:8px 12px;color:var(--white);font-family:monospace;font-size:10px;word-break:break-all">' + (r.name || r.record || '') + '</td>'
+            + '<td style="padding:8px 12px;color:var(--muted);font-family:monospace;font-size:10px;word-break:break-all">' + (r.value || r.data || '') + '</td>'
+            + '<td style="padding:8px 12px"><button class="em-copy-btn" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px;color:var(--teal);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">Copy</button></td>'
+            + '</tr>';
+        }).join('');
+      }
+
+      var recordsEl = document.getElementById('em-dns-records');
+      if (recordsEl) {
+        recordsEl.style.display = 'block';
+        // Attach copy handlers to all Copy buttons
+        recordsEl.querySelectorAll('.em-copy-btn').forEach(function(btn, i) {
+          var rec = data.records[i];
+          if (rec) {
+            btn.addEventListener('click', function() {
+              var val = rec.value || rec.data || '';
+              if (navigator.clipboard) {
+                navigator.clipboard.writeText(val).then(function() {
+                  btn.textContent = 'Copied!';
+                  setTimeout(function() { btn.textContent = 'Copy'; }, 1500);
+                });
+              }
+            });
+          }
+        });
+      }
+      if (statusEl) statusEl.textContent = '';
+    } else if (data.error) {
+      if (statusEl) { statusEl.textContent = '❌ ' + data.error; statusEl.style.color = 'var(--red)'; }
+    } else {
+      if (statusEl) { statusEl.textContent = '⚠️ Domain added but no DNS records returned. Check Resend dashboard.'; statusEl.style.color = 'var(--gold)'; }
+    }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '❌ Could not reach API. Make sure api/email-setup.js is deployed.'; statusEl.style.color = 'var(--red)'; }
+  }
+}
+
+async function emVerifyDomain() {
+  var domain = emState.sender.pendingDomain;
+  if (!domain) { alert('Please add your domain first.'); return; }
+
+  var statusEl = document.getElementById('em-domain-verify-status');
+  if (statusEl) { statusEl.textContent = '🔍 Checking DNS records…'; statusEl.style.color = 'var(--dim)'; }
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/email-setup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'verify-domain', domain: domain, domainId: emState.sender.domainId, apiKey: emState.sender.resendApiKey })
+    });
+    var data = await resp.json();
+
+    if (data.verified) {
+      emState.sender.domain = domain;
+      emState.sender.domainVerified = true;
+      await emSave();
+
+      // Show verified state
+      var recordsEl = document.getElementById('em-dns-records');
+      var verifiedEl = document.getElementById('em-domain-verified');
+      var verifiedName = document.getElementById('em-verified-domain-name');
+      if (recordsEl) recordsEl.style.display = 'none';
+      if (verifiedEl) verifiedEl.style.display = 'block';
+      if (verifiedName) verifiedName.textContent = domain;
+      if (statusEl) statusEl.textContent = '';
+    } else {
+      if (statusEl) {
+        statusEl.textContent = '⏳ Not verified yet. ' + (data.reason || 'DNS can take up to 48 hours to propagate. Try again later.');
+        statusEl.style.color = 'var(--gold)';
+      }
+    }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '❌ Verification check failed. Try again.'; statusEl.style.color = 'var(--red)'; }
+  }
+}
+
+function emChangeDomain() {
+  emState.sender.domainVerified = false;
+  emState.sender.pendingDomain = '';
+  emSave();
+  var verifiedEl = document.getElementById('em-domain-verified');
+  var recordsEl  = document.getElementById('em-dns-records');
+  var domainInput = document.getElementById('em-domain-input');
+  if (verifiedEl) verifiedEl.style.display = 'none';
+  if (recordsEl) recordsEl.style.display = 'none';
+  if (domainInput) domainInput.value = '';
+}
+
+async function emSaveSender(){
+  var ne=document.getElementById('em-sender-name');
+  var ee=document.getElementById('em-sender-email');
+  var se=document.getElementById('em-sender-status');
+  emState.sender.name  = (ne && ne.value.trim()) || '';
+  emState.sender.email = (ee && ee.value.trim()) || '';
+
+  // Warn if email domain doesn't match verified domain
+  if (emState.sender.email && emState.sender.domainVerified && emState.sender.domain) {
+    var emailDomain = emState.sender.email.split('@')[1] || '';
+    if (emailDomain && emailDomain !== emState.sender.domain) {
+      if (se) {
+        se.innerHTML = '⚠️ Your from email domain (<strong>' + emailDomain + '</strong>) doesn\'t match your verified domain (<strong>' + emState.sender.domain + '</strong>). Update your email to use the verified domain.';
+        se.style.color = 'var(--gold)';
+        return;
+      }
+    }
+  }
+
+  await emSave();
+  if(se){ se.textContent='✅ Saved'; se.style.color='var(--teal)'; setTimeout(function(){se.textContent='';},2000); }
+}
 async function emSaveFunnelConnection(){var sel=document.getElementById('em-funnel-select');emState.connectedFunnel=sel&&sel.value||'';await emSave();alert('Funnel connected. New opt-ins will auto-enrol in your welcome sequence.');}
 async function emSaveTrigger(){var te=document.getElementById('em-trigger-select'),le=document.getElementById('em-sequence-live');emState.trigger=(te&&te.value)||'optin';emState.sequenceLive=!!(le&&le.checked);await emSave();alert('Trigger settings saved.');}
 function emToggleScheduleDate(val){var dt=document.getElementById('em-compose-datetime');if(dt)dt.style.display=val==='scheduled'?'block':'none';}
