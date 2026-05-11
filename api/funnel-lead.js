@@ -1,18 +1,14 @@
-// api/funnel-lead.js — captures opt-in form submissions from published funnels
-// Called by the tracking script injected into every served funnel page
-
+// api/funnel-lead.js — captures opt-in submissions from published funnels
 const { initializeApp, getApps, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
 
 function getDb() {
   if (!getApps().length) {
-    initializeApp({
-      credential: cert({
-        projectId:   process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey:  (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-      }),
-    });
+    initializeApp({ credential: cert({
+      projectId:   process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: (process.env.FIREBASE_PRIVATE_KEY||'').replace(/\\n/g,'\n'),
+    })});
   }
   return getFirestore();
 }
@@ -24,39 +20,51 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { funnelId, uid, pageId, email, name, ts } = req.body || {};
+  const { funnelId, uid, pageId, email, name } = req.body || {};
+  if (!email || !email.includes('@')) return res.status(400).json({ error: 'Invalid email' });
+  if (!funnelId) return res.status(400).json({ error: 'Missing funnelId' });
 
-  if (!email || !funnelId) return res.status(400).json({ error: 'Missing email or funnelId' });
+  const db  = getDb();
+  const now = Date.now();
+  const docId = email.toLowerCase().replace(/[^a-z0-9]/g, '-');
 
-  const db = getDb();
+  const leadData = {
+    email:     email.toLowerCase().trim(),
+    name:      name || '',
+    funnelId:  funnelId,
+    pageId:    pageId || 'landing',
+    source:    'funnel',
+    createdAt: now,
+    date:      new Date(now).toISOString().split('T')[0], // YYYY-MM-DD for easy display
+  };
 
   try {
-    const now = Date.now();
-    const leadData = {
-      email,
-      name:    name || '',
-      funnelId,
-      pageId:  pageId || 'unknown',
-      source:  'funnel',
-      createdAt: now,
-    };
+    const batch = db.batch();
 
-    // Save to global leads collection (shows in Email Marketing contacts)
-    await db.collection('leads').doc(email.replace(/[^a-z0-9]/gi, '-')).set(leadData, { merge: true });
+    // 1. Save to global leads collection — shows in admin dashboard
+    batch.set(db.collection('leads').doc(docId), leadData, { merge: true });
 
-    // Save to user's leads subcollection if uid known
+    // 2. Save to user's leads subcollection — shows in Email Marketing > Contacts
     if (uid) {
-      await db.collection('users').doc(uid).collection('leads')
-        .doc(email.replace(/[^a-z0-9]/gi, '-')).set(leadData, { merge: true });
-
-      // Increment funnel lead counter
-      await db.collection('users').doc(uid).collection('funnels').doc(funnelId)
-        .update({ leads: FieldValue.increment(1) }).catch(() => {});
+      batch.set(
+        db.collection('users').doc(uid).collection('leads').doc(docId),
+        leadData,
+        { merge: true }
+      );
     }
 
-    return res.status(200).json({ success: true });
+    await batch.commit();
+
+    // 3. Increment funnel lead counter (separate update — can fail without breaking lead save)
+    if (uid) {
+      db.collection('users').doc(uid).collection('funnels').doc(funnelId)
+        .update({ leads: FieldValue.increment(1) })
+        .catch(() => {});
+    }
+
+    return res.status(200).json({ success: true, saved: true });
   } catch(err) {
-    console.error('Funnel lead error:', err);
+    console.error('Funnel lead error:', err.message);
     return res.status(500).json({ error: err.message });
   }
 };
