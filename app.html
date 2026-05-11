@@ -19606,12 +19606,14 @@ async function fbVerifyDomain() {
   if (!fbState.domain) return;
   var statusEl = document.getElementById('fb-domain-status');
   var btn = document.querySelector('[onclick="fbVerifyDomain()"]');
-  if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">🔍 Checking DNS…</div>';
-  if (btn) btn.textContent = '⏳ Checking…';
+  if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">🔍 Checking DNS and connecting domain…</div>';
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Connecting…'; }
+
   try {
     var verUid = window._currentUserUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
     var resp = await fetch(window.location.origin + '/api/verify-domain', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         domain:   fbState.domain,
         funnelId: fbState.current && fbState.current.id,
@@ -19619,18 +19621,55 @@ async function fbVerifyDomain() {
       })
     });
     var data = await resp.json();
+
     if (data.verified) {
-      if (statusEl) statusEl.innerHTML = '<div class="domain-status verified">✅ Domain verified and connected</div>';
+      // Full success — DNS + Vercel + Firestore all done
+      var addedMsg = data.vercelAdded ? ' Domain automatically added to server.' : '';
+      if (statusEl) statusEl.innerHTML = ''
+        + '<div class="domain-status verified">✅ ' + fbState.domain + ' is live!' + addedMsg + '</div>'
+        + '<div style="margin-top:10px;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.15);border-radius:10px;padding:12px 14px">'
+        + '<div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:6px">Your funnel is live at:</div>'
+        + '<div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:8px">https://' + fbState.domain + '</div>'
+        + '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(\'https://' + fbState.domain + '\').then(function(){this.textContent=\'Copied!\';var s=this;setTimeout(function(){s.textContent=\'Copy Link\'},1500)}.bind(this))" '
+        + 'style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 12px;color:var(--teal);font-size:11px;cursor:pointer;font-family:\'Poppins\',sans-serif;font-weight:700">Copy Link</button>'
+        + '</div>';
+
       fbState.domainVerified = true;
-      if (fbState.current) { fbState.current.domainVerified = true; fbState.current.domain = fbState.domain; }
+      if (fbState.current) {
+        fbState.current.domainVerified = true;
+        fbState.current.domain         = fbState.domain;
+        fbState.current.liveUrl        = 'https://' + fbState.domain;
+      }
       fbSaveFunnelToFirestore(fbState.current);
+
+      // Hide the DNS instructions since we're done
+      var dnsEl = document.getElementById('fb-dns-instructions');
+      if (dnsEl) dnsEl.style.display = 'none';
+
+    } else if (data.dnsOk && !data.vercelOk) {
+      // DNS is right but Vercel connection failed
+      if (statusEl) statusEl.innerHTML = ''
+        + '<div class="domain-status pending">⚠️ DNS is correct but the server connection failed. '
+        + (data.vercelNote || 'Please contact support or add VERCEL_TOKEN to environment variables.')
+        + '</div>';
+
     } else {
-      if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">⏳ Not verified yet. ' + (data.reason || 'DNS can take up to 24 hours.') + '</div>';
+      // DNS not propagated yet — show step-by-step help
+      var instructionsHtml = '';
+      if (data.instructions && data.instructions.length) {
+        instructionsHtml = '<div style="margin-top:10px;font-size:11px;color:var(--dim);line-height:1.9">'
+          + data.instructions.map(function(s, i) { return '<div>' + (i+1) + '. ' + s + '</div>'; }).join('')
+          + '</div>';
+      }
+      if (statusEl) statusEl.innerHTML = ''
+        + '<div class="domain-status pending">⏳ ' + (data.reason || 'DNS not propagated yet.') + '</div>'
+        + instructionsHtml
+        + '<div style="margin-top:8px;font-size:10px;color:var(--dimmer)">Current DNS records found: ' + (data.dnsRecords && data.dnsRecords.length ? data.dnsRecords.join(', ') : 'none yet') + '</div>';
     }
   } catch(e) {
-    if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">❌ Verification failed. Try again.</div>';
+    if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">❌ Could not reach the verification server. Make sure the app is deployed on Vercel, then try again.</div>';
   }
-  if (btn) btn.textContent = '🔍 Verify Domain';
+  if (btn) { btn.disabled = false; btn.textContent = '🔍 Verify Domain'; }
 }
 
 function fbCopyDns(value) {
