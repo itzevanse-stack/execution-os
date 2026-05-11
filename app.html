@@ -19760,8 +19760,9 @@ function fbRenderList() {
         '</div>',
         domainHtml,
         '<div style="display:flex;gap:8px;margin-top:12px">',
-          '<button class="fb-edit-btn" data-id="' + f.id + '" style="flex:1;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;padding:8px 0;color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">✏️ Edit Funnel</button>',
-          '<button class="fb-paths-btn" data-id="' + f.id + '" style="flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:8px 0;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📄 Page Paths</button>',
+          '<button class="fb-edit-btn" data-id="' + f.id + '" style="flex:1;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;padding:8px 0;color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">✏️ Edit</button>',
+          '<button class="fb-view-btn" data-url="' + baseUrl + '" data-live="' + (isLive?'1':'0') + '" style="flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:8px 0;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">👁 View</button>',
+          '<button class="fb-paths-btn" data-id="' + f.id + '" style="flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:8px 0;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📄 Paths</button>',
         '</div>',
       '</div>'
     ].join('');
@@ -19782,6 +19783,15 @@ document.addEventListener('click', function(e) {
   var pathsBtn = e.target.closest('.fb-paths-btn');
   if (editBtn)  { fbOpenFunnel(editBtn.dataset.id); }
   else if (delBtn)  { fbDeleteFunnel(delBtn.dataset.id, e); }
+  else if (e.target.closest('.fb-view-btn')) {
+    var viewBtn = e.target.closest('.fb-view-btn');
+    var viewUrl = viewBtn.dataset.url;
+    var isLive  = viewBtn.dataset.live === '1';
+    if (!isLive) {
+      if (!confirm('This funnel is not published yet. View it anyway as a preview?')) return;
+    }
+    window.open(viewUrl, '_blank');
+  }
   else if (copyBtn) {
     var url = copyBtn.dataset.url;
     if (navigator.clipboard && url) {
