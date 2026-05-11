@@ -4808,6 +4808,33 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
+      <!-- Branding -->
+      <div class="domain-card" style="margin-bottom:1.1rem">
+        <div style="font-size:14px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🎨 Funnel Branding</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Add your logo and favicon. These replace the default Execution OS branding on your published funnel.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Logo (shown in navbar)</div>
+            <div id="fb-logo-preview" style="height:60px;background:var(--bg3);border:1px dashed rgba(78,204,163,.25);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:8px;overflow:hidden" onclick="document.getElementById('fb-logo-input').click()">
+              <span id="fb-logo-placeholder" style="font-size:11px;color:var(--dim)">Click to upload logo</span>
+              <img id="fb-logo-img" style="max-height:50px;max-width:100%;display:none" />
+            </div>
+            <input id="fb-logo-input" type="file" accept="image/*" style="display:none" onchange="fbHandleLogoUpload(this,'logo')" />
+            <div style="font-size:10px;color:var(--dimmer)">PNG, SVG or JPG · Recommended: 200×50px</div>
+          </div>
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Favicon (browser tab icon)</div>
+            <div id="fb-favicon-preview" style="height:60px;background:var(--bg3);border:1px dashed rgba(78,204,163,.25);border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:8px;overflow:hidden" onclick="document.getElementById('fb-favicon-input').click()">
+              <span id="fb-favicon-placeholder" style="font-size:11px;color:var(--dim)">Click to upload favicon</span>
+              <img id="fb-favicon-img" style="max-height:40px;max-width:40px;display:none" />
+            </div>
+            <input id="fb-favicon-input" type="file" accept="image/*" style="display:none" onchange="fbHandleLogoUpload(this,'favicon')" />
+            <div style="font-size:10px;color:var(--dimmer)">PNG or ICO · Recommended: 32×32px</div>
+          </div>
+        </div>
+        <div id="fb-branding-status" style="margin-top:10px;font-size:12px"></div>
+      </div>
+
       <!-- Domain -->
       <div class="domain-card">
         <div style="font-size:14px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🌐 Custom Domain</div>
@@ -17522,13 +17549,17 @@ onAuthStateChanged(auth, async (user) => {
       setTimeout(() => {
         try {
           const lastPage = localStorage.getItem('eos_last_page');
-          const validPages = ['dashboard','plan','offer','avatar','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer','funnels'];
+          const validPages = ['dashboard','plan','offer','avatar','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer','funnels','email'];
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
             const navBtn = document.getElementById('nav-' + lastPage);
             window.showPage(lastPage, navBtn || null);
+            // Load funnel list if restoring to funnels page
+            if (lastPage === 'funnels') { setTimeout(function(){ window.fbLoadList && window.fbLoadList(); }, 300); }
+            // Load email if restoring to email page
+            if (lastPage === 'email')   { setTimeout(function(){ window.emLoad && window.emLoad(); }, 300); }
           }
         } catch(e) {}
-      }, 200);
+      }, 600);
     } else if (attempts > 0) {
       setTimeout(() => applyMode(attempts - 1), 150);
     }
@@ -19294,6 +19325,8 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
 function fbSetupEditor(funnel) {
   var nameEl = document.getElementById('fb-editor-funnel-name');
   if (nameEl) nameEl.textContent = funnel.name;
+  // Restore branding previews
+  fbRestoreBranding(funnel);
   var tabs = document.getElementById('fb-page-tabs');
   if (tabs) {
     tabs.innerHTML = '';
@@ -19615,6 +19648,54 @@ function fbSaveStripeKey() {
 
 // ── PUBLISH ──
 function fbGoToPublish() { fbSetView('publish'); fbSetWizardStep(4); }
+
+// ── BRANDING — Logo + Favicon ─────────────────────────────────────────────────
+function fbHandleLogoUpload(input, type) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 500000) { alert('File too large. Please use an image under 500KB.'); return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    if (type === 'logo') {
+      var img = document.getElementById('fb-logo-img');
+      var ph  = document.getElementById('fb-logo-placeholder');
+      if (img) { img.src = dataUrl; img.style.display = 'block'; }
+      if (ph)  { ph.style.display = 'none'; }
+      if (fbState.current) fbState.current.brandLogo = dataUrl;
+    } else {
+      var img = document.getElementById('fb-favicon-img');
+      var ph  = document.getElementById('fb-favicon-placeholder');
+      if (img) { img.src = dataUrl; img.style.display = 'block'; }
+      if (ph)  { ph.style.display = 'none'; }
+      if (fbState.current) fbState.current.brandFavicon = dataUrl;
+    }
+    fbSaveFunnelToFirestore(fbState.current);
+    var statusEl = document.getElementById('fb-branding-status');
+    if (statusEl) {
+      statusEl.textContent = '✅ ' + (type === 'logo' ? 'Logo' : 'Favicon') + ' saved';
+      statusEl.style.color = 'var(--teal)';
+      setTimeout(function() { statusEl.textContent = ''; }, 2000);
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function fbRestoreBranding(funnel) {
+  if (!funnel) return;
+  if (funnel.brandLogo) {
+    var img = document.getElementById('fb-logo-img');
+    var ph  = document.getElementById('fb-logo-placeholder');
+    if (img) { img.src = funnel.brandLogo; img.style.display = 'block'; }
+    if (ph)  { ph.style.display = 'none'; }
+  }
+  if (funnel.brandFavicon) {
+    var img = document.getElementById('fb-favicon-img');
+    var ph  = document.getElementById('fb-favicon-placeholder');
+    if (img) { img.src = funnel.brandFavicon; img.style.display = 'block'; }
+    if (ph)  { ph.style.display = 'none'; }
+  }
+}
 
 async function fbPublishLive() {
   if (!fbState.current) return;
