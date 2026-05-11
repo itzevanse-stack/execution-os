@@ -3,1056 +3,950 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Execution OS — Admin</title>
+<title>Execution OS — Admin Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#07070f;--bg2:#0d0d1e;--bg3:#111128;--card:#131328;--card2:#0f0f22;
-  --teal:#4ecca3;--teal2:#38b48e;--gold:#f0c040;--gold2:#c9960a;
-  --purple:#6c63ff;--purple2:#5040cc;--red:#ff5b5b;--orange:#ff8c42;
-  --white:#fff;--muted:#c8cde8;--dim:#7a7a9d;--dimmer:#4a4a70;
-  --border:rgba(78,204,163,.12);--border2:rgba(255,255,255,.06);--border3:rgba(255,255,255,.03);
-  --text-dark:#06060f;--r:10px;--r-lg:14px;--r-xl:18px;
+  --bg:#0d0d1a;--bg2:#12122a;--card:#1e1e38;--card2:#191930;
+  --teal:#4ecca3;--teal2:#3da88a;--yellow:#ffd93d;--yellow2:#f4c430;
+  --purple:#6c63ff;--purple2:#5848ff;--red:#ff6b6b;--orange:#ff8c42;
+  --white:#fff;--muted:#d4d4e8;--dim:#8888aa;--dimmer:#55557a;
+  --border:rgba(78,204,163,.18);--border2:rgba(255,255,255,.07);--text-dark:#0d0d1a;
 }
-body{font-family:'Poppins',sans-serif;color:var(--white);background:var(--bg);min-height:100vh;-webkit-font-smoothing:antialiased}
-
-/* ── LAYOUT ── */
+body{font-family:'Poppins',sans-serif;color:var(--white);background:var(--bg);min-height:100vh}
+.gradient-text{background:linear-gradient(135deg,var(--teal),var(--yellow));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .admin-wrap{display:flex;min-height:100vh}
-.sidebar{width:232px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border2);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transition:transform .25s}
-.main{margin-left:232px;flex:1;display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
-
-/* ── SIDEBAR ── */
-.sb-logo{padding:1.4rem 1.25rem 1rem;border-bottom:1px solid var(--border2)}
-.sb-logo-mark{font-weight:900;font-size:13px;letter-spacing:.3px;color:var(--white)}
-.sb-logo-mark em{color:var(--teal);font-style:normal}
-.sb-logo-badge{display:inline-block;font-size:8px;background:rgba(255,91,91,.12);color:var(--red);padding:2px 7px;border-radius:50px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;margin-left:5px;vertical-align:middle;border:1px solid rgba(255,91,91,.2)}
-.sb-logo-sub{font-size:9px;color:var(--dimmer);margin-top:3px;font-weight:500;letter-spacing:.3px}
-.sb-nav{flex:1;padding:.6rem 0;overflow-y:auto}
-.sb-section{font-size:8px;text-transform:uppercase;letter-spacing:1.8px;color:var(--dimmer);font-weight:900;padding:10px 16px 4px}
-.sb-item{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 16px;font-size:11.5px;font-weight:600;color:var(--dim);cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none;user-select:none}
-.sb-item:hover{background:rgba(255,255,255,.03);color:var(--muted)}
-.sb-item.on{background:rgba(78,204,163,.07);color:var(--teal);border-left-color:var(--teal)}
-.sb-item-ico{font-size:14px;width:18px;text-align:center;flex-shrink:0}
-.sb-badge{margin-left:auto;font-size:9px;background:rgba(78,204,163,.1);color:var(--teal);border:1px solid rgba(78,204,163,.2);padding:1px 7px;border-radius:50px;font-weight:800}
-.sb-footer{padding:.9rem 1.1rem;border-top:1px solid var(--border2)}
-.sb-user{display:flex;align-items:center;gap:9px;margin-bottom:9px}
-.sb-av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:var(--text-dark);flex-shrink:0}
-.sb-user-name{font-size:11px;font-weight:700;color:var(--muted)}
-.sb-user-role{font-size:9px;color:var(--dimmer);font-weight:500;margin-top:1px}
-.sb-logout{width:100%;padding:7px;background:rgba(255,91,91,.07);border:1px solid rgba(255,91,91,.15);color:var(--red);border-radius:8px;font-family:'Poppins',sans-serif;font-weight:700;font-size:10px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all .15s}
-.sb-logout:hover{background:rgba(255,91,91,.14)}
-
-/* ── TOPBAR ── */
-.topbar{background:rgba(13,13,30,.95);border-bottom:1px solid var(--border2);padding:.8rem 1.6rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;backdrop-filter:blur(16px)}
-.topbar-left{display:flex;align-items:center;gap:10px}
-.mobile-menu-btn{display:none;background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;padding:4px}
-.topbar-title{font-size:14px;font-weight:800;color:var(--white);letter-spacing:-.2px}
-.topbar-sub{font-size:10px;color:var(--dim);font-weight:500;margin-top:1px}
-.topbar-right{display:flex;align-items:center;gap:8px}
-.live-pill{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--teal);font-weight:700;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.15);padding:4px 10px;border-radius:50px}
-.live-dot{width:6px;height:6px;background:var(--teal);border-radius:50%;animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(78,204,163,.4)}50%{box-shadow:0 0 0 5px rgba(78,204,163,0)}}
-.btn-sm{font-size:10px;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim);transition:all .15s}
-.btn-sm:hover{background:rgba(255,255,255,.08);color:var(--white)}
-.btn-teal{background:linear-gradient(135deg,var(--teal),var(--teal2))!important;color:var(--text-dark)!important;border-color:transparent!important}
-
-/* ── CONTENT ── */
-.content{padding:1.4rem 1.5rem;flex:1}
-
-/* ── METRIC GRID ── */
-.metric-grid{display:grid;gap:10px;margin-bottom:1.25rem}
-.g4{grid-template-columns:repeat(4,1fr)}
-.g3{grid-template-columns:repeat(3,1fr)}
-.g2{grid-template-columns:repeat(2,1fr)}
-.mc{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:var(--r-lg);padding:1rem 1.1rem;position:relative;overflow:hidden;transition:border-color .2s}
-.mc:hover{border-color:rgba(255,255,255,.1)}
-.mc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r-lg) var(--r-lg) 0 0}
-.mc.t::before{background:linear-gradient(90deg,var(--teal),var(--teal2))}
-.mc.p::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
-.mc.g::before{background:linear-gradient(90deg,var(--gold),var(--gold2))}
-.mc.r::before{background:linear-gradient(90deg,var(--red),var(--orange))}
-.mc.o::before{background:linear-gradient(90deg,var(--orange),#e65c00)}
-.mc-val{font-size:26px;font-weight:900;font-family:'Poppins',sans-serif;line-height:1;letter-spacing:-1px}
-.mc.t .mc-val{color:var(--teal)} .mc.p .mc-val{color:var(--purple)} .mc.g .mc-val{color:var(--gold)} .mc.r .mc-val{color:var(--red)} .mc.o .mc-val{color:var(--orange)}
-.mc-lbl{font-size:10px;color:var(--dim);margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.sidebar{width:220px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border2);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transition:transform .3s}
+.sidebar-logo{padding:1.25rem 1.25rem 1rem;border-bottom:1px solid var(--border2)}
+.sidebar-logo-txt{font-weight:900;font-size:14px;text-transform:uppercase;letter-spacing:.5px;color:var(--white)}
+.sidebar-logo-txt span{color:var(--teal)}
+.sidebar-badge{font-size:8px;background:rgba(255,107,107,.15);color:var(--red);padding:2px 7px;border-radius:50px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-left:6px;vertical-align:middle}
+.sidebar-nav{flex:1;padding:.75rem 0;overflow-y:auto}
+.nav-section{font-size:8px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;padding:8px 16px 4px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;font-size:12px;font-weight:600;color:var(--dim);cursor:pointer;transition:all .15s;border-left:2px solid transparent;text-decoration:none}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--white)}
+.nav-item.on{background:rgba(78,204,163,.08);color:var(--teal);border-left-color:var(--teal)}
+.nav-item-icon{font-size:15px;flex-shrink:0;width:20px;text-align:center}
+.sidebar-footer{padding:1rem;border-top:1px solid var(--border2)}
+.sidebar-user{display:flex;align-items:center;gap:8px}
+.sidebar-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;color:var(--text-dark);flex-shrink:0}
+.sidebar-user-name{font-size:11px;font-weight:700;color:var(--muted)}
+.sidebar-user-role{font-size:9px;color:var(--dimmer);font-weight:600}
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column;min-height:100vh}
+.topbar{background:rgba(18,18,42,.95);border-bottom:1px solid var(--border2);padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:40;backdrop-filter:blur(12px)}
+.topbar-title{font-size:14px;font-weight:800;color:var(--white)}
+.topbar-sub{font-size:11px;color:var(--dim);font-weight:500;margin-top:1px}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.content{padding:1.5rem;flex:1}
+.section-tabs{display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:50px;padding:3px;margin-bottom:1.5rem;width:fit-content}
+.stab{padding:7px 18px;font-size:11px;font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:.3px;border-radius:50px;cursor:pointer;color:var(--dim);transition:all .2s;border:none;background:transparent;text-transform:uppercase}
+.stab.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);box-shadow:0 3px 12px rgba(78,204,163,.35)}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+.metric-card{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:14px;padding:1.1rem 1.25rem;position:relative;overflow:hidden}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:14px 14px 0 0}
+.metric-card.teal::before{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.metric-card.purple::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
+.metric-card.yellow::before{background:linear-gradient(90deg,var(--yellow),var(--yellow2))}
+.metric-card.red::before{background:linear-gradient(90deg,var(--red),var(--orange))}
+.metric-card.orange::before{background:linear-gradient(90deg,var(--orange),#ff6b35)}
+.mc-val{font-size:28px;font-weight:900;font-family:'Poppins',sans-serif;line-height:1}
+.metric-card.teal .mc-val{color:var(--teal)}
+.metric-card.purple .mc-val{color:var(--purple)}
+.metric-card.yellow .mc-val{color:var(--yellow)}
+.metric-card.red .mc-val{color:var(--red)}
+.metric-card.orange .mc-val{color:var(--orange)}
+.mc-lbl{font-size:11px;color:var(--dim);margin-top:5px;font-weight:600}
 .mc-sub{font-size:10px;color:var(--dimmer);margin-top:3px;font-weight:500}
-.mc-badge{position:absolute;top:.9rem;right:.9rem;font-size:9px;font-weight:700;padding:2px 7px;border-radius:50px;background:rgba(78,204,163,.1);color:var(--teal);border:1px solid rgba(78,204,163,.15)}
-
-/* ── CARDS ── */
-.card{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:var(--r-lg);overflow:hidden;margin-bottom:1.1rem}
-.card-head{padding:.9rem 1.25rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.card-title{font-size:12px;font-weight:800;color:var(--white);letter-spacing:-.1px}
-.card-sub{font-size:10px;color:var(--dim);margin-top:2px;font-weight:500}
-.card-body{padding:1.1rem 1.25rem}
-
-/* ── TABLES ── */
-.tbl-wrap{overflow-x:auto}
+.mc-trend{position:absolute;top:1rem;right:1rem;font-size:10px;font-weight:700;padding:2px 8px;border-radius:50px}
+.mc-trend.up{background:rgba(78,204,163,.12);color:var(--teal)}
+.chart-card{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:14px;overflow:hidden}
+.chart-head{padding:1rem 1.25rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between}
+.chart-title{font-size:12px;font-weight:800;color:var(--white)}
+.chart-sub{font-size:10px;color:var(--dim);margin-top:2px}
+.chart-body{padding:1.25rem}
+.chart-placeholder{height:160px;display:flex;align-items:flex-end;gap:5px;padding-bottom:0}
+.bar{flex:1;border-radius:4px 4px 0 0;transition:height .5s cubic-bezier(.4,0,.2,1);cursor:pointer;position:relative}
+.bar:hover{filter:brightness(1.2)}
+.bar-label{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--dimmer);font-weight:600;white-space:nowrap}
+.table-card{background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:14px;overflow:hidden}
+.table-head-row{padding:1rem 1.25rem;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.table-search{background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;font-size:12px;color:var(--white);font-family:'Poppins',sans-serif;outline:none;width:200px}
+.table-search::placeholder{color:var(--dimmer)}
+.table-search:focus{border-color:var(--teal)}
 table{width:100%;border-collapse:collapse}
-thead tr{border-bottom:1px solid var(--border2);background:rgba(255,255,255,.015)}
-thead th{padding:9px 14px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;white-space:nowrap}
-tbody tr{border-bottom:1px solid var(--border3);transition:background .12s}
-tbody tr:hover{background:rgba(255,255,255,.025)}
+thead tr{border-bottom:1px solid var(--border2);background:rgba(255,255,255,.02)}
+thead th{padding:10px 16px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;white-space:nowrap}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+tbody tr:hover{background:rgba(255,255,255,.03)}
 tbody tr:last-child{border-bottom:none}
-td{padding:9px 14px;font-size:11.5px;color:var(--muted);font-weight:500}
-.td-name{font-weight:700;color:var(--white);font-size:12px}
-.td-email{color:var(--dim);font-size:10.5px}
-.search-input{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;font-size:11px;color:var(--white);font-family:'Poppins',sans-serif;outline:none;transition:border-color .15s}
-.search-input:focus{border-color:rgba(78,204,163,.4)}
-.search-input::placeholder{color:var(--dimmer)}
-.sel-input{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;font-size:11px;color:var(--white);font-family:'Poppins',sans-serif;outline:none}
-
-/* ── CHIPS & BADGES ── */
-.chip{font-size:8.5px;font-weight:800;padding:2px 8px;border-radius:50px;text-transform:uppercase;letter-spacing:.5px;display:inline-flex;align-items:center;gap:3px}
-.chip-teal{background:rgba(78,204,163,.1);color:var(--teal);border:1px solid rgba(78,204,163,.2)}
-.chip-purple{background:rgba(108,99,255,.1);color:#a089ff;border:1px solid rgba(108,99,255,.2)}
-.chip-gold{background:rgba(240,192,64,.1);color:var(--gold);border:1px solid rgba(240,192,64,.2)}
-.chip-orange{background:rgba(255,140,66,.1);color:var(--orange);border:1px solid rgba(255,140,66,.2)}
-.chip-red{background:rgba(255,91,91,.1);color:var(--red);border:1px solid rgba(255,91,91,.2)}
-.chip-dim{background:rgba(255,255,255,.05);color:var(--dim);border:1px solid var(--border2)}
-.dot{width:6px;height:6px;border-radius:50%;display:inline-block;margin-right:4px}
-.dot-t{background:var(--teal)} .dot-o{background:var(--orange)} .dot-r{background:var(--red)}
-
-/* ── CHARTS ── */
-.bar-chart{height:140px;display:flex;align-items:flex-end;gap:6px}
-.bc-bar{flex:1;border-radius:4px 4px 0 0;transition:height .5s cubic-bezier(.4,0,.2,1),opacity .2s;cursor:pointer;position:relative;min-height:4px}
-.bc-bar:hover{opacity:.8}
-.bc-bar-val{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--dim);white-space:nowrap;font-weight:600}
-.bc-bar-lbl{position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--dimmer);font-weight:600;white-space:nowrap}
-.chart-labels{display:flex;justify-content:space-around;margin-top:22px}
-
-/* ── GEO ── */
-.geo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
-.geo-item{background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:border-color .15s}
-.geo-item:hover{border-color:rgba(255,255,255,.1)}
-.geo-flag{font-size:20px;flex-shrink:0}
-.geo-info{flex:1;min-width:0}
-.geo-name{font-size:12px;font-weight:700;color:var(--white)}
+td{padding:10px 16px;font-size:12px;color:var(--muted);font-weight:500}
+.td-name{font-weight:700;color:var(--white)}
+.td-email{color:var(--dim)}
+.plan-chip{font-size:9px;font-weight:800;padding:3px 9px;border-radius:50px;text-transform:uppercase;letter-spacing:.5px}
+.plan-chip.starter{background:rgba(78,204,163,.12);color:var(--teal);border:1px solid rgba(78,204,163,.25)}
+.plan-chip.pro{background:rgba(108,99,255,.12);color:var(--purple);border:1px solid rgba(108,99,255,.25)}
+.plan-chip.elite{background:rgba(255,217,61,.1);color:var(--yellow);border:1px solid rgba(255,217,61,.2)}
+.plan-chip.trial{background:rgba(255,140,66,.1);color:var(--orange);border:1px solid rgba(255,140,66,.2)}
+.plan-chip.cancelled{background:rgba(255,107,107,.1);color:var(--red);border:1px solid rgba(255,107,107,.2)}
+.status-dot{width:7px;height:7px;border-radius:50%;display:inline-block;margin-right:5px}
+.status-dot.active{background:var(--teal)}
+.status-dot.trial{background:var(--orange)}
+.status-dot.cancelled{background:var(--red)}
+.action-btn{font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim);transition:all .15s}
+.action-btn:hover{background:rgba(255,255,255,.08);color:var(--white)}
+.activity-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.activity-item:last-child{border-bottom:none}
+.activity-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.activity-txt{font-size:12px;color:var(--muted);line-height:1.4;font-weight:500}
+.activity-txt strong{color:var(--white);font-weight:700}
+.activity-time{font-size:10px;color:var(--dimmer);margin-top:3px;font-weight:500}
+.geo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px}
+.geo-item{background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:8px}
+.geo-flag{font-size:18px}
+.geo-country{font-size:12px;font-weight:700;color:var(--white)}
 .geo-count{font-size:10px;color:var(--dim);margin-top:1px}
-.geo-pct{font-size:10px;color:var(--teal);font-weight:700;margin-left:auto;flex-shrink:0}
-.geo-prog{height:2px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:5px}
-.geo-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--teal),var(--teal2))}
-
-/* ── ACTIVITY ── */
-.act-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border3)}
-.act-item:last-child{border-bottom:none}
-.act-ico{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
-.act-text{font-size:11.5px;color:var(--muted);line-height:1.5}
-.act-text strong{color:var(--white);font-weight:700}
-.act-time{font-size:9.5px;color:var(--dimmer);margin-top:2px}
-
-/* ── ADD USER FORM ── */
-.fi{width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;padding:9px 13px;font-size:12px;color:var(--white);font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s}
-.fi:focus{border-color:rgba(78,204,163,.4)}
-.fi::placeholder{color:var(--dimmer)}
-.fl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:6px}
-
-.mode-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.mode-btn{padding:10px 12px;border-radius:10px;border:1.5px solid var(--border2);background:rgba(255,255,255,.02);color:var(--dim);font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer;transition:all .2s;text-align:center;line-height:1.4}
-.mode-btn:hover{border-color:rgba(255,255,255,.12);color:var(--white)}
-.mode-btn.sel-expert{border-color:var(--teal);background:rgba(78,204,163,.08);color:var(--teal)}
-.mode-btn.sel-affiliate{border-color:var(--purple);background:rgba(108,99,255,.08);color:#a089ff}
-
-.activate-btn{display:block;width:100%;padding:12px;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;transition:all .2s;margin-top:4px}
-.activate-btn:disabled{opacity:.5;cursor:not-allowed}
-
-/* ── ACTION BTNS IN TABLE ── */
-.act-btn{font-size:9.5px;padding:4px 9px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid;transition:all .12s;white-space:nowrap}
-
-/* ── STATUS MESSAGE ── */
-.msg-box{display:none;margin-top:12px;padding:11px 14px;border-radius:10px;font-size:11.5px;font-weight:600;line-height:1.5}
-
-/* ── SOURCE BARS ── */
-.src-bar-wrap{margin-bottom:10px}
-.src-bar-head{display:flex;justify-content:space-between;font-size:10.5px;color:var(--dim);margin-bottom:4px}
-.src-bar-track{height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
-.src-bar-fill{height:100%;border-radius:3px;transition:width 1s ease}
-
-/* ── ACCESS DENIED ── */
-.denied{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem}
-
-/* ── LEGEND ── */
-.legend{display:flex;flex-direction:column;gap:7px}
-.legend-item{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
-.legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-
-/* ── PERIOD TABS ── */
-.period-tabs{display:flex;gap:3px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:50px;padding:3px;width:fit-content;margin-bottom:1.1rem}
-.ptab{padding:5px 14px;font-size:10px;font-family:'Poppins',sans-serif;font-weight:700;letter-spacing:.3px;border-radius:50px;cursor:pointer;color:var(--dim);transition:all .2s;border:none;background:transparent;text-transform:uppercase}
-.ptab.on{background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark)}
-
-/* ── NOTICE BAR ── */
-.notice{background:linear-gradient(135deg,rgba(78,204,163,.07),rgba(108,99,255,.04));border:1px solid rgba(78,204,163,.18);border-radius:10px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:1.1rem}
-
-/* ── RESPONSIVE ── */
-@media(max-width:900px){
-  .g4{grid-template-columns:1fr 1fr}
-  .g3{grid-template-columns:1fr 1fr}
-}
-@media(max-width:768px){
-  .sidebar{transform:translateX(-100%)}
-  .sidebar.open{transform:translateX(0)}
-  .main{margin-left:0}
-  .content{padding:1rem}
-  .g4,.g3,.g2{grid-template-columns:1fr 1fr}
-  .mobile-menu-btn{display:block}
-  .metric-grid{gap:8px}
-}
-@media(max-width:480px){
-  .g4,.g3,.g2{grid-template-columns:1fr}
-}
-
-/* ── LOADING / DENIED ── */
-#admin-loading{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px}
-.spin{width:28px;height:28px;border:2px solid rgba(78,204,163,.15);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+.geo-bar{height:3px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:5px}
+.geo-fill{height:100%;border-radius:2px;background:var(--teal)}
+.btn-sm{font-size:11px;padding:7px 16px;border-radius:8px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:none;transition:all .15s}
+.btn-teal{background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark)}
+.btn-outline{background:transparent;border:1px solid var(--border2);color:var(--dim)}
+.btn-outline:hover{border-color:var(--teal);color:var(--teal)}
+.donut-wrap{display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.access-denied{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;text-align:center;padding:2rem}
+.access-denied h1{font-size:28px;font-weight:900;color:var(--red);margin-bottom:8px;text-transform:uppercase}
+.access-denied p{color:var(--dim);font-size:14px;margin-bottom:1.5rem}
+.mode-toggle-group{display:flex;gap:8px;margin-bottom:0}
+.mode-toggle-btn{flex:1;padding:9px 12px;border-radius:10px;border:2px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);color:var(--dim);font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer;transition:all .2s;text-align:center}
+.mode-toggle-btn:hover{border-color:rgba(255,255,255,.15);color:var(--white)}
+.mode-toggle-btn.active-expert{border-color:var(--teal);background:rgba(78,204,163,.1);color:var(--teal);box-shadow:0 0 0 3px rgba(78,204,163,.12)}
+.mode-toggle-btn.active-affiliate{border-color:var(--purple);background:rgba(108,99,255,.1);color:var(--purple);box-shadow:0 0 0 3px rgba(108,99,255,.12)}
+.mode-chip{font-size:9px;font-weight:800;padding:2px 8px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px;vertical-align:middle}
+.mode-chip.expert{background:rgba(78,204,163,.12);color:var(--teal)}
+.mode-chip.affiliate{background:rgba(108,99,255,.12);color:var(--purple)}
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(78,204,163,.4)}50%{box-shadow:0 0 0 5px rgba(78,204,163,0)}}
+@media(max-width:768px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.metric-grid{grid-template-columns:1fr 1fr}.topbar{padding:.75rem 1rem}}
 </style>
 </head>
 <body>
 
-<!-- LOADING -->
-<div id="admin-loading">
-  <div class="spin"></div>
-  <div style="font-size:12px;font-weight:700;color:var(--dim)">Verifying access…</div>
+<div id="admin-loading" style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:1rem">
+  <div style="font-size:13px;font-weight:700;color:var(--dim)">Verifying admin access…</div>
 </div>
 
-<!-- DENIED -->
-<div id="admin-denied" class="denied" style="display:none">
-  <div style="font-size:48px;margin-bottom:1rem">🔒</div>
-  <div style="font-size:22px;font-weight:900;color:var(--red);margin-bottom:8px;text-transform:uppercase">Access Denied</div>
-  <div style="color:var(--dim);font-size:13px;margin-bottom:1.5rem">This area is restricted to administrators.</div>
-  <a href="index.html" style="padding:11px 24px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border-radius:10px;font-weight:800;font-size:12px;text-decoration:none;text-transform:uppercase">← Back to Home</a>
+<div id="admin-denied" class="access-denied" style="display:none">
+  <div style="font-size:52px;margin-bottom:1rem">🔒</div>
+  <h1>Access Denied</h1>
+  <p>This area is restricted to administrators only.</p>
+  <a href="index.html" style="padding:12px 24px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border-radius:10px;font-weight:800;font-size:13px;text-decoration:none;text-transform:uppercase">← Back to home</a>
 </div>
 
-<!-- ADMIN APP -->
 <div id="admin-app" class="admin-wrap" style="display:none">
-
-  <!-- SIDEBAR -->
   <div class="sidebar" id="sidebar">
-    <div class="sb-logo">
-      <div class="sb-logo-mark"><em>Execution</em> OS <span class="sb-logo-badge">Admin</span></div>
-      <div class="sb-logo-sub">Command Centre</div>
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-txt"><span>Execution</span> OS <span class="sidebar-badge">Admin</span></div>
+      <div style="font-size:10px;color:var(--dim);margin-top:3px;font-weight:500">Command Centre</div>
     </div>
-    <div class="sb-nav">
-      <div class="sb-section">Overview</div>
-      <div class="sb-item on" onclick="showSection('overview',this)"><div class="sb-item-ico">📊</div>Dashboard</div>
-      <div class="sb-item" onclick="showSection('revenue',this)"><div class="sb-item-ico">💰</div>Revenue</div>
-      <div class="sb-item" onclick="showSection('traffic',this)"><div class="sb-item-ico">📈</div>Traffic &amp; Leads</div>
-      <div class="sb-section">Members</div>
-      <div class="sb-item" onclick="showSection('access',this)"><div class="sb-item-ico">🔑</div>Add / Manage<div class="sb-badge" id="sb-members-count">0</div></div>
-      <div class="sb-item" onclick="showSection('users',this)"><div class="sb-item-ico">👥</div>All Users</div>
-      <div class="sb-item" onclick="showSection('activity',this)"><div class="sb-item-ico">⚡</div>Live Activity</div>
-      <div class="sb-section">Analytics</div>
-      <div class="sb-item" onclick="showSection('geo',this)"><div class="sb-item-ico">🌍</div>Countries</div>
-      <div class="sb-item" onclick="showSection('emails',this)"><div class="sb-item-ico">📧</div>Email Leads</div>
-      <div class="sb-item" onclick="showSection('tracker',this)"><div class="sb-item-ico">🎯</div>Tracker Data</div>
+    <div class="sidebar-nav">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item on" onclick="showSection('overview',this)"><div class="nav-item-icon">📊</div>Dashboard</div>
+      <div class="nav-item" onclick="showSection('revenue',this)"><div class="nav-item-icon">💰</div>Revenue</div>
+      <div class="nav-item" onclick="showSection('traffic',this)"><div class="nav-item-icon">📈</div>Traffic &amp; Leads</div>
+      <div class="nav-section">Users</div>
+      <div class="nav-item" onclick="showSection('users',this)"><div class="nav-item-icon">👥</div>All Users</div>
+      <div class="nav-item" onclick="showSection('activity',this)"><div class="nav-item-icon">⚡</div>Live Activity</div>
+      <div class="nav-item" onclick="showSection('geo',this)"><div class="nav-item-icon">🌍</div>Geo &amp; Countries</div>
+      <div class="nav-section">Access Control</div>
+      <div class="nav-item" onclick="showSection('access',this)"><div class="nav-item-icon">🔑</div>Add / Manage Users</div>
+      <div class="nav-section">Content</div>
+      <div class="nav-item" onclick="showSection('emails',this)"><div class="nav-item-icon">📧</div>Email Capture</div>
+      <div class="nav-item" onclick="showSection('funnels',this)"><div class="nav-item-icon">🚀</div>Funnels &amp; Analytics</div>
+      <div class="nav-item" onclick="showSection('tracker',this)"><div class="nav-item-icon">🎯</div>User Tracker Data</div>
     </div>
-    <div class="sb-footer">
-      <div class="sb-user">
-        <div class="sb-av" id="admin-av">A</div>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="sidebar-av" id="admin-av">A</div>
         <div>
-          <div class="sb-user-name" id="admin-name">Admin</div>
-          <div class="sb-user-role">Super Admin</div>
+          <div class="sidebar-user-name" id="admin-name">Admin</div>
+          <div class="sidebar-user-role">Super Admin</div>
         </div>
       </div>
-      <button class="sb-logout" onclick="doAdminLogout()">Sign Out</button>
+      <button onclick="doAdminLogout()" style="width:100%;margin-top:10px;padding:8px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-family:'Poppins',sans-serif;font-weight:700;font-size:11px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Sign Out</button>
     </div>
   </div>
 
-  <!-- MAIN -->
   <div class="main">
     <div class="topbar">
-      <div class="topbar-left">
-        <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
-        <div>
-          <div class="topbar-title" id="section-title">Dashboard Overview</div>
-          <div class="topbar-sub" id="section-sub">Real-time data from your platform</div>
-        </div>
+      <div>
+        <div class="topbar-title" id="section-title">Dashboard Overview</div>
+        <div class="topbar-sub" id="section-sub">Real-time data from your Execution OS platform</div>
       </div>
-      <div class="topbar-right">
-        <div class="live-pill"><div class="live-dot"></div>Live</div>
-        <button class="btn-sm" onclick="refreshData()">↻ Refresh</button>
+      <div class="topbar-actions">
+        <div id="live-indicator" style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--teal);font-weight:700">
+          <span style="width:7px;height:7px;background:var(--teal);border-radius:50%;animation:pulse-dot 1.5s infinite"></span>Live
+        </div>
+        <button onclick="refreshData()" class="btn-sm btn-outline">↻ Refresh</button>
       </div>
     </div>
 
     <div class="content">
-
-      <!-- ══ OVERVIEW ══ -->
+      <!-- OVERVIEW -->
       <div id="section-overview">
-        <div class="period-tabs">
-          <button class="ptab on" onclick="setPeriod('today',this)">Today</button>
-          <button class="ptab" onclick="setPeriod('week',this)">Week</button>
-          <button class="ptab" onclick="setPeriod('month',this)">Month</button>
-          <button class="ptab" onclick="setPeriod('all',this)">All Time</button>
+        <div class="section-tabs" style="margin-bottom:1.25rem">
+          <button class="stab on" onclick="setPeriod('today',this)">Today</button>
+          <button class="stab" onclick="setPeriod('week',this)">This Week</button>
+          <button class="stab" onclick="setPeriod('month',this)">This Month</button>
+          <button class="stab" onclick="setPeriod('year',this)">This Year</button>
         </div>
-        <div class="metric-grid g4">
-          <div class="mc t"><div class="mc-val" id="m-members">—</div><div class="mc-lbl">Active Members</div><div class="mc-sub" id="m-members-sub">Loading…</div></div>
-          <div class="mc g"><div class="mc-val" id="m-revenue">—</div><div class="mc-lbl">MRR</div><div class="mc-sub" id="m-revenue-sub">Monthly recurring</div></div>
-          <div class="mc p"><div class="mc-val" id="m-leads">—</div><div class="mc-lbl">Email Leads</div><div class="mc-sub">Opt-in captures</div></div>
-          <div class="mc o"><div class="mc-val" id="m-visitors">—</div><div class="mc-lbl">Est. Visitors</div><div class="mc-sub">grow.html page sessions</div></div>
+        <div class="metric-grid" id="overview-metrics">
+          <div class="metric-card teal"><div class="mc-val" id="m-total-users">—</div><div class="mc-lbl">Total Users</div><div class="mc-sub" id="m-users-sub">Loading…</div><div class="mc-trend up" id="m-users-trend">—</div></div>
+          <div class="metric-card yellow"><div class="mc-val" id="m-revenue">—</div><div class="mc-lbl">Revenue</div><div class="mc-sub" id="m-revenue-sub">Loading…</div><div class="mc-trend up" id="m-revenue-trend">—</div></div>
+          <div class="metric-card purple"><div class="mc-val" id="m-paid">—</div><div class="mc-lbl">Paid Subscribers</div><div class="mc-sub" id="m-paid-sub">Loading…</div></div>
+          <div class="metric-card orange"><div class="mc-val" id="m-trial">—</div><div class="mc-lbl">On Trial</div><div class="mc-sub" id="m-trial-sub">Loading…</div></div>
         </div>
-        <div class="metric-grid g4">
-          <div class="mc r"><div class="mc-val" id="m-expert">—</div><div class="mc-lbl">Expert Mode</div><div class="mc-sub">Product owners</div></div>
-          <div class="mc p"><div class="mc-val" id="m-affiliate">—</div><div class="mc-lbl">Affiliate Mode</div><div class="mc-sub">Affiliate marketers</div></div>
-          <div class="mc t"><div class="mc-val" id="m-deals">—</div><div class="mc-lbl">Deals Closed</div><div class="mc-sub">Via daily tracker</div></div>
-          <div class="mc r"><div class="mc-val" id="m-cancelled">—</div><div class="mc-lbl">Cancelled</div><div class="mc-sub">Churned members</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:1.5rem">
+          <div class="metric-card red"><div class="mc-val" id="m-visitors">—</div><div class="mc-lbl">Visitors (est.)</div><div class="mc-sub">Page sessions tracked</div></div>
+          <div class="metric-card teal"><div class="mc-val" id="m-deals">—</div><div class="mc-lbl">Deals Closed</div><div class="mc-sub">Via daily tracker</div></div>
+          <div class="metric-card purple"><div class="mc-val" id="m-cancelled">—</div><div class="mc-lbl">Cancelled</div><div class="mc-sub">Churn rate tracked</div></div>
         </div>
-        <div style="display:grid;grid-template-columns:2fr 1fr;gap:10px;margin-bottom:1.1rem">
-          <div class="card">
-            <div class="card-head"><div><div class="card-title">Revenue Over Time</div><div class="card-sub">Monthly new member revenue</div></div></div>
-            <div class="card-body">
-              <div class="bar-chart" id="revenue-chart"></div>
-              <div class="chart-labels" id="revenue-chart-labels"></div>
-            </div>
+        <div style="display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:1.5rem">
+          <div class="chart-card">
+            <div class="chart-head"><div><div class="chart-title">Revenue Over Time</div><div class="chart-sub">Monthly revenue from paid subscriptions</div></div></div>
+            <div class="chart-body"><div class="chart-placeholder" id="revenue-chart"></div><div style="display:flex;justify-content:space-around;margin-top:20px" id="revenue-chart-labels"></div></div>
           </div>
-          <div class="card">
-            <div class="card-head"><div class="card-title">Mode Split</div></div>
-            <div class="card-body"><div class="legend" id="mode-legend"></div></div>
+          <div class="chart-card">
+            <div class="chart-head"><div><div class="chart-title">Plan Distribution</div><div class="chart-sub">Users by plan type</div></div></div>
+            <div class="chart-body"><div class="donut-wrap" id="plan-donut"><div style="font-size:12px;color:var(--dim)">Loading…</div></div></div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-head"><div><div class="card-title">Recent Members</div><div class="card-sub">Latest activations</div></div></div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Country</th><th>Niche</th><th>Activated</th><th>Status</th></tr></thead>
-            <tbody id="recent-tbody"><tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">Loading…</td></tr></tbody>
-          </table></div>
+        <div class="table-card">
+          <div class="table-head-row"><div><div class="chart-title">Recent Signups</div><div class="chart-sub">Latest user registrations</div></div></div>
+          <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Plan</th><th>Country</th><th>Joined</th><th>Status</th></tr></thead>
+          <tbody id="recent-tbody"><tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody></table></div>
         </div>
       </div>
 
-      <!-- ══ REVENUE ══ -->
+      <!-- REVENUE -->
       <div id="section-revenue" style="display:none">
-        <div class="metric-grid g4">
-          <div class="mc g"><div class="mc-val" id="rev-total">—</div><div class="mc-lbl">Total Revenue</div><div class="mc-sub">All time estimated</div></div>
-          <div class="mc t"><div class="mc-val" id="rev-mrr">—</div><div class="mc-lbl">MRR</div><div class="mc-sub">Current month</div></div>
-          <div class="mc p"><div class="mc-val" id="rev-arr">—</div><div class="mc-lbl">ARR (projected)</div><div class="mc-sub">MRR × 12</div></div>
-          <div class="mc o"><div class="mc-val" id="rev-ltv">—</div><div class="mc-lbl">Avg LTV</div><div class="mc-sub">Per paid member</div></div>
+        <div class="metric-grid">
+          <div class="metric-card yellow"><div class="mc-val" id="rev-total">—</div><div class="mc-lbl">Total Revenue</div><div class="mc-sub">All time</div></div>
+          <div class="metric-card teal"><div class="mc-val" id="rev-month">—</div><div class="mc-lbl">This Month</div><div class="mc-sub">Current billing period</div></div>
+          <div class="metric-card purple"><div class="mc-val" id="rev-mrr">—</div><div class="mc-lbl">MRR</div><div class="mc-sub">Monthly recurring revenue</div></div>
+          <div class="metric-card orange"><div class="mc-val" id="rev-arr">—</div><div class="mc-lbl">ARR (projected)</div><div class="mc-sub">MRR × 12</div></div>
         </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Revenue by Plan</div></div>
-          <div class="card-body"><div id="plan-rev-bars"></div></div>
+        <div class="chart-card" style="margin-top:12px">
+          <div class="chart-head"><div><div class="chart-title">Revenue Breakdown by Plan</div></div></div>
+          <div class="chart-body"><div id="plan-revenue-bars" style="display:flex;flex-direction:column;gap:12px"></div></div>
         </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Member Deal Tracking</div><div class="card-sub">Revenue generated by members using the daily tracker</div></div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Member</th><th>Mode</th><th>Deals Closed</th><th>Revenue Tracked</th><th>Last Active</th></tr></thead>
-            <tbody id="deals-tbody"><tr><td colspan="5" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
-          </table></div>
+        <div class="table-card" style="margin-top:12px">
+          <div class="table-head-row"><div class="chart-title">User-Tracked Deals</div></div>
+          <div style="overflow-x:auto"><table><thead><tr><th>User</th><th>Deals Closed</th><th>Revenue Tracked</th><th>Last Active</th><th>Plan</th></tr></thead>
+          <tbody id="deals-tbody"><tr><td colspan="5" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody></table></div>
         </div>
       </div>
 
-      <!-- ══ TRAFFIC ══ -->
+      <!-- TRAFFIC -->
       <div id="section-traffic" style="display:none">
-        <div class="metric-grid g4">
-          <div class="mc t"><div class="mc-val" id="tr-visits">—</div><div class="mc-lbl">Page Visits (est.)</div><div class="mc-sub">Based on members × 8</div></div>
-          <div class="mc p"><div class="mc-val" id="tr-leads">—</div><div class="mc-lbl">Email Leads</div><div class="mc-sub">grow.html opt-ins</div></div>
-          <div class="mc g"><div class="mc-val" id="tr-activation">—</div><div class="mc-lbl">Lead → Member</div><div class="mc-sub">Activation rate</div></div>
-          <div class="mc o"><div class="mc-val" id="tr-conv">—</div><div class="mc-lbl">Visit → Signup</div><div class="mc-sub">Estimated conversion</div></div>
+        <div class="metric-grid">
+          <div class="metric-card teal"><div class="mc-val" id="tr-visits">—</div><div class="mc-lbl">Page Visits</div><div class="mc-sub">Estimated sessions</div></div>
+          <div class="metric-card purple"><div class="mc-val" id="tr-signups">—</div><div class="mc-lbl">Signups</div></div>
+          <div class="metric-card yellow"><div class="mc-val" id="tr-conversion">—</div><div class="mc-lbl">Conversion Rate</div></div>
+          <div class="metric-card orange"><div class="mc-val" id="tr-paid-conversion">—</div><div class="mc-lbl">Trial → Paid</div></div>
         </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Traffic Sources (estimated)</div></div>
-          <div class="card-body"><div id="source-bars"></div></div>
-        </div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Email Leads Captured</div><div class="card-sub">From grow.html opt-in forms</div></div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Source</th><th>Date</th><th>Status</th></tr></thead>
-            <tbody id="leads-tbody"><tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
-          </table></div>
+        <div class="chart-card" style="margin-top:12px">
+          <div class="chart-head"><div class="chart-title">Signup Sources</div></div>
+          <div class="chart-body"><div id="source-bars" style="display:flex;flex-direction:column;gap:10px"></div></div>
         </div>
       </div>
 
-      <!-- ══ ADD / MANAGE ══ -->
-      <div id="section-access" style="display:none">
-        <div class="notice">
-          <span style="font-size:18px;flex-shrink:0">📧</span>
-          <div><strong style="color:var(--teal)">Auto welcome email enabled.</strong> When you activate a member, they instantly receive a welcome email from <strong style="color:var(--white)">evan@build.skillslibry.com</strong> with login instructions and their dashboard link. If the API call fails, you will see a fallback option.</div>
-        </div>
-
-        <div class="card" style="margin-bottom:1.1rem">
-          <div class="card-head">
-            <div><div class="card-title">➕ Activate New Member</div><div class="card-sub">Choose mode — they get instant access and a welcome email</div></div>
-          </div>
-          <div class="card-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-              <div>
-                <div class="fl">Full Name</div>
-                <input class="fi" id="new-name" type="text" placeholder="e.g. John Doe">
-              </div>
-              <div>
-                <div class="fl">Email Address</div>
-                <input class="fi" id="new-email" type="email" placeholder="e.g. john@gmail.com" onkeydown="if(event.key==='Enter')activateUser()">
-              </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-              <div>
-                <div class="fl">Niche (optional)</div>
-                <input class="fi" id="new-niche" type="text" placeholder="e.g. Health & Fitness">
-              </div>
-              <div>
-                <div class="fl">Deal Value (optional)</div>
-                <input class="fi" id="new-deal" type="text" placeholder="e.g. $3,000">
-              </div>
-            </div>
-            <div style="margin-bottom:16px">
-              <div class="fl" style="margin-bottom:8px">Member Mode</div>
-              <div class="mode-btns">
-                <button class="mode-btn sel-expert" id="mb-expert" onclick="selectMode('expert')">
-                  🎯 Expert Mode<br>
-                  <span style="font-size:9px;font-weight:500;opacity:.75">Sells own digital offer</span>
-                </button>
-                <button class="mode-btn" id="mb-affiliate" onclick="selectMode('affiliate')">
-                  🔗 Affiliate Mode<br>
-                  <span style="font-size:9px;font-weight:500;opacity:.75">Promotes others' products</span>
-                </button>
-              </div>
-            </div>
-            <button class="activate-btn" id="activate-btn" onclick="activateUser()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark)">
-              ✅ Activate Member + Send Welcome Email
-            </button>
-            <div class="msg-box" id="activate-msg"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div><div class="card-title">🔑 Active Members</div><div class="card-sub" id="members-count-lbl">Loading…</div></div>
-            <input class="search-input" id="members-search" placeholder="Search members…" oninput="filterMembers(this.value)">
-          </div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Niche</th><th>Activated</th><th style="min-width:240px">Actions</th></tr></thead>
-            <tbody id="members-tbody"><tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
-          </table></div>
-        </div>
-      </div>
-
-      <!-- ══ ALL USERS ══ -->
+      <!-- ALL USERS -->
       <div id="section-users" style="display:none">
-        <div class="card">
-          <div class="card-head">
-            <div><div class="card-title">All Users</div><div class="card-sub" id="users-count-lbl">Loading…</div></div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input class="search-input" id="user-search" placeholder="Search name or email…" oninput="filterUsers(this.value)" style="width:190px">
-              <select class="sel-input" id="mode-filter" onchange="filterUsers(document.getElementById('user-search').value)">
+        <div class="table-card">
+          <div class="table-head-row">
+            <div><div class="chart-title">All Users</div><div class="chart-sub" id="users-count-lbl">Loading…</div></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input class="table-search" id="user-search" placeholder="Search name or email…" oninput="filterUsers(this.value)">
+              <select id="plan-filter" onchange="filterUsers(document.getElementById('user-search').value)" style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--white);font-family:'Poppins',sans-serif;outline:none">
+                <option value="">All plans</option><option value="trial">Trial</option><option value="starter">Starter</option><option value="pro">Pro</option><option value="elite">Elite</option><option value="cancelled">Cancelled</option>
+              </select>
+              <select id="mode-filter" onchange="filterUsers(document.getElementById('user-search').value)" style="background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--white);font-family:'Poppins',sans-serif;outline:none">
                 <option value="">All modes</option><option value="expert">Expert</option><option value="affiliate">Affiliate</option>
               </select>
             </div>
           </div>
-          <div class="tbl-wrap"><table>
-            <thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Country</th><th>Joined</th><th>Last Seen</th><th>Deals</th><th>Status</th></tr></thead>
-            <tbody id="users-tbody"><tr><td colspan="8" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
-          </table></div>
+          <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Plan</th><th>Country</th><th>Joined</th><th>Last seen</th><th>Deals</th><th>Status</th></tr></thead>
+          <tbody id="users-tbody"><tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody></table></div>
         </div>
       </div>
 
-      <!-- ══ LIVE ACTIVITY ══ -->
+      <!-- LIVE ACTIVITY -->
       <div id="section-activity" style="display:none">
-        <div class="card">
-          <div class="card-head">
-            <div><div class="card-title">Live Activity Feed</div><div class="card-sub">Recent member actions and signups</div></div>
-            <div class="live-pill"><div class="live-dot"></div>Live</div>
+        <div class="chart-card">
+          <div class="chart-head">
+            <div><div class="chart-title">Live User Activity Feed</div><div class="chart-sub">Real-time actions from your users</div></div>
+            <div id="live-dot" style="width:8px;height:8px;background:var(--teal);border-radius:50%;animation:pulse-dot 1.5s infinite"></div>
           </div>
-          <div class="card-body" style="max-height:520px;overflow-y:auto"><div id="activity-feed"></div></div>
+          <div class="chart-body" style="max-height:500px;overflow-y:auto"><div id="activity-feed"></div></div>
         </div>
       </div>
 
-      <!-- ══ GEO ══ -->
+      <!-- GEO -->
       <div id="section-geo" style="display:none">
-        <div class="metric-grid g3" id="geo-metrics"></div>
-        <div class="card">
-          <div class="card-head"><div class="card-title">Members by Country</div><div class="card-sub" id="geo-total-lbl">Loading…</div></div>
-          <div class="card-body"><div class="geo-grid" id="geo-grid"></div></div>
+        <div class="chart-card">
+          <div class="chart-head"><div class="chart-title">Users by Country</div></div>
+          <div class="chart-body"><div class="geo-grid" id="geo-grid"></div></div>
         </div>
       </div>
 
-      <!-- ══ EMAIL LEADS ══ -->
+      <!-- EMAIL CAPTURE -->
       <div id="section-emails" style="display:none">
-        <div class="metric-grid g3">
-          <div class="mc t"><div class="mc-val" id="el-total">—</div><div class="mc-lbl">Total Leads</div><div class="mc-sub">From grow.html opt-ins</div></div>
-          <div class="mc p"><div class="mc-val" id="el-converted">—</div><div class="mc-lbl">Converted</div><div class="mc-sub">Lead → member</div></div>
-          <div class="mc g"><div class="mc-val" id="el-rate">—</div><div class="mc-lbl">Conversion Rate</div><div class="mc-sub">Lead to paid member</div></div>
+        <div class="metric-grid" style="grid-template-columns:1fr 1fr 1fr">
+          <div class="metric-card teal"><div class="mc-val" id="email-total">—</div><div class="mc-lbl">Total Email Contacts</div></div>
+          <div class="metric-card purple"><div class="mc-val" id="email-paid">—</div><div class="mc-lbl">Paid Subscribers</div></div>
+          <div class="metric-card orange"><div class="mc-val" id="email-trial">—</div><div class="mc-lbl">Trial Users</div></div>
         </div>
-        <div class="card">
+        <div class="table-card" style="margin-top:12px">
+          <div class="table-head-row">
+            <div><div class="chart-title">Email List</div></div>
+            <button class="btn-sm btn-teal" onclick="exportEmails()">⬇ Export CSV</button>
+          </div>
+          <div style="overflow-x:auto"><table><thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Plan</th><th>Country</th><th>Joined</th><th>Niche</th></tr></thead>
+          <tbody id="email-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- FUNNELS & ANALYTICS -->
+      <div id="section-funnels" style="display:none">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem">
+          <div class="metric-card teal"><div class="mc-val" id="fn-page-visits">—</div><div class="mc-lbl">grow.html Visits</div><div class="mc-sub">build.skillslibry.com/grow</div></div>
+          <div class="metric-card purple"><div class="mc-val" id="fn-total-leads">—</div><div class="mc-lbl">Total Leads</div><div class="mc-sub">All funnels + grow.html</div></div>
+          <div class="metric-card yellow"><div class="mc-val" id="fn-total-funnels">—</div><div class="mc-lbl">Published Funnels</div><div class="mc-sub">Live across all members</div></div>
+          <div class="metric-card orange"><div class="mc-val" id="fn-conv-rate">—</div><div class="mc-lbl">Avg Conv. Rate</div><div class="mc-sub">Leads / Views</div></div>
+        </div>
+
+        <!-- Landing page breakdown -->
+        <div class="card" style="margin-bottom:1.1rem">
+          <div class="card-head"><div><div class="card-title">📊 Your Landing Page Performance</div><div class="card-sub">Direct traffic to build.skillslibry.com/grow and the homepage</div></div></div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:18px">
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:8px">🎬 grow.html — VSL Page</div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:12px">build.skillslibry.com/grow</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                  <div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:10px">
+                    <div style="font-size:22px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif" id="fn-grow-visits">—</div>
+                    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Est. Visits</div>
+                  </div>
+                  <div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:10px">
+                    <div style="font-size:22px;font-weight:900;color:var(--gold);font-family:'Poppins',sans-serif" id="fn-grow-leads">—</div>
+                    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Leads</div>
+                  </div>
+                  <div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:10px">
+                    <div style="font-size:22px;font-weight:900;color:var(--purple);font-family:'Poppins',sans-serif" id="fn-grow-members">—</div>
+                    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Members</div>
+                  </div>
+                </div>
+                <div style="margin-top:10px;font-size:11px;color:var(--dim)">Conversion: <strong id="fn-grow-conv" style="color:var(--teal)">—</strong> lead→member rate</div>
+              </div>
+              <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:18px">
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:8px">🏠 index.html — Home Page</div>
+                <div style="font-size:11px;color:var(--muted);margin-bottom:12px">build.skillslibry.com</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+                  <div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:10px">
+                    <div style="font-size:22px;font-weight:900;color:var(--purple);font-family:'Poppins',sans-serif" id="fn-index-visits">—</div>
+                    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Est. Visits</div>
+                  </div>
+                  <div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:10px">
+                    <div style="font-size:22px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif" id="fn-total-members">—</div>
+                    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Members</div>
+                  </div>
+                  <div style="text-align:center;background:rgba(255,255,255,.03);border-radius:8px;padding:10px">
+                    <div style="font-size:22px;font-weight:900;color:var(--gold);font-family:'Poppins',sans-serif" id="fn-activation">—</div>
+                    <div style="font-size:9px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Lead→Member</div>
+                  </div>
+                </div>
+                <div style="margin-top:10px;font-size:11px;color:var(--dim)">Est. visits = members × 12 sessions average</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- All published funnels table -->
+        <div class="card" style="margin-bottom:1.1rem">
           <div class="card-head">
-            <div><div class="card-title">Email Lead List</div></div>
-            <button class="btn-sm btn-teal" onclick="exportLeads()">⬇ Export CSV</button>
+            <div><div class="card-title">🚀 All Published Funnels</div><div class="card-sub" id="fn-funnels-sub">Across all members</div></div>
+            <button onclick="loadAllFunnels()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:6px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">↻ Load Funnels</button>
           </div>
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Date</th><th>Status</th></tr></thead>
-            <tbody id="leads-list-tbody"><tr><td colspan="5" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
+            <thead><tr><th>Funnel</th><th>Member</th><th>Type</th><th>Domain / URL</th><th>Status</th><th>Views</th><th>Leads</th><th>Conv.</th><th>Published</th></tr></thead>
+            <tbody id="fn-funnels-tbody"><tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">Click "Load Funnels" to fetch data</td></tr></tbody>
           </table></div>
         </div>
-      </div>
 
-      <!-- ══ TRACKER DATA ══ -->
-      <div id="section-tracker" style="display:none">
+        <!-- All leads -->
         <div class="card">
-          <div class="card-head"><div class="card-title">Member Daily Tracker Activity</div></div>
+          <div class="card-head">
+            <div><div class="card-title">📧 All Captured Leads</div><div class="card-sub" id="fn-leads-sub">From grow.html and all member funnels</div></div>
+            <button onclick="exportAllLeads()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;padding:6px 14px;color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">⬇ Export CSV</button>
+          </div>
           <div class="tbl-wrap"><table>
-            <thead><tr><th>Member</th><th>Mode</th><th>DMs</th><th>Posts</th><th>Calls</th><th>Deals Closed</th><th>Revenue Tracked</th><th>Last Active</th></tr></thead>
-            <tbody id="tracker-tbody"><tr><td colspan="8" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
+            <thead><tr><th>Email</th><th>Name</th><th>Source</th><th>Funnel / Page</th><th>Member</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="fn-leads-tbody"><tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">Loading leads…</td></tr></tbody>
           </table></div>
         </div>
       </div>
 
+      <!-- TRACKER DATA -->
+      <div id="section-tracker" style="display:none">
+        <div class="table-card">
+          <div class="table-head-row"><div class="chart-title">User Daily Tracker Activity</div></div>
+          <div style="overflow-x:auto"><table><thead><tr><th>User</th><th>Mode</th><th>Plan</th><th>DMs Sent</th><th>Posts</th><th>Calls</th><th>Deals Closed</th><th>Revenue Generated</th><th>Last Active</th></tr></thead>
+          <tbody id="tracker-tbody"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ACCESS MANAGEMENT -->
+      <div id="section-access" style="display:none">
+        <div style="background:linear-gradient(135deg,rgba(78,204,163,.1),rgba(108,99,255,.06));border:1px solid rgba(78,204,163,.25);border-radius:12px;padding:12px 18px;margin-bottom:1.25rem;display:flex;align-items:center;gap:12px">
+          <span style="font-size:20px">📧</span>
+          <div style="font-size:11px;color:var(--muted);line-height:1.6">
+            <strong style="color:var(--teal)">Auto email enabled.</strong> When you activate a user, they automatically receive a professional welcome email from <strong style="color:var(--white)">evan@build.skillslibry.com</strong> with their login instructions.
+          </div>
+        </div>
+
+        <div class="chart-card" style="margin-bottom:1.25rem">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">➕ Activate a New User</div>
+              <div class="chart-sub">Enter their details — choose Expert or Affiliate mode — they get instant access + welcome email</div>
+            </div>
+          </div>
+          <div class="chart-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
+              <div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:6px">Full Name</div>
+                <input id="new-user-name" type="text" placeholder="e.g. John Doe" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,.07)'">
+              </div>
+              <div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:6px">Email Address</div>
+                <input id="new-user-email" type="email" placeholder="e.g. john@gmail.com" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--teal)'" onblur="this.style.borderColor='rgba(255,255,255,.07)'" onkeydown="if(event.key==='Enter') activateUser()">
+              </div>
+            </div>
+
+            <div style="margin-bottom:14px">
+              <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:8px">User Mode</div>
+              <div class="mode-toggle-group">
+                <button class="mode-toggle-btn active-expert" id="mode-btn-expert" onclick="selectUserMode('expert')">
+                  🎯 Expert Mode<br>
+                  <span style="font-size:9px;font-weight:500;opacity:.8">Sells own High-Ticket Offer</span>
+                </button>
+                <button class="mode-toggle-btn" id="mode-btn-affiliate" onclick="selectUserMode('affiliate')">
+                  🔗 Affiliate Mode<br>
+                  <span style="font-size:9px;font-weight:500;opacity:.8">Promotes other people's products</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <button id="activate-btn" onclick="activateUser()" style="display:block;width:fit-content;min-width:260px;margin:0 auto;padding:12px 36px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">
+                ✅ Activate + Send Welcome Email
+              </button>
+            </div>
+            <div id="activate-msg" style="display:none;margin-top:14px;padding:12px 16px;border-radius:10px;font-size:12px;font-weight:700"></div>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <div class="table-head-row">
+            <div>
+              <div class="chart-title">🔑 Active Members</div>
+              <div class="chart-sub" id="members-count-lbl">Loading…</div>
+            </div>
+            <input class="table-search" id="members-search" placeholder="Search members…" oninput="filterMembers(this.value)">
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr><th>Name</th><th>Email</th><th>Mode</th><th>Niche</th><th>Granted</th><th style='min-width:260px'>Admin Actions</th></tr></thead>
+              <tbody id="members-tbody"><tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
-  authDomain:"execution-os-1fbfd.firebaseapp.com",
-  projectId:"execution-os-1fbfd",
-  storageBucket:"execution-os-1fbfd.firebasestorage.app",
-  messagingSenderId:"300866558889",
-  appId:"1:300866558889:web:01a08d92f20332095d42b8"
+  apiKey: "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
+  authDomain: "execution-os-1fbfd.firebaseapp.com",
+  projectId: "execution-os-1fbfd",
+  storageBucket: "execution-os-1fbfd.firebasestorage.app",
+  messagingSenderId: "300866558889",
+  appId: "1:300866558889:web:01a08d92f20332095d42b8"
 };
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
 
-const ADMIN_EMAILS = ['admin@executionos.com','itzevan.se@gmail.com'];
-const WELCOME_API  = 'https://execution-os-xi.vercel.app/api/send-welcome';
-const FB_API_KEY   = 'AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0';
+const WELCOME_EMAIL_API = 'https://build.skillslibry.com/api/send-welcome';
+const ADMIN_EMAILS = ['admin@executionos.com', 'itzevan.se@gmail.com'];
 
 let allUsers   = [];
 let allMembers = [];
-let allLeads   = [];
-let selectedMode = 'expert';
+let currentPeriod = 'today';
+let selectedUserMode = 'expert';
 
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-const $ = id => document.getElementById(id);
-function fmtDate(ts) {
-  if (!ts) return '—';
-  const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
-  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-}
-function fmtMoney(n) { return n >= 1000 ? '$'+(n/1000).toFixed(1)+'k' : '$'+n; }
-function modeChip(m) {
-  const isAff = m === 'affiliate';
-  return `<span class="chip ${isAff?'chip-purple':'chip-teal'}">${isAff?'🔗 Affiliate':'🎯 Expert'}</span>`;
-}
-function statusChip(active) {
-  return active === false
-    ? `<span class="chip chip-red">Revoked</span>`
-    : `<span class="chip chip-teal"><span class="dot dot-t"></span>Active</span>`;
-}
-const flagMap = {
-  'Nigeria':'🇳🇬','United States':'🇺🇸','United Kingdom':'🇬🇧','Canada':'🇨🇦',
-  'Ghana':'🇬🇭','South Africa':'🇿🇦','Australia':'🇦🇺','India':'🇮🇳',
-  'Germany':'🇩🇪','France':'🇫🇷','Kenya':'🇰🇪','Jamaica':'🇯🇲','Unknown':'🌍'
-};
+// ════════════════════════════════════════════════════════════════════════
+// MODE TOGGLE — fixed to use the real button IDs in the HTML
+// ════════════════════════════════════════════════════════════════════════
+window.selectUserMode = function(mode) {
+  selectedUserMode = mode;
 
-// ── AUTH ──────────────────────────────────────────────────────────────────────
-onAuthStateChanged(auth, async user => {
-  $('admin-loading').style.display = 'none';
-  if (!user || !ADMIN_EMAILS.includes(user.email)) {
-    $('admin-denied').style.display = 'flex'; return;
-  }
-  $('admin-app').style.display = 'flex';
-  $('admin-name').textContent = user.displayName || user.email.split('@')[0];
-  $('admin-av').textContent   = (user.displayName||user.email)[0].toUpperCase();
-  await loadAllData();
-});
+  const expertBtn = document.getElementById('mode-btn-expert');
+  const affBtn    = document.getElementById('mode-btn-affiliate');
+  const btn       = document.getElementById('activate-btn');
 
-async function loadAllData() {
-  try {
-    // Load users
-    const uSnap = await getDocs(collection(db,'users'));
-    allUsers = []; uSnap.forEach(d=>allUsers.push({id:d.id,...d.data()}));
-    allUsers.sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));
-
-    // Load members
-    const mSnap = await getDocs(collection(db,'members'));
-    allMembers = []; mSnap.forEach(d=>allMembers.push({id:d.id,...d.data()}));
-    allMembers.sort((a,b)=>new Date(b.grantedAt||0)-new Date(a.grantedAt||0));
-
-    // Load leads (from grow.html opt-ins)
-    try {
-      const lSnap = await getDocs(collection(db,'leads'));
-      allLeads = []; lSnap.forEach(d=>allLeads.push({id:d.id,...d.data()}));
-      allLeads.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    } catch(e) { allLeads = []; }
-
-    // Update sidebar badge
-    $('sb-members-count').textContent = allMembers.length;
-
-    renderAll();
-  } catch(e) { console.error('Load error:',e); }
-}
-
-window.refreshData = async function() {
-  const btn = document.querySelector('[onclick="refreshData()"]');
-  if (btn) { btn.textContent='↻ Loading…'; btn.disabled=true; }
-  await loadAllData();
-  if (btn) { btn.textContent='↻ Refresh'; btn.disabled=false; }
-};
-
-function renderAll() {
-  renderOverview(); renderRevenue(); renderUsers(); renderActivity();
-  renderGeo(); renderTraffic(); renderTracker(); renderLeads();
-}
-
-// ── OVERVIEW ──────────────────────────────────────────────────────────────────
-function renderOverview() {
-  const total    = allMembers.length;
-  const expert   = allMembers.filter(m=>(m.appMode||'affiliate')==='expert').length;
-  const affiliate= allMembers.filter(m=>m.appMode==='affiliate').length;
-  const mrr      = allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).reduce((s,u)=>s+({starter:17,pro:29,elite:59}[u.plan]||0),0);
-  const deals    = allUsers.reduce((s,u)=>s+(u.trackerDeals||0),0);
-  const cancelled= allUsers.filter(u=>u.plan==='cancelled').length;
-  const visitors = Math.max(allLeads.length * 4 + total * 8, 10);
-
-  $('m-members').textContent   = total;
-  $('m-members-sub').textContent = `${expert} expert · ${affiliate} affiliate`;
-  $('m-revenue').textContent   = fmtMoney(mrr);
-  $('m-leads').textContent     = allLeads.length;
-  $('m-visitors').textContent  = visitors + '+';
-  $('m-expert').textContent    = expert;
-  $('m-affiliate').textContent = affiliate;
-  $('m-deals').textContent     = deals;
-  $('m-cancelled').textContent = cancelled;
-
-  // Mode split legend
-  const modeTotal = Math.max(expert + affiliate, 1);
-  $('mode-legend').innerHTML = [
-    {label:'🎯 Expert Mode', n:expert, color:'var(--teal)'},
-    {label:'🔗 Affiliate Mode', n:affiliate, color:'var(--purple)'},
-    {label:'❌ Cancelled', n:cancelled, color:'var(--red)'},
-  ].map(i=>`
-    <div class="legend-item">
-      <div class="legend-dot" style="background:${i.color}"></div>
-      <div style="flex:1">${i.label}</div>
-      <div style="font-size:11px;font-weight:700;color:${i.color}">${i.n}</div>
-    </div>
-    <div style="height:4px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-bottom:6px">
-      <div style="height:100%;width:${Math.round(i.n/Math.max(total,1)*100)}%;background:${i.color};border-radius:2px;transition:width 1s ease"></div>
-    </div>`).join('');
-
-  // Revenue chart
-  renderRevenueChart();
-
-  // Recent members table
-  $('recent-tbody').innerHTML = allMembers.length
-    ? allMembers.slice(0,10).map(m=>{
-        const email = m.email || m.id.replace(/-/g,'.');
-        return `<tr>
-          <td class="td-name">${m.name||'—'}</td>
-          <td class="td-email">${email}</td>
-          <td>${modeChip(m.appMode||'affiliate')}</td>
-          <td>${m.country||'—'}</td>
-          <td style="color:var(--dim);font-size:11px">${m.niche||'—'}</td>
-          <td>${m.grantedAt?new Date(m.grantedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'2-digit'}):'—'}</td>
-          <td>${statusChip(m.active !== false)}</td>
-        </tr>`;
-      }).join('')
-    : '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">No members yet</td></tr>';
-}
-
-function renderRevenueChart() {
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  const now = new Date();
-  const colors = ['var(--teal)','var(--purple)','var(--gold)','var(--orange)','var(--teal)','var(--purple)','var(--gold)','var(--orange)','var(--teal)','var(--purple)','var(--gold)','var(--orange)'];
-  const data = months.slice(0, now.getMonth()+1).map((m,i)=>{
-    const mu = allUsers.filter(u=>{
-      if (!u.createdAt) return false;
-      const d = u.createdAt.seconds ? new Date(u.createdAt.seconds*1000) : new Date(u.createdAt);
-      return d.getMonth()===i && d.getFullYear()===now.getFullYear() && ['starter','pro','elite'].includes(u.plan);
-    });
-    return { label:m, val:mu.reduce((s,u)=>s+({starter:17,pro:29,elite:59}[u.plan]||0),0) };
-  });
-  const max = Math.max(...data.map(d=>d.val), 1);
-  $('revenue-chart').innerHTML = data.map((d,i)=>`
-    <div class="bc-bar" style="height:${Math.max(d.val/max*130,4)}px;background:${colors[i]};opacity:.85">
-      ${d.val?`<div class="bc-bar-val">${fmtMoney(d.val)}</div>`:''}
-      <div class="bc-bar-lbl">${d.label}</div>
-    </div>`).join('');
-}
-
-// ── REVENUE ───────────────────────────────────────────────────────────────────
-function renderRevenue() {
-  const paid = allUsers.filter(u=>['starter','pro','elite'].includes(u.plan));
-  const planP = u=>({starter:17,pro:29,elite:59}[u.plan]||0);
-  const mrr = paid.reduce((s,u)=>s+planP(u),0);
-  const totalRev = allUsers.reduce((s,u)=>{
-    if (!['starter','pro','elite'].includes(u.plan)) return s;
-    const months = u.createdAt?.seconds ? Math.max(1,Math.round((Date.now()/1000-u.createdAt.seconds)/2592000)) : 1;
-    return s + planP(u)*months;
-  },0);
-  const ltv = paid.length ? Math.round(totalRev/paid.length) : 0;
-
-  $('rev-total').textContent = fmtMoney(totalRev);
-  $('rev-mrr').textContent   = fmtMoney(mrr);
-  $('rev-arr').textContent   = fmtMoney(mrr*12);
-  $('rev-ltv').textContent   = fmtMoney(ltv);
-
-  const starter = allUsers.filter(u=>u.plan==='starter').length*17;
-  const pro     = allUsers.filter(u=>u.plan==='pro').length*29;
-  const elite   = allUsers.filter(u=>u.plan==='elite').length*59;
-  const maxRev  = Math.max(starter,pro,elite,1);
-  $('plan-rev-bars').innerHTML = [
-    {label:'Starter · $17/mo', val:starter, color:'var(--teal)'},
-    {label:'Pro · $29/mo',     val:pro,     color:'var(--purple)'},
-    {label:'Elite · $59/mo',   val:elite,   color:'var(--gold)'},
-  ].map(p=>`
-    <div class="src-bar-wrap">
-      <div class="src-bar-head"><span>${p.label}</span><span style="color:${p.color};font-weight:700">${fmtMoney(p.val)}/mo</span></div>
-      <div class="src-bar-track"><div class="src-bar-fill" style="width:${Math.round(p.val/maxRev*100)}%;background:${p.color}"></div></div>
-    </div>`).join('');
-
-  const withDeals = allUsers.filter(u=>u.trackerDeals>0);
-  $('deals-tbody').innerHTML = withDeals.length
-    ? withDeals.map(u=>`<tr>
-        <td class="td-name">${u.name||'—'}</td>
-        <td>${modeChip(u.appMode||'expert')}</td>
-        <td style="color:var(--teal);font-weight:700">${u.trackerDeals||0}</td>
-        <td style="color:var(--gold);font-weight:700">$${(u.trackerRevenue||0).toLocaleString()}</td>
-        <td>${fmtDate(u.lastActive||u.createdAt)}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="5" style="text-align:center;color:var(--dim);padding:2rem">No deal data yet</td></tr>';
-}
-
-// ── TRAFFIC ───────────────────────────────────────────────────────────────────
-function renderTraffic() {
-  const members = allMembers.length;
-  const leads   = allLeads.length;
-  const visits  = Math.max(leads*4 + members*8, 10);
-  const actRate = leads>0 ? ((members/Math.max(leads,1))*100).toFixed(0)+'%' : '0%';
-  const convRate= ((members/visits)*100).toFixed(1)+'%';
-
-  $('tr-visits').textContent    = visits + '+';
-  $('tr-leads').textContent     = leads;
-  $('tr-activation').textContent= actRate;
-  $('tr-conv').textContent      = convRate;
-
-  $('source-bars').innerHTML = [
-    {label:'Organic / Direct', pct:55, color:'var(--teal)'},
-    {label:'Social Media (Facebook/Instagram)', pct:30, color:'var(--purple)'},
-    {label:'Referral', pct:10, color:'var(--gold)'},
-    {label:'Other', pct:5, color:'var(--orange)'},
-  ].map(s=>`
-    <div class="src-bar-wrap">
-      <div class="src-bar-head"><span>${s.label}</span><span style="color:${s.color};font-weight:700">${s.pct}%</span></div>
-      <div class="src-bar-track"><div class="src-bar-fill" style="width:${s.pct}%;background:${s.color}"></div></div>
-    </div>`).join('');
-
-  // Top leads table
-  $('leads-tbody').innerHTML = allLeads.length
-    ? allLeads.slice(0,10).map(l=>{
-        const isConverted = allMembers.some(m=>m.email===(l.email||'').toLowerCase());
-        return `<tr>
-          <td class="td-name">${l.name||'—'}</td>
-          <td class="td-email">${l.email||'—'}</td>
-          <td>${l.phone||'—'}</td>
-          <td style="font-size:10px;color:var(--dim)">${l.source||'grow.html'}</td>
-          <td>${l.createdAt?new Date(l.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short'}):'—'}</td>
-          <td>${isConverted?'<span class="chip chip-teal">✅ Converted</span>':'<span class="chip chip-orange">⏳ Lead</span>'}</td>
-        </tr>`;
-      }).join('')
-    : '<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">No leads captured yet — opt-ins from grow.html appear here</td></tr>';
-}
-
-// ── USERS ─────────────────────────────────────────────────────────────────────
-function renderUsers() {
-  $('users-count-lbl').textContent = `${allUsers.length} total users`;
-  renderUsersTable(allUsers);
-}
-function renderUsersTable(list) {
-  $('users-tbody').innerHTML = list.length
-    ? list.map(u=>`<tr>
-        <td class="td-name">${u.name||'—'}</td>
-        <td class="td-email">${u.email||'—'}</td>
-        <td>${modeChip(u.appMode||'expert')}</td>
-        <td>${u.country||'—'}</td>
-        <td>${fmtDate(u.createdAt)}</td>
-        <td>${fmtDate(u.lastActive||u.createdAt)}</td>
-        <td style="color:var(--teal);font-weight:700">${u.trackerDeals||0}</td>
-        <td>${statusChip(!u.disabled)}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="8" style="text-align:center;color:var(--dim);padding:2rem">No users found</td></tr>';
-}
-window.filterUsers = function(search) {
-  const modeF = $('mode-filter').value;
-  const s = search.toLowerCase();
-  const f = allUsers.filter(u=>{
-    const ms = !s||(u.name||'').toLowerCase().includes(s)||(u.email||'').toLowerCase().includes(s);
-    const mm = !modeF||(u.appMode||'expert')===modeF;
-    return ms&&mm;
-  });
-  renderUsersTable(f);
-  $('users-count-lbl').textContent = `${f.length} of ${allUsers.length} users`;
-};
-
-// ── ACTIVITY ──────────────────────────────────────────────────────────────────
-function renderActivity() {
-  const items = allMembers.slice(0,25).map(m=>{
-    const email = m.email || m.id.replace(/-/g,'.');
-    const isAff = m.appMode === 'affiliate';
-    return {
-      icon: isAff ? '🔗' : '🎯',
-      bg: isAff ? 'rgba(108,99,255,.12)' : 'rgba(78,204,163,.12)',
-      text: `<strong>${m.name||email}</strong> activated as ${isAff?'🔗 <span style="color:#a089ff">Affiliate Mode</span>':'🎯 <span style="color:var(--teal)">Expert Mode</span>'}${m.niche?` · <span style="color:var(--dim);font-size:10px">${m.niche}</span>`:''}`,
-      time: m.grantedAt ? new Date(m.grantedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'
-    };
-  });
-  $('activity-feed').innerHTML = items.length
-    ? items.map(i=>`<div class="act-item"><div class="act-ico" style="background:${i.bg}">${i.icon}</div><div><div class="act-text">${i.text}</div><div class="act-time">${i.time}</div></div></div>`).join('')
-    : '<div style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">No activity yet</div>';
-}
-
-// ── GEO ───────────────────────────────────────────────────────────────────────
-function renderGeo() {
-  const cc = {};
-  allMembers.forEach(m=>{ const c=m.country||'Unknown'; cc[c]=(cc[c]||0)+1; });
-  // Also count from leads
-  allLeads.forEach(l=>{ if(l.country){const c=l.country;cc[c]=(cc[c]||0)+0.5;} });
-  const sorted = Object.entries(cc).sort((a,b)=>b[1]-a[1]);
-  const total = Math.max(allMembers.length, 1);
-  const top3 = sorted.slice(0,3);
-
-  $('geo-metrics').innerHTML = top3.map(([c,n],i)=>`
-    <div class="mc ${['t','p','g'][i]}">
-      <div class="mc-val">${flagMap[c]||'🌍'} ${Math.floor(n)}</div>
-      <div class="mc-lbl">${c}</div>
-      <div class="mc-sub">${Math.round(Math.floor(n)/total*100)}% of members</div>
-    </div>`).join('');
-
-  $('geo-total-lbl').textContent = `${sorted.length} countries · ${allMembers.length} total members`;
-
-  $('geo-grid').innerHTML = sorted.length
-    ? sorted.map(([c,n])=>`
-        <div class="geo-item">
-          <div class="geo-flag">${flagMap[c]||'🌍'}</div>
-          <div class="geo-info">
-            <div class="geo-name">${c}</div>
-            <div class="geo-count">${Math.floor(n)} member${Math.floor(n)!==1?'s':''}</div>
-            <div class="geo-prog"><div class="geo-fill" style="width:${Math.round(Math.floor(n)/total*100)}%"></div></div>
-          </div>
-          <div class="geo-pct">${Math.round(Math.floor(n)/total*100)}%</div>
-        </div>`).join('')
-    : '<div style="color:var(--dim);font-size:12px">No location data yet.</div>';
-}
-
-// ── EMAIL LEADS ───────────────────────────────────────────────────────────────
-function renderLeads() {
-  const converted = allLeads.filter(l=>allMembers.some(m=>m.email===(l.email||'').toLowerCase())).length;
-  const rate = allLeads.length ? ((converted/allLeads.length)*100).toFixed(0)+'%' : '0%';
-  $('el-total').textContent     = allLeads.length;
-  $('el-converted').textContent = converted;
-  $('el-rate').textContent      = rate;
-  $('leads-list-tbody').innerHTML = allLeads.length
-    ? allLeads.map(l=>{
-        const isConv = allMembers.some(m=>m.email===(l.email||'').toLowerCase());
-        return `<tr>
-          <td class="td-name">${l.name||'—'}</td>
-          <td class="td-email">${l.email||'—'}</td>
-          <td>${l.phone||'—'}</td>
-          <td>${l.createdAt?new Date(l.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
-          <td>${isConv?'<span class="chip chip-teal">✅ Member</span>':'<span class="chip chip-orange">⏳ Lead</span>'}</td>
-        </tr>`;
-      }).join('')
-    : '<tr><td colspan="5" style="text-align:center;color:var(--dim);padding:2rem">No leads captured yet</td></tr>';
-}
-window.exportLeads = function() {
-  const rows = [['Name','Email','Phone','Date']];
-  allLeads.forEach(l=>rows.push([l.name||'',l.email||'',l.phone||'',l.createdAt?new Date(l.createdAt).toLocaleDateString():'']));
-  const csv = rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
-  const a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='eos-leads.csv'; a.click();
-};
-
-// ── TRACKER ───────────────────────────────────────────────────────────────────
-function renderTracker() {
-  $('tracker-tbody').innerHTML = allUsers.length
-    ? allUsers.map(u=>`<tr>
-        <td class="td-name">${u.name||'—'}</td>
-        <td>${modeChip(u.appMode||'expert')}</td>
-        <td>${u.trackerDMs||'—'}</td>
-        <td>${u.trackerPosts||'—'}</td>
-        <td>${u.trackerCalls||'—'}</td>
-        <td style="color:var(--teal);font-weight:700">${u.trackerDeals||0}</td>
-        <td style="color:var(--gold);font-weight:700">$${(u.trackerRevenue||0).toLocaleString()}</td>
-        <td>${fmtDate(u.lastActive||u.createdAt)}</td>
-      </tr>`).join('')
-    : '<tr><td colspan="8" style="text-align:center;color:var(--dim);padding:2rem">No tracker data yet</td></tr>';
-}
-
-// ── ACCESS MANAGEMENT ─────────────────────────────────────────────────────────
-window.selectMode = function(mode) {
-  selectedMode = mode;
-  $('mb-expert').className   = 'mode-btn' + (mode==='expert'?' sel-expert':'');
-  $('mb-affiliate').className= 'mode-btn' + (mode==='affiliate'?' sel-affiliate':'');
-  const btn = $('activate-btn');
   if (mode === 'expert') {
+    expertBtn.className = 'mode-toggle-btn active-expert';
+    affBtn.className    = 'mode-toggle-btn';
     btn.style.background = 'linear-gradient(135deg,var(--teal),var(--teal2))';
     btn.style.color      = 'var(--text-dark)';
   } else {
+    affBtn.className    = 'mode-toggle-btn active-affiliate';
+    expertBtn.className = 'mode-toggle-btn';
     btn.style.background = 'linear-gradient(135deg,var(--purple),var(--purple2))';
     btn.style.color      = '#fff';
   }
 };
 
-async function sendWelcomeEmail(name, email, mode) {
-  // Try primary API
+onAuthStateChanged(auth, async (user) => {
+  document.getElementById('admin-loading').style.display = 'none';
+  if (!user || !ADMIN_EMAILS.includes(user.email)) {
+    document.getElementById('admin-denied').style.display = 'flex';
+    return;
+  }
+  document.getElementById('admin-app').style.display = 'flex';
+  document.getElementById('admin-name').textContent = user.displayName || user.email.split('@')[0];
+  document.getElementById('admin-av').textContent = (user.displayName || user.email)[0].toUpperCase();
+  await loadAllData();
+});
+
+async function loadAllData() {
   try {
-    const res = await fetch(WELCOME_API, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ name, email, mode }),
-      signal: AbortSignal.timeout(12000)
-    });
-    const data = await res.json();
-    if (res.ok && (data.success || data.id)) return { ok:true };
-    throw new Error(data.error || 'API returned error');
-  } catch(e1) {
-    // Fallback: try the send-email endpoint
+    const snap = await getDocs(collection(db, 'users'));
+    allUsers = [];
+    snap.forEach(d => allUsers.push({ id: d.id, ...d.data() }));
+    allUsers.sort((a, b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+    renderAllSections();
+  } catch(e) { console.error('Error loading data:', e); }
+}
+
+window.refreshData = async function() {
+  const btn = document.querySelector('[onclick="refreshData()"]');
+  if (btn) { btn.textContent = '↻ Loading…'; btn.disabled = true; }
+  await loadAllData();
+  if (btn) { btn.textContent = '↻ Refresh'; btn.disabled = false; }
+};
+
+function renderAllSections() {
+  renderOverview(); renderRevenue(); renderUsers();
+  renderEmails(); renderTracker(); renderActivity();
+  renderGeo(); renderTraffic(); renderFunnelsOverview();
+}
+
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = ts.seconds ? new Date(ts.seconds*1000) : new Date(ts);
+  return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+}
+function fmtMoney(n) { return n>=1000 ? '$'+(n/1000).toFixed(1)+'k' : '$'+n; }
+function planPrice(plan) { return {starter:17,pro:29,elite:59,trial:0,cancelled:0}[plan]||0; }
+function planChip(plan) { const c=plan||'trial'; return `<span class="plan-chip ${c}">${c.toUpperCase()}</span>`; }
+function modeChip(mode) {
+  const m = mode || 'expert';
+  const isAff = m === 'affiliate';
+  return `<span style="font-size:9px;font-weight:800;padding:3px 9px;border-radius:50px;text-transform:uppercase;letter-spacing:.5px;background:${isAff?'rgba(108,99,255,.12)':'rgba(78,204,163,.12)'};color:${isAff?'var(--purple)':'var(--teal)'};border:1px solid ${isAff?'rgba(108,99,255,.25)':'rgba(78,204,163,.25)'}">${isAff?'🔗 Affiliate':'🎯 Expert'}</span>`;
+}
+function statusDot(plan) { const s=plan==='cancelled'?'cancelled':plan==='trial'?'trial':'active'; return `<span class="status-dot ${s}"></span>${s.charAt(0).toUpperCase()+s.slice(1)}`; }
+
+function renderOverview() {
+  const total=allUsers.length, paid=allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).length;
+  const trial=allUsers.filter(u=>!u.plan||u.plan==='trial').length, cancelled=allUsers.filter(u=>u.plan==='cancelled').length;
+  const revenue=allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).reduce((s,u)=>s+planPrice(u.plan),0);
+  const deals=allUsers.reduce((s,u)=>s+(u.trackerDeals||0),0);
+  document.getElementById('m-total-users').textContent=total;
+  document.getElementById('m-users-sub').textContent=`${paid} paid · ${trial} trial`;
+  document.getElementById('m-users-trend').textContent=`+${total}`;
+  document.getElementById('m-revenue').textContent=fmtMoney(revenue);
+  document.getElementById('m-revenue-sub').textContent='Monthly recurring';
+  document.getElementById('m-revenue-trend').textContent='MRR';
+  document.getElementById('m-paid').textContent=paid;
+  document.getElementById('m-paid-sub').textContent=`${Math.round(paid/Math.max(total,1)*100)}% of total`;
+  document.getElementById('m-trial').textContent=trial;
+  document.getElementById('m-trial-sub').textContent='In 7-day trial';
+  document.getElementById('m-visitors').textContent=Math.max(total*8,10)+'+';
+  document.getElementById('m-deals').textContent=deals;
+  document.getElementById('m-cancelled').textContent=cancelled;
+  document.getElementById('recent-tbody').innerHTML=allUsers.length
+    ? allUsers.slice(0,8).map(u=>`<tr><td class="td-name">${u.name||'—'}</td><td class="td-email">${u.email||'—'}</td><td>${modeChip(u.appMode)}</td><td>${planChip(u.plan)}</td><td>${u.country||'—'}</td><td>${fmtDate(u.createdAt)}</td><td>${statusDot(u.plan)}</td></tr>`).join('')
+    : '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">No users yet</td></tr>';
+  renderRevenueChart(); renderPlanDonut(paid,trial,cancelled);
+}
+
+function renderRevenueChart() {
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const now=new Date();
+  const data=months.slice(0,now.getMonth()+1).map((m,i)=>{
+    const mu=allUsers.filter(u=>{if(!u.createdAt?.seconds)return false;const d=new Date(u.createdAt.seconds*1000);return d.getMonth()===i&&d.getFullYear()===now.getFullYear()&&['starter','pro','elite'].includes(u.plan);});
+    return {label:m,val:mu.reduce((s,u)=>s+planPrice(u.plan),0)};
+  });
+  const max=Math.max(...data.map(d=>d.val),1);
+  const colors=['var(--teal)','var(--purple)','var(--yellow)','var(--orange)','var(--teal)','var(--purple)','var(--yellow)','var(--orange)','var(--teal)','var(--purple)','var(--yellow)','var(--orange)'];
+  document.getElementById('revenue-chart').innerHTML=data.map((d,i)=>`<div class="bar" style="height:${Math.max(d.val/max*140,4)}px;background:${colors[i]};opacity:.8;position:relative"><div class="bar-label">${d.label}</div><div style="position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--dim);white-space:nowrap">${d.val?fmtMoney(d.val):''}</div></div>`).join('');
+}
+
+function renderPlanDonut(paid,trial,cancelled) {
+  const starter=allUsers.filter(u=>u.plan==='starter').length;
+  const pro=allUsers.filter(u=>u.plan==='pro').length;
+  const elite=allUsers.filter(u=>u.plan==='elite').length;
+  const total=Math.max(allUsers.length,1);
+  const experts=allUsers.filter(u=>!u.appMode||u.appMode==='expert').length;
+  const affiliates=allUsers.filter(u=>u.appMode==='affiliate').length;
+  document.getElementById('plan-donut').innerHTML='<div class="donut-legend">'+
+    '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900;margin-bottom:6px">By Plan</div>'+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Starter · ${starter} (${Math.round(starter/total*100)}%)</div>`+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Pro · ${pro} (${Math.round(pro/total*100)}%)</div>`+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Elite · ${elite} (${Math.round(elite/total*100)}%)</div>`+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Trial · ${trial}</div>`+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>Cancelled · ${cancelled}</div>`+
+    '<div style="height:1px;background:rgba(255,255,255,.07);margin:8px 0"></div>'+
+    '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900;margin-bottom:6px">By Mode</div>'+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>Expert · ${experts}</div>`+
+    `<div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Affiliate · ${affiliates}</div>`+
+    '</div>';
+}
+
+function renderRevenue() {
+  const paid=allUsers.filter(u=>['starter','pro','elite'].includes(u.plan));
+  const mrr=paid.reduce((s,u)=>s+planPrice(u.plan),0);
+  const totalRev=allUsers.reduce((s,u)=>{if(!['starter','pro','elite'].includes(u.plan))return s;const months=u.createdAt?.seconds?Math.max(1,Math.round((Date.now()/1000-u.createdAt.seconds)/2592000)):1;return s+planPrice(u.plan)*months;},0);
+  document.getElementById('rev-total').textContent=fmtMoney(totalRev);
+  document.getElementById('rev-month').textContent=fmtMoney(mrr);
+  document.getElementById('rev-mrr').textContent=fmtMoney(mrr);
+  document.getElementById('rev-arr').textContent=fmtMoney(mrr*12);
+  const starter=allUsers.filter(u=>u.plan==='starter').length*17,pro=allUsers.filter(u=>u.plan==='pro').length*29,elite=allUsers.filter(u=>u.plan==='elite').length*59,maxRev=Math.max(starter,pro,elite,1);
+  document.getElementById('plan-revenue-bars').innerHTML=[{label:'Starter ($17/mo)',val:starter,color:'var(--teal)'},{label:'Pro ($29/mo)',val:pro,color:'var(--purple)'},{label:'Elite ($59/mo)',val:elite,color:'var(--yellow)'}].map(p=>`<div><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:5px"><span>${p.label}</span><span style="color:${p.color};font-weight:700">${fmtMoney(p.val)}/mo</span></div><div style="height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden"><div style="height:100%;width:${Math.round(p.val/maxRev*100)}%;background:${p.color};border-radius:4px"></div></div></div>`).join('');
+  const usersWithDeals=allUsers.filter(u=>u.trackerDeals>0);
+  document.getElementById('deals-tbody').innerHTML=usersWithDeals.length?usersWithDeals.map(u=>`<tr><td class="td-name">${u.name||'—'}</td><td>${planChip(u.plan)}</td><td>${u.trackerDeals||0}</td><td style="color:var(--teal);font-weight:700">$${(u.trackerRevenue||0).toLocaleString()}</td><td>${fmtDate(u.lastActive||u.createdAt)}</td><td>${planChip(u.plan)}</td></tr>`).join(''):'<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">No deal tracking data yet</td></tr>';
+}
+
+function renderUsers() {
+  document.getElementById('users-count-lbl').textContent=`${allUsers.length} total users`;
+  renderUsersTable(allUsers);
+}
+function renderUsersTable(users) {
+  document.getElementById('users-tbody').innerHTML=users.length
+    ? users.map(u=>`<tr><td class="td-name">${u.name||'—'}</td><td class="td-email" style="font-size:11px">${u.email||'—'}</td><td>${modeChip(u.appMode)}</td><td>${planChip(u.plan)}</td><td>${u.country||'—'}</td><td>${fmtDate(u.createdAt)}</td><td>${fmtDate(u.lastActive||u.createdAt)}</td><td style="color:var(--teal);font-weight:700">${u.trackerDeals||0}</td><td>${statusDot(u.plan)}</td></tr>`).join('')
+    : '<tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem">No users found</td></tr>';
+}
+window.filterUsers=function(search){
+  const planF=document.getElementById('plan-filter').value;
+  const modeF=document.getElementById('mode-filter').value;
+  const s=search.toLowerCase();
+  const filtered=allUsers.filter(u=>{
+    const ms=!s||(u.name||'').toLowerCase().includes(s)||(u.email||'').toLowerCase().includes(s);
+    const mp=!planF||(u.plan||'trial')===planF;
+    const mm=!modeF||(u.appMode||'expert')===modeF;
+    return ms&&mp&&mm;
+  });
+  renderUsersTable(filtered);
+  document.getElementById('users-count-lbl').textContent=`${filtered.length} of ${allUsers.length} users`;
+};
+
+function renderEmails() {
+  const paid=allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).length,trial=allUsers.filter(u=>!u.plan||u.plan==='trial').length;
+  document.getElementById('email-total').textContent=allUsers.length;
+  document.getElementById('email-paid').textContent=paid;
+  document.getElementById('email-trial').textContent=trial;
+  document.getElementById('email-tbody').innerHTML=allUsers.length?allUsers.map(u=>`<tr><td class="td-name">${u.name||'—'}</td><td class="td-email">${u.email||'—'}</td><td>${modeChip(u.appMode)}</td><td>${planChip(u.plan)}</td><td>${u.country||'—'}</td><td>${fmtDate(u.createdAt)}</td><td style="font-size:11px;color:var(--dim)">${u.niche||'—'}</td></tr>`).join(''):'<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">No contacts yet</td></tr>';
+}
+window.exportEmails=function(){
+  const rows=[['Name','Email','Mode','Plan','Country','Joined','Niche']];
+  allUsers.forEach(u=>rows.push([u.name||'',u.email||'',u.appMode||'expert',u.plan||'trial',u.country||'',fmtDate(u.createdAt),u.niche||'']));
+  const csv=rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='execution-os-contacts.csv';a.click();
+};
+
+function renderTracker() {
+  document.getElementById('tracker-tbody').innerHTML=allUsers.length?allUsers.map(u=>`<tr><td class="td-name">${u.name||'—'}</td><td>${modeChip(u.appMode)}</td><td>${planChip(u.plan)}</td><td>${u.trackerDMs||'—'}</td><td>${u.trackerPosts||'—'}</td><td>${u.trackerCalls||'—'}</td><td style="color:var(--teal);font-weight:700">${u.trackerDeals||0}</td><td style="color:var(--yellow);font-weight:700">$${(u.trackerRevenue||0).toLocaleString()}</td><td>${fmtDate(u.lastActive||u.createdAt)}</td></tr>`).join(''):'<tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem">No tracker data yet</td></tr>';
+}
+
+function renderActivity() {
+  const items=allUsers.slice(0,20).map(u=>({
+    icon:u.plan==='cancelled'?'❌':['starter','pro','elite'].includes(u.plan)?'💳':'👋',
+    bg:u.plan==='cancelled'?'rgba(255,107,107,.1)':['starter','pro','elite'].includes(u.plan)?'rgba(78,204,163,.1)':'rgba(108,99,255,.1)',
+    text:u.plan==='cancelled'?`<strong>${u.name||u.email}</strong> cancelled`:['starter','pro','elite'].includes(u.plan)?`<strong>${u.name||u.email}</strong> upgraded to <span style="color:var(--teal)">${u.plan}</span> <span style="color:var(--dim);font-size:10px">(${u.appMode||'expert'} mode)</span>`:`<strong>${u.name||u.email}</strong> signed up as ${u.appMode==='affiliate'?'🔗 Affiliate':'🎯 Expert'}`,
+    time:fmtDate(u.createdAt)
+  }));
+  document.getElementById('activity-feed').innerHTML=items.length?items.map(i=>`<div class="activity-item"><div class="activity-icon" style="background:${i.bg}">${i.icon}</div><div><div class="activity-txt">${i.text}</div><div class="activity-time">${i.time}</div></div></div>`).join(''):'<div style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">No activity yet</div>';
+}
+
+function renderGeo() {
+  const cc={};allUsers.forEach(u=>{const c=u.country||'Unknown';cc[c]=(cc[c]||0)+1;});
+  const sorted=Object.entries(cc).sort((a,b)=>b[1]-a[1]),max=sorted[0]?.[1]||1;
+  const flagMap={'Nigeria':'🇳🇬','United States':'🇺🇸','United Kingdom':'🇬🇧','Canada':'🇨🇦','Ghana':'🇬🇭','South Africa':'🇿🇦','Australia':'🇦🇺','India':'🇮🇳','Unknown':'🌍'};
+  document.getElementById('geo-grid').innerHTML=sorted.length?sorted.map(([c,n])=>`<div class="geo-item"><div class="geo-flag">${flagMap[c]||'🌍'}</div><div style="flex:1"><div class="geo-country">${c}</div><div class="geo-count">${n} user${n!==1?'s':''}</div><div class="geo-bar"><div class="geo-fill" style="width:${Math.round(n/max*100)}%"></div></div></div></div>`).join(''):'<div style="color:var(--dim);font-size:12px">No location data.</div>';
+}
+
+function renderTraffic() {
+  const total=allUsers.length,paid=allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).length;
+  const estVisits=Math.max(total*8,10);
+  document.getElementById('tr-visits').textContent=estVisits+'+';
+  document.getElementById('tr-signups').textContent=total;
+  document.getElementById('tr-conversion').textContent=total>0?((total/estVisits)*100).toFixed(1)+'%':'0.0%';
+  document.getElementById('tr-paid-conversion').textContent=total>0?((paid/Math.max(total,1))*100).toFixed(0)+'%':'0%';
+  document.getElementById('source-bars').innerHTML=[{label:'Organic / Direct',pct:60,color:'var(--teal)'},{label:'Social Media',pct:25,color:'var(--purple)'},{label:'Referral',pct:10,color:'var(--yellow)'},{label:'Other',pct:5,color:'var(--orange)'}].map(s=>`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:11px;color:var(--dim);margin-bottom:4px"><span>${s.label}</span><span style="color:${s.color};font-weight:700">${s.pct}%</span></div><div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="height:100%;width:${s.pct}%;background:${s.color};border-radius:3px"></div></div></div>`).join('');
+}
+
+function renderFunnelsOverview() {
+  const growLeads   = allLeads.filter(l => (l.source||'').includes('grow') || !l.funnelId || l.funnelId === 'grow');
+  const funnelLeads = allLeads.filter(l => l.funnelId && l.funnelId !== 'grow');
+  const members     = allMembers.length;
+  const growVisits  = Math.max(allLeads.length * 5, members * 3, 10);
+  const indexVisits = Math.max(members * 12, 20);
+  const activation  = allLeads.length > 0 ? ((members / Math.max(allLeads.length, 1)) * 100).toFixed(0) + '%' : '0%';
+  const growConv    = allLeads.length > 0 ? ((members / Math.max(allLeads.length, 1)) * 100).toFixed(1) + '%' : '0%';
+
+  const s = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+  s('fn-page-visits',   growVisits.toLocaleString() + '+');
+  s('fn-total-leads',   allLeads.length);
+  s('fn-conv-rate',     growConv);
+  s('fn-grow-visits',   growVisits.toLocaleString() + '+');
+  s('fn-grow-leads',    allLeads.length);
+  s('fn-grow-members',  members);
+  s('fn-grow-conv',     activation);
+  s('fn-index-visits',  indexVisits.toLocaleString() + '+');
+  s('fn-total-members', members);
+  s('fn-activation',    activation);
+  renderLeadsTable();
+}
+
+async function loadAllFunnels() {
+  const tbody   = document.getElementById('fn-funnels-tbody');
+  const sub     = document.getElementById('fn-funnels-sub');
+  if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem">Loading all funnels…</td></tr>';
+
+  try {
+    // Load all users funnels subcollections
+    const allFunnels = [];
+    for (const user of allUsers.slice(0, 100)) {
+      try {
+        const snap = await getDocs(collection(db, 'users', user.id || user.email, 'funnels'));
+        snap.forEach(d => {
+          const data = d.data();
+          if (data && data.id) {
+            allFunnels.push({ ...data, ownerEmail: user.email || user.id, ownerName: user.name || user.email });
+          }
+        });
+      } catch(e) { /* user may have no funnels */ }
+    }
+
+    // Also load published-funnels collection
     try {
-      const res2 = await fetch('https://execution-os-xi.vercel.app/api/send-email', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ name, email, phone:'admin-activation' }),
-        signal: AbortSignal.timeout(10000)
+      const pubSnap = await getDocs(collection(db, 'published-funnels'));
+      pubSnap.forEach(d => {
+        const data = d.data();
+        if (data && data.id && !allFunnels.find(f => f.id === data.id)) {
+          allFunnels.push({ ...data, ownerEmail: data.ownerUid || '—' });
+        }
       });
-      if (res2.ok) return { ok:true, fallback:true };
-    } catch(e2) {}
-    return { ok:false, error:e1.message };
+    } catch(e) {}
+
+    const live = allFunnels.filter(f => f.status === 'live');
+    if (sub) sub.textContent = `${allFunnels.length} total funnels · ${live.length} live`;
+
+    const totalViews = allFunnels.reduce((s, f) => s + (f.views || 0), 0);
+    const totalLeads = allFunnels.reduce((s, f) => s + (f.leads || 0), 0);
+    const avgConv    = totalViews > 0 ? ((totalLeads / totalViews) * 100).toFixed(1) + '%' : '0%';
+    const fnTotal    = document.getElementById('fn-total-funnels');
+    const fnConv     = document.getElementById('fn-conv-rate');
+    if (fnTotal) fnTotal.textContent = live.length;
+    if (fnConv)  fnConv.textContent  = avgConv;
+
+    if (!allFunnels.length) {
+      if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem">No funnels found yet</td></tr>';
+      return;
+    }
+
+    allFunnels.sort((a, b) => (b.publishedAt || 0) - (a.publishedAt || 0));
+
+    tbody.innerHTML = allFunnels.map(f => {
+      const views    = f.views || 0;
+      const leads    = f.leads || 0;
+      const conv     = views > 0 ? ((leads / views) * 100).toFixed(1) + '%' : '—';
+      const isLive   = f.status === 'live';
+      const domain   = f.domain ? f.domain : '—';
+      const liveUrl  = f.domain && f.domainVerified ? 'https://' + f.domain
+        : `https://execution-os-xi.vercel.app/api/funnel?fid=${f.id}&uid=${f.ownerUid||''}`;
+      const pubDate  = f.publishedAt ? new Date(f.publishedAt).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'2-digit'}) : '—';
+
+      return `<tr>
+        <td style="font-weight:700;color:var(--white)">${f.name || 'Untitled'}</td>
+        <td style="font-size:11px;color:var(--dim)">${f.ownerName || f.ownerEmail || '—'}</td>
+        <td><span style="font-size:10px;background:rgba(255,255,255,.05);border-radius:4px;padding:2px 7px;color:var(--dim)">${(f.type||'funnel').replace('-',' ')}</span></td>
+        <td style="font-size:11px;color:var(--teal)">${domain}</td>
+        <td>${isLive ? '<span style="font-size:10px;background:rgba(78,204,163,.1);color:var(--teal);border:1px solid rgba(78,204,163,.2);padding:2px 8px;border-radius:20px;font-weight:700">🟢 Live</span>' : '<span style="font-size:10px;background:rgba(255,255,255,.05);color:var(--dim);border:1px solid var(--border2);padding:2px 8px;border-radius:20px;font-weight:700">⚪ Draft</span>'}</td>
+        <td style="font-weight:700;color:var(--white)">${views.toLocaleString()}</td>
+        <td style="font-weight:700;color:var(--teal)">${leads.toLocaleString()}</td>
+        <td style="font-weight:700;color:var(--gold)">${conv}</td>
+        <td style="font-size:11px;color:var(--dim)">${pubDate}</td>
+      </tr>`;
+    }).join('');
+
+  } catch(e) {
+    console.error('Load funnels error:', e);
+    if (tbody) tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--red);padding:2rem">Error loading funnels: ${e.message}</td></tr>`;
   }
 }
 
-window.activateUser = async function() {
-  const nameVal  = $('new-name').value.trim();
-  const emailVal = $('new-email').value.trim().toLowerCase();
-  const nicheVal = $('new-niche').value.trim();
-  const dealVal  = $('new-deal').value.trim();
-  const msgEl    = $('activate-msg');
-  const btn      = $('activate-btn');
+window.loadAllFunnels = loadAllFunnels;
 
-  const showMsg = (html, ok) => {
-    msgEl.style.display = 'block';
-    msgEl.style.background = ok ? 'rgba(78,204,163,.08)' : 'rgba(255,91,91,.08)';
-    msgEl.style.border = `1px solid ${ok?'rgba(78,204,163,.25)':'rgba(255,91,91,.25)'}`;
-    msgEl.style.color  = ok ? 'var(--teal)' : 'var(--red)';
-    msgEl.innerHTML = html;
-    if (ok) setTimeout(()=>{ msgEl.style.display='none'; }, 10000);
-  };
+function renderLeadsTable() {
+  const tbody = document.getElementById('fn-leads-tbody');
+  const sub   = document.getElementById('fn-leads-sub');
+  if (!tbody) return;
+  if (sub) sub.textContent = `${allLeads.length} total leads captured`;
 
-  if (!emailVal) { showMsg('⚠️ Please enter an email address.', false); return; }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { showMsg('⚠️ Please enter a valid email address.', false); return; }
-
-  const origText = btn.innerHTML;
-  btn.innerHTML  = '⏳ Creating account…';
-  btn.disabled   = true;
-
-  try {
-    // Step 1: Create Firebase Auth account
-    let authCreated = false;
-    try {
-      await createUserWithEmailAndPassword(auth, emailVal, 'TempPass_'+Math.random().toString(36).slice(2,10)+'!');
-      authCreated = true;
-    } catch(authErr) {
-      if (authErr.code === 'auth/email-already-in-use') {
-        authCreated = false; // Already exists — still proceed
-      } else {
-        showMsg('❌ Could not create account: '+authErr.message, false);
-        btn.innerHTML=origText; btn.disabled=false; return;
-      }
-    }
-
-    // Step 2: Save to Firestore members collection
-    const safeEmail = emailVal.replace(/[^a-z0-9]/g,'-');
-    const memberData = {
-      name:         nameVal || emailVal.split('@')[0],
-      email:        emailVal,
-      appMode:      selectedMode,
-      niche:        nicheVal,
-      dealValue:    dealVal,
-      grantedAt:    new Date().toISOString(),
-      grantedBy:    auth.currentUser?.email || 'admin',
-      active:       true,
-      accessGranted:true,
-    };
-    await setDoc(doc(db,'members',safeEmail), memberData, { merge:true });
-
-    // Step 3: Save to users collection (so app.html picks up mode on first login)
-    await setDoc(doc(db,'users',safeEmail), {
-      name:          memberData.name,
-      email:         emailVal,
-      appMode:       selectedMode,
-      accessGranted: true,
-      createdAt:     new Date().toISOString(),
-    }, { merge:true });
-
-    // Step 4: Send password reset (so user can set their own password)
-    btn.innerHTML = '📧 Sending login email…';
-    try {
-      await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FB_API_KEY}`,
-        { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ requestType:'PASSWORD_RESET', email:emailVal }) }
-      );
-    } catch(e) { console.warn('Password reset warning:', e.message); }
-
-    // Step 5: Send welcome email — IMMEDIATELY, with retry
-    btn.innerHTML = '📨 Sending welcome email…';
-    const emailResult = await sendWelcomeEmail(memberData.name, emailVal, selectedMode);
-
-    // Step 6: Clear form
-    ['new-name','new-email','new-niche','new-deal'].forEach(id=>{ const el=$(id); if(el)el.value=''; });
-
-    const modeLabel = selectedMode==='expert' ? '🎯 Expert Mode' : '🔗 Affiliate Mode';
-    if (emailResult.ok) {
-      showMsg(`✅ <strong>${memberData.name}</strong> activated as <strong>${modeLabel}</strong> and welcome email sent to <strong>${emailVal}</strong>.`, true);
-    } else {
-      showMsg(`✅ <strong>${memberData.name}</strong> activated as <strong>${modeLabel}</strong>.<br>⚠️ Welcome email failed to send automatically. <a href="mailto:${emailVal}" style="color:var(--gold);font-weight:700">Send manually →</a> or share their login link: <strong style="color:var(--white)">https://build.skillslibry.com/app.html</strong>`, true);
-    }
-
-    // Reload members list
-    await loadAllData();
-
-  } catch(e) {
-    showMsg('❌ Error: '+(e.message||'Unknown error'), false);
-  } finally {
-    btn.innerHTML = origText;
-    btn.disabled  = false;
+  if (!allLeads.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">No leads yet. Leads are captured from grow.html opt-in and member funnels.</td></tr>';
+    return;
   }
+
+  tbody.innerHTML = allLeads.map(l => {
+    const isMember  = allMembers.some(m => (m.email||'').toLowerCase() === (l.email||'').toLowerCase());
+    const date      = l.createdAt ? new Date(l.createdAt).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) : (l.date || '—');
+    const source    = l.funnelId ? 'Member Funnel' : 'grow.html';
+    const page      = l.funnelId ? (l.pageId || 'landing') : 'grow.html';
+    const member    = l.uid ? (allMembers.find(m => m.id === l.uid || m.email === l.uid)?.name || l.uid.substring(0,8) + '…') : 'Your page';
+
+    return `<tr>
+      <td style="color:var(--white);font-weight:600">${l.email || '—'}</td>
+      <td>${l.name || '—'}</td>
+      <td><span style="font-size:10px;background:${source === 'grow.html' ? 'rgba(78,204,163,.08)' : 'rgba(108,99,255,.08)'};color:${source === 'grow.html' ? 'var(--teal)' : '#a089ff'};border:1px solid ${source === 'grow.html' ? 'rgba(78,204,163,.2)' : 'rgba(108,99,255,.2)'};padding:2px 8px;border-radius:20px;font-weight:700">${source}</span></td>
+      <td style="font-size:11px;color:var(--dim)">${page}</td>
+      <td style="font-size:11px;color:var(--dim)">${member}</td>
+      <td style="font-size:11px;color:var(--dim)">${date}</td>
+      <td>${isMember ? '<span style="font-size:10px;background:rgba(78,204,163,.08);color:var(--teal);border:1px solid rgba(78,204,163,.2);padding:2px 8px;border-radius:20px;font-weight:700">✅ Member</span>' : '<span style="font-size:10px;background:rgba(255,140,66,.08);color:var(--orange);border:1px solid rgba(255,140,66,.2);padding:2px 8px;border-radius:20px;font-weight:700">⏳ Lead</span>'}</td>
+    </tr>`;
+  }).join('');
+}
+
+window.exportAllLeads = function() {
+  if (!allLeads.length) { alert('No leads to export.'); return; }
+  const rows = [['Email','Name','Source','Funnel/Page','Date']];
+  allLeads.forEach(l => rows.push([l.email||'', l.name||'', l.funnelId?'Member Funnel':'grow.html', l.pageId||'landing', l.createdAt?new Date(l.createdAt).toLocaleDateString():(l.date||'')]));
+  const csv = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const a = document.createElement('a'); a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv); a.download = 'eos-all-leads.csv'; a.click();
+};
+
+const sectionMeta = {
+  overview:{title:'Dashboard Overview',sub:'Real-time data from your Execution OS platform'},
+  access:{title:'Access Management',sub:'Activate users — choose their mode — they receive an automatic welcome email instantly'},
+  revenue:{title:'Revenue Analytics',sub:'Subscription revenue, MRR, ARR and deal tracking'},
+  traffic:{title:'Traffic & Leads',sub:'Visitors, signups, and conversion rates'},
+  users:{title:'All Users',sub:'Manage and view all your platform users'},
+  activity:{title:'Live Activity',sub:'Real-time user actions and events'},
+  geo:{title:'Geography & Countries',sub:'Where your users are in the world'},
+  emails:{title:'Email Contacts',sub:'All captured emails for outreach and marketing'},
+  funnels:{title:'Funnels & Analytics',sub:'Page visits to grow.html, all published funnels, leads captured and conversion rates'},
+  tracker:{title:'User Tracker Data',sub:'Daily tracker activity and revenue generated by users'},
+};
+
+window.showSection = function(name, el) {
+  document.querySelectorAll('[id^="section-"]').forEach(s => s.style.display = 'none');
+  const sec = document.getElementById('section-' + name);
+  if (sec) sec.style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('on'));
+  if (el) el.classList.add('on');
+  const meta = sectionMeta[name] || {};
+  document.getElementById('section-title').textContent = meta.title || name;
+  document.getElementById('section-sub').textContent   = meta.sub   || '';
+  if (name === 'access')  loadMembers();
+  if (name === 'funnels') { renderFunnelsOverview(); loadAllFunnels(); }
+};
+
+window.setPeriod = function(period, el) {
+  currentPeriod = period;
+  document.querySelectorAll('.stab').forEach(t => t.classList.remove('on'));
+  if (el) el.classList.add('on');
+  renderOverview();
+};
+
+window.doAdminLogout = async function() {
+  await signOut(auth);
+  window.location.href = 'index.html';
 };
 
 async function loadMembers() {
-  const snap = await getDocs(collection(db,'members'));
-  allMembers = []; snap.forEach(d=>allMembers.push({id:d.id,...d.data()}));
-  allMembers.sort((a,b)=>new Date(b.grantedAt||0)-new Date(a.grantedAt||0));
-  renderMembersTable(allMembers);
-  $('sb-members-count').textContent = allMembers.length;
+  try {
+    const snap = await getDocs(collection(db, 'members'));
+    allMembers = [];
+    snap.forEach(d => allMembers.push({ id: d.id, ...d.data() }));
+    allMembers.sort((a, b) => new Date(b.grantedAt||0) - new Date(a.grantedAt||0));
+    renderMembers(allMembers);
+  } catch(e) {
+    document.getElementById('members-tbody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:2rem">Error loading members</td></tr>';
+  }
 }
 
-function renderMembersTable(list) {
-  const lbl = $('members-count-lbl');
-  if (lbl) lbl.textContent = `${list.length} active member${list.length!==1?'s':''}`;
-  const tbody = $('members-tbody');
+function renderMembers(list) {
+  const lbl = document.getElementById('members-count-lbl');
+  if (lbl) lbl.textContent = list.length + ' active member' + (list.length !== 1 ? 's' : '');
+  const tbody = document.getElementById('members-tbody');
   if (!list.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">No members yet — activate one above.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">No members yet — add one above.</td></tr>';
     return;
   }
-  tbody.innerHTML = list.map(m=>{
-    const email    = m.email || m.id.replace(/-/g,'.');
-    const safeName = (m.name||email||'').replace(/'/g,"\\'");
-    const safeEmail= email.replace(/'/g,"\\'");
-    const isExpert = (m.appMode||'affiliate') === 'expert';
-    const newMode  = isExpert ? 'affiliate' : 'expert';
-    const newLabel = isExpert ? '🔗 Affiliate' : '🎯 Expert';
-    return `<tr>
-      <td class="td-name">${m.name||'—'}${m.niche?`<div style="font-size:10px;color:var(--dim);font-weight:500;margin-top:2px">${m.niche}</div>`:''}</td>
+  tbody.innerHTML = list.map(m => {
+    const email      = m.email || m.id.replace(/-/g,'.');
+    const safeName   = (m.name||email||'').replace(/'/g,'\'');
+    const safeEmail  = email.replace(/'/g,'\'');
+    const isExpert   = (m.appMode || 'affiliate') === 'expert';
+    const newMode    = isExpert ? 'affiliate' : 'expert';
+    const newModeLabel = isExpert ? '🔗 Affiliate' : '🎯 Expert';
+    return `
+    <tr>
+      <td class="td-name">${m.name || '—'}</td>
       <td class="td-email">${email}</td>
-      <td>${modeChip(m.appMode||'affiliate')}</td>
-      <td style="font-size:11px;color:var(--dim)">${m.niche||'—'}</td>
-      <td style="font-size:11px;color:var(--dim)">${m.grantedAt?new Date(m.grantedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):'—'}</td>
-      <td style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
-        <button class="act-btn" onclick="resendWelcome('${safeEmail}','${safeName}')" style="border-color:rgba(78,204,163,.3);background:rgba(78,204,163,.06);color:var(--teal)">📧 Resend Email</button>
-        <button class="act-btn" onclick="resetPassword('${safeEmail}','${safeName}')" style="border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.06);color:var(--gold)">🔑 Reset PW</button>
-        <button class="act-btn" onclick="changeMode('${m.id}','${safeEmail}','${safeName}','${newMode}')" style="border-color:rgba(108,99,255,.3);background:rgba(108,99,255,.06);color:#a089ff">⇄ ${newLabel}</button>
-        <button class="act-btn" onclick="revokeAccess('${m.id}','${safeName}')" style="border-color:rgba(255,91,91,.3);background:rgba(255,91,91,.06);color:var(--red)">🚫 Revoke</button>
+      <td>${modeChip(m.appMode)}</td>
+      <td style="color:var(--dim)">${m.niche || '—'}</td>
+      <td style="color:var(--dim)">${m.grantedAt ? new Date(m.grantedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <button onclick="resendPassword('${safeEmail}','${safeName}')"
+          title="Send password reset email"
+          style="font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid rgba(78,204,163,.3);background:rgba(78,204,163,.08);color:var(--teal)">
+          📧 Reset PW
+        </button>
+        <button onclick="changeMode('${m.id}','${safeEmail}','${safeName}','${newMode}')"
+          title="Switch to ${newModeLabel}"
+          style="font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.08);color:#a89cff">
+          ⇄ ${newModeLabel}
+        </button>
+        <button onclick="revokeAccess('${m.id}','${safeName}')"
+          title="Revoke access"
+          style="font-size:10px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;border:1px solid rgba(255,107,107,.3);background:rgba(255,107,107,.08);color:var(--red)">
+          🚫 Revoke
+        </button>
       </td>
     </tr>`;
   }).join('');
@@ -1060,95 +954,162 @@ function renderMembersTable(list) {
 
 window.filterMembers = function(q) {
   const lc = q.toLowerCase();
-  renderMembersTable(allMembers.filter(m=>
-    (m.name||'').toLowerCase().includes(lc)||(m.email||m.id||'').toLowerCase().includes(lc)
+  renderMembers(allMembers.filter(m =>
+    (m.name||'').toLowerCase().includes(lc) ||
+    (m.email||m.id||'').toLowerCase().includes(lc)
   ));
 };
 
-// ── Resend welcome email to existing member ──
-window.resendWelcome = async function(email, displayName) {
-  if (!confirm(`Resend welcome email to ${displayName||email}?`)) return;
-  const mode = allMembers.find(m=>(m.email||m.id.replace(/-/g,'.'))=== email)?.appMode || 'affiliate';
-  const result = await sendWelcomeEmail(displayName||email, email, mode);
-  if (result.ok) alert(`✅ Welcome email sent to ${email}`);
-  else alert(`❌ Could not send email: ${result.error||'Unknown error'}\n\nShare their login link manually: https://build.skillslibry.com/app.html`);
+window.activateUser = async function() {
+  const nameVal  = document.getElementById('new-user-name').value.trim();
+  const emailVal = document.getElementById('new-user-email').value.trim().toLowerCase();
+  const msgEl    = document.getElementById('activate-msg');
+  const btn      = document.getElementById('activate-btn');
+
+  const showMsg = (text, ok) => {
+    msgEl.style.display = 'block';
+    msgEl.style.background = ok ? 'rgba(78,204,163,.1)' : 'rgba(255,107,107,.1)';
+    msgEl.style.border = ok ? '1px solid rgba(78,204,163,.3)' : '1px solid rgba(255,107,107,.3)';
+    msgEl.style.color  = ok ? 'var(--teal)' : 'var(--red)';
+    msgEl.innerHTML = text;
+    setTimeout(() => { msgEl.style.display = 'none'; }, 8000);
+  };
+
+  if (!emailVal) { showMsg('⚠️ Please enter an email address.', false); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) { showMsg('⚠️ Please enter a valid email.', false); return; }
+
+  const origText = btn.textContent;
+  btn.textContent = '⏳ Creating account…';
+  btn.disabled = true;
+
+  try {
+    const tempPassword = 'TempPass_' + Math.random().toString(36).slice(2, 10) + '!';
+    try {
+      await createUserWithEmailAndPassword(auth, emailVal, tempPassword);
+    } catch(authErr) {
+      if (authErr.code !== 'auth/email-already-in-use') {
+        showMsg('❌ Could not create account: ' + authErr.message, false);
+        btn.textContent = origText; btn.disabled = false;
+        return;
+      }
+    }
+
+    const safeEmail = emailVal.replace(/[^a-z0-9]/g, '-');
+    await setDoc(doc(db, 'members', safeEmail), {
+      name:          nameVal || emailVal.split('@')[0],
+      email:         emailVal,
+      appMode:       selectedUserMode,
+      grantedAt:     new Date().toISOString(),
+      grantedBy:     auth.currentUser?.email || 'admin',
+      niche:         '',
+      active:        true,
+      accessGranted: true
+    }, { merge: true });
+
+    // Also write to users collection so app.html picks up the mode on first login
+    await setDoc(doc(db, 'users', safeEmail), {
+      name:         nameVal || emailVal.split('@')[0],
+      email:        emailVal,
+      appMode:      selectedUserMode,
+      accessGranted:true,
+      createdAt:    new Date().toISOString()
+    }, { merge: true });
+
+    btn.textContent = '📧 Sending login email…';
+    // REST API reset — bypasses SDK api-key-not-valid error
+    const resetRes = await fetch(
+      'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0',
+      { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ requestType:'PASSWORD_RESET', email: emailVal }) }
+    );
+    if (!resetRes.ok) console.warn('Reset email warning:', await resetRes.text());
+
+    let emailSent = false;
+    try {
+      const res = await fetch(WELCOME_EMAIL_API, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameVal || emailVal.split('@')[0], email: emailVal, mode: selectedUserMode })
+      });
+      const data = await res.json();
+      emailSent = res.ok && data.success;
+    } catch(e) { console.warn('Email failed:', e.message); }
+
+    document.getElementById('new-user-name').value  = '';
+    document.getElementById('new-user-email').value = '';
+
+    const modeLabel = selectedUserMode === 'expert' ? '🎯 Expert Mode' : '🔗 Affiliate Mode';
+    showMsg(
+      emailSent
+        ? `✅ <strong>${nameVal||emailVal}</strong> activated as <strong>${modeLabel}</strong>! Welcome email sent to <strong>${emailVal}</strong>.`
+        : `✅ <strong>${nameVal||emailVal}</strong> activated as <strong>${modeLabel}</strong>! ⚠️ Welcome email failed — send them: <strong>https://build.skillslibry.com/app.html</strong>`,
+      true
+    );
+
+    await loadMembers();
+  } catch(e) {
+    showMsg('❌ Error: ' + (e.message || 'Unknown error'), false);
+  } finally {
+    btn.textContent = origText;
+    btn.disabled = false;
+  }
 };
 
-// ── Reset password ──
-window.resetPassword = async function(email, displayName) {
-  if (!confirm(`Send password reset email to ${displayName||email}?`)) return;
+// ── RESEND PASSWORD RESET (Admin only) ───────────────────────────────────
+window.resendPassword = async function(email, displayName) {
+  if (!confirm('Send password reset email to ' + (displayName||email) + '?')) return;
   try {
     const res = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${FB_API_KEY}`,
+      'https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0',
       { method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ requestType:'PASSWORD_RESET', email }) }
+        body: JSON.stringify({ requestType:'PASSWORD_RESET', email: email }) }
     );
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message||'Failed');
-    alert(`✅ Password reset email sent to ${email}`);
-  } catch(e) { alert(`❌ Could not send reset email: ${e.message}`); }
+    if (!res.ok) throw new Error(data.error?.message || 'Failed');
+    alert('✅ Password reset email sent to ' + email);
+  } catch(e) {
+    alert('❌ Could not send reset email: ' + e.message);
+  }
 };
 
-// ── Change mode ──
+// ── CHANGE USER MODE (Admin only) ────────────────────────────────────────
 window.changeMode = async function(docId, email, displayName, newMode) {
-  const label = newMode==='expert' ? '🎯 Expert Mode' : '🔗 Affiliate Mode';
-  if (!confirm(`Switch ${displayName||email} to ${label}?\n\nThis takes effect on their next login.`)) return;
+  const label = newMode === 'expert' ? '🎯 Expert Mode' : '🔗 Affiliate Mode';
+  if (!confirm('Switch ' + (displayName||email) + ' to ' + label + '?\n\nThis will update their dashboard immediately on next login.')) return;
   try {
-    await setDoc(doc(db,'members',docId), { appMode:newMode }, { merge:true });
-    const safeId = email.replace(/[^a-z0-9]/g,'-');
-    await setDoc(doc(db,'users',safeId), { appMode:newMode }, { merge:true });
-    alert(`✅ ${displayName||email} switched to ${label}`);
-    await loadAllData();
-  } catch(e) { alert('❌ Could not change mode: '+(e.message||'Unknown error')); }
+    // Update members collection
+    await setDoc(doc(db, 'members', docId), { appMode: newMode }, { merge: true });
+
+    // Update users collection (keyed by sanitized email — same ID format)
+    const safeId = email.replace(/[^a-z0-9]/g, '-');
+    await setDoc(doc(db, 'users', safeId), { appMode: newMode }, { merge: true });
+
+    // Show inline feedback
+    const tbody = document.getElementById('members-tbody');
+    const rows  = tbody ? tbody.querySelectorAll('tr') : [];
+    rows.forEach(row => {
+      if (row.textContent.includes(email)) {
+        row.style.background = 'rgba(78,204,163,.08)';
+        setTimeout(() => { row.style.background = ''; }, 2000);
+      }
+    });
+
+    alert('✅ ' + (displayName||email) + ' switched to ' + label + '!\n\nThey will see the new dashboard on their next login.');
+    await loadMembers();
+  } catch(e) {
+    alert('❌ Could not change mode: ' + (e.message||'Unknown error'));
+  }
 };
 
-// ── Revoke access ──
 window.revokeAccess = async function(docId, displayName) {
-  if (!confirm(`Revoke access for ${displayName||docId}?\n\nThis removes them from the members list. Their Firebase Auth account stays active.`)) return;
+  if (!confirm(`Revoke access for ${displayName || docId}?`)) return;
   try {
-    await deleteDoc(doc(db,'members',docId));
-    await loadAllData();
-  } catch(e) { alert('Error: '+(e.message||'Unknown error')); }
+    await deleteDoc(doc(db, 'members', docId));
+    await loadMembers();
+  } catch(e) { alert('Error: ' + (e.message||'Unknown error')); }
 };
 
-// ── NAVIGATION ────────────────────────────────────────────────────────────────
-const sectionMeta = {
-  overview: {title:'Dashboard Overview',   sub:'Real-time data from your Execution OS platform'},
-  revenue:  {title:'Revenue Analytics',    sub:'MRR, ARR, deal tracking and plan breakdown'},
-  traffic:  {title:'Traffic & Leads',      sub:'Visitors, email captures and conversion rates'},
-  access:   {title:'Access Management',    sub:'Add members, choose their mode, send welcome emails'},
-  users:    {title:'All Users',            sub:'Everyone who has signed in to the platform'},
-  activity: {title:'Live Activity Feed',   sub:'Recent member activations and actions'},
-  geo:      {title:'Geography & Countries',sub:'Where your members are in the world'},
-  emails:   {title:'Email Leads',          sub:'Opt-in captures from your grow.html page'},
-  tracker:  {title:'Member Tracker Data',  sub:'Daily activity and revenue logged by members'},
-};
-
-window.showSection = function(name, el) {
-  document.querySelectorAll('[id^="section-"]').forEach(s=>s.style.display='none');
-  const sec = $('section-'+name); if (sec) sec.style.display='block';
-  document.querySelectorAll('.sb-item').forEach(n=>n.classList.remove('on'));
-  if (el) el.classList.add('on');
-  const meta = sectionMeta[name]||{};
-  $('section-title').textContent = meta.title||name;
-  $('section-sub').textContent   = meta.sub||'';
-  if (name==='access') { loadMembers(); }
-  // Close mobile sidebar
-  document.getElementById('sidebar').classList.remove('open');
-};
-
-window.setPeriod = function(period, el) {
-  document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('on'));
-  if (el) el.classList.add('on');
-  renderOverview();
-};
-
-window.doAdminLogout = async function() {
-  await signOut(auth); window.location.href='index.html';
-};
-
-// Auto-refresh every 60s
-setInterval(()=>{ if(document.visibilityState==='visible') loadAllData(); }, 60000);
+setInterval(() => { if (document.visibilityState === 'visible') loadAllData(); }, 60000);
 </script>
 </body>
 </html>
