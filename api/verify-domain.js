@@ -1,8 +1,8 @@
 // api/verify-domain.js
-// 1. Checks DNS is pointing to Vercel
-// 2. Automatically adds the domain to the Vercel project (no manual step needed)
-// 3. Saves domain→funnel mapping to Firestore
-// 4. Returns full status so the dashboard can show the member what's happening
+// 1. Checks DNS pointing to Vercel
+// 2. Adds domain to Vercel project via API
+// 3. Adds explicit rewrite rule to vercel.json via GitHub API (auto-deploys)
+// 4. Saves domain→funnel mapping to Firestore
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -14,157 +14,170 @@ module.exports = async function handler(req, res) {
   const { domain, funnelId, uid } = req.body || {};
   if (!domain) return res.status(400).json({ error: 'Missing domain' });
 
-  const cleanDomain = domain
-    .replace(/https?:\/\//, '')
-    .replace(/\/$/, '')
-    .toLowerCase()
-    .trim();
+  const cleanDomain = domain.replace(/https?:\/\//, '').replace(/\/$/, '').toLowerCase().trim();
 
   const VERCEL_TOKEN      = process.env.VERCEL_TOKEN;
   const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
+  const GITHUB_TOKEN      = process.env.GITHUB_TOKEN;
+  const GITHUB_REPO       = process.env.GITHUB_REPO || 'itzevanse-stack/execution-os';
 
   const result = {
-    domain:        cleanDomain,
-    dnsOk:         false,
-    vercelOk:      false,
-    firestoreOk:   false,
-    verified:      false,
-    reason:        '',
-    instructions:  [],
-    funnelUrl:     null,
+    domain:      cleanDomain,
+    dnsOk:       false,
+    vercelOk:    false,
+    routingOk:   false,
+    firestoreOk: false,
+    verified:    false,
+    reason:      '',
+    funnelUrl:   null,
   };
 
   // ── STEP 1: Check DNS ────────────────────────────────────────────────────────
   try {
     const [cnameRes, aRes] = await Promise.all([
-      fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=CNAME`, {
-        headers: { Accept: 'application/json' }
-      }),
-      fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=A`, {
-        headers: { Accept: 'application/json' }
-      }),
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=CNAME`, { headers: { Accept: 'application/json' } }),
+      fetch(`https://dns.google/resolve?name=${encodeURIComponent(cleanDomain)}&type=A`,     { headers: { Accept: 'application/json' } }),
     ]);
-
     const cnameData = await cnameRes.json();
     const aData     = await aRes.json();
     const answers   = [...(cnameData.Answer || []), ...(aData.Answer || [])];
-
-    const vercelTargets = [
-      'cname.vercel-dns.com',
-      'vercel-dns.com',
-      '76.76.21.21',
-      '76.76.21.9',
-    ];
-
-    result.dnsOk = answers.some(a =>
-      vercelTargets.some(t => (a.data || '').toLowerCase().includes(t))
-    );
-
-    result.dnsRecords = answers.map(a => a.data).filter(Boolean);
-  } catch(e) {
-    result.dnsError = e.message;
-  }
+    const targets   = ['cname.vercel-dns.com', 'vercel-dns.com', '76.76.21.21', '76.76.21.9'];
+    result.dnsOk       = answers.some(a => targets.some(t => (a.data || '').toLowerCase().includes(t)));
+    result.dnsRecords  = answers.map(a => a.data).filter(Boolean);
+  } catch(e) { result.dnsError = e.message; }
 
   if (!result.dnsOk) {
-    result.reason = 'DNS not pointing to Vercel yet. Add a CNAME record pointing to cname.vercel-dns.com in your domain registrar. This can take up to 24 hours.';
-    result.instructions = [
-      'Log in to your domain registrar (Namecheap, GoDaddy, Hostinger, etc.)',
-      'Go to DNS Management / Advanced DNS',
-      `Add a CNAME record: Name = ${cleanDomain.split('.').length > 2 ? cleanDomain.split('.')[0] : 'www'}, Value = cname.vercel-dns.com`,
-      'Save and wait 5–30 minutes, then click Verify again',
-    ];
+    result.reason = 'DNS not pointing to Vercel yet. Add a CNAME record: Name = ' + (cleanDomain.split('.').length > 2 ? cleanDomain.split('.')[0] : 'www') + ', Value = cname.vercel-dns.com. This can take up to 24 hours.';
     return res.status(200).json(result);
   }
 
-  // ── STEP 2: Auto-add domain to Vercel project (no manual work for admin) ────
+  // ── STEP 2: Add domain to Vercel project ─────────────────────────────────────
   if (VERCEL_TOKEN && VERCEL_PROJECT_ID) {
     try {
-      // Check if domain already exists in Vercel
       const checkRes = await fetch(
         `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${cleanDomain}`,
         { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
       );
-
       if (checkRes.status === 404) {
-        // Domain not in Vercel yet — add it automatically
         const addRes = await fetch(
           `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains`,
           {
             method: 'POST',
-            headers: {
-              Authorization:  `Bearer ${VERCEL_TOKEN}`,
-              'Content-Type': 'application/json',
-            },
+            headers: { Authorization: `Bearer ${VERCEL_TOKEN}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: cleanDomain }),
           }
         );
-        const addData = await addRes.json();
-        result.vercelOk = addRes.ok || addData.name === cleanDomain;
-        result.vercelAdded = addRes.ok;
-      } else if (checkRes.ok) {
-        // Already in Vercel
+        result.vercelOk = addRes.ok;
+      } else {
         result.vercelOk = true;
-        result.vercelAdded = false; // already existed
       }
-    } catch(e) {
-      result.vercelError = e.message;
-      // Don't fail — DNS is good, Vercel might already have it
-      result.vercelOk = true;
-    }
+    } catch(e) { result.vercelError = e.message; result.vercelOk = true; }
   } else {
-    // No Vercel token — skip (domain may already be in Vercel manually)
-    result.vercelOk    = true;
-    result.vercelNote  = 'VERCEL_TOKEN not set — add it in Vercel environment variables to enable auto domain connection';
+    result.vercelOk   = true;
+    result.vercelNote = 'VERCEL_TOKEN not set';
   }
 
-  // ── STEP 3: Save domain→funnel mapping to Firestore ─────────────────────────
+  // ── STEP 3: Add rewrite rule to vercel.json via GitHub API ───────────────────
+  // This is the KEY step — adds an explicit routing rule so the domain loads the funnel
+  if (GITHUB_TOKEN) {
+    try {
+      // Fetch current vercel.json
+      const fileRes = await fetch(
+        `https://api.github.com/repos/${GITHUB_REPO}/contents/vercel.json`,
+        { headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' } }
+      );
+      const fileData = await fileRes.json();
+      const currentContent = JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
+
+      // Check if rule already exists
+      const alreadyExists = (currentContent.rewrites || []).some(r =>
+        r.has && r.has.some(h => h.type === 'host' && h.value && h.value.includes(cleanDomain.replace(/\./g, '\\.')))
+      );
+
+      if (!alreadyExists) {
+        // Insert new domain rule before catch-all rules, after clean URL rewrites
+        const newRule = {
+          source:      '/:path*',
+          has:         [{ type: 'host', value: cleanDomain.replace(/\./g, '\\.') }],
+          destination: '/api/funnel',
+        };
+
+        // Find insertion point — after last non-domain rewrite
+        const rewrites = currentContent.rewrites || [];
+        const insertIdx = rewrites.findIndex(r => r.has && r.has.some(h => h.type === 'host'));
+        if (insertIdx >= 0) {
+          rewrites.splice(insertIdx, 0, newRule);
+        } else {
+          rewrites.push(newRule);
+        }
+        currentContent.rewrites = rewrites;
+
+        const newContent = Buffer.from(JSON.stringify(currentContent, null, 2)).toString('base64');
+
+        const updateRes = await fetch(
+          `https://api.github.com/repos/${GITHUB_REPO}/contents/vercel.json`,
+          {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${GITHUB_TOKEN}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: `Add domain routing: ${cleanDomain}`,
+              content: newContent,
+              sha:     fileData.sha,
+            }),
+          }
+        );
+        result.routingOk = updateRes.ok;
+        if (updateRes.ok) {
+          result.routingNote = 'Rewrite rule added to vercel.json — Vercel is redeploying automatically (takes ~30 seconds)';
+        } else {
+          const err = await updateRes.json();
+          result.routingError = err.message || 'GitHub update failed';
+        }
+      } else {
+        result.routingOk   = true;
+        result.routingNote = 'Routing rule already exists';
+      }
+    } catch(e) {
+      result.routingError = e.message;
+      result.routingOk    = false;
+    }
+  } else {
+    result.routingOk   = false;
+    result.routingNote = 'GITHUB_TOKEN not set — add it to Vercel env vars to enable auto-routing';
+  }
+
+  // ── STEP 4: Save domain→funnel mapping to Firestore ─────────────────────────
   if (funnelId && uid) {
     try {
       const { initializeApp, getApps, cert } = require('firebase-admin/app');
       const { getFirestore }                  = require('firebase-admin/firestore');
-
       if (!getApps().length) {
-        initializeApp({
-          credential: cert({
-            projectId:   process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
-          }),
-        });
+        initializeApp({ credential: cert({
+          projectId:   process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+        })});
       }
-
       const db = getFirestore();
       await db.collection('domain-map').doc(cleanDomain).set({
-        domain:     cleanDomain,
-        funnelId,
-        uid,
+        domain: cleanDomain, funnelId, uid,
         verifiedAt: new Date().toISOString(),
-        dnsOk:      result.dnsOk,
-        vercelOk:   result.vercelOk,
+        dnsOk: result.dnsOk, vercelOk: result.vercelOk, routingOk: result.routingOk,
       });
-
-      // Also update the funnel doc itself
       await db.collection('users').doc(uid).collection('funnels').doc(funnelId)
         .set({ domain: cleanDomain, domainVerified: true }, { merge: true });
-
       result.firestoreOk = true;
-    } catch(e) {
-      result.firestoreError = e.message;
-    }
+    } catch(e) { result.firestoreError = e.message; }
   }
 
-  // ── STEP 4: Build final status ───────────────────────────────────────────────
-  result.verified = result.dnsOk && result.vercelOk;
-  result.funnelUrl = result.verified
-    ? `https://${cleanDomain}`
-    : `https://execution-os-xi.vercel.app/api/funnel?fid=${funnelId}&uid=${uid}`;
+  // ── FINAL STATUS ─────────────────────────────────────────────────────────────
+  result.verified  = result.dnsOk && result.vercelOk;
+  result.funnelUrl = `https://${cleanDomain}`;
 
-  if (result.verified) {
-    result.reason = result.vercelAdded
-      ? `Domain verified and connected automatically. ${cleanDomain} is now live.`
-      : `Domain verified. ${cleanDomain} is live.`;
-  } else {
-    result.reason = 'DNS confirmed but Vercel connection failed. Contact support.';
+  if (result.verified && result.routingOk) {
+    result.reason = 'Domain fully connected. Your funnel will be live at https://' + cleanDomain + ' within 30 seconds as Vercel redeploys.';
+  } else if (result.verified && !result.routingOk) {
+    result.reason = 'DNS verified and Vercel connected. ' + (result.routingNote || result.routingError || 'Add GITHUB_TOKEN to env vars for full auto-routing.');
   }
 
   return res.status(200).json(result);
