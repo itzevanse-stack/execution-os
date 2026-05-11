@@ -23,7 +23,7 @@ module.exports = async function handler(req, res) {
 
     let funnelId = req.query.fid || req.query.funnel_id;
     let uid      = req.query.uid;
-    let pageId   = req.query.page || 'landing';
+    let pageId   = req.query.page || null; // null = use first page in funnel
 
     // Look up by domain — try both with and without www
     if (!funnelId) {
@@ -72,9 +72,28 @@ module.exports = async function handler(req, res) {
       return res.status(200).send(errorPage('This funnel is not live yet. Publish it from your Execution OS dashboard first.'));
     }
 
-    const pages  = funnelData.pages || {};
-    const pageKeys = Object.keys(pages);
-    const page   = pages[pageId] || pages[pageKeys[0]];
+    const pages     = funnelData.pages || {};
+    const pageOrder = funnelData.pageOrder || Object.keys(pages);
+    const pagePaths = funnelData.pagePaths || {};
+
+    // Resolve page by URL path first (e.g. /thank-you → thank-you page)
+    if (!pageId || !pages[pageId]) {
+      const reqPath = ('/' + (req.url || '').split('?')[0].replace(/^\//, '')).toLowerCase().replace(/\/+$/, '') || '/';
+
+      // Check if URL path matches any saved page path
+      const matchedId = Object.keys(pagePaths).find(function(id) {
+        const p = (pagePaths[id] || '').toLowerCase().replace(/\/+$/, '') || '/';
+        return p === reqPath;
+      });
+
+      if (matchedId && pages[matchedId]) {
+        pageId = matchedId;
+      } else {
+        // Default to first page
+        pageId = pageOrder[0] || Object.keys(pages)[0];
+      }
+    }
+    const page = pages[pageId];
 
     if (!page || !page.html) {
       return res.status(404).send(errorPage('Page not found in this funnel.'));
