@@ -16570,7 +16570,10 @@ window.setAppMode = function(mode) {
   if (ob) ob.style.display = 'none';
 
   // ── Navigate to correct starting point ───────────────────────────────
-  if (isAffiliate) {
+  // Only navigate to dashboard if there is no saved page to restore
+  const _savedPageCheck = localStorage.getItem('eos_last_page');
+  const _skipDashboard  = _savedPageCheck && _savedPageCheck !== 'dashboard';
+  if (isAffiliate && !_skipDashboard) {
     const hasOffer = window._affiliateOffer && window._affiliateOffer.name;
     window.showPage('dashboard', document.getElementById('nav-dashboard'));
   }
@@ -16589,8 +16592,12 @@ window.setMode = window.setAppMode;
 // Apply mode and show dashboard as soon as DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
   document.body.classList.add('affiliate-mode');
-  const dashNav = document.getElementById('nav-dashboard');
-  if (dashNav) dashNav.classList.add('on');
+  // Only highlight dashboard nav if no saved page exists
+  const _earlyLastPage = localStorage.getItem('eos_last_page');
+  if (!_earlyLastPage || _earlyLastPage === 'dashboard') {
+    const dashNav = document.getElementById('nav-dashboard');
+    if (dashNav) dashNav.classList.add('on');
+  }
   // Apply nav immediately using saved mode — don't wait for Firebase auth
   const earlyMode = localStorage.getItem('eos_app_mode') || 'affiliate';
   if (window.setAppMode) {
@@ -19285,7 +19292,7 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
       + '4. Modal inner card: dark background, rounded, max-width 420px, padding 32px, centered\n'
       + '5. Modal contains: X close button (top right), benefit headline, Name input (id=\"ln\" placeholder=\"Your first name\"), Email input (id=\"le\" placeholder=\"Your best email\"), Submit button\n'
       + '6. Close button: document.getElementById(\'lead-modal\').style.display=\'none\'\n'
-      + '7. Submit button onclick: (function(){ var n=document.getElementById(\'ln\').value.trim(); var e=document.getElementById(\'le\').value.trim(); if(!e){alert(\'Please enter your email\');return;} fetch(\'https://execution-os-xi.vercel.app/api/funnel-lead\',{method:\'POST\',headers:{\'Content-Type\':\'application/json\'},body:JSON.stringify({name:n,email:e,source:\'landing\',funnelId:\'\'+window.location.search})}).catch(function(){}); window.location.href=\'' + (offerUrl || 'https://build.skillslibry.com/grow') + '\'; })()\n'
+      + '7. Submit button onclick: (function(){ var n=document.getElementById(\'ln\').value.trim(); var e=document.getElementById(\'le\').value.trim(); if(!e||!e.includes(\'@\')){alert(\'Please enter a valid email address\');return;} var btn=event.target;btn.textContent=\'Sending…\';btn.disabled=true; if(window.captureEOSLead){window.captureEOSLead(e,n);} setTimeout(function(){window.location.href=\'' + (offerUrl || 'https://build.skillslibry.com/grow') + '\';},400); })()\n'
       + '8. Return ONLY the complete HTML. No placeholders. No explanations.\n\n') : '')
 
     + '═══════════════════════════════════════════\n'
