@@ -110,7 +110,61 @@ module.exports = async function handler(req, res) {
     } catch(e) { /* non-critical */ }
 
     // Inject lead tracking
-    const tracking = `<script>(function(){document.querySelectorAll('form').forEach(function(f){f.addEventListener('submit',function(){var d={funnelId:'${funnelId}',uid:'${uid||''}',pageId:'${pageId}',ts:Date.now()};var e=f.querySelector('[type=email]');var n=f.querySelector('[type=text],[name=name]');if(e)d.email=e.value;if(n)d.name=n.value;fetch('https://execution-os-xi.vercel.app/api/funnel-lead',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(d)}).catch(function(){});});});})();</script>`;
+    const tracking = `<script>
+(function(){
+  var _fid='${funnelId}';
+  var _uid='${uid||''}';
+  var _pid='${pageId}';
+  var _api='https://execution-os-xi.vercel.app/api/funnel-lead';
+
+  // Global function so popup onclick can call it directly
+  window.captureEOSLead = function(email, name) {
+    if (!email || !email.includes('@')) return false;
+    fetch(_api, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({funnelId:_fid, uid:_uid, pageId:_pid, email:email, name:name||'', source:'funnel', ts:Date.now()})
+    }).catch(function(){});
+    return true;
+  };
+
+  // Listen to any real form submits
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    var emailEl = form.querySelector('[type=email],[name=email],[id=le],[id=lead-email],[placeholder*=email i]');
+    var nameEl  = form.querySelector('[type=text],[name=name],[id=ln],[id=lead-name],[placeholder*=name i]');
+    if (emailEl && emailEl.value) {
+      window.captureEOSLead(emailEl.value.trim(), nameEl ? nameEl.value.trim() : '');
+    }
+  });
+
+  // Also watch for clicks on submit/CTA buttons inside modal
+  document.addEventListener('click', function(e) {
+    var btn = e.target;
+    if (!btn || !btn.tagName) return;
+    var tag = btn.tagName.toLowerCase();
+    if (tag !== 'button' && tag !== 'input' && tag !== 'a') return;
+    var txt = (btn.textContent || btn.value || '').toLowerCase();
+    var isSubmit = btn.type === 'submit' || /get.*(access|started|free)|submit|join|sign.?up|subscribe/i.test(txt);
+    if (!isSubmit) return;
+    // Find closest email input in the same container
+    var container = btn.closest('form') || btn.closest('[id*=modal]') || btn.closest('[id*=popup]') || btn.parentElement;
+    if (!container) return;
+    var emailEl = container.querySelector('[type=email],[name=email],[id=le],[id=lead-email]');
+    var nameEl  = container.querySelector('[type=text],[name=name],[id=ln],[id=lead-name]');
+    if (emailEl && emailEl.value && emailEl.value.includes('@')) {
+      window.captureEOSLead(emailEl.value.trim(), nameEl ? nameEl.value.trim() : '');
+    }
+  });
+
+  // Track page view
+  fetch(_api.replace('funnel-lead','funnel-view'), {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({funnelId:_fid, uid:_uid, pageId:_pid})
+  }).catch(function(){});
+})();
+</script>`;
 
     let html = page.html;
     html = html.includes('</body>') ? html.replace('</body>', tracking + '</body>') : html + tracking;
