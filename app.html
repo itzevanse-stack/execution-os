@@ -19054,15 +19054,56 @@ async function fbGenerateFunnel() {
 };
 
 function fbGetPagesForType(type) {
-  const map = {
-    lead:      [{ id:'landing', label:'Landing Page' }],
-    sales:     [{ id:'landing', label:'Landing Page' }, { id:'sales', label:'Sales Page' }, { id:'checkout', label:'Checkout' }, { id:'thankyou', label:'Thank You' }],
-    bridge:    [{ id:'bridge', label:'Bridge Page' }, { id:'presell', label:'Pre-Sell Page' }],
-    vsl:       [{ id:'vsl', label:'VSL Page' }, { id:'order', label:'Order Page' }],
-    webinar:   [{ id:'register', label:'Registration' }, { id:'confirm', label:'Confirmation' }],
-    tripwire:  [{ id:'tripwire', label:'Tripwire Page' }, { id:'upsell', label:'Upsell Page' }, { id:'thankyou', label:'Thank You' }],
+  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+
+  var expertMap = {
+    // VSL for experts = Opt-in → Watch Training → Book Call. NEVER show price upfront.
+    vsl:      [
+      { id:'optin',   label:'Opt-In Page'      },  // Collect name + email to access free training
+      { id:'vsl',     label:'VSL / Training'   },  // Video + book a call CTA below fold
+      { id:'booking', label:'Booking Page'     },  // Calendly embed or application form
+    ],
+    // Lead magnet — grow list before selling
+    lead:     [
+      { id:'optin',   label:'Opt-In Page'      },  // Collect email for lead magnet
+      { id:'thankyou',label:'Delivery Page'    },  // Deliver the lead magnet + introduce offer
+    ],
+    // Webinar — sell the event, then sell from stage
+    webinar:  [
+      { id:'register', label:'Registration'   },  // Register for free live training
+      { id:'confirm',  label:'Confirmation'   },  // Confirm + get them to show up
+      { id:'replay',   label:'Replay Page'    },  // Replay for no-shows
+    ],
+    // Application / Strategy Call — for premium high-ticket ($3k+)
+    sales:    [
+      { id:'landing',  label:'Landing Page'   },  // Strong positioning, no price
+      { id:'apply',    label:'Application'    },  // Qualify them before you talk
+      { id:'confirm',  label:'Confirmation'   },  // Book confirmed, next steps
+    ],
+    // Tripwire — low-ticket entry, then upsell
+    tripwire: [
+      { id:'tripwire', label:'Offer Page'     },
+      { id:'upsell',   label:'Upsell'         },
+      { id:'thankyou', label:'Thank You'      },
+    ],
+    // Bridge for expert content — warm up cold traffic
+    bridge:   [
+      { id:'bridge',   label:'Bridge Page'    },
+      { id:'presell',  label:'Pre-Sell Page'  },
+    ],
   };
-  return map[type] || [{ id:'landing', label:'Landing Page' }];
+
+  var affiliateMap = {
+    lead:     [{ id:'landing', label:'Landing Page' }],
+    sales:    [{ id:'landing', label:'Landing Page' }, { id:'sales', label:'Sales Page' }, { id:'checkout', label:'Checkout' }, { id:'thankyou', label:'Thank You' }],
+    bridge:   [{ id:'bridge',  label:'Bridge Page'  }, { id:'presell', label:'Pre-Sell Page' }],
+    vsl:      [{ id:'vsl',     label:'VSL Page'     }, { id:'order',   label:'Order Page'    }],
+    webinar:  [{ id:'register',label:'Registration' }, { id:'confirm', label:'Confirmation'  }],
+    tripwire: [{ id:'tripwire',label:'Tripwire Page'}, { id:'upsell',  label:'Upsell'        }, { id:'thankyou', label:'Thank You' }],
+  };
+
+  var map = isAffiliate ? affiliateMap : expertMap;
+  return map[type] || [{ id:'optin', label:'Opt-In Page' }];
 }
 
 async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
@@ -19119,198 +19160,287 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
   var voiceExample     = voiceProfile.example ? voiceProfile.example.substring(0, 400) : '';
 
   // ── PAGE STRATEGY ──────────────────────────────────────────────────────────
-  var pageStrategies = {
-    landing:  {
-      goal: 'Capture the opt-in. One job. One button. Visitor clicks, popup appears, they enter name + email, they get redirected to the offer. Clean, fast, zero friction.',
-      sections: 'STRUCTURE: 1) Animated ticker bar scrolling 3 benefits. 2) Full-screen dark hero: bold gradient headline (teal-to-gold highlight on key phrase), one sharp subheadline naming the audience pain, 3 benefit pills in a row, ONE large CTA button centered. 3) Social proof strip (3 short result lines). 4) What you get section (3 icon cards). 5) Urgency footer line. POPUP SYSTEM (critical): The CTA button opens a modal overlay. The modal has: close X button, a benefit headline, Name input, Email input, Submit button. On submit: preventDefault, show loading state, POST to funnel-lead API, then redirect to offer URL. Modal must be smooth and premium looking.',
-      cta: 'Get Free Access Now'
-    },
-    sales: {
-      goal: 'Long-form sales letter that takes a cold reader from skepticism to buying. Every section earns the next scroll.',
-      sections: 'Ticker bar, attention-grabbing headline (pattern interrupt), opening story that mirrors their exact situation, pain agitation section (make the problem feel real and urgent), the awakening (when I realised...), introduce the solution, what you get (full benefit stack with icons), who this is for, proof section (results, testimonials quotes), price reveal with anchoring (show value vs cost), 30-day guarantee, urgent CTA, FAQ section (handle every objection)',
-      cta: 'Yes, I Want This Now'
-    },
-    bridge: {
-      goal: 'Warm up affiliate traffic emotionally before sending them to the merchant. Must feel like a personal recommendation from a trusted friend, not an ad.',
-      sections: 'Short attention headline, personal story opening (I was exactly where you are...), the discovery (what changed for me), 3 specific things I noticed about this product, why I recommend it over everything else I have tried, what you will find on the other side, bridge CTA that goes to: ' + (offerUrl || 'the merchant page'),
-      cta: 'See What Changed Everything For Me'
-    },
-    presell: {
-      goal: 'Build desire and belief before the offer. The reader should be leaning forward by the end.',
-      sections: 'Curiosity headline (do not name the product yet), story-led opening, the problem most people do not see, the shift that changes everything, 3 key insights that reframe their thinking, tease the solution, CTA',
-      cta: 'Show Me The Solution'
-    },
-    checkout: {
-      goal: 'Eliminate buyer hesitation and complete the sale with zero friction.',
-      sections: 'Order summary with what they are getting, value stack (show everything included with retail prices crossed out), secure order form (name, email, card placeholder), 30-day money-back guarantee badge, what happens after purchase (next steps), trust badges',
-      cta: 'Complete My Order'
-    },
-    thankyou: {
-      goal: 'Confirm purchase, celebrate them, and prime them for the next step.',
-      sections: 'Celebration hero, confirmation message, 3 clear next steps numbered, access button, optional: introduce an upgrade or community',
-      cta: 'Access My Purchase'
+  // ── Expert vs Affiliate page strategies ──────────────────────────────────────
+  var expertStrategies = {
+    optin: {
+      goal: 'Collect name and email in exchange for a FREE high-value training or resource. The visitor must feel: "I need this right now." NEVER show pricing. NEVER mention the paid offer. Sell access to the free training only.',
+      sections: 'STRUCTURE: 1) Ticker with 3 benefit scrolls. 2) Hero: bold pattern-interrupt headline promising a specific FREE training/resource (use "Free Training:", "Free Masterclass:", "Free Guide:"), subheadline names the specific transformation they will learn, 3 bullet outcomes they will get from the training, ONE big CTA button "Get Free Access". 3) Brief credibility line (who the host is, one result). 4) POPUP (same as landing): CTA opens modal with Name + Email fields, on submit: captureEOSLead then redirect to VSL/video page. NO PRICE anywhere.',
+      cta: 'Get Free Access Now',
+      expertNote: 'This is a lead capture page for a FREE training. No pricing, no selling the paid offer — just collect the lead.'
     },
     vsl: {
-      goal: 'Hold attention above the fold and convert below it. Video does the selling.',
-      sections: 'Pre-headline hook (before you watch this...), video player placeholder with play button, "Watch before we take this down" urgency, 3 bullets visible below video that tease what they will see, CTA section below fold',
-      cta: 'Get Instant Access'
+      goal: 'The prospect just opted in. Now they watch a video that builds massive desire and ends with a CTA to book a call. The video is your sales conversation. Below the fold, there is ONE action: book a call.',
+      sections: 'STRUCTURE: 1) "You\'re In!" confirmation headline + first name personalisation. 2) Urgency line: "Watch This Short Training Before It Comes Down". 3) Video player (dark card, 16:9 ratio, pulsing play button, view count: "Watch with 847 others"). 4) Below-the-fold CTA section (only visible after scrolling): short recap of what they just learned, transformation statement, ONE bold button "Book Your Free Strategy Call". 5) Objection killer: 3 short lines under the button handling "I am not sure if this is for me" type hesitation. NO price on this page.',
+      cta: 'Book Your Free Strategy Call',
+      expertNote: 'Video page. Below the fold CTA books a call — never shows price.'
     },
-    order: {
-      goal: 'Clean, fast, frictionless order form.',
-      sections: 'Order summary, price, name/email/card form, security badges, guarantee',
-      cta: 'Complete Order Now'
+    booking: {
+      goal: 'They watched the video. Now they need to book a call with the expert. Simple, clean, fast. Remove every possible piece of friction. Build one final layer of excitement about the call.',
+      sections: 'STRUCTURE: 1) "One Last Step" headline. 2) 3-line reminder of what they will get on the call (audit their situation, show them the exact plan, answer all their questions). 3) Calendly embed placeholder div (id="calendly-placeholder", with instructions to embed Calendly). 4) Below embed: 3 reassurance bullets (no pressure, no selling, just a conversation). 5) Social proof: one short quote about working with the expert.',
+      cta: 'Confirm Your Spot',
+      expertNote: 'Booking page. Embed Calendly here. No price shown.'
+    },
+    apply: {
+      goal: 'Premium high-ticket application. They want to work with you — now they need to qualify themselves. This page should feel exclusive. Not everyone gets accepted.',
+      sections: 'Headline: "Apply to Work With [Name]". Brief intro paragraph (1-2 sentences about who this is for). Application form with 5-6 questions: Name, Email, Current situation (where are you now), Desired outcome (where do you want to be), What have you tried, Investment readiness (are you ready to invest in yourself). Submit button: "Submit My Application". Thank you message below form explaining what happens next (will review in 24-48 hours, schedule a call).',
+      cta: 'Submit My Application',
+      expertNote: 'Application page. Qualifies leads before a call. Makes acceptance feel exclusive.'
+    },
+    replay: {
+      goal: 'Catch the no-shows from the webinar. Urgency: replay is going down. Same conversion goal as the live — get them to book a call or buy.',
+      sections: '"You Missed It Live — Watch The Replay Before It\'s Gone" headline, urgency countdown (replay down in 48 hours), video player, CTA to book a call or take the offer',
+      cta: 'Watch The Replay Now'
     },
     register: {
-      goal: 'Register for a live or recorded training. Sell the event like a product.',
-      sections: 'Webinar headline with clear promise, host credibility line, what you will discover (3-5 bullet outcomes), date and time display, registration form, urgency (limited seats / replay not guaranteed)',
+      goal: 'Register for a FREE live masterclass/training. Sell the event like a product — specific promise, specific transformation, specific date.',
+      sections: 'Headline: "Free Live Masterclass: [Specific Promise]" by [Expert Name]. Subheadline with the specific transformation. Date + time (use actual date if available, or placeholder). 3-5 bullet outcomes they will learn. Registration form (name + email). "Reserve My Free Seat" button. Note: Limited seats / live only.',
       cta: 'Reserve My Free Seat'
     },
     confirm: {
-      goal: 'Confirm registration and prime them to show up.',
-      sections: 'Confirmation hero, webinar details, what to prepare before joining, add to calendar buttons, share CTA',
+      goal: 'Confirm their registration and get them excited and committed to showing up.',
+      sections: '"You\'re In! Check Your Email" hero. What to expect email (check inbox, add to calendar). Details: date, time, join link placeholder. 3 things to prepare/think about before the training. Share with friends CTA. Optional: introduce a free bonus for showing up early.',
       cta: 'Add to Calendar'
     },
+    landing: {
+      goal: 'Strong positioning page for a premium offer or coaching program. No price, no order form. One action: apply or book a call.',
+      sections: 'Bold headline targeting specific transformation. Subheadline with credibility. Pain agitation section (make the problem real). The solution intro (what you do and how it works). Who this is for (specific avatar). Results/proof section (3 client outcomes, no specific names needed). What happens when you work together (the process, 3-4 steps). One CTA: "Apply Now" or "Book a Free Call".',
+      cta: 'Apply Now'
+    },
+    sales: {
+      goal: 'Long-form sales letter for a lower-ticket digital product ($47-$997). This one does show the price and includes a buy button.',
+      sections: 'Pattern-interrupt headline, story opening, pain agitation, solution reveal, what you get (full benefit stack), who this is for, proof section, price reveal with anchoring, guarantee, urgent CTA, FAQ',
+      cta: 'Yes, I Want This Now'
+    },
+    thankyou: {
+      goal: 'Confirm the opt-in or purchase and prime for the next step.',
+      sections: 'Celebration hero ("You\'re In!"), what happens next (3 numbered steps), primary CTA to next page, optional bonus or community link',
+      cta: 'Watch The Training Now'
+    },
     tripwire: {
-      goal: 'Irresistible low-ticket offer that converts cold traffic. Must feel like a steal.',
-      sections: 'Ticker bar, headline focused on the specific quick win, what you get (be ultra specific), value stack with original prices, price reveal (discounted, time-limited), CTA, guarantee',
+      goal: 'Low-ticket irresistible offer ($7-$47). Converts cold traffic. Must feel like a steal.',
+      sections: 'Ticker, specific quick-win headline, what you get, value stack with prices crossed out, price reveal, CTA, 30-day guarantee',
       cta: 'Get It Now'
     },
     upsell: {
-      goal: 'One-time upgrade offer immediately after purchase. They already said yes — give them more.',
-      sections: 'Congratulations opener, what they are missing without the upgrade, what the upgrade includes (bullet stack), one-time price (emphasise never again), yes/no buttons',
-      cta: 'Yes, Upgrade My Order'
+      goal: 'One-time upgrade immediately after purchase.',
+      sections: 'Congratulations opener, the gap they still have, what the upgrade solves, one-time price, yes/no buttons',
+      cta: 'Yes, Add This'
     },
   };
 
-  var cfg = pageStrategies[page.id] || pageStrategies.landing;
+  // Affiliate strategies (unchanged — these already work well)
+  var affiliateStrategies = {
+    landing: {
+      goal: 'Capture the opt-in. One job. One button. Popup collects name + email then redirects to offer.',
+      sections: 'Ticker bar, hero with gradient headline, subheadline naming the audience pain, 3 benefit pills, ONE CTA button. POPUP: Name + Email + Submit → captureEOSLead() → redirect to affiliate URL. Social proof strip. What you get (3 cards). Urgency footer.',
+      cta: 'Get Free Access Now'
+    },
+    sales: {
+      goal: 'Long-form sales letter from skepticism to purchase.',
+      sections: 'Ticker, pattern interrupt headline, story opening, pain agitation, solution reveal, what you get, proof, price reveal, guarantee, CTA, FAQ',
+      cta: 'Yes, I Want This Now'
+    },
+    bridge: {
+      goal: 'Warm up affiliate traffic as a trusted friend recommendation before sending to merchant.',
+      sections: 'Attention headline, personal story (I was exactly where you are), discovery of this product, 3 specific things that stood out, why recommend it, CTA to merchant',
+      cta: 'See What Changed Everything'
+    },
+    presell: {
+      goal: 'Build desire and belief before naming the offer.',
+      sections: 'Curiosity headline, story-led opening, the problem most miss, the shift, 3 insights, tease the solution, CTA',
+      cta: 'Show Me The Solution'
+    },
+    vsl: {
+      goal: 'Hold attention above fold, convert below. Video does the selling.',
+      sections: 'Pre-headline hook, video player with play button, urgency line, 3 teaser bullets, CTA below fold',
+      cta: 'Get Instant Access'
+    },
+    order: {
+      goal: 'Clean frictionless order form.',
+      sections: 'Order summary, value stack, name/email/card form, guarantee badge, next steps',
+      cta: 'Complete My Order'
+    },
+    register: {
+      goal: 'Register for free training to warm up before affiliate offer.',
+      sections: 'Webinar headline with clear promise, host credibility, 3-5 outcome bullets, date/time, registration form, urgency',
+      cta: 'Reserve My Free Seat'
+    },
+    confirm: {
+      goal: 'Confirm registration and build excitement.',
+      sections: 'Confirmation hero, event details, what to prepare, add to calendar',
+      cta: 'Add to Calendar'
+    },
+    tripwire: {
+      goal: 'Low-ticket irresistible entry offer.',
+      sections: 'Ticker, specific quick-win headline, what you get, value stack, price reveal, CTA, guarantee',
+      cta: 'Get It Now'
+    },
+    upsell: {
+      goal: 'One-time upgrade after purchase.',
+      sections: 'Congratulations, the gap, upgrade offer, one-time price, yes/no',
+      cta: 'Yes, Add This'
+    },
+    checkout: {
+      goal: 'Eliminate friction and complete the sale.',
+      sections: 'Order summary, value stack, secure form, guarantee, next steps',
+      cta: 'Complete My Order'
+    },
+    thankyou: {
+      goal: 'Confirm purchase and prime for next step.',
+      sections: 'Celebration hero, confirmation, 3 next steps, access button',
+      cta: 'Access My Purchase'
+    },
+  };
 
-  // ── BUILD THE PROMPT ────────────────────────────────────────────────────────
-  var prompt = 'You are simultaneously a world-class conversion strategist, a top 1% direct-response copywriter, and a premium UI/UX designer.\n\n'
-    + 'Your task: Build the highest-converting ' + page.label + ' ever created for this specific business. Not a template. A precision instrument built around this exact offer and audience.\n\n'
+  var pageStrategies = isAffiliate ? affiliateStrategies : expertStrategies;
+  var cfg = pageStrategies[page.id] || (isAffiliate ? affiliateStrategies.landing : expertStrategies.optin);
+
+    var cfg = pageStrategies[page.id] || pageStrategies.landing;
+
+  // ── BUILD THE PROMPT ─────────────────────────────────────────────────────────
+  var expertNote = cfg.expertNote ? '\nSTRATEGIC NOTE: ' + cfg.expertNote + '\n' : '';
+
+  var prompt = isAffiliate
+  // ════════════════════════════════════════════════════════════════════════════
+  // AFFILIATE PROMPT
+  // ════════════════════════════════════════════════════════════════════════════
+  ? ('You are a world-class conversion copywriter and funnel designer.\n\n'
+    + 'Build the highest-converting ' + page.label + ' ever created for this affiliate business.\n\n'
+    + '== AFFILIATE PROFILE ==\n'
+    + 'Product: ' + offerName + '\n'
+    + (offerTagline  ? 'Tagline: ' + offerTagline + '\n' : '')
+    + (monthComm     ? 'Commission: $' + monthComm + '/sale\n' : '')
+    + (offerUrl      ? 'Affiliate URL: ' + offerUrl + '\n' : '')
+    + (niche         ? 'Niche: ' + niche + '\n' : '')
+    + (monthTarget   ? 'Monthly target: $' + monthTarget + '\n' : '')
+    + '\n== TARGET AUDIENCE ==\n'
+    + (avJob         ? 'Who they are: ' + avJob + '\n' : '')
+    + (avPain        ? 'Their pain: ' + avPain + '\n' : '')
+    + (avDesire      ? 'What they want: ' + avDesire + '\n' : '')
+    + (avFear        ? 'Their fear: ' + avFear + '\n' : '')
+    + (avObjctn      ? 'Objections: ' + avObjctn + '\n' : '')
+    + (avKeywords    ? 'Their language: ' + avKeywords + '\n' : '')
+    + '\n== PAGE TO BUILD ==\n'
+    + 'Type: ' + page.label + '\n'
+    + 'Goal: ' + cfg.goal + '\n'
+    + 'Sections: ' + cfg.sections + '\n'
+    + 'CTA: ' + cfg.cta + '\n\n'
+    + (page.id === 'landing' ? ('POPUP OPT-IN RULES:\n'
+      + '1. NO inline form. CTA button opens popup: document.getElementById(\'lead-modal\').style.display=\'flex\'\n'
+      + '2. Modal id="lead-modal", display:none, position:fixed, full overlay\n'
+      + '3. Modal contains: close X, benefit headline, id="ln" (name), id="le" (email), submit button\n'
+      + '4. Submit: var n=document.getElementById(\'ln\').value;var e=document.getElementById(\'le\').value;if(!e||!e.includes(\'@\')){alert(\'Enter your email\');return;}if(window.captureEOSLead)window.captureEOSLead(e,n);setTimeout(function(){window.location.href=\'' + (offerUrl||'https://build.skillslibry.com/grow') + '\';},400);\n\n') : '')
+    + '== DESIGN SYSTEM ==\n'
+    + 'Background: #06060f | Cards: #0d0d1e border rgba(78,204,163,0.15) radius 16px\n'
+    + 'Primary: #4ecca3 (teal) | Gold: #f0c040 | Purple: #6c63ff | White: #fff | Body: #c8cde8\n'
+    + 'Font: Poppins (Google Fonts, 400-900)\n'
+    + 'H1: weight 900, clamp(30px,5.5vw,62px), letter-spacing -2px\n'
+    + 'Gradient headline: background linear-gradient(100deg,#4ecca3,#f0c040), -webkit-background-clip text, -webkit-text-fill-color transparent\n'
+    + 'Buttons: background linear-gradient(135deg,#4ecca3,#38b48e), color #06060f, font-weight 800, padding 18px 40px, box-shadow 0 0 50px rgba(78,204,163,.4)\n'
+    + 'Ticker: overflow:hidden, animation scrolls text left continuously with @keyframes\n'
+    + 'Max-width: 1100px, mobile responsive with @media(max-width:768px)\n\n'
+    + 'Return complete standalone HTML from <!DOCTYPE html> to </html>. All CSS in one <style> block. No JavaScript frameworks. Return ONLY raw HTML.')
+
+  // ════════════════════════════════════════════════════════════════════════════
+  // EXPERT PROMPT — High-ticket coaching/consulting
+  // ════════════════════════════════════════════════════════════════════════════
+  : ('You are the world\'s best high-ticket funnel strategist and direct-response copywriter.\n'
+    + 'You have built funnels for Russell Brunson, Alex Hormozi, Tony Robbins, Grant Cardone.\n'
+    + 'You understand that high-ticket experts NEVER show price in their funnels until the sales call.\n'
+    + 'You understand the psychology of premium positioning, authority, and desire.\n\n'
+
+    + 'BUILD THIS PAGE: ' + page.label + '\n'
+    + expertNote + '\n'
 
     + '═══════════════════════════════════════════\n'
-    + 'COMPLETE BUSINESS PROFILE — READ EVERY LINE\n'
+    + 'THIS EXPERT\'S COMPLETE PROFILE — USE EVERY DETAIL\n'
     + '═══════════════════════════════════════════\n'
-    + 'Mode: ' + (isAffiliate ? 'AFFILIATE MARKETER' : 'PRODUCT OWNER') + '\n'
-    + 'Niche: ' + nicheReal + '\n'
-    + 'Offer name: ' + offerName + '\n'
-    + (offerTagline ? 'Offer tagline: ' + offerTagline + '\n' : '')
-    + (offerPrice ? 'Price / Commission: $' + offerPrice + '\n' : '')
-    + (offerUrl ? 'Product URL (affiliate): ' + offerUrl + '\n' : '')
-    + (offerPlatform ? 'Platform: ' + offerPlatform + '\n' : '')
-    + (offerBenefits ? 'Product benefits: ' + offerBenefits + '\n' : '')
-    + 'Monthly income target: ' + monthlyTarget + '\n\n'
-
-    + 'TARGET AUDIENCE:\n'
-    + 'Who they are: ' + audienceName + '\n'
-    + (audienceAge ? 'Age: ' + audienceAge + '\n' : '')
-    + (audienceLocation ? 'Location: ' + audienceLocation + '\n' : '')
-    + (audienceIncome ? 'Current income: ' + audienceIncome + '\n' : '')
-    + (personality ? 'Personality: ' + personality + '\n' : '')
-    + (influences ? 'Who they follow: ' + influences + '\n' : '')
-    + (keywords ? 'Language they use: ' + keywords + '\n' : '')
+    + (niche        ? 'Niche: ' + niche + '\n' : 'Niche: NOT SET — use generic business coaching\n')
+    + (offerName    ? 'Programme/Offer name: ' + offerName + '\n' : '')
+    + (monthPrice   ? 'Investment level: $' + monthPrice + ' (NEVER show this on the page — discussed on the call)\n' : '')
+    + (monthTarget  ? 'Monthly revenue target: $' + monthTarget + '\n' : '')
+    + (salesNeeded  ? 'Clients needed this month: ' + salesNeeded + '\n' : '')
     + '\n'
 
-    + 'PSYCHOGRAPHIC PROFILE:\n'
-    + 'Surface pain: ' + painPoint + '\n'
-    + 'Deeper fear: ' + deeperPain + '\n'
-    + 'What they want: ' + transformation + '\n'
-    + 'What they fear most: ' + fear + '\n'
-    + 'Their objections: ' + objections + '\n'
-    + 'What they have already tried: ' + tried + '\n'
-    + (motivation ? 'What motivates them: ' + motivation + '\n' : '')
+    + '── IDEAL CLIENT ──\n'
+    + (avJob        ? 'Who they are: ' + avJob + '\n' : '')
+    + (avPain       ? 'Surface-level pain: ' + avPain + '\n' : '')
+    + (avDesire     ? 'What they deeply want: ' + avDesire + '\n' : '')
+    + (avFear       ? 'Their deepest fear: ' + avFear + '\n' : '')
+    + (avTried      ? 'What they\'ve already tried: ' + avTried + '\n' : '')
+    + (avObjctn     ? 'Common objections: ' + avObjctn + '\n' : '')
+    + (avMotiv      ? 'What motivates them: ' + avMotiv + '\n' : '')
+    + (avKeywords   ? 'Exact language they use: ' + avKeywords + '\n' : '')
     + '\n'
 
-    + (voiceTone || voiceStyle || voiceExample ? '═══════════════════════════════════════════\nCREATOR VOICE PROFILE — MATCH THIS EXACTLY\n═══════════════════════════════════════════\n'
-    + (voiceTone   ? 'Tone: ' + voiceTone + '\n' : '')
-    + (voiceStyle  ? 'Style: ' + voiceStyle + '\n' : '')
-    + (voiceWords  ? 'Phrases they always use: ' + voiceWords + '\n' : '')
-    + (voiceAvoid  ? 'NEVER use these words or phrases: ' + voiceAvoid + '\n' : '')
-    + (voiceStory  ? 'Their story: ' + voiceStory + '\n' : '')
-    + (voiceMethod ? 'Their method/framework: ' + voiceMethod + '\n' : '')
-    + (voiceExample ? 'Match this exact voice:\n' + voiceExample + '\n' : '')
-    + '\n' : '')
+    + (voiceTone || voiceStory || voiceExample ? '── EXPERT\'S VOICE ──\n'
+      + (voiceTone    ? 'Tone: ' + voiceTone + '\n' : '')
+      + (voiceStory   ? 'Their story: ' + voiceStory + '\n' : '')
+      + (voiceMethod  ? 'Their method/framework: ' + voiceMethod + '\n' : '')
+      + (voiceExample ? 'Match this voice:\n' + voiceExample + '\n' : '')
+      + '\n' : '')
 
     + '═══════════════════════════════════════════\n'
     + 'PAGE STRATEGY\n'
     + '═══════════════════════════════════════════\n'
-    + 'Page type: ' + page.label + '\n'
     + 'Goal: ' + cfg.goal + '\n'
-    + 'Primary CTA: ' + cfg.cta + '\n'
-    + 'Sections to build: ' + cfg.sections + '\n\n'
+    + 'Build: ' + cfg.sections + '\n'
+    + 'Primary CTA: ' + cfg.cta + '\n\n'
 
     + '═══════════════════════════════════════════\n'
-    + 'DESIGN SYSTEM — IMPLEMENT EXACTLY\n'
+    + 'EXPERT COPYWRITING RULES — NON-NEGOTIABLE\n'
     + '═══════════════════════════════════════════\n'
-    + 'Background: #06060f everywhere\n'
-    + 'Card background: #0d0d1e with border 1px solid rgba(78,204,163,0.15) and border-radius 16px\n'
-    + 'Section alternating: #111128\n'
-    + 'Primary accent: #4ecca3 (teal)\n'
-    + 'Gradient accent end: #38b48e\n'
-    + 'Gold: #f0c040 (urgency, prices, badges)\n'
-    + 'Purple: #6c63ff (tags, subtle highlights)\n'
-    + 'White: #ffffff (headlines)\n'
-    + 'Body text: #c8cde8\n'
-    + 'Muted: #7a7a9d\n\n'
-    + 'Font: Poppins from Google Fonts (400,600,700,800,900)\n'
-    + 'H1: weight 900, size clamp(30px,5.5vw,62px), letter-spacing -2px, color white, line-height 1.1\n'
-    + 'H2: weight 800, size clamp(22px,3.5vw,40px), letter-spacing -1px\n'
-    + 'Body: size 16px, line-height 1.8, color #c8cde8\n\n'
-    + 'TICKER BAR: overflow hidden, background rgba(78,204,163,0.06), border-bottom 1px solid rgba(78,204,163,0.15), @keyframes ticker scroll text left, color #4ecca3, font-weight 700\n'
-    + 'HERO: padding 120px 24px 80px, text-align center, radial-gradient(ellipse 80% 60% at 50% 0%, rgba(78,204,163,0.12) 0%, transparent 70%) as background decoration\n'
-    + 'GRADIENT HEADLINE: wrap key phrase in span with background linear-gradient(100deg,#4ecca3,#f0c040), -webkit-background-clip text, -webkit-text-fill-color transparent\n'
-    + 'SECTION LABEL: font-size 11px, font-weight 800, letter-spacing 3px, text-transform uppercase, color #4ecca3, display block, margin-bottom 8px\n'
-    + 'SECTION DIVIDER: height 1px, background linear-gradient(90deg,transparent,rgba(78,204,163,0.3),transparent), margin 60px 0\n'
-    + 'BUTTON: background linear-gradient(135deg,#4ecca3,#38b48e), color #06060f, font-weight 800, text-transform uppercase, letter-spacing 0.5px, padding 18px 40px, border-radius 8px, box-shadow 0 0 50px rgba(78,204,163,0.4), hover transform translateY(-3px)\n'
-    + 'CARDS: background #0d0d1e, border 1px solid rgba(78,204,163,0.15), border-radius 16px, padding 28px, hover transform translateY(-4px)\n'
-    + 'FORM INPUTS: background rgba(255,255,255,0.05), border 1px solid rgba(255,255,255,0.1), border-radius 8px, padding 14px 18px, color white, focus border-color #4ecca3\n'
-    + 'GUARANTEE BADGE: circular or pill shape, border 2px solid #f0c040, color #f0c040\n'
-    + 'PRICE: sale price font-size 42px, font-weight 900, color #4ecca3; original crossed out in #7a7a9d\n'
-    + 'CHECKMARKS: color #4ecca3 before each benefit point\n'
-    + 'TESTIMONIAL CARDS: background #111128, border-left 3px solid #4ecca3, padding 20px 24px\n'
-    + 'Container: max-width 1100px, margin 0 auto, padding 0 24px\n'
+    + '1. NEVER show the price or investment amount. Ever. Price is discussed on the sales call.\n'
+    + '2. NEVER use a buy button, order form, or checkout on a VSL, optin, booking, or apply page.\n'
+    + '3. Position everything as FREE — free training, free strategy call, free masterclass.\n'
+    + '4. The headline should mirror the EXACT words the ideal client uses to describe their problem.\n'
+    + '5. Speak to ONE specific person. "If you are a [job] who [pain]..." not generic language.\n'
+    + '6. Authority is earned through specificity — real numbers, real timeframes, real frameworks.\n'
+    + '7. Every CTA must be low-risk: "book a free call", "watch free training" — not "buy now".\n'
+    + '8. End every section by answering: "So what does this mean for ME specifically?"\n'
+    + '9. Short punchy sentences. One idea per sentence. Then a longer one that builds context.\n'
+    + '10. No hollow phrases: no "game changer", "transform your life", "unlock potential".\n\n'
+
+    + (page.id === 'optin' ? ('OPTIN PAGE SPECIFIC:\n'
+      + '- This is for a FREE training — headline must say "Free Training:", "Free Masterclass:", or "Free Guide:"\n'
+      + '- Name the specific transformation they get FROM THE FREE TRAINING (not from the paid offer)\n'
+      + '- POPUP: CTA opens modal (id="lead-modal"), Name (id="ln"), Email (id="le"), Submit button\n'
+      + '- Submit: if(window.captureEOSLead)window.captureEOSLead(document.getElementById(\'le\').value,document.getElementById(\'ln\').value);setTimeout(function(){window.location.href=\'?page=vsl\';},400);\n\n') : '')
+
+    + (page.id === 'vsl' ? ('VSL PAGE SPECIFIC:\n'
+      + '- Start with "Congratulations, you\'re in!" or "Watch this before it comes down"\n'
+      + '- Video player: dark card, 16:9 aspect ratio, pulsing play button, view counter\n'
+      + '- Below-fold CTA: "Book Your Free Strategy Call" → links to booking page or Calendly\n'
+      + '- NO price. NO order form. The video sells the call, the call sells the programme.\n\n') : '')
+
+    + (page.id === 'booking' ? ('BOOKING PAGE SPECIFIC:\n'
+      + '- "You\'re one step away" headline\n'
+      + '- 3 bullets about what happens on the call (no pitch, just clarity and a plan)\n'
+      + '- Include: <div id="calendly-placeholder" style="min-height:600px;background:rgba(255,255,255,.03);border:1px dashed rgba(78,204,163,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center"><p style="color:#7a7a9d;font-size:14px">📅 Your Calendly booking widget appears here.<br>Go to calendly.com, create your event, then paste the embed code here.</p></div>\n'
+      + '- Reassurance: "No selling, no pressure — just a real conversation about your situation"\n\n') : '')
+
+    + (page.id === 'apply' ? ('APPLICATION PAGE SPECIFIC:\n'
+      + '- Make it feel EXCLUSIVE — not everyone gets accepted\n'
+      + '- Headline: "Apply to Work With [Expert Name/Business Name]"\n'
+      + '- 5 application questions: name/email, current situation, desired outcome, what they\'ve tried, investment readiness\n'
+      + '- Submit goes to: captureEOSLead(email, name) then redirect to confirmation\n\n') : '')
+
+    + '═══════════════════════════════════════════\n'
+    + 'DESIGN — PREMIUM DARK THEME\n'
+    + '═══════════════════════════════════════════\n'
+    + 'Background: #06060f | Section alt: #111128 | Cards: #0d0d1e with border rgba(78,204,163,0.15)\n'
+    + 'Primary: #4ecca3 | Gold: #f0c040 | Purple: #6c63ff | White: #ffffff | Body text: #c8cde8\n'
+    + 'Font: Poppins from Google Fonts (400,600,700,800,900) — import in CSS\n'
+    + 'H1: weight 900, clamp(32px,5.5vw,64px), letter-spacing -2px, line-height 1.1\n'
+    + 'GRADIENT TEXT: background:linear-gradient(100deg,#4ecca3,#f0c040);-webkit-background-clip:text;-webkit-text-fill-color:transparent on key phrase in headline\n'
+    + 'BUTTONS: background:linear-gradient(135deg,#4ecca3,#38b48e);color:#06060f;font-weight:900;padding:18px 48px;border-radius:8px;box-shadow:0 0 60px rgba(78,204,163,.35);font-size:16px;text-transform:uppercase;letter-spacing:.5px\n'
+    + 'HERO: padding:120px 24px 80px;text-align:center;radial gradient decoration at top\n'
+    + 'TICKER: position:fixed top or relative, overflow:hidden, @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}\n'
+    + 'VIDEO PLACEHOLDER: background:#000;border-radius:16px;aspect-ratio:16/9;position:relative with centered play button circle\n'
+    + 'Container: max-width:1100px;margin:0 auto;padding:0 24px\n'
     + 'Mobile: @media(max-width:768px) with clamp sizes, stacked layouts, full-width buttons\n\n'
+    + 'Return complete standalone HTML from <!DOCTYPE html> to </html>. Import Poppins in CSS. All CSS in one <style> block. No JS frameworks. Return ONLY the raw HTML with no backticks or explanation.');
 
-    + '═══════════════════════════════════════════\n'
-    + 'COPYWRITING RULES — NON-NEGOTIABLE\n'
-    + '═══════════════════════════════════════════\n'
-    + '1. Open with THEIR pain or dream. Never the product.\n'
-    + '2. Every headline must use the words they would use to describe their own problem.\n'
-    + '3. Use "you" throughout. Never "our clients" or "people who".\n'
-    + '4. Specificity over vagueness: "$47" not "affordable price". "In 21 days" not "quickly".\n'
-    + '5. Short sentences hit harder. Then a longer one builds context and keeps them reading.\n'
-    + '6. Handle objections before they arise. If they think "this won\'t work for me" — address it.\n'
-    + '7. The CTA is a benefit statement not a command: "Get instant access" not "Submit".\n'
-    + '8. No generic filler: no "game-changer", "transform your life", "unlock your potential".\n'
-    + '9. Use commas not em dashes.\n'
-    + '10. Every section should answer: "so what does this mean for ME right now?"\n\n'
-    + (isAffiliate ? 'AFFILIATE SPECIFIC: You are a trusted friend sharing what worked for you. Personal, honest, specific. Drive to: ' + (offerUrl || 'the product page') + '\n\n' : '')
-    + (page.id === 'landing' ? ('POPUP OPT-IN RULES — MANDATORY FOR LANDING PAGES:\n'
-      + '1. NO inline form anywhere on the page. The CTA button is the only action.\n'
-      + '2. CTA button onclick: document.getElementById(\'lead-modal\').style.display=\'flex\'\n'
-      + '3. Build a full-screen modal overlay with id=\"lead-modal\" style=\"display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;align-items:center;justify-content:center\"\n'
-      + '4. Modal inner card: dark background, rounded, max-width 420px, padding 32px, centered\n'
-      + '5. Modal contains: X close button (top right), benefit headline, Name input (id=\"ln\" placeholder=\"Your first name\"), Email input (id=\"le\" placeholder=\"Your best email\"), Submit button\n'
-      + '6. Close button: document.getElementById(\'lead-modal\').style.display=\'none\'\n'
-      + '7. Submit button onclick: (function(){ var n=document.getElementById(\'ln\').value.trim(); var e=document.getElementById(\'le\').value.trim(); if(!e||!e.includes(\'@\')){alert(\'Please enter a valid email address\');return;} var btn=event.target;btn.textContent=\'Sending…\';btn.disabled=true; if(window.captureEOSLead){window.captureEOSLead(e,n);} setTimeout(function(){window.location.href=\'' + (offerUrl || 'https://build.skillslibry.com/grow') + '\';},400); })()\n'
-      + '8. Return ONLY the complete HTML. No placeholders. No explanations.\n\n') : '')
-
-    + '═══════════════════════════════════════════\n'
-    + 'TECHNICAL BUILD\n'
-    + '═══════════════════════════════════════════\n'
-    + 'Return complete standalone HTML from <!DOCTYPE html> to </html>\n'
-    + 'All CSS in one <style> block in <head>\n'
-    + 'First line of <style>: @import url(\'https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap\');\n'
-    + ':root { define all CSS variables listed above }\n'
-    + 'Ticker @keyframes ticker { from { transform: translateX(0) } to { transform: translateX(-50%) } }\n'
-    + 'All hover transitions: transition all 0.2s ease\n'
-    + 'No JavaScript required\n'
-    + 'Form fields: styled HTML only, no backend\n'
-    + 'Video placeholder: dark div with centered SVG play button\n'
-    + 'Return ONLY raw HTML. Start with <!DOCTYPE html>. No markdown, no backticks, no explanation.\n\n'
-    + 'NOW BUILD: The highest-converting ' + page.label + ' this ' + audienceName + ' audience has ever seen. '
-    + 'Use every data point above. Make it so specific to this offer and this audience that it could not possibly be mistaken for a generic template. '
-    + 'When they read it, they should feel like you read their mind.';
 
   var proxyUrl = window.location.origin + '/api/generate-funnel';
   var resp = await fetch(proxyUrl, {
