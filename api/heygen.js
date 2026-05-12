@@ -1,5 +1,7 @@
 // api/heygen.js — HeyGen video generation backend
-// Keeps the API key server-side, never exposed to the browser
+// Server-side only — API key never exposed to browser
+
+const HEYGEN_BASE = 'https://api.heygen.com';
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -8,167 +10,237 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const HEYGEN_API_KEY = process.env.HEYGEN_API_KEY;
-  if (!HEYGEN_API_KEY) return res.status(500).json({ error: 'HeyGen API key not configured. Add HEYGEN_API_KEY to Vercel environment variables.' });
+  const KEY = process.env.HEYGEN_API_KEY;
+  if (!KEY) return res.status(500).json({ error: 'HEYGEN_API_KEY not set in Vercel environment variables.' });
 
-  const { action, script, avatarId, type, videoId } = req.body || {};
+  const { action } = req.body || {};
 
-  // ── GENERATE VIDEO ────────────────────────────────────────────────────────
-  if (action === 'generate') {
-    if (!script) return res.status(400).json({ error: 'Missing script' });
+  const heygenGet  = (path) => fetch(`${HEYGEN_BASE}${path}`, { headers: { 'X-Api-Key': KEY, 'Accept': 'application/json' } });
+  const heygenPost = (path, body) => fetch(`${HEYGEN_BASE}${path}`, { method: 'POST', headers: { 'X-Api-Key': KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' }, body: JSON.stringify(body) });
 
-    // Choose avatar — use provided ID or fall back to a quality stock avatar
-    const avatar = avatarId
-      ? { avatar_id: avatarId, avatar_type: 'photo' }
-      : { avatar_id: 'josh_lite3_20230714', avatar_type: 'photo' }; // Professional stock avatar
-
-    // Voice — use default English voice
-    const voice = {
-      voice_id: '2d5b0e6cf36f460aa7fc47e3eee4ba54', // English, professional male
-      speed:    1.0,
-    };
-
-    // Format based on type
-    const dimension = type === 'reel'
-      ? { width: 1080, height: 1920 } // 9:16 for Reels/TikTok
-      : { width: 1920, height: 1080 }; // 16:9 for VSL/YouTube
-
+  // ── LIST STOCK AVATARS ─────────────────────────────────────────────────────
+  if (action === 'get-avatars') {
     try {
-      const resp = await fetch('https://api.heygen.com/v2/video/generate', {
-        method: 'POST',
-        headers: {
-          'X-Api-Key':    HEYGEN_API_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          video_inputs: [{
-            character: {
-              type:         'avatar',
-              avatar_id:    avatar.avatar_id,
-              avatar_style: 'normal',
-            },
-            voice: {
-              type:     'text',
-              input_text: script.trim().substring(0, 1500),
-              voice_id:   voice.voice_id,
-              speed:      voice.speed,
-            },
-            background: {
-              type:  'color',
-              value: '#06060f', // Dark background matching Execution OS theme
-            },
-          }],
-          dimension,
-          aspect_ratio: type === 'reel' ? '9:16' : '16:9',
-          test: false,
-        }),
-      });
-
-      const data = await resp.json();
-
-      if (!resp.ok) {
-        console.error('HeyGen generate error:', data);
-        return res.status(resp.status).json({ error: data.message || data.error || 'HeyGen API error' });
-      }
-
-      return res.status(200).json({
-        videoId: data.data?.video_id || data.video_id,
-        status:  'processing',
-      });
-
-    } catch(e) {
-      console.error('HeyGen generate exception:', e.message);
-      return res.status(500).json({ error: e.message });
-    }
+      const r = await heygenGet('/v2/avatars');
+      const d = await r.json();
+      if (!r.ok) return res.status(r.status).json({ error: d.message || 'Failed to fetch avatars' });
+      const avatars = (d.data?.avatars || []).map(a => ({
+        avatar_id:         a.avatar_id,
+        avatar_name:       a.avatar_name,
+        preview_image_url: a.preview_image_url || '',
+        default_voice_id:  a.default_voice?.voice_id || '',
+        gender:            a.gender || '',
+        type:              'stock',
+      }));
+      return res.status(200).json({ avatars });
+    } catch(e) { return res.status(500).json({ error: e.message }); }
   }
 
-  // ── CHECK STATUS ──────────────────────────────────────────────────────────
-  if (action === 'status') {
-    if (!videoId) return res.status(400).json({ error: 'Missing videoId' });
+  // ── CREATE PHOTO AVATAR (photo → talking avatar) ───────────────────────────
+  // User uploads a photo, HeyGen creates an avatar from it
+  if (action === 'create-photo-avatar') {
+    const { imageData, imageName, mimeType, avatarName } = req.body || {};
+    if (!imageData) return res.status(400).json({ error: 'Missing image data' });
 
     try {
-      const resp = await fetch(`https://api.heygen.com/v1/video_status.get?video_id=${encodeURIComponent(videoId)}`, {
-        headers: { 'X-Api-Key': HEYGEN_API_KEY },
-      });
-
-      const data = await resp.json();
-      const info = data.data || {};
-
-      return res.status(200).json({
-        videoId,
-        status:   info.status || 'processing',
-        videoUrl: info.video_url || null,
-        duration: info.duration || null,
-        error:    info.error    || null,
-      });
-
-    } catch(e) {
-      return res.status(500).json({ error: e.message });
-    }
-  }
-
-  // ── LIST AVATARS (for letting users pick) ─────────────────────────────────
-  if (action === 'avatars') {
-    try {
-      const resp = await fetch('https://api.heygen.com/v2/avatars', {
-        headers: { 'X-Api-Key': HEYGEN_API_KEY },
-      });
-      const data = await resp.json();
-      return res.status(200).json({ avatars: data.data?.avatars || [] });
-    } catch(e) {
-      return res.status(500).json({ error: e.message });
-    }
-  }
-
-  // ── CREATE AVATAR from uploaded video ────────────────────────────────────────
-  if (action === 'create-avatar') {
-    const { videoData, fileName, mimeType, uid } = req.body || {};
-    if (!videoData) return res.status(400).json({ error: 'Missing video data' });
-
-    try {
-      // Convert base64 back to buffer
-      const buffer = Buffer.from(videoData, 'base64');
-
-      // Upload video to HeyGen to create Instant Avatar
+      // Upload the image as an asset first
+      const buffer = Buffer.from(imageData, 'base64');
       const FormData = require('form-data');
       const form = new FormData();
-      form.append('video', buffer, { filename: fileName || 'consent.mp4', contentType: mimeType || 'video/mp4' });
+      form.append('file', buffer, { filename: imageName || 'avatar.jpg', contentType: mimeType || 'image/jpeg' });
+      form.append('type', 'image');
 
-      const uploadResp = await fetch('https://api.heygen.com/v2/photo_avatar/video/upload', {
+      const uploadResp = await fetch(`${HEYGEN_BASE}/v1/asset`, {
         method: 'POST',
-        headers: {
-          'X-Api-Key': HEYGEN_API_KEY,
-          ...form.getHeaders(),
-        },
+        headers: { 'X-Api-Key': KEY, ...form.getHeaders() },
         body: form,
       });
-
       const uploadData = await uploadResp.json();
+      if (!uploadResp.ok) return res.status(uploadResp.status).json({ error: uploadData.message || 'Image upload failed' });
 
-      if (!uploadResp.ok) {
-        console.error('HeyGen avatar upload error:', uploadData);
-        return res.status(uploadResp.status).json({ error: uploadData.message || 'Avatar upload failed' });
-      }
+      const imageUrl = uploadData.data?.url || uploadData.url;
+      if (!imageUrl) return res.status(500).json({ error: 'No image URL returned from upload' });
 
-      const avatarId = uploadData.data?.avatar_id || uploadData.avatar_id;
-      const jobId    = uploadData.data?.job_id    || uploadData.job_id || avatarId;
-
-      return res.status(200).json({
-        success:  true,
-        avatarId: avatarId || jobId,
-        jobId:    jobId,
-        status:   'pending',
-        message:  'Avatar creation submitted. Processing takes 24-48 hours.',
+      // Create a talking photo avatar from the uploaded image
+      const createResp = await heygenPost('/v2/photo_avatar', {
+        image_url: imageUrl,
+        name: avatarName || 'My Avatar',
       });
+      const createData = await createResp.json();
+      if (!createResp.ok) return res.status(createResp.status).json({ error: createData.message || 'Photo avatar creation failed' });
 
+      const photoAvatarId = createData.data?.photo_avatar_id || createData.photo_avatar_id;
+      return res.status(200).json({
+        success:       true,
+        photoAvatarId: photoAvatarId,
+        imageUrl:      imageUrl,
+        status:        'ready', // Photo avatars are ready immediately
+        message:       'Photo avatar created successfully.',
+      });
     } catch(e) {
-      console.error('Create avatar error:', e.message);
+      console.error('Photo avatar error:', e.message);
       return res.status(500).json({ error: e.message });
     }
+  }
+
+  // ── GENERATE VIDEO ─────────────────────────────────────────────────────────
+  if (action === 'generate') {
+    const { script, avatarId, photoAvatarId, type } = req.body || {};
+    if (!script) return res.status(400).json({ error: 'Missing script' });
+
+    try {
+      let character;
+      let finalVoiceId = null;
+
+      if (photoAvatarId) {
+        // Generate using a photo avatar (talking photo)
+        character = {
+          type:            'talking_photo',
+          talking_photo_id: photoAvatarId,
+        };
+      } else {
+        // Use stock or personal video avatar
+        let finalAvatarId = avatarId;
+        if (!finalAvatarId) {
+          // Fetch available avatars and use the first one
+          const avR = await heygenGet('/v2/avatars');
+          const avD = await avR.json();
+          const first = (avD.data?.avatars || [])[0];
+          if (!first) return res.status(400).json({ error: 'No avatars available in your HeyGen account.' });
+          finalAvatarId = first.avatar_id;
+          finalVoiceId  = first.default_voice?.voice_id || null;
+        }
+        character = {
+          type:         'avatar',
+          avatar_id:    finalAvatarId,
+          avatar_style: 'normal',
+        };
+      }
+
+      // Get a voice if we don't have one yet
+      if (!finalVoiceId) {
+        const vR = await heygenGet('/v2/voices');
+        const vD = await vR.json();
+        const voices = vD.data?.voices || [];
+        const v = voices.find(v => v.language === 'English' && v.gender === 'male')
+               || voices.find(v => v.language === 'English')
+               || voices[0];
+        if (v) finalVoiceId = v.voice_id;
+      }
+
+      if (!finalVoiceId && !photoAvatarId) {
+        return res.status(400).json({ error: 'No voice available.' });
+      }
+
+      const isVertical = type === 'reel' || type === 'shorts' || type === 'story';
+      const dimension  = isVertical ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 };
+
+      const videoInput = {
+        character,
+        background: { type: 'color', value: '#1a1a2e' },
+      };
+
+      if (finalVoiceId) {
+        videoInput.voice = {
+          type:       'text',
+          input_text: script.trim().substring(0, 1500),
+          voice_id:   finalVoiceId,
+          speed:      1.0,
+        };
+      } else {
+        videoInput.voice = {
+          type:       'text',
+          input_text: script.trim().substring(0, 1500),
+          voice_id:   '', // HeyGen will auto-pick
+          speed:      1.0,
+        };
+      }
+
+      const resp = await heygenPost('/v2/video/generate', {
+        video_inputs: [videoInput],
+        dimension,
+        test: false,
+      });
+
+      const data = await resp.json();
+      if (!resp.ok) {
+        console.error('HeyGen generate error:', JSON.stringify(data));
+        return res.status(resp.status).json({ error: data.message || data.error || JSON.stringify(data) });
+      }
+
+      return res.status(200).json({
+        videoId:  data.data?.video_id || data.video_id,
+        status:   'processing',
+      });
+    } catch(e) {
+      console.error('Generate exception:', e.message);
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
+  // ── CHECK VIDEO STATUS ─────────────────────────────────────────────────────
+  if (action === 'status') {
+    const { videoId } = req.body || {};
+    if (!videoId) return res.status(400).json({ error: 'Missing videoId' });
+    try {
+      const r = await heygenGet(`/v1/video_status.get?video_id=${encodeURIComponent(videoId)}`);
+      const d = await r.json();
+      const info = d.data || {};
+      return res.status(200).json({
+        status:   info.status    || 'processing',
+        videoUrl: info.video_url || null,
+        error:    info.error     || null,
+      });
+    } catch(e) { return res.status(500).json({ error: e.message }); }
+  }
+
+  // ── GET SUPPORTED TRANSLATION LANGUAGES ───────────────────────────────────
+  if (action === 'get-languages') {
+    try {
+      const r = await heygenGet('/v2/video_translate/target_languages');
+      const d = await r.json();
+      if (!r.ok) return res.status(r.status).json({ error: d.message || 'Failed' });
+      return res.status(200).json({ languages: d.data || [] });
+    } catch(e) { return res.status(500).json({ error: e.message }); }
+  }
+
+  // ── TRANSLATE VIDEO ────────────────────────────────────────────────────────
+  if (action === 'translate') {
+    const { videoUrl, language } = req.body || {};
+    if (!videoUrl || !language) return res.status(400).json({ error: 'Missing videoUrl or language' });
+    try {
+      const r = await heygenPost('/v2/video_translate', { video_url: videoUrl, output_language: language });
+      const d = await r.json();
+      if (!r.ok) return res.status(r.status).json({ error: d.message || 'Translation failed' });
+      return res.status(200).json({ success: true, videoTranslateId: d.data?.video_translate_id || d.video_translate_id });
+    } catch(e) { return res.status(500).json({ error: e.message }); }
+  }
+
+  // ── CHECK TRANSLATION STATUS ───────────────────────────────────────────────
+  if (action === 'translation-status') {
+    const { videoTranslateId } = req.body || {};
+    if (!videoTranslateId) return res.status(400).json({ error: 'Missing videoTranslateId' });
+    try {
+      const r = await heygenGet(`/v1/video_translate/${encodeURIComponent(videoTranslateId)}`);
+      const d = await r.json();
+      return res.status(200).json({ status: d.data?.status || d.status, videoUrl: d.data?.video_url || null });
+    } catch(e) { return res.status(500).json({ error: e.message }); }
+  }
+
+  // ── CHECK AVATAR STATUS ─────────────────────────────────────────────────────
+  if (action === 'avatar-status') {
+    const { avatarId } = req.body || {};
+    if (!avatarId) return res.status(400).json({ error: 'Missing avatarId' });
+    try {
+      const r = await heygenGet(`/v2/photo_avatar/${encodeURIComponent(avatarId)}`);
+      const d = await r.json();
+      const info = d.data || {};
+      return res.status(200).json({
+        status: info.status || info.train_status || 'processing',
+        name:   info.name   || '',
+      });
+    } catch(e) { return res.status(500).json({ error: e.message }); }
   }
 
   return res.status(400).json({ error: 'Unknown action: ' + action });
 };
-
-// Note: The create-avatar action is appended below the existing handler
-// It handles in-app video upload → HeyGen Instant Avatar creation
