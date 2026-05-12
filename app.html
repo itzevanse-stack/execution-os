@@ -18086,6 +18086,18 @@ onAuthStateChanged(auth, async (user) => {
       // After mode is applied, restore the last visited page
       setTimeout(() => {
         try {
+          // Restore AI Video library from Firestore
+          try {
+            if (userDocData && userDocData.avsData) {
+              const avsKey = 'eos_avs_' + user.uid;
+              const existing = JSON.parse(localStorage.getItem(avsKey) || '{}');
+              const cloud    = userDocData.avsData;
+              if ((cloud.updatedAt || 0) >= (existing.updatedAt || 0)) {
+                localStorage.setItem(avsKey, JSON.stringify(cloud));
+              }
+            }
+          } catch(e) {}
+
           const lastPage = localStorage.getItem('eos_last_page');
           const validPages = ['dashboard','plan','offer','avatar','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer','funnels','email','scorecard','ai-video'];
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
@@ -21103,8 +21115,9 @@ var _avsApiUrl       = window.location.origin + '/api/heygen';
 function avsInit() {
   try {
     var saved = JSON.parse(localStorage.getItem('eos_avs_' + (window._currentUserUid||'local')) || '{}');
-    _avsAvatarId = saved.avatarId || '';
-    _avsLibrary  = saved.library  || [];
+    _avsAvatarId     = saved.avatarId      || '';
+    _avsLibrary      = saved.library       || [];
+    _avsTalkingPhoto = saved.isTalkingPhoto || false;
     // Restore avatar status
     if (saved.status === 'ready' && _avsAvatarId) {
       avsShowStep(3);
@@ -21135,11 +21148,21 @@ function avsInit() {
 }
 
 function avsSave() {
-  var data = { avatarId: _avsAvatarId, library: _avsLibrary.slice(-20), isTalkingPhoto: _avsTalkingPhoto || false };
+  var data = {
+    avatarId:      _avsAvatarId,
+    library:       _avsLibrary.slice(-50), // keep last 50 videos
+    isTalkingPhoto: _avsTalkingPhoto || false,
+    updatedAt:     Date.now(),
+  };
   try { localStorage.setItem('eos_avs_'+(window._currentUserUid||'local'), JSON.stringify(data)); } catch(e) {}
+  // Save to Firestore — persists across devices and sessions
   try {
     if (window._currentUserUid && window._db && window._setDoc && window._doc) {
-      window._setDoc(window._doc(window._db,'users',window._currentUserUid), { avsData: data }, { merge:true }).catch(function(){});
+      window._setDoc(
+        window._doc(window._db, 'users', window._currentUserUid),
+        { avsData: data },
+        { merge: true }
+      ).catch(function(e){ console.warn('avsSave Firestore:', e.message); });
     }
   } catch(e) {}
 }
@@ -21702,12 +21725,12 @@ window.avsGenerate = async function() {
 
     // Poll for completion
     var attempt = 0;
-    var maxAttempts = 72;
+    var maxAttempts = 90; // 12 minutes max
     var pollIv = setInterval(async function() {
       attempt++;
       if (attempt > maxAttempts) {
         clearInterval(pollIv);
-        if (statusEl) { statusEl.textContent = '⏳ Still processing — check My Videos in a few minutes.'; statusEl.style.color='var(--gold)'; }
+        if (statusEl) { statusEl.textContent = '⏳ Taking longer than expected. Your video may be in your HeyGen dashboard. Click "Check Status" to retry.'; statusEl.style.color='var(--gold)'; }
         if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Video Now'; }
         if (progress) progress.style.display='none';
         return;
@@ -21720,33 +21743,54 @@ window.avsGenerate = async function() {
         });
         var sData = await sResp.json();
 
-        if (sData.status === 'completed' && sData.videoUrl) {
+        // HeyGen v2 uses 'completed', v1 also uses 'completed'
+        var isDone = sData.status === 'completed' || sData.status === 'success';
+        var isFailed = sData.status === 'failed' || sData.status === 'error';
+
+        if (isDone && sData.videoUrl) {
           clearInterval(pollIv);
           window._avsVideoUrl = sData.videoUrl;
+
+          // Auto-save to Execution OS library immediately
+          var typeVal = typeInput ? typeInput.value : 'reel';
+          var entry = {
+            url:       sData.videoUrl,
+            date:      new Date().toLocaleDateString('en-GB'),
+            timestamp: Date.now(),
+            type:      typeVal,
+            script:    (scriptEl ? scriptEl.value.substring(0,120) : '') + '…',
+          };
+          _avsLibrary.push(entry);
+          avsSave(); // saves to localStorage + Firestore
+
           if (bar)      bar.style.width = '100%';
-          if (progress) setTimeout(function(){ if(progress) progress.style.display='none'; }, 800);
-          if (result) { result.style.display = 'block'; }
+          if (progress) setTimeout(function(){ if(progress) progress.style.display='none'; }, 600);
+          if (result)   result.style.display = 'block';
           var video = document.getElementById('avs-preview-video');
           if (video) { video.src = sData.videoUrl; video.load(); }
           if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Another'; }
-          if (statusEl) statusEl.textContent = '';
-        } else if (sData.status === 'failed') {
+          if (statusEl) { statusEl.textContent = '✅ Video saved to My Videos'; statusEl.style.color='var(--teal)'; setTimeout(function(){ statusEl.textContent=''; }, 3000); }
+        } else if (isDone && !sData.videoUrl) {
+          // Status says done but no URL yet — keep polling a few more times
+          if (timeEl) timeEl.textContent = 'Finalising video…';
+        } else if (isFailed) {
           clearInterval(pollIv);
-          throw new Error('Video generation failed in HeyGen. Please try again.');
-        } else {
-          var pct = 40 + Math.round((attempt / maxAttempts) * 55);
-          if (bar)    bar.style.width = pct + '%';
-          if (timeEl) timeEl.textContent = 'Processing… ' + (attempt * 5) + 's elapsed';
-        }
-      } catch(pe) {
-        if (pe.message.includes('failed')) {
-          clearInterval(pollIv);
-          if (statusEl) { statusEl.textContent='❌ '+pe.message; statusEl.style.color='var(--red)'; }
+          if (statusEl) { statusEl.textContent='❌ HeyGen failed to generate the video. Please try again.'; statusEl.style.color='var(--red)'; }
           if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Video Now'; }
           if (progress) progress.style.display='none';
+        } else {
+          var elapsedSec = attempt * 8;
+          var elapsedMin = Math.floor(elapsedSec / 60);
+          var elapsedStr = elapsedMin > 0 ? elapsedMin + 'm ' + (elapsedSec % 60) + 's' : elapsedSec + 's';
+          var pct = Math.min(40 + Math.round((attempt / maxAttempts) * 55), 92);
+          if (bar)    bar.style.width = pct + '%';
+          if (timeEl) timeEl.textContent = 'HeyGen processing… ' + elapsedStr + ' elapsed';
         }
+      } catch(pe) {
+        // Network error — just keep polling, don't stop
+        console.warn('Poll error (will retry):', pe.message);
       }
-    }, 5000);
+    }, 8000);
 
   } catch(e) {
     if (statusEl) { statusEl.textContent='❌ '+( e.message||'Generation failed'); statusEl.style.color='var(--red)'; }
@@ -21755,6 +21799,14 @@ window.avsGenerate = async function() {
     if (bar)      bar.style.width='0%';
   }
 };
+
+// Library empty state button
+document.addEventListener('click', function(e) {
+  if (e.target && e.target.classList && e.target.classList.contains('avs-goto-generate')) {
+    var tabs = document.querySelectorAll('.avs-tab');
+    if (window.avsShowTab) window.avsShowTab('generate', tabs[1] || null);
+  }
+});
 
 // Script character counter
 document.addEventListener('input', function(e) {
@@ -21804,19 +21856,47 @@ function avsRenderLibrary() {
   var el = document.getElementById('avs-video-library');
   if (!el) return;
   if (!_avsLibrary.length) {
-    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--dim);font-size:12px">No videos saved yet. Generate a video and click "Save to My Videos".</div>';
+    el.innerHTML = '<div style="text-align:center;padding:40px 20px">'
+      + '<div style="font-size:32px;margin-bottom:10px">🎬</div>'
+      + '<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px">No videos yet</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-bottom:16px">Generate a video — it saves here automatically.</div>'
+      + '<button class="avs-goto-generate" style="background:linear-gradient(135deg,#6c63ff,#5040cc);border:none;border-radius:var(--r-md);padding:9px 20px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Generate Your First Video →</button>'
+      + '</div>';
     return;
   }
-  el.innerHTML = _avsLibrary.slice().reverse().map(function(v, i) {
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border3);gap:10px;flex-wrap:wrap">'
-      + '<div><div style="font-size:12px;font-weight:700;color:var(--white)">' + (v.type||'video').toUpperCase() + ' · ' + v.date + '</div>'
-      + '<div style="font-size:10px;color:var(--dim);margin-top:2px;word-break:break-all">' + v.url.substring(0,60) + '…</div></div>'
+  var sorted = _avsLibrary.slice().reverse();
+  el.innerHTML = sorted.map(function(v) {
+    var typeLabel = { reel:'Reel/TikTok', vsl:'VSL/Training', shorts:'YouTube Shorts', youtube:'YouTube', story:'Story', ad:'Paid Ad' }[v.type] || (v.type||'Video').toUpperCase();
+    var scriptPreview = v.script ? v.script.substring(0,80) : '';
+    return '<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:12px;padding:14px;margin-bottom:8px">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">'
+      + '<span style="font-size:9px;font-weight:800;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:rgba(108,99,255,.1);color:#a089ff;border:1px solid rgba(108,99,255,.2)">' + typeLabel + '</span>'
+      + '<span style="font-size:10px;color:var(--dim)">' + (v.date||'') + '</span>'
+      + '</div>'
+      + (scriptPreview ? '<div style="font-size:11px;color:var(--muted);line-height:1.6;margin-top:4px">"' + scriptPreview + (scriptPreview.length >= 80?'…':'') + '"</div>' : '')
+      + '</div>'
       + '<div style="display:flex;gap:6px;flex-shrink:0">'
-      + '<a href="' + v.url + '" target="_blank" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 10px;color:var(--teal);font-size:10px;font-weight:700;text-decoration:none">▶ Play</a>'
-      + '<button onclick="(function(){var a=document.createElement(\'a\');a.href=\'' + v.url + '\';a.download=\'eos-video.mp4\';document.body.appendChild(a);a.click();document.body.removeChild(a);})()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 10px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">⬇</button>'
-      + '</div></div>';
+      + '<a href="' + v.url + '" target="_blank" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:6px 12px;color:var(--teal);font-size:11px;font-weight:700;text-decoration:none">▶ Play</a>'
+      + '<button data-url="' + v.url + '" onclick="avsDownloadByUrl(this.dataset.url)" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:6px;padding:6px 12px;color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">⬇ Download</button>'
+      + '</div></div></div>';
   }).join('');
 }
+
+window.avsDownloadByUrl = async function(url) {
+  if (!url) return;
+  try {
+    var resp = await fetch(url);
+    var blob = await resp.blob();
+    var blobUrl = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = blobUrl; a.download = 'eos-video-' + Date.now() + '.mp4';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch(e) { window.open(url, '_blank'); }
+};
 
 // Load languages dynamically from HeyGen API
 async function avsLoadLanguages() {
