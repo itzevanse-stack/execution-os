@@ -169,6 +169,8 @@ module.exports = async function handler(req, res) {
       }],
       dimension,
       test: false,
+      // title helps identify in HeyGen dashboard
+      title: 'Execution OS Video - ' + new Date().toISOString().split('T')[0],
     };
 
     const r = await safeJson(await apiPost('/v2/video/generate', payload));
@@ -183,11 +185,25 @@ module.exports = async function handler(req, res) {
   }
 
   // ── CHECK VIDEO STATUS ────────────────────────────────────────────────────────
+  // Use v2 endpoint for videos generated via v2/video/generate
   if (action === 'status') {
     const { videoId } = req.body || {};
     if (!videoId) return res.status(400).json({ error: 'Missing videoId' });
-    const r = await safeJson(await apiGet(`/v1/video_status.get?video_id=${encodeURIComponent(videoId)}`));
-    const info = r.data?.data || {};
+
+    // Try v2 endpoint first (correct for v2/video/generate)
+    const r2 = await safeJson(await apiGet(`/v2/videos/${encodeURIComponent(videoId)}`));
+    if (r2.ok && r2.data?.data) {
+      const info = r2.data.data;
+      return res.status(200).json({
+        status:   info.status    || 'processing',
+        videoUrl: info.video_url || null,
+        error:    info.error     || null,
+      });
+    }
+
+    // Fall back to v1 endpoint (for older generated videos)
+    const r1 = await safeJson(await apiGet(`/v1/video_status.get?video_id=${encodeURIComponent(videoId)}`));
+    const info = r1.data?.data || {};
     return res.status(200).json({
       status:   info.status    || 'processing',
       videoUrl: info.video_url || null,
