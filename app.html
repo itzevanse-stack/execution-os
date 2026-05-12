@@ -4830,59 +4830,140 @@ button[onclick="generateOffer()"] {
     <!-- TAB 2: Generate Video -->
     <div id="avs-tab-generate" style="display:none">
       <div class="card-dark" style="margin-bottom:1rem">
-        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:14px;font-family:'Poppins',sans-serif">🎬 Generate a Video</div>
+        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:16px;font-family:'Poppins',sans-serif">🎬 Generate a Video</div>
 
-        <div style="margin-bottom:12px">
-          <div class="fi-label">Video Type</div>
-          <select class="fi" id="avs-video-type" onchange="avsUpdateScriptPlaceholder()">
-            <option value="reel">Instagram Reel / TikTok (9:16 · 30-60 sec)</option>
-            <option value="vsl">VSL / Free Training (16:9 · 5-15 min)</option>
-            <option value="shorts">YouTube Shorts (9:16 · 60 sec)</option>
-            <option value="story">Story / Facebook Reel (9:16 · 15 sec)</option>
-            <option value="ad">Paid Ad (16:9 · 30-60 sec)</option>
-          </select>
-        </div>
-
-        <div style="margin-bottom:12px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="fi-label" style="margin:0">Your Script</div>
-            <button onclick="avsGenerateScript()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">✍️ Write script with AI</button>
+        <!-- VIDEO TYPE — visual card selector -->
+        <div style="margin-bottom:16px">
+          <div class="fi-label">Video Format</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px" id="avs-type-grid">
+            <div class="avs-type-card sel" data-type="reel" onclick="avsPickType(this)" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.35);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer">
+              <div style="font-size:18px">📱</div>
+              <div style="font-size:10px;font-weight:800;color:#a089ff;margin-top:4px">Reel / TikTok</div>
+              <div style="font-size:9px;color:var(--dim)">9:16 Vertical</div>
+            </div>
+            <div class="avs-type-card" data-type="vsl" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer">
+              <div style="font-size:18px">🖥️</div>
+              <div style="font-size:10px;font-weight:800;color:var(--dim);margin-top:4px">VSL / Training</div>
+              <div style="font-size:9px;color:var(--dimmer)">16:9 Landscape</div>
+            </div>
+            <div class="avs-type-card" data-type="shorts" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer">
+              <div style="font-size:18px">▶️</div>
+              <div style="font-size:10px;font-weight:800;color:var(--dim);margin-top:4px">YouTube Shorts</div>
+              <div style="font-size:9px;color:var(--dimmer)">9:16 Vertical</div>
+            </div>
+            <div class="avs-type-card" data-type="youtube" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer">
+              <div style="font-size:18px">📺</div>
+              <div style="font-size:10px;font-weight:800;color:var(--dim);margin-top:4px">YouTube / VSL</div>
+              <div style="font-size:9px;color:var(--dimmer)">16:9 Landscape</div>
+            </div>
+            <div class="avs-type-card" data-type="story" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer">
+              <div style="font-size:18px">⭕</div>
+              <div style="font-size:10px;font-weight:800;color:var(--dim);margin-top:4px">Story</div>
+              <div style="font-size:9px;color:var(--dimmer)">9:16 Vertical</div>
+            </div>
+            <div class="avs-type-card" data-type="ad" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px 6px;text-align:center;cursor:pointer">
+              <div style="font-size:18px">📣</div>
+              <div style="font-size:10px;font-weight:800;color:var(--dim);margin-top:4px">Paid Ad</div>
+              <div style="font-size:9px;color:var(--dimmer)">16:9 Landscape</div>
+            </div>
           </div>
-          <textarea class="fi" id="avs-script-input" rows="6" placeholder="Type or paste your script here. Click 'Write script with AI' to generate a high-converting script from your offer and audience data."></textarea>
+          <input type="hidden" id="avs-video-type" value="reel" />
         </div>
 
+        <!-- AVATAR SOURCE — stock or photo -->
+        <div style="margin-bottom:14px">
+          <div class="fi-label">Avatar Source</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+            <div id="avs-src-stock-card" onclick="avsSetAvatarSource('stock')" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.35);border-radius:10px;padding:10px;text-align:center;cursor:pointer">
+              <div style="font-size:16px">🎭</div>
+              <div style="font-size:11px;font-weight:800;color:#a089ff;margin-top:3px">Stock Avatar</div>
+              <div style="font-size:9px;color:var(--dim)">Choose from HeyGen's avatars</div>
+            </div>
+            <div id="avs-src-photo-card" onclick="avsSetAvatarSource('photo')" style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;text-align:center;cursor:pointer">
+              <div style="font-size:16px">🤳</div>
+              <div style="font-size:11px;font-weight:800;color:var(--dim);margin-top:3px">My Photo</div>
+              <div style="font-size:9px;color:var(--dimmer)">Upload a photo of yourself</div>
+            </div>
+          </div>
+
+          <!-- Stock avatar selector -->
+          <div id="avs-stock-section">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <div class="fi-label" style="margin:0">Choose Avatar</div>
+              <button onclick="avsLoadAvatars()" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;padding:3px 10px;color:var(--dim);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">↻ Refresh</button>
+            </div>
+            <select class="fi" id="avs-avatar-select" onchange="avsOnAvatarChange()" style="margin-bottom:8px">
+              <option value="">Loading avatars from HeyGen…</option>
+            </select>
+            <!-- Avatar preview -->
+            <div id="avs-avatar-preview-wrap" style="display:none;background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;display:flex;align-items:center;gap:12px">
+              <img id="avs-avatar-thumb" src="" style="width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--border2)" onerror="this.parentElement.style.display='none'" />
+              <div>
+                <div id="avs-avatar-name-display" style="font-size:12px;font-weight:700;color:var(--white)"></div>
+                <div id="avs-avatar-gender-display" style="font-size:10px;color:var(--dim);margin-top:2px"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Photo upload section -->
+          <div id="avs-photo-section" style="display:none">
+            <div class="fi-label">Upload Your Photo</div>
+            <div id="avs-gen-photo-area" onclick="document.getElementById('avs-gen-photo-file').click()" style="border:2px dashed rgba(108,99,255,.3);border-radius:10px;padding:20px;text-align:center;cursor:pointer;margin-bottom:8px" onmouseover="this.style.borderColor='rgba(108,99,255,.6)'" onmouseout="this.style.borderColor='rgba(108,99,255,.3)'">
+              <div id="avs-gen-photo-preview-wrap" style="display:none;margin-bottom:8px">
+                <img id="avs-gen-photo-preview" src="" style="height:80px;border-radius:8px;border:1px solid var(--border2)" />
+              </div>
+              <div id="avs-gen-photo-icon" style="font-size:28px;margin-bottom:4px">📸</div>
+              <div style="font-size:11px;font-weight:700;color:var(--white);margin-bottom:2px" id="avs-gen-photo-label">Click to upload your photo</div>
+              <div style="font-size:9px;color:var(--dim)">JPG or PNG · Clear front-facing photo</div>
+              <input type="file" id="avs-gen-photo-file" accept="image/*" style="display:none" onchange="avsHandleGenPhoto(this)" />
+            </div>
+            <div id="avs-gen-photo-status" style="font-size:11px;color:var(--dim);margin-bottom:8px"></div>
+          </div>
+        </div>
+
+        <!-- VOICE SELECTOR -->
         <div style="margin-bottom:14px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-            <div class="fi-label" style="margin:0">Avatar</div>
-            <button onclick="avsLoadAvatars()" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;padding:3px 10px;color:var(--dim);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">↻ Refresh</button>
+            <div class="fi-label" style="margin:0">Voice</div>
+            <button onclick="avsLoadVoices()" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;padding:3px 10px;color:var(--dim);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">↻ Refresh</button>
           </div>
-          <select class="fi" id="avs-avatar-select">
-            <option value="">Loading avatars from HeyGen…</option>
+          <select class="fi" id="avs-voice-select" style="margin-bottom:6px">
+            <option value="">Loading voices…</option>
           </select>
-          <div id="avs-avatar-preview-img" style="display:none;margin-top:8px;text-align:center">
-            <img id="avs-avatar-thumb" src="" style="height:80px;border-radius:8px;border:1px solid var(--border2)" />
-            <div id="avs-avatar-name-display" style="font-size:10px;color:var(--dim);margin-top:4px"></div>
-          </div>
+          <div style="font-size:10px;color:var(--dim)">Voice is independent from avatar — choose any voice for any avatar</div>
         </div>
 
-        <button onclick="avsGenerate()" id="avs-gen-btn" style="width:100%;background:linear-gradient(135deg,#6c63ff,#5040cc);border:none;border-radius:var(--r-md);padding:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">🎬 Generate Video Now</button>
+        <!-- SCRIPT -->
+        <div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <div class="fi-label" style="margin:0">Script</div>
+            <button onclick="avsGenerateScript()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">✍️ Write with AI</button>
+          </div>
+          <textarea class="fi" id="avs-script-input" rows="5" placeholder="Type your script here or click 'Write with AI' to generate one from your offer and audience data."></textarea>
+          <div style="font-size:10px;color:var(--dim);margin-top:4px">Max 1,500 characters · <span id="avs-script-count">0</span> used</div>
+        </div>
+
+        <button onclick="avsGenerate()" id="avs-gen-btn" style="width:100%;background:linear-gradient(135deg,#6c63ff,#5040cc);border:none;border-radius:var(--r-md);padding:13px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">🎬 Generate Video Now</button>
         <div id="avs-gen-status" style="font-size:11px;margin-top:8px;text-align:center;color:var(--dim)"></div>
 
         <!-- Progress -->
         <div id="avs-gen-progress" style="display:none;margin-top:12px">
-          <div style="height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:8px"><div id="avs-gen-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,var(--teal));border-radius:2px;transition:width 1s"></div></div>
-          <div id="avs-gen-time" style="font-size:11px;color:var(--dim);text-align:center">Generating… this takes 2-5 minutes</div>
+          <div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-bottom:8px">
+            <div id="avs-gen-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,var(--teal));border-radius:3px;transition:width 3s"></div>
+          </div>
+          <div id="avs-gen-time" style="font-size:11px;color:var(--dim);text-align:center">Submitting to HeyGen…</div>
         </div>
 
         <!-- Result -->
-        <div id="avs-video-result" style="display:none;margin-top:14px">
-          <video id="avs-preview-video" controls playsinline style="width:100%;border-radius:10px;max-height:300px;background:#000;display:block"></video>
+        <div id="avs-video-result" style="display:none;margin-top:16px;border-top:1px solid var(--border2);padding-top:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:10px">✅ Video Ready</div>
+          <video id="avs-preview-video" controls playsinline style="width:100%;border-radius:10px;max-height:320px;background:#000;display:block"></video>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
             <button onclick="avsDownload()" style="padding:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:10px;font-weight:800;font-size:12px;font-family:Poppins,sans-serif;cursor:pointer">⬇ Download MP4</button>
             <button onclick="avsCopyLink()" id="avs-copy-btn" style="padding:11px;background:rgba(255,255,255,.04);color:var(--dim);border:1px solid var(--border2);border-radius:10px;font-weight:700;font-size:12px;font-family:Poppins,sans-serif;cursor:pointer">🔗 Copy Link</button>
           </div>
           <div style="margin-top:8px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.12);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted);line-height:1.7">
-            📱 <strong style="color:var(--white)">Post directly:</strong> Download the MP4 and upload to Instagram Reels, TikTok, YouTube Shorts, or Facebook. Already in the correct format for your chosen video type.
+            📱 <strong style="color:var(--white)">Post to social:</strong> Download the MP4 and upload directly. Already sized correctly for your chosen format.
           </div>
           <button onclick="avsSaveToLibrary()" style="width:100%;margin-top:8px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:8px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📁 Save to My Videos</button>
         </div>
@@ -21013,10 +21094,11 @@ window.setAppMode = function(mode) {
 // ═══════════════════════════════════════════════════════════════════════════
 // AI VIDEO STUDIO — Full HeyGen Integration
 // ═══════════════════════════════════════════════════════════════════════════
-var _avsAvatarId  = '';
-var _avsVideoUrl  = '';
-var _avsLibrary   = [];
-var _avsApiUrl    = window.location.origin + '/api/heygen';
+var _avsAvatarId     = '';
+var _avsVideoUrl     = '';
+var _avsLibrary      = [];
+var _avsTalkingPhoto = false;
+var _avsApiUrl       = window.location.origin + '/api/heygen';
 
 function avsInit() {
   try {
@@ -21048,11 +21130,12 @@ function avsInit() {
     }
     avsRenderLibrary();
     avsLoadAvatars(); // Load real avatars from HeyGen
+    avsLoadVoices();  // Load voices from HeyGen
   } catch(e) { avsShowStep(1); }
 }
 
 function avsSave() {
-  var data = { avatarId: _avsAvatarId, library: _avsLibrary.slice(-20) };
+  var data = { avatarId: _avsAvatarId, library: _avsLibrary.slice(-20), isTalkingPhoto: _avsTalkingPhoto || false };
   try { localStorage.setItem('eos_avs_'+(window._currentUserUid||'local'), JSON.stringify(data)); } catch(e) {}
   try {
     if (window._currentUserUid && window._db && window._setDoc && window._doc) {
@@ -21181,8 +21264,9 @@ window.avsSubmitPhoto = async function() {
     });
     var data = await resp.json();
 
-    if (data.photoAvatarId || data.success) {
-      _avsAvatarId = data.photoAvatarId || '';
+    if (data.talkingPhotoId || data.photoAvatarId || data.success) {
+      _avsAvatarId = data.talkingPhotoId || data.photoAvatarId || '';
+      _avsTalkingPhoto = true;
       avsSave();
       // Show ready state
       var readyCard = document.getElementById('avs-ready-card');
@@ -21347,146 +21431,338 @@ window.avsGenerateScript = async function() {
   }
 };
 
-// Load real avatars from HeyGen API
+// ── AVATAR SOURCE TOGGLE ──────────────────────────────────────────────────────
+window._avsSource = 'stock'; // 'stock' or 'photo'
+window._avsGenPhotoId = null; // talkingPhotoId from uploaded photo
+
+window.avsSetAvatarSource = function(src) {
+  window._avsSource = src;
+  var stockCard = document.getElementById('avs-src-stock-card');
+  var photoCard = document.getElementById('avs-src-photo-card');
+  var stockSec  = document.getElementById('avs-stock-section');
+  var photoSec  = document.getElementById('avs-photo-section');
+  var on  = 'background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.35);border-radius:10px;padding:10px;text-align:center;cursor:pointer';
+  var off = 'background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:10px;text-align:center;cursor:pointer';
+  if (src === 'stock') {
+    if (stockCard) stockCard.style.cssText = on + ';cursor:pointer';
+    if (photoCard) photoCard.style.cssText = off + ';cursor:pointer';
+    if (stockSec) stockSec.style.display = 'block';
+    if (photoSec) photoSec.style.display = 'none';
+  } else {
+    if (photoCard) photoCard.style.cssText = on + ';cursor:pointer';
+    if (stockCard) stockCard.style.cssText = off + ';cursor:pointer';
+    if (photoSec) photoSec.style.display = 'block';
+    if (stockSec) stockSec.style.display = 'none';
+  }
+};
+
+// ── VIDEO TYPE PICKER ──────────────────────────────────────────────────────────
+window.avsPickType = function(card) {
+  document.querySelectorAll('.avs-type-card').forEach(function(c) {
+    c.style.background = 'var(--bg3)';
+    c.style.border = '1px solid var(--border2)';
+    var label = c.querySelector('div:nth-child(2)');
+    if (label) label.style.color = 'var(--dim)';
+  });
+  card.style.background = 'rgba(108,99,255,.1)';
+  card.style.border = '1px solid rgba(108,99,255,.35)';
+  var label = card.querySelector('div:nth-child(2)');
+  if (label) label.style.color = '#a089ff';
+  var typeInput = document.getElementById('avs-video-type');
+  if (typeInput) typeInput.value = card.dataset.type || 'reel';
+};
+
+// ── LOAD STOCK AVATARS ─────────────────────────────────────────────────────────
 window.avsLoadAvatars = async function() {
   var sel = document.getElementById('avs-avatar-select');
   if (!sel) return;
-  sel.innerHTML = '<option value="">Loading…</option>';
+  sel.innerHTML = '<option value="">Loading avatars…</option>';
   try {
     var resp = await fetch(window.location.origin + '/api/heygen', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'get-avatars' })
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get-avatars' })
     });
     var data = await resp.json();
     var avatars = data.avatars || [];
-
     if (!avatars.length) {
-      sel.innerHTML = '<option value="">No avatars found — check HeyGen account</option>';
+      sel.innerHTML = '<option value="">No avatars in your HeyGen account</option>';
       return;
     }
-
-    // Build options — personal avatar first if set, then stock
-    var options = '';
-    if (_avsAvatarId && _avsAvatarId !== '') {
-      options += '<option value="' + _avsAvatarId + '">⭐ My Personal Avatar</option>';
-    }
-    options += avatars.map(function(a) {
-      return '<option value="' + a.avatar_id + '" data-voice="' + (a.default_voice_id||'') + '" data-img="' + (a.preview_image_url||'') + '">'
+    sel.innerHTML = avatars.map(function(a) {
+      return '<option value="' + a.avatar_id + '"'
+        + ' data-voice="' + (a.default_voice_id || '') + '"'
+        + ' data-img="'   + (a.preview_image_url || '') + '"'
+        + ' data-gender="'+ (a.gender || '') + '">'
         + (a.avatar_name || a.avatar_id)
-        + (a.gender ? ' (' + a.gender + ')' : '')
+        + (a.gender ? ' — ' + a.gender : '')
         + '</option>';
     }).join('');
-    sel.innerHTML = options;
-
-    // Show preview of first selected avatar
-    avsUpdateAvatarPreview();
-
-    sel.onchange = avsUpdateAvatarPreview;
+    avsOnAvatarChange();
   } catch(e) {
-    sel.innerHTML = '<option value="">Could not load avatars — check Vercel logs</option>';
+    sel.innerHTML = '<option value="">Failed to load — check Vercel logs</option>';
   }
 };
 
-function avsUpdateAvatarPreview() {
-  var sel      = document.getElementById('avs-avatar-select');
-  var previewEl= document.getElementById('avs-avatar-preview-img');
-  var thumb    = document.getElementById('avs-avatar-thumb');
-  var nameEl   = document.getElementById('avs-avatar-name-display');
+window.avsOnAvatarChange = function() {
+  var sel     = document.getElementById('avs-avatar-select');
+  var wrap    = document.getElementById('avs-avatar-preview-wrap');
+  var thumb   = document.getElementById('avs-avatar-thumb');
+  var nameEl  = document.getElementById('avs-avatar-name-display');
+  var gendEl  = document.getElementById('avs-avatar-gender-display');
   if (!sel || !sel.selectedOptions[0]) return;
   var opt = sel.selectedOptions[0];
   var img = opt.getAttribute('data-img');
-  if (img && previewEl && thumb) {
+  if (thumb && img) {
     thumb.src = img;
-    thumb.onerror = function(){ previewEl.style.display='none'; };
-    previewEl.style.display = 'block';
-    if (nameEl) nameEl.textContent = opt.textContent;
-  } else if (previewEl) {
-    previewEl.style.display = 'none';
+    thumb.onerror = function() { if (wrap) wrap.style.display = 'none'; };
+    if (wrap) { wrap.style.display = 'flex'; wrap.style.alignItems = 'center'; wrap.style.gap = '12px'; }
   }
-}
+  if (nameEl) nameEl.textContent = opt.text.split(' —')[0];
+  if (gendEl) gendEl.textContent = opt.getAttribute('data-gender') || '';
 
+  // Auto-match voice to avatar's default voice
+  var defaultVoice = opt.getAttribute('data-voice');
+  if (defaultVoice) {
+    var voiceSel = document.getElementById('avs-voice-select');
+    if (voiceSel) {
+      // Try to select matching voice
+      for (var i = 0; i < voiceSel.options.length; i++) {
+        if (voiceSel.options[i].value === defaultVoice) {
+          voiceSel.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  }
+};
+
+// ── LOAD VOICES ────────────────────────────────────────────────────────────────
+window.avsLoadVoices = async function() {
+  var sel = document.getElementById('avs-voice-select');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Loading voices…</option>';
+  try {
+    var resp = await fetch(window.location.origin + '/api/heygen', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'get-voices' })
+    });
+    var data = await resp.json();
+    var voices = data.voices || [];
+    if (!voices.length) {
+      sel.innerHTML = '<option value="">No voices found</option>';
+      return;
+    }
+    // Group by language
+    var grouped = {};
+    voices.forEach(function(v) {
+      var lang = v.language || 'Other';
+      if (!grouped[lang]) grouped[lang] = [];
+      grouped[lang].push(v);
+    });
+    var html = '';
+    // English first
+    var langs = Object.keys(grouped).sort(function(a, b) {
+      if (a === 'English') return -1;
+      if (b === 'English') return 1;
+      return a.localeCompare(b);
+    });
+    langs.forEach(function(lang) {
+      html += '<optgroup label="' + lang + '">';
+      grouped[lang].forEach(function(v) {
+        html += '<option value="' + v.voice_id + '">'
+          + (v.display_name || v.name || v.voice_id)
+          + (v.gender ? ' (' + v.gender + ')' : '')
+          + '</option>';
+      });
+      html += '</optgroup>';
+    });
+    sel.innerHTML = html;
+  } catch(e) {
+    sel.innerHTML = '<option value="">Failed to load voices</option>';
+  }
+};
+
+// ── HANDLE PHOTO UPLOAD IN GENERATE TAB ───────────────────────────────────────
+window.avsHandleGenPhoto = function(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) { alert('Photo too large. Please use under 10MB.'); input.value=''; return; }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var prev  = document.getElementById('avs-gen-photo-preview');
+    var wrap  = document.getElementById('avs-gen-photo-preview-wrap');
+    var icon  = document.getElementById('avs-gen-photo-icon');
+    var label = document.getElementById('avs-gen-photo-label');
+    if (prev)  prev.src = e.target.result;
+    if (wrap)  wrap.style.display = 'block';
+    if (icon)  icon.style.display = 'none';
+    if (label) label.textContent  = file.name;
+  };
+  reader.readAsDataURL(file);
+  window._avsGenPhotoFile = file;
+  window._avsGenPhotoId   = null; // reset — will upload on generate
+};
+
+// ── MAIN GENERATE FUNCTION ────────────────────────────────────────────────────
 window.avsGenerate = async function() {
-  var scriptEl = document.getElementById('avs-script-input');
-  var typeEl   = document.getElementById('avs-video-type');
-  var avatarEl = document.getElementById('avs-avatar-select');
-  var btn      = document.getElementById('avs-gen-btn');
-  var statusEl = document.getElementById('avs-gen-status');
-  var progress = document.getElementById('avs-gen-progress');
-  var bar      = document.getElementById('avs-gen-bar');
-  var timeEl   = document.getElementById('avs-gen-time');
-  var result   = document.getElementById('avs-video-result');
+  var scriptEl  = document.getElementById('avs-script-input');
+  var typeInput = document.getElementById('avs-video-type');
+  var avatarEl  = document.getElementById('avs-avatar-select');
+  var voiceEl   = document.getElementById('avs-voice-select');
+  var btn       = document.getElementById('avs-gen-btn');
+  var statusEl  = document.getElementById('avs-gen-status');
+  var progress  = document.getElementById('avs-gen-progress');
+  var bar       = document.getElementById('avs-gen-bar');
+  var timeEl    = document.getElementById('avs-gen-time');
+  var result    = document.getElementById('avs-video-result');
 
-  var script   = scriptEl ? scriptEl.value.trim() : '';
-  var type     = typeEl   ? typeEl.value : 'reel';
-  var avatarId = (avatarEl && avatarEl.value && avatarEl.value !== '') ? avatarEl.value : null;
-  // Pass selected option data for voice matching (server handles it)
+  var script = scriptEl ? scriptEl.value.trim() : '';
+  var type   = typeInput ? typeInput.value : 'reel';
+  var voiceId= voiceEl && voiceEl.value ? voiceEl.value : null;
 
-  if (!script || script.length < 10) { alert('Please write or generate a script first.'); return; }
+  if (!script || script.length < 5) { alert('Please write a script first.'); return; }
 
-  if (btn) { btn.disabled=true; btn.textContent='Generating…'; }
-  if (progress) progress.style.display = 'block';
-  if (result) result.style.display = 'none';
-  if (statusEl) statusEl.textContent = '';
-
-  // Animate progress bar
-  var prog = 0;
-  var iv = setInterval(function() {
-    prog = Math.min(prog + 1, 92);
-    if (bar) bar.style.width = prog + '%';
-    var elapsed = Math.round(prog * 3);
-    if (timeEl) timeEl.textContent = 'Generating… ' + elapsed + 's elapsed (takes 2-5 min)';
-  }, 3000);
+  if (btn)     { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
+  if (progress){ progress.style.display = 'block'; }
+  if (result)  { result.style.display = 'none'; }
+  if (statusEl){ statusEl.textContent = ''; }
+  if (bar)     { bar.style.width = '5%'; }
+  if (timeEl)  { timeEl.textContent = 'Starting…'; }
 
   try {
-    // Submit to HeyGen
-    var submitResp = await fetch(_avsApiUrl, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ action:'generate', script:script.substring(0,1800), avatarId:avatarId, type:type })
-    });
-    var submitData = await submitResp.json();
-    if (!submitResp.ok || submitData.error) throw new Error(submitData.error||'Submit failed');
+    var genBody = {
+      action: 'generate',
+      script: script.substring(0, 1500),
+      type:   type,
+    };
 
-    var videoId = submitData.videoId;
-    if (!videoId) throw new Error('No video ID returned');
+    if (voiceId) genBody.voiceId = voiceId;
+
+    if (window._avsSource === 'photo') {
+      // Upload photo first if not already done
+      if (!window._avsGenPhotoId && window._avsGenPhotoFile) {
+        if (statusEl) statusEl.textContent = '📸 Uploading your photo to HeyGen…';
+        if (timeEl)   timeEl.textContent    = 'Uploading photo…';
+        if (bar)      bar.style.width        = '15%';
+
+        // Compress image
+        var photoBase64 = await new Promise(function(resolve, reject) {
+          var img2 = new Image();
+          var url2 = URL.createObjectURL(window._avsGenPhotoFile);
+          img2.onload = function() {
+            URL.revokeObjectURL(url2);
+            var canvas = document.createElement('canvas');
+            var MAX = 1200, w = img2.width, h = img2.height;
+            if (w > MAX || h > MAX) {
+              if (w > h) { h = Math.round(h*MAX/w); w = MAX; }
+              else       { w = Math.round(w*MAX/h); h = MAX; }
+            }
+            canvas.width = w; canvas.height = h;
+            canvas.getContext('2d').drawImage(img2, 0, 0, w, h);
+            resolve(canvas.toDataURL('image/jpeg', 0.85).split(',')[1]);
+          };
+          img2.onerror = reject;
+          img2.src = url2;
+        });
+
+        var upResp = await fetch(window.location.origin + '/api/heygen', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'create-photo-avatar', imageData: photoBase64, imageName: window._avsGenPhotoFile.name, mimeType: 'image/jpeg' })
+        });
+        var upData = await upResp.json();
+        if (upData.error) throw new Error('Photo upload: ' + upData.error);
+        window._avsGenPhotoId = upData.talkingPhotoId || upData.photoAvatarId;
+      }
+      if (window._avsGenPhotoId) {
+        genBody.talkingPhotoId = window._avsGenPhotoId;
+      } else if (!window._avsGenPhotoFile) {
+        throw new Error('Please upload a photo first');
+      }
+    } else {
+      // Stock avatar
+      var avatarId = avatarEl && avatarEl.value ? avatarEl.value : null;
+      if (avatarId) genBody.avatarId = avatarId;
+    }
+
+    if (bar) bar.style.width = '30%';
+    if (timeEl) timeEl.textContent = 'Submitting to HeyGen…';
+
+    var resp = await fetch(window.location.origin + '/api/heygen', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(genBody)
+    });
+    var data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    var videoId = data.videoId;
+    if (!videoId) throw new Error('No video ID returned from HeyGen');
+
+    if (statusEl) statusEl.textContent = 'Processing video…';
+    if (bar)      bar.style.width = '40%';
 
     // Poll for completion
-    var maxAttempts = 72; // 6 minutes
     var attempt = 0;
+    var maxAttempts = 72;
     var pollIv = setInterval(async function() {
       attempt++;
       if (attempt > maxAttempts) {
-        clearInterval(pollIv); clearInterval(iv);
-        throw new Error('Timed out. Check your HeyGen account for the video.');
+        clearInterval(pollIv);
+        if (statusEl) { statusEl.textContent = '⏳ Still processing — check My Videos in a few minutes.'; statusEl.style.color='var(--gold)'; }
+        if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Video Now'; }
+        if (progress) progress.style.display='none';
+        return;
       }
+
       try {
-        var statusResp = await fetch(_avsApiUrl, {
+        var sResp = await fetch(window.location.origin + '/api/heygen', {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify({ action:'status', videoId:videoId })
         });
-        var statusData = await statusResp.json();
-        if (statusData.status === 'completed' && statusData.videoUrl) {
-          clearInterval(pollIv); clearInterval(iv);
-          _avsVideoUrl = statusData.videoUrl;
-          if (bar) bar.style.width = '100%';
-          if (progress) progress.style.display = 'none';
-          if (result) result.style.display = 'block';
+        var sData = await sResp.json();
+
+        if (sData.status === 'completed' && sData.videoUrl) {
+          clearInterval(pollIv);
+          window._avsVideoUrl = sData.videoUrl;
+          if (bar)      bar.style.width = '100%';
+          if (progress) setTimeout(function(){ if(progress) progress.style.display='none'; }, 800);
+          if (result) { result.style.display = 'block'; }
           var video = document.getElementById('avs-preview-video');
-          if (video) { video.src = _avsVideoUrl; video.load(); }
-          if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Video Now'; }
-        } else if (statusData.status === 'failed') {
-          clearInterval(pollIv); clearInterval(iv);
-          throw new Error('HeyGen generation failed. Please try again.');
+          if (video) { video.src = sData.videoUrl; video.load(); }
+          if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Another'; }
+          if (statusEl) statusEl.textContent = '';
+        } else if (sData.status === 'failed') {
+          clearInterval(pollIv);
+          throw new Error('Video generation failed in HeyGen. Please try again.');
+        } else {
+          var pct = 40 + Math.round((attempt / maxAttempts) * 55);
+          if (bar)    bar.style.width = pct + '%';
+          if (timeEl) timeEl.textContent = 'Processing… ' + (attempt * 5) + 's elapsed';
         }
-      } catch(pe) { if (pe.message.includes('failed')) { clearInterval(pollIv); clearInterval(iv); if(statusEl){statusEl.textContent='❌ '+pe.message;statusEl.style.color='var(--red)';} if(btn){btn.disabled=false;btn.textContent='🎬 Generate Video Now';} if(progress)progress.style.display='none'; } }
+      } catch(pe) {
+        if (pe.message.includes('failed')) {
+          clearInterval(pollIv);
+          if (statusEl) { statusEl.textContent='❌ '+pe.message; statusEl.style.color='var(--red)'; }
+          if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Video Now'; }
+          if (progress) progress.style.display='none';
+        }
+      }
     }, 5000);
 
   } catch(e) {
-    clearInterval(iv);
-    if (statusEl) { statusEl.textContent = '❌ ' + (e.message||'Generation failed. Try again.'); statusEl.style.color='var(--red)'; }
-    if (progress) progress.style.display = 'none';
-    if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Video Now'; }
+    if (statusEl) { statusEl.textContent='❌ '+( e.message||'Generation failed'); statusEl.style.color='var(--red)'; }
+    if (btn)      { btn.disabled=false; btn.textContent='🎬 Generate Video Now'; }
+    if (progress) progress.style.display='none';
+    if (bar)      bar.style.width='0%';
   }
 };
+
+// Script character counter
+document.addEventListener('input', function(e) {
+  if (e.target && e.target.id === 'avs-script-input') {
+    var counter = document.getElementById('avs-script-count');
+    if (counter) counter.textContent = e.target.value.length;
+  }
+});
 
 window.avsDownload = async function() {
   if (!_avsVideoUrl) return;
