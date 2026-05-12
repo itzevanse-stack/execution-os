@@ -4,12 +4,14 @@
 const HEYGEN_BASE = 'https://api.heygen.com';
 
 module.exports = async function handler(req, res) {
+  // Always return JSON — never let errors return HTML
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  try {
   const KEY = process.env.HEYGEN_API_KEY;
   if (!KEY) return res.status(500).json({ error: 'HEYGEN_API_KEY not set in Vercel environment variables.' });
 
@@ -43,40 +45,59 @@ module.exports = async function handler(req, res) {
     if (!imageData) return res.status(400).json({ error: 'Missing image data' });
 
     try {
-      // Upload the image as an asset first
       const buffer = Buffer.from(imageData, 'base64');
-      const FormData = require('form-data');
-      const form = new FormData();
-      form.append('file', buffer, { filename: imageName || 'avatar.jpg', contentType: mimeType || 'image/jpeg' });
-      form.append('type', 'image');
 
-      const uploadResp = await fetch(`${HEYGEN_BASE}/v1/asset`, {
-        method: 'POST',
-        headers: { 'X-Api-Key': KEY, ...form.getHeaders() },
-        body: form,
-      });
-      const uploadData = await uploadResp.json();
-      if (!uploadResp.ok) return res.status(uploadResp.status).json({ error: uploadData.message || 'Image upload failed' });
+      // Use Node.js built-in FormData (Node 18+) or fall back to form-data package
+      let FormDataClass;
+      try {
+        // Node 18+ has built-in FormData
+        FormDataClass = globalThis.FormData || require('form-data');
+      } catch(e) {
+        FormDataClass = require('form-data');
+      }
 
-      const imageUrl = uploadData.data?.url || uploadData.url;
-      if (!imageUrl) return res.status(500).json({ error: 'No image URL returned from upload' });
+      const form = new FormDataClass();
+      const isNativeFormData = typeof globalThis.FormData !== 'undefined' && FormDataClass === globalThis.FormData;
 
-      // Create a talking photo avatar from the uploaded image
-      const createResp = await heygenPost('/v2/photo_avatar', {
-        image_url: imageUrl,
-        name: avatarName || 'My Avatar',
-      });
-      const createData = await createResp.json();
-      if (!createResp.ok) return res.status(createResp.status).json({ error: createData.message || 'Photo avatar creation failed' });
-
-      const photoAvatarId = createData.data?.photo_avatar_id || createData.photo_avatar_id;
-      return res.status(200).json({
-        success:       true,
-        photoAvatarId: photoAvatarId,
-        imageUrl:      imageUrl,
-        status:        'ready', // Photo avatars are ready immediately
-        message:       'Photo avatar created successfully.',
-      });
+      if (isNativeFormData) {
+        // Native FormData (Node 18+) — use Blob
+        const { Blob } = require('buffer');
+        const blob = new Blob([buffer], { type: mimeType || 'image/jpeg' });
+        form.append('file', blob, imageName || 'avatar.jpg');
+        form.append('type', 'image');
+        const uploadResp = await fetch(`${HEYGEN_BASE}/v1/asset`, {
+          method: 'POST',
+          headers: { 'X-Api-Key': KEY },
+          body: form,
+        });
+        const uploadData = await uploadResp.json();
+        if (!uploadResp.ok) return res.status(uploadResp.status).json({ error: uploadData.message || 'Image upload failed' });
+        const imageUrl = uploadData.data?.url || uploadData.url;
+        if (!imageUrl) return res.status(500).json({ error: 'No image URL returned' });
+        const createResp = await heygenPost('/v2/photo_avatar', { image_url: imageUrl, name: avatarName || 'My Avatar' });
+        const createData = await createResp.json();
+        if (!createResp.ok) return res.status(createResp.status).json({ error: createData.message || 'Photo avatar creation failed' });
+        const photoAvatarId = createData.data?.photo_avatar_id || createData.photo_avatar_id;
+        return res.status(200).json({ success: true, photoAvatarId, imageUrl, status: 'ready' });
+      } else {
+        // form-data package
+        form.append('file', buffer, { filename: imageName || 'avatar.jpg', contentType: mimeType || 'image/jpeg' });
+        form.append('type', 'image');
+        const uploadResp = await fetch(`${HEYGEN_BASE}/v1/asset`, {
+          method: 'POST',
+          headers: { 'X-Api-Key': KEY, ...form.getHeaders() },
+          body: form,
+        });
+        const uploadData = await uploadResp.json();
+        if (!uploadResp.ok) return res.status(uploadResp.status).json({ error: uploadData.message || 'Image upload failed' });
+        const imageUrl = uploadData.data?.url || uploadData.url;
+        if (!imageUrl) return res.status(500).json({ error: 'No image URL returned' });
+        const createResp = await heygenPost('/v2/photo_avatar', { image_url: imageUrl, name: avatarName || 'My Avatar' });
+        const createData = await createResp.json();
+        if (!createResp.ok) return res.status(createResp.status).json({ error: createData.message || 'Photo avatar creation failed' });
+        const photoAvatarId = createData.data?.photo_avatar_id || createData.photo_avatar_id;
+        return res.status(200).json({ success: true, photoAvatarId, imageUrl, status: 'ready' });
+      }
     } catch(e) {
       console.error('Photo avatar error:', e.message);
       return res.status(500).json({ error: e.message });
@@ -243,4 +264,9 @@ module.exports = async function handler(req, res) {
   }
 
   return res.status(400).json({ error: 'Unknown action: ' + action });
+
+  } catch(globalErr) {
+    console.error('HeyGen handler crash:', globalErr.message);
+    return res.status(500).json({ error: 'Server error: ' + globalErr.message });
+  }
 };
