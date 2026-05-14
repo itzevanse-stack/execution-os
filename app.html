@@ -19592,7 +19592,16 @@ async function fbGenerateFunnel() {
     clearInterval(interval);
     console.error('Funnel generation error:', err);
     fbSetView('create');
-    alert('Generation failed. Please check your API key in settings and try again.');
+    var msg = err.message || 'Unknown error';
+    if (msg.includes('404') || msg.includes('DOCTYPE')) {
+      alert('Generation failed: API endpoint not found.\n\nFix: Go to Vercel → your project → check that api/generate-funnel.js is deployed correctly and ANTHROPIC_API_KEY is set in Environment Variables.');
+    } else if (msg.includes('API key') || msg.includes('401') || msg.includes('403')) {
+      alert('Generation failed: Invalid Anthropic API key.\n\nFix: Go to Vercel → Settings → Environment Variables → check ANTHROPIC_API_KEY is correct.');
+    } else if (msg.includes('429')) {
+      alert('Rate limit hit. Please wait 30 seconds and try again.');
+    } else {
+      alert('Generation failed: ' + msg);
+    }
   }
 };
 
@@ -20720,7 +20729,94 @@ async function emSaveFunnelConnection(){var sel=document.getElementById('em-funn
 async function emSaveTrigger(){var te=document.getElementById('em-trigger-select'),le=document.getElementById('em-sequence-live');emState.trigger=(te&&te.value)||'optin';emState.sequenceLive=!!(le&&le.checked);await emSave();alert('Trigger settings saved.');}
 function emToggleScheduleDate(val){var dt=document.getElementById('em-compose-datetime');if(dt)dt.style.display=val==='scheduled'?'block':'none';}
 function emUpdateRecipientCount(){var el=document.getElementById('em-compose-recipient-count');if(!el)return;el.textContent=emState.contacts.length>0?'Sending to approximately '+emState.contacts.length+' contacts':'No contacts yet, capture leads from your funnels first.';}
-function emCreateSequence(){alert('Custom sequences coming soon. Use the default welcome sequence or click Regenerate with AI.');}
+function emCreateSequence(){
+  var existing = document.getElementById('em-new-seq-modal');
+  if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'em-new-seq-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
+  modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:28px;width:100%;max-width:500px">'
+    + '<div style="font-size:15px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:6px">✉️ Create Email Sequence</div>'
+    + '<div style="font-size:12px;color:var(--dim);margin-bottom:18px">Set up an automated email series that sends to new contacts when they opt in.</div>'
+    + '<div style="margin-bottom:12px"><div class="fi-label">Sequence Name</div><input class="fi" id="em-seq-name" placeholder="e.g. Welcome Series, Onboarding" /></div>'
+    + '<div style="margin-bottom:12px"><div class="fi-label">Trigger</div>'
+    + '<select class="fi" id="em-seq-trigger"><option value="optin">When someone opts in</option><option value="purchase">After purchase</option><option value="manual">Manual send</option></select></div>'
+    + '<div style="margin-bottom:16px"><div class="fi-label">Number of emails</div>'
+    + '<select class="fi" id="em-seq-count"><option value="3">3 emails</option><option value="5" selected>5 emails</option><option value="7">7 emails</option><option value="10">10 emails</option></select></div>'
+    + '<div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.12);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.7">'
+    + '💡 AI will write every email in the sequence based on your offer, audience, and goals. You can edit each one after.'
+    + '</div>'
+    + '<div style="display:flex;gap:10px">'
+    + '<button id="em-seq-create-btn" onclick="emBuildSequence()" style="flex:1;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:10px;padding:11px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Generate Sequence with AI →</button>'
+    + '<button id="em-seq-cancel-btn" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;padding:11px 18px;color:var(--dim);font-size:12px;cursor:pointer;font-family:Poppins,sans-serif">Cancel</button>'
+    + '</div>'
+    + '<div id="em-seq-status" style="font-size:11px;margin-top:8px;text-align:center"></div>'
+    + '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  // Wait for DOM then attach cancel btn
+  setTimeout(function(){
+    var cb = document.getElementById('em-seq-cancel-btn');
+    if (cb) cb.addEventListener('click', function(){ modal.remove(); });
+  }, 50);
+}
+
+async function emBuildSequence(){
+  var name    = (document.getElementById('em-seq-name')||{}).value||'Welcome Series';
+  var trigger = (document.getElementById('em-seq-trigger')||{}).value||'optin';
+  var count   = parseInt((document.getElementById('em-seq-count')||{}).value||'5');
+  var btn     = document.getElementById('em-seq-create-btn');
+  var statusEl= document.getElementById('em-seq-status');
+  if (btn){ btn.textContent='⏳ Writing emails…'; btn.disabled=true; }
+
+  var av     = window._avatarData || {};
+  var affOff = window._affiliateOffer || {};
+  var niche  = window._appliedNiche || affOff.niche || 'digital products';
+  var offer  = (window._offerData&&window._offerData.headline)||affOff.name||'my offer';
+  var pain   = av.pain || 'struggling to get results';
+  var isAff  = (window._appMode||'affiliate')==='affiliate';
+
+  var seqType = isAff ? 'affiliate marketer' : 'digital product expert';
+  var prompt = 'Write a ' + count + '-email automated email sequence for a ' + seqType + '.'
+    + ' Niche: ' + niche + '. Offer: ' + offer + '. Audience: ' + (av.job||'entrepreneurs') + ' who are ' + pain + '.'
+    + ' Trigger: ' + trigger + '. Sequence name: ' + name + '.'
+    + ' For each email provide subject line, preview text (40 chars), full email body (150-250 words, conversational, no dashes), and send delay (Immediately / Day 2 / Day 4 etc).'
+    + ' Format as JSON array: [{"subject":"","preview":"","body":"","delay":"","dayNum":0}].'
+    + ' Return ONLY the JSON array, no explanation or backticks.';
+
+  try {
+    var reply = await window.callAPI([{role:'user',content:prompt}], 2000);
+    if (!reply) throw new Error('No response');
+
+    var clean = reply.replace(/```json|```/g,'').trim();
+    var emails = JSON.parse(clean);
+
+    var seq = {
+      id:       'seq_' + Date.now(),
+      name:     name,
+      trigger:  trigger,
+      emails:   emails,
+      live:     false,
+      created:  Date.now(),
+    };
+
+    if (!emState.sequences) emState.sequences = [];
+    emState.sequences.unshift(seq);
+    await emSave();
+
+    document.getElementById('em-new-seq-modal').remove();
+    emRenderSequences();
+
+    var toast = document.createElement('div');
+    toast.style.cssText='position:fixed;bottom:24px;right:24px;background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.25);border-radius:10px;padding:12px 20px;color:var(--teal);font-size:13px;font-weight:700;z-index:9999;font-family:Poppins,sans-serif';
+    toast.textContent='✅ '+count+'-email sequence created';
+    document.body.appendChild(toast);
+    setTimeout(function(){toast.remove();},2500);
+  } catch(e){
+    if(statusEl){statusEl.textContent='❌ Failed: '+e.message;statusEl.style.color='var(--red)';}
+    if(btn){btn.textContent='Generate Sequence with AI →';btn.disabled=false;}
+  }
+}
 
 (function(){var _origEM=window.showPage;window.showPage=function(n,btn){if(n==='email'){emLoad();document.querySelectorAll('.em-tab').forEach(function(t){t.classList.remove('on');});var ft=document.getElementById('em-tab-campaigns');if(ft)ft.classList.add('on');['contacts','sequences','templates','settings','compose'].forEach(function(v){var el=document.getElementById('em-view-'+v);if(el)el.style.display='none';});var cv=document.getElementById('em-view-campaigns');if(cv)cv.style.display='block';emState.tab='campaigns';}if(_origEM)_origEM(n,btn);};})();
 // ══ END EMAIL MARKETING MODULE ════════════════════════════════════════════════
@@ -21144,6 +21240,14 @@ function avsInit() {
     avsRenderLibrary();
     avsLoadAvatars(); // Load real avatars from HeyGen
     avsLoadVoices();  // Load voices from HeyGen
+
+    // Check if there's a pending video from a previous session
+    try {
+      var pendingId = localStorage.getItem('eos_avs_pending_' + (window._currentUserUid||'local'));
+      if (pendingId) {
+        setTimeout(function(){ avsResumePending(pendingId); }, 1000);
+      }
+    } catch(e) {}
   } catch(e) { avsShowStep(1); }
 }
 
@@ -21720,6 +21824,10 @@ window.avsGenerate = async function() {
     var videoId = data.videoId;
     if (!videoId) throw new Error('No video ID returned from HeyGen');
 
+    // Save videoId immediately so it survives page refresh
+    window._avsPendingVideoId = videoId;
+    try { localStorage.setItem('eos_avs_pending_' + (window._currentUserUid||'local'), videoId); } catch(e) {}
+
     if (statusEl) statusEl.textContent = 'Processing video…';
     if (bar)      bar.style.width = '40%';
 
@@ -21770,6 +21878,8 @@ window.avsGenerate = async function() {
           if (video) { video.src = sData.videoUrl; video.load(); }
           if (btn) { btn.disabled=false; btn.textContent='🎬 Generate Another'; }
           if (statusEl) { statusEl.textContent = '✅ Video saved to My Videos'; statusEl.style.color='var(--teal)'; setTimeout(function(){ statusEl.textContent=''; }, 3000); }
+          // Clear pending tracker
+          try { localStorage.removeItem('eos_avs_pending_' + (window._currentUserUid||'local')); } catch(e) {}
         } else if (isDone && !sData.videoUrl) {
           // Status says done but no URL yet — keep polling a few more times
           if (timeEl) timeEl.textContent = 'Finalising video…';
@@ -21815,6 +21925,110 @@ document.addEventListener('input', function(e) {
     if (counter) counter.textContent = e.target.value.length;
   }
 });
+
+// Resume polling for a pending video (survives page refresh)
+window.avsResumePending = async function(videoId) {
+  var statusEl = document.getElementById('avs-gen-status');
+  var progress = document.getElementById('avs-gen-progress');
+  var bar      = document.getElementById('avs-gen-bar');
+  var timeEl   = document.getElementById('avs-gen-time');
+  var result   = document.getElementById('avs-video-result');
+  var btn      = document.getElementById('avs-gen-btn');
+
+  // Switch to generate tab to show status
+  var tabs = document.querySelectorAll('.avs-tab');
+  if (window.avsShowTab) window.avsShowTab('generate', tabs[1] || null);
+
+  if (statusEl) { statusEl.textContent = '🔄 Checking your previous video…'; statusEl.style.color = 'var(--dim)'; }
+  if (progress) progress.style.display = 'block';
+  if (bar)      bar.style.width = '60%';
+  if (btn)      { btn.disabled = true; btn.textContent = '⏳ Video processing…'; }
+
+  // Check status once
+  try {
+    var resp = await fetch(window.location.origin + '/api/heygen', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'status', videoId: videoId })
+    });
+    var data = await resp.json();
+
+    if (data.status === 'completed' && data.videoUrl) {
+      // Video is ready — show it
+      window._avsVideoUrl = data.videoUrl;
+      var entry = {
+        url: data.videoUrl, date: new Date().toLocaleDateString('en-GB'),
+        timestamp: Date.now(), type: 'reel', script: 'Previously generated video'
+      };
+      _avsLibrary.push(entry);
+      avsSave();
+
+      if (progress) progress.style.display = 'none';
+      if (result)   result.style.display = 'block';
+      var video = document.getElementById('avs-preview-video');
+      if (video)    { video.src = data.videoUrl; video.load(); }
+      if (btn)      { btn.disabled = false; btn.textContent = '🎬 Generate Another'; }
+      if (statusEl) { statusEl.textContent = '✅ Your video is ready!'; statusEl.style.color = 'var(--teal)'; }
+
+      // Clear pending
+      try { localStorage.removeItem('eos_avs_pending_' + (window._currentUserUid||'local')); } catch(e) {}
+
+    } else if (data.status === 'processing' || data.status === 'pending' || data.status === 'waiting') {
+      // Still processing — keep polling
+      if (statusEl) statusEl.textContent = '⏳ Video still generating… checking every 10 seconds';
+      if (bar)      bar.style.width = '70%';
+      if (btn)      { btn.disabled = true; btn.textContent = '⏳ Video generating…'; }
+
+      var pollIv2 = setInterval(async function() {
+        try {
+          var r2 = await fetch(window.location.origin + '/api/heygen', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'status', videoId: videoId })
+          });
+          var d2 = await r2.json();
+          if ((d2.status === 'completed' || d2.status === 'success') && d2.videoUrl) {
+            clearInterval(pollIv2);
+            window._avsVideoUrl = d2.videoUrl;
+            var e2 = { url: d2.videoUrl, date: new Date().toLocaleDateString('en-GB'), timestamp: Date.now(), type: 'reel', script: 'Previously generated video' };
+            _avsLibrary.push(e2);
+            avsSave();
+            if (progress) progress.style.display = 'none';
+            if (result) result.style.display = 'block';
+            var v2 = document.getElementById('avs-preview-video');
+            if (v2) { v2.src = d2.videoUrl; v2.load(); }
+            if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Another'; }
+            if (statusEl) { statusEl.textContent = '✅ Your video is ready!'; statusEl.style.color = 'var(--teal)'; }
+            try { localStorage.removeItem('eos_avs_pending_' + (window._currentUserUid||'local')); } catch(e) {}
+          } else if (d2.status === 'failed') {
+            clearInterval(pollIv2);
+            if (progress) progress.style.display = 'none';
+            if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video Now'; }
+            try { localStorage.removeItem('eos_avs_pending_' + (window._currentUserUid||'local')); } catch(e) {}
+          }
+        } catch(pe) {}
+      }, 10000);
+
+    } else if (data.status === 'failed') {
+      if (progress) progress.style.display = 'none';
+      if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video Now'; }
+      if (statusEl) { statusEl.textContent = ''; }
+      try { localStorage.removeItem('eos_avs_pending_' + (window._currentUserUid||'local')); } catch(e) {}
+    } else {
+      // Unknown status — just clear
+      if (progress) progress.style.display = 'none';
+      if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video Now'; }
+      if (statusEl) statusEl.textContent = '';
+    }
+  } catch(e) {
+    if (progress) progress.style.display = 'none';
+    if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video Now'; }
+    if (statusEl) statusEl.textContent = '';
+  }
+};
+
+// Also clear pending on successful manual completion
+window.avsClearPending = function() {
+  try { localStorage.removeItem('eos_avs_pending_' + (window._currentUserUid||'local')); } catch(e) {}
+};
 
 window.avsDownload = async function() {
   if (!_avsVideoUrl) return;
