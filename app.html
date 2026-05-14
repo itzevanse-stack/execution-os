@@ -19866,145 +19866,86 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
   var expertNote = cfg.expertNote ? '\nSTRATEGIC NOTE: ' + cfg.expertNote + '\n' : '';
 
   var prompt = isAffiliate
-  // ════════════════════════════════════════════════════════════════════════════
-  // AFFILIATE PROMPT
-  // ════════════════════════════════════════════════════════════════════════════
-  ? ('You are a world-class conversion copywriter and funnel designer.\n\n'
-    + 'Build the highest-converting ' + page.label + ' ever created for this affiliate business.\n\n'
-    + '== AFFILIATE PROFILE ==\n'
+
+  // ── AFFILIATE PROMPT ─────────────────────────────────────────────────────────
+  ? (
+      'BUILD: ' + page.label + '\n\n'
+
+    + 'PROFILE:\n'
     + 'Product: ' + offerName + '\n'
-    + (offerTagline  ? 'Tagline: ' + offerTagline + '\n' : '')
-    + (monthComm     ? 'Commission: $' + monthComm + '/sale\n' : '')
-    + (offerUrl      ? 'Affiliate URL: ' + offerUrl + '\n' : '')
-    + (niche         ? 'Niche: ' + niche + '\n' : '')
-    + (monthTarget   ? 'Monthly target: $' + monthTarget + '\n' : '')
-    + '\n== TARGET AUDIENCE ==\n'
-    + (avJob         ? 'Who they are: ' + avJob + '\n' : '')
-    + (avPain        ? 'Their pain: ' + avPain + '\n' : '')
-    + (avDesire      ? 'What they want: ' + avDesire + '\n' : '')
-    + (avFear        ? 'Their fear: ' + avFear + '\n' : '')
-    + (avObjctn      ? 'Objections: ' + avObjctn + '\n' : '')
-    + (avKeywords    ? 'Their language: ' + avKeywords + '\n' : '')
-    + '\n== PAGE TO BUILD ==\n'
-    + 'Type: ' + page.label + '\n'
-    + 'Goal: ' + cfg.goal + '\n'
-    + 'Sections: ' + cfg.sections + '\n'
-    + 'CTA: ' + cfg.cta + '\n\n'
-    + (page.id === 'landing' ? ('POPUP OPT-IN RULES:\n'
-      + '1. NO inline form. CTA button opens popup: document.getElementById(\'lead-modal\').style.display=\'flex\'\n'
-      + '2. Modal id="lead-modal", display:none, position:fixed, full overlay\n'
-      + '3. Modal contains: close X, benefit headline, id="ln" (name), id="le" (email), submit button\n'
-      + '4. Submit: var n=document.getElementById(\'ln\').value;var e=document.getElementById(\'le\').value;if(!e||!e.includes(\'@\')){alert(\'Enter your email\');return;}if(window.captureEOSLead)window.captureEOSLead(e,n);setTimeout(function(){window.location.href=\'' + (offerUrl||'https://build.skillslibry.com/grow') + '\';},400);\n\n') : '')
-    + '== DESIGN SYSTEM ==\n'
-    + 'Background: #06060f | Cards: #0d0d1e border rgba(78,204,163,0.15) radius 16px\n'
-    + 'Primary: #4ecca3 (teal) | Gold: #f0c040 | Purple: #6c63ff | White: #fff | Body: #c8cde8\n'
-    + 'Font: Poppins (Google Fonts, 400-900)\n'
-    + 'H1: weight 900, clamp(30px,5.5vw,62px), letter-spacing -2px\n'
-    + 'Gradient headline: background linear-gradient(100deg,#4ecca3,#f0c040), -webkit-background-clip text, -webkit-text-fill-color transparent\n'
-    + 'Buttons: background linear-gradient(135deg,#4ecca3,#38b48e), color #06060f, font-weight 800, padding 18px 40px, box-shadow 0 0 50px rgba(78,204,163,.4)\n'
-    + 'Ticker: overflow:hidden, animation scrolls text left continuously with @keyframes\n'
-    + 'Max-width: 1100px, mobile responsive with @media(max-width:768px)\n\n'
-    + 'Return complete standalone HTML from <!DOCTYPE html> to </html>. All CSS in one <style> block. No JavaScript frameworks. Return ONLY raw HTML.')
+    + (niche       ? 'Niche: '         + niche       + '\n' : '')
+    + (offerUrl    ? 'Affiliate URL: ' + offerUrl    + '\n' : '')
+    + (offerPrice  ? 'Product price: $'+ offerPrice  + '\n' : '')
+    + (monthComm   ? 'Commission: '    + monthComm   + '/sale\n' : '')
+    + (monthTarget ? 'Monthly target: '+ monthTarget + '\n' : '')
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // EXPERT PROMPT — High-ticket coaching/consulting
-  // ════════════════════════════════════════════════════════════════════════════
-  : ('You are the world\'s best high-ticket funnel strategist and direct-response copywriter.\n'
-    + 'You have built funnels for Russell Brunson, Alex Hormozi, Tony Robbins, Grant Cardone.\n'
-    + 'You understand that high-ticket experts NEVER show price in their funnels until the sales call.\n'
-    + 'You understand the psychology of premium positioning, authority, and desire.\n\n'
+    + '\nIDEAL CUSTOMER:\n'
+    + (avJob      ? 'Who: '          + avJob      + '\n' : '')
+    + (avPain     ? 'Pain: '         + avPain     + '\n' : '')
+    + (avDesire   ? 'Want: '         + avDesire   + '\n' : '')
+    + (avFear     ? 'Fear: '         + avFear     + '\n' : '')
+    + (avObjctn   ? 'Objections: '   + avObjctn   + '\n' : '')
+    + (avKeywords ? 'Their words: '  + avKeywords + '\n' : '')
+    + (avTried    ? 'Tried before: ' + avTried    + '\n' : '')
 
-    + 'BUILD THIS PAGE: ' + page.label + '\n'
+    + '\nPAGE DETAILS:\n'
+    + 'Goal: '     + cfg.goal     + '\n'
+    + 'Build: '    + cfg.sections + '\n'
+    + 'CTA text: ' + cfg.cta      + '\n'
+
+    + (page.id === 'landing' ? (
+        '\nOPT-IN POPUP (required):\n'
+      + '- Main CTA button onclick: document.getElementById(\'lead-modal\').style.display=\'flex\'\n'
+      + '- Modal: id="lead-modal", fixed overlay rgba(0,0,0,0.88), centered white-bordered card, X close button\n'
+      + '- Inputs: id="ln" (First Name), id="le" (Email)\n'
+      + '- Submit button onclick: if(!document.getElementById(\'le\').value.includes(\'@\')){alert(\'Enter your email\');return;}if(window.captureEOSLead)window.captureEOSLead(document.getElementById(\'le\').value,document.getElementById(\'ln\').value);setTimeout(function(){window.location.href=\'' + (offerUrl||'https://build.skillslibry.com/grow') + '\';},400);\n'
+      ) : '')
+  )
+
+  // ── EXPERT PROMPT ─────────────────────────────────────────────────────────────
+  : (
+      'BUILD: ' + page.label + '\n'
     + expertNote + '\n'
 
-    + '═══════════════════════════════════════════\n'
-    + 'THIS EXPERT\'S COMPLETE PROFILE — USE EVERY DETAIL\n'
-    + '═══════════════════════════════════════════\n'
-    + (niche        ? 'Niche: ' + niche + '\n' : 'Niche: NOT SET — use generic business coaching\n')
-    + (offerName    ? 'Programme/Offer name: ' + offerName + '\n' : '')
-    + (monthPrice   ? 'Investment level: $' + monthPrice + ' (NEVER show this on the page — discussed on the call)\n' : '')
-    + (monthTarget  ? 'Monthly revenue target: $' + monthTarget + '\n' : '')
-    + (salesNeeded  ? 'Clients needed this month: ' + salesNeeded + '\n' : '')
-    + '\n'
+    + 'EXPERT PROFILE:\n'
+    + (niche      ? 'Niche: '       + niche      + '\n' : '')
+    + (offerName  ? 'Programme: '   + offerName  + '\n' : '')
+    + (monthPrice ? 'Price point: ' + monthPrice + ' — NEVER show on page. Call only.\n' : '')
 
-    + '── IDEAL CLIENT ──\n'
-    + (avJob        ? 'Who they are: ' + avJob + '\n' : '')
-    + (avPain       ? 'Surface-level pain: ' + avPain + '\n' : '')
-    + (avDesire     ? 'What they deeply want: ' + avDesire + '\n' : '')
-    + (avFear       ? 'Their deepest fear: ' + avFear + '\n' : '')
-    + (avTried      ? 'What they\'ve already tried: ' + avTried + '\n' : '')
-    + (avObjctn     ? 'Common objections: ' + avObjctn + '\n' : '')
-    + (avMotiv      ? 'What motivates them: ' + avMotiv + '\n' : '')
-    + (avKeywords   ? 'Exact language they use: ' + avKeywords + '\n' : '')
-    + '\n'
+    + '\nIDEAL CLIENT:\n'
+    + (avJob      ? 'Who: '           + avJob      + '\n' : '')
+    + (avPain     ? 'Pain: '          + avPain     + '\n' : '')
+    + (avDesire   ? 'Want: '          + avDesire   + '\n' : '')
+    + (avFear     ? 'Fear: '          + avFear     + '\n' : '')
+    + (avTried    ? 'Tried: '         + avTried    + '\n' : '')
+    + (avObjctn   ? 'Objections: '    + avObjctn   + '\n' : '')
+    + (avMotiv    ? 'Motivation: '    + avMotiv    + '\n' : '')
+    + (avKeywords ? 'Their words: '   + avKeywords + '\n' : '')
 
-    + (voiceTone || voiceStory || voiceExample ? '── EXPERT\'S VOICE ──\n'
-      + (voiceTone    ? 'Tone: ' + voiceTone + '\n' : '')
-      + (voiceStory   ? 'Their story: ' + voiceStory + '\n' : '')
-      + (voiceMethod  ? 'Their method/framework: ' + voiceMethod + '\n' : '')
-      + (voiceExample ? 'Match this voice:\n' + voiceExample + '\n' : '')
-      + '\n' : '')
+    + (voiceTone  || voiceStory ? '\nEXPERT VOICE:\n'
+      + (voiceTone  ? 'Tone: '    + voiceTone  + '\n' : '')
+      + (voiceStory ? 'Story: '   + voiceStory + '\n' : '')
+      + (voiceMethod? 'Method: '  + voiceMethod+ '\n' : '')
+      : '')
 
-    + '═══════════════════════════════════════════\n'
-    + 'PAGE STRATEGY\n'
-    + '═══════════════════════════════════════════\n'
-    + 'Goal: ' + cfg.goal + '\n'
-    + 'Build: ' + cfg.sections + '\n'
-    + 'Primary CTA: ' + cfg.cta + '\n\n'
+    + '\nPAGE DETAILS:\n'
+    + 'Goal: '     + cfg.goal     + '\n'
+    + 'Build: '    + cfg.sections + '\n'
+    + 'CTA text: ' + cfg.cta      + '\n'
 
-    + '═══════════════════════════════════════════\n'
-    + 'EXPERT COPYWRITING RULES — NON-NEGOTIABLE\n'
-    + '═══════════════════════════════════════════\n'
-    + '1. NEVER show the price or investment amount. Ever. Price is discussed on the sales call.\n'
-    + '2. NEVER use a buy button, order form, or checkout on a VSL, optin, booking, or apply page.\n'
-    + '3. Position everything as FREE — free training, free strategy call, free masterclass.\n'
-    + '4. The headline should mirror the EXACT words the ideal client uses to describe their problem.\n'
-    + '5. Speak to ONE specific person. "If you are a [job] who [pain]..." not generic language.\n'
-    + '6. Authority is earned through specificity — real numbers, real timeframes, real frameworks.\n'
-    + '7. Every CTA must be low-risk: "book a free call", "watch free training" — not "buy now".\n'
-    + '8. End every section by answering: "So what does this mean for ME specifically?"\n'
-    + '9. Short punchy sentences. One idea per sentence. Then a longer one that builds context.\n'
-    + '10. No hollow phrases: no "game changer", "transform your life", "unlock potential".\n\n'
+    + (page.id === 'optin' ? (
+        '\nOPT-IN POPUP (required):\n'
+      + '- CTA onclick: document.getElementById(\'lead-modal\').style.display=\'flex\'\n'
+      + '- Modal: id="lead-modal", fixed overlay, centered card, X close\n'
+      + '- Inputs: id="ln" (First Name), id="le" (Email)\n'
+      + '- Submit: if(window.captureEOSLead)window.captureEOSLead(document.getElementById(\'le\').value,document.getElementById(\'ln\').value);setTimeout(function(){window.location.href=\'?page=vsl\';},400);\n'
+      ) : '')
 
-    + (page.id === 'optin' ? ('OPTIN PAGE SPECIFIC:\n'
-      + '- This is for a FREE training — headline must say "Free Training:", "Free Masterclass:", or "Free Guide:"\n'
-      + '- Name the specific transformation they get FROM THE FREE TRAINING (not from the paid offer)\n'
-      + '- POPUP: CTA opens modal (id="lead-modal"), Name (id="ln"), Email (id="le"), Submit button\n'
-      + '- Submit: if(window.captureEOSLead)window.captureEOSLead(document.getElementById(\'le\').value,document.getElementById(\'ln\').value);setTimeout(function(){window.location.href=\'?page=vsl\';},400);\n\n') : '')
-
-    + (page.id === 'vsl' ? ('VSL PAGE SPECIFIC:\n'
-      + '- Start with "Congratulations, you\'re in!" or "Watch this before it comes down"\n'
-      + '- Video player: dark card, 16:9 aspect ratio, pulsing play button, view counter\n'
-      + '- Below-fold CTA: "Book Your Free Strategy Call" → links to booking page or Calendly\n'
-      + '- NO price. NO order form. The video sells the call, the call sells the programme.\n\n') : '')
-
-    + (page.id === 'booking' ? ('BOOKING PAGE SPECIFIC:\n'
-      + '- "You\'re one step away" headline\n'
-      + '- 3 bullets about what happens on the call (no pitch, just clarity and a plan)\n'
-      + '- Include: <div id="calendly-placeholder" style="min-height:600px;background:rgba(255,255,255,.03);border:1px dashed rgba(78,204,163,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center"><p style="color:#7a7a9d;font-size:14px">📅 Your Calendly booking widget appears here.<br>Go to calendly.com, create your event, then paste the embed code here.</p></div>\n'
-      + '- Reassurance: "No selling, no pressure — just a real conversation about your situation"\n\n') : '')
-
-    + (page.id === 'apply' ? ('APPLICATION PAGE SPECIFIC:\n'
-      + '- Make it feel EXCLUSIVE — not everyone gets accepted\n'
-      + '- Headline: "Apply to Work With [Expert Name/Business Name]"\n'
-      + '- 5 application questions: name/email, current situation, desired outcome, what they\'ve tried, investment readiness\n'
-      + '- Submit goes to: captureEOSLead(email, name) then redirect to confirmation\n\n') : '')
-
-    + '═══════════════════════════════════════════\n'
-    + 'DESIGN — PREMIUM DARK THEME\n'
-    + '═══════════════════════════════════════════\n'
-    + 'Background: #06060f | Section alt: #111128 | Cards: #0d0d1e with border rgba(78,204,163,0.15)\n'
-    + 'Primary: #4ecca3 | Gold: #f0c040 | Purple: #6c63ff | White: #ffffff | Body text: #c8cde8\n'
-    + 'Font: Poppins from Google Fonts (400,600,700,800,900) — import in CSS\n'
-    + 'H1: weight 900, clamp(32px,5.5vw,64px), letter-spacing -2px, line-height 1.1\n'
-    + 'GRADIENT TEXT: background:linear-gradient(100deg,#4ecca3,#f0c040);-webkit-background-clip:text;-webkit-text-fill-color:transparent on key phrase in headline\n'
-    + 'BUTTONS: background:linear-gradient(135deg,#4ecca3,#38b48e);color:#06060f;font-weight:900;padding:18px 48px;border-radius:8px;box-shadow:0 0 60px rgba(78,204,163,.35);font-size:16px;text-transform:uppercase;letter-spacing:.5px\n'
-    + 'HERO: padding:120px 24px 80px;text-align:center;radial gradient decoration at top\n'
-    + 'TICKER: position:fixed top or relative, overflow:hidden, @keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}\n'
-    + 'VIDEO PLACEHOLDER: background:#000;border-radius:16px;aspect-ratio:16/9;position:relative with centered play button circle\n'
-    + 'Container: max-width:1100px;margin:0 auto;padding:0 24px\n'
-    + 'Mobile: @media(max-width:768px) with clamp sizes, stacked layouts, full-width buttons\n\n'
-    + 'Return complete standalone HTML from <!DOCTYPE html> to </html>. Import Poppins in CSS. All CSS in one <style> block. No JS frameworks. Return ONLY the raw HTML with no backticks or explanation.');
+    + (page.id === 'booking' ? (
+        '\nCALENDLY PLACEHOLDER:\n'
+      + '<div id="calendly-embed" style="min-height:600px;background:rgba(255,255,255,0.02);border:1px dashed rgba(78,204,163,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center"><p style="color:#7a7a9d;font-size:14px;font-family:Poppins,sans-serif;line-height:2">📅 Paste your Calendly embed code here</p></div>\n'
+      ) : '')
+  )
 
 
   var proxyUrl = window.location.origin + '/api/generate-funnel';
