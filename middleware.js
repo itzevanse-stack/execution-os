@@ -1,48 +1,58 @@
 // middleware.js — Vercel Edge Middleware
-// Proxies custom member domains to api/funnel — URL stays as their domain
-// API routes and static assets are explicitly excluded
+// ONLY purpose: proxy custom member domains to the funnel API
+// Main domain and ALL API routes pass through untouched
 
 export const config = {
-  // Only run on non-API, non-static paths
-  // This prevents middleware from interfering with serverless functions
-  matcher: [
-    '/((?!api/|_next/|favicon|.*\\.(?:js|css|png|jpg|ico|svg|woff|woff2|ttf|json)).*)',
-  ],
+  matcher: '/:path*',
 };
 
 export default async function middleware(request) {
   const host = request.headers.get('host') || '';
-  const url  = request.nextUrl || new URL(request.url);
+  const path = new URL(request.url).pathname;
 
-  // Never intercept API routes — let them go straight to serverless functions
-  if (url.pathname.startsWith('/api/')) {
-    return; // pass through
+  // ── ALWAYS pass through these — never intercept ──────────────────────────
+  // API functions, static files, Vercel internals
+  if (
+    path.startsWith('/api/') ||
+    path.startsWith('/_next/') ||
+    path.startsWith('/_vercel/') ||
+    path.includes('.js') ||
+    path.includes('.css') ||
+    path.includes('.html') ||
+    path.includes('.ico') ||
+    path.includes('.png') ||
+    path.includes('.svg') ||
+    path.includes('.json') ||
+    path.includes('.woff')
+  ) {
+    return; // pass through — do nothing
   }
 
-  const isMain = [
-    'build.skillslibry.com',
-    'execution-os-xi.vercel.app',
-  ].some(d => host === d || host.endsWith('.' + d))
-    || host.includes('.vercel.app')
-    || host.startsWith('localhost')
-    || host.startsWith('127.');
+  // ── Main domain — pass through untouched ─────────────────────────────────
+  const isMain =
+    host === 'build.skillslibry.com' ||
+    host === 'execution-os-xi.vercel.app' ||
+    host.endsWith('.vercel.app') ||
+    host.startsWith('localhost') ||
+    host.startsWith('127.');
 
-  if (!isMain) {
-    // Custom member domain — proxy to funnel API
-    try {
-      const apiUrl = 'https://execution-os-xi.vercel.app/api/funnel?host=' + encodeURIComponent(host);
-      const resp = await fetch(apiUrl, { headers: { 'x-forwarded-host': host } });
-      const html = await resp.text();
-      return new Response(html, {
-        status: resp.status,
-        headers: { 'content-type': 'text/html; charset=utf-8' },
-      });
-    } catch(e) {
-      return new Response('<html><body><p>Loading...</p></body></html>', {
-        status: 200,
-        headers: { 'content-type': 'text/html' },
-      });
-    }
+  if (isMain) {
+    return; // pass through — do nothing
   }
-  // Main domain — pass through normally
+
+  // ── Custom member domain — proxy to funnel API ───────────────────────────
+  try {
+    const apiUrl = 'https://execution-os-xi.vercel.app/api/funnel?host=' + encodeURIComponent(host);
+    const resp = await fetch(apiUrl, { headers: { 'x-forwarded-host': host } });
+    const html = await resp.text();
+    return new Response(html, {
+      status: resp.status,
+      headers: { 'content-type': 'text/html; charset=utf-8' },
+    });
+  } catch(e) {
+    return new Response('<html><body><p>Loading...</p></body></html>', {
+      status: 200,
+      headers: { 'content-type': 'text/html' },
+    });
+  }
 }
