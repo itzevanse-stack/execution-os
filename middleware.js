@@ -1,10 +1,23 @@
 // middleware.js — Vercel Edge Middleware
 // Proxies custom member domains to api/funnel — URL stays as their domain
+// API routes and static assets are explicitly excluded
 
-export const config = { matcher: '/:path*' };
+export const config = {
+  // Only run on non-API, non-static paths
+  // This prevents middleware from interfering with serverless functions
+  matcher: [
+    '/((?!api/|_next/|favicon|.*\\.(?:js|css|png|jpg|ico|svg|woff|woff2|ttf|json)).*)',
+  ],
+};
 
 export default async function middleware(request) {
   const host = request.headers.get('host') || '';
+  const url  = request.nextUrl || new URL(request.url);
+
+  // Never intercept API routes — let them go straight to serverless functions
+  if (url.pathname.startsWith('/api/')) {
+    return; // pass through
+  }
 
   const isMain = [
     'build.skillslibry.com',
@@ -15,7 +28,7 @@ export default async function middleware(request) {
     || host.startsWith('127.');
 
   if (!isMain) {
-    // Proxy to funnel API — browser URL stays as www.theirdomain.com
+    // Custom member domain — proxy to funnel API
     try {
       const apiUrl = 'https://execution-os-xi.vercel.app/api/funnel?host=' + encodeURIComponent(host);
       const resp = await fetch(apiUrl, { headers: { 'x-forwarded-host': host } });
@@ -31,4 +44,5 @@ export default async function middleware(request) {
       });
     }
   }
+  // Main domain — pass through normally
 }
