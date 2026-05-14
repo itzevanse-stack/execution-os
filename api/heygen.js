@@ -54,52 +54,91 @@ module.exports = async function handler(req, res) {
     return res.status(200).json({ avatars });
   }
 
+  // ── CREATE VIDEO AVATAR (Instant Avatar from recorded video) ────────────────
+  // Frontend sends action:'create-avatar' for video upload
+  if (action === 'create-avatar') {
+    const { videoData, fileName, mimeType, uid } = req.body || {};
+    if (!videoData) return res.status(400).json({ error: 'Missing video data' });
+
+    const buffer    = Buffer.from(videoData, 'base64');
+    const videoType = mimeType || 'video/mp4';
+
+    console.log('Uploading instant avatar video:', buffer.length, 'bytes');
+
+    // Upload video to HeyGen instant avatar endpoint
+    const uploadResp = await fetch(`${UPLOAD}/v1/instant_avatar/video/upload`, {
+      method:  'POST',
+      headers: {
+        'X-Api-Key':    KEY,
+        'Content-Type': videoType,
+        'Accept':       'application/json',
+      },
+      body: buffer,
+    });
+
+    const { ok: upOk, data: upData, status: upStatus } = await safeJson(uploadResp);
+    console.log('Instant avatar upload response:', upStatus, JSON.stringify(upData).substring(0, 300));
+
+    if (!upOk) {
+      const msg = upData?.message || upData?.error || JSON.stringify(upData).substring(0, 200);
+      return res.status(500).json({ error: 'Video upload failed: ' + msg });
+    }
+
+    const avatarId = upData.data?.avatar_id || upData.avatar_id || upData.data?.job_id || upData.job_id;
+    return res.status(200).json({
+      success:  true,
+      avatarId: avatarId || 'pending_' + Date.now(),
+      jobId:    avatarId,
+      status:   'pending',
+      message:  'Avatar video submitted. Processing takes 2-5 minutes.',
+    });
+  }
+
   // ── CREATE PHOTO AVATAR (talking photo) ─────────────────────────────────────
-  // Correct endpoint: POST https://upload.heygen.com/v1/talking_photo (multipart)
+  // Correct method: raw binary POST — NOT multipart form data
+  // curl equivalent: curl -X POST https://upload.heygen.com/v1/talking_photo
+  //   -H 'X-Api-Key: KEY' -H 'Content-Type: image/jpeg' --data-binary '@photo.jpg'
   if (action === 'create-photo-avatar') {
-    const { imageData, imageName, mimeType, avatarName } = req.body || {};
+    const { imageData, mimeType } = req.body || {};
     if (!imageData) return res.status(400).json({ error: 'Missing image data' });
 
-    const buffer = Buffer.from(imageData, 'base64');
+    const buffer    = Buffer.from(imageData, 'base64');
+    const imageType = (mimeType || 'image/jpeg').replace('image/', '') === 'png' ? 'image/png' : 'image/jpeg';
 
-    // Build multipart form manually — works without any npm packages
-    const boundary = '----FormBoundary' + Date.now().toString(16);
-    const fn       = imageName || 'avatar.jpg';
-    const mime     = mimeType  || 'image/jpeg';
+    console.log('Uploading talking photo:', buffer.length, 'bytes,', imageType);
 
-    const partHeader = Buffer.from(
-      `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="file"; filename="${fn}"\r\n` +
-      `Content-Type: ${mime}\r\n\r\n`
-    );
-    const partFooter = Buffer.from(`\r\n--${boundary}--\r\n`);
-    const body       = Buffer.concat([partHeader, buffer, partFooter]);
-
+    // Send raw binary — this is what HeyGen expects
     const uploadResp = await fetch(`${UPLOAD}/v1/talking_photo`, {
       method:  'POST',
       headers: {
         'X-Api-Key':    KEY,
-        'Content-Type': `multipart/form-data; boundary=${boundary}`,
+        'Content-Type': imageType,
         'Accept':       'application/json',
       },
-      body,
+      body: buffer,
     });
 
-    const { ok: upOk, data: upData } = await safeJson(uploadResp);
+    const { ok: upOk, data: upData, status: upStatus } = await safeJson(uploadResp);
+    console.log('Talking photo response:', upStatus, JSON.stringify(upData).substring(0, 300));
+
     if (!upOk) {
-      return res.status(500).json({ error: upData.error || 'Photo upload failed. Check your HeyGen plan supports photo avatars.' });
+      const msg = upData?.message || upData?.error || upData?.msg || JSON.stringify(upData).substring(0, 200);
+      return res.status(500).json({ error: 'Photo upload failed: ' + msg });
     }
 
+    // Response: { code: 100, data: { talking_photo_id: "...", talking_photo_url: "..." } }
     const talkingPhotoId = upData.data?.talking_photo_id || upData.talking_photo_id;
     if (!talkingPhotoId) {
-      return res.status(500).json({ error: 'No talking_photo_id in response: ' + JSON.stringify(upData) });
+      return res.status(500).json({
+        error: 'No talking_photo_id returned. Full response: ' + JSON.stringify(upData).substring(0, 300)
+      });
     }
 
     return res.status(200).json({
       success:        true,
       talkingPhotoId: talkingPhotoId,
+      photoUrl:       upData.data?.talking_photo_url || '',
       status:         'ready',
-      message:        'Photo avatar ready.',
     });
   }
 
