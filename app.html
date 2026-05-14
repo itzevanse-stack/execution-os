@@ -4875,141 +4875,149 @@ button[onclick="generateOffer()"] {
 
     <!-- TAB 2: Generate Video -->
     <div id="avs-tab-generate" style="display:none">
-      <div class="card-dark" style="margin-bottom:1rem">
+      <div class="card-dark" style="margin-bottom:1rem;padding:20px">
 
-        <!-- Row 1: Format + Avatar side by side -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+        <!-- ── FORMAT ─────────────────────────────────────────────────────── -->
+        <div style="margin-bottom:20px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:8px">Video Format</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="avs-type-grid">
+            <div class="avs-type-card sel" data-type="reel" onclick="avsPickType(this)" style="background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.4);border-radius:9px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:4px">📱</div>
+              <div style="font-size:10px;font-weight:800;color:#a089ff;line-height:1.3">Reel / TikTok</div>
+              <div style="font-size:8px;color:rgba(160,137,255,.6);margin-top:1px">9:16 Vertical</div>
+            </div>
+            <div class="avs-type-card" data-type="shorts" onclick="avsPickType(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:9px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:4px">▶️</div>
+              <div style="font-size:10px;font-weight:800;color:var(--muted);line-height:1.3">YT Shorts</div>
+              <div style="font-size:8px;color:var(--dimmer);margin-top:1px">9:16 Vertical</div>
+            </div>
+            <div class="avs-type-card" data-type="story" onclick="avsPickType(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:9px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:4px">⭕</div>
+              <div style="font-size:10px;font-weight:800;color:var(--muted);line-height:1.3">Story</div>
+              <div style="font-size:8px;color:var(--dimmer);margin-top:1px">9:16 Vertical</div>
+            </div>
+            <div class="avs-type-card" data-type="vsl" onclick="avsPickType(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:9px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:4px">🖥️</div>
+              <div style="font-size:10px;font-weight:800;color:var(--muted);line-height:1.3">VSL</div>
+              <div style="font-size:8px;color:var(--dimmer);margin-top:1px">16:9 Landscape</div>
+            </div>
+            <div class="avs-type-card" data-type="youtube" onclick="avsPickType(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:9px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:4px">📺</div>
+              <div style="font-size:10px;font-weight:800;color:var(--muted);line-height:1.3">YouTube</div>
+              <div style="font-size:8px;color:var(--dimmer);margin-top:1px">16:9 Landscape</div>
+            </div>
+            <div class="avs-type-card" data-type="ad" onclick="avsPickType(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:9px;padding:10px 8px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:4px">📣</div>
+              <div style="font-size:10px;font-weight:800;color:var(--muted);line-height:1.3">Paid Ad</div>
+              <div style="font-size:8px;color:var(--dimmer);margin-top:1px">16:9 Landscape</div>
+            </div>
+          </div>
+          <input type="hidden" id="avs-video-type" value="reel" />
+        </div>
 
-          <!-- Video Format -->
+        <!-- ── AVATAR + VOICE row ─────────────────────────────────────────── -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;padding-top:16px;border-top:1px solid var(--border2)">
+
+          <!-- Avatar -->
           <div>
-            <div class="fi-label">Format</div>
-            <div style="display:flex;flex-direction:column;gap:4px" id="avs-type-grid">
-              <div class="avs-type-card sel" data-type="reel" onclick="avsPickType(this)" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.35);border-radius:7px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px">
-                <span style="font-size:13px">📱</span>
-                <div><div style="font-size:10px;font-weight:800;color:#a089ff;line-height:1.2">Reel / TikTok</div><div style="font-size:8px;color:var(--dim)">9:16 vertical</div></div>
-              </div>
-              <div class="avs-type-card" data-type="shorts" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px">
-                <span style="font-size:13px">▶️</span>
-                <div><div style="font-size:10px;font-weight:800;color:var(--dim);line-height:1.2">YT Shorts</div><div style="font-size:8px;color:var(--dimmer)">9:16 vertical</div></div>
-              </div>
-              <div class="avs-type-card" data-type="story" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px">
-                <span style="font-size:13px">⭕</span>
-                <div><div style="font-size:10px;font-weight:800;color:var(--dim);line-height:1.2">Story</div><div style="font-size:8px;color:var(--dimmer)">9:16 vertical</div></div>
-              </div>
-              <div class="avs-type-card" data-type="vsl" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px">
-                <span style="font-size:13px">🖥️</span>
-                <div><div style="font-size:10px;font-weight:800;color:var(--dim);line-height:1.2">VSL / Training</div><div style="font-size:8px;color:var(--dimmer)">16:9 landscape</div></div>
-              </div>
-              <div class="avs-type-card" data-type="youtube" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px">
-                <span style="font-size:13px">📺</span>
-                <div><div style="font-size:10px;font-weight:800;color:var(--dim);line-height:1.2">YouTube</div><div style="font-size:8px;color:var(--dimmer)">16:9 landscape</div></div>
-              </div>
-              <div class="avs-type-card" data-type="ad" onclick="avsPickType(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:7px;padding:6px 10px;cursor:pointer;display:flex;align-items:center;gap:7px">
-                <span style="font-size:13px">📣</span>
-                <div><div style="font-size:10px;font-weight:800;color:var(--dim);line-height:1.2">Paid Ad</div><div style="font-size:8px;color:var(--dimmer)">16:9 landscape</div></div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer)">Avatar</div>
+              <div style="display:flex;gap:4px">
+                <button id="avs-src-stock-card" onclick="avsSetAvatarSource('stock')" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.35);border-radius:5px;padding:3px 10px;color:#a089ff;font-size:9px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🎭 Stock</button>
+                <button id="avs-src-photo-card" onclick="avsSetAvatarSource('photo')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:5px;padding:3px 10px;color:var(--dim);font-size:9px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🤳 Photo</button>
               </div>
             </div>
-            <input type="hidden" id="avs-video-type" value="reel" />
+
+            <div id="avs-stock-section">
+              <select class="fi" id="avs-avatar-select" onchange="avsOnAvatarChange()" style="font-size:11px;padding:7px 10px;margin-bottom:6px">
+                <option value="">Loading avatars…</option>
+              </select>
+              <div id="avs-avatar-preview-wrap" style="display:none;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;align-items:center;gap:8px">
+                <img id="avs-avatar-thumb" src="" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0" />
+                <div>
+                  <div id="avs-avatar-name-display" style="font-size:11px;font-weight:700;color:var(--white);line-height:1.3"></div>
+                  <div id="avs-avatar-gender-display" style="font-size:9px;color:var(--dim);margin-top:1px"></div>
+                </div>
+              </div>
+            </div>
+
+            <div id="avs-photo-section" style="display:none">
+              <div id="avs-gen-photo-area" onclick="document.getElementById('avs-gen-photo-file').click()" style="border:1px dashed rgba(108,99,255,.25);border-radius:8px;padding:14px;text-align:center;cursor:pointer;background:rgba(108,99,255,.03)" onmouseover="this.style.borderColor='rgba(108,99,255,.5)'" onmouseout="this.style.borderColor='rgba(108,99,255,.25)'">
+                <div id="avs-gen-photo-preview-wrap" style="display:none;margin-bottom:6px"><img id="avs-gen-photo-preview" src="" style="height:52px;border-radius:6px" /></div>
+                <div id="avs-gen-photo-icon" style="font-size:22px;margin-bottom:4px">📸</div>
+                <div style="font-size:10px;font-weight:600;color:var(--dim)" id="avs-gen-photo-label">Click to upload photo</div>
+                <input type="file" id="avs-gen-photo-file" accept="image/*" style="display:none" onchange="avsHandleGenPhoto(this)" />
+              </div>
+              <div id="avs-gen-photo-status" style="font-size:10px;color:var(--teal);margin-top:4px"></div>
+            </div>
+
+            <button onclick="avsLoadAvatars()" style="margin-top:5px;background:none;border:none;color:var(--dimmer);font-size:9px;cursor:pointer;font-family:Poppins,sans-serif;padding:0">↻ Refresh avatars</button>
           </div>
 
-          <!-- Avatar + Voice -->
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <!-- Avatar source toggle -->
-            <div>
-              <div class="fi-label">Avatar</div>
-              <div style="display:flex;gap:5px;margin-bottom:8px">
-                <button id="avs-src-stock-card" onclick="avsSetAvatarSource('stock')" style="flex:1;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.35);border-radius:6px;padding:5px 4px;color:#a089ff;font-size:9px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🎭 Stock</button>
-                <button id="avs-src-photo-card" onclick="avsSetAvatarSource('photo')" style="flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:5px 4px;color:var(--dim);font-size:9px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🤳 My Photo</button>
-              </div>
-
-              <div id="avs-stock-section">
-                <div style="display:flex;gap:5px;align-items:center;margin-bottom:5px">
-                  <select class="fi" id="avs-avatar-select" onchange="avsOnAvatarChange()" style="flex:1;font-size:11px;padding:6px 8px">
-                    <option value="">Loading avatars…</option>
-                  </select>
-                  <button onclick="avsLoadAvatars()" title="Refresh" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--dim);font-size:10px;cursor:pointer">↻</button>
-                </div>
-                <div id="avs-avatar-preview-wrap" style="display:none;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:8px;display:flex;align-items:center;gap:8px">
-                  <img id="avs-avatar-thumb" src="" style="width:36px;height:36px;border-radius:6px;object-fit:cover" />
-                  <div id="avs-avatar-name-display" style="font-size:11px;font-weight:700;color:var(--white)"></div>
-                </div>
-              </div>
-
-              <div id="avs-photo-section" style="display:none">
-                <div id="avs-gen-photo-area" onclick="document.getElementById('avs-gen-photo-file').click()" style="border:1px dashed rgba(108,99,255,.3);border-radius:8px;padding:12px;text-align:center;cursor:pointer" onmouseover="this.style.borderColor='rgba(108,99,255,.6)'" onmouseout="this.style.borderColor='rgba(108,99,255,.3)'">
-                  <div id="avs-gen-photo-preview-wrap" style="display:none;margin-bottom:4px"><img id="avs-gen-photo-preview" src="" style="height:48px;border-radius:5px" /></div>
-                  <div id="avs-gen-photo-icon" style="font-size:20px">📸</div>
-                  <div style="font-size:10px;color:var(--dim);margin-top:2px" id="avs-gen-photo-label">Tap to upload photo</div>
-                  <input type="file" id="avs-gen-photo-file" accept="image/*" style="display:none" onchange="avsHandleGenPhoto(this)" />
-                </div>
-                <div id="avs-gen-photo-status" style="font-size:10px;color:var(--dim);margin-top:4px"></div>
-              </div>
+          <!-- Voice -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer)">Voice</div>
+              <button onclick="avsLoadVoices()" style="background:none;border:none;color:var(--dimmer);font-size:9px;cursor:pointer;font-family:Poppins,sans-serif;padding:0">↻ Refresh</button>
             </div>
-
-            <!-- Voice -->
-            <div>
-              <div class="fi-label">Voice</div>
-              <div style="display:flex;gap:5px;align-items:center">
-                <select class="fi" id="avs-voice-select" style="flex:1;font-size:11px;padding:6px 8px">
-                  <option value="">Loading voices…</option>
-                </select>
-                <button onclick="avsLoadVoices()" title="Refresh" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;padding:6px 8px;color:var(--dim);font-size:10px;cursor:pointer">↻</button>
-              </div>
-            </div>
+            <select class="fi" id="avs-voice-select" style="font-size:11px;padding:7px 10px">
+              <option value="">Loading voices…</option>
+            </select>
+            <div style="font-size:9px;color:var(--dimmer);margin-top:5px;line-height:1.5">Any voice works with any avatar. Choose based on tone and accent.</div>
           </div>
         </div>
 
-        <!-- Script section -->
-        <div style="border-top:1px solid var(--border2);padding-top:14px;margin-bottom:14px">
+        <!-- ── SCRIPT ──────────────────────────────────────────────────────── -->
+        <div style="padding-top:16px;border-top:1px solid var(--border2)">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-            <div class="fi-label" style="margin:0">Script</div>
-            <button onclick="avsGenerateScript()" id="avs-write-btn" style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 12px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">✍️ Write with AI</button>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer)">Script</div>
+            <button onclick="avsGenerateScript()" id="avs-write-btn" style="background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.18);border-radius:6px;padding:5px 14px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">✍️ Write with AI</button>
           </div>
 
-          <!-- Content Angle — compact pill row -->
-          <div style="margin-bottom:10px">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:6px">Content angle</div>
-            <div style="display:flex;flex-wrap:wrap;gap:5px" id="avs-angle-grid">
-              <button class="avs-angle-card sel" data-angle="story" onclick="avsPickAngle(this)" style="background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.35);border-radius:20px;padding:4px 11px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📖 Story</button>
-              <button class="avs-angle-card" data-angle="value" onclick="avsPickAngle(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 11px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">💡 Value</button>
-              <button class="avs-angle-card" data-angle="education" onclick="avsPickAngle(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 11px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🎓 Education</button>
-              <button class="avs-angle-card" data-angle="promotion" onclick="avsPickAngle(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 11px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🔥 Promotion</button>
-              <button class="avs-angle-card" data-angle="myth" onclick="avsPickAngle(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 11px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🚫 Myth Bust</button>
-              <button class="avs-angle-card" data-angle="result" onclick="avsPickAngle(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 11px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🏆 Proof</button>
-              <button class="avs-angle-card" data-angle="contrast" onclick="avsPickAngle(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 11px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">⚡ Before/After</button>
-              <button class="avs-angle-card" data-angle="authority" onclick="avsPickAngle(this)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:20px;padding:4px 11px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">👑 Authority</button>
-            </div>
-            <input type="hidden" id="avs-script-angle" value="story" />
+          <!-- Angle pills -->
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px" id="avs-angle-grid">
+            <button class="avs-angle-card sel" data-angle="story" onclick="avsPickAngle(this)" style="background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.35);border-radius:20px;padding:4px 12px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📖 Story</button>
+            <button class="avs-angle-card" data-angle="value" onclick="avsPickAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">💡 Value</button>
+            <button class="avs-angle-card" data-angle="education" onclick="avsPickAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🎓 Education</button>
+            <button class="avs-angle-card" data-angle="promotion" onclick="avsPickAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🔥 Promotion</button>
+            <button class="avs-angle-card" data-angle="myth" onclick="avsPickAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🚫 Myth Bust</button>
+            <button class="avs-angle-card" data-angle="result" onclick="avsPickAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🏆 Proof</button>
+            <button class="avs-angle-card" data-angle="contrast" onclick="avsPickAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">⚡ Before/After</button>
+            <button class="avs-angle-card" data-angle="authority" onclick="avsPickAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:4px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">👑 Authority</button>
           </div>
+          <input type="hidden" id="avs-script-angle" value="story" />
 
           <textarea class="fi" id="avs-script-input" rows="5" placeholder="Your script will appear here. You can also type or paste your own."></textarea>
-          <div style="font-size:9px;color:var(--dimmer);margin-top:3px;text-align:right"><span id="avs-script-count">0</span> / 1500</div>
+          <div style="font-size:9px;color:var(--dimmer);margin-top:3px;text-align:right"><span id="avs-script-count">0</span> / 1500 characters</div>
         </div>
 
-        <!-- Generate button -->
-        <button onclick="avsGenerate()" id="avs-gen-btn" style="display:block;margin:0 auto;background:linear-gradient(135deg,#6c63ff,#5040cc);border:none;border-radius:8px;padding:12px 40px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.2px">🎬 Generate Video</button>
-        <div id="avs-gen-status" style="font-size:11px;margin-top:8px;text-align:center;color:var(--dim)"></div>
+        <!-- ── GENERATE BUTTON ────────────────────────────────────────────── -->
+        <div style="padding-top:16px;text-align:center">
+          <button onclick="avsGenerate()" id="avs-gen-btn" style="background:linear-gradient(135deg,#6c63ff,#5040cc);border:none;border-radius:8px;padding:13px 48px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.2px;box-shadow:0 4px 24px rgba(108,99,255,.3)">🎬 Generate Video</button>
+          <div id="avs-gen-status" style="font-size:11px;margin-top:8px;color:var(--dim)"></div>
+        </div>
 
-        <!-- Progress bar -->
-        <div id="avs-gen-progress" style="display:none;margin-top:12px">
-          <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:6px">
+        <!-- ── PROGRESS ───────────────────────────────────────────────────── -->
+        <div id="avs-gen-progress" style="display:none;margin-top:14px">
+          <div style="height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-bottom:6px">
             <div id="avs-gen-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,var(--teal));border-radius:2px;transition:width 3s"></div>
           </div>
           <div id="avs-gen-time" style="font-size:10px;color:var(--dimmer);text-align:center">Creating your video…</div>
         </div>
 
-        <!-- Video result -->
-        <div id="avs-video-result" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border2)">
+        <!-- ── VIDEO RESULT ───────────────────────────────────────────────── -->
+        <div id="avs-video-result" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border2)">
+          <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:10px">✅ Video Ready</div>
           <video id="avs-preview-video" controls playsinline style="width:100%;border-radius:10px;max-height:300px;background:#000;display:block"></video>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
-            <button onclick="avsDownload()" style="padding:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:8px;font-weight:800;font-size:12px;font-family:Poppins,sans-serif;cursor:pointer">⬇ Download</button>
+            <button onclick="avsDownload()" style="padding:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:8px;font-weight:800;font-size:12px;font-family:Poppins,sans-serif;cursor:pointer">⬇ Download MP4</button>
             <button onclick="avsCopyLink()" id="avs-copy-btn" style="padding:10px;background:rgba(255,255,255,.04);color:var(--dim);border:1px solid var(--border2);border-radius:8px;font-weight:700;font-size:12px;font-family:Poppins,sans-serif;cursor:pointer">🔗 Copy Link</button>
           </div>
-          <button onclick="avsSaveToLibrary()" style="display:block;margin:8px auto 0;background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600;text-decoration:underline;text-underline-offset:3px">Save to My Videos</button>
+          <button onclick="avsSaveToLibrary()" style="display:block;margin:10px auto 0;background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;text-decoration:underline;text-underline-offset:3px">Save to My Videos</button>
         </div>
+
       </div>
     </div>
-
     <!-- TAB 3: Translate Video -->
     <div id="avs-tab-translate" style="display:none">
       <div class="card-dark" style="margin-bottom:1rem">
@@ -5218,6 +5226,7 @@ button[onclick="generateOffer()"] {
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="fbSaveFunnel()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:9px 18px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;transition:all .15s" onmouseover="this.style.borderColor='rgba(78,204,163,.3)'" onmouseout="this.style.borderColor='var(--border2)'">💾 Save Draft</button>
+          <button onclick="fbOpenVisualEditor()" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);border-radius:var(--r-md);padding:9px 18px;color:#a089ff;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">✏️ Visual Edit</button>
           <button onclick="fbGoToPublish()" class="fb-publish-btn" style="width:auto;padding:9px 22px;font-size:12px">🚀 Publish</button>
         </div>
       </div>
@@ -19905,86 +19914,96 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
   // Remove duplicate cfg declaration
   var expertNote = cfg.expertNote ? '\nSTRATEGIC NOTE: ' + cfg.expertNote + '\n' : '';
 
+  // Determine template mode from page type
+  var templateMode = 'optin';
+  if (page.id === 'vsl' || page.id === 'training' || page.id === 'replay') templateMode = 'vsl';
+  else if (page.id === 'booking' || page.id === 'apply') templateMode = 'booking';
+  else if (page.id === 'landing' || page.id === 'bridge') templateMode = 'bridge';
+  else if (page.id === 'optin' || page.id === 'register' || page.id === 'confirm') templateMode = 'optin';
+
   var prompt = isAffiliate
 
-  // ── AFFILIATE PROMPT ─────────────────────────────────────────────────────────
+  // ── AFFILIATE PROMPT (JSON copy request) ─────────────────────────────────────
   ? (
-      'BUILD: ' + page.label + '\n\n'
-
-    + 'PROFILE:\n'
+      'Write conversion copy for this ' + page.label + '.\n\n'
+    + 'AFFILIATE PROFILE:\n'
     + 'Product: ' + offerName + '\n'
     + (niche       ? 'Niche: '         + niche       + '\n' : '')
     + (offerUrl    ? 'Affiliate URL: ' + offerUrl    + '\n' : '')
-    + (offerPrice  ? 'Product price: $'+ offerPrice  + '\n' : '')
-    + (monthComm   ? 'Commission: '    + monthComm   + '/sale\n' : '')
-    + (monthTarget ? 'Monthly target: '+ monthTarget + '\n' : '')
-
-    + '\nIDEAL CUSTOMER:\n'
+    + (monthComm   ? 'Commission: '    + monthComm   + '\n' : '')
+    + '\nIDEAL AUDIENCE:\n'
     + (avJob      ? 'Who: '          + avJob      + '\n' : '')
     + (avPain     ? 'Pain: '         + avPain     + '\n' : '')
     + (avDesire   ? 'Want: '         + avDesire   + '\n' : '')
     + (avFear     ? 'Fear: '         + avFear     + '\n' : '')
-    + (avObjctn   ? 'Objections: '   + avObjctn   + '\n' : '')
     + (avKeywords ? 'Their words: '  + avKeywords + '\n' : '')
-    + (avTried    ? 'Tried before: ' + avTried    + '\n' : '')
-
-    + '\nPAGE DETAILS:\n'
-    + 'Goal: '     + cfg.goal     + '\n'
-    + 'Build: '    + cfg.sections + '\n'
-    + 'CTA text: ' + cfg.cta      + '\n'
-
-    + (page.id === 'landing' ? (
-        '\nOPT-IN POPUP (required):\n'
-      + '- Main CTA button onclick: document.getElementById(\'lead-modal\').style.display=\'flex\'\n'
-      + '- Modal: id="lead-modal", fixed overlay rgba(0,0,0,0.88), centered white-bordered card, X close button\n'
-      + '- Inputs: id="ln" (First Name), id="le" (Email)\n'
-      + '- Submit button onclick: if(!document.getElementById(\'le\').value.includes(\'@\')){alert(\'Enter your email\');return;}if(window.captureEOSLead)window.captureEOSLead(document.getElementById(\'le\').value,document.getElementById(\'ln\').value);setTimeout(function(){window.location.href=\'' + (offerUrl||'https://build.skillslibry.com/grow') + '\';},400);\n'
-      ) : '')
+    + '\nPage goal: ' + cfg.goal + '\n'
+    + 'CTA action: ' + cfg.cta + '\n\n'
+    + 'Return ONLY this JSON object with no other text:\n'
+    + '{\n'
+    + '  "badge": "short category label e.g. Free Training",\n'
+    + '  "headline": "MAX 8 WORDS with specific result or number",\n'
+    + '  "subheadline": "1 sentence — who it is for and what they get",\n'
+    + '  "form_headline": "short encouraging form title",\n'
+    + '  "bullets": ["Result-led bullet 1","Result-led bullet 2","Result-led bullet 3","Result-led bullet 4"],\n'
+    + '  "cta": "3-5 word action button text",\n'
+    + '  "cta_note": "short reassurance e.g. Free. No credit card needed.",\n'
+    + '  "copy_headline": "section subheading",\n'
+    + '  "copy_body": "2-3 sentences of body copy",\n'
+    + '  "social_proof": "e.g. 2847 people joined this week",\n'
+    + '  "result_stat": "a specific result stat",\n'
+    + '  "trust_line": "trust/reassurance line",\n'
+    + '  "testimonials": [{"name":"First Name Role","quote":"short specific result quote"},{"name":"First Name Role","quote":"short specific result quote"}],\n'
+    + '  "features": [{"icon":"emoji","title":"Feature","desc":"one line description"}],\n'
+    + '  "features_headline": "what you get section headline",\n'
+    + '  "faq": [{"q":"Question?","a":"Answer."},{"q":"Question?","a":"Answer."}],\n'
+    + '  "final_cta_headline": "closing CTA headline",\n'
+    + '  "final_cta_sub": "closing CTA subheadline",\n'
+    + '  "cta_url": "' + (offerUrl || '#') + '"\n'
+    + '}'
   )
 
-  // ── EXPERT PROMPT ─────────────────────────────────────────────────────────────
+  // ── EXPERT PROMPT (JSON copy request) ─────────────────────────────────────────
   : (
-      'BUILD: ' + page.label + '\n'
+      'Write conversion copy for this ' + page.label + '.\n'
     + expertNote + '\n'
-
     + 'EXPERT PROFILE:\n'
     + (niche      ? 'Niche: '       + niche      + '\n' : '')
     + (offerName  ? 'Programme: '   + offerName  + '\n' : '')
-    + (monthPrice ? 'Price point: ' + monthPrice + ' — NEVER show on page. Call only.\n' : '')
-
+    + (monthPrice ? 'Price: '       + monthPrice + ' — NEVER show on page\n' : '')
     + '\nIDEAL CLIENT:\n'
-    + (avJob      ? 'Who: '           + avJob      + '\n' : '')
-    + (avPain     ? 'Pain: '          + avPain     + '\n' : '')
-    + (avDesire   ? 'Want: '          + avDesire   + '\n' : '')
-    + (avFear     ? 'Fear: '          + avFear     + '\n' : '')
-    + (avTried    ? 'Tried: '         + avTried    + '\n' : '')
-    + (avObjctn   ? 'Objections: '    + avObjctn   + '\n' : '')
-    + (avMotiv    ? 'Motivation: '    + avMotiv    + '\n' : '')
-    + (avKeywords ? 'Their words: '   + avKeywords + '\n' : '')
-
-    + (voiceTone  || voiceStory ? '\nEXPERT VOICE:\n'
-      + (voiceTone  ? 'Tone: '    + voiceTone  + '\n' : '')
-      + (voiceStory ? 'Story: '   + voiceStory + '\n' : '')
-      + (voiceMethod? 'Method: '  + voiceMethod+ '\n' : '')
-      : '')
-
-    + '\nPAGE DETAILS:\n'
-    + 'Goal: '     + cfg.goal     + '\n'
-    + 'Build: '    + cfg.sections + '\n'
-    + 'CTA text: ' + cfg.cta      + '\n'
-
-    + (page.id === 'optin' ? (
-        '\nOPT-IN POPUP (required):\n'
-      + '- CTA onclick: document.getElementById(\'lead-modal\').style.display=\'flex\'\n'
-      + '- Modal: id="lead-modal", fixed overlay, centered card, X close\n'
-      + '- Inputs: id="ln" (First Name), id="le" (Email)\n'
-      + '- Submit: if(window.captureEOSLead)window.captureEOSLead(document.getElementById(\'le\').value,document.getElementById(\'ln\').value);setTimeout(function(){window.location.href=\'?page=vsl\';},400);\n'
-      ) : '')
-
-    + (page.id === 'booking' ? (
-        '\nCALENDLY PLACEHOLDER:\n'
-      + '<div id="calendly-embed" style="min-height:600px;background:rgba(255,255,255,0.02);border:1px dashed rgba(78,204,163,0.2);border-radius:16px;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center"><p style="color:#7a7a9d;font-size:14px;font-family:Poppins,sans-serif;line-height:2">📅 Paste your Calendly embed code here</p></div>\n'
-      ) : '')
+    + (avJob      ? 'Who: '         + avJob      + '\n' : '')
+    + (avPain     ? 'Pain: '        + avPain     + '\n' : '')
+    + (avDesire   ? 'Want: '        + avDesire   + '\n' : '')
+    + (avFear     ? 'Fear: '        + avFear     + '\n' : '')
+    + (avTried    ? 'Tried: '       + avTried    + '\n' : '')
+    + (avKeywords ? 'Their words: ' + avKeywords + '\n' : '')
+    + (voiceTone  ? 'Expert tone: ' + voiceTone  + '\n' : '')
+    + (voiceStory ? 'Expert story: '+ voiceStory + '\n' : '')
+    + '\nPage goal: ' + cfg.goal + '\n'
+    + 'CTA action: ' + cfg.cta + '\n\n'
+    + 'Return ONLY this JSON object with no other text:\n'
+    + '{\n'
+    + '  "badge": "short category label",\n'
+    + '  "headline": "MAX 8 WORDS. Specific transformation. No price.",\n'
+    + '  "subheadline": "1 sentence — who it is for and what they get",\n'
+    + '  "bullets": ["Result-led bullet 1","Result-led bullet 2","Result-led bullet 3","Result-led bullet 4"],\n'
+    + '  "cta": "Book Your Free Strategy Call",\n'
+    + '  "cta_note": "No selling. Just a real conversation about your goals.",\n'
+    + '  "calendar_headline": "booking section headline",\n'
+    + '  "copy_headline": "section subheading",\n'
+    + '  "copy_body": "2-3 sentences that amplify the pain and introduce the solution",\n'
+    + '  "video_note": "short note about what the training covers",\n'
+    + '  "social_proof": "e.g. 127 clients have gone through this programme",\n'
+    + '  "result_stat": "a specific client result",\n'
+    + '  "trust_line": "trust/reassurance line",\n'
+    + '  "testimonials": [{"name":"First Name Role","quote":"specific result quote"},{"name":"First Name Role","quote":"specific result quote"}],\n'
+    + '  "features": [{"icon":"emoji","title":"What happens","desc":"brief description"}],\n'
+    + '  "features_headline": "what the call covers",\n'
+    + '  "faq": [{"q":"Is this a sales call?","a":"No. It is a strategy session where we look at your goals and whether we are the right fit."},{"q":"Question?","a":"Answer."}],\n'
+    + '  "guarantee": {"headline": "reassurance headline","body": "reassurance body"},\n'
+    + '  "final_cta_headline": "closing CTA headline"\n'
+    + '}'
   )
 
 
@@ -19992,7 +20011,7 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
   var resp = await fetch(proxyUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: prompt, max_tokens: 8000 })
+    body: JSON.stringify({ prompt: prompt, max_tokens: 2500, mode: templateMode })
   });
 
   if (!resp.ok) {
@@ -21744,17 +21763,17 @@ window.avsSetAvatarSource = function(src) {
 // ── VIDEO TYPE PICKER ──────────────────────────────────────────────────────────
 window.avsPickType = function(card) {
   document.querySelectorAll('.avs-type-card').forEach(function(c) {
-    c.style.background = 'var(--bg3)';
+    c.style.background = 'rgba(255,255,255,.03)';
     c.style.borderColor = 'var(--border2)';
-    var lbl = c.querySelector('div');
-    if (lbl) { var n = lbl.querySelector('div'); if(n) n.style.color='var(--dim)'; }
+    var title = c.querySelector('div:nth-child(2)');
+    if (title) title.style.color = 'var(--muted)';
   });
-  card.style.background = 'rgba(108,99,255,.1)';
-  card.style.borderColor = 'rgba(108,99,255,.35)';
-  var lbl2 = card.querySelector('div');
-  if (lbl2) { var n2 = lbl2.querySelector('div'); if(n2) n2.style.color='#a089ff'; }
-  var typeInput = document.getElementById('avs-video-type');
-  if (typeInput) typeInput.value = card.dataset.type || 'reel';
+  card.style.background = 'rgba(108,99,255,.12)';
+  card.style.borderColor = 'rgba(108,99,255,.4)';
+  var t = card.querySelector('div:nth-child(2)');
+  if (t) t.style.color = '#a089ff';
+  var inp = document.getElementById('avs-video-type');
+  if (inp) inp.value = card.dataset.type || 'reel';
 };
 
 // ── LOAD STOCK AVATARS + EXISTING TALKING PHOTOS ─────────────────────────────
@@ -21776,9 +21795,9 @@ window.avsLoadAvatars = async function() {
     // My Photo Avatars section first
     if (photos.length) {
       html += '<optgroup label="📸 My Photo Avatars">';
-      html += photos.map(function(p) {
+      html += photos.map(function(p, idx) {
         return '<option value="tp:' + p.id + '" data-type="talking_photo" data-img="' + (p.image_url||'') + '">'
-          + 'My Photo Avatar ' + (p.id ? '(' + p.id.substring(0,8) + '…)' : '') + '</option>';
+          + 'My Photo Avatar ' + (idx + 1) + '</option>';
       }).join('');
       html += '</optgroup>';
     }
@@ -23109,6 +23128,230 @@ window.avsSubmitRecording = async function() {
     if (statusEl) { statusEl.textContent = '❌ ' + (e.message || 'Upload failed. Please try again.'); statusEl.style.color = 'var(--red)'; }
     if (btn) { btn.textContent = 'Use This Recording →'; btn.disabled = false; }
     if (progress) progress.style.display = 'none';
+  }
+};
+
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GRAPESJS VISUAL EDITOR — drag-and-drop funnel editing
+// ═══════════════════════════════════════════════════════════════════════════
+var _gjsLoaded    = false;
+var _gjsEditor    = null;
+var _gjsPageId    = null;
+
+window.fbOpenVisualEditor = async function() {
+  var pageId = fbState && fbState.currentPage;
+  var funnel = fbState && fbState.current;
+  if (!funnel || !pageId) { alert('Open a funnel and select a page first.'); return; }
+  var page = funnel.pages && funnel.pages[pageId];
+  if (!page || !page.html) { alert('Generate the page first before using the visual editor.'); return; }
+
+  _gjsPageId = pageId;
+
+  // Create full-screen overlay
+  var existing = document.getElementById('gjs-overlay');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'gjs-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#1a1a2e;z-index:99999;display:flex;flex-direction:column';
+  overlay.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#111128;border-bottom:1px solid rgba(78,204,163,.15);flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="font-size:14px;font-weight:800;color:#fff;font-family:Poppins,sans-serif">✏️ Visual Editor — ${page.label}</div>
+        <div style="font-size:10px;color:#7a7a9d">Click any element to edit • Drag to reorder sections</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button id="gjs-preview-btn" onclick="gjsTogglePreview()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px 14px;color:#a0a8c0;font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">👁 Preview</button>
+        <button id="gjs-undo-btn" onclick="gjsUndo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px 12px;color:#a0a8c0;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif">↩ Undo</button>
+        <button id="gjs-redo-btn" onclick="gjsRedo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:6px 12px;color:#a0a8c0;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif">↪ Redo</button>
+        <button onclick="gjsSaveAndClose()" style="background:linear-gradient(135deg,#4ecca3,#2eb88a);border:none;border-radius:6px;padding:6px 18px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Save Changes</button>
+        <button onclick="document.getElementById('gjs-overlay').remove()" style="background:rgba(255,91,91,.08);border:1px solid rgba(255,91,91,.15);border-radius:6px;padding:6px 14px;color:#ff8888;font-size:11px;cursor:pointer;font-family:Poppins,sans-serif">✕ Close</button>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;overflow:hidden">
+      <!-- Block panel -->
+      <div style="width:200px;flex-shrink:0;background:#111128;border-right:1px solid rgba(255,255,255,.06);overflow-y:auto;padding:12px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7a7a9d;margin-bottom:10px">Add Section</div>
+        <div id="gjs-blocks"></div>
+      </div>
+      <!-- Canvas -->
+      <div id="gjs-canvas-wrap" style="flex:1;overflow:hidden;position:relative">
+        <div id="gjs"></div>
+      </div>
+      <!-- Style panel -->
+      <div style="width:220px;flex-shrink:0;background:#111128;border-left:1px solid rgba(255,255,255,.06);overflow-y:auto;padding:12px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7a7a9d;margin-bottom:10px">Style</div>
+        <div id="gjs-styles"></div>
+        <div style="margin-top:16px">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#7a7a9d;margin-bottom:10px">Layers</div>
+          <div id="gjs-layers"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Load GrapesJS from CDN
+  if (!_gjsLoaded) {
+    await gjsLoadScript('https://unpkg.com/grapesjs@0.21.13/dist/grapes.min.js');
+    await gjsLoadCSS('https://unpkg.com/grapesjs@0.21.13/dist/css/grapes.min.css');
+    _gjsLoaded = true;
+  }
+
+  // Destroy previous instance
+  if (_gjsEditor) {
+    try { _gjsEditor.destroy(); } catch(e) {}
+    _gjsEditor = null;
+  }
+
+  // Initialize GrapesJS
+  var gjsEl = document.getElementById('gjs');
+  gjsEl.style.cssText = 'width:100%;height:100%';
+
+  _gjsEditor = window.grapesjs.init({
+    container: '#gjs',
+    height: '100%',
+    width: '100%',
+    fromElement: false,
+    storageManager: false,
+    styleManager: { appendTo: '#gjs-styles' },
+    layerManager: { appendTo: '#gjs-layers' },
+    blockManager: { appendTo: '#gjs-blocks', blocks: gjsBuildBlocks() },
+    panels: { defaults: [] },
+    canvas: {
+      styles: ['https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap'],
+    },
+    components: page.html,
+  });
+
+  // Apply dark theme overrides
+  gjsApplyTheme();
+};
+
+function gjsLoadScript(src) {
+  return new Promise(function(resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) { resolve(); return; }
+    var s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+function gjsLoadCSS(href) {
+  return new Promise(function(resolve) {
+    if (document.querySelector('link[href="' + href + '"]')) { resolve(); return; }
+    var l = document.createElement('link');
+    l.rel = 'stylesheet'; l.href = href; l.onload = resolve;
+    document.head.appendChild(l);
+  });
+}
+
+function gjsBuildBlocks() {
+  var teal = '#4ecca3';
+  var dark = '#06060f';
+  return [
+    {
+      id: 'section-hero', label: '🎯 Hero', category: 'Sections',
+      content: '<div style="padding:80px 24px;text-align:center;background:#06060f"><div style="max-width:720px;margin:0 auto"><h1 style="font-size:48px;font-weight:900;color:#fff;font-family:Poppins,sans-serif;margin-bottom:16px">Your Headline Here</h1><p style="font-size:18px;color:#a0a8c0;margin-bottom:32px;font-family:Poppins,sans-serif">Subheadline that explains who this is for and what they get.</p><a href="#" style="display:inline-block;background:linear-gradient(135deg,#4ecca3,#2eb88a);color:#06060f;font-weight:900;font-size:16px;padding:18px 48px;border-radius:8px;text-decoration:none;font-family:Poppins,sans-serif">Get Free Access Now</a></div></div>'
+    },
+    {
+      id: 'section-bullets', label: '✅ Benefits', category: 'Sections',
+      content: '<div style="padding:60px 24px;background:#0b0b1a"><div style="max-width:600px;margin:0 auto"><h2 style="font-size:28px;font-weight:800;color:#fff;text-align:center;margin-bottom:32px;font-family:Poppins,sans-serif">What you get</h2><ul style="list-style:none;padding:0;display:flex;flex-direction:column;gap:14px"><li style="display:flex;gap:12px;font-size:15px;color:#c8cde8;font-family:Poppins,sans-serif"><span style="color:#4ecca3;font-weight:900;flex-shrink:0">✓</span> Benefit one with specific outcome</li><li style="display:flex;gap:12px;font-size:15px;color:#c8cde8;font-family:Poppins,sans-serif"><span style="color:#4ecca3;font-weight:900;flex-shrink:0">✓</span> Benefit two with specific outcome</li><li style="display:flex;gap:12px;font-size:15px;color:#c8cde8;font-family:Poppins,sans-serif"><span style="color:#4ecca3;font-weight:900;flex-shrink:0">✓</span> Benefit three with specific outcome</li></ul></div></div>'
+    },
+    {
+      id: 'section-testimonial', label: '⭐ Testimonial', category: 'Sections',
+      content: '<div style="padding:60px 24px;background:#06060f"><div style="max-width:600px;margin:0 auto;background:#111128;border:1px solid rgba(78,204,163,.1);border-radius:16px;padding:28px"><div style="color:#f0c040;font-size:18px;margin-bottom:10px">★★★★★</div><p style="font-size:15px;color:#d0d8f0;font-style:italic;line-height:1.8;font-family:Poppins,sans-serif">"This testimonial changed my results completely. I went from zero to consistent income in 60 days."</p><div style="margin-top:14px;font-size:12px;color:#4ecca3;font-weight:700;font-family:Poppins,sans-serif">— First Name, Their Role or Location</div></div></div>'
+    },
+    {
+      id: 'section-cta', label: '🔥 CTA Block', category: 'Sections',
+      content: '<div style="padding:80px 24px;text-align:center;background:#0b0b1a"><div style="max-width:600px;margin:0 auto"><h2 style="font-size:32px;font-weight:800;color:#fff;margin-bottom:12px;font-family:Poppins,sans-serif">Ready to get started?</h2><p style="color:#a0a8c0;margin-bottom:32px;font-family:Poppins,sans-serif">This is your next step. No risk, no obligation.</p><a href="#" style="display:inline-block;background:linear-gradient(135deg,#4ecca3,#2eb88a);color:#06060f;font-weight:900;font-size:17px;padding:20px 52px;border-radius:8px;text-decoration:none;font-family:Poppins,sans-serif;box-shadow:0 0 60px rgba(78,204,163,.3)">Get Free Access Now</a><div style="margin-top:10px;font-size:12px;color:#7a7a9d;font-family:Poppins,sans-serif">Free. No credit card needed.</div></div></div>'
+    },
+    {
+      id: 'section-video', label: '🎥 Video', category: 'Sections',
+      content: '<div style="padding:60px 24px;background:#06060f"><div style="max-width:720px;margin:0 auto;background:#0d0d20;border:1px solid rgba(78,204,163,.15);border-radius:16px;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center"><div style="text-align:center"><div style="font-size:48px;margin-bottom:10px">▶</div><p style="color:#7a7a9d;font-family:Poppins,sans-serif;font-size:14px">Paste your video embed code here</p></div></div></div>'
+    },
+    {
+      id: 'section-faq', label: '❓ FAQ', category: 'Sections',
+      content: '<div style="padding:60px 24px;background:#0b0b1a"><div style="max-width:640px;margin:0 auto"><h2 style="font-size:28px;font-weight:800;color:#fff;text-align:center;margin-bottom:32px;font-family:Poppins,sans-serif">Common Questions</h2><div style="display:flex;flex-direction:column;gap:12px"><div style="background:#111128;border:1px solid rgba(78,204,163,.1);border-radius:12px;padding:20px"><div style="font-weight:700;color:#fff;margin-bottom:6px;font-family:Poppins,sans-serif">Is this really free?</div><p style="font-size:13px;color:#a0a8c0;font-family:Poppins,sans-serif">Yes. There is nothing to buy today. We show you exactly how it works and you decide if it is right for you.</p></div></div></div></div>'
+    },
+    {
+      id: 'section-optin-form', label: '📧 Opt-in Form', category: 'Sections',
+      content: '<div style="padding:60px 24px;background:#06060f"><div style="max-width:440px;margin:0 auto;background:#111128;border:1px solid rgba(78,204,163,.1);border-radius:16px;padding:28px"><h3 style="text-align:center;color:#fff;margin-bottom:20px;font-family:Poppins,sans-serif">Enter your details to get access</h3><div style="display:flex;flex-direction:column;gap:12px"><input type="text" placeholder="First Name" style="background:#1a1a35;border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:14px 16px;color:#fff;font-family:Poppins,sans-serif;font-size:14px"><input type="email" placeholder="Email Address" style="background:#1a1a35;border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:14px 16px;color:#fff;font-family:Poppins,sans-serif;font-size:14px"><button style="background:linear-gradient(135deg,#4ecca3,#2eb88a);color:#06060f;font-weight:900;font-size:16px;font-family:Poppins,sans-serif;padding:16px;border-radius:8px;border:none;cursor:pointer">Get Free Access Now</button></div></div></div>'
+    },
+    {
+      id: 'spacer', label: '↕ Spacer', category: 'Layout',
+      content: '<div style="height:60px"></div>'
+    },
+    {
+      id: 'divider', label: '── Divider', category: 'Layout',
+      content: '<div style="padding:20px 24px"><div style="height:1px;background:rgba(78,204,163,.15);max-width:720px;margin:0 auto"></div></div>'
+    },
+    {
+      id: 'text-block', label: '📝 Text', category: 'Basic',
+      content: '<div style="padding:20px 24px;max-width:720px;margin:0 auto"><p style="font-size:16px;color:#c8cde8;line-height:1.85;font-family:Poppins,sans-serif">Add your text here. Click to edit.</p></div>'
+    },
+    {
+      id: 'button-block', label: '🔘 Button', category: 'Basic',
+      content: '<div style="padding:16px;text-align:center"><a href="#" style="display:inline-block;background:linear-gradient(135deg,#4ecca3,#2eb88a);color:#06060f;font-weight:900;font-size:16px;padding:16px 40px;border-radius:8px;text-decoration:none;font-family:Poppins,sans-serif">Click Here</a></div>'
+    },
+  ];
+}
+
+function gjsApplyTheme() {
+  var style = document.createElement('style');
+  style.textContent = `
+    .gjs-cv-canvas { background:#1a1a2e !important; }
+    .gjs-block { background:#1a1a35 !important; border:1px solid rgba(255,255,255,.06) !important; color:#c8cde8 !important; border-radius:8px !important; padding:10px 8px !important; text-align:center !important; cursor:grab !important; margin-bottom:6px !important; font-size:11px !important; font-family:Poppins,sans-serif !important; transition:border-color .15s !important; }
+    .gjs-block:hover { border-color:rgba(78,204,163,.4) !important; color:#4ecca3 !important; }
+    .gjs-block__category { color:#7a7a9d !important; font-size:9px !important; text-transform:uppercase !important; letter-spacing:.8px !important; margin:12px 0 6px !important; font-family:Poppins,sans-serif !important; }
+    .gjs-sm-sector-title { background:#1a1a35 !important; color:#c8cde8 !important; border-color:rgba(255,255,255,.06) !important; font-family:Poppins,sans-serif !important; font-size:11px !important; }
+    .gjs-sm-property { color:#c8cde8 !important; font-family:Poppins,sans-serif !important; font-size:11px !important; }
+    .gjs-field { background:#111128 !important; border-color:rgba(255,255,255,.1) !important; color:#fff !important; }
+    .gjs-layer { background:#1a1a35 !important; color:#c8cde8 !important; border-color:rgba(255,255,255,.06) !important; font-size:11px !important; }
+    .gjs-layer.gjs-selected { background:rgba(78,204,163,.12) !important; color:#4ecca3 !important; }
+    .gjs-toolbar { background:rgba(78,204,163,.15) !important; }
+    .gjs-toolbar-item svg { fill:#4ecca3 !important; }
+    .gjs-resizer-c { border:2px solid #4ecca3 !important; }
+    .gjs-selected { outline:2px solid #4ecca3 !important; }
+  `;
+  document.head.appendChild(style);
+}
+
+window.gjsSaveAndClose = function() {
+  if (!_gjsEditor || !_gjsPageId) return;
+  var html = _gjsEditor.getHtml();
+  var css  = _gjsEditor.getCss();
+  var full = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet"><style>' + css + '</style></head><body>' + html + '</body></html>';
+
+  if (fbState && fbState.current && fbState.current.pages && fbState.current.pages[_gjsPageId]) {
+    fbState.current.pages[_gjsPageId].html = full;
+    if (window.fbRenderPreview) fbRenderPreview(_gjsPageId);
+    if (window.fbSaveFunnelToFirestore) fbSaveFunnelToFirestore(fbState.current);
+  }
+
+  document.getElementById('gjs-overlay').remove();
+
+  var toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.25);border-radius:10px;padding:12px 20px;color:#4ecca3;font-size:13px;font-weight:700;z-index:9999;font-family:Poppins,sans-serif';
+  toast.textContent = '✅ Changes saved';
+  document.body.appendChild(toast);
+  setTimeout(function(){ toast.remove(); }, 2000);
+};
+
+window.gjsUndo        = function() { if (_gjsEditor) _gjsEditor.runCommand('core:undo'); };
+window.gjsRedo        = function() { if (_gjsEditor) _gjsEditor.runCommand('core:redo'); };
+window.gjsTogglePreview = function() {
+  if (!_gjsEditor) return;
+  var btn = document.getElementById('gjs-preview-btn');
+  var cmd = _gjsEditor.Commands;
+  if (cmd.isActive('preview')) {
+    cmd.stop('preview');
+    if (btn) { btn.style.background='rgba(255,255,255,.06)'; btn.style.color='#a0a8c0'; }
+  } else {
+    cmd.run('preview');
+    if (btn) { btn.style.background='rgba(78,204,163,.1)'; btn.style.color='#4ecca3'; }
   }
 };
 
