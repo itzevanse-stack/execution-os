@@ -1,4 +1,5 @@
-// api/verify-domain.js — robust multi-resolver DNS check
+// api/verify-domain.js
+// Robust DNS check that works for ALL TLDs including .site .org .io .co etc
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
@@ -19,99 +20,85 @@ module.exports = async function handler(req, res) {
   const VERCEL_TOKEN      = process.env.VERCEL_TOKEN;
   const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
 
+  // All known Vercel CNAME targets and IP ranges
   const VERCEL_TARGETS = [
     'cname.vercel-dns.com',
     'vercel-dns.com',
-    'vercel.com',
     '76.76.21.',
     '76.76.19.',
+    '76.223.',
   ];
 
-  // ── helper: single DNS resolver query ──────────────────────────────────────
-  async function dnsQuery(baseUrl, name, type) {
+  // ── DNS query helper ────────────────────────────────────────────────────────
+  // Works correctly for ALL TLDs by using proper DoH (DNS over HTTPS) format
+  async function dnsQuery(resolver, name, type) {
     try {
-      const url = `${baseUrl}?name=${encodeURIComponent(name)}&type=${type}`;
-      const r   = await fetch(url, { headers: { Accept: 'application/json' } });
-      if (!r.ok) return { answers: [], raw: `HTTP ${r.status}` };
+      let url, headers;
+      if (resolver === 'google') {
+        url = `https://dns.google/resolve?name=${encodeURIComponent(name)}&type=${type}`;
+        headers = { Accept: 'application/json' };
+      } else if (resolver === 'cloudflare') {
+        // Cloudflare requires application/dns-json content type
+        url = `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`;
+        headers = { Accept: 'application/dns-json' };
+      } else if (resolver === 'quad9') {
+        url = `https://dns.quad9.net:5053/dns-query?name=${encodeURIComponent(name)}&type=${type}`;
+        headers = { Accept: 'application/dns-json' };
+      } else if (resolver === 'opendns') {
+        url = `https://doh.opendns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`;
+        headers = { Accept: 'application/dns-json' };
+      }
+
+      const r = await fetch(url, { headers });
+      if (!r.ok) return [];
+
       const j   = await r.json();
-      const ans = (j.Answer || j.authority || []).map(a =>
-        ((a.data || a.rdata || '') + '').toLowerCase().replace(/\.$/, '').trim()
+      const ans = (j.Answer || []).map(a =>
+        ((a.data || '') + '').toLowerCase().replace(/\.$/, '').trim()
       );
-      return { answers: ans, raw: JSON.stringify(j).slice(0, 300) };
+      return ans;
     } catch(e) {
-      return { answers: [], raw: e.message };
+      return [];
     }
   }
 
-  // ── 1. CHECK DNS — 3 resolvers, CNAME + A each ────────────────────────────
-  const checks = await Promise.allSettled([
-    dnsQuery('https://dns.google/resolve',            clean, 'CNAME'),
-    dnsQuery('https://dns.google/resolve',            clean, 'A'),
-    dnsQuery('https://cloudflare-dns.com/dns-query',  clean, 'CNAME'),
-    dnsQuery('https://cloudflare-dns.com/dns-query',  clean, 'A'),
-    dnsQuery('https://8.8.8.8/resolve',               clean, 'CNAME'),
-    dnsQuery('https://8.8.8.8/resolve',               clean, 'A'),
-  ]);
+  // ── 1. PARALLEL DNS CHECK — 4 resolvers × 2 record types ──────────────────
+  const resolverNames = ['google', 'cloudflare', 'quad9', 'opendns'];
+  const recordTypes   = ['CNAME', 'A'];
 
-  const allAnswers = checks
-    .filter(c => c.status === 'fulfilled')
-    .flatMap(c => c.value.answers);
+  const allQueries = [];
+  for (const r of resolverNames) {
+    for (const t of recordTypes) {
+      allQueries.push(dnsQuery(r, clean, t));
+    }
+  }
 
-  const rawDebug = checks
-    .filter(c => c.status === 'fulfilled')
-    .map((c, i) => ({ i, raw: c.value.raw, answers: c.value.answers }));
-
+  const results     = await Promise.allSettled(allQueries);
+  const allAnswers  = results
+    .filter(r => r.status === 'fulfilled')
+    .flatMap(r => r.value);
   const uniqueAnswers = [...new Set(allAnswers)].filter(Boolean);
 
   const dnsOk = uniqueAnswers.some(a =>
     VERCEL_TARGETS.some(t => a.includes(t))
   );
 
-  // ── 2. VERCEL API CHECK — if DNS check fails, try Vercel directly ─────────
-  let vercelConfirmed = false;
-  if (!dnsOk && VERCEL_TOKEN && VERCEL_PROJECT_ID) {
-    try {
-      const vr   = await fetch(
-        `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${clean}`,
-        { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
-      );
-      const vd   = await vr.json();
-      // Vercel returns verified:true or a verification array all satisfied
-      vercelConfirmed =
-        vd.verified === true ||
-        (Array.isArray(vd.verification) && vd.verification.every(v => v.verified)) ||
-        vd.gitBranch !== undefined; // domain already fully configured
-    } catch(e) { /* ignore */ }
-  }
+  // ── 2. VERCEL API CHECK — always run this as backup ─────────────────────────
+  // Especially important for .site / .org / .io where DNS resolvers are slower
+  let vercelDomainData = null;
+  let vercelConfirmed  = false;
 
-  const domainVerified = dnsOk || vercelConfirmed;
-
-  // Return early if not verified — include debug info so we can diagnose
-  if (!domainVerified) {
-    const host   = clean.split('.').length > 2 ? clean.split('.')[0] : '@';
-    const found  = uniqueAnswers.length
-      ? `Your domain currently resolves to: ${uniqueAnswers.join(', ')}`
-      : 'No DNS records found yet.';
-    return res.status(200).json({
-      verified:    false,
-      domain:      clean,
-      dnsOk:       false,
-      reason:      `CNAME not pointing to Vercel. Name = ${host}, Value = cname.vercel-dns.com. ${found}`,
-      dnsRecords:  uniqueAnswers,
-      debug:       rawDebug,   // ← we can read this in the browser console
-    });
-  }
-
-  // ── 3. ADD DOMAIN TO VERCEL PROJECT ────────────────────────────────────────
-  let vercelOk = false;
   if (VERCEL_TOKEN && VERCEL_PROJECT_ID) {
     try {
-      const chk = await fetch(
+      // First add the domain to the project if not already there
+      const checkRes  = await fetch(
         `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${clean}`,
         { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
       );
-      if (chk.status === 404) {
-        const add = await fetch(
+
+      if (checkRes.status === 404) {
+        // Domain not in project yet — add it
+        await fetch(
           `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains`,
           {
             method:  'POST',
@@ -119,18 +106,57 @@ module.exports = async function handler(req, res) {
             body:    JSON.stringify({ name: clean }),
           }
         );
-        vercelOk = add.ok;
-      } else {
-        vercelOk = true;
+        // Re-fetch after adding
+        const recheck = await fetch(
+          `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${clean}`,
+          { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
+        );
+        if (recheck.ok) vercelDomainData = await recheck.json();
+      } else if (checkRes.ok) {
+        vercelDomainData = await checkRes.json();
+      }
+
+      // Check Vercel's own verification result
+      if (vercelDomainData) {
+        // Vercel confirmed it's correctly pointed
+        vercelConfirmed = vercelDomainData.verified === true;
+
+        // Also check if verification array shows CNAME is satisfied
+        if (!vercelConfirmed && Array.isArray(vercelDomainData.verification)) {
+          vercelConfirmed = vercelDomainData.verification.every(v => v.verified === true);
+        }
       }
     } catch(e) {
-      vercelOk = true; // middleware handles routing regardless
+      console.error('Vercel API error:', e.message);
     }
-  } else {
-    vercelOk = true;
   }
 
-  // ── 4. SAVE TO FIRESTORE — www + non-www + funnel doc ─────────────────────
+  const domainVerified = dnsOk || vercelConfirmed;
+
+  // ── NOT VERIFIED — return helpful error with what we actually found ─────────
+  if (!domainVerified) {
+    const isSubdomain = clean.split('.').length > 2;
+    const host        = isSubdomain ? clean.split('.')[0] : '@';
+    const tld         = clean.split('.').slice(-1)[0];
+
+    let hint = '';
+    if (uniqueAnswers.length && !uniqueAnswers.some(a => a.includes('vercel'))) {
+      hint = `Your domain currently points to: ${uniqueAnswers.slice(0, 2).join(', ')}. This needs to point to cname.vercel-dns.com instead.`;
+    } else if (uniqueAnswers.length === 0) {
+      hint = `.${tld} domains can take longer to propagate. Wait 10 to 30 minutes and try again.`;
+    }
+
+    return res.status(200).json({
+      verified:   false,
+      domain:     clean,
+      dnsOk:      false,
+      reason:     `CNAME record not verified yet. Name = ${host}, Value = cname.vercel-dns.com. ${hint}`.trim(),
+      dnsRecords: uniqueAnswers,
+      vercelData: vercelDomainData,
+    });
+  }
+
+  // ── VERIFIED — save to Firestore ─────────────────────────────────────────────
   let firestoreOk = false;
   if (funnelId && uid) {
     try {
@@ -143,9 +169,9 @@ module.exports = async function handler(req, res) {
           privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
         })});
       }
-      const db     = getFirestore();
-      const record = { domain: clean, funnelId, uid, verifiedAt: new Date().toISOString() };
-      const noWww  = clean.replace(/^www\./, '');
+      const db      = getFirestore();
+      const record  = { domain: clean, funnelId, uid, verifiedAt: new Date().toISOString() };
+      const noWww   = clean.replace(/^www\./, '');
       const withWww = 'www.' + noWww;
 
       await Promise.all([
@@ -157,18 +183,17 @@ module.exports = async function handler(req, res) {
       ]);
       firestoreOk = true;
     } catch(e) {
-      console.error('Firestore error:', e.message);
+      console.error('Firestore save error:', e.message);
     }
   }
 
   return res.status(200).json({
-    verified:    true,
-    domain:      clean,
-    dnsOk:       true,
-    vercelOk,
+    verified:   true,
+    domain:     clean,
+    dnsOk:      true,
     firestoreOk,
-    funnelUrl:   `https://${clean}`,
-    reason:      `Domain connected. Your funnel is live at https://${clean}`,
-    dnsRecords:  uniqueAnswers,
+    funnelUrl:  `https://${clean}`,
+    reason:     `Domain connected. Your funnel is live at https://${clean}`,
+    dnsRecords: uniqueAnswers,
   });
 };
