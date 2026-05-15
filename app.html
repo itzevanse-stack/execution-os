@@ -20261,7 +20261,13 @@ function fbSaveDomain() {
   });
   var instructions = document.getElementById('fb-dns-instructions'); if (instructions) instructions.style.display = 'block';
   var statusEl = document.getElementById('fb-domain-status');
-  if (statusEl) { statusEl.style.display = 'block'; statusEl.innerHTML = '<div class="domain-status pending">⏳ Add the DNS record below, then click Verify</div>'; }
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = '<div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:12px 14px;font-size:12px;color:#c8cde8;line-height:1.7">'
+      + '<strong style="color:#a089ff;display:block;margin-bottom:4px">✅ Domain saved. Now complete Step 2.</strong>'
+      + 'Go to your domain provider, add the CNAME record shown below, then come back and click <strong style="color:var(--teal)">Verify My Domain</strong>.'
+      + '</div>';
+  }
   var urlBar = document.getElementById('fb-preview-url'); if (urlBar) urlBar.textContent = 'https://' + raw;
   fbSaveFunnelToFirestore(fbState.current);
 }
@@ -20270,8 +20276,8 @@ async function fbVerifyDomain() {
   if (!fbState.domain) return;
   var statusEl = document.getElementById('fb-domain-status');
   var btn = document.querySelector('[onclick="fbVerifyDomain()"]');
-  if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">🔍 Checking DNS…</div>';
-  if (btn) btn.textContent = '⏳ Checking…';
+  if (statusEl) statusEl.innerHTML = '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.15);border-radius:8px;padding:12px 14px;font-size:12px;color:#c8cde8">🔍 Checking DNS across multiple servers…</div>';
+  if (btn) { btn.textContent = '⏳ Checking…'; btn.disabled = true; }
   try {
     var verUid = window._currentUserUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
     var resp = await fetch(window.location.origin + '/api/verify-domain', {
@@ -20283,22 +20289,39 @@ async function fbVerifyDomain() {
       })
     });
     var data = await resp.json();
+    console.log('[Domain Verify] Response:', JSON.stringify(data, null, 2));
     if (data.verified) {
-      if (statusEl) statusEl.innerHTML = '<div class="domain-status verified">✅ Domain verified and connected</div>';
+      if (statusEl) statusEl.innerHTML = '<div style="background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.2);border-radius:8px;padding:12px 14px;font-size:12px;color:#c8cde8;line-height:1.7"><strong style="color:var(--teal);display:block;margin-bottom:4px">✅ Domain connected successfully!</strong>Your funnel is now live at <strong style="color:var(--teal)">' + fbState.domain + '</strong></div>';
       fbState.domainVerified = true;
       if (fbState.current) { fbState.current.domainVerified = true; fbState.current.domain = fbState.domain; }
       fbSaveFunnelToFirestore(fbState.current);
     } else {
       var reason = data.reason || '';
-      var msg = reason.includes('CNAME') ? 'The CNAME record was not found yet. Make sure you saved it in your domain provider and wait a few more minutes.' 
-              : reason.includes('mismatch') ? 'The CNAME is pointing somewhere else. Double-check the value is exactly: cname.vercel-dns.com'
-              : 'DNS is still propagating. Wait 10 more minutes and try again. This is normal.';
-      if (statusEl) statusEl.innerHTML = '<div class="domain-status pending" style="line-height:1.7">⏳ Not verified yet.<br><span style="font-size:11px;color:var(--dim)">' + msg + '</span></div>';
+      var records = (data.dnsRecords || []).join(', ') || 'none found';
+      var guidance, action;
+      if (records !== 'none found' && !records.includes('vercel')) {
+        guidance = 'Your domain is pointing to: <strong style="color:var(--white)">' + records + '</strong>';
+        action = 'This is not pointing to Vercel. In your domain provider, change the CNAME value to exactly: <strong style="color:var(--teal)">cname.vercel-dns.com</strong>';
+      } else if (records === 'none found') {
+        guidance = 'No DNS records were found for this domain.';
+        action = 'Make sure you added the CNAME record, saved it, and give it 5 to 10 more minutes.';
+      } else {
+        guidance = 'DNS records found: <strong style="color:var(--white)">' + records + '</strong>';
+        action = 'Records are propagating. Wait 5 more minutes and try again.';
+      }
+      if (statusEl) statusEl.innerHTML = '<div style="background:rgba(240,192,64,.06);border:1px solid rgba(240,192,64,.15);border-radius:8px;padding:12px 14px;font-size:12px;color:#c8cde8;line-height:1.7">'
+        + '<strong style="color:var(--gold);display:block;margin-bottom:6px">⏳ Not connected yet</strong>'
+        + '<div style="margin-bottom:6px">' + guidance + '</div>'
+        + '<div>' + action + '</div>'
+        + '</div>';
     }
   } catch(e) {
-    if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">❌ Verification failed. Try again.</div>';
+    if (statusEl) statusEl.innerHTML = '<div style="background:rgba(232,64,64,.06);border:1px solid rgba(232,64,64,.15);border-radius:8px;padding:12px 14px;font-size:12px;color:#c8cde8">'
+      + '<strong style="color:#f08080;display:block;margin-bottom:4px">❌ Could not check domain</strong>'
+      + 'There was a network error. Make sure you are connected to the internet and try again.'
+      + '</div>';
   }
-  if (btn) btn.textContent = '🔍 Verify Domain';
+  if (btn) { btn.textContent = '🔍 Verify My Domain'; btn.disabled = false; }
 }
 
 function fbCopyDns(value) {
