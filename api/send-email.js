@@ -1,107 +1,136 @@
-// api/send-email.js — Vercel Serverless Function
-// Plain text only — no HTML, no styling, personal sender tone
-// Engineered to hit primary inbox not promotions or spam
+// api/send-campaign.js — sends bulk email using the member's own Resend API key
+// Includes: HTML + plain text, unsubscribe link, proper headers, batching
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { name, email, phone } = req.body || {};
+  const { apiKey, from, recipients, subject, text, html, senderName, senderEmail } = req.body || {};
+  const RESEND_KEY = apiKey || process.env.RESEND_API_KEY;
 
-  if (!name || !email || !phone) {
-    return res.status(400).json({ error: 'Missing fields' });
-  }
+  if (!RESEND_KEY)  return res.status(400).json({ error: 'No Resend API key. Connect your Resend account in Email Settings.' });
+  if (!from)        return res.status(400).json({ error: 'Missing from address' });
+  if (!subject)     return res.status(400).json({ error: 'Missing subject line' });
+  if (!text && !html) return res.status(400).json({ error: 'Missing email body' });
 
-  const firstName    = name.split(' ')[0];
-  const encodedName  = encodeURIComponent(name);
-  const encodedEmail = encodeURIComponent(email);
-  const encodedPhone = encodeURIComponent(phone);
-  const applyUrl     = `https://build.skillslibry.com/grow?name=${encodedName}&email=${encodedEmail}&phone=${encodedPhone}#apply`;
+  const valid = (Array.isArray(recipients) ? recipients : [])
+    .filter(e => e && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+  if (!valid.length) return res.status(400).json({ error: 'No valid email addresses' });
 
-  // ── Plain text body — reads like a personal email from Evan ──────────────
-  const textBody = `Hey ${firstName},
+  // ── Build the email body ───────────────────────────────────────────────────
+  const rawHtml = html || text || '';
 
-I know, it's been a while. And honestly, I've been thinking about you.
+  // Strip HTML tags for plain text version
+  const plainText = rawHtml
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/div>/gi, '\n')
+    .replace(/<a[^>]+href="([^"]+)"[^>]*>([^<]+)<\/a>/gi, '$2 ($1)')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
 
-Not in a weird way. In a "I hope you haven't given up" kind of way.
+  // Extract sender info from "Name <email>" format
+  const fromMatch = from.match(/^(.+?)\s*<([^>]+)>$/) || [];
+  const fromName  = senderName || fromMatch[1] || from;
+  const fromEmail = senderEmail || fromMatch[2] || from;
 
-Because if you're like most people in my world, you've probably been through this cycle more than once.
+  // ── Build proper HTML email with footer ────────────────────────────────────
+  const buildHtml = (recipientEmail) => {
+    // Encode email for unsubscribe link
+    const encodedEmail = Buffer.from(recipientEmail).toString('base64');
+    const unsubUrl     = `https://execution-os-xi.vercel.app/api/unsubscribe?e=${encodedEmail}&from=${encodeURIComponent(fromEmail)}`;
 
-You buy a course. You watch the videos. You take notes. You feel motivated for about two weeks, then life happens, and the tab just sits there, open, judging you.
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${subject}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #f5f5f5; font-family: 'Helvetica Neue', Arial, sans-serif; color: #333; }
+    .wrapper { max-width: 600px; margin: 0 auto; padding: 32px 16px; }
+    .card { background: #ffffff; border-radius: 8px; padding: 40px 48px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .body-content { font-size: 15px; line-height: 1.85; color: #333; }
+    .body-content p { margin-bottom: 16px; }
+    .body-content a { color: #00b87a; font-weight: 600; }
+    .body-content strong { color: #111; }
+    .footer { margin-top: 32px; padding-top: 24px; border-top: 1px solid #e8e8e8; font-size: 12px; color: #999; text-align: center; line-height: 1.7; }
+    .footer a { color: #999; text-decoration: underline; }
+    @media (max-width: 600px) { .card { padding: 28px 20px; } }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="card">
+      <div class="body-content">${rawHtml}</div>
+    </div>
+    <div class="footer">
+      <p>You received this email because you signed up at one of our pages.</p>
+      <p style="margin-top:6px">
+        <strong>${fromName}</strong>
+        &nbsp;·&nbsp;
+        <a href="mailto:${fromEmail}">${fromEmail}</a>
+        &nbsp;·&nbsp;
+        <a href="${unsubUrl}">Unsubscribe</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>`;
+  };
 
-Or maybe you hired a coach. Paid good money. Got a framework, a roadmap, a Notion doc. And still, the funnel isn't working. The leads aren't converting. And you're left wondering what you're missing.
+  const plainFooter = `\n\n---\nYou received this email because you signed up at one of our pages.\nFrom: ${fromName} <${fromEmail}>\nTo unsubscribe: https://execution-os-xi.vercel.app/api/unsubscribe?from=${encodeURIComponent(fromEmail)}`;
 
-Here's what I've realized.
-
-Most of us have been playing a losing game. We've been trying to learn our way to a business, stacking knowledge on top of knowledge, hoping that eventually it'll click and the revenue will follow.
-
-But growing a digital product business in 2025 doesn't work that way anymore.
-
-What if 90% of the work, the funnels, the follow-up sequences, the content, the lead nurturing, and the onboarding were already built and automated for you?
-
-Not a template you have to customize for six weeks. Not a plug-and-play system that still requires a PhD to set up.
-
-I mean, actually done. Running. Pulling in leads and converting them, while you focus on what you're actually good at.
-
-That's exactly what I break down in this free training I just put together.
-
-No fluff. No pitch. Just the exact shift that's helping people go from "I'm learning and hustling and still stuck" to "my system is working and I'm finally seeing results."
-
-Watch the free training here: ${applyUrl}
-
-If you've ever felt like you're doing everything right but still not getting traction, this is for you.
-
-Go watch it. I think it'll change the way you see everything.
-
-Talk soon,
-Evan
-
-P.S. This isn't another course. I promise. Just watch the first 10 minutes and you'll see what I mean.
-
----
-To stop receiving emails from me, reply with "unsubscribe" in the subject.`;
+  let sent = 0, errors = 0;
 
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        // Personal sender name — no brand name in from field
-        from:     'Evan <evan@build.skillslibry.com>',
-        to:       [email],
-        reply_to: 'evan@build.skillslibry.com',
+    // Batch in groups of 50 with 200ms delay to stay within Resend rate limits
+    for (let i = 0; i < valid.length; i += 50) {
+      const batch = valid.slice(i, i + 50);
 
-        // Lowercase conversational subject — no spam trigger words
-        subject:  `${firstName}, I've been thinking about you`,
+      const payload = batch.map(email => ({
+        from:    from,
+        to:      [email],
+        subject: subject,
+        html:    buildHtml(email),
+        text:    plainText + plainFooter,
+        headers: {
+          'List-Unsubscribe': `<https://execution-os-xi.vercel.app/api/unsubscribe?e=${Buffer.from(email).toString('base64')}&from=${encodeURIComponent(fromEmail)}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
+      }));
 
-        // Plain text ONLY — no HTML whatsoever
-        // This is the single biggest factor for hitting primary inbox
-        text: textBody,
+      const resp = await fetch('https://api.resend.com/emails/batch', {
+        method:  'POST',
+        headers: { 'Authorization': `Bearer ${RESEND_KEY}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload),
+      });
 
-        // Minimal headers — no List-Unsubscribe, no Precedence bulk
-        // Those headers tell Gmail it's marketing. Remove them.
-      }),
-    });
+      if (resp.ok) {
+        sent += batch.length;
+      } else {
+        const errData = await resp.json().catch(() => ({}));
+        console.error('Resend batch error:', errData);
+        errors += batch.length;
+      }
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Resend error:', JSON.stringify(data));
-      return res.status(500).json({ error: 'Email failed', detail: data });
+      if (i + 50 < valid.length) {
+        await new Promise(r => setTimeout(r, 300));
+      }
     }
 
-    console.log('Email sent:', email, '| ID:', data.id);
-    return res.status(200).json({ success: true });
-
-  } catch (err) {
-    console.error('Crash:', err.message);
-    return res.status(500).json({ error: err.message });
+    return res.status(200).json({ success: true, sent, errors, total: valid.length });
+  } catch(err) {
+    console.error('send-campaign error:', err.message);
+    return res.status(500).json({ error: err.message, sent });
   }
 };
