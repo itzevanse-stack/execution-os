@@ -5342,18 +5342,30 @@ button[onclick="generateOffer()"] {
       <!-- Domain -->
       <div class="domain-card">
         <div style="font-size:14px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🌐 Custom Domain</div>
-        <div style="font-size:12px;color:var(--dim)">Connect your own domain so your funnel lives on your brand. Point your DNS as shown below.</div>
-        <div class="domain-input-row">
-          <input class="fi" id="fb-domain-input" placeholder="e.g. join.yourdomain.com or yourdomain.com" style="flex:1" />
-          <button onclick="fbSaveDomain()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 18px;color:var(--text-dark);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800">Connect →</button>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.7">Connect your own domain so your funnel lives at your URL. Follow the 3 steps below exactly.</div>
+
+        <!-- Step 1 -->
+        <div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.15);border-radius:10px;padding:14px;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:800;color:#a089ff;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Step 1 — Enter your domain</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Type the domain or subdomain you want to use. Examples: <strong style="color:var(--white)">join.yourdomain.com</strong> or <strong style="color:var(--white)">yourdomain.com</strong></div>
+          <div class="domain-input-row">
+            <input class="fi" id="fb-domain-input" placeholder="e.g. join.yourdomain.com" style="flex:1;font-size:12px" />
+            <button onclick="fbSaveDomain()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 18px;color:var(--text-dark);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800;white-space:nowrap">Get DNS Record →</button>
+          </div>
         </div>
+
         <div id="fb-domain-status" style="display:none"></div>
 
-        <div id="fb-dns-instructions" style="display:none;margin-top:18px">
+        <div id="fb-dns-instructions" style="display:none;margin-top:10px">
+
+          <!-- Step 2 -->
+          <div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.15);border-radius:10px;padding:14px;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:800;color:#a089ff;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Step 2 — Add this DNS record at your domain provider</div>
+          </div>
 
           <!-- DNS Record Box -->
           <div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:16px 18px;margin-bottom:16px">
-            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:10px">📋 Add This DNS Record</div>
+            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--teal);margin-bottom:10px">📋 Copy This Exact Record</div>
             <table class="dns-table" style="margin-bottom:0">
               <thead><tr><th>Type</th><th>Name / Host</th><th>Value / Points To</th><th>TTL</th><th></th></tr></thead>
               <tbody>
@@ -5422,7 +5434,7 @@ button[onclick="generateOffer()"] {
               <div>3. Type: <strong style="color:var(--teal)">CNAME</strong></div>
               <div>4. Name: <strong style="color:var(--white)" id="cf-host">your subdomain (or @ for root)</strong></div>
               <div>5. Target: <strong style="color:var(--teal)">cname.vercel-dns.com</strong></div>
-              <div>6. <strong style="color:var(--red)">Proxy status: set to DNS Only (grey cloud, NOT orange)</strong></div>
+              <div>6. <strong style="color:var(--red)">⚠️ IMPORTANT: Proxy status MUST be set to DNS Only (grey cloud). If the cloud is orange, click it to turn it grey. Orange cloud will break the connection every time.</strong></div>
               <div>7. TTL: <strong style="color:var(--white)">Auto</strong> → click <strong style="color:var(--white)">Save</strong></div>
               <div style="margin-top:8px;font-size:11px;color:var(--dim)">⚠️ Cloudflare MUST be set to DNS Only (grey cloud). Orange cloud proxying will break the connection.</div>
             </div>
@@ -5457,10 +5469,12 @@ button[onclick="generateOffer()"] {
             </div>
           </div>
 
-          <div style="margin-top:12px;font-size:11px;color:var(--dim);line-height:1.7">
-            ⏱ DNS changes usually take <strong style="color:var(--white)">5 to 30 minutes</strong>, but can take up to 24 hours. Once done, click Verify below.
+          <!-- Step 3 -->
+          <div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.15);border-radius:10px;padding:14px;margin-top:14px">
+            <div style="font-size:11px;font-weight:800;color:#a089ff;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Step 3 — Come back and verify</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.7;margin-bottom:10px">After adding the DNS record, wait <strong style="color:var(--white)">5 to 30 minutes</strong> for it to activate (sometimes up to 24 hours). Then click the button below. If it fails, wait a bit longer and try again.</div>
+            <button onclick="fbVerifyDomain()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;padding:10px 24px;color:var(--text-dark);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800">🔍 Verify My Domain</button>
           </div>
-          <button onclick="fbVerifyDomain()" style="margin-top:10px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:9px 18px;color:var(--teal);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">🔍 Verify Domain</button>
         </div>
       </div>
 
@@ -20275,7 +20289,11 @@ async function fbVerifyDomain() {
       if (fbState.current) { fbState.current.domainVerified = true; fbState.current.domain = fbState.domain; }
       fbSaveFunnelToFirestore(fbState.current);
     } else {
-      if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">⏳ Not verified yet. ' + (data.reason || 'DNS can take up to 24 hours.') + '</div>';
+      var reason = data.reason || '';
+      var msg = reason.includes('CNAME') ? 'The CNAME record was not found yet. Make sure you saved it in your domain provider and wait a few more minutes.' 
+              : reason.includes('mismatch') ? 'The CNAME is pointing somewhere else. Double-check the value is exactly: cname.vercel-dns.com'
+              : 'DNS is still propagating. Wait 10 more minutes and try again. This is normal.';
+      if (statusEl) statusEl.innerHTML = '<div class="domain-status pending" style="line-height:1.7">⏳ Not verified yet.<br><span style="font-size:11px;color:var(--dim)">' + msg + '</span></div>';
     }
   } catch(e) {
     if (statusEl) statusEl.innerHTML = '<div class="domain-status pending">❌ Verification failed. Try again.</div>';
