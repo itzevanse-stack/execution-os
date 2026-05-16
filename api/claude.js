@@ -56,7 +56,7 @@ module.exports = async function handler(req, res) {
     }
 
     const anthropicBody = {
-      model:      body.model      || 'claude-sonnet-4-6',
+      model:      body.model      || 'claude-sonnet-4-20250514',
       max_tokens: body.max_tokens || 1000,
       messages,
     };
