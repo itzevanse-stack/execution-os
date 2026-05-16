@@ -31,7 +31,7 @@ Return ONLY valid JSON. No markdown. No backticks. No explanation.`;
     const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-api-key': KEY, 'anthropic-version': '2023-06-01' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: Math.min(max_tokens || 3000, 3000), system: SYSTEM, messages: [{ role: 'user', content: prompt }] }),
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: Math.min(max_tokens || 3000, 3000), system: SYSTEM, messages: [{ role: 'user', content: prompt }] }),
     });
 
     if (!r.ok) { const e = await r.json().catch(() => ({})); return res.status(r.status).json(e); }
@@ -40,10 +40,10 @@ Return ONLY valid JSON. No markdown. No backticks. No explanation.`;
     let text = (d.content?.[0]?.text || '').trim().replace(/^```json\s*/i,'').replace(/^```/,'').replace(/```\s*$/,'').trim();
 
     let copy;
-    try { copy = JSON.parse(text); } catch(e) { return res.status(200).json({ content:[{type:'text',text}], model:'claude-sonnet-4-6' }); }
+    try { copy = JSON.parse(text); } catch(e) { return res.status(200).json({ content:[{type:'text',text}], model:'claude-sonnet-4-20250514' }); }
 
     const html = renderTemplate(copy, mode || 'optin');
-    return res.status(200).json({ content:[{type:'text',text:html}], model:'claude-sonnet-4-6' });
+    return res.status(200).json({ content:[{type:'text',text:html}], model:'claude-sonnet-4-20250514' });
   } catch(e) {
     console.error('generate-funnel:', e.message);
     return res.status(500).json({ error: e.message });
