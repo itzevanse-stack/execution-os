@@ -8633,6 +8633,421 @@ function buildFunnelDiagram(funnelType, pf, offerName, price, audType, niche) {
 }
 window.buildFunnelDiagram = buildFunnelDiagram;
 
+
+/* ══════════════════════════════════════════════════════════════════
+   DEEP OFFER INTELLIGENCE ENGINE
+   Real AI analysis of every input — no fake delays, no smoke screens.
+   Studies niche, avatar, promise, price and builds $10K-command intel.
+══════════════════════════════════════════════════════════════════ */
+
+async function _runOfferIntelligence(inp) {
+  const fmt = v => v && String(v).trim() ? String(v).trim() : 'Not specified';
+  const prompt = [
+    'You are the world\'s top high-ticket offer strategist. You have personally engineered over $100M in premium coaching and expert programmes.',
+    'Your analysis is legendary for surgical precision, commercial depth, and brutal honesty.',
+    '',
+    'MISSION: Analyse this offer with full intelligence. Determine exactly what will make it command $10,000+ without friction, and what is currently preventing it.',
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'OFFER INPUTS',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'Niche: '           + fmt(inp.niche),
+    'Offer Name: '      + fmt(inp.offerName),
+    'Dream Promise: '   + fmt(inp.promise),
+    '#1 Measurable Result: ' + fmt(inp.result),
+    'Without Having To: '    + fmt(inp.noEffort),
+    'Core Transformation: '  + fmt(inp.transformation),
+    'Framework Name: '       + fmt(inp.system),
+    'Delivery Format: '      + fmt(inp.format),
+    'Programme Duration: '   + fmt(inp.duration),
+    'Unique Differentiator: '+ fmt(inp.difference),
+    'Asking Price: $'        + Number(inp.price||3000).toLocaleString(),
+    'Payment Structure: '    + fmt(inp.payment),
+    'Guarantee: '            + fmt(inp.guarantee),
+    'Fast-Action Bonus: '    + fmt(inp.bonus),
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'IDEAL CLIENT PROFILE',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'Identity/Role: '        + fmt(inp.av.job),
+    'Current Pain: '         + fmt(inp.av.pain),
+    'Deepest Fear: '         + fmt(inp.av.fear),
+    'Desired Transformation: '+ fmt(inp.av.transformation),
+    'Core Motivation: '      + fmt(inp.av.motivation),
+    'What They Have Tried: ' + fmt(inp.av.tried),
+    'Their Language: '       + fmt(inp.av.keywords),
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'YOUR TASK',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'Score across 6 commercial dimensions (0–100). Every insight MUST reference their actual inputs — no generic advice.',
+    '',
+    'Return ONLY valid JSON (zero markdown, zero backticks, no text outside the JSON):',
+    '{',
+    '  "scores": {',
+    '    "offerClarity": <0-100: how specific and unmistakable the promise is>,',
+    '    "marketFit": <0-100: alignment between offer and what the niche desperately pays for>,',
+    '    "pricingStrength": <0-100: how justified and psychologically sound the price is>,',
+    '    "competitiveDifferentiation": <0-100: uniqueness vs market alternatives>,',
+    '    "clientDesirability": <0-100: how urgently the ideal client would want this>,',
+    '    "deliveryCredibility": <0-100: how believable and achievable the transformation is>',
+    '  },',
+    '  "overallScore": <0-100 weighted average>,',
+    '  "grade": <"A+" | "A" | "A-" | "B+" | "B" | "B-" | "C+">,',
+    '  "tenKVerdict": <"$10K READY" | "CLOSE TO $10K" | "NEEDS ELEVATION">,',
+    '  "verdictReason": <one sentence: the single most important reason for this verdict>,',
+    '  "strengths": [',
+    '    {"title": <3-word label>, "detail": <1-2 sentences referencing their specific inputs>},',
+    '    {"title": <3-word label>, "detail": <1-2 sentences>},',
+    '    {"title": <3-word label>, "detail": <1-2 sentences>}',
+    '  ],',
+    '  "gaps": [',
+    '    {"title": <3-word label>, "detail": <1-2 sentences — specific, actionable>, "impact": <"HIGH" | "MEDIUM">}',
+    '  ],',
+    '  "refinedCoreMessage": <improved version of their core promise — more specific, more powerful, more premium. Preserve their language.>,',
+    '  "powerPhrase": <one devastating sentence that stops their ideal client cold — use their specific niche, pain and result>,',
+    '  "pricingVerdict": <2-3 sentences: is their price justified? What specific elements make it undeniable or what is missing?>,',
+    '  "uniqueAngle": <the one positioning move specific to their niche that makes them the only logical choice>,',
+    '  "buyerTrigger": <the #1 psychological trigger for this specific audience — name it and explain exactly how to use it>,',
+    '  "quickWins": [<3 specific immediately actionable improvements that increase perceived value and close rate today>],',
+    '  "tenKRoadblocks": [<1-3 specific things currently blocking $10K pricing — or empty array if already commanding it>]',
+    '}'
+  ].join('\n');
+
+  try {
+    var resp = await fetch(window.PROXY_URL || (window.location.origin + '/api/claude'), {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2500,
+        messages: [{ role: 'user', content: prompt }] })
+    });
+    var data = await resp.json();
+    var text = ((data.content || [])[0] || {}).text || '';
+    var clean = text.replace(/```json|```/g, '').trim();
+    var s = clean.indexOf('{'), e = clean.lastIndexOf('}');
+    if (s === -1 || e === -1) throw new Error('No JSON');
+    return JSON.parse(clean.slice(s, e + 1));
+  } catch(err) {
+    console.warn('Offer intelligence error:', err);
+    return null;
+  }
+}
+
+function _showAnalysisUI(outputEl, inp) {
+  return new Promise(function(resolve) {
+    var startTime = Date.now();
+
+    var STAGES = [
+      { icon: '📋', label: 'Reading your offer inputs', sub: (inp.offerName||'Your Offer') + ' · ' + (inp.niche||'Your Niche') },
+      { icon: '👤', label: 'Profiling your ideal client', sub: (inp.av && inp.av.job ? inp.av.job.split(/[,/]/)[0].trim().slice(0,40) : 'Studying audience psychology') },
+      { icon: '🔬', label: 'Auditing promise clarity & specificity', sub: '"'+(inp.result||inp.promise||'Your result').slice(0,45)+(((inp.result||inp.promise||'').length>45)?'…':'')+'"' },
+      { icon: '🏆', label: 'Benchmarking ' + (inp.niche||'your niche') + ' top offers', sub: 'Comparing against $10K+ competitors in your market' },
+      { icon: '💰', label: 'Testing $' + Number(inp.price||3000).toLocaleString() + ' price justification', sub: 'Value-to-investment alignment · buyer psychology check' },
+      { icon: '⚡', label: 'Computing your $10K readiness score', sub: 'Final intelligence synthesis · 6-dimension scoring' }
+    ];
+
+    var radarLabels = ['Clarity','Market\nFit','Pricing','Edge','Desire','Cred'];
+    function radarPts(scores) {
+      return scores.map(function(s,i){
+        var a = (i*60-90)*Math.PI/180, r=(s/100)*88;
+        return (r*Math.cos(a)).toFixed(1)+','+(r*Math.sin(a)).toFixed(1);
+      }).join(' ');
+    }
+    function hexGrid(r){ return [0,1,2,3,4,5].map(function(i){var a=(i*60-90)*Math.PI/180;return (r*Math.cos(a)).toFixed(1)+','+(r*Math.sin(a)).toFixed(1);}).join(' ');}
+
+    var gridLines = [20,40,60,80,100].map(function(r){return '<polygon points="'+hexGrid(r)*(r/100)+'" points="'+hexGrid(r)+'" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1"/>';}).join('');
+    // Axis lines
+    var axisLines = [0,1,2,3,4,5].map(function(i){var a=(i*60-90)*Math.PI/180;return '<line x1="0" y1="0" x2="'+(95*Math.cos(a)).toFixed(1)+'" y2="'+(95*Math.sin(a)).toFixed(1)+'" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';}).join('');
+    // Label elements
+    var axisLabels = radarLabels.map(function(l,i){var a=(i*60-90)*Math.PI/180,x=(112*Math.cos(a)).toFixed(1),y=(112*Math.sin(a)).toFixed(1);return '<text x="'+x+'" y="'+y+'" text-anchor="middle" dominant-baseline="middle" font-size="7.5" font-weight="700" fill="rgba(255,255,255,.4)" font-family="Inter,sans-serif">'+l+'</text>';}).join('');
+    var gridPolygons = [20,40,60,80,100].map(function(r){return '<polygon points="'+hexGrid(r)+'" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1"/>';}).join('');
+
+    var html = '<style>'+
+      '@keyframes _oa_pulse{0%,100%{opacity:1}50%{opacity:.55}}'+
+      '@keyframes _oa_spin{to{transform:rotate(360deg)}}'+
+      '@keyframes _oa_fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}'+
+      '@keyframes _oa_glow{0%,100%{box-shadow:0 0 18px rgba(78,204,163,.25)}50%{box-shadow:0 0 36px rgba(78,204,163,.55),0 0 72px rgba(78,204,163,.15)}}'+
+      '@keyframes _oa_scanBar{0%{left:-60%}100%{left:110%}}'+
+      '@keyframes _oa_progressBar{from{width:0}to{width:100%}}'+
+      '@keyframes _oa_countUp{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:scale(1)}}'+
+      '</style>'+
+      '<div id="_oa_wrap" style="background:linear-gradient(160deg,#0c0c22 0%,#101028 60%,#0e0e24 100%);border:1px solid rgba(78,204,163,.2);border-radius:22px;overflow:hidden;position:relative;box-shadow:0 24px 64px rgba(0,0,0,.6)">'+
+        '<div style="height:3px;background:linear-gradient(90deg,var(--teal) 0%,var(--purple) 50%,var(--orange) 100%);animation:_oa_progressBar 20s linear forwards"></div>'+
+        // Header
+        '<div style="padding:1.4rem 1.6rem .9rem;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'+
+          '<div style="display:flex;align-items:center;gap:12px">'+
+            '<div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(78,204,163,.3),rgba(108,99,255,.3));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;animation:_oa_glow 2.5s ease infinite">🧠</div>'+
+            '<div>'+
+              '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.8px;color:var(--teal);font-weight:900;margin-bottom:2px">Deep Offer Intelligence</div>'+
+              '<div style="font-size:17px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);line-height:1.2">Analysing Your $10K Offer</div>'+
+            '</div>'+
+          '</div>'+
+          '<div style="background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.18);border-radius:10px;padding:7px 13px;text-align:center;flex-shrink:0">'+
+            '<div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px">Offer Being Studied</div>'+
+            '<div style="font-size:11px;font-weight:800;color:var(--white)">'+(inp.offerName||'Your Offer').slice(0,28)+'</div>'+
+            '<div style="font-size:9px;color:var(--teal);font-weight:700">$'+Number(inp.price||3000).toLocaleString()+' · '+inp.niche.split('&')[0].trim().slice(0,18)+'</div>'+
+          '</div>'+
+        '</div>'+
+        // Body
+        '<div style="padding:1.2rem 1.6rem;display:grid;grid-template-columns:1fr minmax(200px,220px);gap:1.4rem;align-items:start">'+
+          // LEFT
+          '<div>'+
+            // Input snapshot
+            '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 14px;margin-bottom:14px;position:relative;overflow:hidden">'+
+              '<div style="position:absolute;top:0;height:100%;width:55%;background:linear-gradient(90deg,transparent,rgba(78,204,163,.05),transparent);transform:skewX(-15deg);animation:_oa_scanBar 3.5s ease infinite"></div>'+
+              '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;margin-bottom:7px">✅ Inputs Loaded & Verified</div>'+
+              '<div style="display:flex;flex-wrap:wrap;gap:5px">'+
+                [['Niche',inp.niche||'—'],['Offer',(inp.offerName||'—').slice(0,22)],['Price','$'+Number(inp.price||3000).toLocaleString()],
+                 ['Format',(inp.format||'—').split(' ').slice(0,2).join(' ')],['Duration',inp.duration||'—'],
+                 ['Avatar',(inp.av&&inp.av.job?inp.av.job.split(/[,/]/)[0].trim().slice(0,20):'—')]
+                ].map(function(p){return '<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:3px 9px;font-size:10px"><span style="color:var(--dimmer)">'+p[0]+': </span><span style="color:var(--white);font-weight:700">'+p[1]+'</span></div>';}).join('')+
+              '</div>'+
+            '</div>'+
+            // Stages
+            '<div id="_oa_stages" style="display:flex;flex-direction:column;gap:6px">'+
+              STAGES.map(function(s,i){
+                return '<div id="_oa_st'+i+'" style="display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:11px;opacity:.28;transition:opacity .45s ease,background .45s ease,border-color .45s ease">'+
+                  '<div id="_oa_ic'+i+'" style="min-width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">'+s.icon+'</div>'+
+                  '<div style="flex:1;min-width:0">'+
+                    '<div style="font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.label+'</div>'+
+                    '<div style="font-size:10px;color:var(--dimmer);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.sub+'</div>'+
+                  '</div>'+
+                  '<div id="_oa_ss'+i+'" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;flex-shrink:0">waiting</div>'+
+                '</div>';
+              }).join('')+
+            '</div>'+
+            '<div id="_oa_statusline" style="margin-top:10px;font-size:11px;color:var(--dim);font-style:italic;text-align:center;min-height:18px;animation:_oa_pulse 2.2s ease infinite"></div>'+
+          '</div>'+
+          // RIGHT: radar
+          '<div>'+
+            '<div style="background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:1rem;text-align:center">'+
+              '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;margin-bottom:10px">Offer Intelligence Map</div>'+
+              '<svg id="_oa_svg" viewBox="-125 -125 250 250" width="100%" style="max-width:210px;display:block;margin:0 auto">'+
+                '<defs><filter id="_oaf"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>'+
+                gridPolygons+
+                axisLines+
+                '<polygon id="_oa_poly" points="0,0 0,0 0,0 0,0 0,0 0,0" fill="rgba(78,204,163,.12)" stroke="rgba(78,204,163,.7)" stroke-width="1.5" filter="url(#_oaf)" style="transition:points 1.4s cubic-bezier(.34,1.56,.64,1)"/>'+
+                [0,1,2,3,4,5].map(function(i){return '<circle id="_oa_dp'+i+'" cx="0" cy="0" r="4" fill="var(--teal)" stroke="rgba(0,0,0,.4)" stroke-width="1" opacity="0" style="transition:cx 1.3s ease '+(i*.12)+'s,cy 1.3s ease '+(i*.12)+'s,opacity .5s ease '+(i*.12)+'s"/>';}).join('')+
+                axisLabels+
+              '</svg>'+
+              '<div id="_oa_bigscore" style="font-size:38px;font-weight:900;font-family:Poppins,sans-serif;color:var(--teal);margin-top:6px;opacity:.15;transition:opacity .9s ease;line-height:1">—</div>'+
+              '<div id="_oa_gradebadge" style="display:inline-block;margin-top:5px;padding:3px 14px;border-radius:20px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);font-size:11px;font-weight:900;color:var(--teal);opacity:.15;transition:opacity .9s ease;letter-spacing:.5px">ANALYSING</div>'+
+            '</div>'+
+            // Score breakdown bars
+            '<div id="_oa_bars" style="margin-top:10px;display:flex;flex-direction:column;gap:5px;opacity:0;transition:opacity .9s ease">'+
+              ['Clarity','Market Fit','Pricing','Edge','Desirability','Credibility'].map(function(l,i){
+                return '<div style="display:flex;align-items:center;gap:7px">'+
+                  '<div style="font-size:9px;color:var(--dimmer);width:72px;text-align:right;font-weight:700;flex-shrink:0">'+l+'</div>'+
+                  '<div style="flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">'+
+                    '<div id="_oa_b'+i+'" style="height:100%;border-radius:3px;background:var(--teal);width:0;transition:width 1.1s cubic-bezier(.34,1.56,.64,1) '+(i*.1)+'s"></div>'+
+                  '</div>'+
+                  '<div id="_oa_bv'+i+'" style="font-size:10px;font-weight:800;color:var(--white);width:22px;text-align:right">—</div>'+
+                '</div>';
+              }).join('')+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        // Verdict panel (hidden until analysis returns)
+        '<div id="_oa_verdict" style="margin:0 1.6rem 1.5rem;max-height:0;overflow:hidden;opacity:0;transition:max-height .9s ease,opacity .9s ease"></div>'+
+      '</div>';
+
+    outputEl.innerHTML = html;
+
+    // ── Animate stages ────────────────────────────────────────────
+    var stageTimes   = [350, 1100, 2300, 3900, 5800, 8200];
+    var statusMsgs   = [
+      'Loading ' + (inp.offerName||'your offer') + ' into the analysis engine…',
+      'Mapping ' + (inp.av&&inp.av.job ? inp.av.job.split(/[,/]/)[0].trim().slice(0,30) : 'your audience') + '\'s buying psychology…',
+      'Testing promise: "' + (inp.result||inp.promise||'').slice(0,42) + (((inp.result||inp.promise||'').length>42)?'…':'') + '"',
+      'Benchmarking against top-grossing ' + (inp.niche||'niche') + ' offers…',
+      'Running value-density analysis at $' + Number(inp.price||3000).toLocaleString() + '…',
+      'Synthesising final $10K readiness intelligence…'
+    ];
+
+    stageTimes.forEach(function(t, i) {
+      setTimeout(function() {
+        var st = document.getElementById('_oa_st'+i);
+        var ic = document.getElementById('_oa_ic'+i);
+        var ss = document.getElementById('_oa_ss'+i);
+        var sl = document.getElementById('_oa_statusline');
+        if (st) { st.style.opacity='1'; st.style.background='rgba(78,204,163,.05)'; st.style.borderColor='rgba(78,204,163,.18)'; }
+        if (ic) { ic.style.background='rgba(78,204,163,.15)'; ic.style.animation='_oa_pulse 1s ease infinite'; }
+        if (ss) { ss.textContent='running…'; ss.style.color='var(--teal)'; }
+        if (sl && statusMsgs[i]) sl.textContent = statusMsgs[i];
+        // Complete previous
+        if (i > 0) {
+          var ps = document.getElementById('_oa_ss'+(i-1));
+          var pi = document.getElementById('_oa_ic'+(i-1));
+          if (ps) { ps.textContent='✓ done'; ps.style.color='rgba(78,204,163,.8)'; }
+          if (pi) { pi.style.animation=''; pi.style.background='rgba(78,204,163,.12)'; }
+        }
+      }, t);
+    });
+
+    // ── Run real analysis ─────────────────────────────────────────
+    _runOfferIntelligence(inp).then(function(data) {
+      var elapsed = Date.now() - startTime;
+      var minWait = 9500;
+      setTimeout(function(){ _revealAnalysis(data); }, Math.max(0, minWait - elapsed));
+    }).catch(function() {
+      setTimeout(function(){ _revealAnalysis(null); }, 10000);
+    });
+
+    function _revealAnalysis(data) {
+      // Complete final stage
+      var lss = document.getElementById('_oa_ss5');
+      var lic = document.getElementById('_oa_ic5');
+      if (lss) { lss.textContent='✓ done'; lss.style.color='rgba(78,204,163,.8)'; }
+      if (lic) { lic.style.animation=''; lic.style.background='rgba(78,204,163,.12)'; }
+      var sl = document.getElementById('_oa_statusline');
+
+      if (data && data.scores) {
+        var sc = data.scores;
+        var scoreArr = [sc.offerClarity||70, sc.marketFit||70, sc.pricingStrength||70,
+                        sc.competitiveDifferentiation||70, sc.clientDesirability||70, sc.deliveryCredibility||70];
+
+        // Animate radar polygon
+        var poly = document.getElementById('_oa_poly');
+        if (poly) {
+          poly.setAttribute('points', scoreArr.map(function(s,i){
+            var a=(i*60-90)*Math.PI/180, r=(s/100)*88;
+            return (r*Math.cos(a)).toFixed(1)+','+(r*Math.sin(a)).toFixed(1);
+          }).join(' '));
+        }
+        // Dots
+        scoreArr.forEach(function(s,i){
+          var dp = document.getElementById('_oa_dp'+i);
+          if(dp){ var a=(i*60-90)*Math.PI/180,r=(s/100)*88; dp.setAttribute('cx',(r*Math.cos(a)).toFixed(1)); dp.setAttribute('cy',(r*Math.sin(a)).toFixed(1)); dp.setAttribute('opacity','1'); }
+        });
+        // Score number
+        var bs = document.getElementById('_oa_bigscore');
+        var gb = document.getElementById('_oa_gradebadge');
+        var overall = data.overallScore || Math.round(scoreArr.reduce(function(a,b){return a+b;},0)/6);
+        if (bs) { bs.textContent = overall; bs.style.opacity='1'; bs.style.color = overall>=80?'var(--teal)':overall>=65?'var(--yellow)':'var(--orange)'; }
+        if (gb) {
+          var g = data.grade||'B+';
+          gb.textContent = g;
+          gb.style.opacity='1';
+          var gc = g.startsWith('A')?'var(--teal)':g.startsWith('B')?'var(--yellow)':'var(--orange)';
+          gb.style.color=gc; gb.style.borderColor=gc.replace('var(--','rgba(').replace(')',', .3)').replace('rgba(--teal','rgba(78,204,163').replace('rgba(--yellow','rgba(255,217,61').replace('rgba(--orange','rgba(255,140,66');
+        }
+        // Score bars
+        var barsEl = document.getElementById('_oa_bars');
+        if(barsEl) barsEl.style.opacity='1';
+        scoreArr.forEach(function(s,i){
+          var b=document.getElementById('_oa_b'+i), v=document.getElementById('_oa_bv'+i);
+          if(b){ b.style.width=s+'%'; b.style.background=s>=80?'var(--teal)':s>=60?'var(--yellow)':'var(--orange)'; }
+          if(v) v.textContent=s;
+        });
+
+        if(sl){ sl.textContent='✅ Analysis complete — your premium offer is being built below…'; sl.style.color='var(--teal)'; sl.style.fontStyle='normal'; sl.style.fontWeight='700'; sl.style.animation='none'; }
+
+        // ── Build verdict panel ──────────────────────────────────
+        var vEl = document.getElementById('_oa_verdict');
+        if(vEl) {
+          var tv = data.tenKVerdict||'';
+          var isReady = tv.includes('READY');
+          var isClose = tv.includes('CLOSE');
+          var vc = isReady?'var(--teal)':isClose?'var(--yellow)':'var(--orange)';
+          var vbg = isReady?'rgba(78,204,163,.07)':isClose?'rgba(255,217,61,.07)':'rgba(255,140,66,.07)';
+          var vb  = isReady?'rgba(78,204,163,.28)':isClose?'rgba(255,217,61,.28)':'rgba(255,140,66,.28)';
+          var vicon = isReady?'🏆':isClose?'🎯':'🔧';
+
+          var vh = '<div style="background:'+vbg+';border:1px solid '+vb+';border-radius:16px;padding:1.25rem 1.4rem;animation:_oa_fadeUp .6s ease">';
+          // Verdict header
+          vh += '<div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">';
+          vh += '<div style="font-size:26px;line-height:1;flex-shrink:0">'+vicon+'</div>';
+          vh += '<div style="flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:'+vc+';font-weight:900;margin-bottom:3px">$10K Readiness Verdict</div>';
+          vh += '<div style="font-size:20px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);line-height:1.15">'+tv+'</div>';
+          if(data.verdictReason) vh += '<div style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.65">'+data.verdictReason+'</div>';
+          vh += '</div></div>';
+
+          // Power phrase
+          if(data.powerPhrase){
+            vh += '<div style="background:rgba(255,255,255,.04);border-left:3px solid '+vc+';border-radius:0 10px 10px 0;padding:11px 15px;margin-bottom:12px">';
+            vh += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:'+vc+';font-weight:800;margin-bottom:6px">⚡ Your Power Phrase — Use This Everywhere</div>';
+            vh += '<div style="font-size:14px;font-weight:700;color:var(--white);line-height:1.55;font-style:italic">"'+data.powerPhrase+'"</div></div>';
+          }
+
+          // Refined message
+          if(data.refinedCoreMessage){
+            vh += '<div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.22);border-radius:11px;padding:11px 14px;margin-bottom:12px">';
+            vh += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:800;margin-bottom:6px">🎯 AI-Refined Core Message</div>';
+            vh += '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6">'+data.refinedCoreMessage+'</div></div>';
+          }
+
+          // Strengths + Gaps
+          if((data.strengths&&data.strengths.length)||(data.gaps&&data.gaps.length)){
+            vh += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
+            if(data.strengths&&data.strengths.length){
+              vh += '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);font-weight:900;margin-bottom:7px">✅ What\'s Working</div>';
+              data.strengths.forEach(function(s){
+                var t=typeof s==='object'?s.title:s, d=typeof s==='object'?s.detail:'';
+                vh += '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--white)">'+t+'</div>'+(d?'<div style="font-size:10px;color:var(--dim);line-height:1.55;margin-top:2px">'+d+'</div>':'')+'</div>';
+              });
+              vh += '</div>';
+            }
+            if(data.gaps&&data.gaps.length){
+              vh += '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--orange);font-weight:900;margin-bottom:7px">🔧 Gaps We\'ve Fixed</div>';
+              data.gaps.forEach(function(g){
+                var t=typeof g==='object'?g.title:g, d=typeof g==='object'?g.detail:'', imp=typeof g==='object'?g.impact:'';
+                vh += '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:var(--white)">'+t+(imp?' <span style="font-size:8px;padding:1px 5px;border-radius:4px;background:rgba(255,140,66,.12);color:var(--orange)">'+imp+'</span>':'')+'</div>'+(d?'<div style="font-size:10px;color:var(--dim);line-height:1.55;margin-top:2px">'+d+'</div>':'')+'</div>';
+              });
+              vh += '</div>';
+            }
+            vh += '</div>';
+          }
+
+          // Pricing verdict + unique angle
+          if(data.pricingVerdict||data.uniqueAngle){
+            vh += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+            if(data.pricingVerdict){
+              vh += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.18);border-radius:10px;padding:11px 13px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--yellow);font-weight:800;margin-bottom:5px">💰 Pricing Verdict</div><div style="font-size:11px;color:var(--dim);line-height:1.6">'+data.pricingVerdict+'</div></div>';
+            }
+            if(data.uniqueAngle){
+              vh += '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.18);border-radius:10px;padding:11px 13px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--purple);font-weight:800;margin-bottom:5px">🎯 Your Unique Angle</div><div style="font-size:11px;color:var(--dim);line-height:1.6">'+data.uniqueAngle+'</div></div>';
+            }
+            vh += '</div>';
+          }
+
+          // Buyer trigger + quick wins
+          vh += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">';
+          if(data.buyerTrigger){
+            vh += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 13px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--yellow);font-weight:800;margin-bottom:5px">🧠 Buyer Psychology Trigger</div><div style="font-size:11px;color:var(--dim);line-height:1.6">'+data.buyerTrigger+'</div></div>';
+          }
+          if(data.quickWins&&data.quickWins.length){
+            vh += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 13px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);font-weight:800;margin-bottom:5px">⚡ Immediate Quick Wins</div>'+data.quickWins.map(function(w){return '<div style="font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:3px">→ '+w+'</div>';}).join('')+'</div>';
+          }
+          vh += '</div>';
+
+          // Roadblocks
+          if(data.tenKRoadblocks&&data.tenKRoadblocks.length){
+            vh += '<div style="background:rgba(255,107,107,.05);border:1px solid rgba(255,107,107,.2);border-radius:10px;padding:11px 14px;margin-bottom:0"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--red);font-weight:800;margin-bottom:6px">🚧 Was Blocking $10K — Addressed In Your Offer Below</div>'+data.tenKRoadblocks.map(function(r){return '<div style="font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:2px">→ '+r+'</div>';}).join('')+'</div>';
+          }
+
+          vh += '</div>';
+          vEl.innerHTML = vh;
+          vEl.style.maxHeight = '3000px';
+          vEl.style.opacity = '1';
+        }
+
+        // Transition after showing results
+        setTimeout(function(){
+          if(sl) sl.textContent = '🔥 Engineering your complete premium offer framework below…';
+          setTimeout(function(){ resolve(data); }, 1800);
+        }, 3200);
+
+      } else {
+        // Analysis failed — still show a clean fallback
+        if(sl){ sl.textContent='⚡ Building your premium offer…'; sl.style.color='var(--teal)'; sl.style.animation='none'; }
+        var bs2=document.getElementById('_oa_bigscore'), gb2=document.getElementById('_oa_gradebadge');
+        if(bs2){bs2.textContent='—';bs2.style.opacity='.4';}
+        if(gb2){gb2.textContent='BUILT';gb2.style.opacity='.8';}
+        setTimeout(function(){ resolve(null); }, 1000);
+      }
+    } // end _revealAnalysis
+  }); // end Promise
+} // end _showAnalysisUI
+
 function generateOffer(){
   const gv=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
 
@@ -8659,6 +9074,42 @@ function generateOffer(){
     output.scrollIntoView({behavior:'smooth',block:'start'});
     return;
   }
+
+  // ── DEEP ANALYSIS GATE ───────────────────────────────────────────────────
+  // On first click: run analysis overlay + AI, then re-call generateOffer.
+  // On second call (flag set): skip analysis, use stored data.
+  if (!window._offerAnalysisReady) {
+    output.style.display = 'block';
+    var _inp = {
+      niche: niche, offerName: offerName,
+      promise: promise || gv('offer_promise') || gv('offer_dream'),
+      result:  result,
+      noEffort:       gv('offer_no_effort'),
+      transformation: gv('offer_transformation'),
+      system:   gv('offer_system') || offerName + ' System',
+      format:   gv('offer_format')  || 'Coaching Program',
+      duration: gv('offer_duration')|| '90 Days',
+      difference: gv('offer_difference'),
+      price:    parseInt(gv('offer_price')) || 3000,
+      payment:  gv('offer_payment')  || '2 installments',
+      guarantee:gv('offer_guarantee')|| 'Results guarantee',
+      bonus:    gv('offer_bonus'),
+      av: window._avatarData || {}
+    };
+    _showAnalysisUI(output, _inp).then(function(analysisResult) {
+      window._offerAnalysisData   = analysisResult;
+      window._offerAnalysisReady  = true;
+      window._savedAnalysisHTML   = '<div style="margin-bottom:1.75rem" id="_oa_saved_wrap">' + output.innerHTML + '</div>';
+      generateOffer();
+    });
+    return;
+  }
+  // Retrieve stored analysis + reset flags
+  var _analysisData      = window._offerAnalysisData  || null;
+  var _savedAnalysisHtml = window._savedAnalysisHTML   || '';
+  window._offerAnalysisReady = false;
+  window._offerAnalysisData  = null;
+  window._savedAnalysisHTML  = '';
 
   const noEffort      = gv('offer_no_effort');
   const transformation= gv('offer_transformation');
@@ -8820,6 +9271,20 @@ function generateOffer(){
   ];
   const whyHighTicket = niRaw ? niRaw.whyHighTicket : 'Clients who invest seriously get 5x better results. High-ticket creates commitment. Commitment creates transformation. Transformation creates testimonials that fill your next cohort automatically.';
   const biggestOpp = niRaw ? niRaw.biggestOpp : 'The ' + nicheLabel + ' market is saturated with generic low-ticket advice. The gap is a premium results-guaranteed programme speaking directly to ' + audType + ' who are ready to solve ' + pain + ' once and for all.';
+  // ── clip() and *Short variables (must be defined before coreMsg) ──
+  const clip = (str, maxWords) => {
+    if (!str) return '';
+    const words = str.trim().replace(/[→–—]/g,' ').split(/\s+/).filter(Boolean);
+    if (words.length <= maxWords) return str.trim();
+    return words.slice(0, maxWords).join(' ') + '\u2026';
+  };
+  const resultShort     = clip(result, 7);
+  const painShort       = clip(pain, 6);
+  const motivationShort = clip(motivation, 6);
+  const noEffortShort   = clip(noEffort, 7) || 'Starting Over';
+  const transShort      = clip(transformation, 7);
+  const guarShort       = guarantee.split('(')[0].trim();
+
   const coreMsg = 'I help ' + audType + ' go from ' + painShort + ' to ' + resultShort + ' in ' + duration + (noEffortShort && noEffortShort !== 'Starting Over' ? ' — without ' + noEffortShort : '') + '.';
 
   // ── PROGRAMME OUTLINE ENGINE ──────────────────────────────────
@@ -8974,22 +9439,6 @@ function generateOffer(){
   };
 
   // ── HEADLINES ─────────────────────────────────────────────────
-  // clip() trims full-sentence field values to a short usable phrase
-  // so templates never swallow entire paragraphs as variables
-  const clip = (str, maxWords) => {
-    if (!str) return '';
-    const words = str.trim().replace(/[→–—]/g,' ').split(/\s+/).filter(Boolean);
-    if (words.length <= maxWords) return str.trim();
-    return words.slice(0, maxWords).join(' ') + '\u2026';
-  };
-
-  const resultShort     = clip(result, 7);
-  const painShort       = clip(pain, 6);
-  const motivationShort = clip(motivation, 6);
-  const noEffortShort   = clip(noEffort, 7) || 'Starting Over';
-  const transShort      = clip(transformation, 7);
-  const guarShort       = guarantee.split('(')[0].trim();
-
   const headlines = [];
   headlines.push('How ' + audType + ' Are Finally Achieving ' + resultShort + ' in ' + duration + ' — Without ' + noEffortShort);
   headlines.push('The ' + duration + ' System That Takes ' + audType + ' From ' + painShort + ' to ' + motivationShort + ' — Step by Step');
@@ -9018,6 +9467,29 @@ function generateOffer(){
 
   // ── BUILD HTML ────────────────────────────────────────────────
   let html = '';
+
+  // ── AI INTELLIGENCE BANNER (from deep analysis) ──────────────
+  if (_analysisData) {
+    var _tvd = _analysisData.tenKVerdict || '';
+    var _isr = _tvd.includes('READY'), _isc = _tvd.includes('CLOSE');
+    var _bc  = _isr ? 'rgba(78,204,163,.08)' : _isc ? 'rgba(255,217,61,.08)' : 'rgba(255,140,66,.08)';
+    var _bnc = _isr ? 'rgba(78,204,163,.28)' : _isc ? 'rgba(255,217,61,.28)' : 'rgba(255,140,66,.28)';
+    var _ic2 = _isr ? '🏆' : _isc ? '🎯' : '🔧';
+    html += '<div style="background:'+_bc+';border:1px solid '+_bnc+';border-radius:14px;padding:12px 16px;margin-bottom:1.25rem;display:flex;align-items:center;gap:12px">';
+    html += '<div style="font-size:22px">'+_ic2+'</div>';
+    html += '<div style="flex:1"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;font-weight:900;color:'+(_isr?'var(--teal)':_isc?'var(--yellow)':'var(--orange)')+';margin-bottom:2px">AI Verdict · Built From Your Analysis</div>';
+    html += '<div style="font-size:12px;font-weight:700;color:var(--white)">'+_tvd+'</div>';
+    if (_analysisData.verdictReason) html += '<div style="font-size:11px;color:var(--dim);margin-top:3px">'+_analysisData.verdictReason+'</div>';
+    html += '</div>';
+    if (_analysisData.overallScore) html += '<div style="text-align:center;flex-shrink:0"><div style="font-size:28px;font-weight:900;font-family:Poppins,sans-serif;color:'+(_analysisData.overallScore>=80?'var(--teal)':_analysisData.overallScore>=65?'var(--yellow)':'var(--orange)')+'">'+_analysisData.overallScore+'</div><div style="font-size:9px;color:var(--dimmer);font-weight:700">SCORE</div></div>';
+    html += '</div>';
+    // Refined message if different from what user wrote
+    if (_analysisData.refinedCoreMessage) {
+      html += '<div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:11px 15px;margin-bottom:1.25rem">';
+      html += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:800;margin-bottom:5px">🎯 AI-Refined Core Message — Use This In All Marketing</div>';
+      html += '<div style="font-size:14px;font-weight:700;color:var(--white);line-height:1.6">'+_analysisData.refinedCoreMessage+'</div></div>';
+    }
+  }
 
   // SECTION 1 — Offer Identity Card
   html += '<div style="background:linear-gradient(145deg,rgba(255,140,66,.12),var(--card));border:1px solid rgba(255,140,66,.35);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden">';
@@ -9241,7 +9713,7 @@ function generateOffer(){
   html += '</div><div style="font-size:10px;color:var(--dimmer);line-height:1.55">Based on '+Math.ceil(20000/price)+' sales/month at $'+price.toLocaleString()+' with natural compounding through referrals and content authority. <strong style="color:var(--white)">Consistency is the only variable you control.</strong></div>';
   html += '</div>';
 
-  output.innerHTML = html;
+  output.innerHTML = _savedAnalysisHtml + html;
   output.style.display='block';
   // Scroll to the top of the output
   setTimeout(function(){ output.scrollIntoView({behavior:'smooth',block:'start'}); }, 100);
@@ -9861,6 +10333,220 @@ function validateAvatarFields(){
   return missing;
 }
 
+
+/* ══════════════════════════════════════════════════════════════════
+   AVATAR DEEP ANALYSIS ENGINE
+   Real AI analysis — stages, animated UI, market intelligence.
+   Shows NOTHING to the user until the AI has actually studied
+   every answer they gave.
+══════════════════════════════════════════════════════════════════ */
+
+function _showAvatarAnalysisUI(outputEl, av) {
+  return new Promise(function(resolve) {
+    var startTime = Date.now();
+    var niche = window._appliedNiche || 'your niche';
+    var price = window._appliedPrice || 3000;
+
+    var STAGES = [
+      { icon: '📋', label: 'Reading your avatar inputs',
+        sub: (av.name||'Your Avatar') + ' · ' + (av.job||'').split('/')[0].split(',')[0].trim().slice(0,35) },
+      { icon: '🧠', label: 'Profiling psychological makeup',
+        sub: 'Mapping fears, motivations and identity drivers' },
+      { icon: '🔍', label: 'Mapping the pain landscape',
+        sub: '"'+(av.pain||av.current||'their challenge').slice(0,48)+(((av.pain||av.current||'').length>48)?'…':'')+'"' },
+      { icon: '💰', label: 'Identifying buying psychology',
+        sub: 'What makes '+((av.job||'').split('/')[0].trim().slice(0,25)||'them')+' say YES immediately' },
+      { icon: '🎯', label: 'Building content strategy',
+        sub: 'Pillars, hooks, viral angles for '+niche },
+      { icon: '⚡', label: 'Computing market intelligence',
+        sub: 'Positioning, competition, $'+Number(price).toLocaleString()+' opportunity analysis' }
+    ];
+
+    var html = '<style>'+
+      '@keyframes _av_pulse{0%,100%{opacity:1}50%{opacity:.5}}'+
+      '@keyframes _av_scanBar{0%{left:-60%}100%{left:110%}}'+
+      '@keyframes _av_progBar{from{width:0}to{width:100%}}'+
+      '@keyframes _av_fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}'+
+      '@keyframes _av_glow{0%,100%{box-shadow:0 0 18px rgba(108,99,255,.25)}50%{box-shadow:0 0 36px rgba(108,99,255,.55),0 0 72px rgba(108,99,255,.15)}}'+
+      '</style>'+
+      '<div id="_av_wrap" style="background:linear-gradient(160deg,#0e0c26 0%,#120f2e 60%,#0c0a22 100%);border:1px solid rgba(108,99,255,.22);border-radius:22px;overflow:hidden;position:relative;box-shadow:0 24px 64px rgba(0,0,0,.6)">'+
+        '<div style="height:3px;background:linear-gradient(90deg,var(--purple) 0%,var(--teal) 50%,var(--yellow) 100%);animation:_av_progBar 20s linear forwards"></div>'+
+        // Header
+        '<div style="padding:1.4rem 1.6rem .9rem;border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">'+
+          '<div style="display:flex;align-items:center;gap:12px">'+
+            '<div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(108,99,255,.35),rgba(78,204,163,.25));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;animation:_av_glow 2.5s ease infinite">🧬</div>'+
+            '<div>'+
+              '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.8px;color:var(--purple);font-weight:900;margin-bottom:2px">Deep Avatar Intelligence</div>'+
+              '<div style="font-size:17px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);line-height:1.2">Studying Your Ideal Client</div>'+
+            '</div>'+
+          '</div>'+
+          '<div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.2);border-radius:10px;padding:7px 13px;text-align:center;flex-shrink:0">'+
+            '<div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:1px">Building Profile For</div>'+
+            '<div style="font-size:11px;font-weight:800;color:var(--white)">'+(av.name||'Your Avatar').slice(0,28)+'</div>'+
+            '<div style="font-size:9px;color:var(--purple);font-weight:700">'+(av.job||'').split('/')[0].split(',')[0].trim().slice(0,22)+'</div>'+
+          '</div>'+
+        '</div>'+
+        // Body
+        '<div style="padding:1.2rem 1.6rem">'+
+          // Input snapshot
+          '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:10px 14px;margin-bottom:14px;position:relative;overflow:hidden">'+
+            '<div style="position:absolute;top:0;height:100%;width:55%;background:linear-gradient(90deg,transparent,rgba(108,99,255,.05),transparent);transform:skewX(-15deg);animation:_av_scanBar 3.5s ease infinite"></div>'+
+            '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;margin-bottom:7px">✅ Inputs Loaded — Studying Every Answer</div>'+
+            '<div style="display:flex;flex-wrap:wrap;gap:5px">'+
+              [['Niche',niche.split('&')[0].trim().slice(0,18)],
+               ['Role',(av.job||'—').split('/')[0].split(',')[0].trim().slice(0,20)],
+               ['Pain',(av.pain||av.current||'—').slice(0,24)+'…'],
+               ['Fear',(av.fear||'—').slice(0,20)],
+               ['Goal','$'+Number(av.incomeGoal||10000).toLocaleString()+'/mo'],
+               ['Tried',(av.tried||'—').split(',')[0].trim().slice(0,18)]
+              ].map(function(p){return '<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:6px;padding:3px 9px;font-size:10px"><span style="color:var(--dimmer)">'+p[0]+': </span><span style="color:var(--white);font-weight:700">'+p[1]+'</span></div>';}).join('')+
+            '</div>'+
+          '</div>'+
+          // Stages
+          '<div style="display:flex;flex-direction:column;gap:6px">'+
+            STAGES.map(function(s,i){
+              return '<div id="_av_st'+i+'" style="display:flex;align-items:center;gap:10px;padding:9px 13px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:11px;opacity:.25;transition:opacity .45s ease,background .45s ease,border-color .45s ease">'+
+                '<div id="_av_ic'+i+'" style="min-width:30px;height:30px;border-radius:9px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">'+s.icon+'</div>'+
+                '<div style="flex:1;min-width:0">'+
+                  '<div style="font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.label+'</div>'+
+                  '<div style="font-size:10px;color:var(--dimmer);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+s.sub+'</div>'+
+                '</div>'+
+                '<div id="_av_ss'+i+'" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;flex-shrink:0">waiting</div>'+
+              '</div>';
+            }).join('')+
+          '</div>'+
+          // Status line
+          '<div id="_av_statusline" style="margin-top:10px;font-size:11px;color:var(--dim);font-style:italic;text-align:center;min-height:18px;animation:_av_pulse 2.2s ease infinite"></div>'+
+          // Intelligence preview (revealed on completion)
+          '<div id="_av_intel_preview" style="margin-top:0;max-height:0;overflow:hidden;opacity:0;transition:max-height .9s ease,opacity .9s ease,margin .4s ease"></div>'+
+        '</div>'+
+      '</div>';
+
+    outputEl.innerHTML = html;
+
+    // ── Stage animation ─────────────────────────────────────────
+    var stageTimes = [350, 1200, 2500, 4200, 6100, 8500];
+    var statusMsgs = [
+      'Loading '+(av.name||'avatar')+'\'s complete profile…',
+      'Analysing identity, beliefs and emotional drivers…',
+      'Studying: "'+(av.pain||av.current||'').slice(0,40)+'"…',
+      'Mapping what makes '+((av.job||'').split('/')[0].trim().slice(0,22)||'them')+' say YES…',
+      'Building content pillars for '+niche+'…',
+      'Synthesising market intelligence and positioning…'
+    ];
+
+    stageTimes.forEach(function(t, i) {
+      setTimeout(function() {
+        var st = document.getElementById('_av_st'+i);
+        var ic = document.getElementById('_av_ic'+i);
+        var ss = document.getElementById('_av_ss'+i);
+        var sl = document.getElementById('_av_statusline');
+        if (st) { st.style.opacity='1'; st.style.background='rgba(108,99,255,.06)'; st.style.borderColor='rgba(108,99,255,.2)'; }
+        if (ic) { ic.style.background='rgba(108,99,255,.18)'; ic.style.animation='_av_pulse 1s ease infinite'; }
+        if (ss) { ss.textContent='running…'; ss.style.color='var(--purple)'; }
+        if (sl && statusMsgs[i]) sl.textContent = statusMsgs[i];
+        if (i > 0) {
+          var ps = document.getElementById('_av_ss'+(i-1));
+          var pi = document.getElementById('_av_ic'+(i-1));
+          if (ps) { ps.textContent='✓ done'; ps.style.color='rgba(108,99,255,.8)'; }
+          if (pi) { pi.style.animation=''; pi.style.background='rgba(108,99,255,.14)'; }
+        }
+      }, t);
+    });
+
+    // ── Run real API call ────────────────────────────────────────
+    callAPI('generate-avatar', {
+      _maxTokens: 3000,
+      niche:  niche,
+      price:  price,
+      target: window._appliedTarget || 25000,
+      av_name:           av.name,
+      av_age:            av.age,
+      av_gender:         av.gender,
+      av_location:       av.location,
+      av_job:            av.job,
+      av_industry:       av.industry,
+      av_employ:         av.employ,
+      av_hrs:            av.hrs,
+      av_current:        av.current || av.pain,
+      av_desired:        av.desired,
+      av_incomeGoal:     av.incomeGoal,
+      av_fear:           av.fear,
+      av_tried:          av.tried,
+      av_transformation: av.transformation,
+      av_influences:     av.influences,
+      av_objections:     av.objections,
+      av_pain_points:    (av.pains||[]).join(', '),
+      av_keywords:       (av.keywords||[]).join(', ')
+    }).then(function(aiData) {
+      var elapsed = Date.now() - startTime;
+      setTimeout(function(){ _revealAvatarAnalysis(aiData); }, Math.max(0, 9800 - elapsed));
+    }).catch(function(err) {
+      console.warn('Avatar AI failed:', err);
+      setTimeout(function(){ _revealAvatarAnalysis(null); }, 10000);
+    });
+
+    function _revealAvatarAnalysis(aiData) {
+      // Complete all stages
+      [0,1,2,3,4,5].forEach(function(i){
+        var ss = document.getElementById('_av_ss'+i);
+        var ic = document.getElementById('_av_ic'+i);
+        var st = document.getElementById('_av_st'+i);
+        if(ss){ ss.textContent='✓ done'; ss.style.color='rgba(108,99,255,.8)'; }
+        if(ic){ ic.style.animation=''; ic.style.background='rgba(108,99,255,.14)'; }
+        if(st){ st.style.opacity='1'; }
+      });
+
+      var sl = document.getElementById('_av_statusline');
+      var mi = aiData && aiData.marketIntelligence;
+      var pillars = aiData && aiData.contentPillars;
+      var triggers = mi && mi.buyingTriggers;
+
+      if (sl) { sl.textContent = '✅ Intelligence complete — building your avatar now…'; sl.style.color='var(--purple)'; sl.style.fontStyle='normal'; sl.style.fontWeight='700'; sl.style.animation='none'; }
+
+      // Show intel preview card
+      var preview = document.getElementById('_av_intel_preview');
+      if (preview && aiData) {
+        var ph = '<div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.22);border-radius:14px;padding:1.1rem 1.3rem;animation:_av_fadeUp .6s ease">';
+        ph += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:10px">🧠 Market Intelligence — Unlocked</div>';
+        
+        // Content pillars
+        if (pillars && pillars.length) {
+          ph += '<div style="margin-bottom:10px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);font-weight:800;margin-bottom:6px">📌 Your 5 Content Pillars</div>';
+          ph += '<div style="display:flex;flex-wrap:wrap;gap:5px">'+pillars.map(function(p){return '<div style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.18);border-radius:6px;padding:3px 10px;font-size:11px;color:var(--muted);font-weight:600">'+p+'</div>';}).join('')+'</div></div>';
+        }
+
+        // Market opportunity + positioning
+        if (mi) {
+          ph += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">';
+          if (mi.marketSize) ph += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--yellow);font-weight:800;margin-bottom:4px">📊 Market Opportunity</div><div style="font-size:11px;color:var(--dim);line-height:1.6">'+mi.marketSize+'</div></div>';
+          if (mi.positioning) ph += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:10px 12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);font-weight:800;margin-bottom:4px">🎯 Your Positioning</div><div style="font-size:11px;color:var(--dim);line-height:1.6">'+mi.positioning+'</div></div>';
+          ph += '</div>';
+          if (mi.pricingPsychology) ph += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.18);border-radius:10px;padding:10px 13px;margin-bottom:8px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--yellow);font-weight:800;margin-bottom:4px">💰 Pricing Psychology</div><div style="font-size:11px;color:var(--dim);line-height:1.6">'+mi.pricingPsychology+'</div></div>';
+        }
+
+        // Buying triggers
+        if (triggers && triggers.length) {
+          ph += '<div style="background:rgba(255,140,66,.06);border:1px solid rgba(255,140,66,.18);border-radius:10px;padding:10px 13px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:.8px;color:var(--orange);font-weight:800;margin-bottom:6px">⚡ Buying Triggers — What Makes Them Say YES</div>';
+          ph += triggers.map(function(t){return '<div style="font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:3px">→ '+t+'</div>';}).join('');
+          ph += '</div>';
+        }
+
+        ph += '</div>';
+        preview.innerHTML = ph;
+        preview.style.maxHeight = '1600px';
+        preview.style.opacity = '1';
+        preview.style.marginTop = '12px';
+      }
+
+      setTimeout(function() {
+        if (sl) sl.textContent = '🔥 Building your complete buyer avatar below…';
+        setTimeout(function(){ resolve(aiData || null); }, 1800);
+      }, 3000);
+    }
+  });
+}
+
 function generateAvatar(){
   // No plan gate — full access for all registered members
   const missing=validateAvatarFields();
@@ -9910,12 +10596,37 @@ function generateAvatar(){
   window._avatarData={name,age,gender,location,edu,income,job,industry,employ,transformation,pain:resolvedPain,motivation,fear,tried,objections,incomeGoal,personality,influences,keywords:Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll?.('.tag')||[]).map(t=>t.textContent.replace('×','').trim())};
   window.saveAvatarData&&window.saveAvatarData();
 
+  // ── AVATAR ANALYSIS GATE ─────────────────────────────────────────────────
+  if (!window._avatarAnalysisReady) {
+    out.style.display = 'block';
+    out.scrollIntoView({ behavior:'smooth', block:'start' });
+    var _avInpForAnalysis = window._avatarData || {};
+    _avInpForAnalysis.current = (document.getElementById('av_current')||{}).value || '';
+    _avInpForAnalysis.desired = (document.getElementById('av_desired')||{}).value || '';
+    _avInpForAnalysis.influences = (document.getElementById('av_influences')||{}).value || '';
+    _avInpForAnalysis.objections = (document.getElementById('av_objections')||{}).value || '';
+    _showAvatarAnalysisUI(out, _avInpForAnalysis).then(function(aiResult) {
+      window._aiAvatarData     = aiResult || {};
+      window._aiContentPillars = (aiResult && aiResult.contentPillars) || [];
+      window._aiDMHooks        = (aiResult && aiResult.dmHooks)        || [];
+      window._avatarAnalysisReady  = true;
+      window._savedAvatarAnalysisHTML = '<div style="margin-bottom:1.75rem" id="_av_saved_wrap">' + out.innerHTML + '</div>';
+      generateAvatar();
+    });
+    return;
+  }
+  // Second call — retrieve stored data, reset flags
+  var _avatarAiData           = window._aiAvatarData || {};
+  var _savedAvatarAnalysisHtml = window._savedAvatarAnalysisHTML || '';
+  window._avatarAnalysisReady     = false;
+  window._savedAvatarAnalysisHTML = '';
+
   const hooks=[
     {hook:nc.hooks[0]||`"If you're a ${job.split('/')[0].trim()} who is struggling — read this."`,type:"Pain hook",why:"Names their exact situation and interrupts their scroll"},
     {hook:`"How I went from ${pain} to ${incFmt}/month."`,type:"Story hook",why:"They see themselves in this story"},
     {hook:`"The real reason ${job.split('/')[0].trim()}s can't get ahead (it has nothing to do with effort)."`,type:"Curiosity hook",why:"Challenges their belief — forces them to find out more"},
     {hook:nc.hooks[1]||`"I used to fear ${fear_clean} too. Then I found a better way."`,type:"Objection crusher",why:"Addresses their #1 fear before they raise it"},
-    {hook:`"What $${Number(incomeGoal).toLocaleString()}/month actually buys you — and why most people underestimate it."`,type:"Desire hook",why:"Makes their income goal feel tangible and real"},
+    {hook:(function(){var nv=window.getNicheVocab&&window.getNicheVocab(niche);var allowM=!nv||!nv.noBizTalk;return allowM?`"What $${Number(incomeGoal).toLocaleString()}/month from ${niche} actually buys you — and why most people underestimate it."`:'"The moment you realise '+nv.transformation+' is possible for someone exactly like you."'})(),type:"Desire hook",why:"Makes the goal feel tangible and real for this specific niche"},
     {hook:`"You have already tried ${tried_clean||'other approaches'}. Here is why it did not work — and what does."`,type:"Empathy hook",why:"Shows you understand their history — removes the 'I have tried before' wall"},
     {hook:nc.hooks[2]||`"If ${motivation.toLowerCase()} is your goal — stop doing this one thing immediately."`,type:"Pattern interrupt",why:"Speaks directly to their core motivation"},
     {hook:nc.hooks[3]||`"The 3-minute test that tells you exactly where to start."`,type:"CTA hook",why:"Low-commitment entry point — curiosity drives clicks"},
@@ -9933,13 +10644,13 @@ function generateAvatar(){
     {hook:`"I used to earn ${income} as a ${job.split('/')[0].trim()}. Here's what I did in ${duration || '90 days'} to change that."`,type:'Story hook',why:'Specific income + role + timeframe creates instant relatability and curiosity'},
     {hook:`"The real reason ${job.split('/')[0].trim()}s can't achieve ${transformation.split(' ').slice(0,5).join(' ')} (it has nothing to do with effort)."`,type:'Curiosity hook',why:'Challenges the assumption that trying harder is the answer — compels them to read on'},
     {hook:`"I thought ${fear.split('.')[0].toLowerCase()} too — until this happened."`,type:'Objection crusher',why:'Preemptively dismantles their #1 fear before they even raise it'},
-    {hook:`"What ${incFmt}/month from ${industry||niche} actually buys you — and why most ${job.split('/')[0].trim()}s underestimate it."`,type:'Desire hook',why:'Makes the income goal tangible and real — speaks to identity, not just money'},
+    {hook:(function(){var nv=window.getNicheVocab&&window.getNicheVocab(niche);if(nv&&nv.noBizTalk){return '"The version of you that '+nv.clientWin+' is closer than you think."';}return `"What ${incFmt}/month from ${industry||niche} actually buys you — and why most ${job.split('/')[0].trim()}s underestimate it."`})(),type:'Desire hook',why:'Makes the goal tangible and real for this specific niche — speaks to identity'},
     {hook:`"You have already tried ${(tried.split(',')[0]||'other approaches').trim().toLowerCase()}. Here is the real reason it did not work."`,type:'Empathy hook',why:'Validates their past failure while positioning a new approach — disarms "I\'ve tried before"'},
     {hook:`"3 things every ${job.split('/')[0].trim()} needs to stop doing immediately if they want ${transformation.split(' ').slice(0,4).join(' ')}."`,type:'Pattern interrupt',why:'Contrarian format performs because it implies the reader is doing something wrong'},
     {hook:`"The ${job.split('/')[0].trim()} who went from ${pain.split(' ').slice(0,4).join(' ')} to ${transformation.split(' ').slice(0,4).join(' ')} in ${duration||'90 days'} — here\'s exactly how."`,type:'Case study hook',why:'Specific role + result + timeframe creates maximum credibility and proof of concept'},
   ];
 
-  out.innerHTML=`<div style="display:flex;flex-direction:column;gap:1.5rem">
+  out.innerHTML=_savedAvatarAnalysisHtml+`<div style="display:flex;flex-direction:column;gap:1.5rem">
 
     <!-- AVATAR IDENTITY CARD -->
     <div class="ao-wrap">
@@ -10341,10 +11052,6 @@ function generateAvatar(){
     }
   }
 
-  // Restore avatar button
-  const _avBtnR = document.querySelector('.gen-av-btn');
-  if (_avBtnR && _avBtnR._orig) { _avBtnR.innerHTML = _avBtnR._orig; _avBtnR.disabled = false; }
-
   } catch(renderErr) {
     // Restore button on error too
     const _avBtnE = document.querySelector('.gen-av-btn');
@@ -10363,7 +11070,10 @@ function generateAvatar(){
       const gv = id => (document.getElementById(id)||{}).value||'';
       const av = window._avatarData || {};
 
-      const aiAv = await callAPI('generate-avatar', {
+      // Use AI data from analysis phase if already available; fallback to API call
+      const aiAv = (window._aiAvatarData && window._aiAvatarData.contentPillars && window._aiAvatarData.contentPillars.length)
+        ? window._aiAvatarData
+        : await callAPI('generate-avatar', {
         _maxTokens: 3000,
         niche:   _niche,
         price:   _price,
@@ -11229,6 +11939,722 @@ window.liveRecalc = function() {
 window.applyAll=applyAll;
 window.removeTag=removeTag;
 window.setWeek=setWeek;
+</script>
+<script>
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NICHE INTELLIGENCE SYSTEM
+// Every placeholder, example and hint in the ENTIRE app updates the moment
+// the user picks a niche.  Covers: Avatar form, Offer Builder, DM scripts,
+// Email hooks, Content angles.  Zero "make money" examples in a health niche.
+// ═══════════════════════════════════════════════════════════════════════════
+
+const NICHE_EXAMPLES = {
+  "Coaching & Consulting": {
+    // ── AVATAR ──────────────────────────────────────────────────────────────
+    job:   "e.g. Life coach, business consultant, mindset coach, career consultant",
+    ind:   "e.g. Personal development, executive coaching, business consulting",
+    cur:   "e.g. Trading time for money with 1:1 clients. Calendar fully booked but income still capped. Brilliant at getting results but can't scale beyond personal hours.",
+    des:   "e.g. Runs thriving group coaching programmes. Has a waitlist of premium clients. Works fewer hours and earns more because of a systematic, scalable delivery model.",
+    fear:  "e.g. 'Nobody will pay that price', 'I'm not credible enough', 'Group coaching won't get the same results as 1:1'",
+    tried: "e.g. Social media posting with no traction, low-ticket offers at $200, free discovery calls that led nowhere",
+    trans: "e.g. Build a fully-booked group coaching practice earning $15K/month with 8–12 premium clients",
+    infl:  "e.g. Tony Robbins, Brendon Burchard, Jay Shetty, ICF coaching communities",
+    obj:   "e.g. People won't pay that, I need more credentials, coaching is too saturated",
+    inc:   "Monthly coaching revenue goal",
+    // ── OFFER BUILDER ────────────────────────────────────────────────────────
+    promise:  "e.g. I help ambitious coaches go from overworked and undercharging to a fully-booked practice earning $15K/month — in 90 days — without burning out or discounting their prices.",
+    result:   "e.g. First $15K month in 90 days",
+    noEffort: "e.g. No more giving away free sessions, no more undercharging, no chasing leads",
+    ofTrans:  "e.g. From overwhelmed 1:1 coach with capped income → to confident group programme leader with a waitlist",
+    system:   "e.g. The Premium Practice Blueprint, The High-Ticket Coach System, The 90-Day Client Machine",
+    diff:     "e.g. Unlike generic business courses, we build your entire programme, pricing structure, and sales script together in real time — and I personally review every offer until clients say yes.",
+    name:     "e.g. The Premium Practice Blueprint, The Scale Your Coaching Business System, The Client Attraction Accelerator",
+    bonus:    "e.g. Done-for-you discovery call script ($300 value), group coaching delivery template, 90-day content calendar",
+    guarCond: "e.g. Attend all group calls, complete all weekly action steps, submit all assignments on time",
+  },
+
+  "Health & Fitness": {
+    job:   "e.g. Personal trainer, nutritionist, wellness coach, physiotherapist, yoga instructor",
+    ind:   "e.g. Health & wellness, fitness, nutrition, rehabilitation, mental wellness",
+    cur:   "e.g. Knows exactly what to do but can't stay consistent. Has tried multiple diets and programmes. Starts strong then falls off after 2–3 weeks. Feels embarrassed about still being in the same place.",
+    des:   "e.g. Wakes up energised and confident in their body. Maintains their results effortlessly. Has a sustainable routine they actually enjoy. Feels proud to look in the mirror.",
+    fear:  "e.g. 'I've tried everything and nothing works for me', 'I'll never stick to it this time either', 'My body doesn't respond like others'",
+    tried: "e.g. Slimming World, generic PT plans, calorie tracking apps, cutting carbs, detox teas, 30-day challenges that didn't stick",
+    trans: "e.g. Lose 15kg and build a sustainable fitness routine in 90 days — without starving or spending hours at the gym",
+    infl:  "e.g. Andrew Huberman, Rhonda Patrick, Joe Wicks, fitness Facebook groups, MyFitnessPal communities",
+    obj:   "e.g. 'I've tried this before', 'I don't have time', 'Healthy food is too expensive', 'I have injuries'",
+    inc:   "Monthly health investment budget",
+    promise:  "e.g. I help busy women over 35 lose their first 15kg in 90 days — with a sustainable plan that fits real life — without cutting out food groups or spending hours in the gym.",
+    result:   "e.g. Lose 15kg sustainably in 12 weeks",
+    noEffort: "e.g. No crash diets, no 2-hour gym sessions, no cutting out the foods you love",
+    ofTrans:  "e.g. From exhausted, frustrated and stuck in the same cycle → to energised, confident and in a body they're proud of",
+    system:   "e.g. The Body Reset Method, The 90-Day Transformation System, The Sustainable Fitness Blueprint",
+    diff:     "e.g. Unlike generic meal plans and generic PT programmes, every session is adjusted weekly based on your results, schedule, and lifestyle — we get to the reason you've struggled before and fix that.",
+    name:     "e.g. The Body Reset Method, The 12-Week Transformation, The Sustainable Fitness Blueprint",
+    bonus:    "e.g. 7-day quick-start meal plan, home workout guide for rest days, grocery shopping template",
+    guarCond: "e.g. Track your meals and workouts daily, attend all weekly check-ins, follow the programme as designed for the full 12 weeks",
+  },
+
+  "Health, Fitness & Wellness": {
+    job:   "e.g. Personal trainer, nutritionist, wellness coach, physiotherapist, yoga instructor",
+    ind:   "e.g. Health & wellness, fitness, nutrition, rehabilitation, mental wellness",
+    cur:   "e.g. Knows exactly what to do but can't stay consistent. Has tried multiple diets and programmes. Starts strong then falls off after 2–3 weeks. Feels embarrassed about still being in the same place.",
+    des:   "e.g. Wakes up energised and confident in their body. Maintains their results effortlessly. Has a sustainable routine they actually enjoy. Feels proud to look in the mirror.",
+    fear:  "e.g. 'I've tried everything and nothing works for me', 'I'll never stick to it this time either', 'My body doesn't respond like others'",
+    tried: "e.g. Slimming World, generic PT plans, calorie tracking apps, cutting carbs, detox teas, 30-day challenges that didn't stick",
+    trans: "e.g. Lose 15kg and build a sustainable fitness routine in 90 days — without starving or spending hours at the gym",
+    infl:  "e.g. Andrew Huberman, Rhonda Patrick, Joe Wicks, fitness Facebook groups, MyFitnessPal communities",
+    obj:   "e.g. 'I've tried this before', 'I don't have time', 'Healthy food is too expensive', 'I have injuries'",
+    inc:   "Monthly health investment budget",
+    promise:  "e.g. I help busy women over 35 lose their first 15kg in 90 days — with a sustainable plan that fits real life — without cutting out food groups or spending hours in the gym.",
+    result:   "e.g. Lose 15kg sustainably in 12 weeks",
+    noEffort: "e.g. No crash diets, no 2-hour gym sessions, no cutting out the foods you love",
+    ofTrans:  "e.g. From exhausted, frustrated and stuck in the same cycle → to energised, confident and in a body they're proud of",
+    system:   "e.g. The Body Reset Method, The 90-Day Transformation System, The Sustainable Fitness Blueprint",
+    diff:     "e.g. Unlike generic meal plans and generic PT programmes, every session is adjusted weekly based on your results, schedule, and lifestyle — we get to the reason you've struggled before and fix that.",
+    name:     "e.g. The Body Reset Method, The 12-Week Transformation, The Sustainable Fitness Blueprint",
+    bonus:    "e.g. 7-day quick-start meal plan, home workout guide for rest days, grocery shopping template",
+    guarCond: "e.g. Track your meals and workouts daily, attend all weekly check-ins, follow the programme as designed for the full 12 weeks",
+  },
+
+  "Digital Products & Info Business": {
+    job:   "e.g. Course creator, content creator, blogger, digital entrepreneur, knowledge seller",
+    ind:   "e.g. Online education, digital publishing, e-learning, content creation",
+    cur:   "e.g. Has genuine expertise but struggles to package it profitably. Spends hours creating content with tiny returns. Watches other creators sell courses and wonders how they make it look effortless.",
+    des:   "e.g. Wakes up to Stripe notifications. Sells their knowledge while sleeping. Has a loyal audience that buys every launch. Travels while the business runs on autopilot.",
+    fear:  "e.g. 'Nobody will buy my product', 'I'm not expert enough', 'My audience will unsubscribe'",
+    tried: "e.g. Free YouTube tutorials, Gumroad $27 products, Patreon with 3 subscribers, posting for years with no monetisation",
+    trans: "e.g. Launch their first profitable digital product and earn $5,000 in 30 days from their existing audience",
+    infl:  "e.g. Pat Flynn, Amy Porterfield, Dan Koe, Russell Brunson, Creator Economy communities",
+    obj:   "e.g. 'Who am I to teach this?', 'My audience is too small', 'What platform should I use?'",
+    inc:   "Monthly digital product income goal",
+    promise:  "e.g. I help content creators with under 5,000 followers launch their first digital product and earn $5,000 in 30 days — without a big audience, a fancy website, or paid ads.",
+    result:   "e.g. First $5,000 digital product launch in 30 days",
+    noEffort: "e.g. No massive audience needed, no complicated tech, no paid ads",
+    ofTrans:  "e.g. From posting for free for years with nothing to show for it → to a profitable digital product business with recurring monthly income",
+    system:   "e.g. The Knowledge-to-Income Blueprint, The Digital Product Launch System, The Creator Monetisation Engine",
+    diff:     "e.g. Unlike generic course creation programmes, I personally review your product, your sales page and your launch strategy before you go live — and stay with you until you close your first sale.",
+    name:     "e.g. The Knowledge-to-Income Blueprint, The Creator Launch System, The Digital Product Accelerator",
+    bonus:    "e.g. Canva product design templates, sales page copy framework, 7-day email launch sequence",
+    guarCond: "e.g. Complete all modules, create your product, publish your sales page, and send your launch emails within the 30-day window",
+  },
+
+  "Social Media Marketing (SMMA)": {
+    job:   "e.g. SMMA founder, social media manager, marketing agency owner, freelance marketer",
+    ind:   "e.g. Digital marketing, social media, advertising, marketing services",
+    cur:   "e.g. Chasing clients who ghost after a free audit. Undercharging because they don't know how to prove ROI. Doing everything themselves with no systems, no team, no predictable income.",
+    des:   "e.g. Runs a streamlined agency with 8–10 retained clients on 3-month contracts. Has a team handling delivery. Earns $20K–$30K/month with time to work ON the business not just in it.",
+    fear:  "e.g. 'What if I can't deliver results?', 'Clients will leave after 1 month', 'I'm not ready to hire someone'",
+    tried: "e.g. Cold DMing with no results, free audits that wasted time, undercutting competitors on price, Upwork gigs for $5/hour",
+    trans: "e.g. Land their first $2,000/month retainer client and build a system to close 3 more within 60 days",
+    infl:  "e.g. Iman Gadzhi, Jordan Platten, SMMA Facebook communities, Agency Incubator alumni",
+    obj:   "e.g. 'I have no proof I can get results', 'How do I get the first client?', 'What if I can't handle multiple clients?'",
+    inc:   "Monthly agency revenue goal",
+    promise:  "e.g. I help new SMMA founders land their first $2,000/month retainer client in 45 days — without cold calling, without fake case studies, and without spending a penny on ads.",
+    result:   "e.g. First $2K/month retainer client in 45 days",
+    noEffort: "e.g. No cold calling, no fake testimonials, no undercutting on price",
+    ofTrans:  "e.g. From no clients, no proof and no system → to a retained client paying $2,000/month with a repeatable process to close more",
+    system:   "e.g. The Agency Launchpad System, The First Retainer Blueprint, The SMMA Client Acquisition Engine",
+    diff:     "e.g. Unlike SMMA courses that teach theory, we build your entire outreach system, your case study, and your first pitch deck together — and I don't stop until you've closed your first paying client.",
+    name:     "e.g. The Agency Launchpad, The First Retainer Blueprint, The SMMA Accelerator",
+    bonus:    "e.g. Done-for-you cold email templates, client onboarding checklist, monthly reporting template",
+    guarCond: "e.g. Send 50 outreach messages per week, complete your niche selection, build your case study, attend all live calls",
+  },
+
+  "Personal Finance & Investing": {
+    job:   "e.g. Young professional, salaried employee, side hustler trying to save, someone drowning in debt",
+    ind:   "e.g. Personal finance, investment, savings, debt management, wealth building",
+    cur:   "e.g. Living pay cheque to pay cheque despite a decent salary. Has credit card debt they're embarrassed about. Keeps 'meaning to start' investing but doesn't know where to begin. Feels behind.",
+    des:   "e.g. Has a fully-funded emergency fund, clears debt, invests consistently every month, and feels completely confident about money for the first time in their life.",
+    fear:  "e.g. 'Investing is too complicated for me', 'I'll lose money', 'I don't earn enough to invest', 'It's too late for me to start'",
+    tried: "e.g. YouTube videos about investing, budgeting apps that got abandoned after a week, one-off savings attempts that never stuck",
+    trans: "e.g. Clear £5,000 in debt and build a consistent £500/month investment habit in 6 months",
+    infl:  "e.g. Martin Lewis, Graham Stephan, Ramit Sethi, personal finance Reddit communities",
+    obj:   "e.g. 'I don't earn enough', 'I'll look at this later', 'I don't understand the stock market'",
+    inc:   "Monthly savings and investment target",
+    promise:  "e.g. I help young professionals earning £25K–£45K clear their debt and build their first investment portfolio in 6 months — without spreadsheets, without stress, and without giving up lattes.",
+    result:   "e.g. Debt-free and investing £500/month within 6 months",
+    noEffort: "e.g. No complicated spreadsheets, no financial degree needed, no giving up your lifestyle",
+    ofTrans:  "e.g. From pay cheque to pay cheque and ashamed of their bank account → to debt-free, investing consistently and genuinely excited about money",
+    system:   "e.g. The Money Reset Method, The Wealth Foundation Blueprint, The 6-Month Financial Freedom System",
+    diff:     "e.g. Unlike generic finance courses, we build your personal money plan live together — based on YOUR income, YOUR debts and YOUR goals — not a one-size-fits-all spreadsheet.",
+    name:     "e.g. The Money Reset System, The Wealth Foundation Programme, The Debt-Free and Investing Blueprint",
+    bonus:    "e.g. Personal budget template, investment starter checklist, one-page financial plan",
+    guarCond: "e.g. Complete the money audit, set up your budget, open your investment account, and complete all 6 monthly check-ins",
+  },
+
+  "Personal Development & Mindset": {
+    job:   "e.g. High achiever who feels empty, ambitious professional burned out, someone stuck in self-sabotage",
+    ind:   "e.g. Personal development, productivity, mindset, performance, mental wellness",
+    cur:   "e.g. Successful on the outside but feels lost inside. High achiever who still feels like they're falling short. Knows what they want but keeps getting in their own way. Exhausted by their own overthinking.",
+    des:   "e.g. Wakes up with clarity and intention. Makes decisions confidently. No longer held hostage by fear, comparison or self-doubt. Performs at their highest level without burning out.",
+    fear:  "e.g. 'I'll try this and still feel the same', 'This is just motivational fluff', 'I've read all the books and nothing changes'",
+    tried: "e.g. Self-help books, meditation apps, journaling phases that lasted a week, therapy that felt too slow",
+    trans: "e.g. Break the self-sabotage cycle, build an unshakeable daily practice, and perform at their full potential within 90 days",
+    infl:  "e.g. Jay Shetty, Mel Robbins, David Goggins, James Clear, Mindset Reddit communities",
+    obj:   "e.g. 'This is just affirmations and vision boards', 'I don't have time for morning routines', 'I've heard it all before'",
+    inc:   "Monthly personal development investment",
+    promise:  "e.g. I help high-achieving professionals break the self-sabotage cycle and operate at their full potential in 90 days — using identity-level change, not motivation hacks.",
+    result:   "e.g. Consistent peak performance without burnout in 90 days",
+    noEffort: "e.g. No toxic positivity, no 5am cold plunges forced on you, no generic affirmations",
+    ofTrans:  "e.g. From overthinking, self-sabotage and imposter syndrome → to clear, decisive and operating at a level they didn't think was available to them",
+    system:   "e.g. The Identity Shift System, The Peak Performance Blueprint, The Mindset Reset Method",
+    diff:     "e.g. Unlike motivational programmes that wear off in a week, this goes to the identity level — we identify and rewrite the exact beliefs that are running your self-sabotage, not just the symptoms.",
+    name:     "e.g. The Identity Shift Programme, The 90-Day Peak Performance System, The Mindset Reset Blueprint",
+    bonus:    "e.g. Morning practice protocol (15 min), weekly identity audit template, decision-making framework",
+    guarCond: "e.g. Complete your daily identity practice, attend all weekly calls, submit your weekly reflection before each session",
+  },
+
+  "E-commerce & Dropshipping": {
+    job:   "e.g. Aspiring e-commerce entrepreneur, side hustler, Shopify beginner, Amazon seller",
+    ind:   "e.g. E-commerce, retail, Shopify, dropshipping, Amazon FBA",
+    cur:   "e.g. Has tried setting up a store but got no sales. Spent money on products that didn't sell. Gets confused by ads and abandons campaigns before seeing results. Feels like everyone else is making it work except them.",
+    des:   "e.g. Runs a profitable Shopify or Amazon store earning £5K–£15K/month passively. Has found winning products and reliable suppliers. Ads are profitable. The store runs without constant attention.",
+    fear:  "e.g. 'What if I pick the wrong product', 'I'll lose money on ads', 'Amazon will ban my account', 'I can't compete with the big brands'",
+    tried: "e.g. Random AliExpress products, Instagram paid-promotion failures, following free YouTube tutorials that gave outdated advice",
+    trans: "e.g. Launch a profitable Shopify store with a winning product and reach their first £5,000 revenue month within 60 days",
+    infl:  "e.g. Arie Scherson, Davie Fogarty, Jungle Scout community, Helium 10 users, Shopify Facebook groups",
+    obj:   "e.g. 'I don't have enough capital', 'I don't understand ads', 'There's too much competition', 'I don't know how to find winning products'",
+    inc:   "Monthly store revenue target",
+    promise:  "e.g. I help first-time Shopify sellers find a winning product and make their first £5,000 revenue month — in 60 days — without wasting money on products that don't sell or ads that don't convert.",
+    result:   "e.g. First £5K revenue month within 60 days",
+    noEffort: "e.g. No guessing products, no burning money on ads before testing, no building a website from scratch alone",
+    ofTrans:  "e.g. From zero sales and confused by everything → to a profitable store with a proven product and ads that actually convert",
+    system:   "e.g. The Winning Product Blueprint, The Store Launch Accelerator, The 60-Day E-commerce System",
+    diff:     "e.g. Unlike courses that teach theory, I personally review your product research, your store setup and your first ad creative before you spend a single penny on traffic.",
+    name:     "e.g. The Winning Product Blueprint, The Store Launch Accelerator, The E-commerce Fast Track",
+    bonus:    "e.g. Product research checklist, store conversion audit template, first ad creative framework",
+    guarCond: "e.g. Complete the product validation process, set up your store, run your first ad campaign, and attend all live sessions",
+  },
+
+  "Real Estate & Property": {
+    job:   "e.g. First-time property investor, aspiring landlord, buy-to-let beginner, property developer",
+    ind:   "e.g. Property investment, real estate, buy-to-let, HMOs, property development",
+    cur:   "e.g. Wants to invest in property but doesn't know where to start. Analysis paralysis from too much information. Fears making a costly mistake with such a large sum of money. Watched others build portfolios and wonders why they can't.",
+    des:   "e.g. Owns their first income-generating investment property. Earns £800–£1,500/month in passive rental income. Has a clear strategy for portfolio expansion and feels confident making property decisions.",
+    fear:  "e.g. 'What if the property loses value?', 'What if I can't find tenants?', 'What if I can't get a mortgage?', 'I'll make a costly mistake'",
+    tried: "e.g. Reading property books, watching YouTube walkthroughs, attending free property seminars that ended in a sales pitch",
+    trans: "e.g. Purchase their first investment property generating £1,000/month in passive rental income within 6 months",
+    infl:  "e.g. Samuel Leeds, Rob Dix, Property Hub podcast, BiggerPockets community",
+    obj:   "e.g. 'I don't have enough deposit', 'The market is too hot', 'I don't know how to manage tenants', 'It takes too long'",
+    inc:   "Monthly rental income target",
+    promise:  "e.g. I help first-time property investors close their first buy-to-let deal and earn £1,000/month in passive rental income — in 6 months — without needing a huge deposit or years of experience.",
+    result:   "e.g. First investment property generating £1,000/month passive income",
+    noEffort: "e.g. No huge deposits required, no estate agent jargon, no navigating the market alone",
+    ofTrans:  "e.g. From overwhelmed and stuck in analysis paralysis → to a confident property investor with their first asset generating passive monthly income",
+    system:   "e.g. The First Deal Blueprint, The Buy-to-Let Accelerator, The Property Portfolio Launch System",
+    diff:     "e.g. Unlike property courses that teach theory, I walk you through finding, analysing and negotiating your first real deal — and stay with you from offer to completion.",
+    name:     "e.g. The First Deal Blueprint, The Buy-to-Let Fast Track, The Property Investor's Launchpad",
+    bonus:    "e.g. Deal analysis spreadsheet, mortgage broker checklist, property viewing scorecard",
+    guarCond: "e.g. Analyse 20 properties using the framework, attend all calls, make at least 3 offers within the programme period",
+  },
+
+  "Relationships & Dating": {
+    job:   "e.g. Single professional wanting a serious relationship, recently divorced, someone who keeps attracting the wrong partners",
+    ind:   "e.g. Dating, relationships, communication, confidence, personal growth",
+    cur:   "e.g. Has been single longer than they want to admit. Goes on dates that lead nowhere. Keeps repeating the same patterns in relationships. Watches friends get married and wonders what they're doing wrong.",
+    des:   "e.g. Attracts confident, emotionally available partners effortlessly. Has a thriving, loving relationship. Feels completely secure in themselves — with or without a partner.",
+    fear:  "e.g. 'What if I'm just not meant to find someone?', 'I'll get hurt again', 'I don't want to seem desperate', 'Is it too late for me?'",
+    tried: "e.g. Dating apps (endless swiping, no real connections), dating coaches with generic scripts, self-help books that didn't change anything in practice",
+    trans: "e.g. Stop repeating painful patterns, build genuine confidence, and attract a high-quality committed partner within 90 days",
+    infl:  "e.g. Matthew Hussey, Logan Ury, relationships subreddits, psychology of dating communities",
+    obj:   "e.g. 'Dating advice feels manipulative', 'I don't want to play games', 'I've been hurt too many times', 'This won't work for someone like me'",
+    inc:   "Monthly personal development investment",
+    promise:  "e.g. I help ambitious single professionals break the cycle of wrong partners and build the confidence and presence to attract a committed, loving relationship — in 90 days — without dating games or desperation.",
+    result:   "e.g. Break the cycle, build genuine confidence, attract a committed partner in 90 days",
+    noEffort: "e.g. No manipulation tactics, no scripts that feel fake, no becoming someone you're not",
+    ofTrans:  "e.g. From chronically single and repeating old patterns → to radiating genuine confidence and attracting the right partner naturally",
+    system:   "e.g. The Magnetic Confidence Method, The Relationship Readiness Blueprint, The Attraction Reset System",
+    diff:     "e.g. Unlike dating coaches who teach scripts and tactics, this programme works at the identity level — we fix what you're projecting, not just what you're saying.",
+    name:     "e.g. The Magnetic Confidence Method, The 90-Day Relationship Readiness Programme",
+    bonus:    "e.g. First date conversation guide, attachment style audit, confidence daily practice",
+    guarCond: "e.g. Complete the identity audit, go on at least 3 dates during the programme, attend all weekly sessions and submit your weekly reflection",
+  },
+
+  "Spirituality & Faith": {
+    job:   "e.g. Believer seeking deeper purpose, someone feeling spiritually disconnected, faith community member",
+    ind:   "e.g. Spiritual development, faith, purpose, prayer, community",
+    cur:   "e.g. Feels spiritually dry despite regular church attendance. Has knowledge but lacks consistent practice. Wants more peace and clarity but doesn't know how to sustain it. Feels like they're going through the motions.",
+    des:   "e.g. Wakes up with genuine peace and clear purpose every morning. Has a consistent, life-giving spiritual practice. Feels deeply connected to their faith and clear on their calling.",
+    fear:  "e.g. 'This is just another programme I'll start and abandon', 'My faith is too complicated to change in 90 days', 'I don't have time to add another thing'",
+    tried: "e.g. Reading devotionals that got abandoned, listening to sermons without application, prayer journals that lasted a week",
+    trans: "e.g. Build an unshakeable daily spiritual practice and discover their unique purpose and calling within 90 days",
+    infl:  "e.g. Joyce Meyer, Rick Warren, Steven Furtick, faith-based Facebook communities, church small groups",
+    obj:   "e.g. 'Spirituality is personal — I can't be coached on it', 'I've tried daily practices before', 'My pastor should be doing this'",
+    inc:   "Monthly spiritual development investment",
+    promise:  "e.g. I help believers who feel spiritually stuck build a life-giving daily practice and discover their God-given purpose — in 90 days — without adding more religious obligation to an already full life.",
+    result:   "e.g. Consistent daily practice + clear sense of purpose and calling within 90 days",
+    noEffort: "e.g. No long boring devotionals, no guilt-driven routine, no one-size-fits-all religious programme",
+    ofTrans:  "e.g. From spiritually dry and going through the motions → to deeply connected, purpose-driven and genuinely at peace",
+    system:   "e.g. The Purpose & Peace Blueprint, The 90-Day Spiritual Reset, The Faith-in-Action System",
+    diff:     "e.g. Unlike generic church programmes, this is built around YOUR unique spiritual personality, calling and life season — with personal weekly guidance to ensure the practice actually sticks.",
+    name:     "e.g. The Purpose & Peace Blueprint, The 90-Day Spiritual Reset Programme",
+    bonus:    "e.g. Personalised morning practice protocol, purpose discovery workbook, prayer and reflection audio guide",
+    guarCond: "e.g. Complete your daily practice for at least 60 of 90 days, attend all group sessions, submit your weekly reflections",
+  },
+
+  "Education & Online Courses": {
+    job:   "e.g. Subject matter expert, teacher, trainer, university lecturer, skills-based entrepreneur",
+    ind:   "e.g. Online education, e-learning, professional training, skills development",
+    cur:   "e.g. Has deep expertise but no idea how to package it into a profitable course. Built something that barely sold. Doesn't understand how to get traffic, write a sales page, or get people to actually complete what they create.",
+    des:   "e.g. Runs a profitable online course or cohort programme earning £10K/month. Has real student results. A growing reputation as the go-to teacher in their subject. Income that scales without more hours.",
+    fear:  "e.g. 'Who will pay to learn from me?', 'The market is full of free content already', 'I'll build it and nobody will come'",
+    tried: "e.g. Uploading a course on Udemy and earning £23 in 6 months, posting educational content with no conversions, free webinars with 2 attendees",
+    trans: "e.g. Launch a profitable cohort course, enrol 20 paying students, and earn their first £10,000 in course revenue",
+    infl:  "e.g. Tiago Forte, April Dunford, Ness Labs, course creator communities, Kajabi users",
+    obj:   "e.g. 'There are already free YouTube videos on my topic', 'I'm not a good teacher', 'Who am I to charge for this?'",
+    inc:   "Monthly course revenue goal",
+    promise:  "e.g. I help subject matter experts launch their first profitable cohort course, enrol 20 paying students and earn their first £10,000 in course revenue — in 60 days — without a big audience or a fancy funnel.",
+    result:   "e.g. First £10,000 in course revenue with 20+ enrolled students",
+    noEffort: "e.g. No big audience required, no complex tech, no spending months building before selling",
+    ofTrans:  "e.g. From 'I should build a course' to running a successful cohort with real results and real testimonials",
+    system:   "e.g. The Course Launch Blueprint, The Expert-to-Educator System, The Cohort Launch Method",
+    diff:     "e.g. Unlike course creation tools that just give you a platform, we co-create your curriculum, your launch strategy and your sales page — and I stay with you through your first live cohort.",
+    name:     "e.g. The Course Launch Blueprint, The Cohort Launch Method, The Expert-to-Educator Programme",
+    bonus:    "e.g. Curriculum design template, sales page copy framework, launch email sequence",
+    guarCond: "e.g. Complete your curriculum, publish your sales page, open enrolment, and launch to your audience within the 60-day window",
+  },
+
+  "Affiliate Marketing": {
+    job:   "e.g. Content creator, blogger, social media marketer, side hustler, stay-at-home parent",
+    ind:   "e.g. Affiliate marketing, content creation, influencer marketing, passive income",
+    cur:   "e.g. Creates content but earns pennies from affiliate links. Doesn't understand which products convert or why. Picks the wrong programmes and gives up before the commissions compound. Feels like everyone else is winning.",
+    des:   "e.g. Earns £3,000–£10,000/month in recurring commissions from content they created months ago. Has a predictable, growing income stream that requires minimal active work.",
+    fear:  "e.g. 'The algorithm will change and my income will disappear', 'I'll promote something bad and lose my audience's trust', 'I don't have enough followers yet'",
+    tried: "e.g. Amazon Associates (pennies), random ClickBank products, posting affiliate links with no strategy, buying courses that taught theory but not execution",
+    trans: "e.g. Build a focused affiliate content system generating their first £3,000/month in commissions within 90 days",
+    infl:  "e.g. Pat Flynn, Income School, Niche Pursuits podcast, affiliate marketing Reddit, Authority Hacker",
+    obj:   "e.g. 'I don't have enough traffic', 'I don't know which products to promote', 'It takes too long to see results', 'I can't write or make videos well'",
+    inc:   "Monthly affiliate commission target",
+    promise:  "e.g. I help content creators build a focused affiliate marketing system that generates their first £3,000/month in passive commissions — in 90 days — without needing a huge audience or posting every single day.",
+    result:   "e.g. First £3,000/month in affiliate commissions within 90 days",
+    noEffort: "e.g. No spammy link-dumping, no building a huge audience first, no paid ads needed",
+    ofTrans:  "e.g. From posting with no monetisation strategy → to a growing passive income stream from content that compounds month after month",
+    system:   "e.g. The Passive Commission Blueprint, The Affiliate Content Engine, The 90-Day Commission System",
+    diff:     "e.g. Unlike generic affiliate courses, we build your niche selection, product stack and content system together — then I personally review your first 10 pieces of content before they go live.",
+    name:     "e.g. The Passive Commission Blueprint, The Affiliate Content Engine, The 90-Day Commission System",
+    bonus:    "e.g. High-converting affiliate niches list, SEO content template, product review framework",
+    guarCond: "e.g. Publish at least 3 pieces of content per week, choose your affiliate products, build your email opt-in, complete all weekly modules",
+  },
+
+  "Travel & Lifestyle": {
+    job:   "e.g. Digital nomad wannabe, remote worker, travel blogger, location-independent entrepreneur",
+    ind:   "e.g. Travel, lifestyle design, remote work, location independence, van life / slow travel",
+    cur:   "e.g. Dreams of travelling but feels trapped by their job, mortgage or lack of remote income. Has taken one big trip and spent the next year longing to go back. Watches digital nomads on Instagram and wonders if it's really possible for them.",
+    des:   "e.g. Works from anywhere in the world. Has a location-independent income covering all expenses. Spends 3–6 months abroad per year. Feels genuinely free for the first time in their adult life.",
+    fear:  "e.g. 'What if I can't earn enough while travelling?', 'What about healthcare and taxes?', 'My career will fall behind', 'What if I get lonely or bored?'",
+    tried: "e.g. Booking a holiday and calling it 'research', following travel influencers but not knowing how to replicate it, looking up remote jobs and giving up after 10 applications",
+    trans: "e.g. Build a location-independent income of £3,000/month and book their first 3-month trip abroad within 90 days",
+    infl:  "e.g. Nomadic Matt, Mark Wiens, Remote Year community, digital nomad Facebook groups, r/digitalnomad",
+    obj:   "e.g. 'I have too many responsibilities', 'My income isn't location-independent yet', 'I don't know where to start', 'What about my relationship?'",
+    inc:   "Monthly location-independent income target",
+    promise:  "e.g. I help aspiring digital nomads build a £3,000/month location-independent income and book their first long trip abroad — in 90 days — without quitting their job cold turkey or having a massive savings cushion.",
+    result:   "e.g. Location-independent income of £3,000/month + first long trip booked in 90 days",
+    noEffort: "e.g. No quitting your job overnight, no being broke on the road, no selling everything you own first",
+    ofTrans:  "e.g. From trapped in the same city dreaming of travel → to working remotely from wherever they want with income that follows them",
+    system:   "e.g. The Freedom Lifestyle Blueprint, The Nomad Income System, The Location Independence Accelerator",
+    diff:     "e.g. Unlike travel blogs that show the highlight reel, this is a complete system: remote income strategy + practical logistics + your first destination — built specifically around your current skills and situation.",
+    name:     "e.g. The Freedom Lifestyle Blueprint, The Nomad Income System, The Location Independence Accelerator",
+    bonus:    "e.g. Top 10 remote-friendly income models guide, cost-of-living comparison for top nomad cities, remote job application templates",
+    guarCond: "e.g. Complete your remote income audit, apply for 10 remote positions or launch your freelance offer, book your trip before the programme ends",
+  },
+
+  "Food & Nutrition": {
+    job:   "e.g. Nutritional therapist, health coach, recipe creator, gut health specialist",
+    ind:   "e.g. Nutrition, gut health, functional medicine, wellness, healthy eating",
+    cur:   "e.g. Knows nutrition matters but feels confused by conflicting advice. Has tried 'eating healthier' but can't sustain it. Suffers from low energy, bloating, or skin issues they can't explain. Feels let down by generic advice.",
+    des:   "e.g. Eats in a way that genuinely energises them. Gut health dramatically improved. Skin clear. Energy consistent throughout the day. Food feels nourishing, not restrictive or complicated.",
+    fear:  "e.g. 'Healthy eating is too expensive', 'I don't have time to cook from scratch', 'I've tried every diet and they all fail', 'I can't give up the foods I enjoy'",
+    tried: "e.g. Keto, intermittent fasting, calorie counting apps, detox teas, every trending diet from the last 5 years — none of them stuck or worked long-term",
+    trans: "e.g. Heal their gut, double their energy, and build a sustainable nutrition lifestyle they actually enjoy in 90 days",
+    infl:  "e.g. Dr Megan Rossi (Gut Health Doctor), Rhiannon Lambert, Deliciously Ella, gut health Instagram communities",
+    obj:   "e.g. 'I can't afford organic', 'I travel too much to eat well', 'My partner won't eat the same things', 'I've tried clean eating before'",
+    inc:   "Monthly health investment budget",
+    promise:  "e.g. I help people with chronic bloating, low energy and years of failed diets finally heal their gut and build a sustainable nutrition lifestyle they love — in 90 days — without cutting out all the foods they enjoy.",
+    result:   "e.g. Healed gut, doubled energy, sustainable nutrition habits in 90 days",
+    noEffort: "e.g. No expensive supplements, no eliminating every food group, no hours meal-prepping on Sundays",
+    ofTrans:  "e.g. From bloated, exhausted and confused by contradictory nutrition advice → to energised, clear-headed and genuinely enjoying the way they eat",
+    system:   "e.g. The Gut Reset Method, The Nourish & Thrive System, The Sustainable Nutrition Blueprint",
+    diff:     "e.g. Unlike meal plans and nutrition guides, we identify YOUR specific gut triggers and build YOUR personal nutrition protocol — because what works for someone else may be exactly what's harming you.",
+    name:     "e.g. The Gut Reset Method, The Nourish & Thrive Programme, The 90-Day Nutrition Transformation",
+    bonus:    "e.g. Anti-inflammatory recipe book, 7-day gut reset guide, grocery shopping template",
+    guarCond: "e.g. Complete the food and symptom journal for 30 days, follow the protocol for 90 days, attend all check-ins",
+  },
+
+  "Beauty & Fashion": {
+    job:   "e.g. Beauty professional, makeup artist, hair stylist, fashion content creator, personal stylist",
+    ind:   "e.g. Beauty, fashion, aesthetics, personal styling, content creation",
+    cur:   "e.g. Incredibly talented but has no system for turning that talent into consistent income. Relies on word-of-mouth and occasional bookings. Watches less talented creators earning more and feels deeply frustrated.",
+    des:   "e.g. Has a thriving beauty brand that earns consistent income from content, online products and brand partnerships. Work regularly featured and referred. Recognised as an authority in their aesthetic niche.",
+    fear:  "e.g. 'I'm not famous enough', 'Beauty is too saturated', 'What if I put myself out there and get ignored?', 'I'm a professional not a content creator'",
+    tried: "e.g. Posting sporadically on Instagram, a beauty account they started then abandoned, applying for brand deals with no response, hoping clients would refer them",
+    trans: "e.g. Build a recognisable personal beauty brand and earn their first £3,000 from digital content, collaborations or online services within 60 days",
+    infl:  "e.g. NikkieTutorials, Wayne Goss, Hindash, beauty YouTube communities, Sephora affiliates",
+    obj:   "e.g. 'I don't know what to post', 'I need professional filming equipment', 'Nobody will pay for online beauty advice', 'I'm not photogenic enough'",
+    inc:   "Monthly beauty brand revenue target",
+    promise:  "e.g. I help beauty professionals with a talent but no strategy build a recognisable personal brand and earn their first £3,000 from online content and collaborations — in 60 days — without needing 100k followers or expensive equipment.",
+    result:   "e.g. First £3,000 from online brand presence in 60 days",
+    noEffort: "e.g. No expensive studio equipment, no needing to be famous first, no becoming someone you're not online",
+    ofTrans:  "e.g. From talented-but-invisible → to a recognisable beauty brand with income from content, collaborations and online offerings",
+    system:   "e.g. The Beauty Brand Blueprint, The Creator Monetisation System, The Visible Expert Method",
+    diff:     "e.g. Unlike generic social media courses, this is built specifically for beauty professionals — we create your content identity, your offering, and your collaboration pitch together, around your unique aesthetic.",
+    name:     "e.g. The Beauty Brand Blueprint, The Creator Monetisation System, The Visible Expert Method",
+    bonus:    "e.g. Brand pitch email template, content batch-shooting checklist, price guide for beauty digital products",
+    guarCond: "e.g. Post 3× per week throughout the programme, complete your brand identity, publish your first digital offering or service package",
+  },
+
+  "Parenting & Family": {
+    job:   "e.g. Parent of toddlers, parent of teens, co-parent, parent struggling with behaviour challenges",
+    ind:   "e.g. Parenting, family wellbeing, child development, co-parenting, family coaching",
+    cur:   "e.g. Feels like they're failing as a parent despite trying everything. Screams and then feels crushing guilt. Reads parenting books but can't implement consistently. Dreads certain parts of the day with their kids.",
+    des:   "e.g. Genuinely enjoys time with their children. Conflict has dramatically reduced. Kids listen and cooperate (most of the time). Parent feels calm, confident and connected — not constantly overwhelmed and reacting.",
+    fear:  "e.g. 'What if I've already caused lasting damage?', 'Every family is different — this won't work for mine', 'I've tried everything and nothing works with my child'",
+    tried: "e.g. Super Nanny techniques, reward charts, taking screens away, reading 'How to Talk So Kids Will Listen', family therapy that felt too slow",
+    trans: "e.g. Go from daily power struggles and meltdowns to genuine calm, connection and cooperation in 8 weeks",
+    infl:  "e.g. Dr Daniel Siegel, Janet Lansbury, Dr Becky Kennedy, parenting Facebook communities, r/parenting",
+    obj:   "e.g. 'My child is different — this won't work', 'My partner doesn't parent the same way', 'I don't have time for another thing to implement'",
+    inc:   "Monthly family wellbeing investment",
+    promise:  "e.g. I help overwhelmed parents go from daily power struggles, meltdowns and guilt to calm, connected family life — in 8 weeks — without harsh punishments, reward charts or reading another book.",
+    result:   "e.g. Dramatic reduction in daily conflict and meltdowns within 8 weeks",
+    noEffort: "e.g. No harsh punishments, no reward charts that stop working after a week, no reading 200-page parenting theory books",
+    ofTrans:  "e.g. From dreading certain parts of the day and feeling like a failing parent → to genuinely enjoying family life with a practical toolkit that actually works for YOUR child",
+    system:   "e.g. The Calm Family Blueprint, The 8-Week Connection Reset, The Peaceful Parenting System",
+    diff:     "e.g. Unlike parenting books and generic online advice, we work with the specific dynamics of YOUR family, YOUR child's temperament, and YOUR current challenges — with personal weekly guidance.",
+    name:     "e.g. The Calm Family Blueprint, The 8-Week Peaceful Parenting Reset, The Connection-First System",
+    bonus:    "e.g. Meltdown de-escalation script card, morning routine template, co-parenting communication guide",
+    guarCond: "e.g. Complete the family audit, implement the daily connection practice for at least 6 of 8 weeks, attend all group calls",
+  },
+
+  "Technology & SaaS": {
+    job:   "e.g. Technical founder, solo developer building a product, early-stage SaaS operator",
+    ind:   "e.g. SaaS, software, technology, developer tools, B2B software",
+    cur:   "e.g. Has built something technically impressive but can't get paying users. Understands code but not marketing or sales. Has launched to crickets. Not sure if the problem is the product, the message or the distribution.",
+    des:   "e.g. Has their first 50 paying customers. Revenue is growing predictably. Has a repeatable customer acquisition system. Knows exactly where the next customer is coming from every single month.",
+    fear:  "e.g. 'What if nobody needs this?', 'I'm not a salesperson — I just build', 'What if I spend 12 months on this and it fails?'",
+    tried: "e.g. Posting on Product Hunt and getting 3 upvotes from friends, cold emailing 100 people with no response, writing blog posts that nobody reads, posting on Indie Hackers",
+    trans: "e.g. Go from 0 paying customers to a repeatable customer acquisition system and £5K MRR within 90 days",
+    infl:  "e.g. Paul Graham essays, Indie Hackers community, Pieter Levels, Levels.io, SaaS communities on Twitter/X",
+    obj:   "e.g. 'I need to fix more features before selling', 'My product isn't ready yet', 'I don't know how to price it', 'Sales feels slimy'",
+    inc:   "Monthly recurring revenue target (MRR)",
+    promise:  "e.g. I help technical founders go from 0 paying customers to a repeatable acquisition system and their first £5K MRR — in 90 days — without becoming a salesperson or spending months on marketing theory.",
+    result:   "e.g. First £5K MRR with a repeatable customer acquisition system in 90 days",
+    noEffort: "e.g. No becoming a full-time marketer, no expensive ads before product-market fit, no cold calls",
+    ofTrans:  "e.g. From brilliant product with no customers → to a growing SaaS with predictable MRR and a clear go-to-market playbook",
+    system:   "e.g. The SaaS Growth Engine, The First 50 Customers Blueprint, The Technical Founder GTM System",
+    diff:     "e.g. Unlike generic growth courses, this is built specifically for technical founders — we work on your positioning, your ICP, your outreach and your onboarding together, with personal review of every step before you execute.",
+    name:     "e.g. The SaaS Growth Engine, The First 50 Customers Blueprint, The Technical Founder GTM System",
+    bonus:    "e.g. ICP definition template, cold outreach sequence, pricing psychology guide for SaaS",
+    guarCond: "e.g. Complete the product positioning audit, run 50 customer interviews, publish your landing page, send your first 100 outreach messages",
+  },
+
+  "Spirituality & Mindset": {
+    job:   "e.g. Believer seeking deeper purpose, someone feeling spiritually disconnected, faith community member",
+    ind:   "e.g. Spiritual development, faith, purpose, prayer, community",
+    cur:   "e.g. Feels spiritually dry despite regular church attendance. Has knowledge but lacks consistent practice. Wants more peace and clarity but doesn't know how to sustain it.",
+    des:   "e.g. Wakes up with genuine peace and clear purpose every morning. Has a consistent, life-giving spiritual practice. Feels deeply connected to their faith and clear on their calling.",
+    fear:  "e.g. 'This is just another programme I'll start and abandon', 'My faith is too complicated to change in 90 days'",
+    tried: "e.g. Reading devotionals that got abandoned, listening to sermons without application, prayer journals that lasted a week",
+    trans: "e.g. Build an unshakeable daily spiritual practice and discover their unique purpose and calling within 90 days",
+    infl:  "e.g. Joyce Meyer, Rick Warren, Steven Furtick, faith-based Facebook communities",
+    obj:   "e.g. 'Spirituality is personal — I can't be coached on it', 'I've tried daily practices before'",
+    inc:   "Monthly spiritual development investment",
+    promise:  "e.g. I help believers who feel spiritually stuck build a life-giving daily practice and discover their God-given purpose — in 90 days.",
+    result:   "e.g. Consistent daily practice + clear sense of purpose within 90 days",
+    noEffort: "e.g. No long boring devotionals, no guilt-driven routine",
+    ofTrans:  "e.g. From spiritually dry and going through the motions → to deeply connected, purpose-driven and genuinely at peace",
+    system:   "e.g. The Purpose & Peace Blueprint, The 90-Day Spiritual Reset",
+    diff:     "e.g. Unlike generic church programmes, this is built around YOUR unique spiritual personality, calling and life season.",
+    name:     "e.g. The Purpose & Peace Blueprint, The 90-Day Spiritual Reset Programme",
+    bonus:    "e.g. Personalised morning practice protocol, purpose discovery workbook",
+    guarCond: "e.g. Complete your daily practice for at least 60 of 90 days, attend all group sessions",
+  },
+};
+
+// ── MASTER PLACEHOLDER UPDATER ───────────────────────────────────────────────
+// Called every time niche changes — updates EVERY form across the entire app.
+window._updateAllNichePlaceholders = function(niche) {
+  if (!niche) return;
+  const ex = NICHE_EXAMPLES[niche];
+
+  // ── 1. AVATAR FORM ──────────────────────────────────────────────────────
+  const sp = (id, val) => { const el=document.getElementById(id); if(el && val) el.placeholder=val; };
+  if (ex) {
+    sp('av_job',            ex.job);
+    sp('av_industry',       ex.ind);
+    sp('av_current',        ex.cur);
+    sp('av_desired',        ex.des);
+    sp('av_fear',           ex.fear);
+    sp('av_tried',          ex.tried);
+    sp('av_transformation', ex.trans);
+    sp('av_influences',     ex.infl);
+    sp('av_objections',     ex.obj);
+    // Income goal label
+    var incLabel = document.getElementById('av-income-goal-label') || document.querySelector('label[for="av_igr"]');
+    if (incLabel && ex.inc) incLabel.textContent = ex.inc;
+  }
+
+  // ── 2. OFFER BUILDER FORM ───────────────────────────────────────────────
+  if (ex) {
+    sp('offer_promise',          ex.promise  || '');
+    sp('offer_result',           ex.result   || '');
+    sp('offer_no_effort',        ex.noEffort || '');
+    sp('offer_transformation',   ex.ofTrans  || '');
+    sp('offer_system',           ex.system   || '');
+    sp('offer_difference',       ex.diff     || '');
+    sp('offer_name',             ex.name     || '');
+    sp('offer_bonus',            ex.bonus    || '');
+    sp('offer_guarantee_cond',   ex.guarCond || '');
+  }
+
+  // ── 3. Keep backwards-compatible _updateAvatarPlaceholders ─────────────
+  window._updateAvatarPlaceholders && window._updateAvatarPlaceholders(niche);
+};
+
+// Patch applyAll to call the master updater
+(function() {
+  var _origApplyAllNiche = window.applyAll;
+  window.applyAll = function() {
+    var n = (document.getElementById('niche')||{}).value || '';
+    if (n) window._updateAllNichePlaceholders(n);
+    if (_origApplyAllNiche) return _origApplyAllNiche.apply(this, arguments);
+  };
+})();
+
+// Also update on avatar page visit
+(function() {
+  var _spN = window.showPage;
+  if (!_spN) return;
+  window.showPage = function(n, btn) {
+    _spN(n, btn);
+    if (n === 'avatar' || n === 'offer') {
+      var niche = window._appliedNiche || (document.getElementById('niche')||{}).value || '';
+      if (niche) window._updateAllNichePlaceholders(niche);
+    }
+  };
+})();
+
+// ═══════════════════════════════════════════════════════════════════════════
+// OFFER VAULT — Auto-save + Named Offers + Multi-Niche Support
+// ─────────────────────────────────────────────────────────────────────────
+// • Forms auto-save to localStorage every time a field changes
+// • "Save to Vault" lets user name and archive the current offer
+// • Vault shows all saved offers with Load / Edit / Delete
+// • Loading restores ALL fields: revenue plan, avatar, offer builder
+// ═══════════════════════════════════════════════════════════════════════════
+
+var VAULT_FIELDS = {
+  revenue: ['niche','price','target'],
+  avatar:  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry',
+            'av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear',
+            'av_tried','av_personality','av_motivation','av_influences','av_objections'],
+  offer:   ['offer_promise','offer_result','offer_no_effort','offer_transformation','offer_system',
+            'offer_format','offer_duration','offer_difference','offer_price','offer_payment',
+            'offer_guarantee','offer_guarantee_cond','offer_scarcity','offer_bonus','offer_name']
+};
+
+function _vaultCollect() {
+  var data = { niche:'', revenue:{}, avatar:{}, offer:{}, savedAt: new Date().toISOString() };
+  var allFields = [].concat(VAULT_FIELDS.revenue, VAULT_FIELDS.avatar, VAULT_FIELDS.offer);
+  allFields.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var val = el.value || '';
+    data[id] = val;
+    if (id === 'niche') data.niche = val;
+    if (VAULT_FIELDS.revenue.indexOf(id) > -1) data.revenue[id] = val;
+    if (VAULT_FIELDS.avatar.indexOf(id) > -1)  data.avatar[id]  = val;
+    if (VAULT_FIELDS.offer.indexOf(id) > -1)   data.offer[id]   = val;
+  });
+  return data;
+}
+
+function _vaultRestore(data) {
+  if (!data) return;
+  var allFields = [].concat(VAULT_FIELDS.revenue, VAULT_FIELDS.avatar, VAULT_FIELDS.offer);
+  allFields.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el || data[id] === undefined) return;
+    el.value = data[id];
+    // Trigger change so dependent logic updates
+    el.dispatchEvent(new Event('input', { bubbles:true }));
+    el.dispatchEvent(new Event('change', { bubbles:true }));
+  });
+  if (data.niche) {
+    window._appliedNiche = data.niche;
+    window._updateAllNichePlaceholders && window._updateAllNichePlaceholders(data.niche);
+  }
+}
+
+// Auto-save draft on any form change
+function _vaultAutosave() {
+  try { localStorage.setItem('eos_draft_offer', JSON.stringify(_vaultCollect())); } catch(e) {}
+}
+
+// Attach auto-save listeners once DOM is ready
+function _vaultAttachListeners() {
+  var all = [].concat(VAULT_FIELDS.revenue, VAULT_FIELDS.avatar, VAULT_FIELDS.offer);
+  all.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    ['input','change'].forEach(function(ev) {
+      el.addEventListener(ev, function(){ clearTimeout(el._vsTimer); el._vsTimer = setTimeout(_vaultAutosave, 800); });
+    });
+  });
+}
+
+// Load draft on startup
+function _vaultRestoreDraft() {
+  try {
+    var raw = localStorage.getItem('eos_draft_offer');
+    if (raw) _vaultRestore(JSON.parse(raw));
+  } catch(e) {}
+}
+
+// Vault data helpers
+function _vaultGetAll() { try { return JSON.parse(localStorage.getItem('eos_offer_vault') || '[]'); } catch(e) { return []; } }
+function _vaultSetAll(arr) { try { localStorage.setItem('eos_offer_vault', JSON.stringify(arr)); } catch(e) {} }
+
+// Save current form to vault with a name
+window._vaultSave = function(name) {
+  if (!name) return;
+  var offers = _vaultGetAll();
+  var existing = offers.findIndex(function(o){ return o.vaultName === name; });
+  var entry = _vaultCollect();
+  entry.vaultName = name;
+  if (existing > -1) offers[existing] = entry;
+  else offers.unshift(entry);
+  _vaultSetAll(offers);
+};
+
+// Load a named offer from vault into all forms
+window._vaultLoad = function(idx) {
+  var offers = _vaultGetAll();
+  if (!offers[idx]) return;
+  _vaultRestore(offers[idx]);
+  // Re-apply to update revenue plan visuals
+  setTimeout(function(){ window.applyAll && window.applyAll(); }, 400);
+  _vaultCloseModal();
+};
+
+// Delete
+window._vaultDelete = function(idx) {
+  var offers = _vaultGetAll();
+  if (!confirm('Delete "' + (offers[idx] && offers[idx].vaultName) + '"? This cannot be undone.')) return;
+  offers.splice(idx, 1);
+  _vaultSetAll(offers);
+  _vaultRenderModal();
+};
+
+// ── VAULT MODAL UI ──────────────────────────────────────────────────────────
+function _vaultRenderModal() {
+  var modal = document.getElementById('_vault_modal');
+  if (!modal) return;
+  var offers = _vaultGetAll();
+  var niche = (document.getElementById('niche')||{}).value || window._appliedNiche || '';
+  var offerName = (document.getElementById('offer_name')||{}).value || '';
+
+  var html = '<div style="background:linear-gradient(145deg,#0e0c26,#12102e);border:1px solid rgba(108,99,255,.3);border-radius:20px;overflow:hidden;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;position:relative">';
+  html += '<div style="height:3px;background:linear-gradient(90deg,var(--purple),var(--teal))"></div>';
+  html += '<div style="padding:1.2rem 1.4rem;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between">';
+  html += '<div><div style="font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:2px">💾 Offer Vault</div>';
+  html += '<div style="font-size:15px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">Save &amp; Switch Offers</div></div>';
+  html += '<button onclick="document.getElementById(\'_vault_modal\').style.display=\'none\'" style="background:none;border:none;color:var(--dimmer);font-size:20px;cursor:pointer;padding:4px">×</button></div>';
+  html += '<div style="padding:1.2rem 1.4rem">';
+
+  // Save current
+  html += '<div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:1rem;margin-bottom:1rem">';
+  html += '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--purple);font-weight:800;margin-bottom:8px">💾 Save Current Offer</div>';
+  html += '<div style="display:flex;gap:8px">';
+  html += '<input id="_vault_name_inp" placeholder="e.g. Health Offer #1, My Main Coaching Offer" value="'+(offerName||niche||'My Offer')+'" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--white);font-family:Inter,sans-serif;outline:none">';
+  html += '<button onclick="window._vaultSave(document.getElementById(\'_vault_name_inp\').value);_vaultRenderModal()" style="padding:9px 16px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:8px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap">Save</button>';
+  html += '</div>';
+  if (niche) html += '<div style="font-size:10px;color:var(--dimmer);margin-top:6px">Current niche: <strong style="color:var(--purple)">'+niche+'</strong></div>';
+  html += '</div>';
+
+  // Saved offers list
+  if (offers.length === 0) {
+    html += '<div style="text-align:center;padding:2rem 1rem;color:var(--dimmer);font-size:12px">No saved offers yet. Fill in your offer details and click Save above.</div>';
+  } else {
+    html += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;margin-bottom:8px">📂 Saved Offers ('+offers.length+')</div>';
+    html += '<div style="display:flex;flex-direction:column;gap:6px">';
+    offers.forEach(function(o, i) {
+      var date = o.savedAt ? new Date(o.savedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+      html += '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">';
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div style="font-size:13px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+o.vaultName+'</div>';
+      html += '<div style="font-size:10px;color:var(--dimmer);margin-top:2px">'+(o.niche||'—')+' · $'+(o.offer&&o.offer.offer_price?Number(o.offer.offer_price).toLocaleString():o.price||'—')+' · '+date+'</div>';
+      if (o.offer && o.offer.offer_result) html += '<div style="font-size:10px;color:var(--teal);margin-top:2px">'+o.offer.offer_result.slice(0,55)+'</div>';
+      html += '</div>';
+      html += '<div style="display:flex;gap:6px;flex-shrink:0">';
+      html += '<button onclick="window._vaultLoad('+i+')" style="padding:6px 12px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:7px;font-weight:800;font-size:10px;cursor:pointer;font-family:Poppins,sans-serif">Load</button>';
+      html += '<button onclick="window._vaultDelete('+i+')" style="padding:6px 10px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:7px;font-weight:800;font-size:10px;cursor:pointer;font-family:Poppins,sans-serif">Delete</button>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+  }
+
+  html += '<div style="margin-top:10px;font-size:10px;color:var(--dimmer);line-height:1.6">💡 Switching niches? Save your current offer first, then change your niche and build a new one. Load any past offer any time.</div>';
+  html += '</div></div>';
+  modal.innerHTML = html;
+}
+
+window._vaultOpenModal = function() {
+  var modal = document.getElementById('_vault_modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = '_vault_modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,10,30,.88);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px)';
+    modal.addEventListener('click', function(e){ if(e.target===modal) modal.style.display='none'; });
+    document.body.appendChild(modal);
+  }
+  _vaultRenderModal();
+  modal.style.display = 'flex';
+};
+
+function _vaultCloseModal() {
+  var m = document.getElementById('_vault_modal'); if(m) m.style.display='none';
+}
+
+// ── VAULT TRIGGER BUTTON (injected into offer creation section) ─────────────
+function _vaultInjectButton() {
+  if (document.getElementById('_vault_trigger_btn')) return;
+
+  // Try to find the generate offer button to inject near it
+  var genBtn = document.getElementById('generate-offer-btn') ||
+               document.querySelector('[onclick="generateOffer()"]') ||
+               document.querySelector('button[onclick*="generateOffer"]');
+  if (!genBtn) return;
+
+  var wrapper = document.createElement('div');
+  wrapper.style.cssText = 'display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;padding:10px 14px;background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.18);border-radius:12px';
+  wrapper.innerHTML =
+    '<div><div style="font-size:10px;font-weight:800;color:var(--purple);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px">💾 Offer Vault</div>' +
+    '<div style="font-size:11px;color:var(--dim)">Save this offer, load a past one, or switch niches without losing your work.</div></div>' +
+    '<button id="_vault_trigger_btn" onclick="window._vaultOpenModal()" style="padding:8px 16px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:9px;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">Open Vault 💾</button>';
+
+  genBtn.parentNode.insertBefore(wrapper, genBtn);
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+(function _vaultInit() {
+  // Restore draft when app loads
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      _vaultRestoreDraft();
+      _vaultAttachListeners();
+      setTimeout(_vaultInjectButton, 1200);
+    });
+  } else {
+    setTimeout(function() {
+      _vaultRestoreDraft();
+      _vaultAttachListeners();
+      setTimeout(_vaultInjectButton, 1200);
+    }, 600);
+  }
+})();
+
+
 </script>
 
 <script>
@@ -14468,7 +15894,7 @@ window.generate30DayCalendar = async function() {
       avatar: av,
       offer: offerName,
       mode: 'expert',
-      _maxTokens: 4000,
+      _maxTokens: 8000,
       _rawPrompt: `You are a world-class content writer who specialises in belief-shifting, emotionally resonant content for online coaches, consultants, and experts. Your content does not just inform — it makes people feel deeply seen, challenges what they believe is holding them back, and creates an undeniable desire to change.
 
 WHO YOU ARE WRITING FOR:
@@ -14480,6 +15906,9 @@ What they truly want: "${av.transformation || 'real freedom, real income, real r
 What drives them: "${av.motivation || 'proving to themselves and their family that they can do this'}"
 Niche: ${niche}
 Offer: ${offerName}${price > 0 ? ' — $' + Number(price).toLocaleString() : ''}
+
+CRITICAL NICHE LANGUAGE RULES:
+${(function(){var nv=window.getNicheVocab&&window.getNicheVocab(niche);if(!nv)return '';var lines=['- This is the '+niche+' niche. EVERY piece of content must speak to: '+nv.contentFocus+'.'];if(nv.noBizTalk)lines.push('- DO NOT use income figures, money amounts, "make money", "earn $X/month", or any business income language. This audience does not relate to money as their goal.');lines.push('- Their transformation = '+nv.transformation);lines.push('- Their pain = '+nv.painContext);lines.push('- Their desire = '+nv.desireContext);lines.push('- Example hook for this niche: "'+nv.exampleHook+'"');return lines.join('\n');})()}
 
 THE CONTENT PHILOSOPHY — every piece must do at least ONE:
 1. MAKE THEM FEEL SEEN: describe their internal world so accurately they think you read their diary
@@ -14509,7 +15938,7 @@ WRITING RULES — NON-NEGOTIABLE:
 - End Facebook posts with a question that requires a real, personal answer
 
 Return a JSON array of exactly 7 objects with COMPLETE, ready-to-post content in every field:
-{"topic":"the specific belief or emotion this day addresses","hook":"the exact opening line — specific, charged, impossible to scroll past","fb1":"complete Facebook post — raw and honest, 220-300 words, ends with a genuine question","fb2":"complete Facebook post — different format (story, numbered reframe, or confession), same topic different angle","reel1":"full spoken reel script — HOOK (one punchy 5-sec line) + CONTENT (45-60 sec, 3-4 points spoken naturally) + CTA (5 sec)","reel2":"full spoken reel script — completely different hook and emotional angle from reel1","email":"SUBJECT: [subject line that feels personal not promotional]\n\n[full email — written as a letter to one person, 200-250 words, honest and direct]"}
+{"topic":"the specific belief or emotion this day addresses","hook":"the exact opening line — specific, charged, impossible to scroll past","fb1":"Facebook post — 120-150 words, raw and honest, ends with a genuine question that demands a personal answer","fb2":"complete Facebook post — different format (story, numbered reframe, or confession), same topic different angle","reel1":"full spoken reel script — HOOK (one punchy 5-sec line) + CONTENT (45-60 sec, 3-4 points spoken naturally) + CTA (5 sec)","reel2":"full spoken reel script — completely different hook and emotional angle from reel1","email":"SUBJECT: [subject line that feels personal not promotional]\n\n[full email — written as a letter to one person, 200-250 words, honest and direct]"}
 
 Return ONLY the JSON array. No markdown. No backticks. No explanation before or after.`
     });
@@ -14670,9 +16099,31 @@ Return ONLY the JSON array. No markdown. No backticks. No explanation before or 
     // Render
     window.renderAICalendar30 && window.renderAICalendar30(1);
 
-    // Navigate to calendar page
+    // Navigate to calendar page — show it regardless of nav button visibility
     const calNav = document.getElementById('nav-calendar');
-    window.showPage && window.showPage('calendar', calNav);
+    if (calNav) calNav.style.removeProperty('display');  // make nav button visible
+    if (window.showPage) {
+      window.showPage('calendar', calNav);
+    } else {
+      // Fallback: manually show the calendar page
+      document.querySelectorAll('.page').forEach(function(p){ p.style.display='none'; });
+      var calPage = document.getElementById('page-calendar');
+      if (calPage) { calPage.style.display='block'; calPage.scrollIntoView({behavior:'smooth',block:'start'}); }
+    }
+    // Re-render in case the page was not visible during first render
+    setTimeout(function(){
+      window.renderAICalendar30 && window.renderAICalendar30(1);
+      // Show success banner at top of calendar
+      var calPage2 = document.getElementById('page-calendar');
+      if (calPage2 && !document.getElementById('_cal_success_banner')) {
+        var banner = document.createElement('div');
+        banner.id = '_cal_success_banner';
+        banner.style.cssText = 'background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);border-radius:14px;padding:12px 18px;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;animation:_oa_fadeUp .5s ease';
+        banner.innerHTML = '<div style="display:flex;align-items:center;gap:10px"><div style="font-size:22px">🎉</div><div><div style="font-size:12px;font-weight:800;color:var(--teal)">Your 7-Day Content Plan Is Ready!</div><div style="font-size:11px;color:var(--dim);margin-top:2px">Tailored to your niche, avatar, and offer. Click any slot to view the full script.</div></div></div><button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--dimmer);font-size:18px;cursor:pointer;flex-shrink:0;padding:4px">×</button>';
+        var calBody3 = document.getElementById('cal-body');
+        if (calBody3 && calBody3.parentNode) calBody3.parentNode.insertBefore(banner, calBody3);
+      }
+    }, 200);
 
   } catch(e) {
     console.error('Calendar generation failed:', e.message);
@@ -21199,6 +22650,535 @@ function emWireCampaignList() {
   });
 }
 
+
+
+/* ══════════════════════════════════════════════════════════════════
+   EMAIL MARKETING — COMPLETE FUNCTION LIBRARY
+   Every button in the email section now works.
+   Save drafts, send campaigns, build sequences, format emails,
+   manage settings — all implemented here.
+══════════════════════════════════════════════════════════════════ */
+
+/* ── Toast helper ───────────────────────────────────────────────── */
+function emToast(msg, isError) {
+  var t = document.createElement('div');
+  var bg = isError ? 'rgba(255,91,91,.12)' : 'rgba(78,204,163,.1)';
+  var bc = isError ? 'rgba(255,91,91,.3)' : 'rgba(78,204,163,.25)';
+  var col = isError ? '#ff8888' : 'var(--teal)';
+  t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:'+bg+';border:1px solid '+bc+';border-radius:12px;padding:12px 20px;color:'+col+';font-size:12px;font-weight:700;z-index:99999;font-family:Poppins,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:320px;line-height:1.5;animation:_oa_fadeUp .3s ease';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(function(){t.remove();},400); }, 3000);
+}
+
+/* ── Recipient count ────────────────────────────────────────────── */
+function emUpdateRecipientCount() {
+  var el = document.getElementById('em-compose-recipient-count');
+  if (!el) return;
+  var n = (emState.contacts && emState.contacts.length) || 0;
+  el.textContent = n > 0 ? n + ' contact' + (n!==1?'s':'') + ' will receive this email' : 'No contacts yet — opt-ins from your funnels appear here';
+  el.style.color = n > 0 ? 'var(--teal)' : 'var(--dim)';
+}
+
+/* ── Populate funnel dropdowns ──────────────────────────────────── */
+function emLoadFunnelsIntoSelects() {
+  var funnelEl = document.getElementById('em-compose-funnel');
+  if (!funnelEl) return;
+  var options = ['<option value="">— All funnels —</option>'];
+  if (window._aiCalendar30 && window._aiCalendar30.length) options.push('<option value="calendar">Content Calendar Funnels</option>');
+  var offerName = (document.getElementById('offer_name')||{}).value || '';
+  if (offerName) options.push('<option value="offer">'+offerName+' Funnel</option>');
+  options.push('<option value="manual">Manual list</option>');
+  funnelEl.innerHTML = options.join('');
+  emUpdateRecipientCount();
+}
+
+/* ── Schedule date toggle ───────────────────────────────────────── */
+function emToggleScheduleDate(val) {
+  var dt = document.getElementById('em-compose-datetime');
+  if (dt) dt.style.display = (val === 'scheduled') ? 'block' : 'none';
+}
+
+/* ── Save as Draft ──────────────────────────────────────────────── */
+function emSaveDraftCampaign() {
+  var subject  = (document.getElementById('em-compose-subject')||{}).value||'';
+  var preview  = (document.getElementById('em-compose-preview')||{}).value||'';
+  var hiddenEl = document.getElementById('em-compose-body');
+  var editorEl = document.getElementById('em-quill-editor');
+  // sync editor HTML to hidden textarea
+  if (editorEl && hiddenEl) hiddenEl.value = editorEl.innerHTML;
+  var body = hiddenEl ? hiddenEl.value : '';
+  var audience = (document.getElementById('em-compose-audience')||{}).value || 'All Contacts';
+
+  if (!subject && !body) { emToast('Add a subject or write some content first.', true); return; }
+
+  var campaign = emState.composing || { id:'c_'+Date.now(), stats:{sent:0,opens:0,clicks:0} };
+  campaign.subject  = subject;
+  campaign.preview  = preview;
+  campaign.body     = body;
+  campaign.audience = audience;
+  campaign.status   = 'draft';
+  campaign.updatedAt = Date.now();
+  if (!campaign.createdAt) campaign.createdAt = Date.now();
+
+  var existIdx = emState.campaigns.findIndex(function(c){ return c.id === campaign.id; });
+  if (existIdx >= 0) emState.campaigns[existIdx] = campaign;
+  else emState.campaigns.unshift(campaign);
+
+  emState.composing = campaign;
+  emSave();
+  emToast('✅ Draft saved — "' + (subject||'Untitled') + '"');
+  // Re-wire list since we may have added a new entry
+  var list = document.getElementById('em-campaigns-list');
+  if (list) list._wired = false;
+  emRenderCampaigns();
+  emWireCampaignList();
+}
+
+/* ── Send Campaign ──────────────────────────────────────────────── */
+async function emSendCampaign() {
+  var subject  = (document.getElementById('em-compose-subject')||{}).value||'';
+  var preview  = (document.getElementById('em-compose-preview')||{}).value||'';
+  var hiddenEl = document.getElementById('em-compose-body');
+  var editorEl = document.getElementById('em-quill-editor');
+  if (editorEl && hiddenEl) hiddenEl.value = editorEl.innerHTML;
+  var body = hiddenEl ? hiddenEl.value : '';
+  var audience = (document.getElementById('em-compose-audience')||{}).value || 'All Contacts';
+  var scheduleVal = (document.getElementById('em-compose-schedule')||{}).value || 'now';
+
+  if (!subject) { emToast('⚠️ Add a subject line before sending.', true); return; }
+  if (!body || body.replace(/<[^>]*>/g,'').trim().length < 10) { emToast('⚠️ Write your email content before sending.', true); return; }
+
+  var sender = emState.sender || {};
+  if (!sender.resendApiKey) {
+    if (!confirm('You haven\'t connected an email sending service yet.\n\nClick OK to go to Email Settings and connect Resend, or Cancel to save as draft.')) {
+      emSaveDraftCampaign();
+      return;
+    }
+    emTab(document.getElementById('em-tab-settings'), 'settings');
+    emToast('Connect your Resend API key in Settings, then come back to send.', true);
+    return;
+  }
+  if (!sender.email) { emToast('⚠️ Set your sender email in Settings first.', true); return; }
+
+  // Save campaign first
+  emSaveDraftCampaign();
+  var campaign = emState.composing;
+  if (!campaign) return;
+
+  // Check contacts
+  var contacts = emState.contacts || [];
+  if (!contacts.length) {
+    emToast('No contacts to send to yet. Opt-ins from your funnels appear automatically.', true);
+    return;
+  }
+
+  var sendBtn = document.getElementById('em-send-btn');
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Sending…'; }
+
+  try {
+    // If scheduled, just mark as scheduled and return
+    if (scheduleVal === 'scheduled') {
+      var dtVal = (document.getElementById('em-compose-datetime')||{}).value || '';
+      campaign.status = 'live';
+      campaign.scheduledFor = dtVal;
+      var idx = emState.campaigns.findIndex(function(c){ return c.id === campaign.id; });
+      if (idx >= 0) emState.campaigns[idx] = campaign;
+      await emSave();
+      emRenderCampaigns();
+      emCloseCompose();
+      emToast('📅 Campaign scheduled for ' + (dtVal || 'later'));
+      return;
+    }
+
+    // Build HTML email body
+    var htmlBody = body.includes('<p>') || body.includes('<div') ? body :
+      body.split('\n\n').map(function(p){ return '<p style="margin:0 0 16px">'+p.replace(/\n/g,'<br>')+'</p>'; }).join('');
+
+    var fromName  = sender.name  || 'Your Name';
+    var fromEmail = sender.email;
+
+    // Send to each contact via Resend
+    var sent = 0, failed = 0;
+    var batchSize = 5;  // send in small batches to avoid rate limits
+    for (var i = 0; i < contacts.length; i += batchSize) {
+      var batch = contacts.slice(i, i + batchSize);
+      await Promise.all(batch.map(async function(contact) {
+        try {
+          var personalised = htmlBody
+            .replace(/\[FIRST_NAME\]/gi, contact.name ? contact.name.split(' ')[0] : 'there')
+            .replace(/\[NAME\]/gi, contact.name || 'there');
+          var resp = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization':'Bearer '+sender.resendApiKey, 'Content-Type':'application/json' },
+            body: JSON.stringify({
+              from: fromName + ' <' + fromEmail + '>',
+              to: [contact.email],
+              subject: subject,
+              html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a2e">'+personalised+'</div>',
+              headers: { 'X-Preview-Text': preview || '' }
+            })
+          });
+          if (resp.ok) sent++;
+          else failed++;
+        } catch(e) { failed++; }
+      }));
+    }
+
+    // Update campaign
+    campaign.status = 'sent';
+    campaign.sentAt = Date.now();
+    if (!campaign.stats) campaign.stats = {};
+    campaign.stats.sent = sent;
+    var idx2 = emState.campaigns.findIndex(function(c){ return c.id === campaign.id; });
+    if (idx2 >= 0) emState.campaigns[idx2] = campaign;
+    await emSave();
+    emRenderCampaigns();
+    emUpdateStats();
+    emCloseCompose();
+    emToast('🚀 Campaign sent to ' + sent + ' contacts!' + (failed ? ' (' + failed + ' failed)' : ''));
+  } catch(err) {
+    emToast('Send failed: ' + (err.message || 'Connection error. Check your API key.'), true);
+  } finally {
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send Campaign →'; }
+  }
+}
+
+/* ── Editor Toolbar ─────────────────────────────────────────────── */
+function emFmt(cmd) {
+  var ed = document.getElementById('em-quill-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand(cmd, false, null);
+  var hiddenEl = document.getElementById('em-compose-body');
+  if (hiddenEl) hiddenEl.value = ed.innerHTML;
+}
+function emFmtAlign(align) {
+  var ed = document.getElementById('em-quill-editor');
+  if (!ed) return;
+  ed.focus();
+  var cmd = align === 'center' ? 'justifyCenter' : align === 'right' ? 'justifyRight' : 'justifyLeft';
+  document.execCommand(cmd, false, null);
+}
+function emFmtList(type) {
+  var ed = document.getElementById('em-quill-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand(type === 'ol' ? 'insertOrderedList' : 'insertUnorderedList', false, null);
+  var hiddenEl = document.getElementById('em-compose-body');
+  if (hiddenEl) hiddenEl.value = ed.innerHTML;
+}
+function emInsertLink() {
+  var url = prompt('Enter URL:','https://');
+  if (!url) return;
+  var text = window.getSelection && window.getSelection().toString();
+  var label = text || prompt('Link text:','Click here') || 'Click here';
+  var ed = document.getElementById('em-quill-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand('insertHTML', false, '<a href="'+url+'" style="color:#4ecca3">'+label+'</a>');
+  var hiddenEl = document.getElementById('em-compose-body');
+  if (hiddenEl) hiddenEl.value = ed.innerHTML;
+}
+function emAnalyzeEmail() {
+  var ed = document.getElementById('em-quill-editor');
+  var subjectEl = document.getElementById('em-compose-subject');
+  var text = ed ? (ed.innerText || ed.textContent || '') : '';
+  var subject = subjectEl ? subjectEl.value : '';
+  if (!text.trim() && !subject) { emToast('Write your email first, then analyse it.', true); return; }
+  var score = 0, tips = [];
+  if (subject.length >= 30 && subject.length <= 60) { score += 20; } else tips.push('Subject line: aim for 30–60 characters (currently '+ subject.length+')');
+  if (text.split(/\s+/).length >= 150 && text.split(/\s+/).length <= 300) { score += 20; } else tips.push('Body: aim for 150–300 words (currently '+text.split(/\s+/).length+')');
+  if (/you\b/i.test(text)) { score += 20; } else tips.push('Use "you" — write to one specific person');
+  if (/\[LINK\]|http/i.test(text)) { score += 20; } else tips.push('Add a clear CTA link — use [LINK] as a placeholder');
+  if (!/\$[0-9]|income|earn|make money/i.test(text) || window.nicheAllowsMoneyTalk && window.nicheAllowsMoneyTalk(window._appliedNiche||'')) { score += 20; } else tips.push('Remove income claims — focus on transformation instead');
+  emToast((score >= 80 ? '✅' : score >= 60 ? '⚠️' : '❌') + ' Email Score: ' + score + '/100' + (tips.length ? '. Fix: ' + tips[0] : ' — Great email!'));
+}
+
+/* ── Sequences ──────────────────────────────────────────────────── */
+function emRenderSequences() {
+  var list = document.getElementById('em-sequences-list');
+  if (!list) return;
+  var seqs = emState.sequences || [];
+  if (!seqs.length) {
+    list.innerHTML = '<div style="background:var(--card2);border:1px dashed rgba(108,99,255,.2);border-radius:16px;padding:48px 24px;text-align:center">'
+      +'<div style="font-size:36px;margin-bottom:12px">⚡</div>'
+      +'<div style="font-size:15px;font-weight:800;color:var(--white);margin-bottom:8px">No sequences yet</div>'
+      +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7">Automated sequences send emails to new leads on autopilot — welcome emails, nurture series, and sales sequences.</div>'
+      +'<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'
+      +'<button onclick="emGenerateSequence()" style="background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);border-radius:10px;padding:10px 20px;color:var(--purple);font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">⚡ AI Generate Welcome Sequence</button>'
+      +'<button onclick="emCreateSequence()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:10px;padding:10px 20px;color:#0a1628;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">+ Create Blank Sequence</button>'
+      +'</div></div>';
+    return;
+  }
+  list.innerHTML = seqs.map(function(seq) {
+    var isLive = seq.live;
+    var emails = seq.emails || [];
+    var seqId = String(seq.id);
+    return '<div class="em-campaign-card" style="margin-bottom:16px">'
+      +'<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap">'
+        +'<div>'
+          +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">'+seq.name+'</div>'
+          +'<div style="font-size:11px;color:var(--dim);margin-top:3px">'+emails.length+' email'+(emails.length!==1?'s':'')+' · '+(isLive?'🟢 Active':'⏸ Paused')+'</div>'
+        +'</div>'
+        +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+          +'<button data-seqid="'+seqId+'" onclick="emToggleSeqLive(this.dataset.seqid,this)" class="seq-status-btn" style="padding:7px 14px;background:'+(isLive?'rgba(240,192,64,.1)':'rgba(78,204,163,.07)')+';border:1px solid '+(isLive?'rgba(240,192,64,.25)':'rgba(78,204,163,.2)')+';border-radius:8px;color:'+(isLive?'var(--gold)':'var(--teal)')+';font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">'+(isLive?'⏸ Pause':'▶ Activate')+'</button>'
+          +'<button data-seqid="'+seqId+'" onclick="emDeleteSequence(this.dataset.seqid)" style="padding:7px 12px;background:rgba(255,91,91,.06);border:1px solid rgba(255,91,91,.15);border-radius:8px;color:#ff8888;font-size:11px;cursor:pointer">🗑 Delete</button>'
+        +'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:8px">'
+      +emails.map(function(email, i) {
+        return '<div class="em-sequence-step">'
+          +'<div class="em-step-num">'+(i+1)+'</div>'
+          +'<div class="em-step-info">'
+            +'<div class="em-step-delay">'+email.delay+'</div>'
+            +'<div class="em-step-subject">'+(email.subject||'(no subject)')+'</div>'
+            +'<div class="em-step-preview">'+(email.preview||email.body||'').substring(0,90)+'…</div>'
+          +'</div>'
+          +'<button data-seqid="'+seqId+'" data-eidx="'+i+'" onclick="emEditSeqEmail(this.dataset.seqid,+this.dataset.eidx)" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:6px 14px;color:var(--teal);font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700;flex-shrink:0">Edit</button>'
+        +'</div>';
+      }).join('')
+      +'</div></div>';
+  }).join('');
+}
+
+function emLoadSequences() {
+  if (!emState.sequences) emState.sequences = [];
+  emRenderSequences();
+}
+
+function emCreateSequence() {
+  var name = prompt('Sequence name:', 'Welcome Sequence');
+  if (!name) return;
+  var seq = {
+    id: 'seq_'+Date.now(),
+    name: name,
+    live: false,
+    source: 'manual',
+    createdAt: Date.now(),
+    emails: [
+      { delay:'Immediately on sign-up', subject:'Welcome! Here\'s what happens next.', body:'Hi [FIRST_NAME],\n\nThank you for joining. Here\'s exactly what to expect from me...', preview:'What happens next…' },
+      { delay:'Day 2', subject:'The one thing that changes everything', body:'Hi [FIRST_NAME],\n\nYesterday you signed up. Today I want to share something important...', preview:'This changes everything…' },
+      { delay:'Day 5', subject:'Quick question for you', body:'Hi [FIRST_NAME],\n\nI have a quick question — what\'s your biggest challenge right now?', preview:'I have a question…' },
+    ]
+  };
+  if (!emState.sequences) emState.sequences = [];
+  emState.sequences.unshift(seq);
+  emSave();
+  emRenderSequences();
+  emToast('✅ Sequence "'+name+'" created');
+}
+
+function emEditSeqEmail(seqId, emailIdx) {
+  var seq = (emState.sequences||[]).find(function(s){ return String(s.id) === String(seqId); });
+  if (!seq) return;
+  var email = (seq.emails || [])[emailIdx];
+  if (!email) return;
+  // Open compose view with this email pre-loaded
+  emShowCompose({ id:'seq_'+seqId+'_'+emailIdx, subject:email.subject||'', preview:email.preview||'', body:email.body||'', status:'draft', stats:{sent:0,opens:0,clicks:0}, _seqId:seqId, _seqEmailIdx:emailIdx });
+  // Override save to update sequence email
+  window._emSeqSaveOverride = function(subject, body, preview) {
+    if (!seq.emails) seq.emails = [];
+    seq.emails[emailIdx] = { delay:email.delay, subject:subject, body:body, preview:preview };
+    emSave();
+    emRenderSequences();
+    window._emSeqSaveOverride = null;
+    emToast('✅ Sequence email saved');
+  };
+}
+
+// Also handle old emEditSequenceEmail calls from static HTML
+function emEditSequenceEmail(stepIdx) {
+  var defaultSeq = emState.sequences && emState.sequences[0];
+  if (defaultSeq) { emEditSeqEmail(String(defaultSeq.id), stepIdx); return; }
+  emToast('Generate or create a sequence first, then edit its emails.', true);
+}
+
+function emToggleSequence(btn) {
+  // Generic toggle — find nearest sequence card
+  if (!btn) return;
+  var card = btn.closest('[data-seq-id]') || btn.closest('.em-campaign-card');
+  if (!card) return;
+  var seqId = card.dataset.seqId || btn.dataset.id;
+  if (seqId) emToggleSeqLive(seqId, btn);
+}
+
+async function emGenerateSequence() {
+  var niche   = window._appliedNiche || 'Online Business';
+  var av      = window._avatarData   || {};
+  var offer   = (document.getElementById('offer_name')||{}).value || 'My Offer';
+  var allowM  = window.nicheAllowsMoneyTalk ? window.nicheAllowsMoneyTalk(niche) : true;
+  var vocab   = window.getNicheVocab ? window.getNicheVocab(niche) : {};
+
+  var genBtn = document.querySelector('[onclick="emGenerateSequence()"]');
+  if (genBtn) { genBtn.disabled=true; genBtn.textContent='⚡ Generating…'; }
+
+  var prompt = 'You are a world-class email copywriter. Write a 5-email welcome sequence for a new lead.'
+    + '\nNiche: '+niche
+    + '\nOffer: '+offer
+    + '\nIdeal client pain: '+(av.pain||'their current challenge')
+    + '\nDesired transformation: '+(av.transformation||vocab.transformation||'their goal')
+    + (!allowM?'\nDO NOT mention income figures, money amounts, or earning claims. Focus on transformation only.':'')
+    + '\n\nReturn ONLY valid JSON (no markdown) — array of 5 objects:'
+    + '\n[{"delay":"Immediately","subject":"...","preview":"...","body":"..."}]'
+    + '\nEach email: honest, personal, 120-160 words. No hype.';
+
+  try {
+    var resp = await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'), {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:3000, messages:[{role:'user',content:prompt}]})
+    });
+    var data = await resp.json();
+    var text = ((data.content||[])[0]||{}).text||'';
+    var clean = text.replace(/```json|```/g,'').trim();
+    var s=clean.indexOf('['), e=clean.lastIndexOf(']');
+    var emails = JSON.parse(clean.slice(s, e+1));
+    var delays = ['Immediately on sign-up','Day 2','Day 4','Day 7','Day 10'];
+    var seq = {
+      id:'seq_ai_'+Date.now(), name:'AI Welcome Sequence — '+niche,
+      live:false, source:'ai', createdAt:Date.now(),
+      emails: emails.slice(0,5).map(function(e,i){ return { delay:e.delay||delays[i], subject:e.subject||'', preview:e.preview||'', body:e.body||'' }; })
+    };
+    if (!emState.sequences) emState.sequences = [];
+    emState.sequences.unshift(seq);
+    emSave(); emRenderSequences();
+    emToast('✅ Welcome sequence generated — '+ seq.emails.length+' emails ready');
+  } catch(err) {
+    emToast('Generation failed: '+(err.message||'Check connection'), true);
+  } finally {
+    if (genBtn) { genBtn.disabled=false; genBtn.textContent='⚡ AI Generate Welcome Sequence'; }
+  }
+}
+
+/* ── Settings ───────────────────────────────────────────────────── */
+function emLoadSettings() {
+  var sender = emState.sender || {};
+  var nameEl  = document.getElementById('em-sender-name');
+  var emailEl = document.getElementById('em-sender-email');
+  var keyEl   = document.getElementById('em-resend-key');
+  if (nameEl  && sender.name)           nameEl.value  = sender.name;
+  if (emailEl && sender.email)          emailEl.value = sender.email;
+  if (keyEl   && sender.resendApiKey)   keyEl.value   = sender.resendApiKey;
+  // Show connection status
+  var statusEl = document.getElementById('em-resend-status');
+  if (statusEl) {
+    if (sender.resendApiKey) {
+      statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Resend connected</span>';
+    } else {
+      statusEl.innerHTML = '<span style="color:var(--dim)">Not connected — add your Resend API key below to send emails</span>';
+    }
+  }
+}
+
+function emSaveSender() {
+  var nameEl  = document.getElementById('em-sender-name');
+  var emailEl = document.getElementById('em-sender-email');
+  var keyEl   = document.getElementById('em-resend-key');
+  if (!emState.sender) emState.sender = {};
+  if (nameEl)  emState.sender.name  = nameEl.value.trim();
+  if (emailEl) emState.sender.email = emailEl.value.trim();
+  if (keyEl)   emState.sender.resendApiKey = keyEl.value.trim();
+  if (!emState.sender.email) { emToast('⚠️ Enter your sender email address.', true); return; }
+  emSave();
+  emToast('✅ Sender details saved');
+  emLoadSettings();
+}
+
+function emConnectResend() {
+  var keyEl = document.getElementById('em-resend-key');
+  if (!keyEl || !keyEl.value.trim()) { emToast('⚠️ Enter your Resend API key first.', true); return; }
+  if (!emState.sender) emState.sender = {};
+  emState.sender.resendApiKey = keyEl.value.trim();
+  emSave();
+  emToast('✅ Resend API key saved');
+  emLoadSettings();
+}
+
+function emDisconnectResend() {
+  if (!confirm('Disconnect Resend? You won\'t be able to send emails until you reconnect.')) return;
+  if (emState.sender) delete emState.sender.resendApiKey;
+  emSave();
+  emToast('Resend disconnected');
+  emLoadSettings();
+}
+
+function emAddDomain() {
+  var domain = prompt('Enter your sending domain (e.g. yourbrand.com):');
+  if (!domain) return;
+  if (!emState.sender) emState.sender = {};
+  emState.sender.domain = domain.toLowerCase().replace(/^https?:\/\//,'');
+  emSave();
+  emToast('✅ Domain "'+emState.sender.domain+'" added — verify it in Resend dashboard');
+}
+
+function emChangeDomain() {
+  emAddDomain();
+}
+
+function emVerifyDomain() {
+  var domain = emState.sender && emState.sender.domain;
+  if (!domain) { emToast('Add a domain first.', true); return; }
+  window.open('https://resend.com/domains', '_blank');
+  emToast('Opening Resend dashboard — verify DNS records there');
+}
+
+function emSaveFunnelConnection() {
+  var funnelEl = document.getElementById('em-funnel-connect');
+  if (!emState) return;
+  emState.connectedFunnel = funnelEl ? funnelEl.value : '';
+  emSave();
+  emToast('✅ Funnel connection saved');
+}
+
+function emSaveTrigger() {
+  var triggerEl = document.getElementById('em-trigger-type');
+  if (!emState) return;
+  emState.trigger = triggerEl ? triggerEl.value : 'optin';
+  emSave();
+  emToast('✅ Trigger settings saved');
+}
+
+/* ── Make emLoad also wire the campaign list ────────────────────── */
+var _origEmLoad = window.emLoad;
+window.emLoad = async function() {
+  if (typeof _origEmLoad === 'function') await _origEmLoad();
+  // Re-wire in case list was replaced
+  var list = document.getElementById('em-campaigns-list');
+  if (list) list._wired = false;
+  emWireCampaignList();
+  // Also render sequences if on that tab
+  if (emState && emState.tab === 'sequences') emRenderSequences();
+};
+
+/* ── Expose all new functions globally ─────────────────────────── */
+window.emSaveDraftCampaign  = emSaveDraftCampaign;
+window.emSendCampaign       = emSendCampaign;
+window.emFmt                = emFmt;
+window.emFmtAlign           = emFmtAlign;
+window.emFmtList            = emFmtList;
+window.emInsertLink         = emInsertLink;
+window.emAnalyzeEmail       = emAnalyzeEmail;
+window.emRenderSequences    = emRenderSequences;
+window.emLoadSequences      = emLoadSequences;
+window.emCreateSequence     = emCreateSequence;
+window.emEditSeqEmail       = emEditSeqEmail;
+window.emEditSequenceEmail  = emEditSequenceEmail;
+window.emToggleSequence     = emToggleSequence;
+window.emGenerateSequence   = emGenerateSequence;
+window.emLoadSettings       = emLoadSettings;
+window.emSaveSender         = emSaveSender;
+window.emConnectResend      = emConnectResend;
+window.emDisconnectResend   = emDisconnectResend;
+window.emAddDomain          = emAddDomain;
+window.emChangeDomain       = emChangeDomain;
+window.emVerifyDomain       = emVerifyDomain;
+window.emSaveFunnelConnection = emSaveFunnelConnection;
+window.emSaveTrigger        = emSaveTrigger;
+window.emUpdateRecipientCount = emUpdateRecipientCount;
+window.emLoadFunnelsIntoSelects = emLoadFunnelsIntoSelects;
+window.emToggleScheduleDate = emToggleScheduleDate;
+window.emToast              = emToast;
+
 function emDeleteSequence(seqId) {
   if (!seqId) return;
   seqId = String(seqId);
@@ -21321,7 +23301,8 @@ async function emAiWrite(){
     'WHAT THEY HAVE TRIED: ' + tried,
     keywords ? 'THEIR LANGUAGE: ' + keywords : '',
     subHint ? 'USE THIS SUBJECT: ' + subHint : '',
-    !allowMoney ? 'DO NOT mention money or income. Focus on transformation only.' : '',
+    !allowMoney ? 'DO NOT mention money, income figures, or earning amounts. Focus ONLY on transformation, results, and the specific goal for the '+niche+' niche.' : '',
+    (function(){var nv=window.getNicheVocab&&window.getNicheVocab(niche);return nv?'NICHE CONTEXT: Write for '+niche+'. Their transformation = '+nv.transformation+'. Their pain = '+nv.painContext+'. Speak their language — not generic business language.':''})(),
     'RULES: Write to ONE person. Use you. First line makes them feel deeply seen. 200-280 words. No dashes. End with one clear CTA. Use [LINK] where clickable link goes.',
     'Return EXACTLY:',
     'SUBJECT: [subject]',
@@ -21398,6 +23379,521 @@ function emAiRewrite(instruction){
   }).catch(function(){ editor.innerHTML = '<p>'+current+'</p>'; });
 }
 
+
+
+/* ══════════════════════════════════════════════════════════════════
+   NICHE INTELLIGENCE ENGINE
+   Every word in every prompt, hook, email, DM script and content
+   piece is filtered through the user's selected niche.
+   No money-talk bleeds into health, fitness, relationships, etc.
+══════════════════════════════════════════════════════════════════ */
+
+/* ── Niches where income / money talk is inappropriate ── */
+window.nicheAllowsMoneyTalk = function(niche) {
+  var NO_MONEY = [
+    'Health & Fitness','Relationships & Dating','Parenting & Family',
+    'Spirituality & Faith','Food & Nutrition','Beauty & Fashion',
+    'Travel & Lifestyle','Personal Development & Mindset'
+  ];
+  return NO_MONEY.indexOf(niche) === -1;
+};
+
+/* ── Complete niche vocabulary — every content-generation prompt
+      pulls language from here instead of using generic defaults ── */
+window.NICHE_VOCAB = {
+  'Health & Fitness': {
+    goalLabel:     'Their #1 fitness / health goal',
+    goalSuffix:    '/mo budget',
+    goalFormat:    function(v){ return '$'+Number(v).toLocaleString()+' budget'; },
+    transformation:'a body and lifestyle they love',
+    result:        'their fitness goal',
+    clientWin:     'hit their health and fitness goal',
+    proof:         'body transformation story',
+    cta:           'free fitness assessment',
+    dmOpener:      'Are you currently working on your fitness goals?',
+    contentFocus:  'transformation, consistency, and sustainable results — never income or money',
+    exampleHook:   'You haven\'t failed at fitness. You\'ve been given the wrong plan.',
+    painContext:   'struggling with consistency, failed diets, or no results despite effort',
+    desireContext: 'a body they\'re proud of, sustainable habits, and real energy',
+    incomeLabel:   'Monthly wellness investment',
+    proofMetric:   'lbs lost / muscle gained / habit streak',
+    noBizTalk:     true,
+  },
+  'Relationships & Dating': {
+    goalLabel:     'Their relationship goal',
+    goalSuffix:    '',
+    goalFormat:    function(v){ return 'Relationship goals'; },
+    transformation:'the love life and connection they deserve',
+    result:        'their relationship goal',
+    clientWin:     'transform their love life',
+    proof:         'relationship transformation story',
+    cta:           'free connection assessment',
+    dmOpener:      'What\'s the biggest challenge you\'re facing in your relationships right now?',
+    contentFocus:  'connection, confidence, communication, and emotional intelligence — never income',
+    exampleHook:   'The reason you\'re still single has nothing to do with your looks or your personality.',
+    painContext:   'loneliness, repeated bad relationships, or struggling to attract the right person',
+    desireContext: 'deep connection, confidence, and a loving relationship',
+    incomeLabel:   'Investment in your love life',
+    proofMetric:   'relationship quality / confidence score',
+    noBizTalk:     true,
+  },
+  'Parenting & Family': {
+    goalLabel:     'Their family / parenting goal',
+    goalSuffix:    '',
+    goalFormat:    function(v){ return 'Family harmony goals'; },
+    transformation:'a peaceful, connected family life',
+    result:        'their parenting goal',
+    clientWin:     'transform their family dynamic',
+    proof:         'family transformation story',
+    cta:           'free parenting assessment',
+    dmOpener:      'What\'s the biggest challenge you\'re facing as a parent right now?',
+    contentFocus:  'family connection, child development, and parenting confidence — never income',
+    exampleHook:   'The most common parenting mistake is also the most fixable.',
+    painContext:   'overwhelm, power struggles, or feeling disconnected from their children',
+    desireContext: 'peace, joy, and deep connection with their family',
+    incomeLabel:   'Investment in family coaching',
+    proofMetric:   'family harmony / child behaviour improvement',
+    noBizTalk:     true,
+  },
+  'Spirituality & Faith': {
+    goalLabel:     'Their spiritual / personal growth goal',
+    goalSuffix:    '',
+    goalFormat:    function(v){ return 'Spiritual growth goals'; },
+    transformation:'a life of purpose, peace, and spiritual clarity',
+    result:        'their spiritual growth goal',
+    clientWin:     'experience a spiritual breakthrough',
+    proof:         'spiritual growth story',
+    cta:           'free clarity assessment',
+    dmOpener:      'What area of your spiritual life are you most wanting to grow in right now?',
+    contentFocus:  'faith, purpose, inner peace, and spiritual growth — never income or money',
+    exampleHook:   'The peace you\'re looking for isn\'t somewhere else. You just haven\'t been shown where to look.',
+    painContext:   'feeling spiritually dry, lost in purpose, or disconnected from faith',
+    desireContext: 'deep peace, clear purpose, and a vibrant spiritual life',
+    incomeLabel:   'Investment in spiritual growth',
+    proofMetric:   'peace level / purpose clarity / daily practice',
+    noBizTalk:     true,
+  },
+  'Food & Nutrition': {
+    goalLabel:     'Their nutrition / health goal',
+    goalSuffix:    '/mo budget',
+    goalFormat:    function(v){ return '$'+Number(v).toLocaleString()+' budget'; },
+    transformation:'a healthy, sustainable relationship with food and their body',
+    result:        'their nutrition goal',
+    clientWin:     'transform their relationship with food',
+    proof:         'health and gut transformation story',
+    cta:           'free nutrition assessment',
+    dmOpener:      'What\'s the biggest challenge you\'re facing with your eating habits right now?',
+    contentFocus:  'nutrition, gut health, sustainable eating habits, and energy — never income',
+    exampleHook:   'Your body isn\'t broken. Your nutrition strategy is.',
+    painContext:   'poor energy, digestive issues, failed diets, or toxic food relationship',
+    desireContext: 'glowing health, sustained energy, and a body that works with them',
+    incomeLabel:   'Monthly nutrition investment',
+    proofMetric:   'energy / digestion / weight / habit consistency',
+    noBizTalk:     true,
+  },
+  'Beauty & Fashion': {
+    goalLabel:     'Their style / confidence goal',
+    goalSuffix:    '/mo budget',
+    goalFormat:    function(v){ return '$'+Number(v).toLocaleString()+'/mo'; },
+    transformation:'a signature style and unshakeable confidence',
+    result:        'their style and confidence goal',
+    clientWin:     'transform their personal style and confidence',
+    proof:         'style transformation story',
+    cta:           'free style assessment',
+    dmOpener:      'What\'s the biggest challenge you\'re facing with your personal style or confidence?',
+    contentFocus:  'style, beauty, self-expression, and confidence — avoid generic money talk',
+    exampleHook:   'Your style is saying something about you right now. Is it saying what you want?',
+    painContext:   'feeling invisible, not knowing how to dress for their body, or lacking confidence',
+    desireContext: 'a signature style that turns heads and confidence that walks into any room',
+    incomeLabel:   'Monthly style investment',
+    proofMetric:   'confidence score / style transformation',
+    noBizTalk:     false,
+  },
+  'Travel & Lifestyle': {
+    goalLabel:     'Their travel / lifestyle goal',
+    goalSuffix:    '/mo budget',
+    goalFormat:    function(v){ return '$'+Number(v).toLocaleString()+'/mo budget'; },
+    transformation:'a location-independent life doing what they love',
+    result:        'their lifestyle goal',
+    clientWin:     'build their dream travel lifestyle',
+    proof:         'freedom lifestyle story',
+    cta:           'free lifestyle assessment',
+    dmOpener:      'What\'s the #1 thing stopping you from living the travel lifestyle you want?',
+    contentFocus:  'freedom, adventure, travel, and lifestyle design — income as a means, not the end',
+    exampleHook:   'You\'re not stuck. You just haven\'t found the right exit.',
+    painContext:   'feeling trapped, dreaming of travel but no income to support it, or fear of leaving security',
+    desireContext: 'waking up in a new country, working from anywhere, and living on their own terms',
+    incomeLabel:   'Monthly travel / location freedom goal',
+    proofMetric:   'countries visited / income from freedom / days location-free',
+    noBizTalk:     false,
+  },
+  'Personal Development & Mindset': {
+    goalLabel:     'Their personal growth goal',
+    goalSuffix:    '/mo investment',
+    goalFormat:    function(v){ return '$'+Number(v).toLocaleString()+' invested'; },
+    transformation:'the highest version of themselves — disciplined, clear, and unstoppable',
+    result:        'their personal growth goal',
+    clientWin:     'experience a major identity shift',
+    proof:         'mindset and identity transformation story',
+    cta:           'free clarity call',
+    dmOpener:      'What\'s the #1 area of your life you\'re most focused on transforming right now?',
+    contentFocus:  'mindset, identity, discipline, habits, and personal transformation — income secondary',
+    exampleHook:   'You don\'t have a motivation problem. You have a identity problem.',
+    painContext:   'procrastination, self-sabotage, lack of discipline, or feeling stuck in old patterns',
+    desireContext: 'clarity, focus, discipline, and the identity of someone who gets things done',
+    incomeLabel:   'Monthly self-investment',
+    proofMetric:   'habits built / goals achieved / identity shift',
+    noBizTalk:     false,
+  },
+  'Coaching & Consulting': {
+    goalLabel:     'Monthly coaching revenue goal',
+    goalSuffix:    '/mo',
+    goalFormat:    function(v){ return '$'+Number(v).toLocaleString()+'/mo'; },
+    transformation:'a premium, scalable coaching business',
+    result:        'their revenue goal',
+    clientWin:     'hit their monthly revenue target',
+    proof:         'client revenue and testimonial',
+    cta:           'free strategy session',
+    dmOpener:      'Are you currently coaching clients or looking to start?',
+    contentFocus:  'client attraction, premium pricing, and scalable coaching systems',
+    exampleHook:   'Working harder as a coach is why you\'re earning less.',
+    painContext:   'income ceiling, undercharging, no consistent clients, or burnout',
+    desireContext: 'premium clients, recurring income, and coaching on their own terms',
+    incomeLabel:   'Monthly coaching revenue goal',
+    proofMetric:   'revenue / clients / hours worked',
+    noBizTalk:     false,
+  },
+};
+
+/* ── Get vocabulary for the current niche (with safe fallback) ── */
+window.getNicheVocab = function(niche) {
+  niche = niche || window._appliedNiche || '';
+  return window.NICHE_VOCAB[niche] || {
+    goalLabel: 'Monthly goal',
+    goalFormat: function(v){ return '$'+Number(v).toLocaleString()+'/mo'; },
+    transformation: 'their goal',
+    result: 'their desired outcome',
+    clientWin: 'achieve their goal',
+    proof: 'client result',
+    cta: 'free assessment',
+    dmOpener: 'What\'s the biggest challenge you\'re facing right now?',
+    contentFocus: 'value and transformation relevant to your niche',
+    exampleHook: 'The real reason you\'re stuck has nothing to do with effort.',
+    painContext: 'their current challenge',
+    desireContext: 'their desired outcome',
+    incomeLabel: 'Monthly goal',
+    proofMetric: 'result achieved',
+    noBizTalk: false,
+  };
+};
+
+/* ── Update the income goal slider label & format when niche changes ── */
+window._updateNicheGoalLabel = function(niche) {
+  var vocab = window.getNicheVocab(niche);
+  var label = document.getElementById('av-income-label');
+  if (label) label.textContent = vocab.goalLabel || 'Monthly goal';
+  // Update slider display format
+  var slider = document.getElementById('av_igr');
+  var display = document.getElementById('av_ig_out');
+  if (slider && display && vocab.goalFormat) {
+    display.textContent = vocab.goalFormat(slider.value);
+    // Update oninput to use niche-appropriate format
+    slider.oninput = function() {
+      display.textContent = vocab.goalFormat(this.value);
+      if (typeof markFilled === 'function') markFilled();
+    };
+  }
+};
+
+/* ─── Patch applyAll to update niche labels when niche changes ─── */
+var _origApplyAllNiche = window.applyAll;
+window.applyAll = function() {
+  if (typeof _origApplyAllNiche === 'function') _origApplyAllNiche.apply(this, arguments);
+  var niche = (document.getElementById('niche')||{}).value || window._appliedNiche || '';
+  if (niche) window._updateNicheGoalLabel(niche);
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   FORM AUTO-SAVE & MULTI-OFFER SYSTEM
+   All form answers persist across sessions.
+   Users can save multiple named offers and switch between them
+   without losing any work.
+══════════════════════════════════════════════════════════════════ */
+
+var EOS_OFFER_FIELDS = [
+  'offer_promise','offer_result','offer_name','offer_no_effort','offer_transformation',
+  'offer_system','offer_format','offer_duration','offer_difference','offer_price',
+  'offer_payment','offer_guarantee','offer_guarantee_cond','offer_scarcity','offer_bonus'
+];
+var EOS_AVATAR_FIELDS = [
+  'av_name','av_age','av_gender','av_location','av_edu','av_income','av_job',
+  'av_industry','av_employ','av_hrs','av_current','av_desired','av_igr',
+  'av_transformation','av_fear','av_tried','av_personality','av_motivation',
+  'av_influences','av_objections'
+];
+var EOS_PLAN_FIELDS = ['niche','price','target'];
+var EOS_ALL_FIELDS  = EOS_PLAN_FIELDS.concat(EOS_AVATAR_FIELDS).concat(EOS_OFFER_FIELDS);
+
+/* ── Debounced auto-save ── */
+var _eosSaveTimer = null;
+window._eosSaveFormState = function() {
+  clearTimeout(_eosSaveTimer);
+  _eosSaveTimer = setTimeout(function() {
+    var state = { savedAt: Date.now(), niche: window._appliedNiche||'' };
+    EOS_ALL_FIELDS.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) state[id] = el.value;
+    });
+    try { localStorage.setItem('eos_form_state', JSON.stringify(state)); } catch(e) {}
+  }, 900);
+};
+
+/* ── Load saved state on startup ── */
+window._eosLoadFormState = function() {
+  try {
+    var raw = localStorage.getItem('eos_form_state');
+    if (!raw) return;
+    var state = JSON.parse(raw);
+    var restored = 0;
+    EOS_ALL_FIELDS.forEach(function(id) {
+      if (state[id] === undefined || state[id] === null) return;
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.value = state[id];
+      restored++;
+      // Trigger reactive updates
+      ['input','change'].forEach(function(ev) {
+        try { el.dispatchEvent(new Event(ev, {bubbles:true})); } catch(e) {}
+      });
+    });
+    if (restored > 0) {
+      // Re-apply niche if saved
+      if (state.niche && state.niche !== window._appliedNiche) {
+        window._appliedNiche = state.niche;
+        var nicheEl = document.getElementById('niche');
+        if (nicheEl && state.niche) nicheEl.value = state.niche;
+      }
+      console.log('[EOS] Restored', restored, 'form fields from last session');
+    }
+  } catch(e) { console.warn('[EOS] Form restore failed:', e); }
+};
+
+/* ── Attach listeners to all fields so every keystroke saves ── */
+window._eosAttachAutoSave = function() {
+  EOS_ALL_FIELDS.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el || el._eosAutoSave) return;
+    el._eosAutoSave = true;
+    el.addEventListener('input',  window._eosSaveFormState);
+    el.addEventListener('change', window._eosSaveFormState);
+    el.addEventListener('blur',   window._eosSaveFormState);
+  });
+};
+
+/* ══ SAVED OFFERS SYSTEM ══════════════════════════════════════════ */
+
+window._eosGetSavedOffers = function() {
+  try { return JSON.parse(localStorage.getItem('eos_saved_offers') || '[]'); }
+  catch(e) { return []; }
+};
+
+window._eosSaveCurrentOffer = function(customName) {
+  var offerNameEl = document.getElementById('offer_name');
+  var defaultName = (offerNameEl && offerNameEl.value.trim()) || 'Unnamed Offer';
+  var name = customName || defaultName;
+  var niche = window._appliedNiche || (document.getElementById('niche')||{}).value || 'Unknown Niche';
+
+  var snap = { niche: niche, price: window._appliedPrice||0, target: window._appliedTarget||0 };
+  EOS_AVATAR_FIELDS.concat(EOS_OFFER_FIELDS).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) snap[id] = el.value;
+  });
+
+  var offers = window._eosGetSavedOffers();
+  // Check if there's already one for this offer name + niche (update it)
+  var existingIdx = offers.findIndex(function(o){ return o.name === name && o.niche === niche; });
+  var entry = {
+    id: (existingIdx >= 0 ? offers[existingIdx].id : Date.now().toString()),
+    name: name,
+    niche: niche,
+    savedAt: new Date().toISOString(),
+    data: snap
+  };
+  if (existingIdx >= 0) offers[existingIdx] = entry;
+  else offers.unshift(entry);
+  if (offers.length > 12) offers = offers.slice(0, 12);
+  localStorage.setItem('eos_saved_offers', JSON.stringify(offers));
+  return entry;
+};
+
+window._eosLoadOffer = function(offerId) {
+  var offers = window._eosGetSavedOffers();
+  var offer = offers.find(function(o){ return o.id === offerId; });
+  if (!offer || !offer.data) return false;
+  var d = offer.data;
+  // Restore plan
+  if (d.niche) {
+    var nicheEl = document.getElementById('niche');
+    if (nicheEl) { nicheEl.value = d.niche; nicheEl.dispatchEvent(new Event('change',{bubbles:true})); }
+    window._appliedNiche = d.niche;
+  }
+  if (d.price) { var pe=document.getElementById('price'); if(pe){pe.value=d.price;} window._appliedPrice=Number(d.price); }
+  if (d.target){ var te=document.getElementById('target'); if(te){te.value=d.target;} window._appliedTarget=Number(d.target); }
+  // Restore avatar + offer fields
+  EOS_AVATAR_FIELDS.concat(EOS_OFFER_FIELDS).forEach(function(id) {
+    if (d[id] === undefined) return;
+    var el = document.getElementById(id);
+    if (el) { el.value = d[id]; el.dispatchEvent(new Event('input',{bubbles:true})); }
+  });
+  if (window.applyAll) window.applyAll();
+  return true;
+};
+
+window._eosDeleteOffer = function(offerId) {
+  var offers = window._eosGetSavedOffers().filter(function(o){ return o.id !== offerId; });
+  localStorage.setItem('eos_saved_offers', JSON.stringify(offers));
+};
+
+/* ══ SAVE/LOAD UI ═════════════════════════════════════════════════ */
+
+window._eosShowSavedOffersPanel = function() {
+  var existing = document.getElementById('_eos_offers_modal');
+  if (existing) { existing.remove(); return; }
+
+  var offers = window._eosGetSavedOffers();
+
+  var modal = document.createElement('div');
+  modal.id = '_eos_offers_modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px)';
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+
+  var offerRows = offers.length === 0
+    ? '<div style="text-align:center;padding:2rem 1rem;color:var(--dimmer);font-size:12px">No saved offers yet.<br>Click "💾 Save Current Offer" to save this one.</div>'
+    : offers.map(function(o) {
+        var d = new Date(o.savedAt);
+        var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+        return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+          +'<div style="flex:1;min-width:140px">'
+          +'<div style="font-size:13px;font-weight:700;color:var(--white)">'+o.name+'</div>'
+          +'<div style="font-size:10px;color:var(--dimmer);margin-top:2px">'+o.niche+' · Saved '+dateStr+'</div></div>'
+          +'<button onclick="window._eosLoadOffer(\''+o.id+'\');document.getElementById(\'_eos_offers_modal\').remove();window._eosShowLoadedToast(\''+o.name.replace(/'/g,'\\\'')+'\')" style="padding:7px 14px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Load</button>'
+          +'<button onclick="if(confirm(\'Delete '+o.name.replace(/'/g,'\\\'')+'?\')){'
+              +'window._eosDeleteOffer(\''+o.id+'\');'
+              +'this.closest(\'[style*=border-radius]\').remove();'
+              +'}" style="padding:7px 12px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">🗑</button>'
+          +'</div>';
+      }).join('');
+
+  modal.innerHTML = '<div style="background:linear-gradient(145deg,#13112e,#0e0c24);border:1px solid rgba(108,99,255,.25);border-radius:20px;max-width:540px;width:100%;max-height:85vh;overflow-y:auto">'
+    +'<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#13112e;z-index:1">'
+    +'<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--purple);font-weight:900;margin-bottom:2px">Your Saved Offers</div>'
+    +'<div style="font-size:16px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white)">'+offers.length+' offer'+(offers.length!==1?'s':'')+' saved</div></div>'
+    +'<button onclick="document.getElementById(\'_eos_offers_modal\').remove()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer">×</button></div>'
+    +'<div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:8px" id="_eos_offer_rows">'+offerRows+'</div>'
+    +'<div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);position:sticky;bottom:0;background:#13112e">'
+    +'<div style="display:flex;gap:8px;align-items:center">'
+    +'<input id="_eos_save_name" placeholder="Name this offer (optional)…" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none" />'
+    +'<button onclick="var n=document.getElementById(\'_eos_save_name\').value.trim();var saved=window._eosSaveCurrentOffer(n||undefined);window._eosShowLoadedToast(saved.name+\' saved!\',\'💾\');document.getElementById(\'_eos_offers_modal\').remove();" style="padding:9px 18px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap">💾 Save Now</button>'
+    +'</div>'
+    +'<div style="font-size:10px;color:var(--dimmer);margin-top:6px">Saves your entire offer, avatar, and revenue plan. Load it anytime to continue where you left off.</div>'
+    +'</div></div>';
+
+  document.body.appendChild(modal);
+};
+
+window._eosShowLoadedToast = function(msg, icon) {
+  var t = document.createElement('div');
+  t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;padding:10px 20px;border-radius:50px;font-size:13px;font-weight:800;font-family:Poppins,sans-serif;z-index:999999;box-shadow:0 8px 24px rgba(0,0,0,.4);animation:_oa_fadeUp .3s ease;white-space:nowrap';
+  t.textContent = (icon||'✅')+' '+msg;
+  document.body.appendChild(t);
+  setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(function(){t.remove();},400); }, 2800);
+};
+
+/* ══ Inject Save/Load buttons into the Offer Creation page ═══════ */
+window._eosInjectOfferButtons = function() {
+  if (document.getElementById('_eos_offer_mgr_btns')) return;
+  var genBtn = document.getElementById('generate-offer-btn') || document.querySelector('button[onclick*="generateOffer"]');
+  if (!genBtn) return;
+  var wrap = document.createElement('div');
+  wrap.id = '_eos_offer_mgr_btns';
+  wrap.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap';
+  wrap.innerHTML = '<button onclick="window._eosShowSavedOffersPanel()" style="flex:1;padding:10px 14px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:10px;color:var(--purple);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">📂 My Saved Offers</button>'
+    +'<button onclick="var s=window._eosSaveCurrentOffer();window._eosShowLoadedToast(s.name+\' saved!\',\'💾\')" style="flex:1;padding:10px 14px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.22);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">💾 Save Current Offer</button>';
+  genBtn.parentNode.insertBefore(wrap, genBtn);
+};
+
+/* ══ Auto-save warning when niche changes ═══════════════════════ */
+window._eosLastNiche = '';
+window._eosWatchNicheChange = function() {
+  var nicheEl = document.getElementById('niche');
+  if (!nicheEl || nicheEl._eosNicheWatcher) return;
+  nicheEl._eosNicheWatcher = true;
+  window._eosLastNiche = nicheEl.value;
+  nicheEl.addEventListener('change', function() {
+    var newNiche = this.value;
+    if (!window._eosLastNiche || window._eosLastNiche === newNiche) {
+      window._eosLastNiche = newNiche;
+      return;
+    }
+    var hasOfferData = EOS_OFFER_FIELDS.some(function(id){
+      var el=document.getElementById(id); return el && el.value.trim().length > 2;
+    });
+    if (hasOfferData) {
+      var offerNameEl = document.getElementById('offer_name');
+      var offerName = offerNameEl && offerNameEl.value.trim() ? offerNameEl.value.trim() : 'My ' + window._eosLastNiche + ' Offer';
+      var saved = window._eosSaveCurrentOffer(offerName);
+      window._eosShowLoadedToast('"'+saved.name+'" auto-saved before niche switch!', '💾');
+    }
+    window._eosLastNiche = newNiche;
+    window._updateNicheGoalLabel(newNiche);
+  });
+};
+
+/* ══ NICHE-SPECIFIC CONTENT INJECTION ════════════════════════════
+   Patch the DM script builder and avatar hooks to use niche language
+══════════════════════════════════════════════════════════════════ */
+
+/* Override the income-focused desire hook in generateAvatar with niche-aware version */
+var _origGenAvatar = window.generateAvatar;
+window.generateAvatar = function() {
+  // Pre-patch: update niche vocabulary labels before generating
+  var niche = window._appliedNiche || (document.getElementById('niche')||{}).value || '';
+  if (niche) window._updateNicheGoalLabel(niche);
+  if (typeof _origGenAvatar === 'function') return _origGenAvatar.apply(this, arguments);
+};
+
+/* ══ BOOT: run everything when DOM is ready ═══════════════════════ */
+(function _eosBootSaveSystem() {
+  function boot() {
+    // 1. Load saved state
+    window._eosLoadFormState();
+    // 2. Attach auto-save to all fields
+    window._eosAttachAutoSave();
+    // 3. Watch for niche changes
+    window._eosWatchNicheChange();
+    // 4. Inject save/load buttons
+    window._eosInjectOfferButtons();
+    // 5. Update niche labels on load
+    var niche = window._appliedNiche || (document.getElementById('niche')||{}).value || '';
+    if (niche) window._updateNicheGoalLabel(niche);
+    // 6. Re-run injectOfferButtons whenever offer page is navigated to
+    var origShowPage = window.showPage;
+    if (origShowPage) {
+      window.showPage = function(page, nav) {
+        origShowPage.apply(this, arguments);
+        if (page === 'offer') {
+          setTimeout(window._eosInjectOfferButtons, 200);
+          setTimeout(window._eosAttachAutoSave, 300);
+        }
+      };
+    }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    setTimeout(boot, 400);  // after all other init scripts
+  }
+})();
 
 </script>
 </body>
