@@ -8,38 +8,54 @@ export default async function handler(req, res) {
   const API_KEY = process.env.ANTHROPIC_API_KEY;
   if (!API_KEY) return res.status(500).json({ error: "ANTHROPIC_API_KEY not set." });
 
-  const { niche, price, target, avatar, offer, mode, _rawPrompt, _maxTokens } = req.body;
+  const { niche, price, target, avatar, offer, mode, _rawPrompt, _maxTokens, system } = req.body;
 
-  // ── Raw passthrough for generic callClaude() calls ─────────────────────
+  // ── Raw passthrough for generic callClaude() / callAPI() calls ─────────────
   if (_rawPrompt) {
     try {
+      const anthropicBody = {
+        model: "claude-sonnet-4-20250514",           // Sonnet for quality
+        max_tokens: _maxTokens || 8000,              // Raised: 7-day calendars need room
+        messages: [{ role: "user", content: _rawPrompt }]
+      };
+      if (system) anthropicBody.system = system;     // Pass system prompt if provided
+
       const r = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
-        body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: _maxTokens || 2000, messages: [{ role: "user", content: _rawPrompt }] })
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": API_KEY,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify(anthropicBody)
       });
       const d = await r.json();
       if (d.error) return res.status(500).json({ error: d.error.message });
       return res.status(200).json({ text: d.content?.[0]?.text || "" });
-    } catch (err) { return res.status(500).json({ error: err.message }); }
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
   }
 
   if (!niche) return res.status(400).json({ error: "Missing niche." });
 
   const av = avatar || {};
-  const isAffiliate = mode === 'affiliate';
+  const isAffiliate = mode === "affiliate";
 
   const prompt = `You are a world-class direct-response copywriter and social media strategist specialising in ${niche}.
 
-${isAffiliate ? `CONTEXT: Affiliate promoting: "${offer || 'a high-ticket programme'}"` : `CONTEXT: Coach/consultant with own offer: "${offer || 'a high-ticket programme'}" at $${Number(price||0).toLocaleString()}`}
+${isAffiliate
+  ? `CONTEXT: Affiliate promoting: "${offer || "a high-ticket programme"}"`
+  : `CONTEXT: Coach/consultant with own offer: "${offer || "a high-ticket programme"}" at $${Number(price || 0).toLocaleString()}`
+}
 
 BUYER AVATAR:
-- Name: ${av.name || 'Ideal Client'} | Job: ${av.job || 'professional'}
-- Core pain: "${av.pain || 'their main struggle'}"
-- Fear: "${av.fear || 'fear of change'}"
-- Already tried: "${av.tried || 'various solutions'}"
-- Transformation: "${av.transformation || 'their desired outcome'}"
-- Motivation: "${av.motivation || 'freedom and success'}"
+- Name: ${av.name || "Ideal Client"} | Job: ${av.job || "professional"}
+- Core pain: "${av.pain || "their main struggle"}"
+- Fear: "${av.fear || "fear of change"}"
+- Already tried: "${av.tried || "various solutions"}"
+- Transformation: "${av.transformation || "their desired outcome"}"
+- Motivation: "${av.motivation || "freedom and success"}"
 
 WEEK STRATEGY:
 - Days 1–2: Educate about the PROBLEM only. Zero selling. Pure value and relatability.
@@ -76,16 +92,24 @@ NON-NEGOTIABLE QUALITY RULES:
 ✓ Active voice always
 ✓ Sound human — never AI
 ✓ Specific over vague: use real numbers, timeframes, names
-✓ Write for ${av.job || 'the exact target audience'} — not generic entrepreneurs
+✓ Write for ${av.job || "the exact target audience"} — not generic entrepreneurs
 ✓ Each day genuinely different in topic AND emotional approach
 ✓ Never use: "game-changer", "journey", "in today's world", "let's be honest"
-${isAffiliate ? '✓ Never mention commission or that it is an affiliate product' : ''}`;
+${isAffiliate ? "✓ Never mention commission or that it is an affiliate product" : ""}`;
 
   try {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model: "claude-haiku-4-5-20251001", max_tokens: 4000, messages: [{ role: "user", content: prompt }] })
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": API_KEY,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",   // ← Changed from Haiku to Sonnet
+        max_tokens: 8000,                    // ← Raised from 4000 to fit full 7-day calendar
+        messages: [{ role: "user", content: prompt }]
+      })
     });
     const d = await r.json();
     if (d.error) return res.status(500).json({ error: d.error.message });
