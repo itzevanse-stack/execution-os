@@ -1,19 +1,41 @@
-// api/claude.js — Vercel serverless function (CommonJS)
-// Proxies requests to Anthropic API, adds API key server-side
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(200).end();
-  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+// api/claude.js — Vercel Edge Runtime
+// Edge Runtime has NO execution timeout (vs 10s/60s for Node.js serverless)
+// This eliminates FUNCTION_INVOCATION_TIMEOUT on long AI responses.
+
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(req) {
+  // CORS preflight
+  if (req.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+      },
+    });
+  }
+
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+      status: 405,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  }
 
   const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
   if (!ANTHROPIC_API_KEY) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set in Vercel environment variables' });
+    return new Response(
+      JSON.stringify({ error: 'ANTHROPIC_API_KEY not set in Vercel environment variables' }),
+      { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+    );
   }
 
   try {
-    const body = req.body;
+    const body = await req.json();
     let messages = [];
 
     if (body.messages && Array.isArray(body.messages)) {
@@ -21,15 +43,21 @@ module.exports = async function handler(req, res) {
     } else if (body.prompt) {
       messages = [{ role: 'user', content: body.prompt }];
     } else {
-      return res.status(400).json({ error: 'Request must include messages array or prompt' });
+      return new Response(
+        JSON.stringify({ error: 'Request must include messages array or prompt' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+      );
     }
 
-    // ── fetchUrl: fetch the webpage and prepend its content ──
+    // ── fetchUrl: scrape a webpage and prepend its content ──────────────────
     if (body.fetchUrl) {
       try {
         const pageResp = await fetch(body.fetchUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ExecutionOS/1.0)', 'Accept': 'text/html,application/xhtml+xml' },
-          signal: AbortSignal.timeout(8000)
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (compatible; ExecutionOS/1.0)',
+            'Accept': 'text/html,application/xhtml+xml',
+          },
+          signal: AbortSignal.timeout(8000),
         });
         if (pageResp.ok) {
           let html = await pageResp.text();
@@ -45,16 +73,26 @@ module.exports = async function handler(req, res) {
             .substring(0, 6000);
           if (messages.length > 0 && html.length > 100) {
             messages = [
-              { role: 'user', content: 'SALES PAGE CONTENT (from ' + body.fetchUrl + '):\n\n' + html + '\n\n---\n\n' + messages[0].content },
-              ...messages.slice(1)
+              {
+                role: 'user',
+                content:
+                  'SALES PAGE CONTENT (from ' +
+                  body.fetchUrl +
+                  '):\n\n' +
+                  html +
+                  '\n\n---\n\n' +
+                  messages[0].content,
+              },
+              ...messages.slice(1),
             ];
           }
         }
-      } catch(fetchErr) {
+      } catch (fetchErr) {
         console.warn('fetchUrl failed:', fetchErr.message);
       }
     }
 
+    // ── Build Anthropic request ──────────────────────────────────────────────
     const anthropicBody = {
       model:      body.model      || 'claude-sonnet-4-20250514',
       max_tokens: body.max_tokens || 1000,
@@ -62,6 +100,7 @@ module.exports = async function handler(req, res) {
     };
     if (body.system) anthropicBody.system = body.system;
 
+    // ── Call Anthropic API ───────────────────────────────────────────────────
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -73,14 +112,25 @@ module.exports = async function handler(req, res) {
     });
 
     const data = await response.json();
+
     if (!response.ok) {
-      console.error('Anthropic error:', response.status, data);
-      return res.status(response.status).json(data);
+      console.error('Anthropic error:', response.status, JSON.stringify(data));
+      return new Response(JSON.stringify(data), {
+        status: response.status,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
     }
 
-    return res.status(200).json(data);
+    return new Response(JSON.stringify(data), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+
   } catch (err) {
-    console.error('Proxy error:', err);
-    return res.status(500).json({ error: 'Internal server error', detail: err.message });
+    console.error('Edge proxy error:', err);
+    return new Response(
+      JSON.stringify({ error: 'Internal server error', detail: err.message }),
+      { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } }
+    );
   }
-};
+}
