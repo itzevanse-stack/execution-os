@@ -387,78 +387,76 @@ const node_build_war_plan = traced('build_war_plan', async function(state, trace
   const span = tracer.span('build_war_plan');
 
   const { text, tokens } = await ai(
-    `You are the launch strategist behind the fastest go-to-markets in the expert business world. You think in sequences, triggers, and conversion events. You give actions so specific they can be executed today without extra thinking. No vague instructions — specific platforms, specific messages, specific targets, specific numbers.`,
+    `You are the world's best launch strategist. You have built go-to-markets for 200+ expert businesses. You give SPECIFIC, REAL, EXECUTABLE actions — never placeholders like "action 1" or "title". Every action must name the exact platform, exact message, or exact task.
 
-    `Build a 30-day launch war plan. Return ONLY valid JSON. Every action must be specific enough to execute today.
+Build a 30-day launch war plan for this exact business. Return ONLY valid JSON.
 
-NICHE: ${state.niche} | OFFER: ${state.offerName} at $${state.price}
-TARGET: $${state.target}/month (${state.clientsNeeded} clients, ${state.leadsNeeded} leads needed)
-AVATAR: ${state.av_job} struggling with "${state.av_pain}"
-PLATFORM SIGNALS: ${state.av_keywords || 'not specified'}
+Business: ${state.offerName || 'Their offer'} in ${state.niche} at $${state.price}/client
+Target: $${state.target}/month (${state.clientsNeeded} clients needed)
+Avatar: ${state.av_job} — "${state.av_pain}"
 
+CRITICAL: Replace every placeholder with a REAL, SPECIFIC action for ${state.niche}. No generic advice.
+
+Return this JSON with 28 real days of specific actions:
 {
   "phase1": {
-    "title": "Foundation (Days 1–7)",
-    "goal": "Specific goal for this phase — what must be built or proved",
+    "title": "Foundation (Days 1-7)",
+    "goal": "Specific goal for ${state.niche} in week 1",
     "days": [
-      { "day": 1, "focus": "specific day 1 task title", "actions": ["specific action 1 for ${state.niche}", "specific action 2", "specific action 3"] },
-      { "day": 2, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 3, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 4, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 5, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 6, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 7, "focus": "title", "actions": ["action 1", "action 2", "action 3"] }
+      {"day":1,"focus":"Specific focus for day 1","actions":["Real specific action for ${state.niche}","Second specific action","Third specific action"]},
+      {"day":2,"focus":"Day 2 focus","actions":["Real action","Real action","Real action"]},
+      {"day":3,"focus":"Day 3 focus","actions":["Real action","Real action","Real action"]},
+      {"day":4,"focus":"Day 4 focus","actions":["Real action","Real action","Real action"]},
+      {"day":5,"focus":"Day 5 focus","actions":["Real action","Real action","Real action"]},
+      {"day":6,"focus":"Day 6 focus","actions":["Real action","Real action","Real action"]},
+      {"day":7,"focus":"Day 7 focus — first review","actions":["Real action","Real action","Real action"]}
     ]
   },
   "phase2": {
-    "title": "Momentum (Days 8–14)",
-    "goal": "Specific momentum goal — first proof of concept",
+    "title": "Momentum (Days 8-14)",
+    "goal": "Specific momentum goal for ${state.niche}",
     "days": [
-      { "day": 8,  "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 9,  "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 10, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 11, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 12, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 13, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 14, "focus": "title", "actions": ["action 1", "action 2", "action 3"] }
+      {"day":8,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":9,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":10,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":11,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":12,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":13,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":14,"focus":"focus","actions":["Real action","Real action","Real action"]}
     ]
   },
   "phase3": {
-    "title": "Launch (Days 15–21)",
-    "goal": "First paying clients — specific target",
+    "title": "Launch (Days 15-21)",
+    "goal": "First paying clients — specific number",
     "days": [
-      { "day": 15, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 16, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 17, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 18, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 19, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 20, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 21, "focus": "title", "actions": ["action 1", "action 2", "action 3"] }
+      {"day":15,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":16,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":17,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":18,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":19,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":20,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":21,"focus":"focus","actions":["Real action","Real action","Real action"]}
     ]
   },
   "phase4": {
-    "title": "Scale (Days 22–30)",
-    "goal": "Systematise what worked — specific scale target",
+    "title": "Scale (Days 22-30)",
+    "goal": "Systematise what worked",
     "days": [
-      { "day": 22, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 25, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 28, "focus": "title", "actions": ["action 1", "action 2", "action 3"] },
-      { "day": 30, "focus": "title", "actions": ["action 1", "action 2", "action 3"] }
+      {"day":22,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":25,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":28,"focus":"focus","actions":["Real action","Real action","Real action"]},
+      {"day":30,"focus":"Review and set month 2 targets","actions":["Real action","Real action","Real action"]}
     ]
   },
-  "metrics": [
-    "KPI 1 specific to ${state.niche} — what to measure weekly",
-    "KPI 2 — conversion metric to track",
-    "KPI 3 — leading indicator of $${state.target}/month"
-  ],
-  "criticalWarning": "The single most common reason ${state.niche} launches fail — brutally honest and specific to this situation"
+  "metrics": ["Specific KPI 1 for ${state.niche}","Specific KPI 2","Specific KPI 3"],
+  "criticalWarning": "The most common reason ${state.niche} launches fail — specific and honest"
 }`,
     5000
   );
 
   const warPlan = extractJSON(text) || {};
   span.end(tokens);
-  return { ...state, warPlan };
+    return { ...state, warPlan };
 });
 
 // ── Node 6: content_engine ────────────────────────────────────────────────────
