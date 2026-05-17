@@ -626,15 +626,28 @@ module.exports = async function handler(req, res) {
     if (!nodeFn) return res.status(400).json({ error: 'Unknown tab: ' + tab });
 
     try {
-      // For architect, also run research first
+      // Build state from inputs + any existing intel passed from the frontend
+      // This avoids re-running research/positioning on every tab regeneration
+      const existingIntel = req.body.intel || {};
       let state = { ...inputs };
       state = node_collect_state(state);
-      if (tab === 'architect' || tab === 'content-engine') {
+
+      // Use existing intel if available — skip expensive upstream nodes
+      if (existingIntel.positioning && Object.keys(existingIntel.positioning).length > 0) {
+        state.positioning = existingIntel.positioning;
+      }
+      if (existingIntel.marketIntel) {
+        state.marketIntel = existingIntel.marketIntel;
+      }
+
+      // Only run upstream nodes if we don't have their output already
+      if (!state.marketIntel && (tab === 'architect' || tab === 'content-engine')) {
         state = await node_research_niche(state, tracer);
       }
-      if (tab === 'copy-vault' || tab === 'offer-stack' || tab === 'war-plan' || tab === 'content-engine') {
-        if (!state.positioning) state = await node_build_positioning(state, tracer);
+      if (!state.positioning && (tab === 'copy-vault' || tab === 'offer-stack' || tab === 'war-plan' || tab === 'content-engine')) {
+        state = await node_build_positioning(state, tracer);
       }
+
       const result = await nodeFn(state, tracer);
       const keyMap = {
         'architect':      'positioning',
