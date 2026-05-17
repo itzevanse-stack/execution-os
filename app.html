@@ -24455,50 +24455,60 @@ async function brRunFullAnalysis() {
     if(sl)sl.textContent='Running AI analysis… Takes 60–120 seconds. Please keep this page open.';
   }, 2200);
 
-  // Sequential AI calls — one at a time so each has full time budget (no timeout)
+  // LangGraph agent runs the full Boardroom graph server-side
   var startTime = Date.now();
   try {
-    var intel = {
-      generatedAt: Date.now(), inputs: inp,
-      architect:{}, offerStack:{}, copyVault:{}, warPlan:{}, contentEngine:{}
-    };
+    // Animate stages 4-8 as queued while server processes
+    [4,5,6,7,8].forEach(function(si, i) {
+      setTimeout(function() {
+        var _sst=document.getElementById('_br_st'+si), _sic=document.getElementById('_br_ic'+si);
+        var _sss=document.getElementById('_br_ss'+si), _sl=document.getElementById('_br_statusline');
+        if(_sst){_sst.style.opacity='1';_sst.style.background='rgba(108,99,255,.07)';_sst.style.borderColor='rgba(108,99,255,.22)';}
+        if(_sic){_sic.style.background='rgba(108,99,255,.2)';_sic.style.animation='_oa_pulse 1s ease infinite';}
+        if(_sss){_sss.textContent='queued…';_sss.style.color='var(--dimmer)';}
+        if(_sl&&i===0)_sl.textContent='LangGraph agent running server-side… please keep this page open.';
+      }, i * 350);
+    });
 
-    var _brSeq = [
-      { key:'architect',     fn:brCallAI_Architect,     si:4 },
-      { key:'offerStack',    fn:brCallAI_OfferStack,    si:5 },
-      { key:'copyVault',     fn:brCallAI_CopyVault,     si:6 },
-      { key:'warPlan',       fn:brCallAI_WarPlan,       si:7 },
-      { key:'contentEngine', fn:brCallAI_ContentEngine, si:8 },
-    ];
+    // Single call to /api/boardroom — all 7 nodes run server-side
+    var _brCtl = new AbortController();
+    var _brTid = setTimeout(function(){ _brCtl.abort(); }, 280000);
+    var _brResp = await fetch(window.location.origin + '/api/boardroom', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: _brCtl.signal,
+      body: JSON.stringify({ inputs: inp })
+    });
+    clearTimeout(_brTid);
 
-    for (var _qi=0; _qi<_brSeq.length; _qi++) {
-      var _q = _brSeq[_qi];
-      var _qSt=document.getElementById('_br_st'+_q.si), _qIc=document.getElementById('_br_ic'+_q.si);
-      var _qSs=document.getElementById('_br_ss'+_q.si), _qSl=document.getElementById('_br_statusline');
-      if(_qSt){_qSt.style.opacity='1';_qSt.style.background='rgba(108,99,255,.07)';_qSt.style.borderColor='rgba(108,99,255,.22)';}
-      if(_qIc){_qIc.style.background='rgba(108,99,255,.2)';_qIc.style.animation='_oa_pulse 1s ease infinite';}
-      if(_qSs){_qSs.textContent='running…';_qSs.style.color='var(--purple)';}
-      if(_qSl&&STAGES[_q.si])_qSl.textContent=STAGES[_q.si].sub;
-      try {
-        var _qR = await _q.fn(inp);
-        intel[_q.key] = (_qR && !_qR._error && Object.keys(_qR).length>0) ? _qR : {};
-        if(_qSs){
-          if(_qR&&_qR._error){_qSs.textContent='⚠ retry';_qSs.style.color='var(--orange)';console.warn('[BR]',_q.key,_qR._error);}
-          else{_qSs.textContent='✓';_qSs.style.color='rgba(108,99,255,.8)';}
-        }
-        if(_qIc){_qIc.style.animation='';_qIc.style.background='rgba(108,99,255,.14)';}
-      } catch(_qE) {
-        console.error('[BR]',_q.key,'threw:',_qE.message);
-        if(_qSs){_qSs.textContent='⚠ failed';_qSs.style.color='var(--orange)';}
-        if(_qIc){_qIc.style.animation='';}
-      }
+    var _brData = await _brResp.json();
+    if (!_brResp.ok || _brData.error) {
+      throw new Error(_brData.error || 'Boardroom server error ' + _brResp.status);
     }
+
+    // Mark all stages complete
+    [4,5,6,7,8].forEach(function(si) {
+      var _sss=document.getElementById('_br_ss'+si), _sic=document.getElementById('_br_ic'+si);
+      if(_sss){_sss.textContent='✓';_sss.style.color='rgba(108,99,255,.8)';}
+      if(_sic){_sic.style.animation='';_sic.style.background='rgba(108,99,255,.14)';}
+    });
+
+    if (_brData.tracer) console.log('[Boardroom] Run:', _brData.tracer);
+
+    var intel = {
+      generatedAt:   _brData.generatedAt || Date.now(),
+      inputs:        inp,
+      architect:     _brData.architect     || {},
+      offerStack:    _brData.offerStack    || {},
+      copyVault:     _brData.copyVault     || {},
+      warPlan:       _brData.warPlan       || {},
+      contentEngine: _brData.contentEngine || {},
+    };
 
     // Store globally and locally
     window._boardroomIntel = intel;
     try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel)); } catch(e){}
 
-    // Sequential calls are slow enough — reveal immediately
     brRevealIntelligence(intel);
 
   } catch(err) {
@@ -26620,25 +26630,39 @@ window.brRegenerateTab = async function(tab) {
   if (!panel) return;
 
   // Show loading state
-  var origHtml = panel.innerHTML;
+  var _tabLabel = tab.replace(/-/g,' ').split(' ').map(function(w){return w.charAt(0).toUpperCase()+w.slice(1);}).join(' ');
+  var _spinId = '_br_spin_' + Date.now();
   panel.innerHTML = '<div style="text-align:center;padding:3rem 1rem">'
-    +'<div style="display:inline-block;width:36px;height:36px;border:3px solid rgba(108,99,255,.2);border-top-color:var(--purple);border-radius:50%;animation:_av_spin 1s linear infinite;margin-bottom:14px"></div>'
-    +'<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px">Generating ' + tab.replace(/-/g,' ').replace(/\w/g,function(c){return c.toUpperCase();}) + '…</div>'
-    +'<div style="font-size:11px;color:var(--dim)">Writing real content tailored to your business — about 15 seconds</div>'
+    +'<div id="'+_spinId+'" style="display:inline-block;width:44px;height:44px;border:3px solid rgba(108,99,255,.15);border-top-color:#a089ff;border-radius:50%;margin-bottom:18px"></div>'
+    +'<div style="font-size:14px;font-weight:700;color:var(--white);margin-bottom:8px">Generating '+_tabLabel+'…</div>'
+    +'<div id="'+_spinId+'_bar" style="width:200px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:0 auto 12px;overflow:hidden"><div id="'+_spinId+'_fill" style="height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,#a089ff);border-radius:2px;transition:width .3s"></div></div>'
+    +'<div style="font-size:11px;color:var(--dim)">Writing real content tailored to your business</div>'
     +'</div>';
+  // Animate via JS — works in dynamically injected HTML where CSS keyframes may not apply
+  var _spinEl = document.getElementById(_spinId);
+  var _fillEl = document.getElementById(_spinId+'_fill');
+  var _spinDeg = 0, _fillPct = 0;
+  var _spinInterval = setInterval(function() {
+    _spinDeg = (_spinDeg + 6) % 360;
+    if (_spinEl) _spinEl.style.transform = 'rotate('+_spinDeg+'deg)';
+    _fillPct = Math.min(_fillPct + 0.4, 88);
+    if (_fillEl) _fillEl.style.width = _fillPct+'%';
+  }, 16);
 
   try {
-    var fn = {
-      'architect':      brCallAI_Architect,
-      'offer-stack':    brCallAI_OfferStack,
-      'copy-vault':     brCallAI_CopyVault,
-      'war-plan':       brCallAI_WarPlan,
-      'content-engine': brCallAI_ContentEngine
-    }[tab];
-
-    if (!fn) { panel.innerHTML = origHtml; return; }
-
-    var result = await fn(inp);
+    // Pass existing intel so server skips research/positioning steps
+    var _existingIntel = {
+      positioning:  (intel.architect  && Object.keys(intel.architect).length  > 0) ? intel.architect  : {},
+      marketIntel:  (intel.inputs     && intel.inputs.marketIntel)                 ? intel.inputs.marketIntel : '',
+    };
+    var _rResp = await fetch(window.location.origin + '/api/boardroom', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ inputs: inp, tab: tab, intel: _existingIntel })
+    });
+    var _rData = await _rResp.json();
+    if (!_rResp.ok) throw new Error(_rData.error || 'Server error ' + _rResp.status);
+    var result = _rData.data || {};
 
     if (!result || (Object.keys(result).length === 0) || result._error) {
       var _emsg = (result && result._error) ? result._error : 'Empty response from server';
@@ -26661,6 +26685,7 @@ window.brRegenerateTab = async function(tab) {
     window._boardroomIntel = intel;
     try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel)); } catch(e) {}
 
+    if (typeof _spinInterval !== 'undefined') clearInterval(_spinInterval);
     // Re-render tab
     brRenderTab(tab, intel);
 
