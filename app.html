@@ -24547,205 +24547,310 @@ function brBuildAnalysisUI(inp) {
 /* ── 5 Parallel AI Calls ── */
 async function brCallAI(systemPrompt, userPrompt, maxTokens) {
   try {
-    var resp = await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'), {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens: maxTokens||2000,
+    var endpoint = window.PROXY_URL || (window.location.origin + '/api/claude');
+    var resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: maxTokens || 3000,
         system: systemPrompt,
-        messages:[{role:'user', content: userPrompt}] })
+        messages: [{ role: 'user', content: userPrompt }]
+      })
     });
 
-    // Handle non-JSON server responses (HTML error pages, plain-text errors)
     var rawText = await resp.text();
+    console.log('[Boardroom] HTTP status:', resp.status, '| Response length:', rawText.length);
+
     var data;
     try {
       data = JSON.parse(rawText);
-    } catch(parseErr) {
-      console.warn('[Boardroom] Non-JSON response from server:', rawText.slice(0,200));
-      return {};
+    } catch(e) {
+      console.error('[Boardroom] Server did not return JSON. Raw:', rawText.slice(0, 300));
+      return { _error: 'Server error: ' + rawText.slice(0, 120) };
     }
 
-    // Handle Anthropic API-level errors
-    if (data.error) {
-      console.warn('[Boardroom] API error:', data.error.message || data.error);
-      return {};
+    if (!resp.ok || data.error) {
+      var errMsg = (data.error && (data.error.message || JSON.stringify(data.error))) || ('HTTP ' + resp.status);
+      console.error('[Boardroom] API error:', errMsg);
+      return { _error: errMsg };
     }
 
-    var text = ((data.content||[])[0]||{}).text||'';
-    if (!text) return {};
+    var text = ((data.content || [])[0] || {}).text || '';
+    if (!text) {
+      console.error('[Boardroom] Empty text in response. Full data:', JSON.stringify(data).slice(0, 300));
+      return { _error: 'Empty response from AI' };
+    }
 
-    // Strip markdown fences and extract JSON
-    var clean = text.replace(/```json\s*/g,'').replace(/```\s*/g,'').trim();
-    var s = clean.indexOf('{'), e = clean.lastIndexOf('}');
-    if (s>=0 && e>=0) {
-      try { return JSON.parse(clean.slice(s,e+1)); }
-      catch(jsonErr) {
-        console.warn('[Boardroom] JSON parse failed:', jsonErr.message, clean.slice(s,s+100));
-        return {};
+    console.log('[Boardroom] AI response length:', text.length, 'chars | First 200:', text.slice(0, 200));
+
+    // Strip markdown fences
+    var clean = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+    // Extract JSON object
+    var s = clean.indexOf('{');
+    var e = clean.lastIndexOf('}');
+    if (s >= 0 && e > s) {
+      try {
+        return JSON.parse(clean.slice(s, e + 1));
+      } catch (jsonErr) {
+        console.error('[Boardroom] JSON parse error:', jsonErr.message);
+        console.error('[Boardroom] Raw JSON attempt:', clean.slice(s, s + 500));
+        return { _error: 'JSON parse failed: ' + jsonErr.message, _raw: text };
       }
     }
-    return {};
-  } catch(err) {
-    console.warn('[Boardroom] brCallAI network error:', err.message);
-    return {};
+
+    // No JSON object found — return raw text for text-based responses
+    console.warn('[Boardroom] No JSON object found in response');
+    return { _raw: text };
+
+  } catch (err) {
+    console.error('[Boardroom] Network error:', err.message);
+    return { _error: 'Network error: ' + err.message };
   }
 }
 
 function brCallAI_Architect(inp) {
-  var sys = 'You are a world-class business strategist who has built multiple $50K–$500K/month coaching and expert businesses. You give brutally honest, commercially precise advice. No fluff. Every word earns its place.';
-  var prompt = 'Analyse this business and rebuild it for $50,000/month. Return ONLY valid JSON.\n\n'
-    + 'NICHE: '+inp.niche+'\nOFFER: '+inp.offerName+'\nPRICE: $'+inp.price+'\nMONTHLY TARGET: $'+inp.target
-    + '\nAVATAR: '+inp.av_job+' | Pain: '+inp.av_pain+' | Fear: '+inp.av_fear+' | Desire: '+inp.av_desire
-    + '\nPROMISE: '+inp.promise+'\nRESULT: '+inp.result+'\nDIFFERENCE: '+inp.difference
-    + (inp.allowMoney?'':'\nIMPORTANT: This niche does NOT respond to income/money language. Focus on transformation, not money.')
-    + '\n\nReturn JSON:\n{'
-    + '"positioningStatement":"<one powerful sentence that defines exactly who you serve, what you do, and why you are the only logical choice — use their specific niche language>",'
-    + '"dominanceAngle":"<the one positioning angle that makes this offer own a category — not just be better, but be different>",'
-    + '"competitiveMoat":"<2-3 sentences: what makes this impossible to commoditise — the unfair advantage>",'
-    + '"targetRevenueBreakdown":{"clientsNeeded":<number>,"pricePoint":<number>,"closingRate":"<e.g. 30%>","leadsNeeded":<number per month>,"weeklyActions":"<specific weekly activity to hit these numbers>"},'
-    + '"nicheDominanceSteps":["<step 1>","<step 2>","<step 3>","<step 4>","<step 5>"],'
-    + '"biggestMistake":"<the single biggest mistake in their current positioning — be specific and honest>",'
-    + '"immediateWin":"<the one thing they can change THIS WEEK that will have the biggest impact on sales>"'
-    + '}';
-  return brCallAI(sys, prompt, 2500);
+  var sys = 'You are a business strategist who has built multiple 7-figure expert businesses. You give devastatingly specific, commercially precise advice. Every recommendation references the user\'s exact niche, offer, and avatar. You NEVER give generic advice.';
+  var p = [
+    'Analyse this expert business and give me $100K/month-level strategy. Be brutally specific.',
+    'Return ONLY a valid JSON object. No markdown. No extra text before or after the JSON.',
+    '',
+    'INPUTS:',
+    'Niche: ' + inp.niche,
+    'Offer: ' + (inp.offerName || 'Not named') + ' | Price: $' + inp.price,
+    'Monthly Target: $' + inp.target,
+    'Promise: ' + (inp.promise || inp.result || 'Not specified'),
+    'Avatar Pain: ' + (inp.av_pain || 'Not specified'),
+    'Avatar Job: ' + (inp.av_job || 'Not specified'),
+    'Unique Angle: ' + (inp.difference || 'Not specified'),
+    (inp.allowMoney ? '' : 'NOTE: ' + inp.niche + ' niche — no income/money language. Focus on transformation.'),
+    '',
+    'Return this JSON (fill every field with specific advice for THIS business):',
+    '{',
+    '  "positioningStatement": "One sentence: who you serve, what you do, why you are the only choice — specific to ' + inp.niche + '",',
+    '  "dominanceAngle": "The one angle that makes this offer own a category, not just compete in one",',
+    '  "competitiveMoat": "What makes this impossible to copy — their specific experience, method, or access",',
+    '  "revenueBreakdown": {',
+    '    "clientsPerMonth": 3,',
+    '    "pricePoint": ' + inp.price + ',',
+    '    "closingRate": "25%",',
+    '    "leadsNeeded": 12,',
+    '    "weeklyFocus": "Specific weekly activity to hit $' + inp.target + '/mo in ' + inp.niche + '"',
+    '  },',
+    '  "top3Mistakes": ["Mistake 1 specific to ' + inp.niche + ' experts", "Mistake 2", "Mistake 3"],',
+    '  "dominanceRoadmap": ["Step 1 for this specific niche", "Step 2", "Step 3", "Step 4", "Step 5"],',
+    '  "immediateWin": "The single most impactful action they can take THIS WEEK to get their first or next client",',
+    '  "biggestRisk": "The one thing that will stop them hitting $' + inp.target + '/mo — be honest and specific"',
+    '}'
+  ].filter(Boolean).join('\n');
+  return brCallAI(sys, p, 2000);
 }
-
 function brCallAI_OfferStack(inp) {
-  var sys = 'You are a premium offer architect. You have engineered offers that command $5,000–$50,000 per client. You understand value stacking, premium pricing psychology, and what makes people say YES without hesitation.';
-  var prompt = 'Rebuild this offer for $'+(inp.price>=5000?inp.price:'10,000+')+' premium positioning. Return ONLY valid JSON.\n\n'
-    + 'CURRENT OFFER: '+inp.offerName+' | PROMISE: '+inp.promise+' | RESULT: '+inp.result
-    + '\nNICHE: '+inp.niche+' | AVATAR PAIN: '+inp.av_pain+' | DURATION: '+inp.duration
-    + '\nCURRENT GUARANTEE: '+inp.guarantee+' | BONUS: '+inp.bonus
-    + (inp.allowMoney?'':'\nNICHE NOTE: Do not use income/money language. Transformation-focused only.')
-    + '\n\nReturn JSON:\n{'
-    + '"rebuiltOfferName":"<premium, specific, results-focused name — include their transformation>",'
-    + '"signatureFramework":{"name":"<proprietary framework name e.g. The CLARITY Method, The 3-Phase Freedom System>","acronym":"<if applicable>","steps":["<step 1>","<step 2>","<step 3>"]},'
-    + '"coreTransformation":"<the one sentence that describes the complete before-to-after journey — devastatingly specific>",'
-    + '"valueStack":[{"item":"<deliverable name>","value":"<perceived dollar value>","description":"<one sentence>"},{"item":"","value":"","description":""},{"item":"","value":"","description":""},{"item":"","value":"","description":""},{"item":"","value":"","description":""}],'
-    + '"totalValue":"<sum of value stack e.g. $47,000>",'
-    + '"rebuiltGuarantee":"<a guarantee so strong it removes all risk — specific outcome guarantee, not just a refund>",'
-    + '"scarcityMechanism":"<ethical, genuine reason why they should decide now — not fake countdown timers>",'
-    + '"fastActionBonus":"<a bonus so good it feels stupid not to act immediately>",'
-    + '"pricingJustification":"<2-3 sentences explaining exactly why $'+inp.price+' (or higher) is not only fair but a steal for this specific transformation>"'
-    + '}';
-  return brCallAI(sys, prompt, 2000);
+  var sys = 'You are a premium offer architect who has engineered offers selling at $5K–$50K per client. You understand Hormozi value stacking, premium pricing psychology, and what removes buying resistance completely.';
+  var p = [
+    'Rebuild this offer to command $' + inp.price + '+ with zero resistance. Return ONLY valid JSON.',
+    '',
+    'INPUTS:',
+    'Current offer: ' + (inp.offerName || 'Unnamed'),
+    'Niche: ' + inp.niche,
+    'Core promise: ' + (inp.promise || inp.result || 'Not specified'),
+    'Duration: ' + (inp.duration || 'Not specified'),
+    'Format: ' + (inp.format || 'Not specified'),
+    'Avatar pain: ' + (inp.av_pain || 'Not specified'),
+    'Avatar fear: ' + (inp.av_fear || 'Not specified'),
+    (inp.allowMoney ? '' : 'NOTE: No income/money language. Transformation-focused only.'),
+    '',
+    'Return this JSON:',
+    '{',
+    '  "rebuiltName": "A premium, specific, result-focused offer name",',
+    '  "framework": { "name": "A proprietary framework name (e.g. The CLARITY System)", "steps": ["Step 1", "Step 2", "Step 3"] },',
+    '  "coreTransformation": "The exact before-to-after journey — devastatingly specific to ' + inp.niche + '",',
+    '  "valueStack": [',
+    '    { "item": "Core delivery component name", "value": "$' + (inp.price * 3) + '", "why": "Why this alone is worth this" },',
+    '    { "item": "Implementation support component", "value": "$' + (inp.price * 2) + '", "why": "Specific value this adds" },',
+    '    { "item": "Framework/system component", "value": "$' + Math.round(inp.price * 1.5) + '", "why": "Why this is valuable" },',
+    '    { "item": "Accountability component", "value": "$' + inp.price + '", "why": "Specific value" },',
+    '    { "item": "Bonus component", "value": "$' + Math.round(inp.price * 0.8) + '", "why": "Why this is a fast-action bonus" }',
+    '  ],',
+    '  "totalValue": "$' + (inp.price * 8) + '",',
+    '  "guarantee": "A guarantee so strong it removes all risk — specific outcome, not just a refund",',
+    '  "scarcity": "An ethical, genuine reason to decide now specific to how you deliver",',
+    '  "pricingJustification": "2-3 sentences: why $' + inp.price + ' is a bargain for this specific transformation"',
+    '}'
+  ].filter(Boolean).join('\n');
+  return brCallAI(sys, p, 2000);
 }
-
 function brCallAI_CopyVault(inp) {
-  var sys = 'You are an A-list direct-response copywriter who has written copy for 8-figure offers. You write with surgical precision — every word earns its place. You NEVER use placeholders or template text. You always write the actual, real, finished copy.';
-  var noMoney = !inp.allowMoney ? 'CRITICAL: This is a ' + inp.niche + ' offer. Do NOT use income figures, money amounts, or earning claims. Focus entirely on transformation and results.' : '';
-  var prompt = [
-    'Write the complete Copy Vault for this specific offer. Return ONLY valid JSON — no markdown, no backticks.',
+  var sys = 'You are an A-list direct-response copywriter. Every word you write is engineered to stop the scroll, create desire, and move people to action. You write REAL, FINISHED copy — never placeholders.';
+  var noM = inp.allowMoney ? '' : 'CRITICAL: ' + inp.niche + ' niche. Zero income/money language. Transformation only.';
+  var p = [
+    'Write the complete copy library for this offer. Return ONLY valid JSON. Every string must be real, finished, ready-to-use copy — not descriptions of what to write.',
     '',
-    'OFFER: ' + (inp.offerName||'Their Offer'),
-    'NICHE: ' + inp.niche,
-    'RESULT: ' + (inp.result||inp.promise||'their transformation'),
-    'AVATAR PAIN: ' + (inp.av_pain||'their struggle'),
-    'AVATAR FEAR: ' + (inp.av_fear||'their fear'),
-    'WHAT THEY TRIED: ' + (inp.av_tried||'other solutions'),
-    'POSITIONING: ' + (inp.difference||'unique approach'),
-    noMoney,
+    'Niche: ' + inp.niche,
+    'Offer: ' + (inp.offerName || 'Their programme'),
+    'Result: ' + (inp.result || inp.promise || 'their transformation'),
+    'Avatar pain: ' + (inp.av_pain || 'their challenge'),
+    'Avatar fear: ' + (inp.av_fear || 'their fear'),
+    'What they tried: ' + (inp.av_tried || 'other approaches'),
+    (noM || ''),
     '',
-    'Write ALL copy specifically for THIS offer and THIS audience. No generic filler.',
-    '',
-    'Return this exact JSON structure with REAL finished copy (not placeholders):',
+    'JSON — write ACTUAL copy in every string field:',
     '{',
     '  "headlines": [',
-    '    "Headline 1 — bold outcome statement for ' + (inp.av_pain||'their situation') + '",',
-    '    "Headline 2 — different angle",',
-    '    "Headline 3 — question format",',
-    '    "Headline 4 — specific result",',
-    '    "Headline 5 — transformation focused"',
+    '    "Actual headline 1 — outcome-focused, specific to ' + inp.niche + '",',
+    '    "Actual headline 2 — different emotional angle",',
+    '    "Actual headline 3 — addresses ' + (inp.av_pain || 'their pain') + ' directly",',
+    '    "Actual headline 4 — transformation statement",',
+    '    "Actual headline 5 — bold claim with specificity"',
     '  ],',
-    '  "subheadlines": ["sub 1", "sub 2", "sub 3"],',
-    '  "hooks": ["hook 1 pattern interrupt", "hook 2 curiosity", "hook 3 bold claim", "hook 4 story", "hook 5 question"],',
-    '  "dmOpeners": ["dm after comment", "dm after follow", "dm cold outreach", "dm referral", "dm event-based"],',
-    '  "emailSubjects": ["subject 1", "subject 2", "subject 3", "subject 4", "subject 5"],',
-    '  "vslOpeningScript": "Full 90-second VSL opener: hook + problem + big promise — written in spoken natural language",',
-    '  "salesPageBullets": ["bullet 1 outcome", "bullet 2", "bullet 3", "bullet 4", "bullet 5", "bullet 6"],',
-    '  "objectionHandlers": {',
-    '    "price": "Handle: the price is too high",',
-    '    "time": "Handle: I do not have time",',
-    '    "trust": "Handle: I am not sure this will work for me",',
-    '    "timing": "Handle: now is not the right time"',
+    '  "hooks": [',
+    '    "Pattern interrupt hook — first 3 seconds stops the scroll",',
+    '    "Curiosity hook — makes them desperate to know more",',
+    '    "Bold claim hook — makes a specific provable statement",',
+    '    "Story hook — personal moment of transformation",',
+    '    "Question hook — makes them say yes immediately"',
+    '  ],',
+    '  "dmOpeners": [',
+    '    "DM after they commented: natural, personal, not salesy",',
+    '    "DM after they followed: warm opener that starts conversation",',
+    '    "Cold DM: feels warm, specific to what they posted about",',
+    '    "DM referral: natural mention of mutual connection",',
+    '    "DM event-based: references something they just shared"',
+    '  ],',
+    '  "emailSubjects": [',
+    '    "Subject line 1 — feels like a text from a friend",',
+    '    "Subject line 2 — curiosity gap",',
+    '    "Subject line 3 — specific benefit",',
+    '    "Subject line 4 — pattern interrupt",',
+    '    "Subject line 5 — story opener"',
+    '  ],',
+    '  "vslScript": "90-second VSL opener — written as natural spoken words: Hook (10 sec), Problem agitation (30 sec), Big promise (20 sec), Proof teaser (20 sec), CTA (10 sec). Write it as if speaking directly to camera.",',
+    '  "salesBullets": [',
+    '    "Bullet 1: specific outcome with timeframe",',
+    '    "Bullet 2: eliminates their biggest fear",',
+    '    "Bullet 3: addresses what they tried before",',
+    '    "Bullet 4: social proof angle",',
+    '    "Bullet 5: the transformation in one line",',
+    '    "Bullet 6: the guarantee angle"',
+    '  ],',
+    '  "objections": {',
+    '    "price": "Real response to: the price is too high — specific to ' + inp.niche + ' and $' + inp.price + '",',
+    '    "time": "Real response to: I do not have time right now",',
+    '    "trust": "Real response to: I am not sure this will work for me specifically",',
+    '    "timing": "Real response to: it is not the right time"',
     '  }',
     '}'
   ].filter(Boolean).join('\n');
-  return brCallAI(sys, prompt, 4000);
+  return brCallAI(sys, p, 3500);
 }
-
 function brCallAI_WarPlan(inp) {
-  var sys = 'You are a launch strategist who has generated millions in revenue for expert businesses. You give brutally specific daily tasks calibrated to the exact niche, offer, and price point. You NEVER write placeholder text or generic advice.';
-  var prompt = [
-    'Build a 30-day launch war plan. Return ONLY valid JSON — no markdown, no backticks, no placeholder text.',
+  var sys = 'You are a launch strategist who has generated millions for expert businesses. You give specific, executable daily actions calibrated to the exact niche, price point, and avatar. Every action must be specific enough to do today without any interpretation.';
+  var p = [
+    'Build a 30-day launch war plan. Return ONLY valid JSON. Every action must be specific — no vague instructions.',
     '',
-    'NICHE: ' + inp.niche,
-    'OFFER: ' + (inp.offerName||'Their Offer') + ' at $' + inp.price,
-    'TARGET: $' + inp.target + '/month',
-    'AVATAR: ' + (inp.av_job||'their ideal client'),
+    'Business context:',
+    'Niche: ' + inp.niche,
+    'Offer: ' + (inp.offerName || 'Their programme') + ' at $' + inp.price,
+    'Target: $' + inp.target + '/month',
+    'Avatar: ' + (inp.av_job || 'their ideal client') + ' struggling with ' + (inp.av_pain || 'their pain'),
     '',
-    'Write 4 phases. Each day gets a specific title and 3 concrete daily actions for THIS niche and offer.',
-    'Actions must be specific enough to execute today — not vague like "build your brand".',
-    '',
-    'Return this exact JSON with REAL content:',
+    'Return this exact JSON. All strings must be real, specific, executable actions:',
     '{',
-    '  "phase1": {"title": "Foundation (Days 1-7)", "goal": "specific goal", "days": [',
-    '    {"day": 1, "title": "specific task name", "actions": ["specific action 1", "specific action 2", "specific action 3"]},',
-    '    {"day": 2, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 3, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 4, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 5, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 6, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 7, "title": "...", "actions": ["...", "...", "..."]}',
-    '  ]},',
-    '  "phase2": {"title": "Momentum (Days 8-14)", "goal": "specific goal", "days": [',
-    '    {"day": 8, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 9, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 10, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 11, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 12, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 13, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 14, "title": "...", "actions": ["...", "...", "..."]}',
-    '  ]},',
-    '  "phase3": {"title": "Launch (Days 15-21)", "goal": "specific goal", "days": [',
-    '    {"day": 15, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 16, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 17, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 18, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 19, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 20, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 21, "title": "...", "actions": ["...", "...", "..."]}',
-    '  ]},',
-    '  "phase4": {"title": "Scale (Days 22-30)", "goal": "specific goal", "days": [',
-    '    {"day": 22, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 25, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 28, "title": "...", "actions": ["...", "...", "..."]},',
-    '    {"day": 30, "title": "...", "actions": ["...", "...", "..."]}',
-    '  ]},',
-    '  "successMetrics": ["metric 1 specific to this niche", "metric 2", "metric 3"],',
-    '  "criticalWarning": "The single most common launch killer for ' + inp.niche + ' experts — be specific"',
+    '  "phase1": {',
+    '    "title": "Foundation (Days 1-7)",',
+    '    "goal": "Specific goal for this phase in ' + inp.niche + '",',
+    '    "days": [',
+    '      { "day": 1, "focus": "Day 1 focus title", "actions": ["Specific action 1 for ' + inp.niche + '", "Specific action 2", "Specific action 3"] },',
+    '      { "day": 2, "focus": "Day 2 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 3, "focus": "Day 3 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 4, "focus": "Day 4 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 5, "focus": "Day 5 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 6, "focus": "Day 6 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 7, "focus": "Day 7 focus", "actions": ["Action 1", "Action 2", "Action 3"] }',
+    '    ]',
+    '  },',
+    '  "phase2": {',
+    '    "title": "Momentum (Days 8-14)",',
+    '    "goal": "Specific momentum goal",',
+    '    "days": [',
+    '      { "day": 8, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 9, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 10, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 11, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 12, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 13, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 14, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] }',
+    '    ]',
+    '  },',
+    '  "phase3": {',
+    '    "title": "Launch (Days 15-21)",',
+    '    "goal": "Specific launch goal",',
+    '    "days": [',
+    '      { "day": 15, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 16, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 17, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 18, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 19, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 20, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 21, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] }',
+    '    ]',
+    '  },',
+    '  "phase4": {',
+    '    "title": "Scale (Days 22-30)",',
+    '    "goal": "Specific scale goal",',
+    '    "days": [',
+    '      { "day": 22, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 25, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 28, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
+    '      { "day": 30, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] }',
+    '    ]',
+    '  },',
+    '  "metrics": ["KPI 1 specific to ' + inp.niche + '", "KPI 2", "KPI 3"],',
+    '  "criticalWarning": "The single thing that kills most ' + inp.niche + ' launches — be brutally honest"',
     '}'
   ].join('\n');
-  return brCallAI(sys, prompt, 6000);
+  return brCallAI(sys, p, 5000);
 }
-
 function brCallAI_ContentEngine(inp) {
-  var sys = 'You are a content strategist who builds content systems that attract and convert high-ticket clients. Every piece of content you create has one job: move the right person closer to buying.';
-  var nv = window.getNicheVocab ? window.getNicheVocab(inp.niche) : {};
-  var prompt = 'Build a 30-day content system for this offer. Return ONLY valid JSON.\n\n'
-    + 'NICHE: '+inp.niche+' | OFFER: '+inp.offerName+' | RESULT: '+inp.result
-    + '\nAVATAR: '+inp.av_job+' | PAIN: '+inp.av_pain+' | DESIRE: '+inp.av_desire
-    + '\nFRAMEWORK: '+inp.system+' | POSITIONING: '+inp.difference
-    + (inp.allowMoney?'':'\nNICHE RULE: No income/money language. Focus on '+nv.transformation+'.')
-    + '\n\nReturn JSON with 30 days:\n{'
-    + '"contentPillars":["<pillar1>","<pillar2>","<pillar3>","<pillar4>","<pillar5>"],'
-    + '"conversionJourney":"<2 sentences describing how content moves someone from cold to client>",'
-    + '"days":['
-    + '[1..7 objects]: {"day":<n>,"theme":"<weekly theme>","fbPost":"<complete Facebook post 120-150 words>","reelScript":"HOOK: <5sec> | CONTENT: <3 points> | CTA: <5sec>","emailSubject":"<subject>","emailBody":"<120-150 word email>"}'
-    + ']. Write ALL 30 days with real content specific to ' + inp.niche + '. No placeholders.'
-    + '}';
-  return brCallAI(sys, prompt, 8000);
+  var sys = 'You are a content strategist who builds content systems that attract and convert high-ticket clients. Every piece of content has one purpose: move the right person closer to buying. You write REAL finished content — not descriptions or templates.';
+  var nv = (window.getNicheVocab && window.getNicheVocab(inp.niche)) || {};
+  var noM = inp.allowMoney ? '' : 'NICHE RULE: Zero income/money language. This is ' + inp.niche + '. Focus on: ' + (nv.contentFocus || 'transformation and results') + '.';
+  var p = [
+    'Build a 7-day content system for this business. Return ONLY valid JSON. Write REAL, finished content for each day — not placeholders or descriptions.',
+    '',
+    'Niche: ' + inp.niche,
+    'Offer: ' + (inp.offerName || 'Their programme') + ' at $' + inp.price,
+    'Avatar: ' + (inp.av_job || 'their ideal client'),
+    'Avatar pain: ' + (inp.av_pain || 'their challenge'),
+    'Avatar desire: ' + (inp.av_desire || nv.transformation || 'their transformation'),
+    'Unique angle: ' + (inp.difference || 'their specific approach'),
+    (noM || ''),
+    '',
+    'Return this JSON with REAL content for each of the 7 days:',
+    '{',
+    '  "pillars": ["Pillar 1 specific to ' + inp.niche + '", "Pillar 2", "Pillar 3", "Pillar 4", "Pillar 5"],',
+    '  "strategy": "2-sentence strategy for how this content moves cold audience to paying clients",',
+    '  "days": [',
+    '    {',
+    '      "day": 1,',
+    '      "theme": "Day 1 theme",',
+    '      "fbPost": "Complete Facebook post — 120 words, specific to ' + inp.niche + ', ends with a genuine question. First sentence stops the scroll.",',
+    '      "reelScript": "HOOK: [3-second opener] | CONTENT: [Point 1. Point 2. Point 3.] | CTA: [5-second call to action]",',
+    '      "emailSubject": "Subject line for day 1 email",',
+    '      "emailBody": "Complete 100-word email for day 1 — written to one specific person, honest and direct"',
+    '    },',
+    '    { "day": 2, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 3, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 4, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 5, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 6, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 7, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" }',
+    '  ]',
+    '}'
+  ].filter(Boolean).join('\n');
+  return brCallAI(sys, p, 5000);
 }
-
 /* ── Reveal intelligence after analysis ── */
 function brRevealIntelligence(intel) {
   // Complete all stages
@@ -24863,10 +24968,10 @@ function brRenderOfferStack(d, inp) {
 }
 
 function brRenderCopyVault(d, inp) {
-  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
+  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">✍️</div>'
     +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Copy Vault Not Generated Yet</div>'
-    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
-    +'<button onclick="brRegenerateTab(\'copy-vault\')" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#6c63ffcc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Copy Vault</button></div>';
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">Headlines, hooks, DM openers, email subjects, VSL script, sales bullets, and objection handlers — all written for ' + (inp ? inp.niche : 'your niche') + '. Takes about 20 seconds.</div>'
+    +'<button data-rgtab="copy-vault" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">✍️ Generate My Copy Vault</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
   function copyBlock(label, items, color) {
     return brCard(color, label,
@@ -24878,18 +24983,18 @@ function brRenderCopyVault(d, inp) {
   var h = '';
   h += copyBlock('🎯 Headlines — Use on Sales Page & Ads', d.headlines, 'var(--teal)');
   h += copyBlock('📝 Subheadlines', d.subheadlines, 'var(--purple)');
-  h += copyBlock('⚡ Content Hooks — Stop the Scroll', d.hooks, 'var(--yellow)');
+  h += copyBlock('⚡ Content Hooks — Stop the Scroll', d.hooks||d.contentHooks, 'var(--yellow)');
   h += copyBlock('💬 DM Openers — First Message Templates', d.dmOpeners, 'var(--teal)');
   h += copyBlock('📧 Email Subject Lines', d.emailSubjects, 'var(--orange)');
-  h += copyBlock('🎬 Sales Page Bullet Points', d.salesPageBullets, 'var(--purple)');
-  if (d.vslOpeningScript) {
+  h += copyBlock('🎬 Sales Page Bullet Points', d.salesBullets||d.salesPageBullets, 'var(--purple)');
+  if (d.vslScript||d.vslOpeningScript) {
     h += brCard('var(--teal)','🎬 VSL Opening Script (First 90 Seconds)',
       '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.8;white-space:pre-wrap;position:relative">'
       +'<button onclick="navigator.clipboard.writeText(this.nextElementSibling.textContent)" style="position:absolute;top:8px;right:8px;padding:4px 10px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.2);border-radius:6px;color:var(--teal);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">Copy Script</button>'
-      +'<span>'+d.vslOpeningScript+'</span></div>');
+      +'<span>'+(d.vslScript||d.vslOpeningScript)+'</span></div>');
   }
   if (d.objectionHandlers) {
-    var oh = d.objectionHandlers;
+    var oh = d.objections||d.objectionHandlers;
     h += brCard('var(--orange)','🛡 Objection Handlers',
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
       +[['💸 Price Objection',oh.price],['⏰ No Time',oh.time],['🤔 Trust & Scepticism',oh.trust],['📅 Not Right Now',oh.timing]].map(function(x){ return x[1]?'<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:11px 13px"><div style="font-size:10px;font-weight:800;color:var(--orange);margin-bottom:5px">'+x[0]+'</div><div style="font-size:11px;color:var(--dim);line-height:1.6">'+x[1]+'</div></div>':''; }).join('')
@@ -24899,16 +25004,16 @@ function brRenderCopyVault(d, inp) {
 }
 
 function brRenderWarPlan(d, inp) {
-  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
+  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">🚀</div>'
     +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Launch War Plan Not Generated Yet</div>'
-    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
-    +'<button onclick="brRegenerateTab(\'war-plan\')" style="padding:12px 28px;background:linear-gradient(135deg,var(--orange),var(--orange)cc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Launch War Plan</button></div>';
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">Your 30-day plan with specific daily actions for ' + (inp ? inp.niche : 'your niche') + '. Takes about 20 seconds.</div>'
+    +'<button data-rgtab="war-plan" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,var(--orange),#cc6a00);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">🚀 Generate My Launch War Plan</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var phases = [d.phase1, d.phase2, d.phase3, d.phase4].filter(Boolean);
   var phaseColors = ['var(--teal)','var(--purple)','var(--orange)','var(--yellow)'];
   var h = '';
   if (d.criticalWarning) h += '<div style="background:rgba(255,91,91,.06);border:1px solid rgba(255,91,91,.2);border-radius:12px;padding:12px 16px;margin-bottom:1rem;font-size:12px;color:var(--dim)"><strong style="color:#ff8888">⚠️ Critical Warning:</strong> '+d.criticalWarning+'</div>';
-  if (d.successMetrics && d.successMetrics.length) h += brCard('var(--teal)','✅ Success Metrics','<div style="display:flex;flex-wrap:wrap;gap:6px">'+d.successMetrics.map(function(m){ return brPill(m,'var(--teal)'); }).join('')+'</div>');
+  if ((d.metrics || d.successMetrics) && (d.metrics || d.successMetrics).length) h += brCard('var(--teal)','✅ Success Metrics','<div style="display:flex;flex-wrap:wrap;gap:6px">'+d.successMetrics.map(function(m){ return brPill(m,'var(--teal)'); }).join('')+'</div>');
   phases.forEach(function(phase, pi) {
     var col = phaseColors[pi];
     h += '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;margin-bottom:1rem">';
@@ -24929,10 +25034,10 @@ function brRenderWarPlan(d, inp) {
 }
 
 function brRenderContentEngine(d, inp) {
-  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
+  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">📅</div>'
     +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Content Engine Not Generated Yet</div>'
-    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
-    +'<button onclick="brRegenerateTab(\'content-engine\')" style="padding:12px 28px;background:linear-gradient(135deg,var(--teal),var(--teal)cc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Content Engine</button></div>';
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">7 days of Facebook posts, reel scripts, and emails engineered to attract and convert clients in ' + (inp ? inp.niche : 'your niche') + '. Takes about 20 seconds.</div>'
+    +'<button data-rgtab="content-engine" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:12px;color:#0a1628;font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">📅 Generate My Content Engine</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var h = '';
   if (d.contentPillars && d.contentPillars.length) {
@@ -25479,10 +25584,18 @@ window.brRegenerateTab = async function(tab) {
 
     var result = await fn(inp);
 
-    if (!result || Object.keys(result).length === 0) {
-      panel.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--orange)">'
-        +'Generation returned empty data. Check your internet connection and try again.'
-        +'<br><br><button data-rgtab="'+tab+'" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:10px 22px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:9px;color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">↻ Try Again</button></div>';
+    if (!result || (Object.keys(result).length === 0) || result._error) {
+      var _emsg = (result && result._error) ? result._error : 'Empty response from server';
+      var _isJson = _emsg.includes('JSON') || _emsg.includes('parse');
+      panel.innerHTML = '<div style="background:rgba(255,140,66,.06);border:1px solid rgba(255,140,66,.2);border-radius:14px;padding:1.5rem;text-align:center">'
+        +'<div style="font-size:22px;margin-bottom:8px">⚠️</div>'
+        +'<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px">Generation Issue</div>'
+        +'<div style="font-size:11px;color:var(--dim);margin-bottom:4px;line-height:1.6;max-width:360px;margin-left:auto;margin-right:auto">'
+        +(_isJson ? 'The AI response was too long to parse. Click Try Again — it works on retry.' : _emsg)
+        +'</div>'
+        +'<div style="font-size:10px;color:var(--dimmer);margin-bottom:14px">(Check browser console for details)</div>'
+        +'<button data-rgtab="'+tab+'" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:10px 24px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">↻ Try Again</button>'
+        +'</div>';
       return;
     }
 
