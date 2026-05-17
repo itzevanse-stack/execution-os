@@ -24631,43 +24631,63 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens) {
 }
 
 function brCallAI_Architect(inp) {
-  var sys = 'You are a business strategist who has built multiple 7-figure expert businesses. You give devastatingly specific, commercially precise advice. Every recommendation references the user\'s exact niche, offer, and avatar. You NEVER give generic advice.';
+  var sys = 'You are a $100M business architect. You have personally built and scaled expert businesses from zero to $100K+/month. You think in systems, positioning, and leverage — not tactics. You have deep knowledge of direct response marketing, high-ticket sales psychology, and category creation. You give advice so specific it could only apply to this exact person. You NEVER give generic advice. Every recommendation must reference their niche, price point, and avatar\'s specific psychology.';
+  var clientsNeeded = Math.ceil(inp.target / inp.price);
+  var leadsNeeded   = Math.ceil(clientsNeeded / 0.25);
   var p = [
-    'Analyse this expert business and give me $100K/month-level strategy. Be brutally specific.',
-    'Return ONLY a valid JSON object. No markdown. No extra text before or after the JSON.',
+    'You are auditing this expert business for $100K/month performance. Give me the FULL strategic picture.',
+    'Return ONLY valid JSON. Every string must be specific to THIS business — not generic business advice.',
     '',
-    'INPUTS:',
+    'BUSINESS DATA:',
     'Niche: ' + inp.niche,
-    'Offer: ' + (inp.offerName || 'Not named') + ' | Price: $' + inp.price,
-    'Monthly Target: $' + inp.target,
-    'Promise: ' + (inp.promise || inp.result || 'Not specified'),
-    'Avatar Pain: ' + (inp.av_pain || 'Not specified'),
-    'Avatar Job: ' + (inp.av_job || 'Not specified'),
-    'Unique Angle: ' + (inp.difference || 'Not specified'),
-    (inp.allowMoney ? '' : 'NOTE: ' + inp.niche + ' niche — no income/money language. Focus on transformation.'),
+    'Offer: ' + (inp.offerName || 'Unnamed') + ' | Price: $' + inp.price + ' | Target: $' + inp.target + '/month',
+    'Core promise: ' + (inp.promise || inp.result || 'Not specified'),
+    'Avatar: ' + (inp.av_job || 'professional') + ' — Pain: "' + (inp.av_pain || 'struggle') + '" — Fear: "' + (inp.av_fear || 'failure') + '"',
+    'What sets them apart: ' + (inp.difference || 'Not specified'),
+    'Transformation they deliver: ' + (inp.av_desire || inp.nicheTransform || 'Not specified'),
+    (inp.allowMoney ? '' : 'NICHE RULE: This is ' + inp.niche + '. No income/money language. Focus on transformation and life outcomes.'),
     '',
-    'Return this JSON (fill every field with specific advice for THIS business):',
+    'THE MATH TO $' + inp.target + '/MONTH:',
+    '- At $' + inp.price + '/client: need ' + clientsNeeded + ' clients/month',
+    '- At 25% close rate: need ' + leadsNeeded + ' qualified leads/month',
+    '- At 10 leads/week: need ' + Math.ceil(leadsNeeded/4) + ' lead-generating activities per week',
+    '',
+    'Return this JSON with REAL, specific answers (not generic placeholders):',
     '{',
-    '  "positioningStatement": "One sentence: who you serve, what you do, why you are the only choice — specific to ' + inp.niche + '",',
-    '  "dominanceAngle": "The one angle that makes this offer own a category, not just compete in one",',
-    '  "competitiveMoat": "What makes this impossible to copy — their specific experience, method, or access",',
+    '  "positioningStatement": "One devastating sentence that makes ' + (inp.av_job||'ideal clients') + ' feel this was built specifically for them — name their pain and outcome",',
+    '  "categoryName": "The category you will CREATE and own — not coaching or consulting, but a specific new category",',
+    '  "dominanceAngle": "The single positioning move that makes you the ONLY logical choice — not just better, but categorically different",',
+    '  "competitiveMoat": "Three specific things that make this impossible to commoditise — be honest about real unfair advantages",',
     '  "revenueBreakdown": {',
-    '    "clientsPerMonth": 3,',
+    '    "clientsPerMonth": ' + clientsNeeded + ',',
     '    "pricePoint": ' + inp.price + ',',
     '    "closingRate": "25%",',
-    '    "leadsNeeded": 12,',
-    '    "weeklyFocus": "Specific weekly activity to hit $' + inp.target + '/mo in ' + inp.niche + '"',
+    '    "leadsPerMonth": ' + leadsNeeded + ',',
+    '    "dailyActions": "3 specific actions EVERY DAY that feed the lead pipeline for ' + inp.niche + '",',
+    '    "weeklyMilestone": "What does a successful week look like — specific numbers and activities",',
+    '    "monthlyMilestone": "What hitting $' + inp.target + ' looks like at 30 days — specific wins"',
     '  },',
-    '  "top3Mistakes": ["Mistake 1 specific to ' + inp.niche + ' experts", "Mistake 2", "Mistake 3"],',
-    '  "dominanceRoadmap": ["Step 1 for this specific niche", "Step 2", "Step 3", "Step 4", "Step 5"],',
-    '  "immediateWin": "The single most impactful action they can take THIS WEEK to get their first or next client",',
-    '  "biggestRisk": "The one thing that will stop them hitting $' + inp.target + '/mo — be honest and specific"',
+    '  "top3Mistakes": [',
+    '    "The #1 mistake ' + inp.niche + ' experts make that keeps them under $10K/month — specific",',
+    '    "The #2 pricing/positioning mistake — why they undercharge and how to stop",',
+    '    "The #3 sales/conversion mistake — what kills deals before they start"',
+    '  ],',
+    '  "dominanceRoadmap": [',
+    '    "30-day milestone: what they must accomplish to have undeniable proof of concept",',
+    '    "60-day milestone: first signs of market dominance in ' + inp.niche + '",',
+    '    "90-day milestone: the revenue and reputation position that makes scaling inevitable",',
+    '    "6-month milestone: what $' + inp.target + '/month looks like in terms of clients, systems, reputation",',
+    '    "12-month milestone: what category leadership looks like in this niche"',
+    '  ],',
+    '  "immediateWin": "The ONE action they should take in the next 24 hours — specific, actionable, tied to getting their next client",',
+    '  "unfairAdvantage": "What this specific person has that most competitors will never have — be specific about experience, access, or insight",',
+    '  "biggestThreat": "The single biggest internal or external threat to hitting $' + inp.target + '/month — honest and specific"',
     '}'
   ].filter(Boolean).join('\n');
-  return brCallAI(sys, p, 2000);
+  return brCallAI(sys, p, 2500);
 }
 function brCallAI_OfferStack(inp) {
-  var sys = 'You are a premium offer architect who has engineered offers selling at $5K–$50K per client. You understand Hormozi value stacking, premium pricing psychology, and what removes buying resistance completely.';
+  var sys = 'You are the offer architect behind hundreds of $10K–$100K offers. You have studied Hormozi, Kern, Bauer, and every major offer structure that has generated millions. You know that an offer is not a product — it is a promise, a vehicle, and a transformation packaged for a specific buyer at a specific moment of pain. You build offers so compelling that the right buyer feels stupid saying no.';
   var p = [
     'Rebuild this offer to command $' + inp.price + '+ with zero resistance. Return ONLY valid JSON.',
     '',
@@ -24702,7 +24722,7 @@ function brCallAI_OfferStack(inp) {
   return brCallAI(sys, p, 2000);
 }
 function brCallAI_CopyVault(inp) {
-  var sys = 'You are an A-list direct-response copywriter. Every word you write is engineered to stop the scroll, create desire, and move people to action. You write REAL, FINISHED copy — never placeholders.';
+  var sys = 'You are the best direct-response copywriter alive. You have written copy that has generated over $100M in revenue for expert businesses. You write with surgical precision — every word is tested, every line creates tension or desire. You write REAL finished copy that sounds like a trusted human, not AI. Your copy is specific, personal, and impossible to ignore.';
   var noM = inp.allowMoney ? '' : 'CRITICAL: ' + inp.niche + ' niche. Zero income/money language. Transformation only.';
   var p = [
     'Write the complete copy library for this offer. Return ONLY valid JSON. Every string must be real, finished, ready-to-use copy — not descriptions of what to write.',
@@ -24765,7 +24785,7 @@ function brCallAI_CopyVault(inp) {
   return brCallAI(sys, p, 3500);
 }
 function brCallAI_WarPlan(inp) {
-  var sys = 'You are a launch strategist who has generated millions for expert businesses. You give specific, executable daily actions calibrated to the exact niche, price point, and avatar. Every action must be specific enough to do today without any interpretation.';
+  var sys = 'You are a launch strategist who has built the go-to-market for over 200 expert businesses. You think in sequences, triggers, and conversion events. You give actions so specific they can be executed today without any extra thinking. No vague instructions. No \'build your brand\'. Specific platforms, specific messages, specific targets, specific metrics.';
   var p = [
     'Build a 30-day launch war plan. Return ONLY valid JSON. Every action must be specific — no vague instructions.',
     '',
@@ -25550,24 +25570,55 @@ window._eosWatchAudienceNicheChange = function() {
     photoAvatarId: null,
   };
 
-  // ── HeyGen API helper ──────────────────────────────────────────
-  async function heygenCall(endpoint, body, method) {
-    method = method || 'POST';
+  // ── HeyGen API helper — uses correct action names matching heygen.js ──────
+  async function heygenCall(action, body) {
     try {
-      var url = (window.location.origin + '/api/heygen');
-      var opts = {
-        method: method,
+      var payload = Object.assign({ action: action }, body || {});
+      var resp = await fetch(window.location.origin + '/api/heygen', {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-      };
-      if (body) opts.body = JSON.stringify(Object.assign({ _endpoint: endpoint }, body));
-      else opts.body = JSON.stringify({ _endpoint: endpoint, _method: 'GET' });
-      var resp = await fetch(url, opts);
-      var data = await resp.json();
-      return data;
+        body: JSON.stringify(payload)
+      });
+
+      // 404 = heygen.js not deployed in /api/ folder
+      if (resp.status === 404) {
+        _avsShow404Warning();
+        return { error: 'heygen_not_deployed' };
+      }
+
+      if (!resp.ok) {
+        var errText = await resp.text();
+        console.error('[AVS] HeyGen HTTP', resp.status, errText.slice(0, 200));
+        return { error: 'HeyGen server error ' + resp.status };
+      }
+      return await resp.json();
     } catch(e) {
-      console.error('[AVS] HeyGen call failed:', endpoint, e.message);
+      console.error('[AVS] HeyGen call failed:', action, e.message);
       return { error: e.message };
     }
+  }
+
+  function _avsShow404Warning() {
+    var page = document.getElementById('page-ai-video');
+    if (!page || document.getElementById('_avs_404_banner')) return;
+    var banner = document.createElement('div');
+    banner.id = '_avs_404_banner';
+    banner.style.cssText = 'background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.25);border-radius:14px;padding:16px 20px;margin:0 1.25rem 1rem;display:flex;align-items:flex-start;gap:14px';
+    banner.innerHTML =
+      '<div style="font-size:26px;flex-shrink:0">⚠️</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:6px">HeyGen API Not Deployed</div>'
+      +'<div style="font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:10px">'
+      +'The <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;font-size:11px">api/heygen.js</code> file is missing from your GitHub repo. '
+      +'Push it to <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;font-size:11px">api/heygen.js</code> and Vercel will deploy it automatically.</div>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">1. Add heygen.js to your GitHub /api/ folder</div>'
+      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">2. Add HEYGEN_API_KEY to Vercel env vars</div>'
+      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">3. Vercel auto-deploys on push</div>'
+      +'</div></div>'
+      +'<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--dimmer);font-size:18px;cursor:pointer;flex-shrink:0;padding:4px;line-height:1">×</button>';
+    var firstChild = page.firstChild;
+    page.insertBefore(banner, firstChild);
   }
 
   // ── Toast helper ──────────────────────────────────────────────
@@ -25663,29 +25714,41 @@ window._eosWatchAudienceNicheChange = function() {
       if (bar) bar.style.width = prog + '%';
     }, 300);
 
-    fetch(window.location.origin + '/api/heygen', {
-      method: 'POST',
-      body: JSON.stringify({ _endpoint: 'upload_photo', _fileName: fileInput.files[0].name }),
-      headers: { 'Content-Type': 'application/json' }
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      clearInterval(progInterval);
-      if (bar) bar.style.width = '100%';
-      if (data.error) throw new Error(data.error);
-      _avs.photoAvatarId = data.avatar_id || data.id;
+    // Read the file as base64 and send to create-photo-avatar action
+    var photoReader = new FileReader();
+    photoReader.onload = function(e) {
+      var base64Data = e.target.result.split(',')[1];
+      fetch(window.location.origin + '/api/heygen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create-photo-avatar',
+          imageData: base64Data,
+          mimeType: fileInput.files[0].type || 'image/jpeg',
+          avatarName: 'My Photo Avatar'
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        clearInterval(progInterval);
+        if (bar) bar.style.width = '100%';
+        if (data.error) throw new Error(data.error);
+        // heygen.js create-photo-avatar returns { talkingPhotoId, talkingPhotoUrl }
+        _avs.photoAvatarId = data.talkingPhotoId || data.avatar_id || data.id;
       avsSetStatus('avs-photo-status', '✅ Photo avatar created! Go to Generate Video tab to use it.', 'var(--teal)');
       if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
       setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
       avsToast('✅ Photo avatar created successfully!');
     })
-    .catch(function(err) {
-      clearInterval(progInterval);
-      if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
-      if (progress) progress.style.display = 'none';
-      avsSetStatus('avs-photo-status', '⚠️ ' + err.message, 'var(--orange)');
-      avsToast('Upload failed: ' + err.message, true);
-    });
+      .catch(function(err) {
+        clearInterval(progInterval);
+        if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
+        if (progress) progress.style.display = 'none';
+        avsSetStatus('avs-photo-status', '⚠️ ' + err.message, 'var(--orange)');
+        avsToast('Upload failed: ' + err.message, true);
+      });
+    };
+    photoReader.readAsDataURL(fileInput.files[0]);
   };
 
   // ── Camera ────────────────────────────────────────────────────
@@ -25793,7 +25856,7 @@ window._eosWatchAudienceNicheChange = function() {
     var container = document.getElementById('avs-existing-groups');
     if (!container) return;
     container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:12px">Loading…</div>';
-    heygenCall('avatars', null, 'GET').then(function(data) {
+    heygenCall('get-avatars').then(function(data) {
       if (data.error || !data.avatars) {
         container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:16px">No saved avatars yet. Create one above.</div>';
         return;
@@ -25814,13 +25877,18 @@ window._eosWatchAudienceNicheChange = function() {
     });
   };
 
-  window.avsUseAvatar = function(id, name) {
-    _avs.selectedAvatar = id;
+  window.avsUseAvatar = function(id, name, type) {
+    if (type === 'photo') {
+      _avs.photoAvatarId = id;
+      _avs.avatarSource = 'photo';
+    } else {
+      _avs.selectedAvatar = id;
+    }
     avsShowTab('generate', null);
-    avsSetAvatarSource('photo');
+    avsSetAvatarSource(type === 'photo' ? 'photo' : 'stock');
     var statusEl = document.getElementById('avs-gen-photo-status');
     if (statusEl) statusEl.textContent = '✅ Using: ' + name;
-    avsToast('✅ Avatar selected: ' + name);
+    avsToast('✅ Avatar selected: ' + name + ' — go to Generate Video');
   };
 
   // ── Load stock avatars into generate tab ──────────────────────
@@ -25829,8 +25897,8 @@ window._eosWatchAudienceNicheChange = function() {
     var sel = document.getElementById('avs-avatar-select');
     if (!sel) return;
     sel.innerHTML = '<option value="">Loading…</option>';
-    heygenCall('avatars', null, 'GET').then(function(data) {
-      var avatars = (data && data.avatars) || [];
+    heygenCall('list-avatar-groups').then(function(data) {
+      var avatars = (data && data.groups) || [];
       if (!avatars.length) {
         sel.innerHTML = '<option value="">No avatars found</option>';
         return;
@@ -25838,7 +25906,7 @@ window._eosWatchAudienceNicheChange = function() {
       sel.innerHTML = avatars.map(function(av) {
         var id = av.avatar_id || av.id || '';
         var name = av.avatar_name || av.name || 'Avatar';
-        return '<option value="'+id+'" data-thumb="'+(av.thumbnail_url||'')+'" data-gender="'+(av.gender||'')+'">' + name + '</option>';
+        return '<option value="'+id+'" data-thumb="'+(av.preview_image_url||av.thumbnail_url||'')+'" data-gender="'+(av.gender||'')+'">' + name + '</option>';
       }).join('');
       // Trigger preview on first avatar
       avsOnAvatarChange();
@@ -25853,12 +25921,13 @@ window._eosWatchAudienceNicheChange = function() {
     var sel = document.getElementById('avs-voice-select');
     if (!sel) return;
     sel.innerHTML = '<option value="">Loading voices…</option>';
-    heygenCall('voices', null, 'GET').then(function(data) {
+    heygenCall('get-voices').then(function(data) {
+      if (!data || data.error === 'heygen_not_deployed') { sel.innerHTML = '<option value="">HeyGen not deployed</option>'; return; }
       var voices = (data && data.voices) || [];
       if (!voices.length) { sel.innerHTML = '<option value="">No voices found</option>'; return; }
       sel.innerHTML = voices.map(function(v) {
         var id = v.voice_id || v.id || '';
-        var name = (v.name||'Voice') + (v.language ? ' ('+v.language+')' : '');
+        var name = (v.display_name||v.name||'Voice') + (v.language ? ' ('+v.language+')' : '');
         return '<option value="'+id+'">'+name+'</option>';
       }).join('');
       _avs.selectedVoice = sel.value;
@@ -26037,16 +26106,17 @@ window._eosWatchAudienceNicheChange = function() {
       if (bar) bar.style.width = prog + '%';
     }, 1000);
 
-    heygenCall('generate_video', {
-      avatar_id: avatarId,
-      voice_id:  voiceId,
-      script:    script,
-      aspect_ratio: isVertical ? '9:16' : '16:9',
-      quality: _avs.quality || 'fast'
+    heygenCall('generate', {
+      avatarId:         _avs.avatarSource === 'photo' ? null : avatarId,
+      talkingPhotoId:   _avs.avatarSource === 'photo' ? (_avs.photoAvatarId || avatarId) : null,
+      voiceId:          voiceId,
+      script:           script,
+      type:             type,
+      title:            'EOS-' + Date.now()
     }).then(function(data) {
       if (data.error) throw new Error(data.error);
-      var videoId = data.video_id || data.id;
-      if (!videoId) throw new Error('No video ID returned');
+      var videoId = data.videoId || data.video_id || data.id;
+      if (!videoId) throw new Error('No video ID returned. Response: ' + JSON.stringify(data).slice(0,150));
       if (status) status.textContent = 'Video generating… checking status every 10 seconds.';
       avsToast('Video submitted! Checking status…');
       // Poll for completion
@@ -26061,7 +26131,7 @@ window._eosWatchAudienceNicheChange = function() {
           if (status) status.textContent = 'Generation is taking longer than expected. Check My Videos later.';
           return;
         }
-        heygenCall('video_status', { video_id: videoId }).then(function(statusData) {
+        heygenCall('status', { videoId: videoId }).then(function(statusData) {
           var st = statusData.status || statusData.video_status || '';
           if (status) status.textContent = 'Status: ' + st + ' (' + (polls*10) + 's)';
           if (st === 'completed' || st === 'done' || statusData.video_url) {
@@ -26122,17 +26192,30 @@ window._eosWatchAudienceNicheChange = function() {
   function avsLoadTranslateLangs() {
     var sel = document.getElementById('avs-translate-lang');
     if (!sel || sel.options.length > 2) return; // already loaded
-    var langs = [
-      { code:'es', name:'Spanish' }, { code:'fr', name:'French' },
-      { code:'de', name:'German' }, { code:'pt', name:'Portuguese' },
-      { code:'it', name:'Italian' }, { code:'zh', name:'Chinese' },
-      { code:'ja', name:'Japanese' }, { code:'ar', name:'Arabic' },
-      { code:'hi', name:'Hindi' }, { code:'ko', name:'Korean' },
-      { code:'ru', name:'Russian' }, { code:'nl', name:'Dutch' },
-    ];
-    sel.innerHTML = '<option value="">Select language…</option>' + langs.map(function(l){
-      return '<option value="'+l.code+'">'+l.name+'</option>';
-    }).join('');
+    // Load real languages from HeyGen API
+    heygenCall('get-languages').then(function(data) {
+      var langs = data.languages || [];
+      if (langs.length) {
+        sel.innerHTML = '<option value="">Select language…</option>' + langs.map(function(l){
+          var name = l.name || l.output_language || l;
+          var val  = l.name || l;
+          return '<option value="'+val+'">'+name+'</option>';
+        }).join('');
+      } else {
+        // Fallback list if API doesn't return
+        var fallback = ['Spanish','French','German','Portuguese','Italian',
+          'Chinese','Japanese','Arabic','Hindi','Korean','Russian','Dutch',
+          'Polish','Turkish','Swedish','Norwegian','Danish','Finnish'];
+        sel.innerHTML = '<option value="">Select language…</option>' + fallback.map(function(n){
+          return '<option value="'+n+'">'+n+'</option>';
+        }).join('');
+      }
+    }).catch(function() {
+      var fallback = ['Spanish','French','German','Portuguese','Italian','Chinese','Japanese'];
+      sel.innerHTML = '<option value="">Select language…</option>' + fallback.map(function(n){
+        return '<option value="'+n+'">'+n+'</option>';
+      }).join('');
+    });
   }
 
   window.avsTranslate = function() {
@@ -26144,7 +26227,7 @@ window._eosWatchAudienceNicheChange = function() {
     if (!url)  { avsToast('Paste a video URL first.', true); return; }
     if (!lang) { avsToast('Select a language.', true); return; }
     if (btn) { btn.disabled = true; btn.textContent = '⏳ Translating…'; }
-    heygenCall('translate_video', { video_url: url, language: lang }).then(function(data) {
+    heygenCall('translate', { videoUrl: url, language: lang }).then(function(data) {
       if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
       if (data.error) { avsToast('Translation failed: ' + data.error, true); return; }
       avsToast('✅ Translation submitted! Check My Videos in a few minutes.');
