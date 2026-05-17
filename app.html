@@ -19338,8 +19338,9 @@ window.setAppMode = function(mode) {
 
   // ── Update toggle buttons ─────────────────────────────────────────────
   // Update both toggle buttons (topbar)
-  const btnE = document.getElementById('mode-btn-expert'); if (!btnE) return;
-  const btnA = document.getElementById('mode-btn-affiliate'); if (!btnA) return;
+  // mode-btn-expert/affiliate live in auth.html — safely optional
+  const btnE = document.getElementById('mode-btn-expert');
+  const btnA = document.getElementById('mode-btn-affiliate');
   if (btnE) {
     btnE.style.background = isAffiliate ? 'transparent' : 'linear-gradient(135deg,var(--teal),var(--teal2))';
     btnE.style.color      = isAffiliate ? 'rgba(255,255,255,.4)' : 'var(--text-dark)';
@@ -19448,7 +19449,8 @@ window.setAppMode = function(mode) {
   }
 
   // ── Animate toggle ────────────────────────────────────────────────────
-  const toggle = document.getElementById('mode-toggle'); if (!toggle) return;
+  // mode-toggle lives in auth.html — safely optional
+  const toggle = document.getElementById('mode-toggle');
   if (toggle) {
     toggle.style.transform = 'scale(.97)';
     setTimeout(() => { toggle.style.transform = ''; }, 150);
@@ -25065,10 +25067,14 @@ window.brRenderTab         = brRenderTab;
 ══════════════════════════════════════════════════════════════════ */
 (function() {
   var _avsStubMsg = function(fn) {
-    return function() {
-      console.warn('[AVS] ' + fn + ' not yet loaded — HeyGen integration may not be initialised');
+    var stub = function() {
+      // Silent — HeyGen integration will override this when it loads
     };
+    stub._isStub = true;  // Flag so we can detect stubs vs real implementations
+    return stub;
   };
+  // These are fully implemented above (avsShowTab, avsHandleVideoFile, etc.)
+  // Only stub the ones that are purely in the HeyGen integration layer
   var _avsStubs = [
     'avsShowMode','avsSubmitPhoto','avsStartCamera','avsToggleRecording',
     'avsRerecord','avsSubmitRecording','avsSubmitVideo','avsLoadMyAvatarGroups',
@@ -25076,20 +25082,26 @@ window.brRenderTab         = brRenderTab;
     'avsPickAngle','avsGenerateScript','avsGenerate','avsDownload',
     'avsCopyLink','avsSaveToLibrary','avsSetQuality','avsTranslate',
     'fbOpenVisualEditor','fbGenerateVideoScript','fbUseOwnVideo'
+    // avsShowTab, avsHandleVideoFile, avsHandleGenPhoto, avsOnAvatarChange
+    // are fully implemented above — not stubbed
   ];
   _avsStubs.forEach(function(fn) {
     if (typeof window[fn] === 'undefined') window[fn] = _avsStubMsg(fn);
   });
 
   // Scorecard stubs
-  if (typeof window.scLogCall === 'undefined') window.scLogCall = function() {
-    var modal = document.getElementById('sc-log-modal') || document.querySelector('[id*="scorecard"]');
-    if (modal) modal.style.display = 'flex';
-    else console.warn('[Scorecard] scLogCall: scorecard modal not found');
-  };
-  if (typeof window.scGetAICoaching === 'undefined') window.scGetAICoaching = function() {
-    console.warn('[Scorecard] scGetAICoaching not yet loaded');
-  };
+  if (typeof window.scLogCall === 'undefined') {
+    window.scLogCall = function() {
+      var modal = document.getElementById('sc-log-modal') || document.querySelector('[id*="scorecard"]');
+      if (modal) modal.style.display = 'flex';
+      // silently ignore if modal doesn't exist — it lives in a separate module
+    };
+    window.scLogCall._isStub = true;
+  }
+  if (typeof window.scGetAICoaching === 'undefined') {
+    window.scGetAICoaching = function() {}; // silent stub
+    window.scGetAICoaching._isStub = true;
+  }
 })();
 
 
@@ -25300,6 +25312,61 @@ window._eosWatchAudienceNicheChange = function() {
     setTimeout(wireAudiencePage, 600);
   }
 })();
+
+
+/* ── AI VIDEO STUDIO — Tab navigation (works standalone + with HeyGen) ── */
+window.avsShowTab = function(tab) {
+  var tabs = ['clone', 'generate', 'translate', 'library'];
+  tabs.forEach(function(t) {
+    var panel = document.getElementById('avs-tab-' + t);
+    var btn   = document.querySelector('[onclick*="avsShowTab(\'' + t + '\'"]') ||
+                document.querySelector('.avs-tab-btn[data-tab="' + t + '"]');
+    if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+    if (btn) {
+      btn.style.background  = t === tab ? 'rgba(108,99,255,.15)' : 'rgba(255,255,255,.04)';
+      btn.style.borderColor = t === tab ? 'rgba(108,99,255,.35)' : 'rgba(255,255,255,.08)';
+      btn.style.color       = t === tab ? '#a089ff'              : 'var(--dim)';
+    }
+  });
+  // If HeyGen integration JS is loaded, call its version too
+  if (window._avsShowTabNative && typeof window._avsShowTabNative === 'function') {
+    window._avsShowTabNative(tab);
+  }
+  // Auto-load content for tab
+  // Only call if it's a real implementation, not a stub placeholder
+  var _isReal = function(fn) { return typeof fn === 'function' && !fn._isStub; };
+  if (tab === 'library'  && _isReal(window.avsLoadMyAvatarGroups)) avsLoadMyAvatarGroups();
+  if (tab === 'generate' && _isReal(window.avsLoadAvatars))        avsLoadAvatars();
+  if (tab === 'clone'    && _isReal(window.avsLoadVoices))         avsLoadVoices();
+};
+
+/* ── File input handlers — stubs that delegate to HeyGen layer ── */
+window.avsHandleVideoFile = function(input) {
+  if (window._avsHandleVideoFileNative) return window._avsHandleVideoFileNative(input);
+  var label = document.getElementById('avs-upload-label');
+  if (label && input.files && input.files[0]) label.textContent = input.files[0].name;
+};
+window.avsHandleGenPhoto = function(input) {
+  if (window._avsHandleGenPhotoNative) return window._avsHandleGenPhotoNative(input);
+  var preview = document.getElementById('avs-gen-photo-preview');
+  var wrap    = document.getElementById('avs-gen-photo-preview-wrap');
+  var icon    = document.getElementById('avs-gen-photo-icon');
+  if (input.files && input.files[0] && preview) {
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      preview.src = e.target.result;
+      if (wrap)  wrap.style.display  = 'block';
+      if (icon)  icon.style.display  = 'none';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+};
+window.avsOnAvatarChange = function() {
+  if (window._avsOnAvatarChangeNative) return window._avsOnAvatarChangeNative();
+  var sel     = document.getElementById('avs-avatar-select');
+  var preview = document.getElementById('avs-avatar-preview-wrap');
+  if (sel && sel.value && preview) preview.style.display = 'flex';
+};
 
 </script>
 </body>
