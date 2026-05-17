@@ -10767,7 +10767,7 @@ function _showAvatarAnalysisUI(outputEl, av) {
     ];
 
     var html = '<style>'+
-      '@keyframes _av_pulse{0%,100%{opacity:1}50%{opacity:.5}}'+
+      '@keyframes _av_spin{to{transform:rotate(360deg)}}@keyframes _av_pulse{0%,100%{opacity:1}50%{opacity:.5}}'+
       '@keyframes _av_scanBar{0%{left:-60%}100%{left:110%}}'+
       '@keyframes _av_progBar{from{width:0}to{width:100%}}'+
       '@keyframes _av_fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}'+
@@ -24606,7 +24606,7 @@ function brCallAI_Architect(inp) {
     + '"biggestMistake":"<the single biggest mistake in their current positioning — be specific and honest>",'
     + '"immediateWin":"<the one thing they can change THIS WEEK that will have the biggest impact on sales>"'
     + '}';
-  return brCallAI(sys, prompt, 1800);
+  return brCallAI(sys, prompt, 2500);
 }
 
 function brCallAI_OfferStack(inp) {
@@ -24631,40 +24631,101 @@ function brCallAI_OfferStack(inp) {
 }
 
 function brCallAI_CopyVault(inp) {
-  var sys = 'You are an A-list copywriter. You have written copy for 8-figure offers. Every line you write is engineered to stop the scroll, create desire, and compel action.';
-  var prompt = 'Write the complete copy library for this offer. Return ONLY valid JSON.\n\n'
-    + 'NICHE: '+inp.niche+' | OFFER: '+inp.offerName+' | RESULT: '+inp.result
-    + '\nAVATAR PAIN: '+inp.av_pain+' | FEAR: '+inp.av_fear+' | TRIED: '+inp.av_tried
-    + '\nPOSITIONING: '+inp.difference+' | KEYWORDS: '+inp.av_keywords
-    + (inp.allowMoney?'':'\nNICHE NOTE: No income claims. Transformation language only.')
-    + '\n\nReturn JSON:\n{'
-    + '"headlines":["<h1>","<h2>","<h3>","<h4>","<h5>"],'
-    + '"subheadlines":["<sub1>","<sub2>","<sub3>"],'
-    + '"hooks":["<hook1 — pattern interrupt>","<hook2 — curiosity>","<hook3 — bold claim>","<hook4 — story opener>","<hook5 — question>"],'
-    + '"dmOpeners":["<dm1 — after they comment>","<dm2 — after they follow>","<dm3 — cold but warm>","<dm4 — referral>","<dm5 — event-based>"],'
-    + '"emailSubjects":["<subj1>","<subj2>","<subj3>","<subj4>","<subj5>"],'
-    + '"vslOpeningScript":"<first 90 seconds of a video sales letter — hook, problem agitation, big promise — 150 words>",'
-    + '"salesPageBullets":["<bullet1 — outcome>","<bullet2>","<bullet3>","<bullet4>","<bullet5>","<bullet6>"],'
-    + '"objectionHandlers":{"price":"<handles price objection>","time":"<handles no time objection>","trust":"<handles scepticism>","timing":"<handles not now>"}'
-    + '}';
-  return brCallAI(sys, prompt, 2200);
+  var sys = 'You are an A-list direct-response copywriter who has written copy for 8-figure offers. You write with surgical precision — every word earns its place. You NEVER use placeholders or template text. You always write the actual, real, finished copy.';
+  var noMoney = !inp.allowMoney ? 'CRITICAL: This is a ' + inp.niche + ' offer. Do NOT use income figures, money amounts, or earning claims. Focus entirely on transformation and results.' : '';
+  var prompt = [
+    'Write the complete Copy Vault for this specific offer. Return ONLY valid JSON — no markdown, no backticks.',
+    '',
+    'OFFER: ' + (inp.offerName||'Their Offer'),
+    'NICHE: ' + inp.niche,
+    'RESULT: ' + (inp.result||inp.promise||'their transformation'),
+    'AVATAR PAIN: ' + (inp.av_pain||'their struggle'),
+    'AVATAR FEAR: ' + (inp.av_fear||'their fear'),
+    'WHAT THEY TRIED: ' + (inp.av_tried||'other solutions'),
+    'POSITIONING: ' + (inp.difference||'unique approach'),
+    noMoney,
+    '',
+    'Write ALL copy specifically for THIS offer and THIS audience. No generic filler.',
+    '',
+    'Return this exact JSON structure with REAL finished copy (not placeholders):',
+    '{',
+    '  "headlines": [',
+    '    "Headline 1 — bold outcome statement for ' + (inp.av_pain||'their situation') + '",',
+    '    "Headline 2 — different angle",',
+    '    "Headline 3 — question format",',
+    '    "Headline 4 — specific result",',
+    '    "Headline 5 — transformation focused"',
+    '  ],',
+    '  "subheadlines": ["sub 1", "sub 2", "sub 3"],',
+    '  "hooks": ["hook 1 pattern interrupt", "hook 2 curiosity", "hook 3 bold claim", "hook 4 story", "hook 5 question"],',
+    '  "dmOpeners": ["dm after comment", "dm after follow", "dm cold outreach", "dm referral", "dm event-based"],',
+    '  "emailSubjects": ["subject 1", "subject 2", "subject 3", "subject 4", "subject 5"],',
+    '  "vslOpeningScript": "Full 90-second VSL opener: hook + problem + big promise — written in spoken natural language",',
+    '  "salesPageBullets": ["bullet 1 outcome", "bullet 2", "bullet 3", "bullet 4", "bullet 5", "bullet 6"],',
+    '  "objectionHandlers": {',
+    '    "price": "Handle: the price is too high",',
+    '    "time": "Handle: I do not have time",',
+    '    "trust": "Handle: I am not sure this will work for me",',
+    '    "timing": "Handle: now is not the right time"',
+    '  }',
+    '}'
+  ].filter(Boolean).join('\n');
+  return brCallAI(sys, prompt, 4000);
 }
 
 function brCallAI_WarPlan(inp) {
-  var sys = 'You are a launch strategist who has taken experts from zero to $10K–$50K/month in 30 days. You give specific, actionable daily tasks — not vague advice.';
-  var prompt = 'Build a 30-day launch war plan for this business. Return ONLY valid JSON.\n\n'
-    + 'NICHE: '+inp.niche+' | OFFER: '+inp.offerName+' | PRICE: $'+inp.price
-    + '\nMONTHLY TARGET: $'+inp.target+' | FORMAT: '+inp.format+' | DURATION: '+inp.duration
-    + '\nAVATAR: '+inp.av_job+' | PLATFORM SIGNALS: '+inp.av_keywords
-    + '\n\nReturn JSON:\n{'
-    + '"phase1":{"title":"Foundation Week (Days 1–7)","goal":"<what this phase achieves>","days":[{"day":1,"title":"<task title>","actions":["<action1>","<action2>","<action3>"]},{"day":2,"title":"","actions":["","",""]},{"day":3,"title":"","actions":["","",""]},{"day":4,"title":"","actions":["","",""]},{"day":5,"title":"","actions":["","",""]},{"day":6,"title":"","actions":["","",""]},{"day":7,"title":"","actions":["","",""]}]},'
-    + '"phase2":{"title":"Momentum Week (Days 8–14)","goal":"","days":[{"day":8,"title":"","actions":["","",""]},{"day":9,"title":"","actions":["","",""]},{"day":10,"title":"","actions":["","",""]},{"day":11,"title":"","actions":["","",""]},{"day":12,"title":"","actions":["","",""]},{"day":13,"title":"","actions":["","",""]},{"day":14,"title":"","actions":["","",""]}]},'
-    + '"phase3":{"title":"Launch Week (Days 15–21)","goal":"","days":[{"day":15,"title":"","actions":["","",""]},{"day":16,"title":"","actions":["","",""]},{"day":17,"title":"","actions":["","",""]},{"day":18,"title":"","actions":["","",""]},{"day":19,"title":"","actions":["","",""]},{"day":20,"title":"","actions":["","",""]},{"day":21,"title":"","actions":["","",""]}]},'
-    + '"phase4":{"title":"Scale Week (Days 22–30)","goal":"","days":[{"day":22,"title":"","actions":["","",""]},{"day":25,"title":"","actions":["","",""]},{"day":28,"title":"","actions":["","",""]},{"day":30,"title":"","actions":["","",""]}]},'
-    + '"successMetrics":["<metric1>","<metric2>","<metric3>"],'
-    + '"criticalWarning":"<the one thing that kills most launches — be specific>"'
-    + '}';
-  return brCallAI(sys, prompt, 3000);
+  var sys = 'You are a launch strategist who has generated millions in revenue for expert businesses. You give brutally specific daily tasks calibrated to the exact niche, offer, and price point. You NEVER write placeholder text or generic advice.';
+  var prompt = [
+    'Build a 30-day launch war plan. Return ONLY valid JSON — no markdown, no backticks, no placeholder text.',
+    '',
+    'NICHE: ' + inp.niche,
+    'OFFER: ' + (inp.offerName||'Their Offer') + ' at $' + inp.price,
+    'TARGET: $' + inp.target + '/month',
+    'AVATAR: ' + (inp.av_job||'their ideal client'),
+    '',
+    'Write 4 phases. Each day gets a specific title and 3 concrete daily actions for THIS niche and offer.',
+    'Actions must be specific enough to execute today — not vague like "build your brand".',
+    '',
+    'Return this exact JSON with REAL content:',
+    '{',
+    '  "phase1": {"title": "Foundation (Days 1-7)", "goal": "specific goal", "days": [',
+    '    {"day": 1, "title": "specific task name", "actions": ["specific action 1", "specific action 2", "specific action 3"]},',
+    '    {"day": 2, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 3, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 4, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 5, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 6, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 7, "title": "...", "actions": ["...", "...", "..."]}',
+    '  ]},',
+    '  "phase2": {"title": "Momentum (Days 8-14)", "goal": "specific goal", "days": [',
+    '    {"day": 8, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 9, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 10, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 11, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 12, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 13, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 14, "title": "...", "actions": ["...", "...", "..."]}',
+    '  ]},',
+    '  "phase3": {"title": "Launch (Days 15-21)", "goal": "specific goal", "days": [',
+    '    {"day": 15, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 16, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 17, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 18, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 19, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 20, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 21, "title": "...", "actions": ["...", "...", "..."]}',
+    '  ]},',
+    '  "phase4": {"title": "Scale (Days 22-30)", "goal": "specific goal", "days": [',
+    '    {"day": 22, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 25, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 28, "title": "...", "actions": ["...", "...", "..."]},',
+    '    {"day": 30, "title": "...", "actions": ["...", "...", "..."]}',
+    '  ]},',
+    '  "successMetrics": ["metric 1 specific to this niche", "metric 2", "metric 3"],',
+    '  "criticalWarning": "The single most common launch killer for ' + inp.niche + ' experts — be specific"',
+    '}'
+  ].join('\n');
+  return brCallAI(sys, prompt, 6000);
 }
 
 function brCallAI_ContentEngine(inp) {
@@ -24680,7 +24741,7 @@ function brCallAI_ContentEngine(inp) {
     + '"conversionJourney":"<2 sentences describing how content moves someone from cold to client>",'
     + '"days":['
     + '[1..7 objects]: {"day":<n>,"theme":"<weekly theme>","fbPost":"<complete Facebook post 120-150 words>","reelScript":"HOOK: <5sec> | CONTENT: <3 points> | CTA: <5sec>","emailSubject":"<subject>","emailBody":"<120-150 word email>"}'
-    + '], total 30 days'
+    + ']. Write ALL 30 days with real content specific to ' + inp.niche + '. No placeholders.'
     + '}';
   return brCallAI(sys, prompt, 8000);
 }
@@ -24742,7 +24803,11 @@ function brPill(text, color) { return '<span style="display:inline-block;backgro
 function brCopyBtn(text) { return '<button onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent).then(function(){var b=arguments[0]||this;}).catch(function(){})" style="float:right;padding:4px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:var(--purple);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700;margin-bottom:4px">📋 Copy</button>'; }
 
 function brRenderArchitect(d, inp) {
-  if (!d) return '<div style="padding:2rem;text-align:center;color:var(--dim)">Analysis data not available. Try rebuilding.</div>';
+  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Business Architect Not Generated Yet</div>'
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
+    +'<button onclick="brRegenerateTab(\'architect\')" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcccc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Business Architect</button></div>';
+  if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem">';
   h += '<div style="grid-column:1/-1">'+brCard('var(--purple)','🏆 Your Market Positioning Statement', brValue(d.positioningStatement||''))+'</div>';
   h += brCard('var(--teal)','🎯 Category Dominance Angle', brValue(d.dominanceAngle||''));
@@ -24768,7 +24833,11 @@ function brRenderArchitect(d, inp) {
 }
 
 function brRenderOfferStack(d, inp) {
-  if (!d) return '<div style="padding:2rem;text-align:center;color:var(--dim)">Analysis data not available.</div>';
+  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Offer Stack Not Generated Yet</div>'
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
+    +'<button onclick="brRegenerateTab(\'offer-stack\')" style="padding:12px 28px;background:linear-gradient(135deg,var(--yellow),var(--yellow)cc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Offer Stack</button></div>';
+  if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var h = brCard('var(--yellow)','💎 Rebuilt Offer Name', brValue(d.rebuiltOfferName||''));
   if (d.signatureFramework) {
     var sf = d.signatureFramework;
@@ -24794,7 +24863,11 @@ function brRenderOfferStack(d, inp) {
 }
 
 function brRenderCopyVault(d, inp) {
-  if (!d) return '<div style="padding:2rem;text-align:center;color:var(--dim)">Analysis data not available.</div>';
+  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Copy Vault Not Generated Yet</div>'
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
+    +'<button onclick="brRegenerateTab(\'copy-vault\')" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#6c63ffcc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Copy Vault</button></div>';
+  if (!d || Object.keys(d).length === 0) return _emptyHtml;
   function copyBlock(label, items, color) {
     return brCard(color, label,
       '<div style="display:flex;flex-direction:column;gap:6px">'
@@ -24826,7 +24899,11 @@ function brRenderCopyVault(d, inp) {
 }
 
 function brRenderWarPlan(d, inp) {
-  if (!d) return '<div style="padding:2rem;text-align:center;color:var(--dim)">Analysis data not available.</div>';
+  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Launch War Plan Not Generated Yet</div>'
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
+    +'<button onclick="brRegenerateTab(\'war-plan\')" style="padding:12px 28px;background:linear-gradient(135deg,var(--orange),var(--orange)cc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Launch War Plan</button></div>';
+  if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var phases = [d.phase1, d.phase2, d.phase3, d.phase4].filter(Boolean);
   var phaseColors = ['var(--teal)','var(--purple)','var(--orange)','var(--yellow)'];
   var h = '';
@@ -24852,7 +24929,11 @@ function brRenderWarPlan(d, inp) {
 }
 
 function brRenderContentEngine(d, inp) {
-  if (!d) return '<div style="padding:2rem;text-align:center;color:var(--dim)">Analysis data not available.</div>';
+  var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Content Engine Not Generated Yet</div>'
+    +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
+    +'<button onclick="brRegenerateTab(\'content-engine\')" style="padding:12px 28px;background:linear-gradient(135deg,var(--teal),var(--teal)cc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Content Engine</button></div>';
+  if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var h = '';
   if (d.contentPillars && d.contentPillars.length) {
     h += brCard('var(--teal)','📌 Your 5 Content Pillars',
@@ -25367,6 +25448,65 @@ window.avsOnAvatarChange = function() {
   var preview = document.getElementById('avs-avatar-preview-wrap');
   if (sel && sel.value && preview) preview.style.display = 'flex';
 };
+
+
+/* ── Per-tab regeneration — reruns just one AI call ── */
+window.brRegenerateTab = async function(tab) {
+  var intel = window._boardroomIntel;
+  if (!intel) { alert('Run The Boardroom first.'); return; }
+  var inp  = intel.inputs || {};
+  var panel = document.getElementById('br-tab-'+tab);
+  if (!panel) return;
+
+  // Show loading state
+  var origHtml = panel.innerHTML;
+  panel.innerHTML = '<div style="text-align:center;padding:3rem 1rem">'
+    +'<div style="display:inline-block;width:36px;height:36px;border:3px solid rgba(108,99,255,.2);border-top-color:var(--purple);border-radius:50%;animation:_av_spin 1s linear infinite;margin-bottom:14px"></div>'
+    +'<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:6px">Generating ' + tab.replace(/-/g,' ').replace(/\w/g,function(c){return c.toUpperCase();}) + '…</div>'
+    +'<div style="font-size:11px;color:var(--dim)">Writing real content tailored to your business — about 15 seconds</div>'
+    +'</div>';
+
+  try {
+    var fn = {
+      'architect':      brCallAI_Architect,
+      'offer-stack':    brCallAI_OfferStack,
+      'copy-vault':     brCallAI_CopyVault,
+      'war-plan':       brCallAI_WarPlan,
+      'content-engine': brCallAI_ContentEngine
+    }[tab];
+
+    if (!fn) { panel.innerHTML = origHtml; return; }
+
+    var result = await fn(inp);
+
+    if (!result || Object.keys(result).length === 0) {
+      panel.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--orange)">'
+        +'Generation returned empty data. Check your internet connection and try again.'
+        +'<br><br><button data-rgtab="'+tab+'" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:10px 22px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:9px;color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">↻ Try Again</button></div>';
+      return;
+    }
+
+    // Update intel store
+    var keyMap = {'architect':'architect','offer-stack':'offerStack','copy-vault':'copyVault','war-plan':'warPlan','content-engine':'contentEngine'};
+    intel[keyMap[tab]] = result;
+    window._boardroomIntel = intel;
+    try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel)); } catch(e) {}
+
+    // Re-render tab
+    brRenderTab(tab, intel);
+
+    // Re-activate intelligence if content engine was regenerated
+    if (tab === 'content-engine' || tab === 'copy-vault') {
+      brActivateGlobalIntelligence(intel);
+    }
+
+  } catch(err) {
+    panel.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--orange)">Error: '
+      +err.message+'<br><br><button data-rgtab="'+tab+'" onclick="brRegenerateTab(this.dataset.rgtab)" '
+      +'style="padding:10px 22px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:9px;color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">↻ Try Again</button></div>';
+  }
+};
+window.brRegenerateTab = window.brRegenerateTab;
 
 </script>
 </body>
