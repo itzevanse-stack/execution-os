@@ -25060,6 +25060,8 @@ function brRenderWarPlan(d, inp) {
     +'<button data-rgtab="war-plan" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,var(--orange),#cc6a00);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">🚀 Generate My Launch War Plan</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var phases = [d.phase1, d.phase2, d.phase3, d.phase4].filter(Boolean);
+  // If no phases found, show retry
+  if (!phases.length) return _emptyHtml;
   var phaseColors = ['var(--teal)','var(--purple)','var(--orange)','var(--yellow)'];
   var h = '';
   if (d.criticalWarning) h += '<div style="background:rgba(255,91,91,.06);border:1px solid rgba(255,91,91,.2);border-radius:12px;padding:12px 16px;margin-bottom:1rem;font-size:12px;color:var(--dim)"><strong style="color:#ff8888">⚠️ Critical Warning:</strong> '+d.criticalWarning+'</div>';
@@ -25133,9 +25135,53 @@ window.brSyncContentToCalendar = function() {
   window._aiCalendar30 = days.map(function(day) {
     if (!day) return [];
     var slots = [];
-    if (day.fbPost) slots.push({ type:'fb1', content: day.fbPost, theme: day.theme, day: day.day, source:'boardroom' });
-    if (day.reelScript) slots.push({ type:'reel1', content: day.reelScript, theme: day.theme, day: day.day, source:'boardroom', fullScript: day.reelScript, reel:true });
-    if (day.emailSubject) slots.push({ type:'email', content: 'SUBJECT: '+day.emailSubject+'\n\n'+(day.emailBody||''), theme: day.theme, day: day.day, source:'boardroom' });
+    var dayNum = day.day || 1;
+    var theme  = day.theme || ('Day ' + dayNum);
+
+    // Map Boardroom fields → calendar slot fields (viralHook, fullScript, topic, slotType)
+    if (day.fbPost) {
+      // Extract first sentence as hook
+      var fbHook = (day.fbPost || '').split('.')[0].trim().slice(0, 80);
+      slots.push({
+        slotType:   'fb1',
+        type:       'fb1',
+        viralHook:  fbHook,
+        fullScript: day.fbPost,
+        topic:      theme,
+        postType:   'Facebook Post',
+        source:     'boardroom',
+        day:        dayNum
+      });
+    }
+    if (day.reelScript) {
+      // Extract hook from "HOOK: [...]" pattern
+      var reelHook = (day.reelScript.match(/HOOK:\s*\[?([^\]|]+)/i) || [])[1] || day.reelScript.slice(0, 80);
+      slots.push({
+        slotType:    'reel1',
+        type:        'reel1',
+        viralHook:   reelHook.trim(),
+        fullScript:  day.reelScript,
+        videoScript: day.reelScript,
+        topic:       theme,
+        postType:    'Reel Script',
+        reel:        true,
+        source:      'boardroom',
+        day:         dayNum
+      });
+    }
+    if (day.emailSubject || day.emailBody) {
+      var emailContent = 'SUBJECT: ' + (day.emailSubject || '') + '\n\n' + (day.emailBody || '');
+      slots.push({
+        slotType:   'email',
+        type:       'email',
+        viralHook:  day.emailSubject || 'Email',
+        fullScript: emailContent,
+        topic:      theme,
+        postType:   'Email',
+        source:     'boardroom',
+        day:        dayNum
+      });
+    }
     return slots;
   });
   try { localStorage.setItem('eos_calendar', JSON.stringify(window._aiCalendar30)); } catch(e) {}
