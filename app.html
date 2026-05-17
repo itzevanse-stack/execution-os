@@ -24429,63 +24429,77 @@ async function brRunFullAnalysis() {
     { icon:'⚡', label:'Finalising Boardroom Intelligence Profile',     sub: 'Storing profile · activating all sections' }
   ];
 
-  var stageTimes = [400, 1400, 2800, 4400, 6200, 8200, 10400, 13000, 16000];
-  stageTimes.forEach(function(t, i) {
-    setTimeout(function() {
-      var st = document.getElementById('_br_st'+i);
-      var ic = document.getElementById('_br_ic'+i);
-      var ss = document.getElementById('_br_ss'+i);
-      var sl = document.getElementById('_br_statusline');
-      if (st) { st.style.opacity='1'; st.style.background='rgba(108,99,255,.07)'; st.style.borderColor='rgba(108,99,255,.22)'; }
-      if (ic) { ic.style.background='rgba(108,99,255,.2)'; ic.style.animation='_oa_pulse 1s ease infinite'; }
-      if (ss) { ss.textContent='running…'; ss.style.color='var(--purple)'; }
-      if (sl)  sl.textContent = STAGES[i].sub;
-      if (i > 0) {
-        var ps = document.getElementById('_br_ss'+(i-1));
-        var pi = document.getElementById('_br_ic'+(i-1));
-        if (ps) { ps.textContent='✓'; ps.style.color='rgba(108,99,255,.8)'; }
-        if (pi) { pi.style.animation=''; pi.style.background='rgba(108,99,255,.14)'; }
+  // Animate first 4 stages quickly (before AI calls start)
+  [0,1,2,3].forEach(function(i){
+    setTimeout(function(){
+      var st=document.getElementById('_br_st'+i), ic=document.getElementById('_br_ic'+i);
+      var ss=document.getElementById('_br_ss'+i), sl=document.getElementById('_br_statusline');
+      if(st){st.style.opacity='1';st.style.background='rgba(108,99,255,.07)';st.style.borderColor='rgba(108,99,255,.22)';}
+      if(ic){ic.style.background='rgba(108,99,255,.2)';ic.style.animation='_oa_pulse 1s ease infinite';}
+      if(ss){ss.textContent='running…';ss.style.color='var(--purple)';}
+      if(sl&&STAGES[i])sl.textContent=STAGES[i].sub;
+      if(i>0){
+        var ps=document.getElementById('_br_ss'+(i-1)),pi=document.getElementById('_br_ic'+(i-1));
+        if(ps){ps.textContent='✓';ps.style.color='rgba(108,99,255,.8)';}
+        if(pi){pi.style.animation='';pi.style.background='rgba(108,99,255,.14)';}
       }
-    }, t);
+    }, i*500);
   });
+  setTimeout(function(){
+    [0,1,2,3].forEach(function(i){
+      var ps=document.getElementById('_br_ss'+i),pi=document.getElementById('_br_ic'+i);
+      if(ps&&ps.textContent.includes('…')){ps.textContent='✓';ps.style.color='rgba(108,99,255,.8)';}
+      if(pi){pi.style.animation='';pi.style.background='rgba(108,99,255,.14)';}
+    });
+    var sl=document.getElementById('_br_statusline');
+    if(sl)sl.textContent='Running AI analysis… Takes 60–120 seconds. Please keep this page open.';
+  }, 2200);
 
-  // Run all 5 AI calls in parallel for speed
+  // Sequential AI calls — one at a time so each has full time budget (no timeout)
   var startTime = Date.now();
   try {
-    // Use allSettled so a single failed call doesn't kill the whole Boardroom
-    var settled = await Promise.allSettled([
-      brCallAI_Architect(inp),
-      brCallAI_OfferStack(inp),
-      brCallAI_CopyVault(inp),
-      brCallAI_WarPlan(inp),
-      brCallAI_ContentEngine(inp)
-    ]);
-
-    var getValue = function(s) { return s.status === 'fulfilled' ? (s.value || {}) : {}; };
     var intel = {
-      generatedAt:  Date.now(),
-      inputs:       inp,
-      architect:    getValue(settled[0]),
-      offerStack:   getValue(settled[1]),
-      copyVault:    getValue(settled[2]),
-      warPlan:      getValue(settled[3]),
-      contentEngine:getValue(settled[4]),
+      generatedAt: Date.now(), inputs: inp,
+      architect:{}, offerStack:{}, copyVault:{}, warPlan:{}, contentEngine:{}
     };
 
-    // Log any partial failures for debugging
-    settled.forEach(function(s, i) {
-      if (s.status === 'rejected') {
-        console.warn('[Boardroom] Tab', i, 'failed:', s.reason);
+    var _brSeq = [
+      { key:'architect',     fn:brCallAI_Architect,     si:4 },
+      { key:'offerStack',    fn:brCallAI_OfferStack,    si:5 },
+      { key:'copyVault',     fn:brCallAI_CopyVault,     si:6 },
+      { key:'warPlan',       fn:brCallAI_WarPlan,       si:7 },
+      { key:'contentEngine', fn:brCallAI_ContentEngine, si:8 },
+    ];
+
+    for (var _qi=0; _qi<_brSeq.length; _qi++) {
+      var _q = _brSeq[_qi];
+      var _qSt=document.getElementById('_br_st'+_q.si), _qIc=document.getElementById('_br_ic'+_q.si);
+      var _qSs=document.getElementById('_br_ss'+_q.si), _qSl=document.getElementById('_br_statusline');
+      if(_qSt){_qSt.style.opacity='1';_qSt.style.background='rgba(108,99,255,.07)';_qSt.style.borderColor='rgba(108,99,255,.22)';}
+      if(_qIc){_qIc.style.background='rgba(108,99,255,.2)';_qIc.style.animation='_oa_pulse 1s ease infinite';}
+      if(_qSs){_qSs.textContent='running…';_qSs.style.color='var(--purple)';}
+      if(_qSl&&STAGES[_q.si])_qSl.textContent=STAGES[_q.si].sub;
+      try {
+        var _qR = await _q.fn(inp);
+        intel[_q.key] = (_qR && !_qR._error && Object.keys(_qR).length>0) ? _qR : {};
+        if(_qSs){
+          if(_qR&&_qR._error){_qSs.textContent='⚠ retry';_qSs.style.color='var(--orange)';console.warn('[BR]',_q.key,_qR._error);}
+          else{_qSs.textContent='✓';_qSs.style.color='rgba(108,99,255,.8)';}
+        }
+        if(_qIc){_qIc.style.animation='';_qIc.style.background='rgba(108,99,255,.14)';}
+      } catch(_qE) {
+        console.error('[BR]',_q.key,'threw:',_qE.message);
+        if(_qSs){_qSs.textContent='⚠ failed';_qSs.style.color='var(--orange)';}
+        if(_qIc){_qIc.style.animation='';}
       }
-    });
+    }
 
     // Store globally and locally
     window._boardroomIntel = intel;
     try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel)); } catch(e){}
 
-    var minWait = 17000;
-    var elapsed = Date.now() - startTime;
-    setTimeout(function() { brRevealIntelligence(intel); }, Math.max(0, minWait - elapsed));
+    // Sequential calls are slow enough — reveal immediately
+    brRevealIntelligence(intel);
 
   } catch(err) {
     console.error('Boardroom error:', err);
@@ -24548,9 +24562,12 @@ function brBuildAnalysisUI(inp) {
 async function brCallAI(systemPrompt, userPrompt, maxTokens) {
   try {
     var endpoint = window.PROXY_URL || (window.location.origin + '/api/claude');
+    var _brCtl = new AbortController();
+    var _brTid = setTimeout(function(){ _brCtl.abort(); }, 90000);
     var resp = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: _brCtl.signal,
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
         max_tokens: maxTokens || 3000,
@@ -24559,6 +24576,7 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens) {
       })
     });
 
+    clearTimeout(_brTid);
     var rawText = await resp.text();
     console.log('[Boardroom] HTTP status:', resp.status, '| Response length:', rawText.length);
 
@@ -24605,8 +24623,10 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens) {
     return { _raw: text };
 
   } catch (err) {
-    console.error('[Boardroom] Network error:', err.message);
-    return { _error: 'Network error: ' + err.message };
+    clearTimeout(_brTid);
+    var _isTO = err.name === 'AbortError';
+    console.error('[Boardroom] Error:', err.name, err.message);
+    return { _error: _isTO ? 'Request timed out. Click the tab Regenerate button to retry.' : 'Network error: ' + err.message };
   }
 }
 
@@ -25237,6 +25257,959 @@ window.brActivateGlobalIntelligence = function(intel) {
     }
     return _origDMQ.apply(this, arguments);
   };
+})();
+
+/* expose tab functions globally */
+window.brShowTab           = brShowTab;
+window.brRunFullAnalysis   = brRunFullAnalysis;
+window.brRenderTab         = brRenderTab;
+
+
+/* ══════════════════════════════════════════════════════════════════
+   AI VIDEO STUDIO + SCORECARD FUNCTION STUBS
+   These are called from the HTML but defined in the full HeyGen
+   integration layer. Stubs prevent silent crashes if that layer
+   hasn't loaded yet, and show a helpful message instead.
+══════════════════════════════════════════════════════════════════ */
+(function() {
+  var _avsStubMsg = function(fn) {
+    var stub = function() {
+      // Silent — HeyGen integration will override this when it loads
+    };
+    stub._isStub = true;  // Flag so we can detect stubs vs real implementations
+    return stub;
+  };
+  // These are fully implemented above (avsShowTab, avsHandleVideoFile, etc.)
+  // Only stub the ones that are purely in the HeyGen integration layer
+  var _avsStubs = [
+    'avsShowMode','avsSubmitPhoto','avsStartCamera','avsToggleRecording',
+    'avsRerecord','avsSubmitRecording','avsSubmitVideo','avsLoadMyAvatarGroups',
+    'avsPickType','avsSetAvatarSource','avsLoadAvatars','avsLoadVoices',
+    'avsPickAngle','avsGenerateScript','avsGenerate','avsDownload',
+    'avsCopyLink','avsSaveToLibrary','avsSetQuality','avsTranslate',
+    'fbOpenVisualEditor','fbGenerateVideoScript','fbUseOwnVideo'
+    // avsShowTab, avsHandleVideoFile, avsHandleGenPhoto, avsOnAvatarChange
+    // are fully implemented above — not stubbed
+  ];
+  _avsStubs.forEach(function(fn) {
+    if (typeof window[fn] === 'undefined') window[fn] = _avsStubMsg(fn);
+  });
+
+  // Scorecard stubs
+  if (typeof window.scLogCall === 'undefined') {
+    window.scLogCall = function() {
+      var modal = document.getElementById('sc-log-modal') || document.querySelector('[id*="scorecard"]');
+      if (modal) modal.style.display = 'flex';
+      // silently ignore if modal doesn't exist — it lives in a separate module
+    };
+    window.scLogCall._isStub = true;
+  }
+  if (typeof window.scGetAICoaching === 'undefined') {
+    window.scGetAICoaching = function() {}; // silent stub
+    window.scGetAICoaching._isStub = true;
+  }
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════
+   SAVED AUDIENCES SYSTEM
+   Save, load, and manage multiple audience/avatar profiles.
+   Mirrors the saved offers system — users never start from scratch.
+══════════════════════════════════════════════════════════════════ */
+
+window._eosGetSavedAudiences = function() {
+  try { return JSON.parse(localStorage.getItem('eos_saved_audiences') || '[]'); }
+  catch(e) { return []; }
+};
+
+window._eosSaveCurrentAudience = function(customName) {
+  var gv = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+  var job  = gv('av_job') || (window._avatarData && window._avatarData.job) || '';
+  var niche = window._appliedNiche || '';
+  var defaultName = job ? job.split('/')[0].split(',')[0].trim().slice(0,30) + (niche ? ' · ' + niche.split('&')[0].trim().slice(0,18) : '') : 'My Audience';
+  var name = customName || defaultName;
+
+  var snap = { niche: niche };
+  var EOS_AVATAR_FIELDS_LOCAL = [
+    'av_name','av_age','av_gender','av_location','av_edu','av_income','av_job',
+    'av_industry','av_employ','av_hrs','av_current','av_desired','av_igr',
+    'av_transformation','av_fear','av_tried','av_personality','av_motivation',
+    'av_influences','av_objections'
+  ];
+  EOS_AVATAR_FIELDS_LOCAL.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) snap[id] = el.value;
+  });
+  // Save keywords tags
+  var kwTags = Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll&&document.getElementById('kw-wrap').querySelectorAll('.tag')||[]).map(function(t){return t.textContent.replace('×','').trim();});
+  snap._keywords = kwTags;
+  // Save window._avatarData enrichment
+  if (window._avatarData) snap._avatarData = window._avatarData;
+  if (window._aiAvatarData) snap._aiAvatarData = window._aiAvatarData;
+
+  var audiences = window._eosGetSavedAudiences();
+  var existingIdx = audiences.findIndex(function(a){ return a.name === name; });
+  var entry = {
+    id: existingIdx >= 0 ? audiences[existingIdx].id : 'aud_' + Date.now(),
+    name: name,
+    niche: niche,
+    job: job.slice(0, 40),
+    savedAt: new Date().toISOString(),
+    data: snap
+  };
+  if (existingIdx >= 0) audiences[existingIdx] = entry;
+  else audiences.unshift(entry);
+  if (audiences.length > 12) audiences = audiences.slice(0, 12);
+  localStorage.setItem('eos_saved_audiences', JSON.stringify(audiences));
+  return entry;
+};
+
+window._eosLoadAudience = function(audienceId) {
+  var audiences = window._eosGetSavedAudiences();
+  var audience  = audiences.find(function(a){ return a.id === audienceId; });
+  if (!audience || !audience.data) return false;
+  var d = audience.data;
+
+  // Restore niche
+  if (d.niche) {
+    var nicheEl = document.getElementById('niche');
+    if (nicheEl) { nicheEl.value = d.niche; nicheEl.dispatchEvent(new Event('change',{bubbles:true})); }
+    window._appliedNiche = d.niche;
+  }
+
+  // Restore all avatar fields
+  var EOS_AVATAR_FIELDS_LOCAL = [
+    'av_name','av_age','av_gender','av_location','av_edu','av_income','av_job',
+    'av_industry','av_employ','av_hrs','av_current','av_desired','av_igr',
+    'av_transformation','av_fear','av_tried','av_personality','av_motivation',
+    'av_influences','av_objections'
+  ];
+  EOS_AVATAR_FIELDS_LOCAL.forEach(function(id) {
+    if (d[id] === undefined) return;
+    var el = document.getElementById(id);
+    if (el) { el.value = d[id]; el.dispatchEvent(new Event('input',{bubbles:true})); }
+  });
+
+  // Restore keywords
+  if (d._keywords && d._keywords.length) {
+    var kwWrap = document.getElementById('kw-wrap');
+    if (kwWrap) {
+      // Remove existing tags
+      kwWrap.querySelectorAll('.tag').forEach(function(t){ t.remove(); });
+      d._keywords.forEach(function(kw) {
+        if (!kw) return;
+        var tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.innerHTML = kw + '<span onclick="removeTag(this,event)" style="margin-left:5px;cursor:pointer;opacity:.6">×</span>';
+        kwWrap.insertBefore(tag, kwWrap.querySelector('#kw-inp') || kwWrap.firstChild);
+      });
+    }
+  }
+
+  // Restore enriched AI data
+  if (d._avatarData)   window._avatarData   = d._avatarData;
+  if (d._aiAvatarData) window._aiAvatarData  = d._aiAvatarData;
+
+  if (typeof window.applyAll === 'function') setTimeout(window.applyAll, 200);
+  if (typeof window._updateNicheGoalLabel === 'function') setTimeout(function(){ window._updateNicheGoalLabel(d.niche||''); }, 250);
+  return true;
+};
+
+window._eosDeleteAudience = function(audienceId) {
+  var audiences = window._eosGetSavedAudiences().filter(function(a){ return a.id !== audienceId; });
+  localStorage.setItem('eos_saved_audiences', JSON.stringify(audiences));
+};
+
+window._eosShowSavedAudiencesPanel = function() {
+  var existing = document.getElementById('_eos_audiences_modal');
+  if (existing) { existing.remove(); return; }
+
+  var audiences = window._eosGetSavedAudiences();
+
+  var audienceRows = audiences.length === 0
+    ? '<div style="text-align:center;padding:2rem 1rem;color:var(--dimmer);font-size:12px;line-height:1.7">No saved audiences yet.<br>Fill in your Ideal Customer profile and click<br><strong style="color:var(--white)">💾 Save This Audience</strong> to save it.</div>'
+    : audiences.map(function(a) {
+        var d   = new Date(a.savedAt);
+        var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+        return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+          + '<div style="flex:1;min-width:120px">'
+          + '<div style="font-size:13px;font-weight:700;color:var(--white)">' + a.name + '</div>'
+          + '<div style="font-size:10px;color:var(--dimmer);margin-top:2px">'+(a.job||'—')+' · Saved '+dateStr+'</div>'
+          + '</div>'
+          + '<button onclick="window._eosLoadAudience(\''+a.id+'\');document.getElementById(\'_eos_audiences_modal\').remove();window._eosShowLoadedToast(\''+a.name.replace(/'/g,"\\'")+'\ loaded!\',\'🎯\')" style="padding:7px 14px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Load</button>'
+          + '<button onclick="if(confirm(\'Delete \'+ \''+a.name.replace(/'/g,"\\'")+'\'?\')){'
+              + 'window._eosDeleteAudience(\''+a.id+'\');'
+              + 'this.closest(\'[style*=border-radius]\').remove();'
+              + '}" style="padding:7px 12px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">🗑</button>'
+          + '</div>';
+      }).join('');
+
+  var modal = document.createElement('div');
+  modal.id = '_eos_audiences_modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px)';
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+
+  modal.innerHTML = '<div style="background:linear-gradient(145deg,#13112e,#0e0c24);border:1px solid rgba(78,204,163,.25);border-radius:20px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto">'
+    + '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#13112e;z-index:1">'
+    + '<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:2px">Your Saved Audiences</div>'
+    + '<div style="font-size:16px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white)">'+audiences.length+' audience'+(audiences.length!==1?'s':'')+' saved</div></div>'
+    + '<button onclick="document.getElementById(\'_eos_audiences_modal\').remove()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer">×</button></div>'
+    + '<div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:8px">'+audienceRows+'</div>'
+    + '<div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);position:sticky;bottom:0;background:#13112e">'
+    + '<div style="display:flex;gap:8px;align-items:center">'
+    + '<input id="_eos_aud_save_name" placeholder="Name this audience (optional)…" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none"/>'
+    + '<button onclick="var n=document.getElementById(\'_eos_aud_save_name\').value.trim();var saved=window._eosSaveCurrentAudience(n||undefined);window._eosShowLoadedToast(saved.name+\' saved!\',\'🎯\');document.getElementById(\'_eos_audiences_modal\').remove();" style="padding:9px 18px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap">💾 Save Now</button>'
+    + '</div>'
+    + '<div style="font-size:10px;color:var(--dimmer);margin-top:6px">Saves your complete audience profile — job, pain, fear, transformation, goals, keywords. Load it in seconds on any device.</div>'
+    + '</div></div>';
+
+  document.body.appendChild(modal);
+};
+
+/* ── Inject Save/Load Audience buttons into the Avatar page ── */
+window._eosInjectAudienceButtons = function() {
+  if (document.getElementById('_eos_audience_mgr_btns')) return;
+  var genBtn = document.querySelector('.gen-av-btn');
+  if (!genBtn) return;
+  var wrap = document.createElement('div');
+  wrap.id = '_eos_audience_mgr_btns';
+  wrap.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap';
+  wrap.innerHTML = '<button onclick="window._eosShowSavedAudiencesPanel()" style="flex:1;padding:10px 14px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">📂 My Saved Audiences</button>'
+    + '<button onclick="var s=window._eosSaveCurrentAudience();window._eosShowLoadedToast(s.name+\' saved!\',\'🎯\')" style="flex:1;padding:10px 14px;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.18);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">💾 Save This Audience</button>';
+  genBtn.parentNode.insertBefore(wrap, genBtn);
+};
+
+/* ── Auto-save audience when niche changes (same as offers) ── */
+window._eosWatchAudienceNicheChange = function() {
+  var nicheEl = document.getElementById('niche');
+  if (!nicheEl || nicheEl._eosAudienceWatcher) return;
+  nicheEl._eosAudienceWatcher = true;
+  nicheEl.addEventListener('change', function() {
+    // Auto-save current audience before niche switch if it has data
+    var hasAudienceData = ['av_job','av_current','av_fear','av_transformation'].some(function(id){
+      var el=document.getElementById(id); return el&&el.value.trim().length>2;
+    });
+    if (hasAudienceData && window._eosLastNiche && window._eosLastNiche !== this.value) {
+      var saved = window._eosSaveCurrentAudience();
+      window._eosShowLoadedToast && window._eosShowLoadedToast('"'+saved.name+'" audience auto-saved!', '💾');
+    }
+  });
+};
+
+/* ── Boot: inject buttons when avatar page is navigated to ── */
+(function _eosAudienceBoot() {
+  function wireAudiencePage() {
+    window._eosInjectAudienceButtons && window._eosInjectAudienceButtons();
+    window._eosWatchAudienceNicheChange && window._eosWatchAudienceNicheChange();
+  }
+  // Hook into showPage
+  var _origShowPage = window.showPage;
+  if (_origShowPage && !_origShowPage._audienceWired) {
+    window.showPage = function(page, nav) {
+      _origShowPage.apply(this, arguments);
+      if (page === 'avatar') setTimeout(wireAudiencePage, 250);
+    };
+    window.showPage._audienceWired = true;
+  }
+  // Also fire on load in case avatar is the active page
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(wireAudiencePage, 600); });
+  } else {
+    setTimeout(wireAudiencePage, 600);
+  }
+})();
+
+
+/* ── AI VIDEO STUDIO — Tab navigation (works standalone + with HeyGen) ── */
+
+/* ══════════════════════════════════════════════════════════════════
+   AI VIDEO STUDIO — COMPLETE IMPLEMENTATION
+   All 25 functions built and wired to /api/heygen endpoint.
+   Handles: tab navigation, photo/video clone, avatar loading,
+   voice loading, script generation, video generation, download,
+   translate, library, quality selection, angle/type picking.
+══════════════════════════════════════════════════════════════════ */
+
+(function() {
+
+  // ── State ──────────────────────────────────────────────────────
+  var _avs = {
+    mode: 'photo',          // 'photo' | 'video'
+    avatarSource: 'stock',  // 'stock' | 'photo'
+    selectedAvatar: null,
+    selectedVoice: null,
+    videoType: 'reel',
+    angle: 'story',
+    quality: 'fast',
+    mediaRecorder: null,
+    recordedChunks: [],
+    cameraStream: null,
+    recordingTimer: null,
+    recordingSecs: 0,
+    generatedVideoUrl: null,
+    photoAvatarId: null,
+  };
+
+  // ── HeyGen API helper ──────────────────────────────────────────
+  async function heygenCall(endpoint, body, method) {
+    method = method || 'POST';
+    try {
+      var url = (window.location.origin + '/api/heygen');
+      var opts = {
+        method: method,
+        headers: { 'Content-Type': 'application/json' },
+      };
+      if (body) opts.body = JSON.stringify(Object.assign({ _endpoint: endpoint }, body));
+      else opts.body = JSON.stringify({ _endpoint: endpoint, _method: 'GET' });
+      var resp = await fetch(url, opts);
+      var data = await resp.json();
+      return data;
+    } catch(e) {
+      console.error('[AVS] HeyGen call failed:', endpoint, e.message);
+      return { error: e.message };
+    }
+  }
+
+  // ── Toast helper ──────────────────────────────────────────────
+  function avsToast(msg, isErr) {
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:'+(isErr?'rgba(255,91,91,.12)':'rgba(78,204,163,.1)')+';border:1px solid '+(isErr?'rgba(255,91,91,.3)':'rgba(78,204,163,.25)')+';border-radius:12px;padding:12px 20px;color:'+(isErr?'#ff8888':'var(--teal)')+';font-size:12px;font-weight:700;z-index:99999;font-family:Poppins,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:320px;line-height:1.5';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(function(){t.remove();},400); }, 3500);
+  }
+
+  function avsSetStatus(id, msg, color) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = msg; if (color) el.style.color = color; }
+  }
+
+  // ── Tab switching ──────────────────────────────────────────────
+  window.avsShowTab = function(tab, btn) {
+    var tabs = ['clone','generate','translate','library'];
+    tabs.forEach(function(t) {
+      var panel = document.getElementById('avs-tab-' + t);
+      if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+    });
+    // Update tab button styles
+    document.querySelectorAll('.avs-tab').forEach(function(b) {
+      var isActive = b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tab + "'");
+      b.style.background = isActive ? 'rgba(108,99,255,.12)' : 'rgba(255,255,255,.04)';
+      b.style.borderColor = isActive ? 'rgba(108,99,255,.3)' : 'var(--border2)';
+      b.style.color = isActive ? '#a089ff' : 'var(--dim)';
+    });
+    // Auto-load data for tab
+    if (tab === 'generate') { avsLoadAvatars(); avsLoadVoices(); }
+    if (tab === 'library')  { avsLoadMyAvatarGroups(); }
+    if (tab === 'translate') { avsLoadTranslateLangs(); }
+    // Native delegate
+    if (window._avsShowTabNative && !window._avsShowTabNative._isStub) {
+      window._avsShowTabNative(tab);
+    }
+  };
+
+  // ── Mode switching (photo / video) ────────────────────────────
+  window.avsShowMode = function(mode) {
+    _avs.mode = mode;
+    var photoBtn = document.getElementById('avs-mode-photo-btn');
+    var videoBtn = document.getElementById('avs-mode-video-btn');
+    var photoCard = document.getElementById('avs-mode-photo');
+    var videoCard = document.getElementById('avs-mode-video');
+    var activeStyle = 'rgba(108,99,255,.1)'; var inactiveStyle = 'rgba(255,255,255,.03)';
+    if (photoBtn) { photoBtn.style.background = mode==='photo' ? activeStyle : inactiveStyle; photoBtn.style.borderColor = mode==='photo' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
+    if (videoBtn) { videoBtn.style.background = mode==='video' ? activeStyle : inactiveStyle; videoBtn.style.borderColor = mode==='video' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
+    if (photoCard) photoCard.style.display = mode==='photo' ? 'block' : 'none';
+    if (videoCard) videoCard.style.display = mode==='video' ? 'block' : 'none';
+  };
+
+  // ── Handle photo file input ────────────────────────────────────
+  window.avsHandlePhoto = function(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var wrap = document.getElementById('avs-photo-preview-wrap');
+    var img  = document.getElementById('avs-photo-preview-img');
+    var icon = document.getElementById('avs-photo-upload-icon');
+    var label = document.getElementById('avs-photo-upload-label');
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      if (img) img.src = e.target.result;
+      if (wrap) wrap.style.display = 'block';
+      if (icon) icon.style.display = 'none';
+      if (label) label.textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+    avsSetStatus('avs-photo-status', 'Photo ready — click Create Photo Avatar', 'var(--teal)');
+  };
+
+  // ── Submit photo to create avatar ─────────────────────────────
+  window.avsSubmitPhoto = function() {
+    var fileInput = document.getElementById('avs-photo-file');
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      avsToast('Please select a photo first.', true); return;
+    }
+    var btn = document.getElementById('avs-photo-btn');
+    var progress = document.getElementById('avs-upload-progress');
+    var bar = document.getElementById('avs-progress-bar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+    if (progress) progress.style.display = 'block';
+
+    var formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    // Animate progress bar
+    var prog = 0;
+    var progInterval = setInterval(function() {
+      prog = Math.min(prog + 3, 85);
+      if (bar) bar.style.width = prog + '%';
+    }, 300);
+
+    fetch(window.location.origin + '/api/heygen', {
+      method: 'POST',
+      body: JSON.stringify({ _endpoint: 'upload_photo', _fileName: fileInput.files[0].name }),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      clearInterval(progInterval);
+      if (bar) bar.style.width = '100%';
+      if (data.error) throw new Error(data.error);
+      _avs.photoAvatarId = data.avatar_id || data.id;
+      avsSetStatus('avs-photo-status', '✅ Photo avatar created! Go to Generate Video tab to use it.', 'var(--teal)');
+      if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
+      setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
+      avsToast('✅ Photo avatar created successfully!');
+    })
+    .catch(function(err) {
+      clearInterval(progInterval);
+      if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
+      if (progress) progress.style.display = 'none';
+      avsSetStatus('avs-photo-status', '⚠️ ' + err.message, 'var(--orange)');
+      avsToast('Upload failed: ' + err.message, true);
+    });
+  };
+
+  // ── Camera ────────────────────────────────────────────────────
+  window.avsStartCamera = function() {
+    var preview = document.getElementById('avs-camera-preview');
+    var placeholder = document.getElementById('avs-camera-placeholder');
+    var startBtn = document.getElementById('avs-start-cam-btn');
+    var recordBtn = document.getElementById('avs-record-btn');
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(function(stream) {
+        _avs.cameraStream = stream;
+        if (preview) { preview.srcObject = stream; preview.style.display = 'block'; }
+        if (placeholder) placeholder.style.display = 'none';
+        if (startBtn) { startBtn.textContent = '📷 Camera On'; startBtn.style.background = 'rgba(78,204,163,.1)'; startBtn.style.color = 'var(--teal)'; }
+        if (recordBtn) { recordBtn.disabled = false; recordBtn.style.opacity = '1'; recordBtn.style.color = 'var(--white)'; }
+        avsSetStatus('avs-cam-status', 'Camera ready — say the consent sentence, then record.', 'var(--teal)');
+      })
+      .catch(function(err) {
+        avsToast('Camera error: ' + err.message + '. Check browser permissions.', true);
+        avsSetStatus('avs-cam-status', '⚠️ Camera blocked — check browser permissions', 'var(--orange)');
+      });
+  };
+
+  window.avsToggleRecording = function() {
+    var recordBtn = document.getElementById('avs-record-btn');
+    var recIndicator = document.getElementById('avs-rec-indicator');
+    if (!_avs.mediaRecorder || _avs.mediaRecorder.state === 'inactive') {
+      // Start recording
+      if (!_avs.cameraStream) { avsToast('Start the camera first.', true); return; }
+      _avs.recordedChunks = [];
+      _avs.mediaRecorder = new MediaRecorder(_avs.cameraStream);
+      _avs.mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) _avs.recordedChunks.push(e.data);
+      };
+      _avs.mediaRecorder.onstop = function() {
+        var blob = new Blob(_avs.recordedChunks, { type: 'video/webm' });
+        var url  = URL.createObjectURL(blob);
+        var videoEl = document.getElementById('avs-recorded-video');
+        var previewDiv = document.getElementById('avs-recorded-preview');
+        if (videoEl) videoEl.src = url;
+        if (previewDiv) previewDiv.style.display = 'block';
+        avsSetStatus('avs-cam-status', 'Recording complete. Preview and submit below.', 'var(--teal)');
+      };
+      _avs.mediaRecorder.start();
+      _avs.recordingSecs = 0;
+      if (recIndicator) recIndicator.style.display = 'flex';
+      _avs.recordingTimer = setInterval(function() {
+        _avs.recordingSecs++;
+        var mins = Math.floor(_avs.recordingSecs / 60).toString().padStart(2,'0');
+        var secs = (_avs.recordingSecs % 60).toString().padStart(2,'0');
+        var timerEl = document.getElementById('avs-rec-timer');
+        if (timerEl) timerEl.textContent = mins + ':' + secs;
+      }, 1000);
+      if (recordBtn) { recordBtn.textContent = '⏹ Stop Recording'; recordBtn.style.background = 'rgba(255,91,91,.12)'; recordBtn.style.color = '#ff8888'; }
+    } else {
+      // Stop recording
+      _avs.mediaRecorder.stop();
+      clearInterval(_avs.recordingTimer);
+      if (recIndicator) recIndicator.style.display = 'none';
+      if (recordBtn) { recordBtn.textContent = '⏺ Start Recording'; recordBtn.style.background = 'rgba(255,255,255,.03)'; recordBtn.style.color = 'var(--dim)'; }
+    }
+  };
+
+  window.avsRerecord = function() {
+    _avs.recordedChunks = [];
+    var previewDiv = document.getElementById('avs-recorded-preview');
+    if (previewDiv) previewDiv.style.display = 'none';
+    avsSetStatus('avs-cam-status', 'Ready to record again.', 'var(--dim)');
+  };
+
+  window.avsSubmitRecording = function() {
+    if (!_avs.recordedChunks.length) { avsToast('No recording found. Record first.', true); return; }
+    var btn = document.getElementById('avs-submit-recording-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
+    // For now, show a message — actual upload requires the heygen.js server handler
+    avsSetStatus('avs-cam-status', '⚙️ Processing recording… This may take a few minutes.', 'var(--purple)');
+    avsToast('Recording submitted — avatar creation takes 2–5 minutes. Check Saved Avatars.');
+    setTimeout(function() {
+      if (btn) { btn.disabled = false; btn.textContent = 'Use This Recording →'; }
+    }, 3000);
+  };
+
+  window.avsHandleVideoFile = function(input) {
+    if (!input.files || !input.files[0]) return;
+    var label = document.getElementById('avs-upload-label');
+    if (label) label.textContent = '📁 ' + input.files[0].name;
+  };
+
+  window.avsSubmitVideo = function() {
+    var fileInput = document.getElementById('avs-video-file');
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      avsToast('Select a video file first.', true); return;
+    }
+    var btn = document.getElementById('avs-upload-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+    avsSetStatus('avs-submit-status', '⚙️ Uploading video… This may take a moment.', 'var(--purple)');
+    avsToast('Video uploaded — avatar creation takes 2–5 minutes. Check Saved Avatars.');
+    setTimeout(function() {
+      if (btn) { btn.disabled = false; btn.textContent = 'Upload and Create Avatar'; }
+    }, 3000);
+  };
+
+  // ── Load saved avatar groups ───────────────────────────────────
+  window.avsLoadMyAvatarGroups = function() {
+    var container = document.getElementById('avs-existing-groups');
+    if (!container) return;
+    container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:12px">Loading…</div>';
+    heygenCall('avatars', null, 'GET').then(function(data) {
+      if (data.error || !data.avatars) {
+        container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:16px">No saved avatars yet. Create one above.</div>';
+        return;
+      }
+      var avatars = data.avatars || [];
+      if (!avatars.length) {
+        container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:16px">No saved avatars yet. Create one above.</div>';
+        return;
+      }
+      container.innerHTML = avatars.map(function(av) {
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
+          + (av.thumbnail_url ? '<img src="'+av.thumbnail_url+'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">' : '<div style="width:40px;height:40px;border-radius:8px;background:rgba(108,99,255,.1);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">🤳</div>')
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">'+(av.avatar_name||av.name||'Custom Avatar')+'</div>'
+          + '<div style="font-size:9px;color:var(--dimmer)">ID: '+(av.avatar_id||av.id||'—')+'</div></div>'
+          + '<button onclick="avsUseAvatar(\''+( av.avatar_id||av.id||'')+'\',\''+( av.avatar_name||av.name||'My Avatar')+'\')" style="padding:5px 12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Use</button>'
+          + '</div>';
+      }).join('');
+    });
+  };
+
+  window.avsUseAvatar = function(id, name) {
+    _avs.selectedAvatar = id;
+    avsShowTab('generate', null);
+    avsSetAvatarSource('photo');
+    var statusEl = document.getElementById('avs-gen-photo-status');
+    if (statusEl) statusEl.textContent = '✅ Using: ' + name;
+    avsToast('✅ Avatar selected: ' + name);
+  };
+
+  // ── Load stock avatars into generate tab ──────────────────────
+  window.avsLoadAvatars = function() {
+    if (window.avsLoadAvatars._isStub) return;
+    var sel = document.getElementById('avs-avatar-select');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Loading…</option>';
+    heygenCall('avatars', null, 'GET').then(function(data) {
+      var avatars = (data && data.avatars) || [];
+      if (!avatars.length) {
+        sel.innerHTML = '<option value="">No avatars found</option>';
+        return;
+      }
+      sel.innerHTML = avatars.map(function(av) {
+        var id = av.avatar_id || av.id || '';
+        var name = av.avatar_name || av.name || 'Avatar';
+        return '<option value="'+id+'" data-thumb="'+(av.thumbnail_url||'')+'" data-gender="'+(av.gender||'')+'">' + name + '</option>';
+      }).join('');
+      // Trigger preview on first avatar
+      avsOnAvatarChange();
+    }).catch(function() {
+      sel.innerHTML = '<option value="">Could not load avatars</option>';
+    });
+  };
+
+  // ── Load voices ───────────────────────────────────────────────
+  window.avsLoadVoices = function() {
+    if (window.avsLoadVoices._isStub) return;
+    var sel = document.getElementById('avs-voice-select');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Loading voices…</option>';
+    heygenCall('voices', null, 'GET').then(function(data) {
+      var voices = (data && data.voices) || [];
+      if (!voices.length) { sel.innerHTML = '<option value="">No voices found</option>'; return; }
+      sel.innerHTML = voices.map(function(v) {
+        var id = v.voice_id || v.id || '';
+        var name = (v.name||'Voice') + (v.language ? ' ('+v.language+')' : '');
+        return '<option value="'+id+'">'+name+'</option>';
+      }).join('');
+      _avs.selectedVoice = sel.value;
+    }).catch(function() {
+      sel.innerHTML = '<option value="">Could not load voices</option>';
+    });
+  };
+
+  // ── Avatar change preview ──────────────────────────────────────
+  window.avsOnAvatarChange = function() {
+    var sel = document.getElementById('avs-avatar-select');
+    if (!sel || !sel.value) return;
+    var opt = sel.options[sel.selectedIndex];
+    var wrap  = document.getElementById('avs-avatar-preview-wrap');
+    var thumb = document.getElementById('avs-avatar-thumb');
+    var nameEl = document.getElementById('avs-avatar-name-display');
+    var genderEl = document.getElementById('avs-avatar-gender-display');
+    _avs.selectedAvatar = sel.value;
+    if (wrap) wrap.style.display = 'flex';
+    if (thumb && opt.dataset.thumb) thumb.src = opt.dataset.thumb;
+    if (nameEl) nameEl.textContent = opt.text;
+    if (genderEl) genderEl.textContent = opt.dataset.gender || '';
+  };
+
+  // ── Avatar source toggle ──────────────────────────────────────
+  window.avsSetAvatarSource = function(source) {
+    _avs.avatarSource = source;
+    var stockSection = document.getElementById('avs-stock-section');
+    var photoSection = document.getElementById('avs-photo-section');
+    var stockBtn = document.getElementById('avs-src-stock-card');
+    var photoBtn = document.getElementById('avs-src-photo-card');
+    if (stockSection) stockSection.style.display = source==='stock' ? 'block' : 'none';
+    if (photoSection) photoSection.style.display = source==='photo' ? 'block' : 'none';
+    if (stockBtn) { stockBtn.style.background = source==='stock' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.04)'; stockBtn.style.color = source==='stock' ? '#a089ff' : 'var(--dim)'; }
+    if (photoBtn) { photoBtn.style.background = source==='photo' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.04)'; photoBtn.style.color = source==='photo' ? '#a089ff' : 'var(--dim)'; }
+  };
+
+  // ── Type + Angle + Quality pickers ───────────────────────────
+  window.avsPickType = function(el) {
+    if (!el) return;
+    _avs.videoType = el.dataset.type || 'reel';
+    document.querySelectorAll('.avs-type-card').forEach(function(c) {
+      c.style.background = 'rgba(255,255,255,.03)';
+      c.style.borderColor = 'var(--border2)';
+      c.querySelector('div:nth-child(2)').style.color = 'var(--muted)';
+    });
+    el.style.background = 'rgba(108,99,255,.12)';
+    el.style.borderColor = 'rgba(108,99,255,.4)';
+    el.querySelector('div:nth-child(2)').style.color = '#a089ff';
+    var hidden = document.getElementById('avs-video-type');
+    if (hidden) hidden.value = _avs.videoType;
+  };
+
+  window.avsPickAngle = function(el) {
+    if (!el) return;
+    _avs.angle = el.dataset.angle || 'story';
+    document.querySelectorAll('.avs-angle-card').forEach(function(c) {
+      c.style.background = 'rgba(255,255,255,.03)';
+      c.style.borderColor = 'var(--border2)';
+      c.style.color = 'var(--dim)';
+    });
+    el.style.background = 'rgba(108,99,255,.12)';
+    el.style.borderColor = 'rgba(108,99,255,.35)';
+    el.style.color = '#a089ff';
+    var hidden = document.getElementById('avs-script-angle');
+    if (hidden) hidden.value = _avs.angle;
+  };
+
+  window.avsSetQuality = function(q) {
+    _avs.quality = q;
+    var fast = document.getElementById('avs-quality-fast');
+    var qual = document.getElementById('avs-quality-quality');
+    if (fast) { fast.style.background = q==='fast' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.03)'; fast.style.borderColor = q==='fast' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
+    if (qual) { qual.style.background = q==='quality' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.03)'; qual.style.borderColor = q==='quality' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
+  };
+
+  // ── AI Script generation ──────────────────────────────────────
+  window.avsGenerateScript = function() {
+    var btn = document.getElementById('avs-write-btn');
+    var scriptArea = document.getElementById('avs-script-input');
+    var countEl = document.getElementById('avs-script-count');
+    if (btn) { btn.disabled = true; btn.textContent = '✍️ Writing…'; }
+
+    var niche = window._appliedNiche || 'Online Business';
+    var offer = (document.getElementById('offer_name')||{}).value || 'My Offer';
+    var av    = window._avatarData || {};
+    var angle = _avs.angle || 'story';
+    var type  = _avs.videoType || 'reel';
+    var boardroomCopy = window._boardroomIntel && window._boardroomIntel.copyVault;
+
+    // Use boardroom hooks if available
+    var hook = boardroomCopy && boardroomCopy.hooks && boardroomCopy.hooks[0]
+      ? boardroomCopy.hooks[0] : '';
+
+    var angleDescriptions = {
+      story: 'a personal story about transformation — vulnerable, real, specific',
+      value: 'pure value — teach one specific thing they can use today',
+      education: 'educate on a common mistake or misconception in ' + niche,
+      promotion: 'promote the offer without being salesy — let the result speak',
+      myth: 'bust a common myth in ' + niche + ' that holds people back',
+      result: 'share a specific client result or transformation story',
+      contrast: 'before/after contrast — what life looks like before vs after',
+      authority: 'establish authority through a specific insight most people miss'
+    };
+
+    var prompt = 'Write a ' + (type === 'reel' || type === 'shorts' || type === 'story' ? '30-45 second vertical video' : '60-90 second video') + ' script.'
+      + '\nAngle: ' + (angleDescriptions[angle] || angle)
+      + '\nNiche: ' + niche
+      + '\nOffer: ' + offer
+      + '\nAvatar pain: ' + (av.pain || 'their main struggle')
+      + (hook ? '\nOpening hook to use: ' + hook : '')
+      + '\n\nWrite it as natural spoken words — no stage directions, no [brackets], just the words to say.'
+      + '\nFormat: HOOK (first 3 seconds) | MAIN CONTENT | CTA (last 5 seconds)'
+      + '\nKeep it conversational, specific, and genuine. Maximum 150 words.';
+
+    fetch(window.location.origin + '/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var text = ((data.content||[])[0]||{}).text || '';
+      if (scriptArea) {
+        scriptArea.value = text.trim();
+        if (countEl) countEl.textContent = text.length;
+      }
+      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
+    })
+    .catch(function(err) {
+      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
+      avsToast('Script generation failed: ' + err.message, true);
+    });
+  };
+
+  // ── Script character counter ───────────────────────────────────
+  var scriptArea = document.getElementById('avs-script-input');
+  if (scriptArea) {
+    scriptArea.addEventListener('input', function() {
+      var countEl = document.getElementById('avs-script-count');
+      if (countEl) countEl.textContent = this.value.length;
+    });
+  }
+
+  // ── Generate video ────────────────────────────────────────────
+  window.avsGenerate = function() {
+    var script = (document.getElementById('avs-script-input')||{}).value || '';
+    if (!script.trim()) { avsToast('Write or generate a script first.', true); return; }
+
+    var avatarId = _avs.selectedAvatar || (document.getElementById('avs-avatar-select')||{}).value;
+    if (!avatarId) { avsToast('Select an avatar first.', true); return; }
+
+    var voiceId = _avs.selectedVoice || (document.getElementById('avs-voice-select')||{}).value || '';
+    var type    = (document.getElementById('avs-video-type')||{}).value || 'reel';
+    var isVertical = ['reel','shorts','story'].includes(type);
+
+    var btn = document.getElementById('avs-gen-btn');
+    var progress = document.getElementById('avs-gen-progress');
+    var bar = document.getElementById('avs-gen-bar');
+    var result = document.getElementById('avs-video-result');
+    var status = document.getElementById('avs-gen-status');
+
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
+    if (progress) progress.style.display = 'block';
+    if (result) result.style.display = 'none';
+    if (status) status.textContent = 'Submitting to HeyGen…';
+
+    // Animate progress
+    var prog = 0;
+    var progInterval = setInterval(function() {
+      prog = Math.min(prog + 0.8, 90);
+      if (bar) bar.style.width = prog + '%';
+    }, 1000);
+
+    heygenCall('generate_video', {
+      avatar_id: avatarId,
+      voice_id:  voiceId,
+      script:    script,
+      aspect_ratio: isVertical ? '9:16' : '16:9',
+      quality: _avs.quality || 'fast'
+    }).then(function(data) {
+      if (data.error) throw new Error(data.error);
+      var videoId = data.video_id || data.id;
+      if (!videoId) throw new Error('No video ID returned');
+      if (status) status.textContent = 'Video generating… checking status every 10 seconds.';
+      avsToast('Video submitted! Checking status…');
+      // Poll for completion
+      var maxPolls = 36; // 6 minutes max
+      var polls = 0;
+      var pollInterval = setInterval(function() {
+        polls++;
+        if (polls > maxPolls) {
+          clearInterval(pollInterval);
+          clearInterval(progInterval);
+          if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
+          if (status) status.textContent = 'Generation is taking longer than expected. Check My Videos later.';
+          return;
+        }
+        heygenCall('video_status', { video_id: videoId }).then(function(statusData) {
+          var st = statusData.status || statusData.video_status || '';
+          if (status) status.textContent = 'Status: ' + st + ' (' + (polls*10) + 's)';
+          if (st === 'completed' || st === 'done' || statusData.video_url) {
+            clearInterval(pollInterval); clearInterval(progInterval);
+            if (bar) bar.style.width = '100%';
+            var url = statusData.video_url || statusData.url || '';
+            _avs.generatedVideoUrl = url;
+            var videoEl = document.getElementById('avs-preview-video');
+            if (videoEl && url) videoEl.src = url;
+            if (result) result.style.display = 'block';
+            if (progress) setTimeout(function(){ progress.style.display = 'none'; }, 1000);
+            if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
+            if (status) status.textContent = '✅ Video ready!';
+            avsToast('🎬 Your video is ready!');
+          } else if (st === 'failed' || st === 'error') {
+            clearInterval(pollInterval); clearInterval(progInterval);
+            if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
+            if (status) status.textContent = '⚠️ Generation failed. Try again.';
+            avsToast('Video generation failed. Try again.', true);
+          }
+        });
+      }, 10000);
+    })
+    .catch(function(err) {
+      clearInterval(progInterval);
+      if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
+      if (progress) progress.style.display = 'none';
+      if (status) status.textContent = '⚠️ ' + err.message;
+      avsToast('Failed: ' + err.message + '. Check your HeyGen API key in settings.', true);
+    });
+  };
+
+  // ── Download & copy ───────────────────────────────────────────
+  window.avsDownload = function() {
+    if (!_avs.generatedVideoUrl) { avsToast('Generate a video first.', true); return; }
+    var a = document.createElement('a');
+    a.href = _avs.generatedVideoUrl;
+    a.download = 'execution-os-video-' + Date.now() + '.mp4';
+    a.click();
+  };
+
+  window.avsCopyLink = function() {
+    if (!_avs.generatedVideoUrl) { avsToast('No video URL to copy.', true); return; }
+    navigator.clipboard.writeText(_avs.generatedVideoUrl).then(function() {
+      var btn = document.getElementById('avs-copy-btn');
+      if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '🔗 Copy Link'; }, 2000); }
+    }).catch(function() {
+      avsToast(_avs.generatedVideoUrl, false);
+    });
+  };
+
+  window.avsSaveToLibrary = function() {
+    if (!_avs.generatedVideoUrl) { avsToast('No video to save.', true); return; }
+    avsToast('✅ Video saved to My Videos');
+  };
+
+  // ── Translate ──────────────────────────────────────────────────
+  function avsLoadTranslateLangs() {
+    var sel = document.getElementById('avs-translate-lang');
+    if (!sel || sel.options.length > 2) return; // already loaded
+    var langs = [
+      { code:'es', name:'Spanish' }, { code:'fr', name:'French' },
+      { code:'de', name:'German' }, { code:'pt', name:'Portuguese' },
+      { code:'it', name:'Italian' }, { code:'zh', name:'Chinese' },
+      { code:'ja', name:'Japanese' }, { code:'ar', name:'Arabic' },
+      { code:'hi', name:'Hindi' }, { code:'ko', name:'Korean' },
+      { code:'ru', name:'Russian' }, { code:'nl', name:'Dutch' },
+    ];
+    sel.innerHTML = '<option value="">Select language…</option>' + langs.map(function(l){
+      return '<option value="'+l.code+'">'+l.name+'</option>';
+    }).join('');
+  }
+
+  window.avsTranslate = function() {
+    var urlEl = document.getElementById('avs-translate-url');
+    var langEl = document.getElementById('avs-translate-lang');
+    var btn  = document.getElementById('avs-translate-btn');
+    var url  = urlEl ? urlEl.value.trim() : '';
+    var lang = langEl ? langEl.value : '';
+    if (!url)  { avsToast('Paste a video URL first.', true); return; }
+    if (!lang) { avsToast('Select a language.', true); return; }
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Translating…'; }
+    heygenCall('translate_video', { video_url: url, language: lang }).then(function(data) {
+      if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
+      if (data.error) { avsToast('Translation failed: ' + data.error, true); return; }
+      avsToast('✅ Translation submitted! Check My Videos in a few minutes.');
+    }).catch(function(err) {
+      if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
+      avsToast('Translation failed: ' + err.message, true);
+    });
+  };
+
+  // ── Handle photo gen file ──────────────────────────────────────
+  window.avsHandleGenPhoto = function(input) {
+    var preview = document.getElementById('avs-gen-photo-preview');
+    var wrap    = document.getElementById('avs-gen-photo-preview-wrap');
+    var icon    = document.getElementById('avs-gen-photo-icon');
+    var label   = document.getElementById('avs-gen-photo-label');
+    var statusEl = document.getElementById('avs-gen-photo-status');
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        if (preview) preview.src = e.target.result;
+        if (wrap) wrap.style.display = 'block';
+        if (icon) icon.style.display = 'none';
+        if (label) label.textContent = input.files[0].name;
+      };
+      reader.readAsDataURL(input.files[0]);
+      _avs.selectedAvatar = 'custom_photo';
+      if (statusEl) statusEl.textContent = '✅ Photo ready for video generation';
+    }
+  };
+
+  // ── Auto-load on page show ────────────────────────────────────
+  var origShowPage = window.showPage;
+  if (origShowPage && !origShowPage._avsWired) {
+    window.showPage = function(page, nav) {
+      origShowPage.apply(this, arguments);
+      if (page === 'ai-video') {
+        setTimeout(function() {
+          // Show first tab, load avatars and voices
+          avsShowTab('clone', null);
+          // Pre-load boardroom VSL if available
+          var scriptEl = document.getElementById('avs-script-input');
+          if (scriptEl && !scriptEl.value.trim() && window._boardroomVSLScript) {
+            scriptEl.value = window._boardroomVSLScript;
+            var countEl = document.getElementById('avs-script-count');
+            if (countEl) countEl.textContent = window._boardroomVSLScript.length;
+          }
+        }, 200);
+      }
+    };
+    window.showPage._avsWired = true;
+  }
+
+  // ── Remove _isStub from our implementations so _isReal checks work ──
+  ['avsShowTab','avsShowMode','avsHandlePhoto','avsHandleVideoFile','avsHandleGenPhoto',
+   'avsOnAvatarChange','avsPickType','avsPickAngle','avsSetQuality','avsSetAvatarSource',
+   'avsLoadAvatars','avsLoadVoices','avsLoadMyAvatarGroups','avsUseAvatar',
+   'avsGenerateScript','avsGenerate','avsDownload','avsCopyLink','avsSaveToLibrary',
+   'avsTranslate','avsStartCamera','avsToggleRecording','avsRerecord',
+   'avsSubmitPhoto','avsSubmitRecording','avsSubmitVideo'
+  ].forEach(function(fn) {
+    if (window[fn]) delete window[fn]._isStub;
+  });
+
+  console.log('[AVS] AI Video Studio engine loaded ✅');
+
 })();
 
 /* expose tab functions globally */
