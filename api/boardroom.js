@@ -9,15 +9,22 @@
 
 const Anthropic = require('@anthropic-ai/sdk');
 
-// ── LangSmith tracing (optional — works automatically if env var is set) ─────
-let tracingEnabled = false;
-try {
-  if (process.env.LANGCHAIN_API_KEY) {
-    process.env.LANGCHAIN_TRACING_V2  = 'true';
-    process.env.LANGCHAIN_PROJECT     = process.env.LANGCHAIN_PROJECT || 'execution-os-boardroom';
-    tracingEnabled = true;
+// ── LangSmith tracing — uses official SDK when LANGCHAIN_API_KEY is set ─────
+if (process.env.LANGCHAIN_API_KEY) {
+  process.env.LANGCHAIN_TRACING_V2 = 'true';
+  process.env.LANGCHAIN_PROJECT    = process.env.LANGCHAIN_PROJECT || 'execution-os-boardroom';
+}
+
+// Wrap a function with LangSmith tracing
+function traced(name, fn) {
+  try {
+    const { traceable } = require('langsmith/traceable');
+    return traceable(fn, { name, project_name: process.env.LANGCHAIN_PROJECT || 'execution-os-boardroom' });
+  } catch(e) {
+    // langsmith not installed or not configured — run without tracing
+    return fn;
   }
-} catch(e) {}
+}
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -25,16 +32,15 @@ const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const MODEL   = 'claude-sonnet-4-20250514';
 const FAST    = 'claude-haiku-4-5-20251001';   // used for quick validation checks
 
-// ── LangSmith run tracker ─────────────────────────────────────────────────────
+// ── Lightweight run tracker (timing + token counts for response) ─────────────
 class RunTracer {
   constructor(name, tags) {
     this.name    = name;
     this.tags    = tags || [];
-    this.runId   = `br-${Date.now()}-${Math.random().toString(36).slice(2,8)}`;
+    this.runId   = 'br-' + Date.now() + '-' + Math.random().toString(36).slice(2,8);
     this.spans   = [];
     this.startMs = Date.now();
   }
-
   span(name) {
     const span = { name, startMs: Date.now(), endMs: null, tokens: 0, error: null };
     this.spans.push(span);
@@ -43,34 +49,33 @@ class RunTracer {
       error: (message) => { span.endMs = Date.now(); span.error  = message; },
     };
   }
-
   summary() {
     const totalMs     = Date.now() - this.startMs;
     const totalTokens = this.spans.reduce((s, sp) => s + sp.tokens, 0);
     const failed      = this.spans.filter(sp => sp.error).map(sp => sp.name);
     return { runId: this.runId, totalMs, totalTokens, failed, spans: this.spans.length };
   }
-
-  // Post to LangSmith if key is set
   async postToLangSmith(state) {
-    if (!tracingEnabled) return;
+    if (!process.env.LANGCHAIN_API_KEY) return;
     try {
-      const body = {
-        id:         this.runId,
-        name:       this.name,
-        run_type:   'chain',
-        inputs:     { niche: state.niche, price: state.price, target: state.target },
-        outputs:    { tabs: Object.keys(state).filter(k => ['positioning','offerStack','copyVault','warPlan','content'].includes(k)) },
-        start_time: new Date(this.startMs).toISOString(),
-        end_time:   new Date().toISOString(),
-        extra:      { metadata: { tags: this.tags, spans: this.spans } },
-      };
       await fetch('https://api.smith.langchain.com/runs', {
         method:  'POST',
         headers: { 'x-api-key': process.env.LANGCHAIN_API_KEY, 'Content-Type': 'application/json' },
-        body:    JSON.stringify(body),
-      }).catch(() => {});
-    } catch(e) {}
+        body: JSON.stringify({
+          id:         this.runId,
+          name:       this.name,
+          run_type:   'chain',
+          inputs:     { niche: state.niche, price: state.price, target: state.target },
+          outputs:    { tabs: ['architect','offerStack','copyVault','warPlan','contentEngine'].filter(k => state[k] && Object.keys(state[k]).length > 0) },
+          start_time: new Date(this.startMs).toISOString(),
+          end_time:   new Date().toISOString(),
+          extra:      { metadata: { tags: this.tags, totalTokens: this.spans.reduce((s,sp) => s+sp.tokens, 0) } },
+        }),
+      });
+      console.log('[LangSmith] Run posted:', this.runId);
+    } catch(e) {
+      console.warn('[LangSmith] Post failed:', e.message);
+    }
   }
 }
 
@@ -168,7 +173,7 @@ async function node_validate_inputs(state, tracer) {
 
 // ── Node 3: research_niche ────────────────────────────────────────────────────
 // Web search for real market language — the node that changes everything
-async function node_research_niche(state, tracer) {
+const node_research_niche = traced('research_niche', async function(state, tracer) {
   const span  = tracer.span('research_niche');
   const niche = state.niche || 'Online Business';
   const pain  = state.av_pain || 'their main struggle';
@@ -211,11 +216,11 @@ Be specific and use the language real people in this niche use.`,
   }
 
   return { ...state, marketIntel, researchDone: true };
-}
+});
 
 // ── Node 4: build_positioning ─────────────────────────────────────────────────
 // Builds the strategic foundation everything else reads from
-async function node_build_positioning(state, tracer) {
+const node_build_positioning = traced('build_positioning', async function(state, tracer) {
   const span = tracer.span('build_positioning');
 
   const { text, tokens } = await ai(
@@ -260,10 +265,10 @@ Return this JSON (every field must be devastatingly specific to THIS person, not
   const positioning = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, positioning, positioningDone: true };
-}
+});
 
 // ── Node 5a: build_offer_stack ────────────────────────────────────────────────
-async function node_build_offer_stack(state, tracer) {
+const node_build_offer_stack = traced('build_offer_stack', async function(state, tracer) {
   const span = tracer.span('build_offer_stack');
   const pos  = state.positioning || {};
 
@@ -304,10 +309,10 @@ ${state.noMoney ? `NICHE RULE: Zero income/money language. Transformation only.`
   const offerStack = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, offerStack };
-}
+});
 
 // ── Node 5b: build_copy_vault ─────────────────────────────────────────────────
-async function node_build_copy_vault(state, tracer) {
+const node_build_copy_vault = traced('build_copy_vault', async function(state, tracer) {
   const span    = tracer.span('build_copy_vault');
   const pos     = state.positioning || {};
   const market  = (state.marketIntel || '').slice(0, 400);
@@ -375,10 +380,10 @@ ${state.noMoney ? `RULE: Zero income/money language. This is ${state.niche}.` : 
   const copyVault = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, copyVault };
-}
+});
 
 // ── Node 5c: build_war_plan ───────────────────────────────────────────────────
-async function node_build_war_plan(state, tracer) {
+const node_build_war_plan = traced('build_war_plan', async function(state, tracer) {
   const span = tracer.span('build_war_plan');
 
   const { text, tokens } = await ai(
@@ -454,10 +459,10 @@ PLATFORM SIGNALS: ${state.av_keywords || 'not specified'}
   const warPlan = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, warPlan };
-}
+});
 
 // ── Node 6: content_engine ────────────────────────────────────────────────────
-async function node_content_engine(state, tracer) {
+const node_content_engine = traced('content_engine', async function(state, tracer) {
   const span  = tracer.span('content_engine');
   const cv    = state.copyVault || {};
   const hooks = cv.hooks ? cv.hooks.slice(0, 2).join(' | ') : '';
@@ -507,7 +512,7 @@ Strategy: Day 1-2 educate about the problem. Day 3-4 introduce the solution natu
   const content = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, content };
-}
+});
 
 // ── Node 7: validate_output ───────────────────────────────────────────────────
 // Scores each tab, flags empties for frontend to show retry buttons
