@@ -4956,7 +4956,7 @@ button[onclick="generateOffer()"] {
 
   <div class="hero-strip" style="background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(78,204,163,.05));margin:0 1.25rem var(--sp-4)">
     <div class="tag-pill" style="background:linear-gradient(135deg,#6c63ff,#4a3fcc);margin-bottom:var(--sp-3)"><span style="color:#fff">🏛 The Boardroom</span></div>
-    <div class="h1" style="margin-bottom:var(--sp-2)">The Boardroom</div>
+    <div class="h1" style="margin-bottom:var(--sp-2)">The Boardroom <span id="_br_run_count" style="display:none;font-size:11px;font-weight:700;padding:3px 10px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);border-radius:20px;color:var(--purple);vertical-align:middle;font-family:Poppins,sans-serif;margin-left:8px"></span></div>
     <div class="strip-sub">Where your business gets rebuilt for $50,000/month. EXECUTION-OS reads everything — your avatar, your offer, your niche — and reconstructs it all with the precision of a seasoned strategist. Every section of the app draws from this intelligence.</div>
     <div id="br-intel-status" style="display:none;margin-top:12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:10px;padding:10px 16px;font-size:11px;color:var(--teal);font-weight:700"></div>
   </div>
@@ -24553,6 +24553,11 @@ async function brRunFullAnalysis() {
     // Single call to /api/boardroom — all 7 nodes run server-side
     var _brCtl = new AbortController();
     var _brTid = setTimeout(function(){ _brCtl.abort(); }, 280000);
+    // Enrich inputs with memory context from previous runs
+    inp._memoryContext = window._brMemoryContext || '';
+    inp._runNumber     = (window._brRunCount  || 0) + 1;
+    inp._history       = (window._brHistory   || []).slice(0, 3);
+
     var _brResp = await fetch(window.location.origin + '/api/boardroom', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
