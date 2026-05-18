@@ -18707,7 +18707,7 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
     window._affiliateOffer = {
       name: av.productName||productName||url,
       tagline: av.productTagline||'',
-      platform, commission: av.commission||commission, url,
+      platform, commission: parseInt(String(av.commission||commission||0).replace(/[^0-9.]/g,''))||0, url,
       niche: av.niche||productNiche, monthlyTarget,
       buyer: av.job, pain: av.pain, transformation: av.transformation,
       benefits: av.productBenefits||[],
@@ -19288,8 +19288,9 @@ window.renderAffDMScripts = function renderAffDMScripts(av, productName, commiss
 window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
   const el = document.getElementById('aff-tracker-body');
   if (!el) return;
-  commission = commission || (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 0;
-  const target   = window._appliedTarget || (window._affiliateOffer && window._affiliateOffer.monthlyTarget) || commission * 5;
+  // Sanitize commission — strip any $ signs and parse as integer
+  commission = parseInt(String(commission || (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 0).replace(/[^0-9.]/g, '')) || 0;
+  const target   = parseInt(String(window._appliedTarget || (window._affiliateOffer && window._affiliateOffer.monthlyTarget) || commission * 5).replace(/[^0-9.]/g, '')) || 0;
   let data = {};
   try { data = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
   const clicks   = data.clicks  || 0;
@@ -19340,7 +19341,8 @@ window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
 
 // ─── Alias so all callers work ────────────────────────────────────────────
 window.renderAffCommTracker = function() {
-  const commission = (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 0;
+  var _rawComm = (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 0;
+  var commission = parseInt(String(_rawComm).replace(/[^0-9.]/g, '')) || 0;
   window.renderAffCommTrackerFn(commission);
 };
 
@@ -19361,7 +19363,7 @@ window.affTrack = function(key, delta) {
     window.renderDashboard && window.renderDashboard();
   }
   // Check milestones
-  const comm = window._currentCommission || window._appliedPrice || 1000;
+  const comm = parseInt(String(window._currentCommission || window._appliedPrice || 1000).replace(/[^0-9.]/g,'')) || 1000;
   const sales = data.sales || 0;
   window.checkMilestones && window.checkMilestones(sales * comm);
 };
@@ -20138,30 +20140,43 @@ Your personality and style:
         });
       }
 
-      const proxyUrl = window.PROXY_URL || (window.location.origin + '/api/claude');
-      var resp, reply = '';
+      var reply = '';
       try {
-        // Use smart callAPI which tries multiple endpoints automatically
-        if (window.callAPI) {
-          reply = await window.callAPI(msgs2send, 1000) || '';
+        // Route through Execution Engine — loads memory, classifies intent, runs right agent
+        var _eeResp = await fetch(window.location.origin + '/api/execution-engine', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: isInit
+              ? 'Introduce yourself and analyse my business profile. Tell me what you see and what to focus on.'
+              : text,
+            uid: window._currentUserUid || null,
+            context: buildCtx()
+          })
+        });
+        if (_eeResp.ok) {
+          var _eeData = await _eeResp.json();
+          reply = _eeData.reply || '';
+          // Store structured output for other sections to use
+          if (_eeData.output) window._lastExecutionOutput = _eeData.output;
         } else {
-          // Fallback direct fetch
-          resp = await fetch(proxyUrl, {
+          // Fallback to direct claude call if execution engine fails
+          var _fbResp = await fetch(window.location.origin + '/api/claude', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              model: 'claude-sonnet-4-20250514',
-              max_tokens: 1000,
-              messages: msgs2send
-            })
+            body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: msgs2send })
           });
-          if (resp.ok) {
-            var d = await resp.json();
-            reply = (d.content && d.content[0] && d.content[0].text) || '';
+          if (_fbResp.ok) {
+            var _fbData = await _fbResp.json();
+            reply = (_fbData.content && _fbData.content[0] && _fbData.content[0].text) || '';
           }
         }
       } catch(fe) {
-        console.error('Advisor fetch failed:', fe.message);
+        console.error('[EOS Advisor] Fetch failed:', fe.message);
+        // Final fallback
+        try {
+          if (window.callAPI) reply = await window.callAPI(msgs2send, 1000) || '';
+        } catch(e2) {}
       }
 
       if (!reply) reply = 'I could not connect right now. Check that the API is deployed on Vercel with ANTHROPIC_API_KEY set, then try again.';
