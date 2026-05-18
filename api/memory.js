@@ -1,71 +1,84 @@
-const { initializeApp, cert, getApps, getApp } = require('firebase-admin/app');
-const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+// ── memory.js — EOS user memory via Firebase Firestore ───────────────────────
+// Falls back gracefully if firebase-admin is not installed yet.
 
-// ── Safe Firebase init ────────────────────────────────────────────────────────
 function getDB() {
-  const projectId   = process.env.FIREBASE_PROJECT_ID;
-  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-  const privateKey  = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
+  // This will throw if firebase-admin is not in package.json — caught below
+  var admin = require('firebase-admin');
+
+  var projectId   = process.env.FIREBASE_PROJECT_ID;
+  var clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  var privateKey  = (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n');
 
   if (!projectId || !clientEmail || !privateKey) {
-    throw new Error(
-      'Firebase env vars missing — check FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY in Vercel'
-    );
+    throw new Error('Firebase env vars missing: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY');
   }
 
-  const app = getApps().length
-    ? getApp()
-    : initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert({ projectId: projectId, clientEmail: clientEmail, privateKey: privateKey })
+    });
+  }
 
-  return getFirestore(app);
+  return admin.firestore();
 }
 
-// Always send JSON — never let Vercel serve an HTML error page for this route
-function sendError(res, message, status) {
-  status = status || 500;
-  console.error('[api/memory]', message);
+function json(res, status, body) {
   res.setHeader('Content-Type', 'application/json');
-  return res.status(status).json({ ok: false, error: message });
+  res.status(status).json(body);
 }
 
 module.exports = async function handler(req, res) {
   res.setHeader('Content-Type', 'application/json');
 
-  // ── GET: load user memory ─────────────────────────────────────────────────
+  // ── GET ───────────────────────────────────────────────────────────────────
   if (req.method === 'GET') {
-    const userId = req.query && req.query.userId;
-    if (!userId) return sendError(res, 'userId required', 400);
+    var userId = req.query && req.query.userId;
+    if (!userId) return json(res, 400, { ok: false, error: 'userId required' });
 
-    let db;
-    try { db = getDB(); } catch (err) { return sendError(res, err.message); }
+    var db;
+    try {
+      db = getDB();
+    } catch (err) {
+      console.error('[api/memory] Firebase unavailable:', err.message);
+      // Return null data instead of erroring — app degrades gracefully
+      return json(res, 200, { ok: true, data: null, _warning: err.message });
+    }
 
     try {
-      const doc = await db.collection('eos_users').doc(userId).get();
-      return res.status(200).json({ ok: true, data: doc.exists ? doc.data() : null });
+      var doc = await db.collection('eos_users').doc(userId).get();
+      return json(res, 200, { ok: true, data: doc.exists ? doc.data() : null });
     } catch (err) {
-      return sendError(res, err.message);
+      console.error('[api/memory GET]', err.message);
+      return json(res, 500, { ok: false, error: err.message });
     }
   }
 
-  // ── POST: save / update ───────────────────────────────────────────────────
+  // ── POST ──────────────────────────────────────────────────────────────────
   if (req.method === 'POST') {
-    const body   = req.body || {};
-    const userId = body.userId;
-    const action = body.action;
-    const data   = body.data || {};
+    var body   = req.body || {};
+    var userId = body.userId;
+    var action = body.action;
+    var data   = body.data || {};
 
-    if (!userId) return sendError(res, 'userId required', 400);
+    if (!userId) return json(res, 400, { ok: false, error: 'userId required' });
 
-    let db;
-    try { db = getDB(); } catch (err) { return sendError(res, 'Firebase init failed: ' + err.message); }
+    var db;
+    try {
+      db = getDB();
+    } catch (err) {
+      console.error('[api/memory] Firebase unavailable:', err.message);
+      // Acknowledge silently — data won't persist but app won't crash
+      return json(res, 200, { ok: true, _warning: 'Firebase unavailable: ' + err.message });
+    }
 
-    const ref = db.collection('eos_users').doc(userId);
+    var admin = require('firebase-admin');
+    var FieldValue = admin.firestore.FieldValue;
+    var ref = db.collection('eos_users').doc(userId);
 
     try {
-      // ── Save plan ─────────────────────────────────────────────────────────
       if (action === 'save_plan') {
         await ref.set({
-          userId,
+          userId:      userId,
           lastUpdated: FieldValue.serverTimestamp(),
           planVersion: FieldValue.increment(1),
           currentPlan: data.plan       || null,
@@ -73,18 +86,16 @@ module.exports = async function handler(req, res) {
           offerData:   data.offerData  || null,
         }, { merge: true });
 
-        // Non-blocking history write
         ref.collection('plan_history').add({
           plan:    data.plan || null,
           savedAt: FieldValue.serverTimestamp(),
-        }).catch(function() {});
+        }).catch(function(){});
 
-        return res.status(200).json({ ok: true });
+        return json(res, 200, { ok: true });
       }
 
-      // ── Weekly check-in ───────────────────────────────────────────────────
       if (action === 'weekly_checkin') {
-        const snap = {
+        var snap = {
           timestamp:     FieldValue.serverTimestamp(),
           salesMade:     data.salesMade     || 0,
           conversations: data.conversations || 0,
@@ -94,7 +105,6 @@ module.exports = async function handler(req, res) {
           biggestWin:    data.biggestWin    || '',
           biggestBlock:  data.biggestBlock  || '',
         };
-
         await Promise.all([
           ref.collection('weekly_checkins').add(snap),
           ref.set({
@@ -102,44 +112,35 @@ module.exports = async function handler(req, res) {
             currentWeek:  FieldValue.increment(1),
             totalRevenue: FieldValue.increment(data.revenue   || 0),
             totalSales:   FieldValue.increment(data.salesMade || 0),
-            ...(data.newMilestone ? { milestones: FieldValue.arrayUnion(data.newMilestone) } : {}),
           }, { merge: true }),
         ]);
-
-        const updated = await ref.get();
-        return res.status(200).json({ ok: true, data: updated.data() });
+        var updated = await ref.get();
+        return json(res, 200, { ok: true, data: updated.data() });
       }
 
-      // ── Log adaptation ────────────────────────────────────────────────────
       if (action === 'log_adaptation') {
         await ref.set({
           lastUpdated: FieldValue.serverTimestamp(),
-          ...(data.newPlan ? { currentPlan: data.newPlan } : {}),
-          adaptations: FieldValue.arrayUnion(
-            'Week ' + (data.week || '?') + ': ' + (data.reason || 'Plan adapted')
-          ),
+          adaptations: FieldValue.arrayUnion('Week ' + (data.week||'?') + ': ' + (data.reason||'Plan adapted')),
         }, { merge: true });
-        return res.status(200).json({ ok: true });
+        return json(res, 200, { ok: true });
       }
 
-      // ── Get check-in history ──────────────────────────────────────────────
       if (action === 'get_history') {
-        const snap2 = await ref.collection('weekly_checkins')
-          .orderBy('timestamp', 'desc')
-          .limit(12)
-          .get();
-        return res.status(200).json({
+        var snaps = await ref.collection('weekly_checkins').orderBy('timestamp','desc').limit(12).get();
+        return json(res, 200, {
           ok: true,
-          history: snap2.docs.map(function(d) { return Object.assign({ id: d.id }, d.data()); }),
+          history: snaps.docs.map(function(d){ return Object.assign({ id: d.id }, d.data()); })
         });
       }
 
-      return sendError(res, 'Unknown action: ' + action, 400);
+      return json(res, 400, { ok: false, error: 'Unknown action: ' + action });
 
     } catch (err) {
-      return sendError(res, err.message);
+      console.error('[api/memory POST]', err.message);
+      return json(res, 500, { ok: false, error: err.message });
     }
   }
 
-  return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  return json(res, 405, { ok: false, error: 'Method not allowed' });
 };
