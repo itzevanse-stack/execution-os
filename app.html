@@ -6683,20 +6683,29 @@ function showPage(n,btn){
       const active= document.getElementById('aff-active-view');
       if(setup) setup.style.display='none';
       if(active){ active.style.display='block';
-        if(!window._avatarData){ try{ const sv=localStorage.getItem('eos_avatar_data'); if(sv) window._avatarData=JSON.parse(sv); }catch(e){} }
+        if(!window._avatarData){ try{ var sv=localStorage.getItem('eos_avatar_data'); if(sv) window._avatarData=JSON.parse(sv); }catch(e){} }
         const av=window._avatarData||{};
         window.renderAffStrategy && window.renderAffStrategy(av);
         window.renderAffAvatarView && window.renderAffAvatarView(av);
         window.renderAffDMScripts && window.renderAffDMScripts(av, offer.name, offer.commission);
         window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission);
+        // Load affiliate-specific calendar — never the expert one
+        if(!window._aiCalendar30||window._aiCalendar30.length===0){
+          try{ var affCal=localStorage.getItem('eos_calendar30_affiliate'); if(affCal) window._aiCalendar30=JSON.parse(affCal); }catch(e){}
+        }
         if(window._aiCalendar30 && window._aiCalendar30.length>0) window.renderAICalendar30 && window.renderAICalendar30(1);
       }
     }
   }, 100);
-  // Calendar restore
+  // Calendar restore — use mode-namespaced key so modes don't share calendars
   if(n==='calendar'){
     if(!window._aiCalendar30||window._aiCalendar30.length===0){
-      try{ const sv=localStorage.getItem('eos_calendar30'); if(sv) window._aiCalendar30=JSON.parse(sv); }catch(e){}
+      var _calMode = window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+      var _calKey  = 'eos_calendar30_' + _calMode;
+      try{
+        var sv = localStorage.getItem(_calKey) || localStorage.getItem('eos_calendar30');
+        if(sv) window._aiCalendar30 = JSON.parse(sv);
+      }catch(e){}
     }
   }
   // Advisor init
@@ -6850,6 +6859,15 @@ function applyAll(){
   window._appliedNiche=niche;
   window._appliedPrice=price;
   window._appliedTarget=target;
+
+  // Persist to expert-namespaced state so affiliate mode can't read these values
+  try {
+    var _expSnap = JSON.parse(localStorage.getItem('eos_state_expert')||'{}');
+    _expSnap.appliedPrice  = price;
+    _expSnap.appliedTarget = target;
+    _expSnap.appliedNiche  = niche;
+    localStorage.setItem('eos_state_expert', JSON.stringify(_expSnap));
+  } catch(e) {}
 
   // Update ALL avatar form placeholders with niche-specific hints
   window._updateAvatarPlaceholders && window._updateAvatarPlaceholders(niche);
@@ -10237,7 +10255,17 @@ function generateAvatar(){
     deeperPain:     gv('av_fear'),
     savedAt:        Date.now()
   };
-  try { localStorage.setItem('eos_avatar_data', JSON.stringify(window._avatarData)); } catch(e) {}
+  try {
+    localStorage.setItem('eos_avatar_data', JSON.stringify(window._avatarData));
+    localStorage.setItem('eos_avatar_data_expert', JSON.stringify(window._avatarData)); // expert namespace
+    // Keep expert state snapshot in sync
+    var _expState = JSON.parse(localStorage.getItem('eos_state_expert')||'{}');
+    _expState.avatarData = window._avatarData;
+    _expState.appliedPrice  = window._appliedPrice  || _expState.appliedPrice  || 0;
+    _expState.appliedTarget = window._appliedTarget || _expState.appliedTarget || 0;
+    _expState.appliedNiche  = window._appliedNiche  || _expState.appliedNiche  || '';
+    localStorage.setItem('eos_state_expert', JSON.stringify(_expState));
+  } catch(e) {}
 
   var navAvatar = document.getElementById('nav-avatar');
   if (navAvatar) { navAvatar.classList.add('done'); navAvatar.classList.remove('next-up'); }
@@ -15165,8 +15193,11 @@ Return ONLY the JSON array. No markdown. No backticks. No explanation before or 
 
     setProgress(90);
 
-    // Save to localStorage
-    try { localStorage.setItem('eos_calendar30', JSON.stringify(window._aiCalendar30)); } catch(e) {}
+    // Save to localStorage — expert-namespaced so affiliate calendar doesn't overwrite
+    try {
+      localStorage.setItem('eos_calendar30', JSON.stringify(window._aiCalendar30));
+      localStorage.setItem('eos_calendar30_expert', JSON.stringify(window._aiCalendar30));
+    } catch(e) {}
 
     // Also save to Firestore so it survives logout and other devices
     try {
@@ -17219,7 +17250,11 @@ window.analyseAffiliateProduct = async function() {
     try {
       localStorage.setItem('eos_affiliate_offer', JSON.stringify(window._affiliateOffer));
       localStorage.setItem('eos_avatar_data', JSON.stringify(window._avatarData));
-      if (window._aiCalendar30) localStorage.setItem('eos_calendar30', JSON.stringify(window._aiCalendar30));
+      if (window._aiCalendar30) {
+        localStorage.setItem('eos_calendar30_affiliate', JSON.stringify(window._aiCalendar30));
+        // Also write to shared key since we're currently in affiliate mode
+        localStorage.setItem('eos_calendar30', JSON.stringify(window._aiCalendar30));
+      }
     } catch(e) {}
   };
 
@@ -17378,11 +17413,21 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
       niche: av.niche||productNiche, monthlyTarget,
       buyer: av.job, pain: av.pain, transformation: av.transformation,
       benefits: av.productBenefits||[],
-      productUrl: url, productName: av.productName||productName
+      productUrl: url, productName: av.productName||productName,
+      _avatarSnapshot: av  // keep avatar scoped to affiliate offer
     };
-    window._appliedNiche  = av.niche||productNiche;
-    window._appliedPrice  = commission;
-    window._appliedTarget = monthlyTarget;
+    // Write to affiliate-only globals (do not overwrite expert mode globals)
+    if ((window._appMode||'affiliate') === 'affiliate') {
+      window._appliedNiche  = av.niche||productNiche;
+      window._appliedPrice  = commission;
+      window._appliedTarget = monthlyTarget;
+      // Persist to affiliate-namespaced state only
+      try {
+        var _affSnap = { appliedPrice: commission, appliedTarget: monthlyTarget, appliedNiche: av.niche||productNiche, avatarData: av, boardroomIntel: null, boardroomOffer: null, mindsetData: null };
+        localStorage.setItem('eos_state_affiliate', JSON.stringify(_affSnap));
+        localStorage.setItem('eos_avatar_data', JSON.stringify(av)); // affiliate avatar
+      } catch(e) {}
+    }
 
     // ── Run Affiliate Intelligence Agent (Tavily + LangSmith powered) ──
     // Runs in background while calendar generates — populates full intel tabs
@@ -17407,9 +17452,9 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
         var affIntelData = await affIntelResp.json();
         if (!affIntelData.success) return;
 
-        // Store as affiliate boardroom intel
+        // Store as affiliate boardroom intel — NEVER write to expert eos_boardroom_intel key
         window._affiliateBoardroomIntel = affIntelData;
-        window._boardroomIntel = {
+        var _affBoardroomIntel = {
           generatedAt:  affIntelData.generatedAt,
           inputs:       { niche: av.niche||productNiche, price: commission, target: monthlyTarget, isAffiliate: true, offerName: av.productName||productName },
           architect:    affIntelData.positioning  || {},
@@ -17418,7 +17463,16 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
           warPlan:      affIntelData.warPlan      || {},
           contentEngine:affIntelData.contentEngine|| {},
         };
-        try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+        // Only activate if still in affiliate mode
+        if ((window._appMode||'affiliate') === 'affiliate') {
+          window._boardroomIntel = _affBoardroomIntel;
+          try {
+            // Write to affiliate-namespaced state, not shared eos_boardroom_intel
+            var _affState = JSON.parse(localStorage.getItem('eos_state_affiliate')||'{}');
+            _affState.boardroomIntel = _affBoardroomIntel;
+            localStorage.setItem('eos_state_affiliate', JSON.stringify(_affState));
+          } catch(e) {}
+        }
 
         // Update affiliate offer with deep intel
         window._affiliateOffer.copyVault    = affIntelData.copyVault;
@@ -18153,6 +18207,109 @@ window.setAppMode = function(mode) {
   // ── Body class for CSS hooks ──────────────────────────────────────────
   document.body.classList.toggle('affiliate-mode', isAffiliate);
   document.body.classList.toggle('expert-mode',    !isAffiliate);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // STATE ISOLATION — Expert and Affiliate modes are completely separate.
+  // Before switching, snapshot the CURRENT mode's state into its own
+  // namespace. Then restore the INCOMING mode's state from its namespace.
+  // This means Expert globals never bleed into Affiliate and vice versa.
+  // ══════════════════════════════════════════════════════════════════════
+  (function isolateModeState(newMode) {
+    var prev = newMode === 'affiliate' ? 'expert' : 'affiliate';
+
+    // ── 1. Snapshot outgoing mode ──────────────────────────────────────
+    var snapshot = {
+      appliedPrice:   window._appliedPrice  || 0,
+      appliedTarget:  window._appliedTarget || 0,
+      appliedNiche:   window._appliedNiche  || '',
+      avatarData:     window._avatarData    || null,
+      boardroomIntel: window._boardroomIntel|| null,
+      boardroomOffer: window._boardroomOffer|| null,
+      mindsetData:    window._mindsetData   || null,
+    };
+    try { localStorage.setItem('eos_state_' + prev, JSON.stringify(snapshot)); } catch(e) {}
+
+    // ── 2. Restore incoming mode ───────────────────────────────────────
+    var restored = null;
+    try {
+      var raw = localStorage.getItem('eos_state_' + newMode);
+      if (raw) restored = JSON.parse(raw);
+    } catch(e) {}
+
+    if (restored) {
+      window._appliedPrice   = restored.appliedPrice  || 0;
+      window._appliedTarget  = restored.appliedTarget || 0;
+      window._appliedNiche   = restored.appliedNiche  || '';
+      window._avatarData     = restored.avatarData    || null;
+      window._boardroomIntel = restored.boardroomIntel|| null;
+      window._boardroomOffer = restored.boardroomOffer|| null;
+      window._mindsetData    = restored.mindsetData   || null;
+    } else {
+      // First time entering this mode — start clean
+      window._appliedPrice   = 0;
+      window._appliedTarget  = 0;
+      window._appliedNiche   = '';
+      window._boardroomIntel = null;
+      window._boardroomOffer = null;
+      window._mindsetData    = null;
+      // Keep _avatarData only if it was set by this mode's own analysis
+      if (newMode === 'affiliate') {
+        // Affiliate avatar comes from product analysis, not the Expert form
+        window._avatarData = window._affiliateOffer ? (window._affiliateOffer._avatarSnapshot || null) : null;
+      } else {
+        // Expert avatar comes from the Avatar form
+        try {
+          var savedAv = localStorage.getItem('eos_avatar_data_expert');
+          window._avatarData = savedAv ? JSON.parse(savedAv) : null;
+        } catch(e) { window._avatarData = null; }
+      }
+    }
+
+    // ── 3. Null out shared downstream globals ──────────────────────────
+    // These get re-populated by whichever mode's intelligence runs next
+    window._boardroomDMOpeners     = null;
+    window._boardroomHooks         = null;
+    window._boardroomEmailSubjects = null;
+    window._boardroomHeadlines     = null;
+    window._boardroomVSLScript     = null;
+    window._boardroomReelScripts   = null;
+    window._emBoardroomContext     = null;
+    window._boardroomDMContext     = null;
+
+    // ── 4. Restore mode-specific calendar ─────────────────────────────
+    window._aiCalendar30 = null;
+    try {
+      var calKey = 'eos_calendar30_' + newMode;
+      var calRaw = localStorage.getItem(calKey);
+      if (calRaw) window._aiCalendar30 = JSON.parse(calRaw);
+    } catch(e) {}
+    ['page-funnels','page-email','page-scripts','page-ai-video'].forEach(function(pid) {
+      var badge = document.getElementById('_br_powered_' + pid);
+      if (badge) badge.remove();
+    });
+
+    // ── 5. Re-activate correct intelligence for the incoming mode ──────
+    if (newMode === 'affiliate' && window._affiliateOffer && typeof brActivateGlobalIntelligence === 'function') {
+      var affIntel = window._affiliateBoardroomIntel;
+      if (affIntel) {
+        // Restore affiliate intel into shared boardroom intel shape
+        window._boardroomIntel = {
+          generatedAt:   affIntel.generatedAt,
+          inputs:        { niche: window._affiliateOffer.niche, price: window._affiliateOffer.commission, target: window._affiliateOffer.monthlyTarget, isAffiliate: true, offerName: window._affiliateOffer.name },
+          architect:     affIntel.positioning   || {},
+          offerStack:    {},
+          copyVault:     affIntel.copyVault     || {},
+          warPlan:       affIntel.warPlan       || {},
+          contentEngine: affIntel.contentEngine || {},
+        };
+        brActivateGlobalIntelligence(window._boardroomIntel);
+      }
+    } else if (newMode === 'expert' && restored && restored.boardroomIntel && typeof brActivateGlobalIntelligence === 'function') {
+      brActivateGlobalIntelligence(restored.boardroomIntel);
+    }
+
+  })(mode);
+  // ══════════════════════════════════════════════════════════════════════
 
   // Update mode badge (read-only indicator)
   const badge = document.getElementById('mode-badge');
@@ -19236,9 +19393,22 @@ onAuthStateChanged(auth, async (user) => {
   // ── Restore Affiliate Offer ───────────────────────────────────────────────
   if (userDocData.affiliateOffer) {
     window._affiliateOffer = userDocData.affiliateOffer;
-    window._appliedNiche   = userDocData.affiliateOffer.niche;
-    window._appliedPrice   = userDocData.affiliateOffer.commission;
-    window._appliedTarget  = userDocData.affiliateOffer.monthlyTarget;
+    // Only write to shared globals if currently in affiliate mode
+    if ((window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate') {
+      window._appliedNiche   = userDocData.affiliateOffer.niche;
+      window._appliedPrice   = userDocData.affiliateOffer.commission;
+      window._appliedTarget  = userDocData.affiliateOffer.monthlyTarget;
+    }
+    // Always persist to affiliate-namespaced state
+    try {
+      var _affRestoreSnap = JSON.parse(localStorage.getItem('eos_state_affiliate')||'{}');
+      if (!_affRestoreSnap.appliedPrice) {
+        _affRestoreSnap.appliedPrice  = userDocData.affiliateOffer.commission    || 0;
+        _affRestoreSnap.appliedTarget = userDocData.affiliateOffer.monthlyTarget || 0;
+        _affRestoreSnap.appliedNiche  = userDocData.affiliateOffer.niche         || '';
+        localStorage.setItem('eos_state_affiliate', JSON.stringify(_affRestoreSnap));
+      }
+    } catch(e) {}
   }
 
   // ── Restore ManyChat connection ───────────────────────────────────────────
@@ -23158,6 +23328,25 @@ function brShowTab(tab, btn) {
 
 // ── Phase 1: show intel summary on page load ─────────────────────
 function brShowPhase1() {
+  // Boardroom is Expert Mode only — block entirely in affiliate mode
+  if ((window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate') {
+    var phase1 = document.getElementById('br-phase1');
+    var phase2 = document.getElementById('br-phase2');
+    var phase3 = document.getElementById('br-phase3');
+    if (phase2) phase2.style.display = 'none';
+    if (phase3) phase3.style.display = 'none';
+    if (phase1) {
+      phase1.style.display = 'block';
+      var locked = document.getElementById('br-locked');
+      var intelCard = document.getElementById('br-intel-card');
+      if (locked) {
+        locked.style.display = 'block';
+        locked.innerHTML = '<div style="background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:2.5rem;max-width:480px;margin:0 auto;text-align:center"><div style="font-size:48px;margin-bottom:16px">🏛</div><div style="font-size:18px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:10px">Boardroom is Expert Mode Only</div><div style="font-size:13px;color:var(--dim);margin-bottom:24px;line-height:1.8">The Boardroom builds your personalised $100k/month plan from your own offer and ideal customer. Switch to Expert Mode to access it.</div><button onclick="setAppMode(\'expert\')" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Switch to Expert Mode →</button></div>';
+      }
+      if (intelCard) intelCard.style.display = 'none';
+    }
+    return;
+  }
   var av  = window._avatarData || {};
   var gv  = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var offerName  = gv('offer_name');
@@ -23193,6 +23382,11 @@ function brShowPhase1() {
         if(intelCard) intelCard.style.display='none';
         if(phase3)  { phase3.style.display='block'; }
         if(phase1)  phase1.style.display='none';
+        // Loading card must be hidden — no API call on cache restore
+        var loadCardR = document.getElementById('br-loading-card');
+        if(loadCardR) loadCardR.style.display='none';
+        var planOutR = document.getElementById('br-plan-output');
+        if(planOutR) planOutR.style.display='block';
         brRenderPlan(parsed.plan, parsed.inputs||{}, Math.ceil((parsed.inputs&&parsed.inputs.target||target)/(parsed.inputs&&parsed.inputs.price||price)));
         window._boardroomIntel = parsed;
         if (typeof brActivateGlobalIntelligence === 'function') brActivateGlobalIntelligence(parsed);
@@ -23420,7 +23614,13 @@ async function brBuildPlan() {
       contentEngine: { pillars: plan.contentPillars||[], hooks: plan.week1ContentHooks||[], days: (plan.week1ContentHooks||[]).map(function(h,i){ return {day:i+1,theme:h,reelScript:h}; }) }
     };
     window._boardroomIntel = intel;
-    try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel)); } catch(e){}
+    // Save to expert-namespaced key — never let this overwrite affiliate state
+    try {
+      localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel)); // expert key
+      var _expState2 = JSON.parse(localStorage.getItem('eos_state_expert')||'{}');
+      _expState2.boardroomIntel = intel;
+      localStorage.setItem('eos_state_expert', JSON.stringify(_expState2));
+    } catch(e){}
     if(typeof brActivateGlobalIntelligence==='function') brActivateGlobalIntelligence(intel);
 
     if(loadCard) loadCard.style.display='none';
