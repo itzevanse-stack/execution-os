@@ -145,6 +145,17 @@ function node_collect_state(state) {
   const price      = state.price || (isAff ? 1000 : 3000);
   const target     = state.target || (isAff ? 10000 : 25000);
   const clients    = Math.ceil(target / price);
+
+  // Build memory context string for injection into prompts
+  const runNum = state._runNumber || 1;
+  const history = state._history || [];
+  let memCtx = state._memoryContext || '';
+  if (!memCtx && runNum > 1 && history.length > 0) {
+    memCtx = 'MEMORY: This user has run The Boardroom ' + runNum + ' times before. ' +
+      'Last positioning: "' + (history[0] && history[0].positioningStatement || '') + '". ' +
+      'Build on their previous work — reference it and improve it, do not repeat it.';
+  }
+
   return {
     ...state,
     price,
@@ -152,6 +163,8 @@ function node_collect_state(state) {
     clientsNeeded: clients,
     leadsNeeded:   Math.ceil(clients / 0.25),
     noMoney:       !state.allowMoney,
+    memoryContext: memCtx,
+    runNumber:     runNum,
     // Affiliate context enrichment
     affiliateContext: isAff
       ? 'AFFILIATE MODE: User promotes "' + (state.offerName || 'affiliate product') + '" at $' + price + ' commission. Product URL: ' + (state.productUrl || 'not provided') + '. They do NOT own the product — they promote it. All copy must be authentic promotion, never mention commission.'
