@@ -5165,6 +5165,7 @@ button[onclick="generateOffer()"] {
         <button class="br-tab" onclick="brShowTab('copy-vault',this)" data-tab="copy-vault" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">✍️ Copy Vault</button>
         <button class="br-tab" onclick="brShowTab('war-plan',this)" data-tab="war-plan" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">⚔️ Launch War Plan</button>
         <button class="br-tab" onclick="brShowTab('content-engine',this)" data-tab="content-engine" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">📅 Content Calendar</button>
+        <button class="br-tab" onclick="brShowTab('funnel-strategy',this)" data-tab="funnel-strategy" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">🚀 Funnel Strategy</button>
       </div>
     </div>
 
@@ -5177,6 +5178,7 @@ button[onclick="generateOffer()"] {
       <div id="br-tab-copy-vault"        class="br-tab-panel" style="display:none"></div>
       <div id="br-tab-war-plan"          class="br-tab-panel" style="display:none"></div>
       <div id="br-tab-content-engine"    class="br-tab-panel" style="display:none"></div>
+      <div id="br-tab-funnel-strategy"   class="br-tab-panel" style="display:none"></div>
     </div>
 
   </div><!-- /br-phase3 -->
@@ -23513,6 +23515,9 @@ function brShowPhase1() {
         var caR = document.getElementById('br-tab-client-attraction');
         if (caR && typeof _brRenderClientAttraction === 'function') caR.innerHTML = _brRenderClientAttraction(parsed.plan||{}, parsed.inputs||{});
 
+        var fsR = document.getElementById('br-tab-funnel-strategy');
+        if (fsR && typeof _brRenderFunnelStrategy === 'function') fsR.innerHTML = _brRenderFunnelStrategy(parsed.funnelStrategy||{}, parsed.inputs||{});
+
         if (tabsNavR)   tabsNavR.style.display = 'block';
         if (powBannerR) {
           powBannerR.style.display = 'flex';
@@ -23677,6 +23682,7 @@ window.brChatSend = function() {
 
 // ── Phase 3: build and render the plan ───────────────────────────
 async function brBuildPlan() {
+  window._brGenerating = true; // prevents showPage hook from interfering
   var phase2    = document.getElementById('br-phase2');
   var phase3    = document.getElementById('br-phase3');
   var loadCard  = document.getElementById('br-loading-card');
@@ -23752,19 +23758,24 @@ async function brBuildPlan() {
     _brStage(5, 'running');
     var contentResult = await brCallAI_ContentEngine(inp);
     _brStage(5, 'done');
+    _brProgress(92, 'Building your funnel strategy...');
+
+    // CALL 7: Funnel Strategy
+    var funnelResult = await brCallAI_FunnelStrategy(inp);
     _brProgress(100, 'Activating your Boardroom...');
 
     // Assemble intel
     var intel = {
-      generatedAt:   Date.now(),
-      inputs:        inp,
-      answers:       answers,
-      plan:          planResult,
-      architect:     architectResult  || {},
-      offerStack:    offerStackResult || {},
-      copyVault:     copyVaultResult  || {},
-      warPlan:       warPlanResult    || {},
-      contentEngine: contentResult    || {}
+      generatedAt:    Date.now(),
+      inputs:         inp,
+      answers:        answers,
+      plan:           planResult,
+      architect:      architectResult  || {},
+      offerStack:     offerStackResult || {},
+      copyVault:      copyVaultResult  || {},
+      warPlan:        warPlanResult    || {},
+      contentEngine:  contentResult    || {},
+      funnelStrategy: funnelResult     || {}
     };
 
     window._boardroomIntel = intel;
@@ -23794,6 +23805,9 @@ async function brBuildPlan() {
       var caPanel = document.getElementById('br-tab-client-attraction');
       if (caPanel) caPanel.innerHTML = _brRenderClientAttraction(planResult, inp);
 
+      var fsPanel = document.getElementById('br-tab-funnel-strategy');
+      if (fsPanel) fsPanel.innerHTML = _brRenderFunnelStrategy(funnelResult, inp);
+
       if (powBanner) {
         powBanner.style.display = 'flex';
         var powDesc = document.getElementById('br-powered-desc');
@@ -23804,10 +23818,12 @@ async function brBuildPlan() {
       var firstTab = document.querySelector('.br-tab[data-tab="war-room"]');
       if (firstTab) brShowTab('war-room', firstTab);
 
+      window._brGenerating = false; // allow showPage hook to work again
       phase3.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 800);
 
   } catch(err) {
+    window._brGenerating = false;
     console.error('[Boardroom] brBuildPlan error:', err);
     if (loadCard) loadCard.style.display = 'none';
     if (phase3) {
@@ -23898,6 +23914,8 @@ function brShowTab(tab, btn) {
         panel.innerHTML = _brRenderWarRoom(plan2, i2, sn2);
       } else if (tab === 'client-attraction') {
         panel.innerHTML = _brRenderClientAttraction(window._boardroomIntel.plan || {}, window._boardroomIntel.inputs || {});
+      } else if (tab === 'funnel-strategy') {
+        panel.innerHTML = _brRenderFunnelStrategy(window._boardroomIntel.funnelStrategy || {}, window._boardroomIntel.inputs || {});
       } else {
         if (typeof brRenderTab === 'function') brRenderTab(tab, window._boardroomIntel);
       }
@@ -23921,6 +23939,13 @@ window.brRegenerateTab = async function(tab) {
     if (tab === 'content-engine')    result2 = await brCallAI_ContentEngine(inp2);
     if (tab === 'client-attraction') {
       panel.innerHTML = _brRenderClientAttraction(window._boardroomIntel ? window._boardroomIntel.plan : {}, inp2);
+      return;
+    }
+    if (tab === 'funnel-strategy') {
+      var newFunnel = await brCallAI_FunnelStrategy(inp2);
+      if (window._boardroomIntel) window._boardroomIntel.funnelStrategy = newFunnel;
+      panel.innerHTML = _brRenderFunnelStrategy(newFunnel, inp2);
+      try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
       return;
     }
     if (result2 && window._boardroomIntel) {
@@ -24083,10 +24108,160 @@ function _brAttractionCard(title, desc, color) {
     + '<div style="font-size:11px;color:var(--dim);line-height:1.6">' + desc + '</div></div>';
 }
 
+/* ── Funnel Strategy AI call ── */
+function brCallAI_FunnelStrategy(inp) {
+  var sys = 'You are a 9-Figure digital marketing strategist who has analysed the funnel architecture of every major online business generating $50M+. You give specific, researched, actionable funnel recommendations with real proven examples. Return ONLY valid JSON.';
+  var p = 'Analyse the best funnel strategies for this business and recommend the top 3 with real-world influencer proof.\n\n'
+    + 'Business: ' + (inp.offerName||'their offer') + ' at $' + (inp.price||2000) + '\n'
+    + 'Niche: ' + (inp.niche||'online business') + '\n'
+    + 'Target: $' + (inp.target||10000) + '/month\n'
+    + 'Avatar: ' + (inp.av_job||'their ideal client') + ' — ' + (inp.av_pain||'their pain') + '\n'
+    + 'Transformation: ' + (inp.transformation||inp.av_desire||'their desired outcome') + '\n\n'
+    + 'Return this EXACT JSON:\n'
+    + '{\n'
+    + '  "recommendedFunnel": "The name of the best funnel for their specific situation",\n'
+    + '  "recommendedReason": "2-3 sentence explanation of exactly why this funnel is best for their niche, offer price, and audience — be specific",\n'
+    + '  "funnels": [\n'
+    + '    {\n'
+    + '      "name": "Funnel name (e.g. VSL + Application Funnel)",\n'
+    + '      "emoji": "single emoji",\n'
+    + '      "tagline": "One sentence of what makes this funnel powerful",\n'
+    + '      "bestFor": "Who this funnel works best for — specific",\n'
+    + '      "revenue": "Revenue range achievable per month with this funnel",\n'
+    + '      "steps": ["Step 1 — specific action", "Step 2", "Step 3", "Step 4", "Step 5"],\n'
+    + '      "provenExample": {\n'
+    + '        "name": "Real influencer/entrepreneur name who used this exact funnel in the same or similar niche",\n'
+    + '        "niche": "Their specific niche",\n'
+    + '        "result": "Specific revenue result they achieved (e.g. $50M+/year, built $200M company using this)",\n'
+    + '        "howTheyUsedIt": "2 sentences describing exactly how they implemented this funnel — specific platform, offer price, audience size"\n'
+    + '      },\n'
+    + '      "isRecommended": true/false,\n'
+    + '      "pros": ["Pro 1 specific to their niche", "Pro 2", "Pro 3"],\n'
+    + '      "cons": ["Con 1 specific to their situation", "Con 2"],\n'
+    + '      "firstStep": "The very first thing they should do TODAY to start building this funnel"\n'
+    + '    }\n'
+    + '  ],\n'
+    + '  "funnelStack": "How these 3 funnels can work together as they scale — 2-3 sentences"\n'
+    + '}';
+  return brCallAI(sys, p, 4000);
+}
+
+/* ── Funnel Strategy Tab Renderer ── */
+function _brRenderFunnelStrategy(d, inp) {
+  if (!d || !d.funnels || !d.funnels.length) {
+    return '<div style="text-align:center;padding:2.5rem">'
+      + '<div style="font-size:36px;margin-bottom:12px">🚀</div>'
+      + '<div style="font-size:14px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Funnel Strategy Not Generated Yet</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.7">Get 3 proven funnel strategies with $50M+ influencer proof, tailored to your exact niche and offer.</div>'
+      + '<button onclick="brRegenerateTab(\'funnel-strategy\')" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🚀 Generate My Funnel Strategy</button>'
+      + '</div>';
+  }
+
+  var h = '';
+
+  // Recommended banner
+  if (d.recommendedFunnel) {
+    h += '<div style="background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(78,204,163,.08));border:1px solid rgba(108,99,255,.35);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⭐ RECOMMENDED FOR YOU</div>'
+      + '<div style="font-size:18px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:8px">' + d.recommendedFunnel + '</div>'
+      + '<div style="font-size:13px;color:var(--muted);line-height:1.8">' + (d.recommendedReason||'') + '</div>'
+      + '</div>';
+  }
+
+  // The 3 funnels
+  (d.funnels||[]).forEach(function(funnel, fi) {
+    var isRec = funnel.isRecommended;
+    var borderColor = isRec ? 'rgba(108,99,255,.4)' : 'rgba(255,255,255,.07)';
+    var bgColor     = isRec ? 'rgba(108,99,255,.07)' : 'rgba(255,255,255,.02)';
+
+    h += '<div style="background:' + bgColor + ';border:1px solid ' + borderColor + ';border-radius:18px;padding:1.5rem;margin-bottom:1.25rem;position:relative">';
+
+    if (isRec) {
+      h += '<div style="position:absolute;top:-10px;right:16px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);color:#fff;font-size:9px;font-weight:900;padding:4px 12px;border-radius:50px;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">Best For You</div>';
+    }
+
+    // Header
+    h += '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:1rem">'
+      + '<div style="font-size:28px;flex-shrink:0">' + (funnel.emoji||'🔧') + '</div>'
+      + '<div style="flex:1">'
+      + '<div style="font-size:16px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:4px">' + (funnel.name||'') + '</div>'
+      + '<div style="font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:6px">' + (funnel.tagline||'') + '</div>'
+      + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      + '<span style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.2);border-radius:50px;padding:2px 10px;font-size:10px;color:var(--teal);font-weight:700">' + (funnel.revenue||'') + '</span>'
+      + '<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:2px 10px;font-size:10px;color:var(--dim);font-weight:600">Best for: ' + (funnel.bestFor||'') + '</span>'
+      + '</div></div></div>';
+
+    // Steps
+    if ((funnel.steps||[]).length) {
+      h += '<div style="margin-bottom:1rem">'
+        + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">THE FUNNEL STEPS</div>'
+        + '<div style="display:flex;flex-direction:column;gap:6px">'
+        + funnel.steps.map(function(step, si) {
+            return '<div style="display:flex;gap:10px;align-items:flex-start">'
+              + '<div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#4a3fcc);color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">' + (si+1) + '</div>'
+              + '<div style="font-size:12px;color:var(--muted);line-height:1.6">' + step + '</div>'
+              + '</div>';
+          }).join('')
+        + '</div></div>';
+    }
+
+    // Proven Example
+    if (funnel.provenExample && funnel.provenExample.name) {
+      var pe = funnel.provenExample;
+      h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:14px 16px;margin-bottom:1rem">'
+        + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">💰 REAL PROOF — $50M+ RESULT IN YOUR NICHE</div>'
+        + '<div style="display:flex;gap:12px;align-items:flex-start">'
+        + '<div style="width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,rgba(255,217,61,.3),rgba(255,140,66,.2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">👤</div>'
+        + '<div>'
+        + '<div style="font-size:14px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">' + pe.name + '</div>'
+        + '<div style="font-size:10px;color:var(--yellow);font-weight:700;margin-bottom:6px">' + (pe.niche||'') + ' · ' + (pe.result||'') + '</div>'
+        + '<div style="font-size:12px;color:var(--dim);line-height:1.7">' + (pe.howTheyUsedIt||'') + '</div>'
+        + '</div></div></div>';
+    }
+
+    // Pros / Cons
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1rem">'
+      + '<div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px;padding:12px">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✓ Pros</div>'
+      + (funnel.pros||[]).map(function(p){ return '<div style="font-size:11px;color:var(--dim);margin-bottom:4px;line-height:1.5">+ ' + p + '</div>'; }).join('')
+      + '</div>'
+      + '<div style="background:rgba(255,107,107,.04);border:1px solid rgba(255,107,107,.15);border-radius:10px;padding:12px">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--red,#ff6b6b);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">⚠ Cons</div>'
+      + (funnel.cons||[]).map(function(c){ return '<div style="font-size:11px;color:var(--dim);margin-bottom:4px;line-height:1.5">− ' + c + '</div>'; }).join('')
+      + '</div></div>';
+
+    // First step
+    if (funnel.firstStep) {
+      h += '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:12px 14px">'
+        + '<div style="font-size:9px;font-weight:900;color:var(--dimmer);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">DO THIS TODAY</div>'
+        + '<div style="font-size:12px;color:var(--white);font-weight:700;line-height:1.6">' + funnel.firstStep + '</div>'
+        + '</div>';
+    }
+
+    h += '</div>'; // end funnel card
+  });
+
+  // Funnel stack note
+  if (d.funnelStack) {
+    h += '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:14px;padding:1.25rem;margin-top:0.5rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📈 AS YOU SCALE — HOW THESE FUNNELS WORK TOGETHER</div>'
+      + '<div style="font-size:13px;color:var(--muted);line-height:1.8">' + d.funnelStack + '</div>'
+      + '</div>';
+  }
+
+  h += '<div style="text-align:center;margin-top:1.25rem">'
+    + '<button onclick="brRegenerateTab(\'funnel-strategy\')" style="display:inline-flex;align-items:center;gap:6px;padding:10px 22px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:50px;color:var(--purple);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🔄 Regenerate Funnel Strategy</button>'
+    + '</div>';
+
+  return h;
+}
+
 window.brBuildPlan               = brBuildPlan;
 window._brBuildPlanCall          = _brBuildPlanCall;
 window._brRenderWarRoom          = _brRenderWarRoom;
 window._brRenderClientAttraction = _brRenderClientAttraction;
+window._brRenderFunnelStrategy   = _brRenderFunnelStrategy;
+window.brCallAI_FunnelStrategy   = brCallAI_FunnelStrategy;
 window.brRunFullAnalysis         = brBuildPlan;
 
 function brResetBoardroom() {
@@ -24096,7 +24271,7 @@ function brResetBoardroom() {
   window._brChatState      = { step: 0, answers: {} };
 
   // Reset all tab panels
-  ['war-room','architect','offer-stack','client-attraction','copy-vault','war-plan','content-engine'].forEach(function(t) {
+  ['war-room','architect','offer-stack','client-attraction','copy-vault','war-plan','content-engine','funnel-strategy'].forEach(function(t) {
     var p = document.getElementById('br-tab-' + t);
     if (p) { p.innerHTML = ''; p.style.display = 'none'; }
   });
@@ -24134,10 +24309,20 @@ function brResetBoardroom() {
 window.brResetBoardroom = brResetBoardroom;
 
 // Hook into showPage to initialise Phase 1 on boardroom navigation
+// Guard: don't call brShowPhase1 if brBuildPlan is currently running or has already rendered
 var _origShowPageBR = window.showPage;
 window.showPage = function(page, nav) {
   if(typeof _origShowPageBR==='function') _origShowPageBR.apply(this, arguments);
-  if(page==='boardroom') { setTimeout(brShowPhase1, 50); }
+  if(page==='boardroom') {
+    setTimeout(function(){
+      // Skip if currently generating — brBuildPlan manages its own UI
+      if (window._brGenerating) return;
+      // Skip if tabs are already rendered and visible — don't wipe them
+      var tabsNav = document.getElementById('br-tabs-nav');
+      if (tabsNav && tabsNav.style.display !== 'none') return;
+      brShowPhase1();
+    }, 50);
+  }
 };
 
 // Expose global
@@ -24693,7 +24878,7 @@ function brRenderWarPlan(d, inp) {
     (phase.days||[]).forEach(function(day) {
       h += '<div style="display:flex;gap:12px;align-items:flex-start">';
       h += '<div style="min-width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:900;color:'+col+';font-family:Poppins,sans-serif;flex-shrink:0">D'+day.day+'</div>';
-      h += '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:4px">'+day.title+'</div>';
+      h += '<div style="flex:1"><div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:4px">'+(day.focus||day.title||'')+'</div>';
       h += '<div style="display:flex;flex-direction:column;gap:3px">'+(day.actions||[]).map(function(a){ return a?'<div style="font-size:11px;color:var(--dim);line-height:1.5">→ '+a+'</div>':''; }).join('')+'</div></div></div>';
     });
     h += '</div></div>';
