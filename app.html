@@ -6562,6 +6562,11 @@ function addRipple(btn, e) {
 }
 
 function showPage(n,btn){
+  // Affiliates cannot access The Boardroom — redirect to dashboard
+  if (n === 'boardroom' && (window._appMode || localStorage.getItem('eos_app_mode')) === 'affiliate') {
+    n   = 'dashboard';
+    btn = document.getElementById('nav-dashboard');
+  }
   // Save current page so it survives refresh
   try { localStorage.setItem('eos_last_page', n); } catch(e) {}
   if(n==='aff-offer'){setTimeout(()=>{window.renderDashboard&&window.renderDashboard();},80);}
@@ -18705,11 +18710,60 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
       platform, commission: av.commission||commission, url,
       niche: av.niche||productNiche, monthlyTarget,
       buyer: av.job, pain: av.pain, transformation: av.transformation,
-      benefits: av.productBenefits||[]
+      benefits: av.productBenefits||[],
+      productUrl: url, productName: av.productName||productName
     };
     window._appliedNiche  = av.niche||productNiche;
     window._appliedPrice  = commission;
     window._appliedTarget = monthlyTarget;
+
+    // ── Run Affiliate Intelligence Agent (Tavily + LangSmith powered) ──
+    // Runs in background while calendar generates — populates full intel tabs
+    (async function() {
+      try {
+        var affIntelResp = await fetch(window.location.origin + '/api/affiliate-intel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            inputs: {
+              productName:   av.productName||productName||url,
+              productUrl:    url,
+              niche:         av.niche||productNiche,
+              commission:    av.commission||commission,
+              monthlyTarget: monthlyTarget,
+              trafficMode:   'organic',
+              existingAvatar: { pain: av.pain, desire: av.transformation, job: av.job, fear: av.fear, tried: av.tried }
+            }
+          })
+        });
+        if (!affIntelResp.ok) return;
+        var affIntelData = await affIntelResp.json();
+        if (!affIntelData.success) return;
+
+        // Store as affiliate boardroom intel
+        window._affiliateBoardroomIntel = affIntelData;
+        window._boardroomIntel = {
+          generatedAt:  affIntelData.generatedAt,
+          inputs:       { niche: av.niche||productNiche, price: commission, target: monthlyTarget, isAffiliate: true, offerName: av.productName||productName },
+          architect:    affIntelData.positioning  || {},
+          offerStack:   {},
+          copyVault:    affIntelData.copyVault    || {},
+          warPlan:      affIntelData.warPlan      || {},
+          contentEngine:affIntelData.contentEngine|| {},
+        };
+        try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+
+        // Update affiliate offer with deep intel
+        window._affiliateOffer.copyVault    = affIntelData.copyVault;
+        window._affiliateOffer.warPlan      = affIntelData.warPlan;
+        window._affiliateOffer.positioning  = affIntelData.positioning;
+        window._affiliateOffer.contentEngine= affIntelData.contentEngine;
+
+        console.log('[Affiliate Intel] Full intelligence loaded ✅', affIntelData.tracer);
+      } catch(e) {
+        console.warn('[Affiliate Intel] Agent failed:', e.message);
+      }
+    })();
 
     // ── Voice profile context ─────────────────────────────────────────
     const vp = window._voiceProfile || {};
