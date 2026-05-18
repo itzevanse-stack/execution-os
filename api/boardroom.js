@@ -141,12 +141,22 @@ async function webSearch(query, maxResults) {
 // ── Node 1: collect_state ─────────────────────────────────────────────────────
 // Normalise and enrich the inputs before any AI work
 function node_collect_state(state) {
+  const isAff      = state.isAffiliate || false;
+  const price      = state.price || (isAff ? 1000 : 3000);
+  const target     = state.target || (isAff ? 10000 : 25000);
+  const clients    = Math.ceil(target / price);
   return {
     ...state,
-    clientsNeeded: Math.ceil((state.target || 25000) / (state.price || 3000)),
-    leadsNeeded:   Math.ceil((state.target || 25000) / (state.price || 3000) / 0.25),
+    price,
+    target,
+    clientsNeeded: clients,
+    leadsNeeded:   Math.ceil(clients / 0.25),
     noMoney:       !state.allowMoney,
-    collected:     true,
+    // Affiliate context enrichment
+    affiliateContext: isAff
+      ? 'AFFILIATE MODE: User promotes "' + (state.offerName || 'affiliate product') + '" at $' + price + ' commission. Product URL: ' + (state.productUrl || 'not provided') + '. They do NOT own the product — they promote it. All copy must be authentic promotion, never mention commission.'
+      : '',
+    collected: true,
   };
 }
 
@@ -173,7 +183,7 @@ async function node_validate_inputs(state, tracer) {
 
 // ── Node 3: research_niche ────────────────────────────────────────────────────
 // Web search for real market language — the node that changes everything
-const node_research_niche = traced('research_niche', async function(state, tracer) {
+const async function node_research_niche(state, tracer) {
   const span  = tracer.span('research_niche');
   const niche = state.niche || 'Online Business';
   const pain  = state.av_pain || 'their main struggle';
@@ -216,11 +226,11 @@ Be specific and use the language real people in this niche use.`,
   }
 
   return { ...state, marketIntel, researchDone: true };
-});
+}
 
 // ── Node 4: build_positioning ─────────────────────────────────────────────────
 // Builds the strategic foundation everything else reads from
-const node_build_positioning = traced('build_positioning', async function(state, tracer) {
+const async function node_build_positioning(state, tracer) {
   const span = tracer.span('build_positioning');
 
   const { text, tokens } = await ai(
@@ -265,10 +275,10 @@ Return this JSON (every field must be devastatingly specific to THIS person, not
   const positioning = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, positioning, positioningDone: true };
-});
+}
 
 // ── Node 5a: build_offer_stack ────────────────────────────────────────────────
-const node_build_offer_stack = traced('build_offer_stack', async function(state, tracer) {
+const async function node_build_offer_stack(state, tracer) {
   const span = tracer.span('build_offer_stack');
   const pos  = state.positioning || {};
 
@@ -309,10 +319,10 @@ ${state.noMoney ? `NICHE RULE: Zero income/money language. Transformation only.`
   const offerStack = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, offerStack };
-});
+}
 
 // ── Node 5b: build_copy_vault ─────────────────────────────────────────────────
-const node_build_copy_vault = traced('build_copy_vault', async function(state, tracer) {
+const async function node_build_copy_vault(state, tracer) {
   const span    = tracer.span('build_copy_vault');
   const pos     = state.positioning || {};
   const market  = (state.marketIntel || '').slice(0, 400);
@@ -380,87 +390,97 @@ ${state.noMoney ? `RULE: Zero income/money language. This is ${state.niche}.` : 
   const copyVault = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, copyVault };
-});
+}
 
 // ── Node 5c: build_war_plan ───────────────────────────────────────────────────
-const node_build_war_plan = traced('build_war_plan', async function(state, tracer) {
-  const span = tracer.span('build_war_plan');
+const async function node_build_war_plan(state, tracer) {
+  const span    = tracer.span('build_war_plan');
+  const niche   = state.niche   || 'Online Business';
+  const offer   = state.offerName || 'Their offer';
+  const price   = state.price   || 3000;
+  const target  = state.target  || 25000;
+  const clients = state.clientsNeeded || Math.ceil(target / price);
+  const avatar  = state.av_job  || 'their ideal client';
+  const pain    = state.av_pain || 'their main struggle';
 
-  const { text, tokens } = await ai(
-    `You are the world's best launch strategist. You have built go-to-markets for 200+ expert businesses. You give SPECIFIC, REAL, EXECUTABLE actions — never placeholders like "action 1" or "title". Every action must name the exact platform, exact message, or exact task.
+  const userPrompt = [
+    'Create a 30-day launch war plan for this business. Return ONLY valid JSON — no markdown, no explanation.',
+    '',
+    'NICHE: ' + niche,
+    'OFFER: ' + offer + ' at $' + price + '/client',
+    'MONTHLY TARGET: $' + target + ' (' + clients + ' clients needed)',
+    'AVATAR: ' + avatar + ' struggling with "' + pain + '"',
+    '',
+    'Write 4 phases with REAL, SPECIFIC, EXECUTABLE actions for ' + niche + '.',
+    'Name the exact platform (Facebook, Instagram, LinkedIn etc), exact message type, exact task.',
+    'NEVER use generic text like "action 1" or "focus" — every string must be a real action.',
+    '',
+    'JSON structure to return (fill every string with real content):',
+    '{',
+    '  "phase1": {',
+    '    "title": "Foundation (Days 1-7)",',
+    '    "goal": "[your specific week 1 goal for ' + niche + ']",',
+    '    "days": [',
+    '      { "day": 1, "focus": "[day 1 task title]", "actions": ["[specific action]", "[specific action]", "[specific action]"] },',
+    '      { "day": 2, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 3, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 4, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 5, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 6, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 7, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] }',
+    '    ]',
+    '  },',
+    '  "phase2": {',
+    '    "title": "Momentum (Days 8-14)",',
+    '    "goal": "[specific momentum goal]",',
+    '    "days": [',
+    '      { "day": 8,  "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 9,  "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 10, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 11, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 12, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 13, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 14, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] }',
+    '    ]',
+    '  },',
+    '  "phase3": {',
+    '    "title": "Launch (Days 15-21)",',
+    '    "goal": "[specific launch goal — first clients]",',
+    '    "days": [',
+    '      { "day": 15, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 16, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 17, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 18, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 19, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 20, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 21, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] }',
+    '    ]',
+    '  },',
+    '  "phase4": {',
+    '    "title": "Scale (Days 22-30)",',
+    '    "goal": "[systematise and scale goal]",',
+    '    "days": [',
+    '      { "day": 22, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 25, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 28, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] },',
+    '      { "day": 30, "focus": "[title]", "actions": ["[action]", "[action]", "[action]"] }',
+    '    ]',
+    '  },',
+    '  "metrics": ["[KPI 1 specific to ' + niche + ']", "[KPI 2]", "[KPI 3]"],',
+    '  "criticalWarning": "[The #1 reason ' + niche + ' launches fail — be specific and honest]"',
+    '}',
+  ].join('\n');
 
-Build a 30-day launch war plan for this exact business. Return ONLY valid JSON.
+  const systemPrompt = 'You are the world's best launch strategist. You have built go-to-markets for 200+ expert businesses. You give SPECIFIC, EXECUTABLE actions that name the exact platform, exact message, and exact task. You NEVER write placeholder text. You always write real, finished content that can be executed today.';
 
-Business: ${state.offerName || 'Their offer'} in ${state.niche} at $${state.price}/client
-Target: $${state.target}/month (${state.clientsNeeded} clients needed)
-Avatar: ${state.av_job} — "${state.av_pain}"
-
-CRITICAL: Replace every placeholder with a REAL, SPECIFIC action for ${state.niche}. No generic advice.
-
-Return this JSON with 28 real days of specific actions:
-{
-  "phase1": {
-    "title": "Foundation (Days 1-7)",
-    "goal": "Specific goal for ${state.niche} in week 1",
-    "days": [
-      {"day":1,"focus":"Specific focus for day 1","actions":["Real specific action for ${state.niche}","Second specific action","Third specific action"]},
-      {"day":2,"focus":"Day 2 focus","actions":["Real action","Real action","Real action"]},
-      {"day":3,"focus":"Day 3 focus","actions":["Real action","Real action","Real action"]},
-      {"day":4,"focus":"Day 4 focus","actions":["Real action","Real action","Real action"]},
-      {"day":5,"focus":"Day 5 focus","actions":["Real action","Real action","Real action"]},
-      {"day":6,"focus":"Day 6 focus","actions":["Real action","Real action","Real action"]},
-      {"day":7,"focus":"Day 7 focus — first review","actions":["Real action","Real action","Real action"]}
-    ]
-  },
-  "phase2": {
-    "title": "Momentum (Days 8-14)",
-    "goal": "Specific momentum goal for ${state.niche}",
-    "days": [
-      {"day":8,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":9,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":10,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":11,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":12,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":13,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":14,"focus":"focus","actions":["Real action","Real action","Real action"]}
-    ]
-  },
-  "phase3": {
-    "title": "Launch (Days 15-21)",
-    "goal": "First paying clients — specific number",
-    "days": [
-      {"day":15,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":16,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":17,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":18,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":19,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":20,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":21,"focus":"focus","actions":["Real action","Real action","Real action"]}
-    ]
-  },
-  "phase4": {
-    "title": "Scale (Days 22-30)",
-    "goal": "Systematise what worked",
-    "days": [
-      {"day":22,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":25,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":28,"focus":"focus","actions":["Real action","Real action","Real action"]},
-      {"day":30,"focus":"Review and set month 2 targets","actions":["Real action","Real action","Real action"]}
-    ]
-  },
-  "metrics": ["Specific KPI 1 for ${state.niche}","Specific KPI 2","Specific KPI 3"],
-  "criticalWarning": "The most common reason ${state.niche} launches fail — specific and honest"
-}`,
-    5000
-  );
-
+  const { text, tokens } = await ai(systemPrompt, userPrompt, 5000);
   const warPlan = extractJSON(text) || {};
   span.end(tokens);
-    return { ...state, warPlan };
-});
+  return { ...state, warPlan };
+}
 
 // ── Node 6: content_engine ────────────────────────────────────────────────────
-const node_content_engine = traced('content_engine', async function(state, tracer) {
+const async function node_content_engine(state, tracer) {
   const span  = tracer.span('content_engine');
   const cv    = state.copyVault || {};
   const hooks = cv.hooks ? cv.hooks.slice(0, 2).join(' | ') : '';
@@ -491,17 +511,18 @@ Strategy: Day 1-2 educate about the problem. Day 3-4 introduce the solution natu
     {
       "day": 1,
       "theme": "Problem awareness — no selling",
-      "fbPost": "Complete 120-word Facebook post. First sentence stops scroll. Short paragraphs. Ends with a genuine question. Sounds like a real person, not AI.",
+      "fbPost": "Complete 120-word Facebook post 1. First sentence stops scroll. Short paragraphs. Personal story angle. Ends with a genuine question. Sounds like a real person, not AI.",
+      "fbPost2": "Complete 120-word Facebook post 2. Different angle — value or education based. Short paragraphs. Different emotional trigger from post 1. Ends with a question.",
       "reelScript": "HOOK: [3-second opener that stops scroll] | CONTENT: [Point 1. Point 2. Point 3. Natural spoken language.] | CTA: [5-second call to action]",
       "emailSubject": "Subject line that feels like a text from a friend",
       "emailBody": "Complete 100-word email written to ONE specific person. Honest and direct. Ends with a single clear action."
     },
-    { "day": 2, "theme": "deepen problem", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
-    { "day": 3, "theme": "solution introduction", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
-    { "day": 4, "theme": "the mechanism", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
-    { "day": 5, "theme": "proof and results", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
-    { "day": 6, "theme": "objection handling", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
-    { "day": 7, "theme": "clear call to action", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" }
+    { "day": 2, "theme": "deepen problem", "fbPost": "complete post 1", "fbPost2": "complete post 2 different angle", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
+    { "day": 3, "theme": "solution introduction", "fbPost": "complete post 1", "fbPost2": "complete post 2 different angle", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
+    { "day": 4, "theme": "the mechanism", "fbPost": "complete post 1", "fbPost2": "complete post 2 different angle", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
+    { "day": 5, "theme": "proof and results", "fbPost": "complete post 1", "fbPost2": "complete post 2 different angle", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
+    { "day": 6, "theme": "objection handling", "fbPost": "complete post 1", "fbPost2": "complete post 2 different angle", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },
+    { "day": 7, "theme": "clear call to action", "fbPost": "complete post 1", "fbPost2": "complete post 2 different angle", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" }
   ]
 }`,
     5000
@@ -510,7 +531,7 @@ Strategy: Day 1-2 educate about the problem. Day 3-4 introduce the solution natu
   const content = extractJSON(text) || {};
   span.end(tokens);
   return { ...state, content };
-});
+}
 
 // ── Node 7: validate_output ───────────────────────────────────────────────────
 // Scores each tab, flags empties for frontend to show retry buttons
