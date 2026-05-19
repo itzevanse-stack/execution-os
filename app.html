@@ -23942,7 +23942,123 @@ window.brRegenerateTab = async function(tab) {
   var panel = document.getElementById('br-tab-' + tab);
   if (!panel) return;
   var inp2 = window._boardroomIntel ? window._boardroomIntel.inputs : brCollectInputs();
-  panel.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem"><div style="width:40px;height:40px;border-radius:50%;border:3px solid rgba(108,99,255,.15);border-top-color:#6c63ff;animation:spin .75s linear infinite;margin:0 auto 1rem"></div><div style="font-size:13px;font-weight:700;color:var(--dim)">Building this section...</div></div>';
+  var _niche = (inp2 && inp2.niche) ? inp2.niche : 'your niche';
+  var _offer = (inp2 && inp2.offerName) ? inp2.offerName : 'your offer';
+  var _avatar= (inp2 && inp2.av_job) ? inp2.av_job : 'your ideal client';
+
+  // Per-tab intelligent message sequences
+  var _tabMessages = {
+    'architect': [
+      'Scanning the competitive landscape in ' + _niche + '...',
+      'Identifying what the top 1% in ' + _niche + ' are doing differently...',
+      'Mapping your positioning against current market leaders...',
+      'Calculating your fastest path to category dominance...',
+      'Analysing ' + _avatar + ' psychology and decision triggers...',
+      'Architecting your unique market angle...',
+      'Almost done — hardening your competitive moat...'
+    ],
+    'offer-stack': [
+      'Auditing your current offer structure...',
+      'Studying the highest-converting ' + _niche + ' offers in the market...',
+      'Identifying the transformation gap in your positioning...',
+      'Reverse-engineering what makes ' + _avatar + ' say yes instantly...',
+      'Building your signature framework and value stack...',
+      'Crafting your guarantee and pricing justification...',
+      'Finalising — your offer is being rebuilt for maximum conversion...'
+    ],
+    'copy-vault': [
+      'Analysing what stops ' + _avatar + ' mid-scroll in ' + _niche + '...',
+      'Studying the hooks that have generated millions in your market...',
+      'Writing your headlines from ' + _avatar + ' deepest desires and fears...',
+      'Crafting DM openers that feel personal, not salesy...',
+      'Building your VSL script from your unique mechanism...',
+      'Writing email subjects that get opened at 40%+ rates...',
+      'Completing your copy vault — every piece engineered to convert...'
+    ],
+    'war-plan': [
+      'Analysing your starting position: audience, offer, and momentum...',
+      'Studying the launch patterns working right now in ' + _niche + '...',
+      'Mapping your 30-day revenue pathway to $' + ((inp2 && inp2.target) ? Number(inp2.target).toLocaleString() : 'your target') + '...',
+      'Identifying your Week 1 quick-win moves...',
+      'Sequencing your outreach, content, and conversion windows...',
+      'Building your daily non-negotiables and KPIs...',
+      'Locking in your launch sequence — phase by phase...'
+    ],
+    'content-engine': [
+      'Analysing the content that drives ' + _avatar + ' to take action...',
+      'Identifying the 5 content pillars that own your niche...',
+      'Studying viral patterns in ' + _niche + ' content right now...',
+      'Writing Day 1 posts — the ones that start conversations...',
+      'Crafting reel scripts engineered for saves and shares...',
+      'Building your email sequence to warm cold audiences...',
+      'Finalising your 7-day content engine — engineered to convert...'
+    ],
+    'funnel-strategy': [
+      'Auditing the top funnel structures used in ' + _niche + '...',
+      'Studying $50M+ case studies relevant to your offer type...',
+      'Analysing conversion rates across funnel architectures...',
+      'Matching funnel architecture to how ' + _avatar + ' makes decisions...',
+      'Evaluating what works at the $' + ((inp2 && inp2.price) ? Number(inp2.price).toLocaleString() : 'your') + ' price point...',
+      'Blueprinting your 3 best funnel options with real proof...',
+      'Completing your funnel strategy — with visual blueprints...'
+    ]
+  };
+  var _msgs = _tabMessages[tab] || [
+    'Analysing your business data...',
+    'Studying what is working in ' + _niche + ' right now...',
+    'Tailoring the output to your offer and audience...',
+    'Cross-referencing against proven frameworks...',
+    'Finalising your results...'
+  ];
+
+  // Build the loading UI
+  var _loadId = '_brload_' + Date.now();
+  panel.innerHTML = '<div id="' + _loadId + '" style="padding:2.5rem 1.5rem;text-align:center">'
+    + '<div style="position:relative;width:56px;height:56px;margin:0 auto 1.5rem">'
+    + '<div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(108,99,255,.12)"></div>'
+    + '<div id="' + _loadId + '_spin" style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#6c63ff;border-right-color:rgba(108,99,255,.4)"></div>'
+    + '<div style="position:absolute;inset:8px;border-radius:50%;background:rgba(108,99,255,.08);display:flex;align-items:center;justify-content:center;font-size:18px">🏛</div>'
+    + '</div>'
+    + '<div id="' + _loadId + '_msg" style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:8px;min-height:20px;transition:opacity .3s">' + _msgs[0] + '</div>'
+    + '<div style="width:240px;height:3px;background:rgba(255,255,255,.06);border-radius:3px;margin:0 auto 10px;overflow:hidden">'
+    + '<div id="' + _loadId + '_bar" style="height:100%;width:4%;background:linear-gradient(90deg,#6c63ff,#a089ff,#4ecca3);border-radius:3px;transition:width .8s ease"></div>'
+    + '</div>'
+    + '<div style="font-size:10px;color:var(--dimmer);font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:1px">Boardroom Intelligence Active</div>'
+    + '</div>';
+
+  // Animate spinner and cycle messages
+  var _spinDeg = 0;
+  var _msgIdx  = 0;
+  var _barPct  = 4;
+  var _barStep = Math.floor(88 / _msgs.length);
+  var _spinEl  = document.getElementById(_loadId + '_spin');
+  var _msgEl   = document.getElementById(_loadId + '_msg');
+  var _barEl   = document.getElementById(_loadId + '_bar');
+
+  var _spinIv = setInterval(function() {
+    _spinDeg = (_spinDeg + 4) % 360;
+    if (_spinEl) _spinEl.style.transform = 'rotate(' + _spinDeg + 'deg)';
+  }, 16);
+
+  var _msgIv = setInterval(function() {
+    _msgIdx++;
+    if (_msgIdx >= _msgs.length) { clearInterval(_msgIv); return; }
+    if (_msgEl) {
+      _msgEl.style.opacity = '0';
+      setTimeout(function() {
+        if (_msgEl) { _msgEl.textContent = _msgs[_msgIdx]; _msgEl.style.opacity = '1'; }
+      }, 300);
+    }
+    _barPct = Math.min(_barPct + _barStep, 88);
+    if (_barEl) _barEl.style.width = _barPct + '%';
+  }, 3200);
+
+  function _stopLoading() {
+    clearInterval(_spinIv);
+    clearInterval(_msgIv);
+    if (_barEl) _barEl.style.width = '100%';
+  }
+
   try {
     var result2;
     if (tab === 'architect')         result2 = await brCallAI_Architect(inp2);
@@ -23951,16 +24067,19 @@ window.brRegenerateTab = async function(tab) {
     if (tab === 'war-plan')          result2 = await brCallAI_WarPlan(inp2);
     if (tab === 'content-engine')    result2 = await brCallAI_ContentEngine(inp2);
     if (tab === 'client-attraction') {
+      _stopLoading();
       panel.innerHTML = _brRenderClientAttraction(window._boardroomIntel ? window._boardroomIntel.plan : {}, inp2);
       return;
     }
     if (tab === 'funnel-strategy') {
       var newFunnel = await brCallAI_FunnelStrategy(inp2);
+      _stopLoading();
       if (window._boardroomIntel) window._boardroomIntel.funnelStrategy = newFunnel;
       panel.innerHTML = _brRenderFunnelStrategy(newFunnel, inp2);
       try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
       return;
     }
+    _stopLoading();
     if (result2 && window._boardroomIntel) {
       var km = { 'architect':'architect','offer-stack':'offerStack','copy-vault':'copyVault','war-plan':'warPlan','content-engine':'contentEngine' };
       if (km[tab]) window._boardroomIntel[km[tab]] = result2;
@@ -23968,6 +24087,7 @@ window.brRegenerateTab = async function(tab) {
       if (typeof brRenderTab === 'function') brRenderTab(tab, window._boardroomIntel);
     }
   } catch(err2) {
+    _stopLoading();
     panel.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red);font-size:12px">⚠️ Failed: ' + (err2.message||'error') + '<br><br><button onclick="brRegenerateTab(\'' + tab + '\')" style="padding:8px 20px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);border-radius:8px;color:var(--purple);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Try Again</button></div>';
   }
 };
@@ -24203,14 +24323,93 @@ function _brRenderFunnelStrategy(d, inp) {
       + '<span style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;padding:2px 10px;font-size:10px;color:var(--dim);font-weight:600">Best for: ' + (funnel.bestFor||'') + '</span>'
       + '</div></div></div>';
 
-    // Steps
+    // Blueprint diagram + Steps
     if ((funnel.steps||[]).length) {
+      // ── Visual Blueprint Diagram ──
+      var _steps = funnel.steps;
+      var _fColors = ['#6c63ff','#4ecca3','#ffd93d','#ff8c42','#ff6b6b','#a089ff','#38b48e'];
+      var _isRec2 = funnel.isRecommended;
+      var _accentColor = _isRec2 ? '#6c63ff' : '#4ecca3';
+
+      // Build horizontal flow diagram HTML
+      var _diagramNodes = _steps.map(function(step, si) {
+        var _col = _fColors[si % _fColors.length];
+        // Extract short label from step (first ~4 words or up to 28 chars)
+        var _label = step.replace(/^(step\s*\d+[:\-]?\s*)/i,'').trim();
+        var _words = _label.split(' ');
+        var _short = _words.slice(0,3).join(' ');
+        if (_short.length > 22) _short = _short.slice(0,20)+'…';
+        return { label: _short, full: step, color: _col, idx: si };
+      });
+
+      // Step icons based on position
+      var _stepIcons = ['🎯','📧','📞','💰','🎁','📈','✅','🔥','⚡','🚀'];
+
+      h += '<div style="margin-bottom:1.25rem">';
+      h += '<div style="font-size:9px;font-weight:900;color:' + _accentColor + ';text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">📐 FUNNEL BLUEPRINT</div>';
+
+      // Horizontal scrollable flow diagram
+      h += '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px">';
+      h += '<div style="display:flex;align-items:center;gap:0;min-width:max-content;padding:16px 4px">';
+
+      _diagramNodes.forEach(function(node, ni) {
+        // Node box
+        h += '<div style="display:flex;flex-direction:column;align-items:center;gap:6px">';
+        h += '<div style="'
+          + 'background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.02));'
+          + 'border:1.5px solid ' + node.color + '44;'
+          + 'border-radius:12px;padding:10px 13px;text-align:center;'
+          + 'min-width:90px;max-width:110px;'
+          + 'box-shadow:0 0 12px ' + node.color + '18,inset 0 1px 0 rgba(255,255,255,.06);'
+          + 'position:relative;cursor:default'
+          + '">';
+        // Corner accent
+        h += '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,' + node.color + ',' + node.color + '44);border-radius:12px 12px 0 0"></div>';
+        // Step number badge
+        h += '<div style="'
+          + 'width:18px;height:18px;border-radius:50%;'
+          + 'background:' + node.color + ';'
+          + 'color:#fff;font-size:9px;font-weight:900;'
+          + 'display:flex;align-items:center;justify-content:center;'
+          + 'margin:0 auto 6px;font-family:Poppins,sans-serif'
+          + '">' + (ni+1) + '</div>';
+        // Icon
+        h += '<div style="font-size:14px;margin-bottom:4px">' + (_stepIcons[ni] || '▶') + '</div>';
+        // Label
+        h += '<div style="font-size:10px;font-weight:700;color:#fff;line-height:1.35;word-break:break-word">' + node.label + '</div>';
+        h += '</div>'; // end node box
+        // Step number label below
+        h += '<div style="font-size:8px;font-weight:700;color:' + node.color + ';text-transform:uppercase;letter-spacing:.5px;font-family:Poppins,sans-serif">Step ' + (ni+1) + '</div>';
+        h += '</div>'; // end node wrapper
+
+        // Arrow between nodes
+        if (ni < _diagramNodes.length - 1) {
+          h += '<div style="display:flex;flex-direction:column;align-items:center;padding:0 4px;margin-bottom:18px">';
+          h += '<div style="display:flex;align-items:center;gap:0">';
+          h += '<div style="width:20px;height:2px;background:linear-gradient(90deg,' + node.color + '44,' + _diagramNodes[ni+1].color + '44)"></div>';
+          h += '<div style="width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid ' + _diagramNodes[ni+1].color + '88"></div>';
+          h += '</div>';
+          h += '</div>';
+        }
+      });
+
+      h += '</div></div>'; // end flex + overflow
+
+      // Traffic entry label on left, conversion label on right
+      h += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:0 4px">';
+      h += '<div style="display:flex;align-items:center;gap:5px"><div style="width:6px;height:6px;border-radius:50%;background:#4ecca3"></div><div style="font-size:9px;color:var(--dim);font-weight:700">TRAFFIC IN</div></div>';
+      h += '<div style="display:flex;align-items:center;gap:5px"><div style="font-size:9px;color:var(--dim);font-weight:700">REVENUE OUT</div><div style="width:6px;height:6px;border-radius:50%;background:#ffd93d"></div></div>';
+      h += '</div>';
+
+      h += '</div>'; // end blueprint section
+
+      // ── Breakdown list ──
       h += '<div style="margin-bottom:1rem">'
-        + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">THE FUNNEL STEPS</div>'
+        + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">STEP-BY-STEP BREAKDOWN</div>'
         + '<div style="display:flex;flex-direction:column;gap:6px">'
-        + funnel.steps.map(function(step, si) {
+        + _steps.map(function(step, si) {
             return '<div style="display:flex;gap:10px;align-items:flex-start">'
-              + '<div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#4a3fcc);color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">' + (si+1) + '</div>'
+              + '<div style="width:20px;height:20px;border-radius:50%;background:linear-gradient(135deg,' + (_fColors[si%_fColors.length]) + ',' + (_fColors[(si+1)%_fColors.length]) + ');color:#fff;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">' + (si+1) + '</div>'
               + '<div style="font-size:12px;color:var(--muted);line-height:1.6">' + step + '</div>'
               + '</div>';
           }).join('')
@@ -24823,7 +25022,8 @@ function brRenderWarPlan(d, inp) {
   var phaseColors = ['var(--teal)','var(--purple)','var(--orange)','var(--yellow)'];
   var h = '';
   if (d.criticalWarning) h += '<div style="background:rgba(255,91,91,.06);border:1px solid rgba(255,91,91,.2);border-radius:12px;padding:12px 16px;margin-bottom:1rem;font-size:12px;color:var(--dim)"><strong style="color:#ff8888">⚠️ Critical Warning:</strong> '+d.criticalWarning+'</div>';
-  if ((d.metrics || d.successMetrics) && (d.metrics || d.successMetrics).length) h += brCard('var(--teal)','✅ Success Metrics','<div style="display:flex;flex-wrap:wrap;gap:6px">'+d.successMetrics.map(function(m){ return brPill(m,'var(--teal)'); }).join('')+'</div>');
+  var _metrics = d.successMetrics || d.metrics || [];
+  if (_metrics.length) h += brCard('var(--teal)','✅ Success Metrics','<div style="display:flex;flex-wrap:wrap;gap:6px">'+_metrics.map(function(m){ return brPill(m,'var(--teal)'); }).join('')+'</div>');
   phases.forEach(function(phase, pi) {
     var col = phaseColors[pi];
     h += '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;margin-bottom:1rem">';
