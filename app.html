@@ -23448,6 +23448,14 @@ function brShowPhase1() {
     }
     return;
   }
+
+  // If currently generating — brBuildPlan manages its own UI
+  if (window._brGenerating) return;
+
+  // If tabs are already visible — plan is rendered, don't reset it
+  var _tabsNavGuard = document.getElementById('br-tabs-nav');
+  if (_tabsNavGuard && _tabsNavGuard.style.display !== 'none') return;
+
   var av  = window._avatarData || {};
   var gv  = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var offerName  = gv('offer_name');
