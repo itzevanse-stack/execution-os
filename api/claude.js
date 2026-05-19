@@ -205,6 +205,8 @@ module.exports = async function handler(req, res) {
     msgText.includes('buyer psychology for people purchasing') ||
     msgText.includes('how affiliates are currently promoting') ||
     msgText.includes('affiliate marketing campaign reaching') ||
+    msgText.includes('content strategy for an AFFILIATE') ||   // affiliate content strategy
+    msgText.includes('They do NOT own the product') ||         // affiliate content strategy
     (body.mode === 'affiliate') ||
     (body.endpoint === 'build-affiliate')
   );
@@ -218,10 +220,15 @@ module.exports = async function handler(req, res) {
                       msgText.includes('copy vault') || msgText.includes('Business Architect');
   const isResearch  = msgText.includes('Search Reddit') || msgText.includes('search the internet') ||
                       msgText.includes('competitive landscape') || msgText.includes('market viability');
+  // Content Strategy calls contain a large JSON schema + tools context — need 5,000+ tokens
+  const isContentStrategy = msgText.includes('TOOLS AVAILABLE INSIDE EXECUTION OS') ||
+                             msgText.includes('ManyChat') && msgText.includes('platformStack') ||
+                             msgText.includes('contentFlywheel');
 
-  const defaultTokens = isCalendar  ? 8000 :
-                        isBoardroom ? 5000 :
-                        isResearch  ? 4000 : 3000;
+  const defaultTokens = isCalendar        ? 8000 :
+                        isContentStrategy ? 5000 :
+                        isBoardroom       ? 5000 :
+                        isResearch        ? 4000 : 3000;
   const maxTok = body.max_tokens || defaultTokens;
 
   // Select the correct intelligence base
