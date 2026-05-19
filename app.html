@@ -4476,11 +4476,11 @@ button[onclick="generateOffer()"] {
       </div>
 
       <div class="tab-strip" id="aff-active-tabs" style="margin-bottom:1.25rem">
-        <button class="tab on" onclick="showAffActiveTab('buyer-research',this)">🔬 Buyer Research</button>
+        <button class="tab on" onclick="showAffActiveTab('buyer-research',this)">🔬 Buyer Intelligence</button>
         <button class="tab" onclick="showAffActiveTab('promo-intel',this)">🥊 Promo Intel</button>
         <button class="tab" onclick="showAffActiveTab('offer-viability',this)">📊 Offer Viability</button>
         <button class="tab" onclick="showAffActiveTab('strategy',this)">🎯 Strategy</button>
-        <button class="tab" onclick="showAffActiveTab('avatar',this)">👤 Buyer Profile</button>
+        <button class="tab" onclick="showAffActiveTab('content-strategy',this)">📐 Content Strategy</button>
         <button class="tab" onclick="showAffActiveTab('calendar',this)">📅 Content Calendar</button>
         <button class="tab" onclick="showAffActiveTab('dms',this)">💬 DM Scripts</button>
         <button class="tab" onclick="showAffActiveTab('dailyplan',this)">⚡ Daily Plan</button>
@@ -4493,6 +4493,7 @@ button[onclick="generateOffer()"] {
       <div id="aff-tab-offer-viability" style="display:none"><div id="aff-offer-viability-body"></div></div>
       <div id="aff-tab-strategy"><div id="aff-strategy-body"></div></div>
       <div id="aff-tab-avatar"   style="display:none"><div id="aff-avatar-body"></div></div>
+      <div id="aff-tab-content-strategy" style="display:none"><div id="aff-content-strategy-body"></div></div>
       <div id="aff-tab-calendar" style="display:none">
         <div style="overflow-x:auto">
           <div class="cal-head">
@@ -5177,6 +5178,7 @@ button[onclick="generateOffer()"] {
         <button class="br-tab" onclick="brShowTab('war-plan',this)" data-tab="war-plan" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">⚔️ Launch War Plan</button>
         <button class="br-tab" onclick="brShowTab('content-engine',this)" data-tab="content-engine" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">📅 Content Calendar</button>
         <button class="br-tab" onclick="brShowTab('funnel-strategy',this)" data-tab="funnel-strategy" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">🚀 Funnel Strategy</button>
+        <button class="br-tab" onclick="brShowTab('content-strategy',this)" data-tab="content-strategy" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">📐 Content Strategy</button>
       </div>
     </div>
 
@@ -5193,6 +5195,7 @@ button[onclick="generateOffer()"] {
       <div id="br-tab-war-plan"          class="br-tab-panel" style="display:none"></div>
       <div id="br-tab-content-engine"    class="br-tab-panel" style="display:none"></div>
       <div id="br-tab-funnel-strategy"   class="br-tab-panel" style="display:none"></div>
+      <div id="br-tab-content-strategy"  class="br-tab-panel" style="display:none"></div>
     </div>
 
   </div><!-- /br-phase3 -->
@@ -6974,8 +6977,12 @@ function applyAll(){
   window._appliedNiche=niche;
   window._appliedPrice=price;
   window._appliedTarget=target;
+  // Tag these as belonging to expert mode so mode-switch logic knows which mode set them
+  window._expertAppliedPrice  = price;
+  window._expertAppliedTarget = target;
+  window._expertAppliedNiche  = niche;
 
-  // Persist to expert-namespaced state so affiliate mode cannot read these values
+  // Persist to expert-namespaced state immediately
   try {
     var _expSnap = JSON.parse(localStorage.getItem('eos_state_expert')||'{}');
     _expSnap.appliedPrice  = price;
@@ -17285,7 +17292,7 @@ window.adj = window.adj; // keep reference
 
 // ─── Tab switcher ─────────────────────────────────────────────────────────
 window.showAffActiveTab = function(tab, btn) {
-  ['buyer-research','promo-intel','offer-viability','strategy','avatar','calendar','dms','tracker','dailytracker','dailyplan','tam'].forEach(t => {
+  ['buyer-research','promo-intel','offer-viability','strategy','avatar','content-strategy','calendar','dms','tracker','dailytracker','dailyplan','tam'].forEach(t => {
     const el = document.getElementById('aff-tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
@@ -17303,6 +17310,7 @@ window.showAffActiveTab = function(tab, btn) {
     window.renderAffAvatarView && window.renderAffAvatarView(window._avatarData||{});
   }
   if (tab === 'buyer-research')  { window.renderAffBuyerResearch  && window.renderAffBuyerResearch(); }
+  if (tab === 'content-strategy') { window.renderAffContentStrategy && window.renderAffContentStrategy(); }
   if (tab === 'promo-intel')     { window.renderAffPromoIntel     && window.renderAffPromoIntel(); }
   if (tab === 'offer-viability') { window.renderAffOfferViability && window.renderAffOfferViability(); }
   if (tab === 'strategy') {
@@ -17587,11 +17595,15 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
       productUrl: url, productName: av.productName||productName,
       _avatarSnapshot: av  // keep avatar scoped to affiliate offer
     };
-    // Write to affiliate-only globals (do not overwrite expert mode globals)
+    // Write to affiliate-only globals — never cross-contaminate expert globals
     if ((window._appMode||'affiliate') === 'affiliate') {
       window._appliedNiche  = av.niche||productNiche;
       window._appliedPrice  = commission;
       window._appliedTarget = monthlyTarget;
+      // Tag as affiliate-owned so mode-switch knows to restore these to eos_state_affiliate
+      window._affAppliedPrice  = commission;
+      window._affAppliedTarget = monthlyTarget;
+      window._affAppliedNiche  = av.niche||productNiche;
       // Persist to affiliate-namespaced state only
       try {
         var _affSnap = { appliedPrice: commission, appliedTarget: monthlyTarget, appliedNiche: av.niche||productNiche, avatarData: av, boardroomIntel: null, boardroomOffer: null, mindsetData: null };
@@ -18288,6 +18300,549 @@ window.affTrack = function(key, delta) {
 // ─── Auto-render when page opens ──────────────────────────────────────────
 
 
+
+/* ══════════════════════════════════════════════════════════════════
+   MERGED BUYER INTELLIGENCE TAB
+   Combines live web research + product avatar into one unified profile
+   with immediate action items mapped to Execution OS tools
+══════════════════════════════════════════════════════════════════ */
+
+/* Override the renderAffBuyerResearch function to show merged profile */
+window.renderAffBuyerResearch = function() {
+  var el = document.getElementById('aff-buyer-research-body');
+  if (!el) return;
+  var intel = window._affiliateResearchIntel || {};
+  var d     = intel.buyerResearch || {};
+  var av    = window._avatarData  || {};
+  var offer = window._affiliateOffer || {};
+
+  // Empty state — needs research
+  if (!d.corePain && (!av || Object.keys(av).length < 3)) {
+    el.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem">'
+      + '<div style="font-size:40px;margin-bottom:14px">🔬</div>'
+      + '<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Buyer Intelligence</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.8;max-width:420px;margin-left:auto;margin-right:auto">Combines your product avatar with live web research — Reddit, Quora, forums, YouTube comments — to build a complete intelligence profile of your ideal buyer. Every section connects directly to your content, DMs, and automation strategy.</div>'
+      + '<div style="font-size:11px;color:var(--dimmer);margin-bottom:20px">Complete the affiliate setup first, then run Buyer Intelligence.</div>'
+      + '<button onclick="window.runAffBuyerResearch()" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);border:none;border-radius:50px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 6px 20px rgba(108,99,255,.35)">🔬 Build Buyer Intelligence</button>'
+      + '</div>';
+    return;
+  }
+
+  var h = '';
+  var js      = (av.job || 'ideal buyer').split('/')[0].trim();
+  var pain    = d.corePain    || av.pain    || '';
+  var transf  = av.transformation || '';
+  var niche   = offer.niche   || av.niche   || '';
+  var objArr  = Array.isArray(av.objections) ? av.objections
+              : (av.objections||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  var kwArr   = Array.isArray(av.keywords) ? av.keywords : [];
+  var researchDone = !!(d.corePain);
+
+  // ── HEADER — who they are ─────────────────────────────────────────
+  h += '<div style="background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(78,204,163,.08));border:1px solid rgba(108,99,255,.3);border-radius:18px;padding:1.5rem;margin-bottom:1.25rem">'
+    + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">🔬 BUYER INTELLIGENCE — ' + (researchDone ? 'RESEARCH-BACKED' : 'PROFILE DATA') + '</div>'
+    + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">'
+    + '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0">'
+    + (d.buyerPersonaName || av.name || 'B')[0]
+    + '</div>'
+    + '<div>'
+    + '<div style="font-size:18px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white)">' + (d.buyerPersonaName || av.name || js) + '</div>'
+    + '<div style="font-size:11px;color:var(--dim);margin-top:2px">'
+    + [av.age, av.gender, av.location, js].filter(Boolean).join(' · ')
+    + '</div>'
+    + '</div>'
+    + (av.personality ? '<div style="margin-left:auto;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:99px;padding:4px 12px;font-size:10px;color:var(--purple);font-weight:700;white-space:nowrap">' + av.personality + '</div>' : '')
+    + '</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.7;border-left:3px solid var(--purple);padding-left:12px">'
+    + (d.keyInsight || transf || 'Run live research to surface the key insight about this buyer.')
+    + '</div>'
+    + '</div>';
+
+  // ── EXACT LANGUAGE — the most important section ───────────────────
+  var phrases = (d.exactLanguage && d.exactLanguage.length) ? d.exactLanguage : kwArr;
+  if (phrases.length) {
+    h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.25);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.25rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px">💬 EXACT LANGUAGE THEY USE — COPY THIS INTO ALL YOUR CONTENT</div>'
+      + '<div style="font-size:10px;color:var(--dimmer);margin-bottom:10px">These are real phrases from forums, reviews, and social media. Use them verbatim in hooks, captions, DM openers, and email subjects.</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+      + phrases.map(function(p) {
+          return '<div style="background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.25);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--white);font-weight:600">&ldquo;' + p + '&rdquo;</div>';
+        }).join('')
+      + '</div></div>';
+  }
+
+  // ── PAIN + TRANSFORMATION side by side ────────────────────────────
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem">';
+  h += '<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:12px;padding:1rem 1.1rem">'
+    + '<div style="font-size:9px;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🔥 CORE PAIN</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.7;font-style:italic">&ldquo;' + (pain || av.pain || '—') + '&rdquo;</div>'
+    + '</div>';
+  h += '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:1rem 1.1rem">'
+    + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🌟 TRANSFORMATION THEY WANT</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.7">' + (transf || '—') + '</div>'
+    + '</div>';
+  h += '</div>';
+
+  // ── PROFILE GRID ──────────────────────────────────────────────────
+  var profileFields = [
+    ['😰 Biggest Fear', av.fear],
+    ['💪 What Drives Them', av.motivation],
+    ['❌ Already Tried', av.tried],
+    ['💰 Income Level', av.income],
+    ['👀 Follows & Communities', av.influences],
+    ['🧠 Personality', av.personality]
+  ].filter(function(f){ return f[1]; });
+
+  if (profileFields.length) {
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem">';
+    profileFields.forEach(function(f) {
+      h += '<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px 12px">'
+        + '<div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">' + f[0] + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);line-height:1.6">' + f[1] + '</div>'
+        + '</div>';
+    });
+    h += '</div>';
+  }
+
+  // ── BUYING TRIGGERS + OBJECTIONS ──────────────────────────────────
+  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem">';
+  var triggers = (d.buyingTriggers && d.buyingTriggers.length) ? d.buyingTriggers : [];
+  if (triggers.length) {
+    h += '<div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:12px;padding:1rem 1.1rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚡ BUYING TRIGGERS</div>'
+      + triggers.map(function(t){ return '<div style="font-size:11px;color:var(--dim);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5">→ ' + t + '</div>'; }).join('')
+      + '</div>';
+  }
+  var objections = (d.topObjections && d.topObjections.length) ? d.topObjections
+    : objArr.length ? objArr : [];
+  if (objections.length) {
+    h += '<div style="background:rgba(255,107,107,.05);border:1px solid rgba(255,107,107,.15);border-radius:12px;padding:1rem 1.1rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚠️ OBJECTIONS BEFORE BUYING</div>'
+      + objections.map(function(o, i){ return '<div style="font-size:11px;color:var(--dim);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5">' + (i+1) + '. &ldquo;' + o + '&rdquo;</div>'; }).join('')
+      + '</div>';
+  }
+  h += '</div>';
+
+  // ── WHERE THEY LIVE + TRUST BREAKERS ──────────────────────────────
+  var whereLive = d.whereTheyLive || [];
+  if (whereLive.length) {
+    h += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📍 WHERE THEY SPEND TIME ONLINE</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+      + whereLive.map(function(p){ return '<span style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:50px;padding:5px 13px;font-size:11px;color:var(--purple);font-weight:600">' + p + '</span>'; }).join('')
+      + '</div></div>';
+  }
+
+  // ── AFFILIATE-SPECIFIC CONTENT ANGLES ─────────────────────────────
+  if (d.affiliateContentAngles && d.affiliateContentAngles.length) {
+    h += '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.25rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">📐 YOUR 7-DAY CONTENT ANGLES — TRUST SEQUENCE</div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px">';
+    var dayLabels = ['Days 1–2: Build trust (no product mention)', 'Days 3–4: Challenge the belief keeping them stuck', 'Day 5: Your authentic discovery story', 'Day 6: Address objections with radical honesty', 'Day 7: Soft recommendation'];
+    d.affiliateContentAngles.slice(0,5).forEach(function(angle, i) {
+      h += '<div style="display:flex;gap:10px;align-items:flex-start">'
+        + '<div style="min-width:130px;background:rgba(78,204,163,.1);border-radius:6px;padding:3px 8px;font-size:9px;font-weight:800;color:var(--teal);text-align:center;flex-shrink:0;margin-top:2px">' + (dayLabels[i] || '') + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);line-height:1.6">' + angle + '</div>'
+        + '</div>';
+    });
+    h += '</div></div>';
+  }
+
+  // ── PRODUCT BENEFITS (why this offer resonates) ───────────────────
+  var bens = Array.isArray(offer.benefits) ? offer.benefits : [];
+  if (bens.length) {
+    h += '<div style="background:rgba(78,204,163,.04);border:1px solid rgba(78,204,163,.15);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">✅ WHY THIS OFFER RESONATES WITH THIS BUYER</div>'
+      + bens.map(function(b){ return '<div style="font-size:11px;color:var(--muted);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">• ' + b + '</div>'; }).join('')
+      + '</div>';
+  }
+
+  // ── RESEARCH DATA SOURCE ──────────────────────────────────────────
+  if (d.researchSources && d.researchSources.length) {
+    h += '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 14px;margin-bottom:1rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">🔎 SOURCED FROM</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:5px">'
+      + d.researchSources.map(function(s){ return '<span style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:3px 10px;font-size:10px;color:var(--dim)">' + s + '</span>'; }).join('')
+      + '</div></div>';
+  }
+
+  // ── CTAs ─────────────────────────────────────────────────────────
+  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'
+    + '<button onclick="window.runAffBuyerResearch()" style="padding:8px 18px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:8px;color:var(--purple);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">'
+    + (researchDone ? '🔄 Re-research' : '🔬 Run Live Research') + '</button>'
+    + '</div>';
+
+  el.innerHTML = h;
+};
+
+/* ══════════════════════════════════════════════════════════════════
+   CONTENT STRATEGY AI CALLER + RENDERER
+   Works for BOTH Affiliate Mode and Expert Mode Boardroom.
+   Produces a platform-specific, tool-integrated content architecture
+   using AI Video Studio, ManyChat, email — focused on quality leads.
+══════════════════════════════════════════════════════════════════ */
+
+function buildContentStrategyPrompt(inp, mode) {
+  var isAffiliate = mode === 'affiliate';
+  var niche    = inp.niche    || inp.productNiche || 'online business';
+  var offer    = inp.offerName || inp.productName  || 'the offer';
+  var price    = inp.price    || inp.commission    || 1000;
+  var target   = inp.target   || inp.monthlyTarget || price * 5;
+  var avatar   = inp.avatar   || {};
+  var job      = avatar.job   || 'ideal client';
+  var pain     = avatar.pain  || 'their core challenge';
+  var research = inp.researchContext || '';
+
+  var roleCtx = isAffiliate
+    ? 'You are building a content strategy for an AFFILIATE in the ' + niche + ' niche. They promote ' + offer + ' and earn $' + price + ' per sale. They do NOT own the product — they are recommending it. Their content must build trust FIRST, educate SECOND, and recommend THIRD.'
+    : 'You are building a content strategy for an EXPERT in the ' + niche + ' niche selling ' + offer + ' at $' + price + '. They own the product and need to build authority, attract ideal clients, and convert through their content system.';
+
+  var toolsCtx = [
+    'TOOLS AVAILABLE INSIDE EXECUTION OS (use ALL of these in the strategy):',
+    '1. AI Video Studio — creates reels, VSLs, and video content at scale. Specify the exact video formats, hook styles, and posting frequency.',
+    '2. ManyChat — automates DM responses to comments and keywords on reels/posts. Every piece of content should have a ManyChat keyword trigger that captures leads automatically.',
+    '3. Content Calendar — 7-day rotating content blocks. Strategy must feed directly into it.',
+    '4. Email Marketing — automated sequences nurture leads captured by ManyChat. Specify which email sequences to run and when.',
+    '5. DM Scripts — for the conversations that DO happen, these are automated-feeling but personal.',
+    '6. Funnel Builder — the destination leads land on after the ManyChat flow.',
+    '',
+    'CRITICAL RULES:',
+    '- NO PAID ADS until $10,000/month is proven from organic content. State this clearly in the strategy.',
+    '- Focus on QUALITY LEADS, not volume. 50 highly qualified engaged leads beats 5,000 passive followers.',
+    '- The goal is a SYSTEM that attracts leads while the user sleeps — not manual daily hustle.',
+    '- Realistic numbers: a well-executed content system in most niches produces 5-30 quality leads per week in the first 90 days. That is enough to hit $5,000-$15,000/month at a premium price point.',
+    (research ? 'BUYER RESEARCH CONTEXT: ' + research : '')
+  ].filter(function(l){ return l !== false; }).join('\n');
+
+  var p = [
+    roleCtx,
+    '',
+    'BUSINESS DATA:',
+    'Niche: ' + niche,
+    'Offer: ' + offer + ' at $' + price,
+    'Monthly target: $' + target,
+    'Ideal client: ' + job + ' dealing with ' + pain,
+    '',
+    toolsCtx,
+    '',
+    'Build a complete content strategy. Return ONLY this JSON:',
+    '{',
+    '  "platformStack": [',
+    '    { "platform": "primary platform name", "why": "specific reason this is #1 for this niche and avatar", "contentTypes": ["format 1", "format 2"], "postingFrequency": "X per day/week", "role": "what this platform does in the funnel (awareness/trust/conversion)" },',
+    '    { "platform": "secondary platform", "why": "reason", "contentTypes": ["format"], "postingFrequency": "frequency", "role": "role" },',
+    '    { "platform": "tertiary platform", "why": "reason", "contentTypes": ["format"], "postingFrequency": "frequency", "role": "role" }',
+    '  ],',
+    '  "aiVideoStudioStrategy": {',
+    '    "primaryVideoFormat": "the single best video format for this niche and avatar",',
+    '    "hookFormulas": ["hook formula 1 specific to this niche", "hook formula 2", "hook formula 3"],',
+    '    "videoTopics": ["specific video topic 1 for this niche", "topic 2", "topic 3", "topic 4", "topic 5"],',
+    '    "postingCadence": "realistic posting frequency",',
+    '    "callToAction": "the single CTA every video ends with — tied to ManyChat keyword"',
+    '  },',
+    '  "manyChatSystem": {',
+    '    "primaryKeyword": "the keyword people comment to trigger the automation",',
+    '    "triggerMessage": "the exact CTA viewers see: comment X to get Y",',
+    '    "dmSequence": ["DM message 1 sent automatically", "DM message 2 after 24hrs", "DM message 3 after 48hrs"],',
+    '    "leadMagnet": "the free resource offered in exchange for the opt-in",',
+    '    "optInRate": "realistic opt-in rate to expect"',
+    '  },',
+    '  "emailSequence": {',
+    '    "welcomeEmail": "subject and purpose of email 1",',
+    '    "nurture": ["email 2 subject and purpose", "email 3", "email 4"],',
+    '    "conversionEmail": "subject and purpose of the conversion email",',
+    '    "frequency": "email sending frequency"',
+    '  },',
+    '  "contentFlywheel": {',
+    '    "description": "the repeating weekly cycle that compounds over time",',
+    '    "weeklySchedule": [',
+    '      { "day": "Monday", "content": "specific content type and topic angle", "platform": "platform", "tool": "which EOS tool to use" },',
+    '      { "day": "Tuesday", "content": "content", "platform": "platform", "tool": "tool" },',
+    '      { "day": "Wednesday", "content": "content", "platform": "platform", "tool": "tool" },',
+    '      { "day": "Thursday", "content": "content", "platform": "platform", "tool": "tool" },',
+    '      { "day": "Friday", "content": "content", "platform": "platform", "tool": "tool" }',
+    '    ],',
+    '    "compoundEffect": "what this flywheel produces at 30 days, 60 days, and 90 days"',
+    '  },',
+    '  "qualityLeadSignals": ["signal that indicates a quality lead 1", "signal 2", "signal 3"],',
+    '  "realisticProjection": {',
+    '    "week4": "realistic leads and revenue at week 4 with this system",',
+    '    "month2": "realistic position at month 2",',
+    '    "month3": "realistic position at month 3 — the compounding milestone"',
+    '  },',
+    '  "noPaidAdsRule": "specific explanation of why paid ads are not the answer yet and what to do instead",',
+    '  "executionOsAdvantage": "the specific advantage this person has using Execution OS tools vs someone doing this manually — be specific about the time saving and automation"',
+    '}'
+  ].join('\n');
+
+  return p;
+}
+
+/* ── Affiliate Content Strategy AI Caller ── */
+function affCallAI_ContentStrategy(offer, av, researchIntel) {
+  var sys = 'You are an elite content strategist specialising in affiliate marketing automation. You build content systems that attract quality leads on autopilot using AI Video Studio, ManyChat, and email sequences. You never recommend paid ads until $10k/month is proven organically. Return ONLY valid compact JSON.';
+  var researchCtx = '';
+  if (researchIntel && researchIntel.buyerResearch) {
+    var br = researchIntel.buyerResearch;
+    researchCtx = 'Buyer exact language: ' + (br.exactLanguage||[]).join(' | ')
+      + '\nBuying triggers: ' + (br.buyingTriggers||[]).join(' | ')
+      + '\nTop objections: ' + (br.topObjections||[]).join(' | ')
+      + '\nWhere they live: ' + (br.whereTheyLive||[]).join(', ');
+  }
+  var p = buildContentStrategyPrompt({
+    niche: offer.niche, offerName: offer.name, price: offer.commission,
+    target: offer.monthlyTarget, avatar: av, researchContext: researchCtx
+  }, 'affiliate');
+  return brCallAI_WithSearch(sys, p, 5000);
+}
+
+/* ── Expert Boardroom Content Strategy AI Caller ── */
+function brCallAI_ContentStrategy(inp) {
+  var sys = 'You are an elite content strategist specialising in expert digital product businesses. You build content systems that attract quality leads on autopilot using AI Video Studio, ManyChat, and email sequences — automating the entire lead generation process. You never recommend paid ads until $10k/month is proven organically. Return ONLY valid compact JSON.';
+  var researchCtx = '';
+  var intel = window._boardroomIntel || {};
+  if (intel.icpResearch) {
+    var icp = intel.icpResearch;
+    researchCtx = 'ICP exact language: ' + (icp.exactLanguage||[]).join(' | ')
+      + '\nBuying triggers: ' + (icp.buyingTriggers||[]).join(' | ')
+      + '\nTop objections: ' + (icp.objections||[]).join(' | ')
+      + '\nWhere they live: ' + (icp.whereTheyLive||[]).join(', ');
+  }
+  var av = window._avatarData || {};
+  var p = buildContentStrategyPrompt({
+    niche: inp.niche, offerName: inp.offerName, price: inp.price,
+    target: inp.target, avatar: { job: inp.av_job || av.job, pain: inp.av_pain || av.pain },
+    researchContext: researchCtx
+  }, 'expert');
+  return brCallAI_WithSearch(sys, p, 5000);
+}
+
+/* ── Shared Content Strategy Renderer ── */
+function _renderContentStrategy(d, mode) {
+  if (!d || !d.platformStack) return null;
+  var isAffiliate = mode === 'affiliate';
+  var accentColor = isAffiliate ? 'var(--teal)' : 'var(--purple)';
+  var h = '';
+
+  // Platform stack
+  var platColors = ['var(--teal)', 'var(--purple)', 'var(--yellow)'];
+  var platBgs    = ['rgba(78,204,163,.06)', 'rgba(108,99,255,.06)', 'rgba(255,217,61,.06)'];
+  var platBords  = ['rgba(78,204,163,.2)', 'rgba(108,99,255,.2)', 'rgba(255,217,61,.2)'];
+
+  h += '<div style="margin-bottom:1.25rem">'
+    + '<div style="font-size:9px;font-weight:900;color:' + accentColor + ';text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">📱 PLATFORM PRIORITY STACK — IN ORDER</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">';
+  (d.platformStack || []).forEach(function(p, i) {
+    h += '<div style="background:' + (platBgs[i]||platBgs[0]) + ';border:1px solid ' + (platBords[i]||platBords[0]) + ';border-radius:14px;padding:1rem 1.25rem">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+      + '<div style="font-size:13px;font-weight:900;color:' + (platColors[i]||platColors[0]) + '">' + (i===0?'#1 PRIMARY — ':'#'+(i+1)+' — ') + (p.platform||'') + '</div>'
+      + '<div style="font-size:9px;background:rgba(255,255,255,.06);border-radius:6px;padding:3px 8px;color:var(--dimmer)">' + (p.postingFrequency||'') + '</div>'
+      + '</div>'
+      + '<div style="font-size:11px;color:var(--muted);margin-bottom:6px;line-height:1.6">' + (p.why||'') + '</div>'
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px">'
+      + (p.contentTypes||[]).map(function(ct){ return '<span style="background:rgba(255,255,255,.06);border-radius:6px;padding:2px 8px;font-size:10px;color:var(--dim)">' + ct + '</span>'; }).join('')
+      + '</div>'
+      + '<div style="font-size:10px;color:var(--dimmer);font-style:italic">Role: ' + (p.role||'') + '</div>'
+      + '</div>';
+  });
+  h += '</div></div>';
+
+  // AI Video Studio strategy
+  if (d.aiVideoStudioStrategy) {
+    var vs = d.aiVideoStudioStrategy;
+    h += '<div style="background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(78,204,163,.06));border:1px solid rgba(108,99,255,.3);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">🎬 AI VIDEO STUDIO STRATEGY</div>'
+      + '<div style="margin-bottom:10px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;margin-bottom:4px">Primary Video Format</div>'
+      + '<div style="font-size:13px;font-weight:800;color:var(--white)">' + (vs.primaryVideoFormat||'') + '</div></div>'
+      + '<div style="margin-bottom:10px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;margin-bottom:6px">Hook Formulas That Work For This Niche</div>'
+      + '<div style="display:flex;flex-direction:column;gap:5px">'
+      + (vs.hookFormulas||[]).map(function(hf, i){ return '<div style="background:rgba(108,99,255,.08);border-radius:8px;padding:7px 10px;font-size:11px;color:var(--muted)"><span style="color:var(--purple);font-weight:800">' + (i+1) + '.</span> ' + hf + '</div>'; }).join('')
+      + '</div></div>'
+      + '<div style="margin-bottom:10px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;margin-bottom:6px">Proven Video Topics For This Niche</div>'
+      + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+      + (vs.videoTopics||[]).map(function(t){ return '<span style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:5px 10px;font-size:11px;color:var(--muted)">' + t + '</span>'; }).join('')
+      + '</div></div>'
+      + '<div style="display:flex;gap:12px">'
+      + '<div style="flex:1;background:rgba(255,255,255,.04);border-radius:10px;padding:10px">'
+      + '<div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:3px">POSTING CADENCE</div>'
+      + '<div style="font-size:12px;font-weight:800;color:var(--teal)">' + (vs.postingCadence||'') + '</div></div>'
+      + '<div style="flex:1;background:rgba(255,255,255,.04);border-radius:10px;padding:10px">'
+      + '<div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:3px">VIDEO CTA</div>'
+      + '<div style="font-size:12px;font-weight:800;color:var(--yellow)">' + (vs.callToAction||'') + '</div></div>'
+      + '</div></div>';
+  }
+
+  // ManyChat automation system
+  if (d.manyChatSystem) {
+    var mc = d.manyChatSystem;
+    h += '<div style="background:rgba(255,140,66,.06);border:1px solid rgba(255,140,66,.2);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--orange);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">🤖 MANYCHAT AUTOMATION SYSTEM — SET ONCE, RUNS FOREVER</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
+      + '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:3px">TRIGGER KEYWORD</div><div style="font-size:14px;font-weight:900;color:var(--orange);font-family:Poppins,sans-serif">' + (mc.primaryKeyword||'') + '</div></div>'
+      + '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:3px">EXPECTED OPT-IN RATE</div><div style="font-size:14px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">' + (mc.optInRate||'') + '</div></div>'
+      + '</div>'
+      + '<div style="margin-bottom:10px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:4px">CTA YOU ADD TO EVERY VIDEO/POST</div>'
+      + '<div style="background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.25);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--white);font-weight:700;font-style:italic">&ldquo;' + (mc.triggerMessage||'') + '&rdquo;</div></div>'
+      + '<div style="margin-bottom:10px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:4px">LEAD MAGNET OFFERED</div>'
+      + '<div style="font-size:12px;color:var(--muted)">' + (mc.leadMagnet||'') + '</div></div>'
+      + '<div><div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:6px">AUTOMATED DM SEQUENCE (fires without you)</div>'
+      + '<div style="display:flex;flex-direction:column;gap:5px">'
+      + (mc.dmSequence||[]).map(function(msg, i){ return '<div style="display:flex;gap:8px;align-items:flex-start"><div style="min-width:56px;background:rgba(255,140,66,.1);border-radius:6px;padding:2px 6px;font-size:9px;font-weight:800;color:var(--orange);text-align:center;flex-shrink:0;margin-top:2px">MSG ' + (i+1) + '</div><div style="font-size:11px;color:var(--dim);line-height:1.5">' + msg + '</div></div>'; }).join('')
+      + '</div></div></div>';
+  }
+
+  // Email sequence
+  if (d.emailSequence) {
+    var es = d.emailSequence;
+    h += '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">📧 EMAIL SEQUENCE — NURTURES WHILE YOU SLEEP</div>'
+      + '<div style="display:flex;flex-direction:column;gap:6px">'
+      + [['Welcome', es.welcomeEmail]].concat((es.nurture||[]).map(function(n,i){ return ['Nurture '+(i+1), n]; })).concat([['Conversion', es.conversionEmail]])
+        .filter(function(e){ return e[1]; })
+        .map(function(e, i){
+          return '<div style="display:flex;gap:10px;align-items:flex-start">'
+            + '<div style="min-width:80px;background:rgba(108,99,255,.1);border-radius:6px;padding:2px 8px;font-size:9px;font-weight:800;color:var(--purple);text-align:center;flex-shrink:0;margin-top:2px">' + e[0].toUpperCase() + '</div>'
+            + '<div style="font-size:11px;color:var(--dim);line-height:1.5">' + e[1] + '</div>'
+            + '</div>';
+        }).join('')
+      + (es.frequency ? '<div style="margin-top:8px;font-size:10px;color:var(--dimmer)">Frequency: ' + es.frequency + '</div>' : '')
+      + '</div></div>';
+  }
+
+  // Content flywheel
+  if (d.contentFlywheel) {
+    var cf = d.contentFlywheel;
+    h += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">🔄 WEEKLY CONTENT FLYWHEEL</div>'
+      + '<div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.7">' + (cf.description||'') + '</div>'
+      + '<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">';
+    (cf.weeklySchedule||[]).forEach(function(day) {
+      h += '<div style="display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+        + '<div style="min-width:70px;font-size:10px;font-weight:800;color:var(--yellow);flex-shrink:0">' + (day.day||'') + '</div>'
+        + '<div style="flex:1;font-size:11px;color:var(--dim);line-height:1.5">' + (day.content||'') + '</div>'
+        + '<div style="display:flex;gap:4px;flex-shrink:0">'
+        + '<span style="background:rgba(255,255,255,.05);border-radius:5px;padding:2px 6px;font-size:9px;color:var(--dimmer)">' + (day.platform||'') + '</span>'
+        + '<span style="background:rgba(108,99,255,.1);border-radius:5px;padding:2px 6px;font-size:9px;color:var(--purple)">' + (day.tool||'') + '</span>'
+        + '</div></div>';
+    });
+    h += '</div>'
+      + (cf.compoundEffect ? '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:10px;padding:10px 14px"><div style="font-size:9px;color:var(--yellow);font-weight:800;text-transform:uppercase;margin-bottom:4px">THE COMPOUND EFFECT</div><div style="font-size:11px;color:var(--muted);line-height:1.7">' + cf.compoundEffect + '</div></div>' : '')
+      + '</div>';
+  }
+
+  // Realistic projection
+  if (d.realisticProjection) {
+    var rp = d.realisticProjection;
+    h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1.25rem">';
+    [['Week 4', rp.week4, '#ff8c42'], ['Month 2', rp.month2, 'var(--yellow)'], ['Month 3', rp.month3, 'var(--teal)']].forEach(function(item) {
+      h += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:12px;text-align:center">'
+        + '<div style="font-size:9px;font-weight:800;color:var(--dimmer);text-transform:uppercase;margin-bottom:6px">' + item[0] + '</div>'
+        + '<div style="font-size:11px;color:' + item[2] + ';font-weight:700;line-height:1.5">' + (item[1]||'—') + '</div>'
+        + '</div>';
+    });
+    h += '</div>';
+  }
+
+  // No paid ads rule
+  if (d.noPaidAdsRule) {
+    h += '<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">🚫 NO PAID ADS UNTIL $10,000/MONTH</div>'
+      + '<div style="font-size:12px;color:var(--muted);line-height:1.7">' + d.noPaidAdsRule + '</div>'
+      + '</div>';
+  }
+
+  // EOS advantage
+  if (d.executionOsAdvantage) {
+    h += '<div style="background:linear-gradient(135deg,rgba(78,204,163,.1),rgba(108,99,255,.06));border:1px solid rgba(78,204,163,.25);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">⚡ YOUR EXECUTION OS ADVANTAGE</div>'
+      + '<div style="font-size:12px;color:var(--muted);line-height:1.7">' + d.executionOsAdvantage + '</div>'
+      + '</div>';
+  }
+
+  return h;
+}
+
+/* ── Affiliate Content Strategy Tab Renderer ── */
+window.renderAffContentStrategy = function() {
+  var el = document.getElementById('aff-content-strategy-body');
+  if (!el) return;
+  var intel = window._affiliateResearchIntel || {};
+  var d = intel.contentStrategy || {};
+
+  if (!d.platformStack) {
+    el.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem">'
+      + '<div style="font-size:40px;margin-bottom:14px">📐</div>'
+      + '<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Content Strategy</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.8;max-width:440px;margin-left:auto;margin-right:auto">Builds your complete content architecture — which platforms to use, exactly how to use AI Video Studio for this niche, how to wire ManyChat to automate every lead, your email sequence, and the weekly flywheel that compounds over 90 days. Built specifically around your offer, your buyer, and the tools inside Execution OS.</div>'
+      + '<div style="font-size:11px;color:var(--dimmer);margin-bottom:20px">Run Buyer Intelligence first for the most personalised strategy.</div>'
+      + '<button onclick="window.runAffContentStrategy()" style="padding:12px 28px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:50px;color:var(--text-dark);font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 6px 20px rgba(78,204,163,.35)">📐 Build My Content Strategy</button>'
+      + '</div>';
+    return;
+  }
+
+  var rendered = _renderContentStrategy(d, 'affiliate');
+  el.innerHTML = (rendered || '<div style="padding:2rem;text-align:center;color:var(--dim)">Content strategy data incomplete — click Build again.</div>')
+    + '<div style="text-align:right;margin-top:8px"><button onclick="window.runAffContentStrategy()" style="padding:8px 18px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:8px;color:var(--purple);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🔄 Rebuild Strategy</button></div>';
+};
+
+window.runAffContentStrategy = async function() {
+  var el = document.getElementById('aff-content-strategy-body');
+  if (!el) return;
+  var offer = window._affiliateOffer || {};
+  var av    = window._avatarData    || {};
+  if (!offer.niche && !offer.name) {
+    el.innerHTML = '<div style="padding:2rem;text-align:center;color:var(--orange);font-size:12px">Complete your affiliate setup first.</div>';
+    return;
+  }
+  var niche = offer.niche || 'your niche';
+  var msgs = [
+    'Analysing the best content platforms for ' + niche + '...',
+    'Building your AI Video Studio strategy for this niche...',
+    'Designing your ManyChat automation keyword sequence...',
+    'Mapping your email nurture sequence for quality leads...',
+    'Building the weekly content flywheel that compounds...',
+    'Calculating realistic 30-60-90 day projections...',
+    'Completing your full content strategy system...'
+  ];
+  var loader = _affResearchLoading('aff-content-strategy-body', 'content-strategy', '📐', 'Content Strategy', msgs);
+  try {
+    var result = await affCallAI_ContentStrategy(offer, av, window._affiliateResearchIntel || {});
+    loader.stop();
+    if (!window._affiliateResearchIntel) window._affiliateResearchIntel = {};
+    window._affiliateResearchIntel.contentStrategy = result;
+    try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e) {}
+    window.renderAffContentStrategy();
+  } catch(err) {
+    loader.stop();
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red);font-size:12px">⚠️ Failed: ' + (err.message||'error') + '<br><br><button onclick="window.runAffContentStrategy()" style="padding:8px 20px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);border-radius:8px;color:var(--purple);font-size:11px;font-weight:700;cursor:pointer">Try Again</button></div>';
+  }
+};
+
+/* ── Expert Boardroom Content Strategy Renderer ── */
+window.renderBrContentStrategy = function() {
+  var panel = document.getElementById('br-tab-content-strategy');
+  if (!panel) return;
+  var intel = window._boardroomIntel || {};
+  var d = intel.contentStrategy || {};
+
+  if (!d.platformStack) {
+    panel.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem">'
+      + '<div style="font-size:40px;margin-bottom:14px">📐</div>'
+      + '<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Content Strategy</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.8;max-width:440px;margin-left:auto;margin-right:auto">Builds your complete content architecture — platform priority stack, AI Video Studio strategy for your niche, ManyChat automation to capture leads from every post, email nurture sequence, and the weekly flywheel that compounds your authority and lead flow over 90 days. Built from your ICP research and Boardroom intelligence.</div>'
+      + '<div style="font-size:11px;color:var(--dimmer);margin-bottom:20px">Run ICP Research and Business Architect first for maximum precision.</div>'
+      + '<button onclick="brRegenerateTab(' + "'content-strategy'" + ')" style="padding:12px 28px;background:linear-gradient(135deg,var(--purple),#4a3fcc);border:none;border-radius:50px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 6px 20px rgba(108,99,255,.35)">📐 Build My Content Strategy</button>'
+      + '</div>';
+    return;
+  }
+
+  var rendered = _renderContentStrategy(d, 'expert');
+  panel.innerHTML = (rendered || '<div style="padding:2rem;text-align:center;color:var(--dim)">Content strategy data incomplete — rebuild.</div>')
+    + '<div style="text-align:right;margin-top:8px"><button onclick="brRegenerateTab(' + "'content-strategy'" + ')" style="padding:8px 18px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:8px;color:var(--purple);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🔄 Rebuild Strategy</button></div>';
+};
+
+/* Expose for window */
+window.brCallAI_ContentStrategy  = brCallAI_ContentStrategy;
+window.affCallAI_ContentStrategy = affCallAI_ContentStrategy;
 
 /* ══════════════════════════════════════════════════════════════════
    AFFILIATE RESEARCH SYSTEM
@@ -19532,10 +20087,20 @@ window.setAppMode = function(mode) {
     var prev = newMode === 'affiliate' ? 'expert' : 'affiliate';
 
     // ── 1. Snapshot outgoing mode ──────────────────────────────────────
+    // Use mode-tagged globals if available — prevents cross-mode contamination
+    var _snapPrice  = prev === 'expert'
+      ? (window._expertAppliedPrice  || window._appliedPrice  || 0)
+      : (window._affAppliedPrice     || window._appliedPrice  || 0);
+    var _snapTarget = prev === 'expert'
+      ? (window._expertAppliedTarget || window._appliedTarget || 0)
+      : (window._affAppliedTarget    || window._appliedTarget || 0);
+    var _snapNiche  = prev === 'expert'
+      ? (window._expertAppliedNiche  || window._appliedNiche  || '')
+      : (window._affAppliedNiche     || window._appliedNiche  || '');
     var snapshot = {
-      appliedPrice:   window._appliedPrice  || 0,
-      appliedTarget:  window._appliedTarget || 0,
-      appliedNiche:   window._appliedNiche  || '',
+      appliedPrice:   _snapPrice,
+      appliedTarget:  _snapTarget,
+      appliedNiche:   _snapNiche,
       avatarData:     window._avatarData    || null,
       boardroomIntel: window._boardroomIntel|| null,
       boardroomOffer: window._boardroomOffer|| null,
@@ -24790,13 +25355,9 @@ function _brIntelCol(color, label, value, sub) {
 // ── Phase 2: start mentor conversation ───────────────────────────
 window._brChatState = { step: 0, answers: {} };
 
-var BR_QUESTIONS = [
-  'Right now — how many people can you actually reach in the next 7 days who already know you exist, even a little? Think: Instagram followers, Facebook friends, email subscribers, WhatsApp contacts, past clients, anyone who\'s seen your content. Give me a real number, not a goal.',
-  'What is the ONE platform where you can show up most comfortably and consistently right now — even if your audience there is small? Instagram, Facebook, TikTok, YouTube, LinkedIn, WhatsApp, email list, or something else? And roughly how active is your audience there?',
-  'Have you ever sold anything online before — at any price? If yes: what was it, what did it cost, how many did you sell, and what happened? If no: what is the honest reason you haven\'t made a sale yet?',
-  null, // Q4 built dynamically from salesNeeded
-  'Last question: How many hours per day can you realistically dedicate to this for the next 30 days? And do you have any budget to put behind it — even $50–$300 for ads, tools, or design?'
-];
+// BR_QUESTIONS are built dynamically inside brStartSession()
+// so they reflect the user's actual niche, offer, and sales target.
+var BR_QUESTIONS = [null, null, null, null, null];
 
 function brStartSession() {
   var phase1 = document.getElementById('br-phase1');
@@ -24811,17 +25372,60 @@ function brStartSession() {
   if(feed) feed.innerHTML='';
   brUpdateProgress(0);
 
-  var target = window._appliedTarget||0;
-  var price  = window._appliedPrice||2000;
+  var target     = window._appliedTarget||0;
+  var price      = window._appliedPrice||2000;
   var salesNeeded = target&&price ? Math.ceil(target/price) : 5;
-  var offerName = (document.getElementById('offer_name')||{}).value||'your offer';
+  var niche      = window._appliedNiche || (document.getElementById('niche_input')||{}).value || 'your niche';
+  var offerName  = (document.getElementById('offer_name')||{}).value || window._boardroomOffer || 'your offer';
+  var avatar     = window._avatarData || {};
+  var avatarJob  = avatar.job  || (niche + ' professional');
+  var avatarPain = avatar.pain || 'their core challenge in ' + niche;
   window._brSalesNeeded = salesNeeded;
 
-  // Opening mentor message
-  var opening = 'Alright. Your target is $'+(target?target.toLocaleString():'your target')+'/month. Your offer is '+offerName+' at $'+(price?price.toLocaleString():'your price')+'.\n\nThat means you need '+salesNeeded+' sales in the next 30 days.\n\nI\'ve read your ideal customer profile and your offer. Before I build your plan, I need to understand your real situation — not the polished version. I\'m going to ask you 5 questions. Answer honestly and specifically. The more real you are, the more precise your plan will be.\n\nHere\'s Question 1 of 5 👇';
+  // ── Build niche-specific questions ──────────────────────────────────
+  // Q1 — audience reach, niche-specific platform examples
+  var nicheLC = niche.toLowerCase();
+  var platformExamples = 'Instagram followers, Facebook friends, email subscribers, WhatsApp contacts';
+  if (nicheLC.indexOf('fitness') > -1 || nicheLC.indexOf('health') > -1 || nicheLC.indexOf('weight') > -1) {
+    platformExamples = 'Instagram followers, Facebook fitness groups you are in, people who have messaged you about health, gym contacts, anyone who has asked you fitness questions';
+  } else if (nicheLC.indexOf('coach') > -1 || nicheLC.indexOf('mentor') > -1 || nicheLC.indexOf('consult') > -1) {
+    platformExamples = 'LinkedIn connections, Instagram followers, past clients, people who have booked discovery calls, anyone in your professional network who knows what you do';
+  } else if (nicheLC.indexOf('business') > -1 || nicheLC.indexOf('entrepreneur') > -1 || nicheLC.indexOf('online') > -1) {
+    platformExamples = 'Instagram followers, Facebook business groups you are active in, LinkedIn connections, email list, past buyers, anyone who has seen your content about ' + niche;
+  } else if (nicheLC.indexOf('relationship') > -1 || nicheLC.indexOf('dating') > -1 || nicheLC.indexOf('love') > -1) {
+    platformExamples = 'Instagram followers, Facebook community members, TikTok followers, YouTube subscribers, anyone who has commented on your content about relationships';
+  } else if (nicheLC.indexOf('finance') > -1 || nicheLC.indexOf('invest') > -1 || nicheLC.indexOf('money') > -1) {
+    platformExamples = 'YouTube subscribers, LinkedIn connections, Twitter/X followers, anyone in finance groups you are active in, past clients or colleagues who know your background';
+  }
 
-  // Build Q4 dynamically
-  BR_QUESTIONS[3] = 'What is the single biggest thing standing between you and your first '+salesNeeded+' sales this month? Be brutally honest — is it your audience size, your confidence, your offer clarity, your tech setup, your time, your fear of rejection, or something else entirely?';
+  BR_QUESTIONS[0] = 'Right now — how many ' + avatarJob + 's can you actually reach in the next 7 days who already know you exist, even a little? Be specific: ' + platformExamples + '. Give me a real number, not a goal. And tell me — does any of this audience already know you help with ' + niche + '?';
+
+  // Q2 — platform, niche-specific
+  var topPlatforms = 'Instagram, Facebook, TikTok, YouTube, LinkedIn, or email list';
+  if (nicheLC.indexOf('b2b') > -1 || nicheLC.indexOf('corporate') > -1 || nicheLC.indexOf('executive') > -1) {
+    topPlatforms = 'LinkedIn, email, Twitter/X, or in-person professional network';
+  } else if (nicheLC.indexOf('fitness') > -1 || nicheLC.indexOf('health') > -1) {
+    topPlatforms = 'Instagram, TikTok, YouTube, or Facebook fitness groups';
+  } else if (nicheLC.indexOf('finance') > -1 || nicheLC.indexOf('invest') > -1) {
+    topPlatforms = 'YouTube, LinkedIn, Twitter/X, or email';
+  }
+  BR_QUESTIONS[1] = 'Which ONE platform can you show up on most consistently for the next 30 days to reach ' + avatarJob + 's dealing with ' + avatarPain.split(' ').slice(0,6).join(' ') + '? Choose from: ' + topPlatforms + '. And tell me honestly — what is your current posting frequency on that platform, and what is the main reason you are not posting more?';
+
+  // Q3 — sales history, niche-specific
+  BR_QUESTIONS[2] = 'Have you ever sold anything in the ' + niche + ' space before — at any price? If yes: what exactly was it, what did you charge, how many did you sell, and what happened when you tried to sell it? If no: what is the honest reason you have not made a sale yet — is it that you have not asked anyone, you do not know how to position it, you are worried nobody will pay that price, or something else?';
+
+  // Q4 — biggest obstacle, dynamically built
+  BR_QUESTIONS[3] = 'You need ' + salesNeeded + ' sales of ' + offerName + ' this month to hit your target. Be brutally honest — what is the SINGLE real reason you do not already have ' + salesNeeded + ' buyers right now? Is it that not enough of the right people know about it? That you have not made a clear offer yet? That you are avoiding selling because of fear of rejection? That your audience does not trust you yet? Do not give me the polished answer — give me the real one.';
+
+  // Q5 — time and resources, niche-specific
+  BR_QUESTIONS[4] = 'Last question. How many hours per day can you realistically protect for ' + niche + ' content creation and outreach over the next 30 days — not how many you wish you had, but how many you will actually protect? And do you have any budget: even $50–$300 for tools, content creation, or promotion?';
+
+  // Opening message — personalised to their exact situation
+  var opening = 'Your target is $'+(target?target.toLocaleString():'your target')+'/month in the '+niche+' niche. Your offer is "'+offerName+'" at $'+(price?price.toLocaleString():'your price')+'.'
+    + '\n\nTo hit that target, you need '+salesNeeded+' sales in the next 30 days.'
+    + '\n\nBefore I build your plan, I need to understand your actual situation right now — not the aspirational version. I am going to ask you 5 specific questions. The more honest and specific your answers, the more accurate and executable your plan will be.'
+    + '\n\nIf an answer is too vague, I will ask you to be more specific. This plan only works if it is built on reality.'
+    + '\n\nQuestion 1 of 5:';
 
   setTimeout(function(){ brAddMentorMsg(opening); }, 400);
   setTimeout(function(){ brShowTyping(function(){ brAddMentorMsg(BR_QUESTIONS[0]); }); }, 1400);
@@ -24871,6 +25475,71 @@ function brShowTyping(cb) {
   }, 900);
 }
 
+// ── Answer quality checker ──────────────────────────────────────────
+function _brCheckAnswerQuality(step, text) {
+  // Returns null if answer is acceptable, or a push-back message if it needs more
+  var words = text.trim().split(/\s+/).filter(function(w){ return w.length > 0; });
+  var wordCount = words.length;
+  var lower = text.toLowerCase().trim();
+
+  // Universal minimum: answers must be at least 4 words
+  if (wordCount < 4) {
+    return 'That is too brief for me to build a precise plan from. Can you give me a more specific answer?';
+  }
+
+  // Q1 — must contain a number (audience size)
+  if (step === 0) {
+    var hasNumber = /\d/.test(text);
+    if (!hasNumber) {
+      return 'I need an actual number here — even a rough one. How many people specifically? Even if it is 50 or 200, give me a real figure so I can build your outreach plan around it.';
+    }
+    // Catch obviously inflated answers
+    var nums = text.match(/\d[\d,]*/g) || [];
+    var biggest = Math.max.apply(null, nums.map(function(n){ return parseInt(n.replace(/,/g,'')) || 0; }));
+    if (biggest > 500000) {
+      return 'That is a very large audience. I want to make sure we are focused on the right people — of those ' + biggest.toLocaleString() + ', how many are actually engaged with your content about this specific niche? What is a realistic number of warm, responsive people?';
+    }
+  }
+
+  // Q2 — must name a specific platform
+  if (step === 1) {
+    var platforms = ['instagram','facebook','tiktok','youtube','linkedin','whatsapp','email','twitter','x.com','telegram','discord','podcast'];
+    var namedPlatform = platforms.some(function(p){ return lower.indexOf(p) > -1; });
+    if (!namedPlatform) {
+      return 'I need you to name the specific platform. Instagram? Facebook? LinkedIn? YouTube? Email list? Which ONE will you commit to showing up on consistently for the next 30 days?';
+    }
+  }
+
+  // Q3 — vague "yes" or "no" without details
+  if (step === 2) {
+    if ((lower === 'yes' || lower === 'no' || lower === 'nope' || lower === 'yeah') && wordCount < 6) {
+      return 'I need more than that. If yes — what did you sell, at what price, and how did it go? If no — what is the specific honest reason? The more specific you are, the better I can help.';
+    }
+    if ((lower.indexOf('yes') === 0 || lower.indexOf('no') === 0) && wordCount < 8) {
+      return 'Good start, but I need the details. What specifically happened? Give me the numbers and the context.';
+    }
+  }
+
+  // Q4 — must be specific, not just "confidence" or "time" as one word
+  if (step === 3) {
+    var vagueOne = ['confidence','time','money','fear','mindset','motivation','everything'];
+    var isJustOneVague = wordCount < 6 && vagueOne.some(function(v){ return lower.indexOf(v) > -1; });
+    if (isJustOneVague) {
+      return 'I hear you — but I need to go deeper. When you say "' + text.trim() + '" — what specifically does that look like for you right now? What have you actually tried? What happened?';
+    }
+  }
+
+  // Q5 — must contain a number (hours) and some budget indication
+  if (step === 4) {
+    var hasHours = /\d/.test(text);
+    if (!hasHours) {
+      return 'I need a specific number of hours per day — even if it is just 1. And tell me about budget: do you have $50, $300, or nothing to put behind this right now?';
+    }
+  }
+
+  return null; // answer is acceptable
+}
+
 window.brChatSend = function() {
   var input = document.getElementById('br-chat-input');
   var sendBtn = document.getElementById('br-chat-send');
@@ -24881,22 +25550,45 @@ window.brChatSend = function() {
   brAddUserMsg(text);
 
   var step = window._brChatState.step;
+
+  // ── Validate the answer ─────────────────────────────────────────
+  var pushback = _brCheckAnswerQuality(step, text);
+  if (pushback) {
+    // Do NOT advance — push back and ask for more
+    brShowTyping(function(){
+      brAddMentorMsg(pushback);
+    });
+    return;
+  }
+
+  // Answer accepted — store it and advance
   window._brChatState.answers['q'+(step+1)] = text;
 
   if(step < 4) {
     window._brChatState.step++;
     brUpdateProgress(window._brChatState.step);
     var nextQ = BR_QUESTIONS[window._brChatState.step];
-    brShowTyping(function(){ brAddMentorMsg(nextQ); });
+    // Add a brief affirmation before next question to feel like a real conversation
+    var affirmations = [
+      'Got it. Question ' + (window._brChatState.step + 1) + ' of 5:',
+      'Good — I needed that context. Question ' + (window._brChatState.step + 1) + ' of 5:',
+      'That is useful. Question ' + (window._brChatState.step + 1) + ' of 5:',
+      'Noted. Question ' + (window._brChatState.step + 1) + ' of 5:'
+    ];
+    var affirmation = affirmations[Math.min(window._brChatState.step - 1, affirmations.length - 1)];
+    brShowTyping(function(){
+      brAddMentorMsg(affirmation + '\n\n' + nextQ);
+    });
   } else {
-    // All 5 answered
+    // All 5 answered with quality responses
     brUpdateProgress(5);
     input.disabled = true;
     if(sendBtn) sendBtn.disabled = true;
     window._boardroomAnswers = window._brChatState.answers;
     brShowTyping(function(){
-      brAddMentorMsg('Perfect. I have everything I need. I\'m going to build your exact 30-day plan now — tailored specifically to your situation, your audience, your offer, and the real constraints you just told me about. This isn\'t a template. It\'s your plan.');
-      // Show build button
+      brAddMentorMsg('Good. I have everything I need.'
+        + '\n\nI am going to build your plan now — not a template. A plan built specifically from what you just told me: your audience size, your platform, your sales history, the real obstacle in your way, and the exact time and budget you have available.'
+        + '\n\nThis will take about 60 seconds.');
       var feed = document.getElementById('br-chat-feed');
       var buildBtn = document.createElement('div');
       buildBtn.style.cssText = 'padding:0 4px';
@@ -25142,6 +25834,8 @@ function brShowTab(tab, btn) {
         panel.innerHTML = _brRenderClientAttraction(window._boardroomIntel.plan || {}, window._boardroomIntel.inputs || {});
       } else if (tab === 'funnel-strategy') {
         panel.innerHTML = _brRenderFunnelStrategy(window._boardroomIntel.funnelStrategy || {}, window._boardroomIntel.inputs || {});
+      } else if (tab === 'content-strategy') {
+        window.renderBrContentStrategy && window.renderBrContentStrategy();
       } else if (tab === 'icp-research') {
         panel.innerHTML = _brRenderICPResearch(window._boardroomIntel.icpResearch || {}, window._boardroomIntel.inputs || {});
       } else if (tab === 'competitor-intel') {
@@ -25239,6 +25933,15 @@ window.brRegenerateTab = async function(tab) {
       'Analysing competitor weaknesses you can turn into your strengths...',
       'Building your competitive advantage map...'
     ],
+    'content-strategy': [
+      'Analysing your niche content landscape...',
+      'Identifying the highest-converting content formats for your audience...',
+      'Mapping your AI Video Studio strategy for maximum reach...',
+      'Building your ManyChat automation sequence...',
+      'Designing your quality lead attraction flywheel...',
+      'Sequencing your platform priority stack...',
+      'Completing your full content strategy system...'
+    ],
     'market-viability': [
       'Searching for demand signals in the ' + _niche + ' market...',
       'Analysing the price ceiling — what buyers actually pay in ' + _niche + '...',
@@ -25323,6 +26026,14 @@ window.brRegenerateTab = async function(tab) {
       if (window._boardroomIntel) window._boardroomIntel.funnelStrategy = newFunnel;
       panel.innerHTML = _brRenderFunnelStrategy(newFunnel, inp2);
       try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      return;
+    }
+    if (tab === 'content-strategy') {
+      var newCS = await brCallAI_ContentStrategy(inp2);
+      _stopLoading();
+      if (window._boardroomIntel) window._boardroomIntel.contentStrategy = newCS;
+      try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      window.renderBrContentStrategy && window.renderBrContentStrategy();
       return;
     }
     if (tab === 'icp-research') {
