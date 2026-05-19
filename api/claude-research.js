@@ -6,8 +6,8 @@ const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
  * /api/claude-research
  * Web search-enabled endpoint for all research tabs.
  * Used by:
- *   - Boardroom: ICP Research Lab, Competitor Intelligence, Market Viability
- *   - Affiliate Hub: Buyer Research Lab, Promotion Intelligence, Offer Viability
+ *   - Boardroom: ICP Research Lab, Competitor Intelligence, Market Viability, Content Strategy
+ *   - Affiliate Hub: Buyer Intelligence, Promotion Intelligence, Offer Viability, Content Strategy
  *
  * Detects affiliate vs expert mode from request content and injects
  * the correct intelligence base — same separation logic as /api/claude.
@@ -77,6 +77,11 @@ module.exports = async function handler(req, res) {
     msgText.includes('This person is an AFFILIATE') ||
     msgText.includes('AFFILIATE promoting') ||
     msgText.includes('Commission per sale') ||
+    msgText.includes('content strategy for an AFFILIATE') ||   // affiliate content strategy
+    msgText.includes('They do NOT own the product') ||         // affiliate content strategy
+    msgText.includes('buyer psychology for people purchasing') ||
+    msgText.includes('how affiliates are currently promoting') ||
+    msgText.includes('affiliate marketing campaign reaching') ||
     (body.mode === 'affiliate')
   );
 
@@ -92,7 +97,11 @@ module.exports = async function handler(req, res) {
 
   // Research calls are token-intensive — they do multiple web searches
   // then synthesise the results into a structured JSON response
-  const maxTok = body.max_tokens || 5000;
+  // Content Strategy prompts are large (full JSON schema + tools context)
+  const isContentStrategy = msgText.includes('TOOLS AVAILABLE INSIDE EXECUTION OS') ||
+                             (msgText.includes('ManyChat') && msgText.includes('platformStack')) ||
+                             msgText.includes('contentFlywheel');
+  const maxTok = body.max_tokens || (isContentStrategy ? 6000 : 5000);
 
   try {
     const params = {
@@ -105,7 +114,9 @@ module.exports = async function handler(req, res) {
         {
           type: 'web_search_20250305',
           name: 'web_search',
-          max_uses: 10
+          // 12 max: content strategy calls research platform dynamics, niche content
+          // landscape, AND tool ecosystems — needs more searches than pure research calls
+          max_uses: 12
         }
       ]
     };
