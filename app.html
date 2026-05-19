@@ -23452,10 +23452,6 @@ function brShowPhase1() {
   // If currently generating — brBuildPlan manages its own UI
   if (window._brGenerating) return;
 
-  // If tabs are already visible — plan is rendered, don't reset it
-  var _tabsNavGuard = document.getElementById('br-tabs-nav');
-  if (_tabsNavGuard && _tabsNavGuard.style.display !== 'none') return;
-
   var av  = window._avatarData || {};
   var gv  = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
   var offerName  = gv('offer_name');
@@ -23470,6 +23466,15 @@ function brShowPhase1() {
   var phase2   = document.getElementById('br-phase2');
   var phase3   = document.getElementById('br-phase3');
   var restored = document.getElementById('br-restored-banner');
+
+  // If a plan is already rendered in phase3 (tabs nav is visible), just ensure phase3 shows
+  var tabsNav = document.getElementById('br-tabs-nav');
+  if (tabsNav && tabsNav.style.display === 'block') {
+    if (phase1) phase1.style.display = 'none';
+    if (phase2) phase2.style.display = 'none';
+    if (phase3) phase3.style.display = 'block';
+    return;
+  }
 
   if(phase2) phase2.style.display='none';
   if(phase3) phase3.style.display='none';
@@ -24316,20 +24321,14 @@ function brResetBoardroom() {
 }
 window.brResetBoardroom = brResetBoardroom;
 
-// Hook into showPage to initialise Phase 1 on boardroom navigation
-// Guard: don't call brShowPhase1 if brBuildPlan is currently running or has already rendered
+// Hook into showPage — always call brShowPhase1, which handles all states
 var _origShowPageBR = window.showPage;
 window.showPage = function(page, nav) {
   if(typeof _origShowPageBR==='function') _origShowPageBR.apply(this, arguments);
   if(page==='boardroom') {
     setTimeout(function(){
-      // Skip if currently generating — brBuildPlan manages its own UI
-      if (window._brGenerating) return;
-      // Skip if tabs are already rendered and visible — don't wipe them
-      var tabsNav = document.getElementById('br-tabs-nav');
-      if (tabsNav && tabsNav.style.display !== 'none') return;
-      brShowPhase1();
-    }, 50);
+      if (!window._brGenerating) brShowPhase1();
+    }, 80);
   }
 };
 
