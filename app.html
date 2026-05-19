@@ -5092,7 +5092,7 @@ button[onclick="generateOffer()"] {
           <div style="width:52px;height:52px;border-radius:50%;border:3px solid rgba(108,99,255,.15);border-top-color:#6c63ff;animation:spin .75s linear infinite;margin:0 auto 1.25rem"></div>
           <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:8px">Building Your Boardroom Intelligence</div>
           <div id="br-loading-msg" style="font-size:15px;font-weight:800;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:6px">Reading your strategy session answers...</div>
-          <div style="font-size:12px;color:var(--dim);margin-bottom:1.5rem" id="br-loading-sub">Running 6 AI analyses in parallel — this takes about 30 seconds</div>
+          <div style="font-size:12px;color:var(--dim);margin-bottom:1.5rem" id="br-loading-sub">Running 6 AI analyses — this takes about 30 seconds</div>
           <div style="display:flex;flex-direction:column;gap:6px;text-align:left;max-width:400px;margin:0 auto 1.5rem">
             <div id="_brl_0" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
               <span id="_brl_ic0" style="font-size:16px">🎯</span>
@@ -23942,7 +23942,7 @@ window.brRegenerateTab = async function(tab) {
   var panel = document.getElementById('br-tab-' + tab);
   if (!panel) return;
   var inp2 = window._boardroomIntel ? window._boardroomIntel.inputs : brCollectInputs();
-  panel.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem"><div style="width:40px;height:40px;border-radius:50%;border:3px solid rgba(108,99,255,.15);border-top-color:#6c63ff;animation:spin .75s linear infinite;margin:0 auto 1rem"></div><div style="font-size:13px;font-weight:700;color:var(--dim)">Regenerating this section...</div></div>';
+  panel.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem"><div style="width:40px;height:40px;border-radius:50%;border:3px solid rgba(108,99,255,.15);border-top-color:#6c63ff;animation:spin .75s linear infinite;margin:0 auto 1rem"></div><div style="font-size:13px;font-weight:700;color:var(--dim)">Building this section...</div></div>';
   try {
     var result2;
     if (tab === 'architect')         result2 = await brCallAI_Architect(inp2);
@@ -24123,40 +24123,39 @@ function _brAttractionCard(title, desc, color) {
 
 /* ── Funnel Strategy AI call ── */
 function brCallAI_FunnelStrategy(inp) {
-  var sys = 'You are a 9-Figure digital marketing strategist who has analysed the funnel architecture of every major online business generating $50M+. You give specific, researched, actionable funnel recommendations with real proven examples. Return ONLY valid JSON.';
-  var p = 'Analyse the best funnel strategies for this business and recommend the top 3 with real-world influencer proof.\n\n'
-    + 'Business: ' + (inp.offerName||'their offer') + ' at $' + (inp.price||2000) + '\n'
+  var sys = 'You are a 9-Figure digital marketing strategist. You give specific, researched funnel recommendations with real proven examples. Return ONLY valid compact JSON. Keep all string values under 150 chars.';
+  var p = 'Recommend the top 3 funnel strategies for this business with real proof.\n\n'
     + 'Niche: ' + (inp.niche||'online business') + '\n'
+    + 'Offer: ' + (inp.offerName||'their offer') + ' at $' + (inp.price||2000) + '\n'
     + 'Target: $' + (inp.target||10000) + '/month\n'
-    + 'Avatar: ' + (inp.av_job||'their ideal client') + ' — ' + (inp.av_pain||'their pain') + '\n'
-    + 'Transformation: ' + (inp.transformation||inp.av_desire||'their desired outcome') + '\n\n'
-    + 'Return this EXACT JSON:\n'
+    + 'Avatar: ' + (inp.av_job||'their ideal client') + '\n\n'
+    + 'Return this EXACT JSON (3 funnels, keep strings short):\n'
     + '{\n'
-    + '  "recommendedFunnel": "The name of the best funnel for their specific situation",\n'
-    + '  "recommendedReason": "2-3 sentence explanation of exactly why this funnel is best for their niche, offer price, and audience — be specific",\n'
+    + '  "recommendedFunnel": "name of best funnel for their situation",\n'
+    + '  "recommendedReason": "why this funnel fits their niche and price point — 2 sentences",\n'
     + '  "funnels": [\n'
-    + '    {\n'
-    + '      "name": "Funnel name (e.g. VSL + Application Funnel)",\n'
-    + '      "emoji": "single emoji",\n'
-    + '      "tagline": "One sentence of what makes this funnel powerful",\n'
-    + '      "bestFor": "Who this funnel works best for — specific",\n'
-    + '      "revenue": "Revenue range achievable per month with this funnel",\n'
-    + '      "steps": ["Step 1 — specific action", "Step 2", "Step 3", "Step 4", "Step 5"],\n'
-    + '      "provenExample": {\n'
-    + '        "name": "Real influencer/entrepreneur name who used this exact funnel in the same or similar niche",\n'
-    + '        "niche": "Their specific niche",\n'
-    + '        "result": "Specific revenue result they achieved (e.g. $50M+/year, built $200M company using this)",\n'
-    + '        "howTheyUsedIt": "2 sentences describing exactly how they implemented this funnel — specific platform, offer price, audience size"\n'
-    + '      },\n'
-    + '      "isRecommended": true/false,\n'
-    + '      "pros": ["Pro 1 specific to their niche", "Pro 2", "Pro 3"],\n'
-    + '      "cons": ["Con 1 specific to their situation", "Con 2"],\n'
-    + '      "firstStep": "The very first thing they should do TODAY to start building this funnel"\n'
-    + '    }\n'
+    + '    { "name": "Funnel name", "emoji": "🎯", "tagline": "1 sentence", "bestFor": "who it suits", "revenue": "$X-$Y/month range",\n'
+    + '      "steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"],\n'
+    + '      "provenExample": { "name": "Real person name", "niche": "their niche", "result": "specific $50M+ result", "howTheyUsedIt": "2 sentences on exact implementation" },\n'
+    + '      "isRecommended": true,\n'
+    + '      "pros": ["Pro 1", "Pro 2", "Pro 3"], "cons": ["Con 1", "Con 2"],\n'
+    + '      "firstStep": "first action to take today" },\n'
+    + '    { "name": "Funnel 2 name", "emoji": "📧", "tagline": "1 sentence", "bestFor": "who", "revenue": "range",\n'
+    + '      "steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"],\n'
+    + '      "provenExample": { "name": "Real person", "niche": "niche", "result": "$50M+ result", "howTheyUsedIt": "2 sentences" },\n'
+    + '      "isRecommended": false,\n'
+    + '      "pros": ["Pro 1", "Pro 2", "Pro 3"], "cons": ["Con 1", "Con 2"],\n'
+    + '      "firstStep": "first action today" },\n'
+    + '    { "name": "Funnel 3 name", "emoji": "🚀", "tagline": "1 sentence", "bestFor": "who", "revenue": "range",\n'
+    + '      "steps": ["Step 1", "Step 2", "Step 3", "Step 4", "Step 5"],\n'
+    + '      "provenExample": { "name": "Real person", "niche": "niche", "result": "$50M+ result", "howTheyUsedIt": "2 sentences" },\n'
+    + '      "isRecommended": false,\n'
+    + '      "pros": ["Pro 1", "Pro 2", "Pro 3"], "cons": ["Con 1", "Con 2"],\n'
+    + '      "firstStep": "first action today" }\n'
     + '  ],\n'
-    + '  "funnelStack": "How these 3 funnels can work together as they scale — 2-3 sentences"\n'
+    + '  "funnelStack": "how these 3 funnels work together as they scale — 2 sentences"\n'
     + '}';
-  return brCallAI(sys, p, 4000);
+  return brCallAI(sys, p, 3000);
 }
 
 /* ── Funnel Strategy Tab Renderer ── */
@@ -24164,7 +24163,7 @@ function _brRenderFunnelStrategy(d, inp) {
   if (!d || !d.funnels || !d.funnels.length) {
     return '<div style="text-align:center;padding:2.5rem">'
       + '<div style="font-size:36px;margin-bottom:12px">🚀</div>'
-      + '<div style="font-size:14px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Funnel Strategy Not Generated Yet</div>'
+      + '<div style="font-size:14px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Funnel Strategy Not Built Yet</div>'
       + '<div style="font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.7">Get 3 proven funnel strategies with $50M+ influencer proof, tailored to your exact niche and offer.</div>'
       + '<button onclick="brRegenerateTab(\'funnel-strategy\')" style="display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🚀 Generate My Funnel Strategy</button>'
       + '</div>';
@@ -24263,7 +24262,7 @@ function _brRenderFunnelStrategy(d, inp) {
   }
 
   h += '<div style="text-align:center;margin-top:1.25rem">'
-    + '<button onclick="brRegenerateTab(\'funnel-strategy\')" style="display:inline-flex;align-items:center;gap:6px;padding:10px 22px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:50px;color:var(--purple);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🔄 Regenerate Funnel Strategy</button>'
+    + '<button onclick="brRegenerateTab(\'funnel-strategy\')" style="display:inline-flex;align-items:center;gap:6px;padding:10px 22px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:50px;color:var(--purple);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🔄 Rebuild Funnel Strategy</button>'
     + '</div>';
 
   return h;
@@ -24603,72 +24602,23 @@ function brCallAI_CopyVault(inp) {
   return brCallAI(sys, p, 3500);
 }
 function brCallAI_WarPlan(inp) {
-  var sys = 'You are a launch strategist who has built the go-to-market for over 200 expert businesses. You think in sequences, triggers, and conversion events. You give actions so specific they can be executed today without any extra thinking. No vague instructions. No \'build your brand\'. Specific platforms, specific messages, specific targets, specific metrics.';
-  var p = [
-    'Build a 30-day launch war plan. Return ONLY valid JSON. Every action must be specific — no vague instructions.',
-    '',
-    'Business context:',
-    'Niche: ' + inp.niche,
-    'Offer: ' + (inp.offerName || 'Their programme') + ' at $' + inp.price,
-    'Target: $' + inp.target + '/month',
-    'Avatar: ' + (inp.av_job || 'their ideal client') + ' struggling with ' + (inp.av_pain || 'their pain'),
-    '',
-    'Return this exact JSON. All strings must be real, specific, executable actions:',
-    '{',
-    '  "phase1": {',
-    '    "title": "Foundation (Days 1-7)",',
-    '    "goal": "Specific goal for this phase in ' + inp.niche + '",',
-    '    "days": [',
-    '      { "day": 1, "focus": "Day 1 focus title", "actions": ["Specific action 1 for ' + inp.niche + '", "Specific action 2", "Specific action 3"] },',
-    '      { "day": 2, "focus": "Day 2 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 3, "focus": "Day 3 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 4, "focus": "Day 4 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 5, "focus": "Day 5 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 6, "focus": "Day 6 focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 7, "focus": "Day 7 focus", "actions": ["Action 1", "Action 2", "Action 3"] }',
-    '    ]',
-    '  },',
-    '  "phase2": {',
-    '    "title": "Momentum (Days 8-14)",',
-    '    "goal": "Specific momentum goal",',
-    '    "days": [',
-    '      { "day": 8, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 9, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 10, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 11, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 12, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 13, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 14, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] }',
-    '    ]',
-    '  },',
-    '  "phase3": {',
-    '    "title": "Launch (Days 15-21)",',
-    '    "goal": "Specific launch goal",',
-    '    "days": [',
-    '      { "day": 15, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 16, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 17, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 18, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 19, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 20, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 21, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] }',
-    '    ]',
-    '  },',
-    '  "phase4": {',
-    '    "title": "Scale (Days 22-30)",',
-    '    "goal": "Specific scale goal",',
-    '    "days": [',
-    '      { "day": 22, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 25, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 28, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] },',
-    '      { "day": 30, "focus": "Focus", "actions": ["Action 1", "Action 2", "Action 3"] }',
-    '    ]',
-    '  },',
-    '  "metrics": ["KPI 1 specific to ' + inp.niche + '", "KPI 2", "KPI 3"],',
-    '  "criticalWarning": "The single thing that kills most ' + inp.niche + ' launches — be brutally honest"',
-    '}'
-  ].join('\n');
-  return brCallAI(sys, p, 5000);
+  var sys = 'You are a launch strategist who has built go-to-market plans for 200+ expert businesses. Every action must be specific — no vague instructions, no "build your brand". Return ONLY valid compact JSON with NO line breaks inside string values.';
+  var p = 'Build a 30-day launch war plan for this business.\n\n'
+    + 'Niche: ' + inp.niche + '\n'
+    + 'Offer: ' + (inp.offerName||'their programme') + ' at $' + inp.price + '\n'
+    + 'Target: $' + inp.target + '/month\n'
+    + 'Avatar: ' + (inp.av_job||'their ideal client') + ' — ' + (inp.av_pain||'their pain') + '\n\n'
+    + 'Return ONLY this JSON (no extra fields, keep all strings under 120 chars):\n'
+    + '{\n'
+    + '  "phase1": { "title": "Week 1 — Foundation", "goal": "specific week 1 goal", "actions": ["day 1-2: specific action", "day 3-4: specific action", "day 5-7: specific action"] },\n'
+    + '  "phase2": { "title": "Week 2 — Momentum", "goal": "specific week 2 goal", "actions": ["day 8-9: action", "day 10-11: action", "day 12-14: action"] },\n'
+    + '  "phase3": { "title": "Week 3 — Launch Push", "goal": "specific week 3 goal", "actions": ["day 15-17: action", "day 18-19: action", "day 20-21: action"] },\n'
+    + '  "phase4": { "title": "Week 4 — Close & Scale", "goal": "connects to $' + inp.target + '/month target", "actions": ["day 22-24: action", "day 25-27: action", "day 28-30: action"] },\n'
+    + '  "dailyNonNegotiables": ["non-negotiable 1 specific to their offer", "non-negotiable 2", "non-negotiable 3"],\n'
+    + '  "metrics": ["KPI 1 specific to ' + inp.niche + '", "KPI 2", "KPI 3"],\n'
+    + '  "criticalWarning": "the single thing that kills most ' + inp.niche + ' launches — be brutally honest"\n'
+    + '}';
+  return brCallAI(sys, p, 2000);
 }
 function brCallAI_ContentEngine(inp) {
   var sys = 'You are a content strategist who builds content systems that attract and convert high-ticket clients. Every piece of content has one purpose: move the right person closer to buying. You write REAL finished content — not descriptions or templates.';
@@ -24767,7 +24717,7 @@ function brCopyBtn(text) { return '<button onclick="navigator.clipboard.writeTex
 
 function brRenderArchitect(d, inp) {
   var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
-    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Business Architect Not Generated Yet</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Business Architect Not Built Yet</div>'
     +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
     +'<button onclick="brRegenerateTab(\'architect\')" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcccc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Business Architect</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
@@ -24797,7 +24747,7 @@ function brRenderArchitect(d, inp) {
 
 function brRenderOfferStack(d, inp) {
   var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">⚡</div>'
-    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Offer Stack Not Generated Yet</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Offer Stack Not Built Yet</div>'
     +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to generate it now — takes about 15 seconds.</div>'
     +'<button onclick="brRegenerateTab(\'offer-stack\')" style="padding:12px 28px;background:linear-gradient(135deg,var(--yellow),var(--yellow)cc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Generate Offer Stack</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
@@ -24827,7 +24777,7 @@ function brRenderOfferStack(d, inp) {
 
 function brRenderCopyVault(d, inp) {
   var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">✍️</div>'
-    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Copy Vault Not Generated Yet</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Copy Vault Not Built Yet</div>'
     +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">Headlines, hooks, DM openers, email subjects, VSL script, sales bullets, and objection handlers — all written for ' + (inp ? inp.niche : 'your niche') + '. Takes about 20 seconds.</div>'
     +'<button data-rgtab="copy-vault" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">✍️ Generate My Copy Vault</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
@@ -24863,9 +24813,9 @@ function brRenderCopyVault(d, inp) {
 
 function brRenderWarPlan(d, inp) {
   var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">🚀</div>'
-    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Launch War Plan Not Generated Yet</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Launch War Plan Not Built Yet</div>'
     +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">Your 30-day plan with specific daily actions for ' + (inp ? inp.niche : 'your niche') + '. Takes about 20 seconds.</div>'
-    +'<button data-rgtab="war-plan" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,var(--orange),#cc6a00);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">🚀 Generate My Launch War Plan</button></div>';
+    +'<button data-rgtab="war-plan" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,var(--orange),#cc6a00);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">🚀 Build My Launch War Plan</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var phases = [d.phase1, d.phase2, d.phase3, d.phase4].filter(Boolean);
   // If no phases found, show retry
@@ -24895,9 +24845,9 @@ function brRenderWarPlan(d, inp) {
 
 function brRenderContentEngine(d, inp) {
   var _emptyHtml = '<div style="text-align:center;padding:2.5rem 1.5rem"><div style="font-size:36px;margin-bottom:14px">📅</div>'
-    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Content Engine Not Generated Yet</div>'
+    +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Content Calendar Not Built Yet</div>'
     +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">7 days of Facebook posts, reel scripts, and emails engineered to attract and convert clients in ' + (inp ? inp.niche : 'your niche') + '. Takes about 20 seconds.</div>'
-    +'<button data-rgtab="content-engine" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:12px;color:#0a1628;font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">📅 Generate My Content Engine</button></div>';
+    +'<button data-rgtab="content-engine" onclick="brRegenerateTab(this.dataset.rgtab)" style="padding:12px 28px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:12px;color:#0a1628;font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">📅 Build My Content Calendar</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
   var h = '';
   if (d.contentPillars && d.contentPillars.length) {
