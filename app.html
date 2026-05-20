@@ -7085,6 +7085,105 @@ window._updateAvatarPlaceholders = function(niche) {
   set('av_transformation', h.trans);
   set('av_influences',     h.infl);
   set('av_objections',     h.obj);
+
+  // Also update Business DNA placeholders whenever niche changes
+  window._updateBizDNAPlaceholders && window._updateBizDNAPlaceholders(niche);
+};
+
+// ── Business DNA Placeholder System ─────────────────────────────────────────
+// Updates all Business DNA field placeholders based on the user's niche
+window._updateBizDNAPlaceholders = function(niche) {
+  if (!niche) return;
+  var n = niche.toLowerCase();
+
+  var isHealth    = n.indexOf('health') > -1 || n.indexOf('fitness') > -1 || n.indexOf('wellness') > -1 || n.indexOf('nutrition') > -1 || n.indexOf('weight') > -1;
+  var isCoaching  = n.indexOf('coach') > -1 || n.indexOf('consult') > -1 || n.indexOf('mentor') > -1 || n.indexOf('therapy') > -1;
+  var isFinance   = n.indexOf('finance') > -1 || n.indexOf('invest') > -1 || n.indexOf('money') > -1 || n.indexOf('trading') > -1 || n.indexOf('crypto') > -1;
+  var isRelation  = n.indexOf('relation') > -1 || n.indexOf('dating') > -1 || n.indexOf('love') > -1 || n.indexOf('marriage') > -1;
+  var isAffiliate = n.indexOf('affiliate') > -1;
+  var isBusiness  = n.indexOf('business') > -1 || n.indexOf('entrepreneur') > -1 || n.indexOf('digital product') > -1 || n.indexOf('online') > -1;
+  var isEcom      = n.indexOf('ecommerce') > -1 || n.indexOf('e-commerce') > -1 || n.indexOf('amazon') > -1 || n.indexOf('shopify') > -1;
+  var isSMMA      = n.indexOf('smma') > -1 || n.indexOf('agency') > -1 || n.indexOf('marketing agency') > -1;
+  var isRE        = n.indexOf('real estate') > -1 || n.indexOf('property') > -1;
+
+  var p = {};
+
+  if (isHealth) {
+    p.origin      = 'e.g. Before I became a health coach I was 40 pounds overweight, exhausted all the time, and trying every diet that promised quick results. I spent years following advice that did not work for my body. When I finally figured out what actually worked, I lost the weight in 5 months and felt better than I had in a decade. I realised the information was everywhere — what people were missing was a structured implementation system built around their specific lifestyle.';
+    p.proof       = 'e.g. Lost 40 pounds in 5 months and kept it off for 3 years. My first client lost 28 pounds in 10 weeks. Grew my online health coaching business from zero to $12K/month in 6 months working with clients remotely. Helped 47 clients achieve their health goals in the first year.';
+    p.clients     = 'e.g. Sarah (UK) — lost 32 pounds and reversed her pre-diabetes diagnosis in 12 weeks while working a full-time office job. Mark — ran his first 10K after being told he would never run again after a knee injury. A mother of 3 in Canada — dropped 4 dress sizes in 90 days without setting foot in a gym.';
+    p.turning     = 'e.g. I spent $3,000 on a generic nutrition certification that gave me information I already knew. What changed everything was when I started studying behaviour psychology and built my own 90-day implementation framework — a step-by-step system my clients could actually follow. The first client who used it lost 28 pounds in 10 weeks. That was the proof.';
+    p.contrarian  = 'e.g. The reason most people fail at health and fitness is not lack of willpower or information — it is that they follow generic programmes that were not built for their specific lifestyle, schedule, and psychology. A diet that works for someone with no children and 2 hours a day will never work for a working parent with 30 minutes. Personalised implementation beats perfect information every time.';
+    p.why         = 'e.g. I watched too many people buy health programmes, follow them for 2 weeks, and quit — not because they lacked commitment, but because the programme was not built for their real life. I built my system because people do not need more nutrition information. They need a coach who builds the plan around their actual schedule, not a template.';
+    p.belief      = 'e.g. The best fitness plan is the one you can actually follow consistently — not the most scientifically perfect one. Sustainability always beats intensity.';
+  } else if (isCoaching) {
+    p.origin      = 'e.g. Before I became a coach I was in a career that paid well but drained everything from me. I felt like I was helping the wrong people with the wrong things. I trained in my own time, took on my first 3 clients for free to build proof, and within 4 months I had replaced my corporate income through coaching.';
+    p.proof       = 'e.g. Replaced my full-time salary with coaching income in 4 months. Reached $15K/month within 12 months of starting. Built a waitlist of 20+ clients at $3,000 each. Have helped 60+ clients make significant life changes through my coaching framework.';
+    p.clients     = 'e.g. A corporate executive who felt trapped in his career — left his job and started a business he loved within 90 days of our work together. A client dealing with severe anxiety — went from barely leaving the house to landing a promotion and rebuilding her social life in 4 months. A first-time entrepreneur — went from no clients to fully booked at $2,000/month in 60 days.';
+    p.turning     = 'e.g. I spent months reading coaching books and doing free sessions hoping someone would pay me. What changed was when I stopped trying to coach everyone and picked one specific transformation for one specific type of person. I built a structured 12-week programme around that, charged $2,000, and sold it to my first 3 paying clients in the same week I launched it.';
+    p.contrarian  = 'e.g. Most coaches fail not because they lack skill but because they try to help everyone. The coaches earning $20K/month are not the most talented — they are the most specific. They serve one type of person through one specific transformation. Niching down feels like shrinking. It is actually the fastest path to being seen as the obvious choice.';
+    p.why         = 'e.g. I saw too many talented coaches charging $100/hour and burning out while people who were half as skilled but better positioned were charging $5,000/month. I built my system because coaching skill and business success are two completely different things — and the business side should not hold back someone who genuinely changes lives.';
+    p.belief      = 'e.g. The right coach working with the right client in the right framework can produce results in 90 days that years of self-study never will. Specificity is the most undervalued skill in coaching.';
+  } else if (isFinance) {
+    p.origin      = 'e.g. Before I understood personal finance I was earning a good salary and still broke every month. I had no idea where my money was going. I spent a year studying investing, building a budget system that actually worked for my lifestyle, and paid off $18,000 in debt in 14 months. I started sharing what I was doing and people kept asking me to teach them.';
+    p.proof       = 'e.g. Paid off $18,000 in debt in 14 months without cutting out everything enjoyable. Grew my investment portfolio to $120,000 in 3 years starting from nothing. My first coaching client saved $24,000 in one year using my framework. Helped 30+ clients go from living paycheck to paycheck to having 6-month emergency funds.';
+    p.clients     = 'e.g. A teacher earning $38K/year — saved her first $10,000 emergency fund in 8 months while paying off student loans. A couple drowning in $35,000 of credit card debt — debt-free in 19 months without selling their house. A recent graduate — built a $50,000 investment portfolio by 26 while renting and supporting himself.';
+    p.turning     = 'e.g. I tried three different budgeting apps and quit each one within a month because they were built for people with simple finances. I built my own system on a spreadsheet — something that actually matched how I got paid, how I spent, and what I wanted to save for. That spreadsheet eventually became my client framework.';
+    p.contrarian  = 'e.g. Most people do not have a money problem — they have a clarity problem. They do not know exactly where every dollar is going, what they are building toward, or what needs to change first. More income does not solve this. A higher salary poured into the same unclear system just creates higher-paid financial stress.';
+    p.why         = 'e.g. I built my financial coaching system because the generic advice — cut your coffee, invest in index funds, have 3 months expenses saved — is fine in theory but useless without a personalised implementation plan. What works for a 28-year-old single person does not work for a family of four with childcare costs. The system has to fit the life.';
+    p.belief      = 'e.g. Financial freedom is not about earning more — it is about having complete clarity on where your money goes and making deliberate decisions about where it should go instead.';
+  } else if (isRelation) {
+    p.origin      = 'e.g. Before I started coaching on relationships I went through a divorce that I did not see coming. I spent 2 years rebuilding myself, understanding what went wrong, and learning the communication patterns that either build or destroy relationships. That painful process became the foundation of everything I now teach.';
+    p.proof       = 'e.g. Rebuilt my own confidence and started a healthy relationship within 18 months of my divorce. My first relationship coaching client went from three failed relationships in a row to engaged within a year of our work together. Helped 40+ people break recurring relationship patterns and build genuinely fulfilling partnerships.';
+    p.clients     = 'e.g. A 38-year-old professional woman who kept attracting emotionally unavailable partners — identified the pattern, did the work, met her current partner within 6 months and described it as the healthiest relationship she had ever been in. A couple on the verge of divorce — rebuilt communication and trust over 12 weeks and are now stronger than when they married.';
+    p.turning     = 'e.g. I spent a year reading self-help books about relationships and understood everything intellectually but changed nothing in how I actually showed up. What changed everything was when I started working with a therapist who gave me specific exercises to practise — not just concepts to understand. Insight alone does not change behaviour. Structured practice does.';
+    p.contrarian  = 'e.g. Most relationship problems are not caused by incompatibility — they are caused by communication patterns that both people developed before they met. You can be perfectly compatible and still destroy the relationship through patterns you do not even know you have. The work is not finding the right person. The work is becoming someone who can sustain a healthy relationship with the right person.';
+    p.why         = 'e.g. I got tired of watching people go through the same painful cycles in their relationships because nobody gave them a practical framework for actually changing their patterns — not just understanding them. Understanding why you do something does not stop you from doing it. A specific system for doing something different does.';
+    p.belief      = 'e.g. Every person is capable of a deeply fulfilling relationship — but most people were never taught the practical skills that make one sustainable. Those skills can be learned at any age.';
+  } else if (isEcom) {
+    p.origin      = 'e.g. I launched my first online store with $500 and zero experience. I made every mistake possible — wrong products, no margins, no brand, wasted ad spend. After 8 months of failure I rebuilt from scratch with a completely different approach and hit $30K in my third month. The difference was not effort — I had been working 12-hour days before. The difference was strategy.';
+    p.proof       = 'e.g. Built a Shopify store from zero to $30K/month in 4 months. Scaled to $100K/month within 12 months of my first profitable sale. Reached $2M in total store revenue within 2 years. My best single-day revenue was $28,000 during a product launch.';
+    p.clients     = 'e.g. A stay-at-home mum who built her first store around a hobby niche and hit $8K in her second month. A 24-year-old who quit his warehouse job after his store hit $15K/month — within 5 months of starting. A couple who turned their physical shop into an online brand doing 10x their old retail revenue.';
+    p.turning     = 'e.g. I was spending $4,000/month on ads with a 0.8% return on ad spend and burning through my savings. I stopped all ads, went back to basics, fixed my product margins, built a proper brand story, and used organic content to test what actually resonated. When I turned ads back on 6 weeks later I hit a 4.2% ROAS in the first week.';
+    p.contrarian  = 'e.g. Most e-commerce stores fail not because of traffic but because of margin. A store doing $50K/month with 5% margins has less actual business than a store doing $20K/month with 30% margins. Most beginners optimise for revenue when they should be optimising for profit per unit. You cannot advertise your way out of a bad margin structure.';
+    p.why         = 'e.g. I watched too many people launch stores, burn through their savings on ads, and quit before they found what worked — not because e-commerce does not work but because nobody taught them the financial fundamentals before they started spending. I built my system to give people the foundation first so they are not learning those lessons with their own money.';
+    p.belief      = 'e.g. A great product with poor economics will always fail. An average product with strong margins, good branding, and a clear customer can become a sustainable business. Fix the economics before you scale.';
+  } else if (isSMMA) {
+    p.origin      = 'e.g. I started my agency with no clients, no case studies, and no idea how to close a deal. My first client paid me $500/month for social media management I had no business charging for. I delivered results, raised my rates, and within 8 months had 6 retainer clients paying $2,000-$4,000/month each.';
+    p.proof       = 'e.g. Went from zero to $15K/month in agency retainers within 8 months. Scaled to $40K/month with a team of 4 in 18 months. Generated $500K in trackable revenue for clients in my first year. Maintained average client retention of 11 months across 30+ clients.';
+    p.clients     = 'e.g. A solo consultant who was doing all his own marketing — I built him a lead generation system that booked 12 discovery calls in his first month and converted 3 into $5,000 retainers. A local service business with zero online presence — $80K in tracked revenue in 6 months from our paid ads and content strategy.';
+    p.turning     = 'e.g. I was closing clients on price and losing them after 2-3 months when results were slow. The turning point was when I stopped selling social media services and started selling a specific measurable outcome — leads generated, calls booked, revenue tracked. When clients could see the numbers the retention went from 3 months to over a year.';
+    p.contrarian  = 'e.g. Most agencies die not because they cannot deliver results but because they cannot retain clients long enough to build a sustainable business. Client retention is an offer design problem, not a delivery problem. If clients do not see clear ROI by month 2, they leave regardless of how hard you worked. Build the ROI reporting into the onboarding, not the offboarding.';
+    p.why         = 'e.g. I built my agency system because I watched talented marketers stay stuck at $3K-$5K/month not because they lacked skills but because they had no client acquisition system, no pricing strategy, and no retention framework. The skills were there. The business architecture was not.';
+    p.belief      = 'e.g. An agency is a productised business, not a freelance operation. The difference between $5K/month and $40K/month is almost never skill — it is systems, positioning, and client experience.';
+  } else if (isRE) {
+    p.origin      = 'e.g. I bought my first property with borrowed money and a business plan held together with optimism. I made every beginner mistake — overpaid for the property, underestimated renovation costs, miscalculated the rental yield. Lost money on the first one. But I learned more in that one deal than in everything I had read before it.';
+    p.proof       = 'e.g. Built a portfolio of 7 properties generating $8,000/month in passive rental income over 4 years. Achieved financial independence from property at 34. Flipped 12 properties with an average profit of $35,000 per deal. Helped 15 first-time investors complete their first acquisition.';
+    p.clients     = 'e.g. A teacher who bought her first investment property at 28 with a $45,000 deposit — that property now generates $1,100/month positive cashflow and has increased in value by $180,000. A couple who were told they could not afford property in their city — found and purchased a cash-flow positive property in a different market within 3 months of working together.';
+    p.turning     = 'e.g. I spent two years analysing properties and never buying because I kept waiting for the perfect deal. The turning point was when I understood that taking imperfect action on a good deal beats waiting indefinitely for a perfect deal that does not exist. My second property was better than my first. My third was better than my second. The learning comes from doing.';
+    p.contrarian  = 'e.g. Most first-time investors focus on capital growth when they should focus on cashflow first. Capital growth is unpredictable and unrealised. Positive cashflow is certain and immediate. A positively geared property that barely grows in value is still building wealth. A negatively geared property that is barely growing is a liability dressed as an asset.';
+    p.why         = 'e.g. I built my property investment system because the advice available online is either too generic or designed to sell people a specific investment product. Most people do not need more information about property investment. They need someone to sit down with their specific numbers, their specific risk tolerance, and their specific goals — and show them the exact strategy that makes sense for them.';
+    p.belief      = 'e.g. Property investment is not complicated — but it is nuanced. The same strategy that builds wealth for one person destroys it for another. The work is in matching the right strategy to the right person, not finding the best strategy in the abstract.';
+  } else {
+    // Generic but still niche-aware
+    var nicheLabel = niche.split(' ').slice(0, 3).join(' ');
+    p.origin      = 'e.g. Describe where you started in ' + nicheLabel + ' — the specific situation, the struggle, the moment things began to change. Be specific — the more real, the more powerful.';
+    p.proof       = 'e.g. The specific results you have achieved in ' + nicheLabel + ' — numbers, timeframes, milestones. Not general statements. Specific evidence that what you teach works.';
+    p.clients     = 'e.g. Real transformations you have produced for clients in ' + nicheLabel + ' — first name or initials, what they achieved, in what timeframe, starting from where.';
+    p.turning     = 'e.g. What specific insight, person, or moment changed how you approached ' + nicheLabel + '? The thing that made you stop doing what everyone else was doing.';
+    p.contrarian  = 'e.g. What do you know about ' + nicheLabel + ' that most people get completely wrong? The belief you had to unlearn, or the conventional wisdom you had to reject to get real results.';
+    p.why         = 'e.g. What problem in ' + nicheLabel + ' genuinely bothered you about how things were being done? Why did you build what you built instead of just using what already existed?';
+    p.belief      = 'e.g. The single most important truth you know about succeeding in ' + nicheLabel + ' — the one sentence you would give to someone starting from zero.';
+  }
+
+  var set = function(id, val) { var el = document.getElementById(id); if (el && val) el.placeholder = val; };
+  set('bi_origin_story',    p.origin);
+  set('bi_personal_proof',  p.proof);
+  set('bi_client_results',  p.clients);
+  set('bi_turning_point',   p.turning);
+  set('bi_contrarian_truth',p.contrarian);
+  set('bi_why_built',       p.why);
+  set('bi_core_belief',     p.belief);
 };
 
 // ── Auto-apply placeholders when avatar page is visited ──────────────────────
@@ -7097,6 +7196,10 @@ window._updateAvatarPlaceholders = function(niche) {
     if (n === 'avatar') {
       const niche = window._appliedNiche || (document.getElementById('niche') || {}).value || '';
       if (niche) window._updateAvatarPlaceholders && window._updateAvatarPlaceholders(niche);
+    }
+    if (n === 'business-dna') {
+      const niche = window._appliedNiche || (document.getElementById('niche') || {}).value || '';
+      if (niche) window._updateBizDNAPlaceholders && window._updateBizDNAPlaceholders(niche);
     }
     if (n === 'profile') {
       const voiceSection = document.getElementById('voice-profile-section');
