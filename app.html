@@ -3325,6 +3325,11 @@ button[onclick="generateOffer()"] {
       <div id="ads-strategy-box" style="margin-top:12px;background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:14px;padding:1.25rem"></div>
     </div>
 
+    <div class="divider"></div>
+    <div class="sec-label">4-week roadmap</div>
+    <div class="weeks-grid" id="weeks-grid"></div>
+    <div id="organic-strategy-section"></div>
+
     <div class="eos-progress-nav" style="margin-bottom:2rem">
       <div class="eos-progress-nav-header">
         <div class="eos-progress-nav-title">📍 Your Progress</div>
@@ -3375,10 +3380,6 @@ button[onclick="generateOffer()"] {
         </button>
       </div>
     </div>
-    <div class="divider"></div>
-    <div class="sec-label">4-week roadmap</div>
-    <div class="weeks-grid" id="weeks-grid"></div>
-    <div id="organic-strategy-section"></div>
 
     <!-- Continue to Mindset Reset -->
     <div style="text-align:center;margin-top:1.5rem">
@@ -5084,98 +5085,147 @@ button[onclick="generateOffer()"] {
 <!-- SALES CALL SCORECARD PAGE (Expert only)                                  -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <div class="page" id="page-scorecard" style="display:none">
-  <div class="page-strip" style="background:linear-gradient(135deg,rgba(240,192,64,.08),rgba(108,99,255,.05))">
-    <div class="tag-pill" style="background:linear-gradient(135deg,var(--gold),var(--gold2))"><span style="color:#000">Sales Scorecard</span></div>
-    <div class="strip-title">Sales Call Tracker</div>
-    <div class="strip-sub">Log every call. Know your close rate. Find exactly where you are losing deals and fix it.</div>
-  </div>
 
-  <!-- Metrics -->
-  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 1.25rem 1.25rem">
-    <div class="stat-card" style="border-top:2px solid var(--teal)">
-      <div class="sc-val" id="sc-calls-total">0</div>
-      <div class="sc-lbl">Total Calls</div>
-    </div>
-    <div class="stat-card" style="border-top:2px solid var(--gold)">
-      <div class="sc-val" id="sc-close-rate">0%</div>
-      <div class="sc-lbl">Close Rate</div>
-    </div>
-    <div class="stat-card" style="border-top:2px solid var(--purple)">
-      <div class="sc-val" id="sc-avg-deal">$0</div>
-      <div class="sc-lbl">Avg Deal Size</div>
-    </div>
-    <div class="stat-card" style="border-top:2px solid var(--orange)">
-      <div class="sc-val" id="sc-top-obj">—</div>
-      <div class="sc-lbl">Top Objection</div>
+  <!-- Hero Strip -->
+  <div class="hero-strip" style="background:linear-gradient(145deg,rgba(255,193,64,.08),var(--card))">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--yellow),var(--orange),var(--purple));border-radius:20px 20px 0 0"></div>
+    <div class="strip-inner">
+      <div class="strip-left">
+        <div class="tag-pill" style="background:linear-gradient(135deg,rgba(255,193,64,.2),rgba(255,193,64,.08));border-color:rgba(255,193,64,.35)"><span style="color:var(--yellow)">📞 Sales Scorecard</span></div>
+        <div class="h1">Track every call. <em style="color:var(--yellow)">Close more deals.</em></div>
+        <div class="strip-sub">Log every conversation. Know your close rate. Find exactly where you are losing deals and fix it. The data in this page is the difference between a $5,000 month and a $50,000 month.</div>
+      </div>
+      <div class="strip-right">
+        <button onclick="scGetAICoaching()" id="sc-coaching-btn" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(108,99,255,.08));border:1px solid rgba(108,99,255,.3);border-radius:50px;color:var(--purple);font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">
+          🧠 Get AI Sales Coaching
+        </button>
+      </div>
     </div>
   </div>
 
-  <!-- Log a call -->
-  <div style="padding:0 1.25rem 1.25rem">
-    <div class="card-dark" style="margin-bottom:1.1rem">
-      <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:16px;font-family:'Poppins',sans-serif">📞 Log a Sales Call</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <div class="fi-label">Prospect Name</div>
-          <input class="fi" id="sc-prospect" placeholder="e.g. John Smith" />
-        </div>
-        <div>
-          <div class="fi-label">Outcome</div>
-          <select class="fi" id="sc-outcome">
-            <option value="">Select outcome</option>
-            <option value="closed">✅ Closed — Deal Won</option>
-            <option value="followup">🔄 Follow-Up Needed</option>
-            <option value="noshow">👻 No Show</option>
-            <option value="lost">❌ Lost — Not Interested</option>
-            <option value="notqualified">🚫 Not Qualified</option>
-          </select>
-        </div>
+  <div style="padding:0 1.25rem 2rem">
+
+    <!-- Metric cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem">
+      <div class="fb-stat-card teal">
+        <div class="fb-stat-val" id="sc-calls-total">0</div>
+        <div class="fb-stat-lbl">Total Calls</div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <div class="fi-label">Deal Value (if closed)</div>
-          <input class="fi" id="sc-deal-value" type="number" placeholder="e.g. 3000" />
-        </div>
-        <div>
-          <div class="fi-label">Main Objection Raised</div>
-          <select class="fi" id="sc-objection">
-            <option value="">None / No objection</option>
-            <option value="price">Too expensive / price</option>
-            <option value="time">No time right now</option>
-            <option value="think">Need to think about it</option>
-            <option value="spouse">Need to talk to spouse/partner</option>
-            <option value="trust">Not sure if it will work for me</option>
-            <option value="tried">Tried something similar before</option>
-            <option value="info">Just wanted information</option>
-            <option value="other">Other</option>
-          </select>
-        </div>
+      <div class="fb-stat-card yellow">
+        <div class="fb-stat-val" id="sc-close-rate">0%</div>
+        <div class="fb-stat-lbl">Close Rate</div>
       </div>
-      <div style="margin-bottom:14px">
-        <div class="fi-label">Call Notes</div>
-        <textarea class="fi" id="sc-notes" rows="2" placeholder="What happened? What did they say? What could you have done better?"></textarea>
+      <div class="fb-stat-card purple">
+        <div class="fb-stat-val" id="sc-revenue-total">$0</div>
+        <div class="fb-stat-lbl">Revenue Closed</div>
       </div>
-      <button onclick="scLogCall()" style="background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:var(--r-md);padding:11px 28px;color:#000;font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">Log This Call →</button>
-      <div id="sc-log-status" style="font-size:11px;margin-top:8px"></div>
+      <div class="fb-stat-card" style="--sc-accent:var(--orange)">
+        <div class="fb-stat-val" style="color:var(--orange)" id="sc-top-obj">—</div>
+        <div class="fb-stat-lbl">Top Objection</div>
+      </div>
     </div>
 
-    <!-- Objection Pattern Tracker -->
-    <div class="card-dark" style="margin-bottom:1.1rem">
-      <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:14px;font-family:'Poppins',sans-serif">🎯 Objection Pattern Analysis</div>
-      <div id="sc-objection-bars" style="min-height:60px">
-        <div style="font-size:12px;color:var(--dim)">No calls logged yet. Start tracking to see your patterns.</div>
+    <!-- Second row metrics -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.5rem">
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:Poppins,sans-serif;color:var(--teal)" id="sc-closed-count">0</div>
+        <div style="font-size:10px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Deals Closed</div>
       </div>
-      <div id="sc-ai-insight" style="display:none;margin-top:14px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.7"></div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:Poppins,sans-serif;color:var(--yellow)" id="sc-followup-count">0</div>
+        <div style="font-size:10px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Follow-Ups Pending</div>
+      </div>
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:14px 16px;text-align:center">
+        <div style="font-size:22px;font-weight:900;font-family:Poppins,sans-serif;color:var(--purple)" id="sc-avg-deal">$0</div>
+        <div style="font-size:10px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Avg Deal Size</div>
+      </div>
+    </div>
+
+    <!-- AI Coaching Output (shown after coaching button) -->
+    <div id="sc-coaching-output" style="display:none;background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.05));border:1px solid rgba(108,99,255,.25);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem">
+      <div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px">🧠 AI SALES COACHING — BASED ON YOUR CALL DATA</div>
+      <div id="sc-coaching-text" style="font-size:13px;color:var(--muted);line-height:1.9;white-space:pre-wrap"></div>
+    </div>
+
+    <!-- Two column layout: Log a call + Objection Analysis -->
+    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:14px;margin-bottom:1.25rem">
+
+      <!-- Log a Call -->
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem">
+        <div style="font-size:11px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:16px">📞 LOG A SALES CALL</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <div class="fi-label">Prospect Name</div>
+            <input class="fi" id="sc-prospect" placeholder="e.g. Jane Smith" />
+          </div>
+          <div>
+            <div class="fi-label">Outcome</div>
+            <select class="fi" id="sc-outcome">
+              <option value="">Select outcome</option>
+              <option value="closed">✅ Closed — Deal Won</option>
+              <option value="followup">🔄 Follow-Up Needed</option>
+              <option value="noshow">👻 No Show</option>
+              <option value="lost">❌ Lost — Not Interested</option>
+              <option value="notqualified">🚫 Not Qualified</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div>
+            <div class="fi-label">Deal Value (if closed)</div>
+            <input class="fi" id="sc-deal-value" type="number" placeholder="e.g. 6000" />
+          </div>
+          <div>
+            <div class="fi-label">Main Objection Raised</div>
+            <select class="fi" id="sc-objection">
+              <option value="">None</option>
+              <option value="price">Too expensive</option>
+              <option value="time">No time right now</option>
+              <option value="think">Need to think about it</option>
+              <option value="spouse">Need to ask my partner</option>
+              <option value="trust">Not sure it will work for me</option>
+              <option value="tried">Tried something similar</option>
+              <option value="info">Just wanted information</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="margin-bottom:14px">
+          <div class="fi-label">Call Notes — what happened, what they said</div>
+          <textarea class="fi" id="sc-notes" rows="3" placeholder="Be specific. What went well? Where did you lose them? What would you do differently?"></textarea>
+        </div>
+
+        <button onclick="scLogCall()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--yellow),#e6a820);border:none;border-radius:12px;color:var(--text-dark);font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">
+          📞 Log This Call
+        </button>
+        <div id="sc-log-status" style="font-size:11px;margin-top:8px;text-align:center;color:var(--teal);min-height:16px"></div>
+      </div>
+
+      <!-- Objection Pattern Analysis -->
+      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem">
+        <div style="font-size:11px;font-weight:900;color:var(--orange);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:16px">🎯 OBJECTION PATTERNS</div>
+        <div id="sc-objection-bars" style="display:flex;flex-direction:column;gap:8px">
+          <div style="font-size:12px;color:var(--dim);text-align:center;padding:1.5rem 0">Log your first call to see where you are losing deals.</div>
+        </div>
+        <div id="sc-ai-insight" style="display:none;margin-top:14px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px;padding:12px;font-size:11px;color:var(--muted);line-height:1.7"></div>
+      </div>
+
     </div>
 
     <!-- Call History -->
-    <div class="card-dark">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-        <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif">📋 Call History</div>
-        <button onclick="scGetAICoaching()" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;padding:6px 14px;color:#a089ff;font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🧠 Get AI Coaching</button>
+    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:1.25rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px">📋 CALL HISTORY</div>
+        <button onclick="scClearAll()" style="background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);border-radius:8px;padding:5px 12px;color:var(--red);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Clear All</button>
       </div>
-      <div id="sc-call-list" style="font-size:12px;color:var(--dim)">No calls logged yet.</div>
+      <div id="sc-call-list">
+        <div style="font-size:12px;color:var(--dim);text-align:center;padding:2rem 0">No calls logged yet. Every call is a data point — start logging.</div>
+      </div>
     </div>
+
   </div>
 </div>
 
@@ -18526,6 +18576,192 @@ window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
 var _bizIntelDirty = false;
 function markBizIntelDirty() { _bizIntelDirty = true; }
 
+/* ══════════════════════════════════════════════════════════
+   MINDSET REFRAME FUNCTION
+   Reads all 3 answers, sends to AI, renders a personalised
+   belief-reframe specific to this person's actual blocks
+══════════════════════════════════════════════════════════ */
+window.runMindsetReframe = async function() {
+  var q1 = (document.getElementById('mindset_q1')||{}).value || '';
+  var q2 = (document.getElementById('mindset_q2')||{}).value || '';
+  var q3 = (document.getElementById('mindset_q3')||{}).value || '';
+  var warn = document.getElementById('mindset-validation-warn');
+  var btn  = document.getElementById('mindset-build-btn');
+  var out  = document.getElementById('mindset-output');
+  var cont = document.getElementById('mindset-continue-wrap');
+
+  // Validate — need at least 2 answers with substance
+  var filled = [q1, q2, q3].filter(function(a){ return a.trim().length > 15; });
+  if (filled.length < 2) {
+    if (warn) {
+      warn.textContent = 'Answer at least 2 of the 3 questions honestly. The more real you are, the more powerful the reframe.';
+      warn.style.display = 'block';
+    }
+    return;
+  }
+  if (warn) warn.style.display = 'none';
+
+  var target  = window._appliedTarget || 0;
+  var price   = window._appliedPrice  || 0;
+  var niche   = window._appliedNiche  || 'online business';
+  var bizIntel = window.buildBizIntelContext ? window.buildBizIntelContext() : '';
+
+  if (btn) { btn.textContent = '⏳ Building your mindset reframe...'; btn.disabled = true; }
+  if (out) { out.style.display = 'block'; out.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dim);font-size:12px">Analysing your blocks and building your personal reframe...</div>'; }
+
+  try {
+    var resp = await callAPI('claude', {
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1400,
+      system: 'You are a powerful mindset coach who combines radical honesty with deep belief-level transformation. You do not use generic motivational language. You read exactly what someone has said about their specific limiting beliefs and you give them a surgical, honest reframe built from their actual words. You speak directly. You do not coddle. You treat them as someone capable of more than they currently believe. You are the coach who changed things for people — not because of positivity, but because of precision.'
+        + (bizIntel ? '\n\n' + bizIntel : ''),
+      messages: [{
+        role: 'user',
+        content: 'Build a personalised mindset reframe for this person. Use their exact words and specific situation — not generic coaching language.'
+          + '\n\nBusiness context: ' + niche + ' niche, $' + price + ' offer, targeting $' + (target||'their goal') + '/month'
+          + '\n\nQ1 — What the voice in their head says about why their target might not happen:\n' + (q1 || 'Not answered')
+          + '\n\nQ2 — Most they have earned in a month and the story they tell about why they have not gone past it:\n' + (q2 || 'Not answered')
+          + '\n\nQ3 — Certainty score out of 10 and what is keeping it from being a 10:\n' + (q3 || 'Not answered')
+          + '\n\nWrite their personalised mindset reframe in 4 parts:'
+          + '\n\n1. THE HONEST MIRROR (2-3 sentences): Name exactly what you see happening in their answers. Not gently — clearly. What pattern is in their words that they may not even see themselves.'
+          + '\n\n2. THE REFRAME (3-4 sentences): Take their specific limiting belief and dismantle it with a specific counter-truth. Use real logic, not motivation. Reference their exact words.'
+          + '\n\n3. THE EVIDENCE THEY ARE IGNORING (2-3 sentences): What does the fact that they are here, doing this, setting this target actually prove about them — even if they cannot see it yet.'
+          + '\n\n4. THE ONE SHIFT (1-2 sentences): The single mental shift they need to carry into everything that follows. Specific. Actionable. Something they can return to when doubt resurfaces.'
+          + '\n\nWrite in second person (you). Be direct. Be specific to their words. This is not a pep talk — it is a precision reframe.'
+      }]
+    });
+    var text = resp && resp.content && resp.content[0] && resp.content[0].text || '';
+    if (!text) throw new Error('No response');
+
+    // Parse the 4 sections
+    var sections = [
+      { key: 'THE HONEST MIRROR',          color: 'var(--red)',    bg: 'rgba(255,107,107,.06)',    border: 'rgba(255,107,107,.2)',  icon: '🪞' },
+      { key: 'THE REFRAME',                color: 'var(--purple)', bg: 'rgba(108,99,255,.06)',    border: 'rgba(108,99,255,.2)',  icon: '💥' },
+      { key: 'THE EVIDENCE THEY ARE IGNORING', color: 'var(--teal)', bg: 'rgba(78,204,163,.06)', border: 'rgba(78,204,163,.2)', icon: '💡' },
+      { key: 'THE ONE SHIFT',              color: 'var(--yellow)', bg: 'rgba(255,217,61,.06)',    border: 'rgba(255,217,61,.2)',  icon: '🎯' }
+    ];
+
+    var html = '<div style="background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(78,204,163,.06));border:1px solid rgba(108,99,255,.25);border-radius:18px;padding:1.25rem 1.5rem;margin-bottom:1.25rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">🧠 YOUR PERSONALISED MINDSET REFRAME</div>'
+      + '<div style="font-size:12px;color:var(--dim);line-height:1.7">Built from what you just wrote — not a template, not generic coaching. This is specific to you.</div>'
+      + '</div>';
+
+    // Try to split by section headers
+    var remaining = text;
+    sections.forEach(function(sec) {
+      var regex = new RegExp('[*#]*\\s*' + sec.key.replace(/[.*+?^${}()|\[\]\\]/g, '\\$&') + '[*#]*\\s*[:\\n]', 'i');
+      var match = remaining.search(regex);
+      if (match === -1) return;
+      var afterHeader = remaining.slice(match).replace(regex, '').trim();
+      // Find where next section starts
+      var nextMatch = sections
+        .filter(function(s){ return s.key !== sec.key; })
+        .map(function(s){ return afterHeader.search(new RegExp('[*#]*\\s*' + s.key.replace(/[.*+?^${}()|\[\]\\]/g, '\\$&'), 'i')); })
+        .filter(function(n){ return n > 0; })
+        .sort(function(a,b){ return a-b; })[0];
+      var sectionText = nextMatch ? afterHeader.slice(0, nextMatch).trim() : afterHeader.trim();
+      html += '<div style="background:' + sec.bg + ';border:1px solid ' + sec.border + ';border-left:3px solid ' + sec.color + ';border-radius:12px;padding:1rem 1.25rem;margin-bottom:10px">'
+        + '<div style="font-size:9px;font-weight:900;color:' + sec.color + ';text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">' + sec.icon + ' ' + sec.key + '</div>'
+        + '<div style="font-size:13px;color:var(--muted);line-height:1.85">' + sectionText.split('\n\n').join('<br><br>').split('\n').join('<br>') + '</div>'
+        + '</div>';
+    });
+
+    // Fallback: if parsing failed, just show the full text nicely
+    if (html.indexOf('border-left') === -1) {
+      html += '<div style="font-size:13px;color:var(--muted);line-height:1.9;white-space:pre-wrap">' + text + '</div>';
+    }
+
+    if (out) out.innerHTML = html;
+    if (cont) cont.style.display = 'block';
+
+    // Save to localStorage
+    try { localStorage.setItem('eos_mindset_reframe', JSON.stringify({ q1:q1, q2:q2, q3:q3, reframe:text, date:new Date().toISOString() })); } catch(e) {}
+
+    // Scroll to output
+    setTimeout(function(){ if(out) out.scrollIntoView({ behavior:'smooth', block:'start' }); }, 200);
+
+  } catch(err) {
+    if (out) out.innerHTML = '<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:12px;padding:1.25rem;font-size:12px;color:var(--red)">Could not generate reframe — check your connection and try again.<br><br>' + (err.message || '') + '</div>';
+    if (cont) cont.style.display = 'block';
+  }
+  if (btn) { btn.textContent = '🧠 Break My Limits & Build My Mindset →'; btn.disabled = false; }
+};
+
+/* Load saved mindset reframe if it exists */
+(function() {
+  try {
+    var saved = localStorage.getItem('eos_mindset_reframe');
+    if (!saved) return;
+    var data = JSON.parse(saved);
+    if (!data.reframe) return;
+    // Pre-fill answers if available
+    setTimeout(function() {
+      if (data.q1) { var e = document.getElementById('mindset_q1'); if(e && !e.value) e.value = data.q1; }
+      if (data.q2) { var e = document.getElementById('mindset_q2'); if(e && !e.value) e.value = data.q2; }
+      if (data.q3) { var e = document.getElementById('mindset_q3'); if(e && !e.value) e.value = data.q3; }
+    }, 800);
+  } catch(e) {}
+})();
+
+
+/* ══════════════════════════════════════════════════════════
+   AI VIDEO STUDIO — Graceful stubs
+   These functions require HeyGen API integration.
+   They show a clear setup message instead of failing silently.
+══════════════════════════════════════════════════════════ */
+function _avsNeedsSetup(feature) {
+  var el = document.getElementById('heygen-setup-card');
+  if (!el) return;
+  el.innerHTML = '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem">'
+    + '<div style="font-size:11px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚙️ SETUP REQUIRED — ' + (feature||'AI VIDEO STUDIO') + '</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:12px">This feature requires a <strong style="color:var(--white)">HeyGen API key</strong> to be configured in your Vercel environment variables. HeyGen powers the avatar cloning, video generation, and translation features.</div>'
+    + '<div style="display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--dim)">'
+    + '<div>1. Sign up at <strong style="color:var(--white)">heygen.com</strong> and get your API key</div>'
+    + '<div>2. Add <code style="background:rgba(255,255,255,.06);border-radius:4px;padding:1px 6px;color:var(--teal)">HEYGEN_API_KEY</code> to your Vercel project environment variables</div>'
+    + '<div>3. Redeploy your Vercel project — AI Video Studio will activate automatically</div>'
+    + '</div></div>';
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// Tab switching — works without API
+window.avsShowTab = function(tab, btn) {
+  document.querySelectorAll('#page-ai-video .avs-tab').forEach(function(b){ b.classList.remove('on'); b.style.background='rgba(255,255,255,.04)'; b.style.color='var(--dim)'; b.style.borderColor='var(--border2)'; });
+  if (btn) { btn.classList.add('on'); btn.style.background='rgba(108,99,255,.12)'; btn.style.color='#a089ff'; btn.style.borderColor='rgba(108,99,255,.3)'; }
+  ['clone','build','translate','library'].forEach(function(t){ var el=document.getElementById('avs-tab-'+t); if(el) el.style.display=(t===tab?'block':'none'); });
+};
+window.avsShowMode    = function(mode) { _avsNeedsSetup('Avatar Setup'); };
+window.avsSetAvatarSource = function() { _avsNeedsSetup('Avatar Setup'); };
+window.avsStartCamera = function() { _avsNeedsSetup('Camera Access'); };
+window.avsToggleRecording = function() { _avsNeedsSetup('Video Recording'); };
+window.avsSubmitRecording = function() { _avsNeedsSetup('Avatar Training'); };
+window.avsSubmitPhoto   = function() { _avsNeedsSetup('Photo Avatar'); };
+window.avsSubmitVideo   = function() { _avsNeedsSetup('Video Avatar'); };
+window.avsLoadAvatars   = function() { _avsNeedsSetup('Load Avatars'); };
+window.avsLoadMyAvatarGroups = function() { _avsNeedsSetup('My Avatars'); };
+window.avsLoadVoices    = function() { _avsNeedsSetup('Voice Library'); };
+window.avsGenerate      = function() { _avsNeedsSetup('Video Generation'); };
+window.avsGenerateScript= function() { _avsNeedsSetup('Script Generation'); };
+window.avsPickAngle     = function() { _avsNeedsSetup('Camera Angle'); };
+window.avsPickType      = function() { _avsNeedsSetup('Video Type'); };
+window.avsSetQuality    = function() { _avsNeedsSetup('Video Quality'); };
+window.avsTranslate     = function() { _avsNeedsSetup('Video Translation'); };
+window.avsSaveToLibrary = function() { _avsNeedsSetup('Video Library'); };
+window.avsRerecord      = function() { _avsNeedsSetup('Re-record'); };
+window.avsCopyLink      = function() { _avsNeedsSetup('Share Video'); };
+window.avsDownload      = function() { _avsNeedsSetup('Download Video'); };
+
+/* ── Funnel Builder video stubs ── */
+window.fbGenerateHeyGenVideo = function() { _avsNeedsSetup('HeyGen Video'); };
+window.fbGenerateVideoScript = function() { _avsNeedsSetup('Video Script'); };
+window.fbOpenVisualEditor    = function() { _avsNeedsSetup('Visual Editor'); };
+window.fbShowCloneModal      = function() { _avsNeedsSetup('Clone Modal'); };
+window.fbUseOwnVideo         = function() {
+  var el = document.getElementById('heygen-setup-card');
+  if (!el) return;
+  el.innerHTML = '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem"><div style="font-size:11px;color:var(--teal);font-weight:800;margin-bottom:6px">📹 Using Your Own Video</div><div style="font-size:12px;color:var(--dim)">Upload your video to your Vercel project or a hosting service, then paste the URL into your funnel settings.</div></div>';
+};
+
+
 window.saveBizIntelAndContinue = async function() {
   await window.saveBizIntelProfile();
   showPage('avatar', document.getElementById('nav-avatar'));
@@ -23055,12 +23291,25 @@ async function fbGenerateFunnel() {
 
     // Save funnel to state and Firestore
     const funnelId = 'funnel_' + Date.now();
+    // pageOrder preserves the intended sequence of pages (Firestore doesn't guarantee key order)
+    const pageOrderArr = pages.map(function(p){ return p.id; });
+    const homePageId   = pageOrderArr[0]; // first page is always the home/landing page
+
+    // Default paths: first page = '/', rest = '/pageId'
+    const defaultPaths = {};
+    pageOrderArr.forEach(function(pid, idx) {
+      defaultPaths[pid] = idx === 0 ? '/' : '/' + pid;
+    });
+
     fbState.current = {
       id: funnelId,
       name: fbState.selectedTypeName,
       type: fbState.selectedType,
       icon: fbState.selectedTypeIcon,
       pages: generatedPages,
+      pageOrder: pageOrderArr,  // stable ordered array — never use Object.keys(pages)
+      homePage:  homePageId,    // explicit home page — domain root always serves this
+      pagePaths: defaultPaths,  // pre-set default paths so routing works immediately
       status: 'draft',
       domain: '',
       views: 0, leads: 0, sales: 0, revenue: 0,
@@ -23472,7 +23721,9 @@ function fbSetupEditor(funnel) {
   if (tabs) {
     tabs.innerHTML = '';
     var first = true;
-    Object.keys(funnel.pages || {}).forEach(function(pageId) {
+    // Use stable pageOrder array — Firestore does not preserve Object key insertion order
+  var pageIds = (funnel.pageOrder && funnel.pageOrder.length) ? funnel.pageOrder : Object.keys(funnel.pages || {});
+  pageIds.forEach(function(pageId) {
       var page = funnel.pages[pageId];
       var tab = document.createElement('button');
       tab.className = 'tab' + (first ? ' on' : '');
@@ -23487,7 +23738,8 @@ function fbSetupEditor(funnel) {
       if (first) { fbState.currentPage = pageId; first = false; }
     });
   }
-  var firstPageId = Object.keys(funnel.pages || {})[0];
+  // Use pageOrder for stable ordering — Object.keys() order not guaranteed after Firestore round-trip
+  var firstPageId = (funnel.pageOrder && funnel.pageOrder[0]) || funnel.homePage || Object.keys(funnel.pages || {})[0];
   if (firstPageId) fbRenderPreview(firstPageId);
   var urlBar = document.getElementById('fb-preview-url');
   if (urlBar) urlBar.textContent = funnel.domain ? 'https://' + funnel.domain : 'https://yourdomain.com';
@@ -24155,11 +24407,30 @@ function fbShowPagePaths(funnelId, event) {
     if(!f2) return;
     var ord2=f2.pageOrder||Object.keys(f2.pages||{});
     var newPaths={};
+    var newHomePage = null;
+    var homeCount = 0;
     ord2.forEach(function(pid){
       var inp=document.getElementById('fp-'+pid);
-      if(inp){ var v=inp.value.trim().replace(/^\/+/,'').replace(/\/+$/,''); newPaths[pid]=v?'/'+v:'/'; }
+      if(inp){
+        var v=inp.value.trim().replace(/^\/+/,'').replace(/\/+$/,'');
+        var finalPath = v ? '/'+v : '/';
+        newPaths[pid] = finalPath;
+        if(finalPath === '/'){ newHomePage = pid; homeCount++; }
+      }
     });
-    f2.pagePaths=newPaths;
+    // If no page is set as home, default to first page in order
+    if(!newHomePage && ord2.length){ newHomePage = ord2[0]; newPaths[ord2[0]] = '/'; }
+    // If multiple pages set to '/', warn and keep only the first one found
+    if(homeCount > 1){
+      var foundFirst = false;
+      ord2.forEach(function(pid){
+        if(newPaths[pid]==='/'){ if(foundFirst){ newPaths[pid]='/'+pid; } else { foundFirst=true; } }
+      });
+    }
+    f2.pagePaths = newPaths;
+    f2.homePage  = newHomePage;
+    // Preserve or rebuild pageOrder
+    if(!f2.pageOrder || f2.pageOrder.length !== ord2.length){ f2.pageOrder = ord2; }
     fbSaveFunnelToFirestore(f2);
     modal.remove();
     var toast=document.createElement('div');
@@ -25279,6 +25550,147 @@ window._eosSaveFormState = function() {
 };
 
 /* ── Load saved state on startup ── */
+/* ══════════════════════════════════════════════════════════════════
+   SAVED AUDIENCES SYSTEM — restored
+══════════════════════════════════════════════════════════════════ */
+window._eosGetSavedAudiences = function() {
+  try { return JSON.parse(localStorage.getItem('eos_saved_audiences') || '[]'); } catch(e) { return []; }
+};
+window._eosSaveCurrentAudience = function(customName) {
+  var gv=function(id){var el=document.getElementById(id);return el?el.value.trim():'';};
+  var job=gv('av_job')||(window._avatarData&&window._avatarData.job)||'';
+  var niche=window._appliedNiche||'';
+  var name=customName||(job?job.split('/')[0].split(',')[0].trim().slice(0,30)+(niche?' · '+niche.split('&')[0].trim().slice(0,18):''):'My Audience');
+  var snap={niche:niche};
+  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections'].forEach(function(id){var el=document.getElementById(id);if(el)snap[id]=el.value;});
+  snap._keywords=Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll&&document.getElementById('kw-wrap').querySelectorAll('.tag')||[]).map(function(t){return t.textContent.replace('×','').trim();});
+  if(window._avatarData)snap._avatarData=window._avatarData;
+  if(window._aiAvatarData)snap._aiAvatarData=window._aiAvatarData;
+  var audiences=window._eosGetSavedAudiences();
+  var ei=audiences.findIndex(function(a){return a.name===name;});
+  var entry={id:ei>=0?audiences[ei].id:'aud_'+Date.now(),name:name,niche:niche,job:job.slice(0,40),savedAt:new Date().toISOString(),data:snap};
+  if(ei>=0)audiences[ei]=entry;else audiences.unshift(entry);
+  if(audiences.length>12)audiences=audiences.slice(0,12);
+  localStorage.setItem('eos_saved_audiences',JSON.stringify(audiences));
+  return entry;
+};
+window._eosLoadAudience = function(audienceId) {
+  var a=window._eosGetSavedAudiences().find(function(a){return a.id===audienceId;});
+  if(!a||!a.data)return false;
+  var d=a.data;
+  if(d.niche){var ne=document.getElementById('niche');if(ne){ne.value=d.niche;ne.dispatchEvent(new Event('change',{bubbles:true}));}window._appliedNiche=d.niche;}
+  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections'].forEach(function(id){if(d[id]===undefined)return;var el=document.getElementById(id);if(el){el.value=d[id];el.dispatchEvent(new Event('input',{bubbles:true}));}});
+  if(d._keywords&&d._keywords.length){var kw=document.getElementById('kw-wrap');if(kw){kw.querySelectorAll('.tag').forEach(function(t){t.remove();});d._keywords.forEach(function(k){if(!k)return;var t=document.createElement('span');t.className='tag';t.innerHTML=k+'<span onclick="removeTag(this,event)" style="margin-left:5px;cursor:pointer;opacity:.6">×</span>';kw.insertBefore(t,kw.querySelector('#kw-inp')||kw.firstChild);});}}
+  if(d._avatarData)window._avatarData=d._avatarData;
+  if(d._aiAvatarData)window._aiAvatarData=d._aiAvatarData;
+  if(typeof window.applyAll==='function')setTimeout(window.applyAll,200);
+  if(typeof window._updateNicheGoalLabel==='function')setTimeout(function(){window._updateNicheGoalLabel(d.niche||'');},250);
+  return true;
+};
+window._eosDeleteAudience=function(id){localStorage.setItem('eos_saved_audiences',JSON.stringify(window._eosGetSavedAudiences().filter(function(a){return a.id!==id;})));};
+window._eosShowSavedAudiencesPanel = function() {
+  var ex=document.getElementById('_eos_audiences_modal');if(ex){ex.remove();return;}
+  var aud=window._eosGetSavedAudiences();
+
+  var m=document.createElement('div');
+  m.id='_eos_audiences_modal';
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px)';
+  m.addEventListener('click',function(e){if(e.target===m)m.remove();});
+
+  var wrap=document.createElement('div');
+  wrap.style.cssText='background:linear-gradient(145deg,#13112e,#0e0c24);border:1px solid rgba(78,204,163,.25);border-radius:20px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto';
+
+  // Header
+  var header=document.createElement('div');
+  header.style.cssText='padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#13112e;z-index:1';
+  var hInfo=document.createElement('div');
+  hInfo.innerHTML='<div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:2px">Saved Audiences</div>'
+    +'<div style="font-size:16px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white)">'+aud.length+' audience'+(aud.length!==1?'s':'')+' saved</div>';
+  var hClose=document.createElement('button');
+  hClose.style.cssText='width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer';
+  hClose.textContent='x';
+  hClose.onclick=function(){var modal=document.getElementById('_eos_audiences_modal');if(modal)modal.remove();};
+  header.appendChild(hInfo);header.appendChild(hClose);
+  wrap.appendChild(header);
+
+  // Body rows
+  var body=document.createElement('div');
+  body.style.cssText='padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:8px';
+  if(aud.length===0){
+    body.innerHTML='<div style="text-align:center;padding:2rem 1rem;color:var(--dimmer);font-size:12px">No saved audiences yet.</div>';
+  } else {
+    aud.forEach(function(a){
+      var row=document.createElement('div');
+      row.style.cssText='background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap';
+      var ds=new Date(a.savedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      var info=document.createElement('div');
+      info.style.cssText='flex:1';
+      info.innerHTML='<div style="font-size:13px;font-weight:700;color:var(--white)">'+a.name+'</div>'
+        +'<div style="font-size:10px;color:var(--dimmer)">'+(a.job||'—')+' · '+ds+'</div>';
+      var loadBtn=document.createElement('button');
+      loadBtn.style.cssText='padding:7px 14px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif';
+      loadBtn.textContent='Load';
+      loadBtn.onclick=(function(id,name){return function(){
+        window._eosLoadAudience(id);
+        document.getElementById('_eos_audiences_modal').remove();
+        window._eosShowLoadedToast&&window._eosShowLoadedToast(name+' loaded!','🎯');
+      };})(a.id,a.name);
+      var delBtn=document.createElement('button');
+      delBtn.style.cssText='padding:7px 12px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer';
+      delBtn.textContent='🗑';
+      delBtn.onclick=(function(id,r){return function(){
+        if(!confirm('Delete this audience?'))return;
+        window._eosDeleteAudience(id);r.remove();
+      };})(a.id,row);
+      row.appendChild(info);row.appendChild(loadBtn);row.appendChild(delBtn);
+      body.appendChild(row);
+    });
+  }
+  wrap.appendChild(body);
+
+  // Footer
+  var footer=document.createElement('div');
+  footer.style.cssText='padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);position:sticky;bottom:0;background:#13112e';
+  var nameInput=document.createElement('input');
+  nameInput.id='_eos_aud_save_name';
+  nameInput.placeholder='Name this audience (optional)...';
+  nameInput.style.cssText='flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none;width:100%;margin-bottom:6px';
+  var saveBtn=document.createElement('button');
+  saveBtn.style.cssText='padding:9px 18px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif';
+  saveBtn.textContent='Save Now';
+  saveBtn.onclick=function(){
+    var n=document.getElementById('_eos_aud_save_name');
+    var s=window._eosSaveCurrentAudience(n&&n.value.trim()||undefined);
+    window._eosShowLoadedToast&&window._eosShowLoadedToast(s.name+' saved!','🎯');
+    document.getElementById('_eos_audiences_modal').remove();
+  };
+  var footerRow=document.createElement('div');
+  footerRow.style.cssText='display:flex;gap:8px;align-items:center';
+  footerRow.appendChild(nameInput);footerRow.appendChild(saveBtn);
+  footer.appendChild(footerRow);
+  wrap.appendChild(footer);
+
+  m.appendChild(wrap);
+  document.body.appendChild(m);
+};
+
+window._eosInjectAudienceButtons = function() {
+  if(document.getElementById('_eos_audience_mgr_btns'))return;
+  var genBtn=document.querySelector('.gen-av-btn');if(!genBtn)return;
+  var wrap=document.createElement('div');wrap.id='_eos_audience_mgr_btns';wrap.style.cssText='display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap';
+  var b1=document.createElement('button');
+  b1.style.cssText='flex:1;padding:10px 14px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px';
+  b1.textContent='📂 My Saved Audiences';
+  b1.onclick=function(){window._eosShowSavedAudiencesPanel();};
+  var b2=document.createElement('button');
+  b2.style.cssText='flex:1;padding:10px 14px;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.18);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px';
+  b2.textContent='💾 Save This Audience';
+  b2.onclick=function(){var s=window._eosSaveCurrentAudience();window._eosShowLoadedToast&&window._eosShowLoadedToast(s.name+' saved!','🎯');};
+  wrap.appendChild(b1);wrap.appendChild(b2);
+  genBtn.parentNode.insertBefore(wrap,genBtn);
+};
+
+
 window._eosLoadFormState = function() {
   try {
     var raw = localStorage.getItem('eos_form_state');
@@ -27840,49 +28252,64 @@ function brCallAI_WarPlan(inp) {
   return brCallAI(sys, p, 2000);
 }
 function brCallAI_ContentEngine(inp) {
-  // Inject business intelligence — content should reference real proof and story
+  // Inject business intelligence — all content uses real story and proof
   var _bizCtx = window.buildBizIntelContext ? window.buildBizIntelContext() : '';
   if (_bizCtx && !inp._bizIntelInjected) {
     inp._researchContext = (inp._researchContext || '') + _bizCtx;
     inp._bizIntelInjected = true;
   }
-  var sys = 'You are a content strategist who builds content systems that attract and convert high-ticket clients. Every piece of content has one purpose: move the right person closer to buying. You write REAL finished content — not descriptions or templates.';
-  var nv = (window.getNicheVocab && window.getNicheVocab(inp.niche)) || {};
-  var noM = inp.allowMoney ? '' : 'NICHE RULE: Zero income/money language. This is ' + inp.niche + '. Focus on: ' + (nv.contentFocus || 'transformation and results') + '.';
+  var sys = 'You are a world-class content creator who builds authority and trust through deep-value content. You write REAL, complete, publish-ready content — not templates, not placeholders, not summaries. Every post must be so genuinely valuable that readers save it without being asked. You write in a real human voice — specific, honest, direct. Never generic. Never corporate.';
+  var nv  = (window.getNicheVocab && window.getNicheVocab(inp.niche)) || {};
+  var noM = inp.allowMoney ? '' : 'NICHE RULE: Zero income/money language. This niche is ' + inp.niche + '. Focus on: ' + (nv.contentFocus || 'transformation, results, and real change') + '.';
+  var biCtx = inp._researchContext ? ('\n\nBUSINESS INTELLIGENCE (use story, proof, and real results in the content):\n' + inp._researchContext.slice(0, 800)) : '';
   var p = [
-    'Build a 7-day content system for this business. Return ONLY valid JSON. Write REAL, finished content for each day — not placeholders or descriptions.',
+    'Build a 7-day content engine for this business. Return ONLY valid compact JSON.',
+    'Write REAL, complete, publish-ready content for every field. Not descriptions. Not placeholders. Actual words ready to post.',
     '',
+    'BUSINESS:',
     'Niche: ' + inp.niche,
-    'Offer: ' + (inp.offerName || 'Their programme') + ' at $' + inp.price,
-    'Avatar: ' + (inp.av_job || 'their ideal client'),
-    'Avatar pain: ' + (inp.av_pain || 'their challenge'),
-    'Avatar desire: ' + (inp.av_desire || nv.transformation || 'their transformation'),
-    'Unique angle: ' + (inp.difference || 'their specific approach'),
+    'Offer: ' + (inp.offerName || 'their programme') + ' at $' + inp.price,
+    'Ideal client: ' + (inp.av_job || 'their ideal client'),
+    'Their core pain: ' + (inp.av_pain || 'their challenge'),
+    'Their desired transformation: ' + (inp.av_desire || nv.transformation || 'their goal'),
+    'Their unique angle: ' + (inp.difference || 'their specific approach'),
     (noM || ''),
+    biCtx,
     '',
-    'Return this JSON with REAL content for each of the 7 days:',
+    'CONTENT STANDARDS (non-negotiable):',
+    'FB Post 1 (300-450 words): Long-form authority post. Hook that names the exact person and pain. Deep education or story with a real insight. The thing most content in this niche never says. Ends with a question that demands a personal answer. Short paragraphs. Human voice.',
+    'FB Post 2 (200-300 words): Bold opinion or counter-narrative. Strong contrarian claim. Proof. Reframe. Makes some people uncomfortable — makes others feel finally heard.',
+    'Reel 1 (55-65 seconds spoken): HOOK (exact 2-3 second words) | BODY (40-50 second word-for-word script, one complete useful idea, 3-5 punchy points) | CTA (exact 5-7 second words). Write every word as it would be spoken.',
+    'Reel 2 (55-65 seconds spoken): Completely different format from Reel 1 — story, myth-busting, or confession. Same standard: every word written out.',
+    'Email (250-350 words): SUBJECT line under 50 chars. Opening hook (1 sentence). Body: one deep lesson with a real example. Written to one specific person. CTA. P.S.',
+    '',
+    'Cover across 7 days: education, story, social proof, contrarian opinion, transformation, objection handling, direct value.',
+    '',
+    'Return ONLY this JSON (every string must be complete publish-ready content):',
     '{',
-    '  "pillars": ["Pillar 1 specific to ' + inp.niche + '", "Pillar 2", "Pillar 3", "Pillar 4", "Pillar 5"],',
-    '  "strategy": "2-sentence strategy for how this content moves cold audience to paying clients",',
+    '  "pillars": ["content pillar 1 for ' + inp.niche + '", "pillar 2", "pillar 3", "pillar 4", "pillar 5"],',
+    '  "strategy": "2-sentence strategy: how these 7 days move cold audience to paying clients",',
     '  "days": [',
     '    {',
     '      "day": 1,',
-    '      "theme": "Day 1 theme",',
-    '      "fbPost": "Complete Facebook post — 120 words, specific to ' + inp.niche + ', ends with a genuine question. First sentence stops the scroll.",',
-    '      "reelScript": "HOOK: [3-second opener] | CONTENT: [Point 1. Point 2. Point 3.] | CTA: [5-second call to action]",',
-    '      "emailSubject": "Subject line for day 1 email",',
-    '      "emailBody": "Complete 100-word email for day 1 — written to one specific person, honest and direct"',
+    '      "theme": "specific theme for day 1",',
+    '      "fbPost": "COMPLETE Facebook Post 1 — 300-450 words, full copy ready to publish",',
+    '      "fbPost2": "COMPLETE Facebook Post 2 — 200-300 words, bold opinion, full copy ready to publish",',
+    '      "reelScript": "HOOK: [exact words 2-3 sec]\nBODY: [exact script every word 40-50 sec]\nCTA: [exact words 5-7 sec]",',
+    '      "reelScript2": "HOOK: [exact words 2-3 sec]\nBODY: [exact script different format 40-50 sec]\nCTA: [exact words 5-7 sec]",',
+    '      "emailSubject": "Subject line under 50 chars",',
+    '      "emailBody": "SUBJECT: [subject]\n\n[full email 250-350 words]\n\nCTA: [one clear action]\n\nP.S. [one sentence]"',
     '    },',
-    '    { "day": 2, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
-    '    { "day": 3, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
-    '    { "day": 4, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
-    '    { "day": 5, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
-    '    { "day": 6, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
-    '    { "day": 7, "theme": "theme", "fbPost": "complete post", "reelScript": "HOOK: | CONTENT: | CTA:", "emailSubject": "subject", "emailBody": "complete email" }',
+    '    { "day": 2, "theme": "theme", "fbPost": "complete 300-450 word post", "fbPost2": "complete 200-300 word post", "reelScript": "HOOK: | BODY: | CTA:", "reelScript2": "HOOK: | BODY: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 3, "theme": "theme", "fbPost": "complete post", "fbPost2": "complete post", "reelScript": "HOOK: | BODY: | CTA:", "reelScript2": "HOOK: | BODY: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 4, "theme": "theme", "fbPost": "complete post", "fbPost2": "complete post", "reelScript": "HOOK: | BODY: | CTA:", "reelScript2": "HOOK: | BODY: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 5, "theme": "theme", "fbPost": "complete post", "fbPost2": "complete post", "reelScript": "HOOK: | BODY: | CTA:", "reelScript2": "HOOK: | BODY: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 6, "theme": "theme", "fbPost": "complete post", "fbPost2": "complete post", "reelScript": "HOOK: | BODY: | CTA:", "reelScript2": "HOOK: | BODY: | CTA:", "emailSubject": "subject", "emailBody": "complete email" },',
+    '    { "day": 7, "theme": "theme", "fbPost": "complete post", "fbPost2": "complete post", "reelScript": "HOOK: | BODY: | CTA:", "reelScript2": "HOOK: | BODY: | CTA:", "emailSubject": "subject", "emailBody": "complete email" }',
     '  ]',
     '}'
   ].filter(Boolean).join('\n');
-  return brCallAI(sys, p, 5000);
+  return brCallAI(sys, p, 8000);
 }
 /* ── Reveal intelligence after analysis ── */
 function brRevealIntelligence(intel) {
@@ -28174,10 +28601,16 @@ window.brSyncContentToCalendar = function() {
       reel: true, source: 'boardroom', day: dayNum
     });
 
-    // Slot 3 — REEL 2 (blank — Boardroom generates 1 reel per day)
+    // Slot 3 — REEL 2 (from reelScript2 field)
+    var reel2Script = day.reelScript2 || '';
+    var reel2Hook = reel2Script
+      ? ((reel2Script.match(/HOOK:\s*([^\n|]+)/i) || [])[1] || reel2Script.slice(0, 80)).trim()
+      : '';
     slots.push({
       slotType: 'reel2', type: 'reel2',
-      viralHook: '', fullScript: '',
+      viralHook: reel2Hook,
+      fullScript: reel2Script,
+      videoScript: reel2Script,
       topic: theme, postType: 'Reel 2',
       reel: true, source: 'boardroom', day: dayNum
     });
@@ -28380,1512 +28813,247 @@ window.brRenderTab         = brRenderTab;
     if (typeof window[fn] === 'undefined') window[fn] = _avsStubMsg(fn);
   });
 
-  // Scorecard stubs
-  if (typeof window.scLogCall === 'undefined') {
-    window.scLogCall = function() {
-      var modal = document.getElementById('sc-log-modal') || document.querySelector('[id*="scorecard"]');
-      if (modal) modal.style.display = 'flex';
-      // silently ignore if modal does not exist — it lives in a separate module
-    };
-    window.scLogCall._isStub = true;
-  }
-  if (typeof window.scGetAICoaching === 'undefined') {
-    window.scGetAICoaching = function() {}; // silent stub
-    window.scGetAICoaching._isStub = true;
-  }
-})();
+})(); // end AVS stubs IIFE
 
+// ── FULL SALES SCORECARD IMPLEMENTATION ────────────────────────────────────
 
-/* ══════════════════════════════════════════════════════════════════
-   SAVED AUDIENCES SYSTEM
-   Save, load, and manage multiple audience/avatar profiles.
-   Mirrors the saved offers system — users never start from scratch.
-══════════════════════════════════════════════════════════════════ */
+  var SC_KEY = 'eos_sc_calls';
 
-window._eosGetSavedAudiences = function() {
-  try { return JSON.parse(localStorage.getItem('eos_saved_audiences') || '[]'); }
-  catch(e) { return []; }
-};
-
-window._eosSaveCurrentAudience = function(customName) {
-  var gv = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  var job  = gv('av_job') || (window._avatarData && window._avatarData.job) || '';
-  var niche = window._appliedNiche || '';
-  var defaultName = job ? job.split('/')[0].split(',')[0].trim().slice(0,30) + (niche ? ' · ' + niche.split('&')[0].trim().slice(0,18) : '') : 'My Audience';
-  var name = customName || defaultName;
-
-  var snap = { niche: niche };
-  var EOS_AVATAR_FIELDS_LOCAL = [
-    'av_name','av_age','av_gender','av_location','av_edu','av_income','av_job',
-    'av_industry','av_employ','av_hrs','av_current','av_desired','av_igr',
-    'av_transformation','av_fear','av_tried','av_personality','av_motivation',
-    'av_influences','av_objections'
-  ];
-  EOS_AVATAR_FIELDS_LOCAL.forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) snap[id] = el.value;
-  });
-  // Save keywords tags
-  var kwTags = Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll&&document.getElementById('kw-wrap').querySelectorAll('.tag')||[]).map(function(t){return t.textContent.replace('×','').trim();});
-  snap._keywords = kwTags;
-  // Save window._avatarData enrichment
-  if (window._avatarData) snap._avatarData = window._avatarData;
-  if (window._aiAvatarData) snap._aiAvatarData = window._aiAvatarData;
-
-  var audiences = window._eosGetSavedAudiences();
-  var existingIdx = audiences.findIndex(function(a){ return a.name === name; });
-  var entry = {
-    id: existingIdx >= 0 ? audiences[existingIdx].id : 'aud_' + Date.now(),
-    name: name,
-    niche: niche,
-    job: job.slice(0, 40),
-    savedAt: new Date().toISOString(),
-    data: snap
-  };
-  if (existingIdx >= 0) audiences[existingIdx] = entry;
-  else audiences.unshift(entry);
-  if (audiences.length > 12) audiences = audiences.slice(0, 12);
-  localStorage.setItem('eos_saved_audiences', JSON.stringify(audiences));
-  return entry;
-};
-
-window._eosLoadAudience = function(audienceId) {
-  var audiences = window._eosGetSavedAudiences();
-  var audience  = audiences.find(function(a){ return a.id === audienceId; });
-  if (!audience || !audience.data) return false;
-  var d = audience.data;
-
-  // Restore niche
-  if (d.niche) {
-    var nicheEl = document.getElementById('niche');
-    if (nicheEl) { nicheEl.value = d.niche; nicheEl.dispatchEvent(new Event('change',{bubbles:true})); }
-    window._appliedNiche = d.niche;
+  function scLoadCalls() {
+    try { return JSON.parse(localStorage.getItem(SC_KEY) || '[]'); } catch(e) { return []; }
   }
 
-  // Restore all avatar fields
-  var EOS_AVATAR_FIELDS_LOCAL = [
-    'av_name','av_age','av_gender','av_location','av_edu','av_income','av_job',
-    'av_industry','av_employ','av_hrs','av_current','av_desired','av_igr',
-    'av_transformation','av_fear','av_tried','av_personality','av_motivation',
-    'av_influences','av_objections'
-  ];
-  EOS_AVATAR_FIELDS_LOCAL.forEach(function(id) {
-    if (d[id] === undefined) return;
-    var el = document.getElementById(id);
-    if (el) { el.value = d[id]; el.dispatchEvent(new Event('input',{bubbles:true})); }
-  });
-
-  // Restore keywords
-  if (d._keywords && d._keywords.length) {
-    var kwWrap = document.getElementById('kw-wrap');
-    if (kwWrap) {
-      // Remove existing tags
-      kwWrap.querySelectorAll('.tag').forEach(function(t){ t.remove(); });
-      d._keywords.forEach(function(kw) {
-        if (!kw) return;
-        var tag = document.createElement('span');
-        tag.className = 'tag';
-        tag.innerHTML = kw + '<span onclick="removeTag(this,event)" style="margin-left:5px;cursor:pointer;opacity:.6">×</span>';
-        kwWrap.insertBefore(tag, kwWrap.querySelector('#kw-inp') || kwWrap.firstChild);
-      });
+  function scSaveCalls(calls) {
+    try { localStorage.setItem(SC_KEY, JSON.stringify(calls)); } catch(e) {}
+    // Also sync to Firestore if available
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      try {
+        window._setDoc(window._doc(window._db, 'users', window._currentUserUid),
+          { salesCalls: calls }, { merge: true });
+      } catch(e) {}
     }
   }
 
-  // Restore enriched AI data
-  if (d._avatarData)   window._avatarData   = d._avatarData;
-  if (d._aiAvatarData) window._aiAvatarData  = d._aiAvatarData;
+  function scUpdateStats() {
+    var calls = scLoadCalls();
+    var total      = calls.length;
+    var closed     = calls.filter(function(c){ return c.outcome === 'closed'; });
+    var followup   = calls.filter(function(c){ return c.outcome === 'followup'; });
+    var closedCount = closed.length;
+    var closeRate  = total > 0 ? Math.round((closedCount / total) * 100) : 0;
+    var revenue    = closed.reduce(function(s, c){ return s + (parseFloat(c.dealValue) || 0); }, 0);
+    var avgDeal    = closedCount > 0 ? Math.round(revenue / closedCount) : 0;
 
-  if (typeof window.applyAll === 'function') setTimeout(window.applyAll, 200);
-  if (typeof window._updateNicheGoalLabel === 'function') setTimeout(function(){ window._updateNicheGoalLabel(d.niche||''); }, 250);
-  return true;
-};
+    // Top objection
+    var objCount = {};
+    calls.forEach(function(c) { if (c.objection) objCount[c.objection] = (objCount[c.objection] || 0) + 1; });
+    var topObj = Object.keys(objCount).sort(function(a, b){ return objCount[b] - objCount[a]; })[0] || null;
+    var objLabels = { price:'Price', time:'No Time', think:'Thinking About It', spouse:'Partner', trust:'Will It Work', tried:'Tried Before', info:'Just Info', other:'Other' };
 
-window._eosDeleteAudience = function(audienceId) {
-  var audiences = window._eosGetSavedAudiences().filter(function(a){ return a.id !== audienceId; });
-  localStorage.setItem('eos_saved_audiences', JSON.stringify(audiences));
-};
+    var set = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+    set('sc-calls-total',   total);
+    set('sc-close-rate',    closeRate + '%');
+    set('sc-revenue-total', '$' + revenue.toLocaleString());
+    set('sc-top-obj',       topObj ? (objLabels[topObj] || topObj) : '—');
+    set('sc-closed-count',  closedCount);
+    set('sc-followup-count',followup.length);
+    set('sc-avg-deal',      avgDeal > 0 ? '$' + avgDeal.toLocaleString() : '$0');
 
-window._eosShowSavedAudiencesPanel = function() {
-  var existing = document.getElementById('_eos_audiences_modal');
-  if (existing) { existing.remove(); return; }
-
-  var audiences = window._eosGetSavedAudiences();
-
-  var audienceRows = audiences.length === 0
-    ? '<div style="text-align:center;padding:2rem 1rem;color:var(--dimmer);font-size:12px;line-height:1.7">No saved audiences yet.<br>Fill in your Ideal Customer profile and click<br><strong style="color:var(--white)">💾 Save This Audience</strong> to save it.</div>'
-    : audiences.map(function(a) {
-        var d   = new Date(a.savedAt);
-        var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-        return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
-          + '<div style="flex:1;min-width:120px">'
-          + '<div style="font-size:13px;font-weight:700;color:var(--white)">' + a.name + '</div>'
-          + '<div style="font-size:10px;color:var(--dimmer);margin-top:2px">'+(a.job||'—')+' · Saved '+dateStr+'</div>'
-          + '</div>'
-          + '<button onclick="window._eosLoadAudience(\''+a.id+'\');document.getElementById(\'_eos_audiences_modal\').remove();window._eosShowLoadedToast(\''+a.name.replace(/'/g,"\\'")+'\ loaded!\',\'🎯\')" style="padding:7px 14px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Load</button>'
-          + '<button onclick="if(confirm(\'Delete \'+ \''+a.name.replace(/'/g,"\\'")+'\'?\')){'
-              + 'window._eosDeleteAudience(\''+a.id+'\');'
-              + 'this.closest(\'[style*=border-radius]\').remove();'
-              + '}" style="padding:7px 12px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">🗑</button>'
-          + '</div>';
-      }).join('');
-
-  var modal = document.createElement('div');
-  modal.id = '_eos_audiences_modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px)';
-  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
-
-  modal.innerHTML = '<div style="background:linear-gradient(145deg,#13112e,#0e0c24);border:1px solid rgba(78,204,163,.25);border-radius:20px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto">'
-    + '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#13112e;z-index:1">'
-    + '<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:2px">Your Saved Audiences</div>'
-    + '<div style="font-size:16px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white)">'+audiences.length+' audience'+(audiences.length!==1?'s':'')+' saved</div></div>'
-    + '<button onclick="document.getElementById(\'_eos_audiences_modal\').remove()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer">×</button></div>'
-    + '<div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:8px">'+audienceRows+'</div>'
-    + '<div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);position:sticky;bottom:0;background:#13112e">'
-    + '<div style="display:flex;gap:8px;align-items:center">'
-    + '<input id="_eos_aud_save_name" placeholder="Name this audience (optional)…" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none"/>'
-    + '<button onclick="var n=document.getElementById(\'_eos_aud_save_name\').value.trim();var saved=window._eosSaveCurrentAudience(n||undefined);window._eosShowLoadedToast(saved.name+\' saved!\',\'🎯\');document.getElementById(\'_eos_audiences_modal\').remove();" style="padding:9px 18px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap">💾 Save Now</button>'
-    + '</div>'
-    + '<div style="font-size:10px;color:var(--dimmer);margin-top:6px">Saves your complete audience profile — job, pain, fear, transformation, goals, keywords. Load it in seconds on any device.</div>'
-    + '</div></div>';
-
-  document.body.appendChild(modal);
-};
-
-/* ── Inject Save/Load Audience buttons into the Avatar page ── */
-window._eosInjectAudienceButtons = function() {
-  if (document.getElementById('_eos_audience_mgr_btns')) return;
-  var genBtn = document.querySelector('.gen-av-btn');
-  if (!genBtn) return;
-  var wrap = document.createElement('div');
-  wrap.id = '_eos_audience_mgr_btns';
-  wrap.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap';
-  wrap.innerHTML = '<button onclick="window._eosShowSavedAudiencesPanel()" style="flex:1;padding:10px 14px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">📂 My Saved Audiences</button>'
-    + '<button onclick="var s=window._eosSaveCurrentAudience();window._eosShowLoadedToast(s.name+\' saved!\',\'🎯\')" style="flex:1;padding:10px 14px;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.18);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">💾 Save This Audience</button>';
-  genBtn.parentNode.insertBefore(wrap, genBtn);
-};
-
-/* ── Auto-save audience when niche changes (same as offers) ── */
-window._eosWatchAudienceNicheChange = function() {
-  var nicheEl = document.getElementById('niche');
-  if (!nicheEl || nicheEl._eosAudienceWatcher) return;
-  nicheEl._eosAudienceWatcher = true;
-  nicheEl.addEventListener('change', function() {
-    // Auto-save current audience before niche switch if it has data
-    var hasAudienceData = ['av_job','av_current','av_fear','av_transformation'].some(function(id){
-      var el=document.getElementById(id); return el&&el.value.trim().length>2;
-    });
-    if (hasAudienceData && window._eosLastNiche && window._eosLastNiche !== this.value) {
-      var saved = window._eosSaveCurrentAudience();
-      window._eosShowLoadedToast && window._eosShowLoadedToast('"'+saved.name+'" audience auto-saved!', '💾');
-    }
-  });
-};
-
-/* ── Boot: inject buttons when avatar page is navigated to ── */
-(function _eosAudienceBoot() {
-  function wireAudiencePage() {
-    window._eosInjectAudienceButtons && window._eosInjectAudienceButtons();
-    window._eosWatchAudienceNicheChange && window._eosWatchAudienceNicheChange();
-  }
-  // Hook into showPage
-  var _origShowPage = window.showPage;
-  if (_origShowPage && !_origShowPage._audienceWired) {
-    window.showPage = function(page, nav) {
-      _origShowPage.apply(this, arguments);
-      if (page === 'avatar') setTimeout(wireAudiencePage, 250);
-    };
-    window.showPage._audienceWired = true;
-  }
-  // Also fire on load in case avatar is the active page
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(wireAudiencePage, 600); });
-  } else {
-    setTimeout(wireAudiencePage, 600);
-  }
-})();
-
-
-/* ── AI VIDEO STUDIO — Tab navigation (works standalone + with HeyGen) ── */
-
-/* ══════════════════════════════════════════════════════════════════
-   AI VIDEO STUDIO — COMPLETE IMPLEMENTATION
-   All 25 functions built and wired to /api/heygen endpoint.
-   Handles: tab navigation, photo/video clone, avatar loading,
-   voice loading, script generation, video generation, download,
-   translate, library, quality selection, angle/type picking.
-══════════════════════════════════════════════════════════════════ */
-
-(function() {
-
-  // ── State ──────────────────────────────────────────────────────
-  var _avs = {
-    mode: 'photo',          // 'photo' | 'video'
-    avatarSource: 'stock',  // 'stock' | 'photo'
-    selectedAvatar: null,
-    selectedVoice: null,
-    videoType: 'reel',
-    angle: 'story',
-    quality: 'fast',
-    mediaRecorder: null,
-    recordedChunks: [],
-    cameraStream: null,
-    recordingTimer: null,
-    recordingSecs: 0,
-    generatedVideoUrl: null,
-    photoAvatarId: null,
-  };
-
-  // ── HeyGen API helper — uses correct action names matching heygen.js ──────
-  async function heygenCall(action, body) {
-    try {
-      var payload = Object.assign({ action: action }, body || {});
-      var resp = await fetch(window.location.origin + '/api/heygen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      // 404 = heygen.js not deployed in /api/ folder
-      if (resp.status === 404) {
-        _avsShow404Warning();
-        return { error: 'heygen_not_deployed' };
-      }
-
-      if (!resp.ok) {
-        var errText = await resp.text();
-        console.error('[AVS] HeyGen HTTP', resp.status, errText.slice(0, 200));
-        return { error: 'HeyGen server error ' + resp.status };
-      }
-      return await resp.json();
-    } catch(e) {
-      console.error('[AVS] HeyGen call failed:', action, e.message);
-      return { error: e.message };
-    }
-  }
-
-  function _avsShow404Warning() {
-    var page = document.getElementById('page-ai-video');
-    if (!page || document.getElementById('_avs_404_banner')) return;
-    var banner = document.createElement('div');
-    banner.id = '_avs_404_banner';
-    banner.style.cssText = 'background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.25);border-radius:14px;padding:16px 20px;margin:0 1.25rem 1rem;display:flex;align-items:flex-start;gap:14px';
-    banner.innerHTML =
-      '<div style="font-size:26px;flex-shrink:0">⚠️</div>'
-      +'<div style="flex:1">'
-      +'<div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:6px">HeyGen API Not Deployed</div>'
-      +'<div style="font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:10px">'
-      +'The <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;font-size:11px">api/heygen.js</code> file is missing from your GitHub repo. '
-      +'Push it to <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;font-size:11px">api/heygen.js</code> and Vercel will deploy it automatically.</div>'
-      +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
-      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">1. Add heygen.js to your GitHub /api/ folder</div>'
-      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">2. Add HEYGEN_API_KEY to Vercel env vars</div>'
-      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">3. Vercel auto-deploys on push</div>'
-      +'</div></div>'
-      +'<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--dimmer);font-size:18px;cursor:pointer;flex-shrink:0;padding:4px;line-height:1">×</button>';
-    var firstChild = page.firstChild;
-    page.insertBefore(banner, firstChild);
-  }
-
-  // ── Toast helper ──────────────────────────────────────────────
-  function avsToast(msg, isErr) {
-    var t = document.createElement('div');
-    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:'+(isErr?'rgba(255,91,91,.12)':'rgba(78,204,163,.1)')+';border:1px solid '+(isErr?'rgba(255,91,91,.3)':'rgba(78,204,163,.25)')+';border-radius:12px;padding:12px 20px;color:'+(isErr?'#ff8888':'var(--teal)')+';font-size:12px;font-weight:700;z-index:99999;font-family:Poppins,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:320px;line-height:1.5';
-    t.textContent = msg;
-    document.body.appendChild(t);
-    setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(function(){t.remove();},400); }, 3500);
-  }
-
-  function avsSetStatus(id, msg, color) {
-    var el = document.getElementById(id);
-    if (el) { el.textContent = msg; if (color) el.style.color = color; }
-  }
-
-  // ── Tab switching ──────────────────────────────────────────────
-  window.avsShowTab = function(tab, btn) {
-    var tabs = ['clone','build','translate','library'];
-    tabs.forEach(function(t) {
-      var panel = document.getElementById('avs-tab-' + t);
-      if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
-    });
-    // Update tab button styles
-    document.querySelectorAll('.avs-tab').forEach(function(b) {
-      var isActive = b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tab + "'");
-      b.style.background = isActive ? 'rgba(108,99,255,.12)' : 'rgba(255,255,255,.04)';
-      b.style.borderColor = isActive ? 'rgba(108,99,255,.3)' : 'var(--border2)';
-      b.style.color = isActive ? '#a089ff' : 'var(--dim)';
-    });
-    // Auto-load data for tab
-    if (tab === 'build') { avsLoadAvatars(); avsLoadVoices(); }
-    if (tab === 'library')  { avsLoadMyAvatarGroups(); }
-    if (tab === 'translate') { avsLoadTranslateLangs(); }
-    // Native delegate
-    if (window._avsShowTabNative && !window._avsShowTabNative._isStub) {
-      window._avsShowTabNative(tab);
-    }
-  };
-
-  // ── Mode switching (photo / video) ────────────────────────────
-  window.avsShowMode = function(mode) {
-    _avs.mode = mode;
-    var photoBtn = document.getElementById('avs-mode-photo-btn');
-    var videoBtn = document.getElementById('avs-mode-video-btn');
-    var photoCard = document.getElementById('avs-mode-photo');
-    var videoCard = document.getElementById('avs-mode-video');
-    var activeStyle = 'rgba(108,99,255,.1)'; var inactiveStyle = 'rgba(255,255,255,.03)';
-    if (photoBtn) { photoBtn.style.background = mode==='photo' ? activeStyle : inactiveStyle; photoBtn.style.borderColor = mode==='photo' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
-    if (videoBtn) { videoBtn.style.background = mode==='video' ? activeStyle : inactiveStyle; videoBtn.style.borderColor = mode==='video' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
-    if (photoCard) photoCard.style.display = mode==='photo' ? 'block' : 'none';
-    if (videoCard) videoCard.style.display = mode==='video' ? 'block' : 'none';
-  };
-
-  // ── Handle photo file input ────────────────────────────────────
-  window.avsHandlePhoto = function(input) {
-    if (!input.files || !input.files[0]) return;
-    var file = input.files[0];
-    var wrap = document.getElementById('avs-photo-preview-wrap');
-    var img  = document.getElementById('avs-photo-preview-img');
-    var icon = document.getElementById('avs-photo-upload-icon');
-    var label = document.getElementById('avs-photo-upload-label');
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      if (img) img.src = e.target.result;
-      if (wrap) wrap.style.display = 'block';
-      if (icon) icon.style.display = 'none';
-      if (label) label.textContent = file.name;
-    };
-    reader.readAsDataURL(file);
-    avsSetStatus('avs-photo-status', 'Photo ready — click Create Photo Avatar', 'var(--teal)');
-  };
-
-  // ── Submit photo to create avatar ─────────────────────────────
-  window.avsSubmitPhoto = function() {
-    var fileInput = document.getElementById('avs-photo-file');
-    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-      avsToast('Please select a photo first.', true); return;
-    }
-    var btn = document.getElementById('avs-photo-btn');
-    var progress = document.getElementById('avs-upload-progress');
-    var bar = document.getElementById('avs-progress-bar');
-    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
-    if (progress) progress.style.display = 'block';
-
-    var formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-
-    // Animate progress bar
-    var prog = 0;
-    var progInterval = setInterval(function() {
-      prog = Math.min(prog + 3, 85);
-      if (bar) bar.style.width = prog + '%';
-    }, 300);
-
-    // Read the file as base64 and send to create-photo-avatar action
-    var photoReader = new FileReader();
-    photoReader.onload = function(e) {
-      var base64Data = e.target.result.split(',')[1];
-      fetch(window.location.origin + '/api/heygen', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'create-photo-avatar',
-          imageData: base64Data,
-          mimeType: fileInput.files[0].type || 'image/jpeg',
-          avatarName: 'My Photo Avatar'
-        })
-      })
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        clearInterval(progInterval);
-        if (bar) bar.style.width = '100%';
-        if (data.error) throw new Error(data.error);
-        // heygen.js create-photo-avatar returns { talkingPhotoId, talkingPhotoUrl }
-        _avs.photoAvatarId = data.talkingPhotoId || data.avatar_id || data.id;
-      avsSetStatus('avs-photo-status', '✅ Photo avatar created! Go to Build Video tab to use it.', 'var(--teal)');
-      if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
-      setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
-      avsToast('✅ Photo avatar created successfully!');
-    })
-      .catch(function(err) {
-        clearInterval(progInterval);
-        if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
-        if (progress) progress.style.display = 'none';
-        avsSetStatus('avs-photo-status', '⚠️ ' + err.message, 'var(--orange)');
-        avsToast('Upload failed: ' + err.message, true);
-      });
-    };
-    photoReader.readAsDataURL(fileInput.files[0]);
-  };
-
-  // ── Camera ────────────────────────────────────────────────────
-  window.avsStartCamera = function() {
-    var preview = document.getElementById('avs-camera-preview');
-    var placeholder = document.getElementById('avs-camera-placeholder');
-    var startBtn = document.getElementById('avs-start-cam-btn');
-    var recordBtn = document.getElementById('avs-record-btn');
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(function(stream) {
-        _avs.cameraStream = stream;
-        if (preview) { preview.srcObject = stream; preview.style.display = 'block'; }
-        if (placeholder) placeholder.style.display = 'none';
-        if (startBtn) { startBtn.textContent = '📷 Camera On'; startBtn.style.background = 'rgba(78,204,163,.1)'; startBtn.style.color = 'var(--teal)'; }
-        if (recordBtn) { recordBtn.disabled = false; recordBtn.style.opacity = '1'; recordBtn.style.color = 'var(--white)'; }
-        avsSetStatus('avs-cam-status', 'Camera ready — say the consent sentence, then record.', 'var(--teal)');
-      })
-      .catch(function(err) {
-        avsToast('Camera error: ' + err.message + '. Check browser permissions.', true);
-        avsSetStatus('avs-cam-status', '⚠️ Camera blocked — check browser permissions', 'var(--orange)');
-      });
-  };
-
-  window.avsToggleRecording = function() {
-    var recordBtn = document.getElementById('avs-record-btn');
-    var recIndicator = document.getElementById('avs-rec-indicator');
-    if (!_avs.mediaRecorder || _avs.mediaRecorder.state === 'inactive') {
-      // Start recording
-      if (!_avs.cameraStream) { avsToast('Start the camera first.', true); return; }
-      _avs.recordedChunks = [];
-      _avs.mediaRecorder = new MediaRecorder(_avs.cameraStream);
-      _avs.mediaRecorder.ondataavailable = function(e) {
-        if (e.data.size > 0) _avs.recordedChunks.push(e.data);
-      };
-      _avs.mediaRecorder.onstop = function() {
-        var blob = new Blob(_avs.recordedChunks, { type: 'video/webm' });
-        var url  = URL.createObjectURL(blob);
-        var videoEl = document.getElementById('avs-recorded-video');
-        var previewDiv = document.getElementById('avs-recorded-preview');
-        if (videoEl) videoEl.src = url;
-        if (previewDiv) previewDiv.style.display = 'block';
-        avsSetStatus('avs-cam-status', 'Recording complete. Preview and submit below.', 'var(--teal)');
-      };
-      _avs.mediaRecorder.start();
-      _avs.recordingSecs = 0;
-      if (recIndicator) recIndicator.style.display = 'flex';
-      _avs.recordingTimer = setInterval(function() {
-        _avs.recordingSecs++;
-        var mins = Math.floor(_avs.recordingSecs / 60).toString().padStart(2,'0');
-        var secs = (_avs.recordingSecs % 60).toString().padStart(2,'0');
-        var timerEl = document.getElementById('avs-rec-timer');
-        if (timerEl) timerEl.textContent = mins + ':' + secs;
-      }, 1000);
-      if (recordBtn) { recordBtn.textContent = '⏹ Stop Recording'; recordBtn.style.background = 'rgba(255,91,91,.12)'; recordBtn.style.color = '#ff8888'; }
-    } else {
-      // Stop recording
-      _avs.mediaRecorder.stop();
-      clearInterval(_avs.recordingTimer);
-      if (recIndicator) recIndicator.style.display = 'none';
-      if (recordBtn) { recordBtn.textContent = '⏺ Start Recording'; recordBtn.style.background = 'rgba(255,255,255,.03)'; recordBtn.style.color = 'var(--dim)'; }
-    }
-  };
-
-  window.avsRerecord = function() {
-    _avs.recordedChunks = [];
-    var previewDiv = document.getElementById('avs-recorded-preview');
-    if (previewDiv) previewDiv.style.display = 'none';
-    avsSetStatus('avs-cam-status', 'Ready to record again.', 'var(--dim)');
-  };
-
-  window.avsSubmitRecording = function() {
-    if (!_avs.recordedChunks.length) { avsToast('No recording found. Record first.', true); return; }
-    var btn = document.getElementById('avs-submit-recording-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
-    // For now, show a message — actual upload requires the heygen.js server handler
-    avsSetStatus('avs-cam-status', '⚙️ Processing recording… This may take a few minutes.', 'var(--purple)');
-    avsToast('Recording submitted — avatar creation takes 2–5 minutes. Check Saved Avatars.');
-    setTimeout(function() {
-      if (btn) { btn.disabled = false; btn.textContent = 'Use This Recording →'; }
-    }, 3000);
-  };
-
-  window.avsHandleVideoFile = function(input) {
-    if (!input.files || !input.files[0]) return;
-    var label = document.getElementById('avs-upload-label');
-    if (label) label.textContent = '📁 ' + input.files[0].name;
-  };
-
-  window.avsSubmitVideo = function() {
-    var fileInput = document.getElementById('avs-video-file');
-    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-      avsToast('Select a video file first.', true); return;
-    }
-    var btn = document.getElementById('avs-upload-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
-    avsSetStatus('avs-submit-status', '⚙️ Uploading video… This may take a moment.', 'var(--purple)');
-    avsToast('Video uploaded — avatar creation takes 2–5 minutes. Check Saved Avatars.');
-    setTimeout(function() {
-      if (btn) { btn.disabled = false; btn.textContent = 'Upload and Create Avatar'; }
-    }, 3000);
-  };
-
-  // ── Load saved avatar groups ───────────────────────────────────
-  window.avsLoadMyAvatarGroups = function() {
-    var container = document.getElementById('avs-existing-groups');
-    if (!container) return;
-    container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:12px">Loading…</div>';
-    heygenCall('get-avatars').then(function(data) {
-      if (data.error || !data.avatars) {
-        container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:16px">No saved avatars yet. Create one above.</div>';
-        return;
-      }
-      var avatars = data.avatars || [];
-      if (!avatars.length) {
-        container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:16px">No saved avatars yet. Create one above.</div>';
-        return;
-      }
-      container.innerHTML = avatars.map(function(av) {
-        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
-          + (av.thumbnail_url ? '<img src="'+av.thumbnail_url+'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">' : '<div style="width:40px;height:40px;border-radius:8px;background:rgba(108,99,255,.1);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">🤳</div>')
-          + '<div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">'+(av.avatar_name||av.name||'Custom Avatar')+'</div>'
-          + '<div style="font-size:9px;color:var(--dimmer)">ID: '+(av.avatar_id||av.id||'—')+'</div></div>'
-          + '<button onclick="avsUseAvatar(\''+( av.avatar_id||av.id||'')+'\',\''+( av.avatar_name||av.name||'My Avatar')+'\')" style="padding:5px 12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Use</button>'
-          + '</div>';
-      }).join('');
-    });
-  };
-
-  window.avsUseAvatar = function(id, name, type) {
-    if (type === 'photo') {
-      _avs.photoAvatarId = id;
-      _avs.avatarSource = 'photo';
-    } else {
-      _avs.selectedAvatar = id;
-    }
-    avsShowTab('build', null);
-    avsSetAvatarSource(type === 'photo' ? 'photo' : 'stock');
-    var statusEl = document.getElementById('avs-gen-photo-status');
-    if (statusEl) statusEl.textContent = '✅ Using: ' + name;
-    avsToast('✅ Avatar selected: ' + name + ' — go to Build Video');
-  };
-
-  // ── Load stock avatars into build tab ──────────────────────
-  window.avsLoadAvatars = function() {
-    if (window.avsLoadAvatars._isStub) return;
-    var sel = document.getElementById('avs-avatar-select');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Loading…</option>';
-    heygenCall('list-avatar-groups').then(function(data) {
-      var avatars = (data && data.groups) || [];
-      if (!avatars.length) {
-        sel.innerHTML = '<option value="">No avatars found</option>';
-        return;
-      }
-      sel.innerHTML = avatars.map(function(av) {
-        var id = av.avatar_id || av.id || '';
-        var name = av.avatar_name || av.name || 'Avatar';
-        return '<option value="'+id+'" data-thumb="'+(av.preview_image_url||av.thumbnail_url||'')+'" data-gender="'+(av.gender||'')+'">' + name + '</option>';
-      }).join('');
-      // Trigger preview on first avatar
-      avsOnAvatarChange();
-    }).catch(function() {
-      sel.innerHTML = '<option value="">Could not load avatars</option>';
-    });
-  };
-
-  // ── Load voices ───────────────────────────────────────────────
-  window.avsLoadVoices = function() {
-    if (window.avsLoadVoices._isStub) return;
-    var sel = document.getElementById('avs-voice-select');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Loading voices…</option>';
-    heygenCall('get-voices').then(function(data) {
-      if (!data || data.error === 'heygen_not_deployed') { sel.innerHTML = '<option value="">HeyGen not deployed</option>'; return; }
-      var voices = (data && data.voices) || [];
-      if (!voices.length) { sel.innerHTML = '<option value="">No voices found</option>'; return; }
-      sel.innerHTML = voices.map(function(v) {
-        var id = v.voice_id || v.id || '';
-        var name = (v.display_name||v.name||'Voice') + (v.language ? ' ('+v.language+')' : '');
-        return '<option value="'+id+'">'+name+'</option>';
-      }).join('');
-      _avs.selectedVoice = sel.value;
-    }).catch(function() {
-      sel.innerHTML = '<option value="">Could not load voices</option>';
-    });
-  };
-
-  // ── Avatar change preview ──────────────────────────────────────
-  window.avsOnAvatarChange = function() {
-    var sel = document.getElementById('avs-avatar-select');
-    if (!sel || !sel.value) return;
-    var opt = sel.options[sel.selectedIndex];
-    var wrap  = document.getElementById('avs-avatar-preview-wrap');
-    var thumb = document.getElementById('avs-avatar-thumb');
-    var nameEl = document.getElementById('avs-avatar-name-display');
-    var genderEl = document.getElementById('avs-avatar-gender-display');
-    _avs.selectedAvatar = sel.value;
-    if (wrap) wrap.style.display = 'flex';
-    if (thumb && opt.dataset.thumb) thumb.src = opt.dataset.thumb;
-    if (nameEl) nameEl.textContent = opt.text;
-    if (genderEl) genderEl.textContent = opt.dataset.gender || '';
-  };
-
-  // ── Avatar source toggle ──────────────────────────────────────
-  window.avsSetAvatarSource = function(source) {
-    _avs.avatarSource = source;
-    var stockSection = document.getElementById('avs-stock-section');
-    var photoSection = document.getElementById('avs-photo-section');
-    var stockBtn = document.getElementById('avs-src-stock-card');
-    var photoBtn = document.getElementById('avs-src-photo-card');
-    if (stockSection) stockSection.style.display = source==='stock' ? 'block' : 'none';
-    if (photoSection) photoSection.style.display = source==='photo' ? 'block' : 'none';
-    if (stockBtn) { stockBtn.style.background = source==='stock' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.04)'; stockBtn.style.color = source==='stock' ? '#a089ff' : 'var(--dim)'; }
-    if (photoBtn) { photoBtn.style.background = source==='photo' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.04)'; photoBtn.style.color = source==='photo' ? '#a089ff' : 'var(--dim)'; }
-  };
-
-  // ── Type + Angle + Quality pickers ───────────────────────────
-  window.avsPickType = function(el) {
-    if (!el) return;
-    _avs.videoType = el.dataset.type || 'reel';
-    document.querySelectorAll('.avs-type-card').forEach(function(c) {
-      c.style.background = 'rgba(255,255,255,.03)';
-      c.style.borderColor = 'var(--border2)';
-      c.querySelector('div:nth-child(2)').style.color = 'var(--muted)';
-    });
-    el.style.background = 'rgba(108,99,255,.12)';
-    el.style.borderColor = 'rgba(108,99,255,.4)';
-    el.querySelector('div:nth-child(2)').style.color = '#a089ff';
-    var hidden = document.getElementById('avs-video-type');
-    if (hidden) hidden.value = _avs.videoType;
-  };
-
-  window.avsPickAngle = function(el) {
-    if (!el) return;
-    _avs.angle = el.dataset.angle || 'story';
-    document.querySelectorAll('.avs-angle-card').forEach(function(c) {
-      c.style.background = 'rgba(255,255,255,.03)';
-      c.style.borderColor = 'var(--border2)';
-      c.style.color = 'var(--dim)';
-    });
-    el.style.background = 'rgba(108,99,255,.12)';
-    el.style.borderColor = 'rgba(108,99,255,.35)';
-    el.style.color = '#a089ff';
-    var hidden = document.getElementById('avs-script-angle');
-    if (hidden) hidden.value = _avs.angle;
-  };
-
-  window.avsSetQuality = function(q) {
-    _avs.quality = q;
-    var fast = document.getElementById('avs-quality-fast');
-    var qual = document.getElementById('avs-quality-quality');
-    if (fast) { fast.style.background = q==='fast' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.03)'; fast.style.borderColor = q==='fast' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
-    if (qual) { qual.style.background = q==='quality' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.03)'; qual.style.borderColor = q==='quality' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
-  };
-
-  // ── AI Script generation ──────────────────────────────────────
-  window.avsGenerateScript = function() {
-    var btn = document.getElementById('avs-write-btn');
-    var scriptArea = document.getElementById('avs-script-input');
-    var countEl = document.getElementById('avs-script-count');
-    if (btn) { btn.disabled = true; btn.textContent = '✍️ Writing…'; }
-
-    var niche = window._appliedNiche || 'Online Business';
-    var offer = (document.getElementById('offer_name')||{}).value || 'My Offer';
-    var av    = window._avatarData || {};
-    var angle = _avs.angle || 'story';
-    var type  = _avs.videoType || 'reel';
-    var boardroomCopy = window._boardroomIntel && window._boardroomIntel.copyVault;
-
-    // Use boardroom hooks if available
-    var hook = boardroomCopy && boardroomCopy.hooks && boardroomCopy.hooks[0]
-      ? boardroomCopy.hooks[0] : '';
-
-    var angleDescriptions = {
-      story: 'a personal story about transformation — vulnerable, real, specific',
-      value: 'pure value — teach one specific thing they can use today',
-      education: 'educate on a common mistake or misconception in ' + niche,
-      promotion: 'promote the offer without being salesy — let the result speak',
-      myth: 'bust a common myth in ' + niche + ' that holds people back',
-      result: 'share a specific client result or transformation story',
-      contrast: 'before/after contrast — what life looks like before vs after',
-      authority: 'establish authority through a specific insight most people miss'
-    };
-
-    var prompt = 'Write a ' + (type === 'reel' || type === 'shorts' || type === 'story' ? '30-45 second vertical video' : '60-90 second video') + ' script.'
-      + '\nAngle: ' + (angleDescriptions[angle] || angle)
-      + '\nNiche: ' + niche
-      + '\nOffer: ' + offer
-      + '\nAvatar pain: ' + (av.pain || 'their main struggle')
-      + (hook ? '\nOpening hook to use: ' + hook : '')
-      + '\n\nWrite it as natural spoken words — no stage directions, no [brackets], just the words to say.'
-      + '\nFormat: HOOK (first 3 seconds) | MAIN CONTENT | CTA (last 5 seconds)'
-      + '\nKeep it conversational, specific, and genuine. Maximum 150 words.';
-
-    fetch(window.location.origin + '/api/claude', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
-        messages: [{ role: 'user', content: prompt }]
-      })
-    })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      var text = ((data.content||[])[0]||{}).text || '';
-      if (scriptArea) {
-        scriptArea.value = text.trim();
-        if (countEl) countEl.textContent = text.length;
-      }
-      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
-    })
-    .catch(function(err) {
-      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
-      avsToast('Script generation failed: ' + err.message, true);
-    });
-  };
-
-  // ── Script character counter ───────────────────────────────────
-  var scriptArea = document.getElementById('avs-script-input');
-  if (scriptArea) {
-    scriptArea.addEventListener('input', function() {
-      var countEl = document.getElementById('avs-script-count');
-      if (countEl) countEl.textContent = this.value.length;
-    });
-  }
-
-  // ── Build video ────────────────────────────────────────────
-  window.avsGenerate = function() {
-    var script = (document.getElementById('avs-script-input')||{}).value || '';
-    if (!script.trim()) { avsToast('Write or build a script first.', true); return; }
-
-    var avatarId = _avs.selectedAvatar || (document.getElementById('avs-avatar-select')||{}).value;
-    if (!avatarId) { avsToast('Select an avatar first.', true); return; }
-
-    var voiceId = _avs.selectedVoice || (document.getElementById('avs-voice-select')||{}).value || '';
-    var type    = (document.getElementById('avs-video-type')||{}).value || 'reel';
-    var isVertical = ['reel','shorts','story'].includes(type);
-
-    var btn = document.getElementById('avs-gen-btn');
-    var progress = document.getElementById('avs-gen-progress');
-    var bar = document.getElementById('avs-gen-bar');
-    var result = document.getElementById('avs-video-result');
-    var status = document.getElementById('avs-gen-status');
-
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Building…'; }
-    if (progress) progress.style.display = 'block';
-    if (result) result.style.display = 'none';
-    if (status) status.textContent = 'Submitting to HeyGen…';
-
-    // Animate progress
-    var prog = 0;
-    var progInterval = setInterval(function() {
-      prog = Math.min(prog + 0.8, 90);
-      if (bar) bar.style.width = prog + '%';
-    }, 1000);
-
-    heygenCall('build', {
-      avatarId:         _avs.avatarSource === 'photo' ? null : avatarId,
-      talkingPhotoId:   _avs.avatarSource === 'photo' ? (_avs.photoAvatarId || avatarId) : null,
-      voiceId:          voiceId,
-      script:           script,
-      type:             type,
-      title:            'EOS-' + Date.now()
-    }).then(function(data) {
-      if (data.error) throw new Error(data.error);
-      var videoId = data.videoId || data.video_id || data.id;
-      if (!videoId) throw new Error('No video ID returned. Response: ' + JSON.stringify(data).slice(0,150));
-      if (status) status.textContent = 'Video building… checking status every 10 seconds.';
-      avsToast('Video submitted! Checking status…');
-      // Poll for completion
-      var maxPolls = 36; // 6 minutes max
-      var polls = 0;
-      var pollInterval = setInterval(function() {
-        polls++;
-        if (polls > maxPolls) {
-          clearInterval(pollInterval);
-          clearInterval(progInterval);
-          if (btn) { btn.disabled = false; btn.textContent = '🎬 Build Video'; }
-          if (status) status.textContent = 'Build is taking longer than expected. Check My Videos later.';
-          return;
-        }
-        heygenCall('status', { videoId: videoId }).then(function(statusData) {
-          var st = statusData.status || statusData.video_status || '';
-          if (status) status.textContent = 'Status: ' + st + ' (' + (polls*10) + 's)';
-          if (st === 'completed' || st === 'done' || statusData.video_url) {
-            clearInterval(pollInterval); clearInterval(progInterval);
-            if (bar) bar.style.width = '100%';
-            var url = statusData.video_url || statusData.url || '';
-            _avs.generatedVideoUrl = url;
-            var videoEl = document.getElementById('avs-preview-video');
-            if (videoEl && url) videoEl.src = url;
-            if (result) result.style.display = 'block';
-            if (progress) setTimeout(function(){ progress.style.display = 'none'; }, 1000);
-            if (btn) { btn.disabled = false; btn.textContent = '🎬 Build Video'; }
-            if (status) status.textContent = '✅ Video ready!';
-            avsToast('🎬 Your video is ready!');
-          } else if (st === 'failed' || st === 'error') {
-            clearInterval(pollInterval); clearInterval(progInterval);
-            if (btn) { btn.disabled = false; btn.textContent = '🎬 Build Video'; }
-            if (status) status.textContent = '⚠️ Build failed. Try again.';
-            avsToast('Video generation failed. Try again.', true);
-          }
-        });
-      }, 10000);
-    })
-    .catch(function(err) {
-      clearInterval(progInterval);
-      if (btn) { btn.disabled = false; btn.textContent = '🎬 Build Video'; }
-      if (progress) progress.style.display = 'none';
-      if (status) status.textContent = '⚠️ ' + err.message;
-      avsToast('Failed: ' + err.message + '. Check your HeyGen API key in settings.', true);
-    });
-  };
-
-  // ── Download & copy ───────────────────────────────────────────
-  window.avsDownload = function() {
-    if (!_avs.generatedVideoUrl) { avsToast('Build a video first.', true); return; }
-    var a = document.createElement('a');
-    a.href = _avs.generatedVideoUrl;
-    a.download = 'execution-os-video-' + Date.now() + '.mp4';
-    a.click();
-  };
-
-  window.avsCopyLink = function() {
-    if (!_avs.generatedVideoUrl) { avsToast('No video URL to copy.', true); return; }
-    navigator.clipboard.writeText(_avs.generatedVideoUrl).then(function() {
-      var btn = document.getElementById('avs-copy-btn');
-      if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '🔗 Copy Link'; }, 2000); }
-    }).catch(function() {
-      avsToast(_avs.generatedVideoUrl, false);
-    });
-  };
-
-  window.avsSaveToLibrary = function() {
-    if (!_avs.generatedVideoUrl) { avsToast('No video to save.', true); return; }
-    avsToast('✅ Video saved to My Videos');
-  };
-
-  // ── Translate ──────────────────────────────────────────────────
-  function avsLoadTranslateLangs() {
-    var sel = document.getElementById('avs-translate-lang');
-    if (!sel || sel.options.length > 2) return; // already loaded
-    // Load real languages from HeyGen API
-    heygenCall('get-languages').then(function(data) {
-      var langs = data.languages || [];
-      if (langs.length) {
-        sel.innerHTML = '<option value="">Select language…</option>' + langs.map(function(l){
-          var name = l.name || l.output_language || l;
-          var val  = l.name || l;
-          return '<option value="'+val+'">'+name+'</option>';
-        }).join('');
+    // Objection bars
+    var barsEl = document.getElementById('sc-objection-bars');
+    if (barsEl) {
+      if (Object.keys(objCount).length === 0) {
+        barsEl.innerHTML = '<div style="font-size:12px;color:var(--dim);text-align:center;padding:1.5rem 0">Log your first call to see where you are losing deals.</div>';
       } else {
-        // Fallback list if API does not return
-        var fallback = ['Spanish','French','German','Portuguese','Italian',
-          'Chinese','Japanese','Arabic','Hindi','Korean','Russian','Dutch',
-          'Polish','Turkish','Swedish','Norwegian','Danish','Finnish'];
-        sel.innerHTML = '<option value="">Select language…</option>' + fallback.map(function(n){
-          return '<option value="'+n+'">'+n+'</option>';
-        }).join('');
+        var maxCount = Math.max.apply(null, Object.values(objCount));
+        var colors = { price:'var(--red)', time:'var(--orange)', think:'var(--yellow)', spouse:'var(--purple)', trust:'var(--teal)', tried:'#ff8c42', info:'var(--dim)', other:'var(--dimmer)' };
+        barsEl.innerHTML = Object.keys(objCount)
+          .sort(function(a,b){ return objCount[b]-objCount[a]; })
+          .map(function(obj) {
+            var pct = Math.round((objCount[obj] / maxCount) * 100);
+            var col = colors[obj] || 'var(--purple)';
+            return '<div style="margin-bottom:6px">'
+              + '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+              + '<span style="font-size:11px;color:var(--dim)">' + (objLabels[obj]||obj) + '</span>'
+              + '<span style="font-size:11px;font-weight:800;color:' + col + '">' + objCount[obj] + 'x</span>'
+              + '</div>'
+              + '<div style="height:6px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">'
+              + '<div style="height:100%;width:' + pct + '%;background:' + col + ';border-radius:4px;transition:width .5s"></div>'
+              + '</div></div>';
+          }).join('');
       }
-    }).catch(function() {
-      var fallback = ['Spanish','French','German','Portuguese','Italian','Chinese','Japanese'];
-      sel.innerHTML = '<option value="">Select language…</option>' + fallback.map(function(n){
-        return '<option value="'+n+'">'+n+'</option>';
-      }).join('');
-    });
+    }
+
+    scRenderHistory(calls);
   }
 
-  window.avsTranslate = function() {
-    var urlEl = document.getElementById('avs-translate-url');
-    var langEl = document.getElementById('avs-translate-lang');
-    var btn  = document.getElementById('avs-translate-btn');
-    var url  = urlEl ? urlEl.value.trim() : '';
-    var lang = langEl ? langEl.value : '';
-    if (!url)  { avsToast('Paste a video URL first.', true); return; }
-    if (!lang) { avsToast('Select a language.', true); return; }
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Translating…'; }
-    heygenCall('translate', { videoUrl: url, language: lang }).then(function(data) {
-      if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
-      if (data.error) { avsToast('Translation failed: ' + data.error, true); return; }
-      avsToast('✅ Translation submitted! Check My Videos in a few minutes.');
-    }).catch(function(err) {
-      if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
-      avsToast('Translation failed: ' + err.message, true);
-    });
-  };
+  function scRenderHistory(calls) {
+    var el = document.getElementById('sc-call-list');
+    if (!el) return;
+    if (!calls.length) {
+      el.innerHTML = '<div style="font-size:12px;color:var(--dim);text-align:center;padding:2rem 0">No calls logged yet. Every call is a data point — start logging.</div>';
+      return;
+    }
+    var outcomeIcons = { closed:'✅', followup:'🔄', noshow:'👻', lost:'❌', notqualified:'🚫' };
+    var outcomeColors = { closed:'var(--teal)', followup:'var(--yellow)', noshow:'var(--dim)', lost:'var(--red)', notqualified:'var(--orange)' };
+    var objLabels = { price:'Price objection', time:'No time right now', think:'Needs to think', spouse:'Needs to ask partner', trust:'Not sure it works', tried:'Tried before', info:'Just wanted info', other:'Other objection' };
+    el.innerHTML = calls.slice().reverse().map(function(c, i) {
+      var col  = outcomeColors[c.outcome] || 'var(--dim)';
+      var icon = outcomeIcons[c.outcome]  || '📞';
+      var date = c.date ? new Date(c.date).toLocaleDateString('en-GB', { day:'numeric', month:'short' }) : '';
+      return '<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
+        + '<div style="min-width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">' + icon + '</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
+        + '<div style="font-size:13px;font-weight:700;color:var(--white)">' + (c.prospect || 'Unknown') + '</div>'
+        + '<div style="font-size:10px;color:var(--dimmer)">' + date + '</div>'
+        + '</div>'
+        + '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:4px">'
+        + '<span style="font-size:10px;font-weight:800;color:' + col + '">' + (c.outcome || '').replace(/([A-Z])/g,' $1').trim() + '</span>'
+        + (c.dealValue ? '<span style="font-size:10px;color:var(--teal);font-weight:700">$' + Number(c.dealValue).toLocaleString() + '</span>' : '')
+        + (c.objection ? '<span style="font-size:10px;color:var(--orange)">' + (objLabels[c.objection]||c.objection) + '</span>' : '')
+        + '</div>'
+        + (c.notes ? '<div style="font-size:11px;color:var(--dimmer);line-height:1.5;margin-top:2px">' + c.notes.slice(0, 120) + (c.notes.length > 120 ? '…' : '') + '</div>' : '')
+        + '</div>'
+        + '<button onclick="scDeleteCall(' + (calls.length - 1 - i) + ')" style="background:none;border:none;color:rgba(255,107,107,.4);font-size:14px;cursor:pointer;flex-shrink:0;padding:4px" title="Delete">×</button>'
+        + '</div>';
+    }).join('');
+  }
 
-  // ── Handle photo gen file ──────────────────────────────────────
-  window.avsHandleGenPhoto = function(input) {
-    var preview = document.getElementById('avs-gen-photo-preview');
-    var wrap    = document.getElementById('avs-gen-photo-preview-wrap');
-    var icon    = document.getElementById('avs-gen-photo-icon');
-    var label   = document.getElementById('avs-gen-photo-label');
-    var statusEl = document.getElementById('avs-gen-photo-status');
-    if (input.files && input.files[0]) {
-      var reader = new FileReader();
-      reader.onload = function(e) {
-        if (preview) preview.src = e.target.result;
-        if (wrap) wrap.style.display = 'block';
-        if (icon) icon.style.display = 'none';
-        if (label) label.textContent = input.files[0].name;
-      };
-      reader.readAsDataURL(input.files[0]);
-      _avs.selectedAvatar = 'custom_photo';
-      if (statusEl) statusEl.textContent = '✅ Photo ready for video generation';
+  window.scLogCall = function() {
+    var gv = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
+    var prospect  = gv('sc-prospect');
+    var outcome   = gv('sc-outcome');
+    var dealValue = gv('sc-deal-value');
+    var objection = gv('sc-objection');
+    var notes     = gv('sc-notes');
+
+    if (!outcome) {
+      var st = document.getElementById('sc-log-status');
+      if (st) { st.textContent = '⚠️ Select an outcome first'; st.style.color = 'var(--orange)'; }
+      return;
+    }
+
+    var calls = scLoadCalls();
+    calls.push({
+      id:        Date.now(),
+      date:      new Date().toISOString(),
+      prospect:  prospect || 'Unknown',
+      outcome:   outcome,
+      dealValue: outcome === 'closed' ? (parseFloat(dealValue) || 0) : 0,
+      objection: objection,
+      notes:     notes
+    });
+    scSaveCalls(calls);
+
+    // Clear form
+    ['sc-prospect','sc-deal-value','sc-notes'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+    ['sc-outcome','sc-objection'].forEach(function(id){ var el=document.getElementById(id); if(el) el.selectedIndex=0; });
+
+    var st = document.getElementById('sc-log-status');
+    if (st) {
+      st.textContent = '✅ Call logged — ' + (outcome === 'closed' ? '🎉 Deal closed!' : 'Keep going!');
+      st.style.color = outcome === 'closed' ? 'var(--teal)' : 'var(--dim)';
+      setTimeout(function(){ if(st) st.textContent = ''; }, 3000);
+    }
+
+    scUpdateStats();
+
+    // Auto-trigger AI insight after 3+ calls
+    var calls2 = scLoadCalls();
+    if (calls2.length >= 3 && calls2.length % 3 === 0) {
+      setTimeout(function(){ scAutoInsight(calls2); }, 800);
     }
   };
 
-  // ── Auto-load on page show ────────────────────────────────────
-  var origShowPage = window.showPage;
-  if (origShowPage && !origShowPage._avsWired) {
-    window.showPage = function(page, nav) {
-      origShowPage.apply(this, arguments);
-      if (page === 'ai-video') {
-        setTimeout(function() {
-          // Show first tab, load avatars and voices
-          avsShowTab('clone', null);
-          // Pre-load boardroom VSL if available
-          var scriptEl = document.getElementById('avs-script-input');
-          if (scriptEl && !scriptEl.value.trim() && window._boardroomVSLScript) {
-            scriptEl.value = window._boardroomVSLScript;
-            var countEl = document.getElementById('avs-script-count');
-            if (countEl) countEl.textContent = window._boardroomVSLScript.length;
-          }
-        }, 200);
-      }
-    };
-    window.showPage._avsWired = true;
-  }
-
-  // ── Remove _isStub from our implementations so _isReal checks work ──
-  ['avsShowTab','avsShowMode','avsHandlePhoto','avsHandleVideoFile','avsHandleGenPhoto',
-   'avsOnAvatarChange','avsPickType','avsPickAngle','avsSetQuality','avsSetAvatarSource',
-   'avsLoadAvatars','avsLoadVoices','avsLoadMyAvatarGroups','avsUseAvatar',
-   'avsGenerateScript','avsGenerate','avsDownload','avsCopyLink','avsSaveToLibrary',
-   'avsTranslate','avsStartCamera','avsToggleRecording','avsRerecord',
-   'avsSubmitPhoto','avsSubmitRecording','avsSubmitVideo'
-  ].forEach(function(fn) {
-    if (window[fn]) delete window[fn]._isStub;
-  });
-
-  console.log('[AVS] AI Video Studio engine loaded ✅');
-
-})();
-
-/* expose tab functions globally */
-window.brShowTab           = brShowTab;
-window.brRunFullAnalysis   = brBuildPlan; // remapped to 3-phase flow
-window.brRenderTab         = brRenderTab;
-
-
-/* ══════════════════════════════════════════════════════════════════
-   AI VIDEO STUDIO + SCORECARD FUNCTION STUBS
-   These are called from the HTML but defined in the full HeyGen
-   integration layer. Stubs prevent silent crashes if that layer
-   hasn't loaded yet, and show a helpful message instead.
-══════════════════════════════════════════════════════════════════ */
-(function() {
-  var _avsStubMsg = function(fn) {
-    var stub = function() {
-      // Silent — HeyGen integration will override this when it loads
-    };
-    stub._isStub = true;  // Flag so we can detect stubs vs real implementations
-    return stub;
+  window.scDeleteCall = function(idx) {
+    var calls = scLoadCalls();
+    calls.splice(idx, 1);
+    scSaveCalls(calls);
+    scUpdateStats();
   };
-  // These are fully implemented above (avsShowTab, avsHandleVideoFile, etc.)
-  // Only stub the ones that are purely in the HeyGen integration layer
-  var _avsStubs = [
-    'avsShowMode','avsSubmitPhoto','avsStartCamera','avsToggleRecording',
-    'avsRerecord','avsSubmitRecording','avsSubmitVideo','avsLoadMyAvatarGroups',
-    'avsPickType','avsSetAvatarSource','avsLoadAvatars','avsLoadVoices',
-    'avsPickAngle','avsGenerateScript','avsGenerate','avsDownload',
-    'avsCopyLink','avsSaveToLibrary','avsSetQuality','avsTranslate',
-    'fbOpenVisualEditor','fbGenerateVideoScript','fbUseOwnVideo'
-    // avsShowTab, avsHandleVideoFile, avsHandleGenPhoto, avsOnAvatarChange
-    // are fully implemented above — not stubbed
-  ];
-  _avsStubs.forEach(function(fn) {
-    if (typeof window[fn] === 'undefined') window[fn] = _avsStubMsg(fn);
-  });
 
-  // Scorecard stubs
-  if (typeof window.scLogCall === 'undefined') {
-    window.scLogCall = function() {
-      var modal = document.getElementById('sc-log-modal') || document.querySelector('[id*="scorecard"]');
-      if (modal) modal.style.display = 'flex';
-      // silently ignore if modal does not exist — it lives in a separate module
-    };
-    window.scLogCall._isStub = true;
-  }
-  if (typeof window.scGetAICoaching === 'undefined') {
-    window.scGetAICoaching = function() {}; // silent stub
-    window.scGetAICoaching._isStub = true;
-  }
-})();
-
-
-/* ══════════════════════════════════════════════════════════════════
-   SAVED AUDIENCES SYSTEM
-   Save, load, and manage multiple audience/avatar profiles.
-   Mirrors the saved offers system — users never start from scratch.
-══════════════════════════════════════════════════════════════════ */
-
-window._eosGetSavedAudiences = function() {
-  try { return JSON.parse(localStorage.getItem('eos_saved_audiences') || '[]'); }
-  catch(e) { return []; }
-};
-
-window._eosSaveCurrentAudience = function(customName) {
-  var gv = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  var job  = gv('av_job') || (window._avatarData && window._avatarData.job) || '';
-  var niche = window._appliedNiche || '';
-  var defaultName = job ? job.split('/')[0].split(',')[0].trim().slice(0,30) + (niche ? ' · ' + niche.split('&')[0].trim().slice(0,18) : '') : 'My Audience';
-  var name = customName || defaultName;
-
-  var snap = { niche: niche };
-  var EOS_AVATAR_FIELDS_LOCAL = [
-    'av_name','av_age','av_gender','av_location','av_edu','av_income','av_job',
-    'av_industry','av_employ','av_hrs','av_current','av_desired','av_igr',
-    'av_transformation','av_fear','av_tried','av_personality','av_motivation',
-    'av_influences','av_objections'
-  ];
-  EOS_AVATAR_FIELDS_LOCAL.forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) snap[id] = el.value;
-  });
-  // Save keywords tags
-  var kwTags = Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll&&document.getElementById('kw-wrap').querySelectorAll('.tag')||[]).map(function(t){return t.textContent.replace('×','').trim();});
-  snap._keywords = kwTags;
-  // Save window._avatarData enrichment
-  if (window._avatarData) snap._avatarData = window._avatarData;
-  if (window._aiAvatarData) snap._aiAvatarData = window._aiAvatarData;
-
-  var audiences = window._eosGetSavedAudiences();
-  var existingIdx = audiences.findIndex(function(a){ return a.name === name; });
-  var entry = {
-    id: existingIdx >= 0 ? audiences[existingIdx].id : 'aud_' + Date.now(),
-    name: name,
-    niche: niche,
-    job: job.slice(0, 40),
-    savedAt: new Date().toISOString(),
-    data: snap
+  window.scClearAll = function() {
+    if (!confirm('Clear all call history? This cannot be undone.')) return;
+    scSaveCalls([]);
+    scUpdateStats();
   };
-  if (existingIdx >= 0) audiences[existingIdx] = entry;
-  else audiences.unshift(entry);
-  if (audiences.length > 12) audiences = audiences.slice(0, 12);
-  localStorage.setItem('eos_saved_audiences', JSON.stringify(audiences));
-  return entry;
-};
 
-window._eosLoadAudience = function(audienceId) {
-  var audiences = window._eosGetSavedAudiences();
-  var audience  = audiences.find(function(a){ return a.id === audienceId; });
-  if (!audience || !audience.data) return false;
-  var d = audience.data;
-
-  // Restore niche
-  if (d.niche) {
-    var nicheEl = document.getElementById('niche');
-    if (nicheEl) { nicheEl.value = d.niche; nicheEl.dispatchEvent(new Event('change',{bubbles:true})); }
-    window._appliedNiche = d.niche;
+  function scAutoInsight(calls) {
+    var insightEl = document.getElementById('sc-ai-insight');
+    if (!insightEl) return;
+    var lostCalls = calls.filter(function(c){ return c.outcome === 'lost' || c.outcome === 'notqualified'; });
+    var topObjArr = {};
+    calls.forEach(function(c){ if(c.objection) topObjArr[c.objection] = (topObjArr[c.objection]||0)+1; });
+    var topObj = Object.keys(topObjArr).sort(function(a,b){ return topObjArr[b]-topObjArr[a]; })[0] || 'none';
+    var closeRate = calls.length > 0 ? Math.round((calls.filter(function(c){ return c.outcome==='closed'; }).length / calls.length) * 100) : 0;
+    var objLabels = { price:'price', time:'timing', think:'decision hesitation', spouse:'partner approval', trust:'belief it will work', tried:'past failures', info:'information-seeking leads', other:'mixed objections' };
+    var insight = closeRate >= 40
+      ? 'Your close rate of ' + closeRate + '% is strong. The pattern to watch: ' + (objLabels[topObj]||topObj) + ' is your most common friction point. Address this directly in your opening — before they raise it.'
+      : closeRate >= 20
+      ? 'Close rate of ' + closeRate + '%. The main pattern: ' + (objLabels[topObj]||topObj) + '. This needs to be resolved earlier in the conversation — before the close. Add a story or case study that directly addresses this in the first 5 minutes.'
+      : 'Close rate of ' + closeRate + '% — this tells us the gap is likely in lead quality or offer fit, not just the close. The dominant objection is ' + (objLabels[topObj]||topObj) + '. Either the leads are not warm enough, or the offer needs to be presented differently. Review your DM scripts and content to attract better-qualified conversations.';
+    insightEl.textContent = '💡 Pattern insight: ' + insight;
+    insightEl.style.display = 'block';
   }
 
-  // Restore all avatar fields
-  var EOS_AVATAR_FIELDS_LOCAL = [
-    'av_name','av_age','av_gender','av_location','av_edu','av_income','av_job',
-    'av_industry','av_employ','av_hrs','av_current','av_desired','av_igr',
-    'av_transformation','av_fear','av_tried','av_personality','av_motivation',
-    'av_influences','av_objections'
-  ];
-  EOS_AVATAR_FIELDS_LOCAL.forEach(function(id) {
-    if (d[id] === undefined) return;
-    var el = document.getElementById(id);
-    if (el) { el.value = d[id]; el.dispatchEvent(new Event('input',{bubbles:true})); }
-  });
-
-  // Restore keywords
-  if (d._keywords && d._keywords.length) {
-    var kwWrap = document.getElementById('kw-wrap');
-    if (kwWrap) {
-      // Remove existing tags
-      kwWrap.querySelectorAll('.tag').forEach(function(t){ t.remove(); });
-      d._keywords.forEach(function(kw) {
-        if (!kw) return;
-        var tag = document.createElement('span');
-        tag.className = 'tag';
-        tag.innerHTML = kw + '<span onclick="removeTag(this,event)" style="margin-left:5px;cursor:pointer;opacity:.6">×</span>';
-        kwWrap.insertBefore(tag, kwWrap.querySelector('#kw-inp') || kwWrap.firstChild);
-      });
+  window.scGetAICoaching = async function() {
+    var calls = scLoadCalls();
+    var btn = document.getElementById('sc-coaching-btn');
+    var outputEl = document.getElementById('sc-coaching-output');
+    var textEl   = document.getElementById('sc-coaching-text');
+    if (!calls.length) {
+      alert('Log at least one sales call first — the AI coaches from your actual data, not assumptions.');
+      return;
     }
-  }
+    if (btn) { btn.textContent = '⏳ Analysing your calls...'; btn.disabled = true; }
+    if (outputEl) outputEl.style.display = 'block';
+    if (textEl) textEl.textContent = 'Analysing your sales patterns...';
 
-  // Restore enriched AI data
-  if (d._avatarData)   window._avatarData   = d._avatarData;
-  if (d._aiAvatarData) window._aiAvatarData  = d._aiAvatarData;
+    var inp   = window._boardroomIntel && window._boardroomIntel.inputs || {};
+    var price = inp.price || window._appliedPrice || 2000;
+    var niche = inp.niche || window._appliedNiche || 'online business';
+    var closed    = calls.filter(function(c){ return c.outcome==='closed'; });
+    var followups = calls.filter(function(c){ return c.outcome==='followup'; });
+    var lost      = calls.filter(function(c){ return c.outcome==='lost'; });
+    var closeRate = calls.length > 0 ? Math.round((closed.length/calls.length)*100) : 0;
+    var objCount  = {};
+    calls.forEach(function(c){ if(c.objection) objCount[c.objection]=(objCount[c.objection]||0)+1; });
+    var objSummary = Object.entries ? Object.entries(objCount).sort(function(a,b){return b[1]-a[1];}).map(function(e){return e[0]+': '+e[1]+'x';}).join(', ') : '';
+    var recentNotes = calls.slice(-5).map(function(c){ return c.outcome+' | '+(c.objection||'no objection')+' | '+(c.notes||'no notes'); }).join('\n');
+    var bizIntel = window.buildBizIntelContext ? window.buildBizIntelContext() : '';
 
-  if (typeof window.applyAll === 'function') setTimeout(window.applyAll, 200);
-  if (typeof window._updateNicheGoalLabel === 'function') setTimeout(function(){ window._updateNicheGoalLabel(d.niche||''); }, 250);
-  return true;
-};
-
-window._eosDeleteAudience = function(audienceId) {
-  var audiences = window._eosGetSavedAudiences().filter(function(a){ return a.id !== audienceId; });
-  localStorage.setItem('eos_saved_audiences', JSON.stringify(audiences));
-};
-
-window._eosShowSavedAudiencesPanel = function() {
-  var existing = document.getElementById('_eos_audiences_modal');
-  if (existing) { existing.remove(); return; }
-
-  var audiences = window._eosGetSavedAudiences();
-
-  var audienceRows = audiences.length === 0
-    ? '<div style="text-align:center;padding:2rem 1rem;color:var(--dimmer);font-size:12px;line-height:1.7">No saved audiences yet.<br>Fill in your Ideal Customer profile and click<br><strong style="color:var(--white)">💾 Save This Audience</strong> to save it.</div>'
-    : audiences.map(function(a) {
-        var d   = new Date(a.savedAt);
-        var dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
-        return '<div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
-          + '<div style="flex:1;min-width:120px">'
-          + '<div style="font-size:13px;font-weight:700;color:var(--white)">' + a.name + '</div>'
-          + '<div style="font-size:10px;color:var(--dimmer);margin-top:2px">'+(a.job||'—')+' · Saved '+dateStr+'</div>'
-          + '</div>'
-          + '<button onclick="window._eosLoadAudience(\''+a.id+'\');document.getElementById(\'_eos_audiences_modal\').remove();window._eosShowLoadedToast(\''+a.name.replace(/'/g,"\\'")+'\ loaded!\',\'🎯\')" style="padding:7px 14px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Load</button>'
-          + '<button onclick="if(confirm(\'Delete \'+ \''+a.name.replace(/'/g,"\\'")+'\'?\')){'
-              + 'window._eosDeleteAudience(\''+a.id+'\');'
-              + 'this.closest(\'[style*=border-radius]\').remove();'
-              + '}" style="padding:7px 12px;background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-size:11px;font-weight:700;cursor:pointer">🗑</button>'
-          + '</div>';
-      }).join('');
-
-  var modal = document.createElement('div');
-  modal.id = '_eos_audiences_modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;display:flex;align-items:center;justify-content:center;padding:1rem;backdrop-filter:blur(8px)';
-  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
-
-  modal.innerHTML = '<div style="background:linear-gradient(145deg,#13112e,#0e0c24);border:1px solid rgba(78,204,163,.25);border-radius:20px;max-width:520px;width:100%;max-height:85vh;overflow-y:auto">'
-    + '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#13112e;z-index:1">'
-    + '<div><div style="font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);font-weight:900;margin-bottom:2px">Your Saved Audiences</div>'
-    + '<div style="font-size:16px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white)">'+audiences.length+' audience'+(audiences.length!==1?'s':'')+' saved</div></div>'
-    + '<button onclick="document.getElementById(\'_eos_audiences_modal\').remove()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:16px;cursor:pointer">×</button></div>'
-    + '<div style="padding:1.25rem 1.5rem;display:flex;flex-direction:column;gap:8px">'+audienceRows+'</div>'
-    + '<div style="padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,.07);position:sticky;bottom:0;background:#13112e">'
-    + '<div style="display:flex;gap:8px;align-items:center">'
-    + '<input id="_eos_aud_save_name" placeholder="Name this audience (optional)…" style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;color:var(--white);font-size:12px;font-family:Inter,sans-serif;outline:none"/>'
-    + '<button onclick="var n=document.getElementById(\'_eos_aud_save_name\').value.trim();var saved=window._eosSaveCurrentAudience(n||undefined);window._eosShowLoadedToast(saved.name+\' saved!\',\'🎯\');document.getElementById(\'_eos_audiences_modal\').remove();" style="padding:9px 18px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:#0a1628;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap">💾 Save Now</button>'
-    + '</div>'
-    + '<div style="font-size:10px;color:var(--dimmer);margin-top:6px">Saves your complete audience profile — job, pain, fear, transformation, goals, keywords. Load it in seconds on any device.</div>'
-    + '</div></div>';
-
-  document.body.appendChild(modal);
-};
-
-/* ── Inject Save/Load Audience buttons into the Avatar page ── */
-window._eosInjectAudienceButtons = function() {
-  if (document.getElementById('_eos_audience_mgr_btns')) return;
-  var genBtn = document.querySelector('.gen-av-btn');
-  if (!genBtn) return;
-  var wrap = document.createElement('div');
-  wrap.id = '_eos_audience_mgr_btns';
-  wrap.style.cssText = 'display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap';
-  wrap.innerHTML = '<button onclick="window._eosShowSavedAudiencesPanel()" style="flex:1;padding:10px 14px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">📂 My Saved Audiences</button>'
-    + '<button onclick="var s=window._eosSaveCurrentAudience();window._eosShowLoadedToast(s.name+\' saved!\',\'🎯\')" style="flex:1;padding:10px 14px;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.18);border-radius:10px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">💾 Save This Audience</button>';
-  genBtn.parentNode.insertBefore(wrap, genBtn);
-};
-
-/* ── Auto-save audience when niche changes (same as offers) ── */
-window._eosWatchAudienceNicheChange = function() {
-  var nicheEl = document.getElementById('niche');
-  if (!nicheEl || nicheEl._eosAudienceWatcher) return;
-  nicheEl._eosAudienceWatcher = true;
-  nicheEl.addEventListener('change', function() {
-    // Auto-save current audience before niche switch if it has data
-    var hasAudienceData = ['av_job','av_current','av_fear','av_transformation'].some(function(id){
-      var el=document.getElementById(id); return el&&el.value.trim().length>2;
-    });
-    if (hasAudienceData && window._eosLastNiche && window._eosLastNiche !== this.value) {
-      var saved = window._eosSaveCurrentAudience();
-      window._eosShowLoadedToast && window._eosShowLoadedToast('"'+saved.name+'" audience auto-saved!', '💾');
-    }
-  });
-};
-
-/* ── Boot: inject buttons when avatar page is navigated to ── */
-(function _eosAudienceBoot() {
-  function wireAudiencePage() {
-    window._eosInjectAudienceButtons && window._eosInjectAudienceButtons();
-    window._eosWatchAudienceNicheChange && window._eosWatchAudienceNicheChange();
-  }
-  // Hook into showPage
-  var _origShowPage = window.showPage;
-  if (_origShowPage && !_origShowPage._audienceWired) {
-    window.showPage = function(page, nav) {
-      _origShowPage.apply(this, arguments);
-      if (page === 'avatar') setTimeout(wireAudiencePage, 250);
-    };
-    window.showPage._audienceWired = true;
-  }
-  // Also fire on load in case avatar is the active page
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(wireAudiencePage, 600); });
-  } else {
-    setTimeout(wireAudiencePage, 600);
-  }
-})();
-
-
-/* ── Mindset Reset — reveal nav after applyAll ── */
-(function _eosMindsetNavReveal() {
-  function wireReveal() {
-    var _origApply = window.applyAll;
-    if (_origApply && !_origApply._mindsetWired) {
-      window.applyAll = function() {
-        _origApply.apply(this, arguments);
-        var navMindset = document.getElementById('nav-mindset');
-        if (navMindset) navMindset.style.display = '';
-      };
-      window.applyAll._mindsetWired = true;
-    }
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wireReveal);
-  else setTimeout(wireReveal, 600);
-})();
-
-/* ── runMindsetReframe — calls /api/mindset ── */
-window.runMindsetReframe = async function() {
-  var q1 = (document.getElementById('mindset_q1') || {}).value || '';
-  var q2 = (document.getElementById('mindset_q2') || {}).value || '';
-  var q3 = (document.getElementById('mindset_q3') || {}).value || '';
-  var warn = document.getElementById('mindset-validation-warn');
-  var missing = [];
-  if (q1.trim().length < 10) missing.push('Question 1');
-  if (q2.trim().length < 10) missing.push('Question 2');
-  if (q3.trim().length < 10) missing.push('Question 3');
-  if (missing.length) {
-    if (warn) { warn.style.display = 'block'; warn.textContent = 'Please complete: ' + missing.join(', '); }
-    return;
-  }
-  if (warn) warn.style.display = 'none';
-  var btn = document.getElementById('mindset-build-btn');
-  var out = document.getElementById('mindset-output');
-  var cont = document.getElementById('mindset-continue-wrap');
-  btn.disabled = true; btn.textContent = 'Reading your beliefs...';
-  try {
-    var res = await fetch(window.location.origin + '/api/mindset', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q1: q1, q2: q2, q3: q3, target: window._appliedTarget || '', niche: window._appliedNiche || '' })
-    });
-    var data = await res.json();
-    if (!res.ok || data.error) throw new Error(data.error || 'Server error');
-    var reframe = data.reframe || '';
-    var sections = [
-      { key: 'WHAT I HEAR YOU SAYING',         color: 'var(--teal)'   },
-      { key: 'THE TRUTH ABOUT WHERE YOU ARE',   color: 'var(--purple)' },
-      { key: 'THE ONE BELIEF TO INSTALL TODAY', color: 'var(--yellow)' },
-      { key: 'YOUR PERMISSION SLIP',            color: 'var(--orange)' },
-    ];
-    var parsed = sections.map(function(s, i) {
-      var next = sections[i + 1];
-      var start = reframe.indexOf('**' + s.key + '**');
-      var end   = next ? reframe.indexOf('**' + next.key + '**') : reframe.length;
-      var text  = start >= 0 ? reframe.slice(start + s.key.length + 4, end).trim() : '';
-      return { label: s.key, text: text, color: s.color };
-    });
-    out.style.display = 'block';
-    out.innerHTML = '<div style="background:linear-gradient(145deg,rgba(108,99,255,.1),rgba(108,99,255,.04));border:1px solid rgba(108,99,255,.3);border-radius:16px;overflow:hidden">'
-      + '<div style="height:3px;background:linear-gradient(90deg,var(--purple),var(--teal))"></div>'
-      + '<div style="padding:1.5rem">'
-      + parsed.map(function(s, i) {
-          return '<div style="' + (i > 0 ? 'border-top:1px solid rgba(255,255,255,.06);padding-top:16px;margin-top:16px;' : '') + '">'
-            + '<div style="font-size:9px;font-weight:900;color:' + s.color + ';text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px">' + s.label + '</div>'
-            + '<div style="font-size:14px;color:var(--muted);line-height:1.85">' + (s.text || '') + '</div></div>';
-        }).join('')
-      + '<div style="margin-top:20px;display:inline-flex;align-items:center;gap:6px;background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.2);border-radius:50px;padding:5px 14px;font-size:10px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">✓ Mindset Reset Complete</div>'
-      + '</div></div>';
-    cont.style.display = 'block';
-    cont.style.animation = 'pageIn .3s ease forwards';
-    window._mindsetData = { q1: q1, q2: q2, q3: q3, reframe: reframe, completedAt: Date.now() };
-    try { localStorage.setItem('eos_mindset', JSON.stringify(window._mindsetData)); } catch(e) {}
-    var navMindset = document.getElementById('nav-mindset');
-    if (navMindset) { navMindset.classList.add('done'); navMindset.classList.remove('next-up'); }
-    btn.textContent = '✓ Reframe Complete — Read Above';
-  } catch(err) {
-    btn.disabled = false; btn.textContent = '🧠 Break My Limits & Build My Mindset →';
-    if (out) { out.style.display = 'block'; out.innerHTML = '<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:12px;padding:1rem;text-align:center;font-size:12px;color:var(--red)">⚠️ ' + (err.message || 'Something went wrong') + '<br><br><button onclick="window.runMindsetReframe()" style="padding:8px 20px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:8px;color:var(--purple);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Try Again</button></div>'; }
-  }
-};
-
-/* ── Restore mindset on page load ── */
-(function() {
-  function restore() {
     try {
-      var saved = localStorage.getItem('eos_mindset');
-      if (!saved) return;
-      var d = JSON.parse(saved);
-      window._mindsetData = d;
-      if (d.q1 && document.getElementById('mindset_q1')) document.getElementById('mindset_q1').value = d.q1;
-      if (d.q2 && document.getElementById('mindset_q2')) document.getElementById('mindset_q2').value = d.q2;
-      if (d.q3 && document.getElementById('mindset_q3')) document.getElementById('mindset_q3').value = d.q3;
-    } catch(e) {}
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', restore);
-  else setTimeout(restore, 400);
-})();
-
-/* ── AI VIDEO STUDIO — Tab navigation (works standalone + with HeyGen) ── */
-window.avsShowTab = function(tab) {
-  var tabs = ['clone', 'build', 'translate', 'library'];
-  tabs.forEach(function(t) {
-    var panel = document.getElementById('avs-tab-' + t);
-    var btn   = document.querySelector('[onclick*="avsShowTab(\'' + t + '\'"]') ||
-                document.querySelector('.avs-tab-btn[data-tab="' + t + '"]');
-    if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
-    if (btn) {
-      btn.style.background  = t === tab ? 'rgba(108,99,255,.15)' : 'rgba(255,255,255,.04)';
-      btn.style.borderColor = t === tab ? 'rgba(108,99,255,.35)' : 'rgba(255,255,255,.08)';
-      btn.style.color       = t === tab ? '#a089ff'              : 'var(--dim)';
-    }
-  });
-  // If HeyGen integration JS is loaded, call its version too
-  if (window._avsShowTabNative && typeof window._avsShowTabNative === 'function') {
-    window._avsShowTabNative(tab);
-  }
-  // Auto-load content for tab
-  // Only call if it is a real implementation, not a stub placeholder
-  var _isReal = function(fn) { return typeof fn === 'function' && !fn._isStub; };
-  if (tab === 'library'  && _isReal(window.avsLoadMyAvatarGroups)) avsLoadMyAvatarGroups();
-  if (tab === 'build' && _isReal(window.avsLoadAvatars))        avsLoadAvatars();
-  if (tab === 'clone'    && _isReal(window.avsLoadVoices))         avsLoadVoices();
-};
-
-/* ── File input handlers — stubs that delegate to HeyGen layer ── */
-window.avsHandleVideoFile = function(input) {
-  if (window._avsHandleVideoFileNative) return window._avsHandleVideoFileNative(input);
-  var label = document.getElementById('avs-upload-label');
-  if (label && input.files && input.files[0]) label.textContent = input.files[0].name;
-};
-window.avsHandleGenPhoto = function(input) {
-  if (window._avsHandleGenPhotoNative) return window._avsHandleGenPhotoNative(input);
-  var preview = document.getElementById('avs-gen-photo-preview');
-  var wrap    = document.getElementById('avs-gen-photo-preview-wrap');
-  var icon    = document.getElementById('avs-gen-photo-icon');
-  if (input.files && input.files[0] && preview) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      preview.src = e.target.result;
-      if (wrap)  wrap.style.display  = 'block';
-      if (icon)  icon.style.display  = 'none';
-    };
-    reader.readAsDataURL(input.files[0]);
-  }
-};
-window.avsOnAvatarChange = function() {
-  if (window._avsOnAvatarChangeNative) return window._avsOnAvatarChangeNative();
-  var sel     = document.getElementById('avs-avatar-select');
-  var preview = document.getElementById('avs-avatar-preview-wrap');
-  if (sel && sel.value && preview) preview.style.display = 'flex';
-};
-
-
-/* ── Per-tab regeneration — handled by the primary brRegenerateTab above ── */
-/* The primary implementation at line ~23941 uses direct brCallAI_* calls and
-   correctly handles all tabs including war-plan and funnel-strategy. */
-/* ── EOS Intelligence Layer — injected inline ── */
-/* (Normally served from /eos-intelligence-layer.js — inline here for single-file deploy) */
-(function EOS_INTELLIGENCE() {
-  'use strict';
-
-  window._eosUserId = (function() {
-    var id = localStorage.getItem('eos_user_id');
-    if (!id) { id = 'eos_' + Date.now() + '_' + Math.random().toString(36).slice(2,9); localStorage.setItem('eos_user_id', id); }
-    return id;
-  })();
-
-  // Safe fetch — returns parsed JSON or null. Never throws.
-  // Checks Content-Type before parsing so an HTML 404/500 page does not crash things.
-  async function _eosFetch(url, options) {
-    try {
-      var res = await fetch(url, options);
-      var ct  = res.headers.get('content-type') || '';
-      if (!ct.includes('application/json')) {
-        // Route returned HTML — not deployed yet or server error
-        console.warn('[EOS] Route ' + url.split('?')[0] + ' returned non-JSON (' + res.status + '). Is the API deployed?');
-        return null;
-      }
-      var json = await res.json();
-      if (!res.ok) {
-        console.warn('[EOS] Route error:', json.error || res.status);
-        return null;
-      }
-      return json;
-    } catch(e) {
-      console.warn('[EOS] Fetch failed for', url.split('?')[0] + ':', e.message);
-      return null;
-    }
-  }
-
-  window.eosMemory = {
-    async load() {
-      var json = await _eosFetch('/api/memory?userId=' + window._eosUserId);
-      if (json && json.data) { window._eosMemory = json.data; _eosApplyMemory(json.data); }
-    },
-    async savePlan(plan) {
-      _eosFetch('/api/memory', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: window._eosUserId,
-          action: 'save_plan',
-          data: {
-            plan:       Object.assign({}, plan, { _inputs: typeof brCollectInputs === 'function' ? brCollectInputs() : {} }),
-            avatarData: window._avatarData || null
-          }
-        })
+      var resp = await callAPI('claude', {
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1200,
+        system: 'You are an elite sales coach who has trained high-ticket closers. You give specific, actionable coaching based on real call data — not generic sales tips. ' + bizIntel,
+        messages: [{
+          role: 'user',
+          content: 'Analyse my sales call data and give me specific, actionable coaching to improve my close rate.\n\n'
+            + 'Offer: $' + price + ' in ' + niche + '\n'
+            + 'Total calls: ' + calls.length + '\n'
+            + 'Closed: ' + closed.length + ' (' + closeRate + '% close rate)\n'
+            + 'Follow-ups pending: ' + followups.length + '\n'
+            + 'Lost: ' + lost.length + '\n'
+            + 'Objection patterns: ' + (objSummary || 'none logged') + '\n'
+            + 'Recent call notes:\n' + recentNotes + '\n\n'
+            + 'Give me:\n'
+            + '1. The single biggest pattern you see in my losses\n'
+            + '2. The exact reframe or script I should use to handle my top objection\n'
+            + '3. Three specific things to change in my next call\n'
+            + '4. An honest assessment of whether my close rate is where it should be at this price point\n\n'
+            + 'Be direct. No fluff. This person needs actionable coaching, not encouragement.'
+        }]
       });
-    },
-    async weeklyCheckin(data) {
-      return _eosFetch('/api/adapt', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: window._eosUserId, checkin: data })
-      });
+      var text = resp && resp.content && resp.content[0] && resp.content[0].text || 'No response — try again.';
+      if (textEl) textEl.textContent = text;
+    } catch(err) {
+      if (textEl) textEl.textContent = 'Could not connect to AI coaching — check your connection and try again.';
     }
+    if (btn) { btn.textContent = '🧠 Get AI Sales Coaching'; btn.disabled = false; }
   };
-  function _eosApplyMemory(memory) {
-    if (!memory) return;
-    if (memory.avatarData && !window._avatarData) window._avatarData = memory.avatarData;
-    if (memory.currentPlan && !window._boardroomIntel) {
-      var intel = _eosBuildIntel(memory.currentPlan, memory.currentPlan._inputs || {});
-      window._boardroomIntel = intel;
-      if (typeof brActivateGlobalIntelligence === 'function') brActivateGlobalIntelligence(intel);
-    }
-    if ((memory.currentWeek || 1) > 1) _eosInjectWeekBadge(memory.currentWeek, memory.totalRevenue);
-  }
-  var _origActivate = window.brActivateGlobalIntelligence;
-  window.brActivateGlobalIntelligence = function(intel) {
-    if (intel && intel.plan) intel = _eosBuildIntel(intel.plan, intel.inputs || {});
-    if (typeof _origActivate === 'function') _origActivate(intel);
-  };
-  function _eosBuildIntel(plan, inp) {
-    return {
-      generatedAt: plan.generatedAt || new Date().toISOString(), inputs: inp, plan: plan,
-      architect:     { positioningStatement: plan.positioningStatement || '', dominanceAngle: plan.dominanceAngle || '' },
-      offerStack:    { rebuiltOfferName: inp.offerName||'', coreTransformation: inp.transformation||'', rebuiltGuarantee: inp.guarantee||'', pricingJustification: 'Results-based at $'+(inp.price||''), signatureFramework: { name: inp.system||plan.uniqueMechanism||'' }, valueStack:[], totalValue:'' },
-      copyVault:     { dmOpeners: plan.dmOpeners||[], hooks: plan.week1ContentHooks||[], emailSubjects: plan.emailSubjects||[], headlines: plan.headlines||[], vslOpeningScript: plan.vslOpener||'', closingScript: plan.closingScript||'' },
-      warPlan:       { week1: plan.week1||{}, week2: plan.week2||{}, week3: plan.week3||{}, week4: plan.week4||{} },
-      contentEngine: { pillars: plan.contentPillars||[], hooks: plan.week1ContentHooks||[], days: (plan.week1ContentHooks||[]).map(function(h,i){ return { day:i+1, theme:h, reelScript:h }; }) },
-    };
-  }
-  var _origRender = window.brRenderPlan;
-  window.brRenderPlan = function(plan, inp, salesNeeded) {
-    if (typeof _origRender === 'function') _origRender.apply(this, arguments);
-    window.eosMemory.savePlan(Object.assign({}, plan, { _inputs: inp }));
-  };
-  function _eosInjectWeekBadge(week, totalRevenue) {
-    if (document.getElementById('_eos_week_badge')) return;
-    var topbar = document.querySelector('.content-topbar');
-    if (!topbar) return;
-    var badge = document.createElement('div');
-    badge.id = '_eos_week_badge';
-    badge.style.cssText = 'display:flex;align-items:center;gap:8px;padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:50px;cursor:pointer';
-    badge.onclick = function() { window._eosOpenCheckinModal && window._eosOpenCheckinModal(); };
-    badge.innerHTML = '<span style="font-size:10px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif;text-transform:uppercase;letter-spacing:.5px">Week '+week+'</span><span style="font-size:10px;color:var(--dim)">$'+(totalRevenue||0).toLocaleString()+' earned</span>';
-    topbar.appendChild(badge);
-  }
-  function _eosBoot() {
-    window.eosMemory.load();
-  }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _eosBoot);
-  else setTimeout(_eosBoot, 800);
-})();
+
 </script>
 </body>
 </html>
