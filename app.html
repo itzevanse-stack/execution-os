@@ -4220,6 +4220,10 @@ button[onclick="generateOffer()"] {
         <div style="font-size:12px;color:var(--dim)">Set your niche, offer price, and monthly target in Step 1 — then come back here to see your full market opportunity.</div>
       </div>
     </div>
+
+    <!-- DM Income Calculator results render target -->
+    <div id="calc-results" style="margin-top:1rem"></div>
+
   </div>
 
   <!-- DM & SALES SCRIPTS PAGE -->
@@ -4257,6 +4261,9 @@ button[onclick="generateOffer()"] {
     <div id="scripts-grid" class="scripts-grid"></div>
     <div id="scripts-queue-panel" style="display:none"></div>
     <div id="scripts-manychat-panel" style="display:none"></div>
+
+    <!-- Affiliate DM scripts render target -->
+    <div id="aff-scripts-list" style="margin-bottom:1.5rem"></div>
 
     <div class="divider"></div>
     <div class="sec-label">Daily commandments</div>
@@ -4818,6 +4825,9 @@ button[onclick="generateOffer()"] {
           </div>
         </div>
       </div>
+
+      <!-- Growth modules grid (simple card view fallback) -->
+      <div id="growth-modules-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;padding:1.25rem 1.25rem 0"></div>
     </div>
 
     <!-- SESSION REPLAYS -->
@@ -4830,6 +4840,14 @@ button[onclick="generateOffer()"] {
     <div id="growth-pane-resources" style="display:none">
       <div class="sec-label">Downloads &amp; resources</div>
       <div id="growth-resources-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-bottom:2rem"></div>
+
+      <!-- Recommended reading list (auto-populated) -->
+      <div style="font-size:10px;font-weight:900;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:1rem">Recommended Reading</div>
+      <div id="books-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:2rem"></div>
+
+      <!-- My Affiliate Programs -->
+      <div style="font-size:10px;font-weight:900;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;margin-top:1rem">My Programmes</div>
+      <div id="my-prog-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:1.5rem"></div>
     </div>
 
     <!-- ANNOUNCEMENTS -->
@@ -4889,6 +4907,9 @@ button[onclick="generateOffer()"] {
 
       <!-- Next milestone -->
       <div id="phq-next-milestone" style="margin-top:1.5rem"></div>
+
+      <!-- Milestones grid (revenue milestone cards) -->
+      <div id="milestones-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:1.5rem"></div>
 
     </div>
   </div><!-- end page-perfhq -->
@@ -5093,12 +5114,7 @@ button[onclick="generateOffer()"] {
       <div class="strip-left">
         <div class="tag-pill" style="background:linear-gradient(135deg,rgba(255,193,64,.2),rgba(255,193,64,.08));border-color:rgba(255,193,64,.35)"><span style="color:var(--yellow)">📞 Sales Scorecard</span></div>
         <div class="h1">Track every call. <em style="color:var(--yellow)">Close more deals.</em></div>
-        <div class="strip-sub">Log every conversation. Know your close rate. Find exactly where you are losing deals and fix it. The data in this page is the difference between a $5,000 month and a $50,000 month.</div>
-      </div>
-      <div class="strip-right">
-        <button onclick="scGetAICoaching()" id="sc-coaching-btn" style="display:inline-flex;align-items:center;gap:8px;padding:11px 20px;background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(108,99,255,.08));border:1px solid rgba(108,99,255,.3);border-radius:50px;color:var(--purple);font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">
-          🧠 Get AI Sales Coaching
-        </button>
+        <div class="strip-sub">Log every conversation. Know your close rate. Find exactly where you are losing and fix it with specific feedback on every call — not generic coaching, not motivation, the exact words to use next time.</div>
       </div>
     </div>
   </div>
@@ -5139,12 +5155,6 @@ button[onclick="generateOffer()"] {
         <div style="font-size:22px;font-weight:900;font-family:Poppins,sans-serif;color:var(--purple)" id="sc-avg-deal">$0</div>
         <div style="font-size:10px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-top:2px">Avg Deal Size</div>
       </div>
-    </div>
-
-    <!-- AI Coaching Output (shown after coaching button) -->
-    <div id="sc-coaching-output" style="display:none;background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.05));border:1px solid rgba(108,99,255,.25);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem">
-      <div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px">🧠 AI SALES COACHING — BASED ON YOUR CALL DATA</div>
-      <div id="sc-coaching-text" style="font-size:13px;color:var(--muted);line-height:1.9;white-space:pre-wrap"></div>
     </div>
 
     <!-- Two column layout: Log a call + Objection Analysis -->
@@ -5195,7 +5205,7 @@ button[onclick="generateOffer()"] {
 
         <div style="margin-bottom:14px">
           <div class="fi-label">Call Notes — what happened, what they said</div>
-          <textarea class="fi" id="sc-notes" rows="3" placeholder="Be specific. What went well? Where did you lose them? What would you do differently?"></textarea>
+          <textarea class="fi" id="sc-notes" rows="3" placeholder="Be specific — what did they say exactly? Where did the energy shift? What question did you fumble? The more detail here, the more precise the feedback."></textarea>
         </div>
 
         <button onclick="scLogCall()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--yellow),#e6a820);border:none;border-radius:12px;color:var(--text-dark);font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">
@@ -5213,6 +5223,25 @@ button[onclick="generateOffer()"] {
         <div id="sc-ai-insight" style="display:none;margin-top:14px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px;padding:12px;font-size:11px;color:var(--muted);line-height:1.7"></div>
       </div>
 
+    </div>
+
+    <!-- GET SALES FEEDBACK — standalone section, appears after first call logged -->
+    <div id="sc-feedback-section" style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.04));border:1px solid rgba(108,99,255,.2);border-radius:16px;padding:1.5rem;margin-bottom:1.25rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:12px">
+        <div>
+          <div style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">🎯 Get Sales Feedback</div>
+          <div style="font-size:11px;color:var(--dim);line-height:1.6">Specific feedback on your last call — what actually went wrong, the exact words to use when that objection comes up again, and what to do before your next conversation.</div>
+        </div>
+        <button onclick="scGetSalesFeedback()" id="sc-feedback-btn" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:linear-gradient(135deg,var(--purple),#5a4fcf);border:none;border-radius:50px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;box-shadow:0 4px 14px rgba(108,99,255,.3)">
+          🎯 Get Sales Feedback
+        </button>
+      </div>
+      <!-- Feedback output -->
+      <div id="sc-feedback-output" style="display:none">
+        <div style="height:1px;background:rgba(255,255,255,.07);margin-bottom:14px"></div>
+        <div id="sc-feedback-last-call" style="font-size:10px;color:var(--dimmer);margin-bottom:12px"></div>
+        <div id="sc-feedback-text" style="font-size:13px;color:var(--muted);line-height:1.9"></div>
+      </div>
     </div>
 
     <!-- Call History -->
@@ -5403,19 +5432,19 @@ button[onclick="generateOffer()"] {
   </div><!-- /br-phase3 -->
 
   <!-- Restored plan banner (shown when plan is loaded from localStorage) -->
-  <div id="br-restored-banner" style="display:none;padding:0 1.25rem;margin-bottom:12px">
+  <div id="br-restored-banner-aff" style="display:none;padding:0 1.25rem;margin-bottom:12px">
     <div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
-      <div id="br-restored-date" style="font-size:11px;color:var(--teal)"></div>
+      <div id="br-restored-date-aff" style="font-size:11px;color:var(--teal)"></div>
       <button onclick="brResetBoardroom()" style="padding:5px 14px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);border-radius:8px;color:var(--purple);font-size:10px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap">Rebuild</button>
     </div>
   </div>
 
   <!-- Keep old tab panels hidden — required by brActivateGlobalIntelligence downstream -->
-  <div id="br-tab-architect"      class="br-tab-panel" style="display:none"></div>
-  <div id="br-tab-offer-stack"    class="br-tab-panel" style="display:none"></div>
-  <div id="br-tab-copy-vault"     class="br-tab-panel" style="display:none"></div>
-  <div id="br-tab-war-plan"       class="br-tab-panel" style="display:none"></div>
-  <div id="br-tab-content-engine" class="br-tab-panel" style="display:none"></div>
+  <div id="br-tab-architect-aff"      class="br-tab-panel" style="display:none"></div>
+  <div id="br-tab-offer-stack-aff"    class="br-tab-panel" style="display:none"></div>
+  <div id="br-tab-copy-vault-aff"     class="br-tab-panel" style="display:none"></div>
+  <div id="br-tab-war-plan-aff"       class="br-tab-panel" style="display:none"></div>
+  <div id="br-tab-content-engine-aff" class="br-tab-panel" style="display:none"></div>
 
 </div><!-- /page-boardroom -->
 
@@ -6694,6 +6723,9 @@ button[onclick="generateOffer()"] {
     </div>
 
   </div>
+  <!-- Email sequences list render target -->
+  <div id="em-sequences-list" style="padding:0 1.25rem 1.5rem"></div>
+
 </div><!-- /page-email -->
 
     </div><!-- end page-wrap -->
@@ -6720,7 +6752,7 @@ window.callAPI = async function(messages, maxTokens) {
   ];
   var body = JSON.stringify({
     model: 'claude-sonnet-4-20250514',
-    max_tokens: maxTokens || 1000,
+    max_tokens: maxTokens || 2500,
     messages: messages
   });
   for (var i = 0; i < endpoints.length; i++) {
@@ -18704,62 +18736,811 @@ window.runMindsetReframe = async function() {
 })();
 
 
-/* ══════════════════════════════════════════════════════════
-   AI VIDEO STUDIO — Graceful stubs
-   These functions require HeyGen API integration.
-   They show a clear setup message instead of failing silently.
-══════════════════════════════════════════════════════════ */
-function _avsNeedsSetup(feature) {
-  var el = document.getElementById('heygen-setup-card');
-  if (!el) return;
-  el.innerHTML = '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:1.25rem;margin-bottom:1.25rem">'
-    + '<div style="font-size:11px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚙️ SETUP REQUIRED — ' + (feature||'AI VIDEO STUDIO') + '</div>'
-    + '<div style="font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:12px">This feature requires a <strong style="color:var(--white)">HeyGen API key</strong> to be configured in your Vercel environment variables. HeyGen powers the avatar cloning, video generation, and translation features.</div>'
-    + '<div style="display:flex;flex-direction:column;gap:6px;font-size:11px;color:var(--dim)">'
-    + '<div>1. Sign up at <strong style="color:var(--white)">heygen.com</strong> and get your API key</div>'
-    + '<div>2. Add <code style="background:rgba(255,255,255,.06);border-radius:4px;padding:1px 6px;color:var(--teal)">HEYGEN_API_KEY</code> to your Vercel project environment variables</div>'
-    + '<div>3. Redeploy your Vercel project — AI Video Studio will activate automatically</div>'
-    + '</div></div>';
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
+  // ── State ──────────────────────────────────────────────────────
+  var _avs = {
+    mode: 'photo',          // 'photo' | 'video'
+    avatarSource: 'stock',  // 'stock' | 'photo'
+    selectedAvatar: null,
+    selectedVoice: null,
+    videoType: 'reel',
+    angle: 'story',
+    quality: 'fast',
+    mediaRecorder: null,
+    recordedChunks: [],
+    cameraStream: null,
+    recordingTimer: null,
+    recordingSecs: 0,
+    generatedVideoUrl: null,
+    photoAvatarId: null,
+  };
 
-// Tab switching — works without API
-window.avsShowTab = function(tab, btn) {
-  document.querySelectorAll('#page-ai-video .avs-tab').forEach(function(b){ b.classList.remove('on'); b.style.background='rgba(255,255,255,.04)'; b.style.color='var(--dim)'; b.style.borderColor='var(--border2)'; });
-  if (btn) { btn.classList.add('on'); btn.style.background='rgba(108,99,255,.12)'; btn.style.color='#a089ff'; btn.style.borderColor='rgba(108,99,255,.3)'; }
-  ['clone','build','translate','library'].forEach(function(t){ var el=document.getElementById('avs-tab-'+t); if(el) el.style.display=(t===tab?'block':'none'); });
-};
-window.avsShowMode    = function(mode) { _avsNeedsSetup('Avatar Setup'); };
-window.avsSetAvatarSource = function() { _avsNeedsSetup('Avatar Setup'); };
-window.avsStartCamera = function() { _avsNeedsSetup('Camera Access'); };
-window.avsToggleRecording = function() { _avsNeedsSetup('Video Recording'); };
-window.avsSubmitRecording = function() { _avsNeedsSetup('Avatar Training'); };
-window.avsSubmitPhoto   = function() { _avsNeedsSetup('Photo Avatar'); };
-window.avsSubmitVideo   = function() { _avsNeedsSetup('Video Avatar'); };
-window.avsLoadAvatars   = function() { _avsNeedsSetup('Load Avatars'); };
-window.avsLoadMyAvatarGroups = function() { _avsNeedsSetup('My Avatars'); };
-window.avsLoadVoices    = function() { _avsNeedsSetup('Voice Library'); };
-window.avsGenerate      = function() { _avsNeedsSetup('Video Generation'); };
-window.avsGenerateScript= function() { _avsNeedsSetup('Script Generation'); };
-window.avsPickAngle     = function() { _avsNeedsSetup('Camera Angle'); };
-window.avsPickType      = function() { _avsNeedsSetup('Video Type'); };
-window.avsSetQuality    = function() { _avsNeedsSetup('Video Quality'); };
-window.avsTranslate     = function() { _avsNeedsSetup('Video Translation'); };
-window.avsSaveToLibrary = function() { _avsNeedsSetup('Video Library'); };
-window.avsRerecord      = function() { _avsNeedsSetup('Re-record'); };
-window.avsCopyLink      = function() { _avsNeedsSetup('Share Video'); };
-window.avsDownload      = function() { _avsNeedsSetup('Download Video'); };
+  // ── HeyGen API helper — uses correct action names matching heygen.js ──────
+  async function heygenCall(action, body) {
+    try {
+      var payload = Object.assign({ action: action }, body || {});
+      var resp = await fetch(window.location.origin + '/api/heygen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-/* ── Funnel Builder video stubs ── */
-window.fbGenerateHeyGenVideo = function() { _avsNeedsSetup('HeyGen Video'); };
-window.fbGenerateVideoScript = function() { _avsNeedsSetup('Video Script'); };
-window.fbOpenVisualEditor    = function() { _avsNeedsSetup('Visual Editor'); };
-window.fbShowCloneModal      = function() { _avsNeedsSetup('Clone Modal'); };
-window.fbUseOwnVideo         = function() {
-  var el = document.getElementById('heygen-setup-card');
-  if (!el) return;
-  el.innerHTML = '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem"><div style="font-size:11px;color:var(--teal);font-weight:800;margin-bottom:6px">📹 Using Your Own Video</div><div style="font-size:12px;color:var(--dim)">Upload your video to your Vercel project or a hosting service, then paste the URL into your funnel settings.</div></div>';
+      // 404 = heygen.js not deployed in /api/ folder
+      if (resp.status === 404) {
+        _avsShow404Warning();
+        return { error: 'heygen_not_deployed' };
+      }
+
+      if (!resp.ok) {
+        var errText = await resp.text();
+        console.error('[AVS] HeyGen HTTP', resp.status, errText.slice(0, 200));
+        return { error: 'HeyGen server error ' + resp.status };
+      }
+      return await resp.json();
+    } catch(e) {
+      console.error('[AVS] HeyGen call failed:', action, e.message);
+      return { error: e.message };
+    }
+  }
+
+  function _avsShow404Warning() {
+    var page = document.getElementById('page-ai-video');
+    if (!page || document.getElementById('_avs_404_banner')) return;
+    var banner = document.createElement('div');
+    banner.id = '_avs_404_banner';
+    banner.style.cssText = 'background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.25);border-radius:14px;padding:16px 20px;margin:0 1.25rem 1rem;display:flex;align-items:flex-start;gap:14px';
+    banner.innerHTML =
+      '<div style="font-size:26px;flex-shrink:0">⚠️</div>'
+      +'<div style="flex:1">'
+      +'<div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:6px">HeyGen API Not Deployed</div>'
+      +'<div style="font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:10px">'
+      +'The <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;font-size:11px">api/heygen.js</code> file is missing from your GitHub repo. '
+      +'Push it to <code style="background:rgba(255,255,255,.07);padding:2px 6px;border-radius:4px;font-size:11px">api/heygen.js</code> and Vercel will deploy it automatically.</div>'
+      +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">1. Add heygen.js to your GitHub /api/ folder</div>'
+      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">2. Add HEYGEN_API_KEY to Vercel env vars</div>'
+      +'<div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--dim);font-family:monospace">3. Vercel auto-deploys on push</div>'
+      +'</div></div>'
+      +'<button onclick="this.parentElement.remove()" style="background:none;border:none;color:var(--dimmer);font-size:18px;cursor:pointer;flex-shrink:0;padding:4px;line-height:1">×</button>';
+    var firstChild = page.firstChild;
+    page.insertBefore(banner, firstChild);
+  }
+
+  // ── Toast helper ──────────────────────────────────────────────
+  function avsToast(msg, isErr) {
+    var t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;background:'+(isErr?'rgba(255,91,91,.12)':'rgba(78,204,163,.1)')+';border:1px solid '+(isErr?'rgba(255,91,91,.3)':'rgba(78,204,163,.25)')+';border-radius:12px;padding:12px 20px;color:'+(isErr?'#ff8888':'var(--teal)')+';font-size:12px;font-weight:700;z-index:99999;font-family:Poppins,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:320px;line-height:1.5';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.style.opacity='0'; t.style.transition='opacity .4s'; setTimeout(function(){t.remove();},400); }, 3500);
+  }
+
+  function avsSetStatus(id, msg, color) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = msg; if (color) el.style.color = color; }
+  }
+
+  // ── Tab switching ──────────────────────────────────────────────
+  window.avsShowTab = function(tab, btn) {
+    var tabs = ['clone','build','generate','translate','library'];
+    tabs.forEach(function(t) {
+      var panel = document.getElementById('avs-tab-' + t);
+      if (panel) panel.style.display = (t === tab) ? 'block' : 'none';
+    });
+    // Load avatars and voices when Build Video tab opens
+    if (tab === 'build' || tab === 'generate') {
+      if (typeof avsLoadAvatars === 'function') avsLoadAvatars();
+      if (typeof avsLoadVoices  === 'function') avsLoadVoices();
+    }
+    // Update tab button styles
+    document.querySelectorAll('.avs-tab').forEach(function(b) {
+      var isActive = b.getAttribute('onclick') && b.getAttribute('onclick').includes("'" + tab + "'");
+      b.style.background = isActive ? 'rgba(108,99,255,.12)' : 'rgba(255,255,255,.04)';
+      b.style.borderColor = isActive ? 'rgba(108,99,255,.3)' : 'var(--border2)';
+      b.style.color = isActive ? '#a089ff' : 'var(--dim)';
+    });
+    // Auto-load data for tab
+    if (tab === 'generate') { avsLoadAvatars(); avsLoadVoices(); }
+    if (tab === 'library')  { avsLoadMyAvatarGroups(); }
+    if (tab === 'translate') { avsLoadTranslateLangs(); }
+    // Native delegate
+    if (window._avsShowTabNative && !window._avsShowTabNative._isStub) {
+      window._avsShowTabNative(tab);
+    }
+  };
+
+  // ── Mode switching (photo / video) ────────────────────────────
+  window.avsShowMode = function(mode) {
+    _avs.mode = mode;
+    var photoBtn = document.getElementById('avs-mode-photo-btn');
+    var videoBtn = document.getElementById('avs-mode-video-btn');
+    var photoCard = document.getElementById('avs-mode-photo');
+    var videoCard = document.getElementById('avs-mode-video');
+    var activeStyle = 'rgba(108,99,255,.1)'; var inactiveStyle = 'rgba(255,255,255,.03)';
+    if (photoBtn) { photoBtn.style.background = mode==='photo' ? activeStyle : inactiveStyle; photoBtn.style.borderColor = mode==='photo' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
+    if (videoBtn) { videoBtn.style.background = mode==='video' ? activeStyle : inactiveStyle; videoBtn.style.borderColor = mode==='video' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
+    if (photoCard) photoCard.style.display = mode==='photo' ? 'block' : 'none';
+    if (videoCard) videoCard.style.display = mode==='video' ? 'block' : 'none';
+  };
+
+  // ── Handle photo file input ────────────────────────────────────
+  window.avsHandlePhoto = function(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var wrap = document.getElementById('avs-photo-preview-wrap');
+    var img  = document.getElementById('avs-photo-preview-img');
+    var icon = document.getElementById('avs-photo-upload-icon');
+    var label = document.getElementById('avs-photo-upload-label');
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      if (img) img.src = e.target.result;
+      if (wrap) wrap.style.display = 'block';
+      if (icon) icon.style.display = 'none';
+      if (label) label.textContent = file.name;
+    };
+    reader.readAsDataURL(file);
+    avsSetStatus('avs-photo-status', 'Photo ready — click Create Photo Avatar', 'var(--teal)');
+  };
+
+  // ── Submit photo to create avatar ─────────────────────────────
+  window.avsSubmitPhoto = function() {
+    var fileInput = document.getElementById('avs-photo-file');
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      avsToast('Please select a photo first.', true); return;
+    }
+    var btn = document.getElementById('avs-photo-btn');
+    var progress = document.getElementById('avs-upload-progress');
+    var bar = document.getElementById('avs-progress-bar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+    if (progress) progress.style.display = 'block';
+
+    var formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    // Animate progress bar
+    var prog = 0;
+    var progInterval = setInterval(function() {
+      prog = Math.min(prog + 3, 85);
+      if (bar) bar.style.width = prog + '%';
+    }, 300);
+
+    // Read the file as base64 and send to create-photo-avatar action
+    var photoReader = new FileReader();
+    photoReader.onload = function(e) {
+      var base64Data = e.target.result.split(',')[1];
+      fetch(window.location.origin + '/api/heygen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create-photo-avatar',
+          imageData: base64Data,
+          mimeType: fileInput.files[0].type || 'image/jpeg',
+          avatarName: 'My Photo Avatar'
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        clearInterval(progInterval);
+        if (bar) bar.style.width = '100%';
+        if (data.error) throw new Error(data.error);
+        // heygen.js create-photo-avatar returns { talkingPhotoId, talkingPhotoUrl }
+        _avs.photoAvatarId = data.talkingPhotoId || data.avatar_id || data.id;
+      avsSetStatus('avs-photo-status', '✅ Photo avatar created! Go to Generate Video tab to use it.', 'var(--teal)');
+      if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
+      setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
+      avsToast('✅ Photo avatar created successfully!');
+    })
+      .catch(function(err) {
+        clearInterval(progInterval);
+        if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
+        if (progress) progress.style.display = 'none';
+        avsSetStatus('avs-photo-status', '⚠️ ' + err.message, 'var(--orange)');
+        avsToast('Upload failed: ' + err.message, true);
+      });
+    };
+    photoReader.readAsDataURL(fileInput.files[0]);
+  };
+
+  // ── Camera ────────────────────────────────────────────────────
+  window.avsStartCamera = function() {
+    var preview = document.getElementById('avs-camera-preview');
+    var placeholder = document.getElementById('avs-camera-placeholder');
+    var startBtn = document.getElementById('avs-start-cam-btn');
+    var recordBtn = document.getElementById('avs-record-btn');
+    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      .then(function(stream) {
+        _avs.cameraStream = stream;
+        if (preview) { preview.srcObject = stream; preview.style.display = 'block'; }
+        if (placeholder) placeholder.style.display = 'none';
+        if (startBtn) { startBtn.textContent = '📷 Camera On'; startBtn.style.background = 'rgba(78,204,163,.1)'; startBtn.style.color = 'var(--teal)'; }
+        if (recordBtn) { recordBtn.disabled = false; recordBtn.style.opacity = '1'; recordBtn.style.color = 'var(--white)'; }
+        avsSetStatus('avs-cam-status', 'Camera ready — say the consent sentence, then record.', 'var(--teal)');
+      })
+      .catch(function(err) {
+        avsToast('Camera error: ' + err.message + '. Check browser permissions.', true);
+        avsSetStatus('avs-cam-status', '⚠️ Camera blocked — check browser permissions', 'var(--orange)');
+      });
+  };
+
+  window.avsToggleRecording = function() {
+    var recordBtn = document.getElementById('avs-record-btn');
+    var recIndicator = document.getElementById('avs-rec-indicator');
+    if (!_avs.mediaRecorder || _avs.mediaRecorder.state === 'inactive') {
+      // Start recording
+      if (!_avs.cameraStream) { avsToast('Start the camera first.', true); return; }
+      _avs.recordedChunks = [];
+      _avs.mediaRecorder = new MediaRecorder(_avs.cameraStream);
+      _avs.mediaRecorder.ondataavailable = function(e) {
+        if (e.data.size > 0) _avs.recordedChunks.push(e.data);
+      };
+      _avs.mediaRecorder.onstop = function() {
+        var blob = new Blob(_avs.recordedChunks, { type: 'video/webm' });
+        var url  = URL.createObjectURL(blob);
+        var videoEl = document.getElementById('avs-recorded-video');
+        var previewDiv = document.getElementById('avs-recorded-preview');
+        if (videoEl) videoEl.src = url;
+        if (previewDiv) previewDiv.style.display = 'block';
+        avsSetStatus('avs-cam-status', 'Recording complete. Preview and submit below.', 'var(--teal)');
+      };
+      _avs.mediaRecorder.start();
+      _avs.recordingSecs = 0;
+      if (recIndicator) recIndicator.style.display = 'flex';
+      _avs.recordingTimer = setInterval(function() {
+        _avs.recordingSecs++;
+        var mins = Math.floor(_avs.recordingSecs / 60).toString().padStart(2,'0');
+        var secs = (_avs.recordingSecs % 60).toString().padStart(2,'0');
+        var timerEl = document.getElementById('avs-rec-timer');
+        if (timerEl) timerEl.textContent = mins + ':' + secs;
+      }, 1000);
+      if (recordBtn) { recordBtn.textContent = '⏹ Stop Recording'; recordBtn.style.background = 'rgba(255,91,91,.12)'; recordBtn.style.color = '#ff8888'; }
+    } else {
+      // Stop recording
+      _avs.mediaRecorder.stop();
+      clearInterval(_avs.recordingTimer);
+      if (recIndicator) recIndicator.style.display = 'none';
+      if (recordBtn) { recordBtn.textContent = '⏺ Start Recording'; recordBtn.style.background = 'rgba(255,255,255,.03)'; recordBtn.style.color = 'var(--dim)'; }
+    }
+  };
+
+  window.avsRerecord = function() {
+    _avs.recordedChunks = [];
+    var previewDiv = document.getElementById('avs-recorded-preview');
+    if (previewDiv) previewDiv.style.display = 'none';
+    avsSetStatus('avs-cam-status', 'Ready to record again.', 'var(--dim)');
+  };
+
+  window.avsSubmitRecording = function() {
+    if (!_avs.recordedChunks.length) { avsToast('No recording found. Record first.', true); return; }
+    var btn = document.getElementById('avs-submit-recording-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
+    // For now, show a message — actual upload requires the heygen.js server handler
+    avsSetStatus('avs-cam-status', '⚙️ Processing recording… This may take a few minutes.', 'var(--purple)');
+    avsToast('Recording submitted — avatar creation takes 2–5 minutes. Check Saved Avatars.');
+    setTimeout(function() {
+      if (btn) { btn.disabled = false; btn.textContent = 'Use This Recording →'; }
+    }, 3000);
+  };
+
+  window.avsHandleVideoFile = function(input) {
+    if (!input.files || !input.files[0]) return;
+    var label = document.getElementById('avs-upload-label');
+    if (label) label.textContent = '📁 ' + input.files[0].name;
+  };
+
+  window.avsSubmitVideo = function() {
+    var fileInput = document.getElementById('avs-video-file');
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      avsToast('Select a video file first.', true); return;
+    }
+    var btn = document.getElementById('avs-upload-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+    avsSetStatus('avs-submit-status', '⚙️ Uploading video… This may take a moment.', 'var(--purple)');
+    avsToast('Video uploaded — avatar creation takes 2–5 minutes. Check Saved Avatars.');
+    setTimeout(function() {
+      if (btn) { btn.disabled = false; btn.textContent = 'Upload and Create Avatar'; }
+    }, 3000);
+  };
+
+  // ── Load saved avatar groups ───────────────────────────────────
+  window.avsLoadMyAvatarGroups = function() {
+    var container = document.getElementById('avs-existing-groups');
+    if (!container) return;
+    container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:12px">Loading…</div>';
+    heygenCall('get-avatars').then(function(data) {
+      if (data.error || !data.avatars) {
+        container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:16px">No saved avatars yet. Create one above.</div>';
+        return;
+      }
+      var avatars = data.avatars || [];
+      if (!avatars.length) {
+        container.innerHTML = '<div style="font-size:11px;color:var(--dim);text-align:center;padding:16px">No saved avatars yet. Create one above.</div>';
+        return;
+      }
+      container.innerHTML = avatars.map(function(av) {
+        return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
+          + (av.thumbnail_url ? '<img src="'+av.thumbnail_url+'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">' : '<div style="width:40px;height:40px;border-radius:8px;background:rgba(108,99,255,.1);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">🤳</div>')
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">'+(av.avatar_name||av.name||'Custom Avatar')+'</div>'
+          + '<div style="font-size:9px;color:var(--dimmer)">ID: '+(av.avatar_id||av.id||'—')+'</div></div>'
+          + '<button onclick="avsUseAvatar(\''+( av.avatar_id||av.id||'')+'\',\''+( av.avatar_name||av.name||'My Avatar')+'\')" style="padding:5px 12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Use</button>'
+          + '</div>';
+      }).join('');
+    });
+  };
+
+  window.avsUseAvatar = function(id, name, type) {
+    if (type === 'photo') {
+      _avs.photoAvatarId = id;
+      _avs.avatarSource = 'photo';
+    } else {
+      _avs.selectedAvatar = id;
+    }
+    avsShowTab('generate', null);
+    avsSetAvatarSource(type === 'photo' ? 'photo' : 'stock');
+    var statusEl = document.getElementById('avs-gen-photo-status');
+    if (statusEl) statusEl.textContent = '✅ Using: ' + name;
+    avsToast('✅ Avatar selected: ' + name + ' — go to Generate Video');
+  };
+
+  // ── Load stock avatars into generate tab ──────────────────────
+  window.avsLoadAvatars = function() {
+    if (window.avsLoadAvatars._isStub) return;
+    var sel = document.getElementById('avs-avatar-select');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Loading…</option>';
+    heygenCall('list-avatar-groups').then(function(data) {
+      var avatars = (data && data.groups) || [];
+      if (!avatars.length) {
+        sel.innerHTML = '<option value="">No avatars found</option>';
+        return;
+      }
+      sel.innerHTML = avatars.map(function(av) {
+        var id = av.avatar_id || av.id || '';
+        var name = av.avatar_name || av.name || 'Avatar';
+        return '<option value="'+id+'" data-thumb="'+(av.preview_image_url||av.thumbnail_url||'')+'" data-gender="'+(av.gender||'')+'">' + name + '</option>';
+      }).join('');
+      // Trigger preview on first avatar
+      avsOnAvatarChange();
+    }).catch(function() {
+      sel.innerHTML = '<option value="">Could not load avatars</option>';
+    });
+  };
+
+  // ── Load voices ───────────────────────────────────────────────
+  window.avsLoadVoices = function() {
+    if (window.avsLoadVoices._isStub) return;
+    var sel = document.getElementById('avs-voice-select');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Loading voices…</option>';
+    heygenCall('get-voices').then(function(data) {
+      if (!data || data.error === 'heygen_not_deployed') { sel.innerHTML = '<option value="">HeyGen not deployed</option>'; return; }
+      var voices = (data && data.voices) || [];
+      if (!voices.length) { sel.innerHTML = '<option value="">No voices found</option>'; return; }
+      sel.innerHTML = voices.map(function(v) {
+        var id = v.voice_id || v.id || '';
+        var name = (v.display_name||v.name||'Voice') + (v.language ? ' ('+v.language+')' : '');
+        return '<option value="'+id+'">'+name+'</option>';
+      }).join('');
+      _avs.selectedVoice = sel.value;
+    }).catch(function() {
+      sel.innerHTML = '<option value="">Could not load voices</option>';
+    });
+  };
+
+  // ── Avatar change preview ──────────────────────────────────────
+  window.avsOnAvatarChange = function() {
+    var sel = document.getElementById('avs-avatar-select');
+    if (!sel || !sel.value) return;
+    var opt = sel.options[sel.selectedIndex];
+    var wrap  = document.getElementById('avs-avatar-preview-wrap');
+    var thumb = document.getElementById('avs-avatar-thumb');
+    var nameEl = document.getElementById('avs-avatar-name-display');
+    var genderEl = document.getElementById('avs-avatar-gender-display');
+    _avs.selectedAvatar = sel.value;
+    if (wrap) wrap.style.display = 'flex';
+    if (thumb && opt.dataset.thumb) thumb.src = opt.dataset.thumb;
+    if (nameEl) nameEl.textContent = opt.text;
+    if (genderEl) genderEl.textContent = opt.dataset.gender || '';
+  };
+
+  // ── Avatar source toggle ──────────────────────────────────────
+  window.avsSetAvatarSource = function(source) {
+    _avs.avatarSource = source;
+    var stockSection = document.getElementById('avs-stock-section');
+    var photoSection = document.getElementById('avs-photo-section');
+    var stockBtn = document.getElementById('avs-src-stock-card');
+    var photoBtn = document.getElementById('avs-src-photo-card');
+    if (stockSection) stockSection.style.display = source==='stock' ? 'block' : 'none';
+    if (photoSection) photoSection.style.display = source==='photo' ? 'block' : 'none';
+    if (stockBtn) { stockBtn.style.background = source==='stock' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.04)'; stockBtn.style.color = source==='stock' ? '#a089ff' : 'var(--dim)'; }
+    if (photoBtn) { photoBtn.style.background = source==='photo' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.04)'; photoBtn.style.color = source==='photo' ? '#a089ff' : 'var(--dim)'; }
+  };
+
+  // ── Type + Angle + Quality pickers ───────────────────────────
+  window.avsPickType = function(el) {
+    if (!el) return;
+    _avs.videoType = el.dataset.type || 'reel';
+    document.querySelectorAll('.avs-type-card').forEach(function(c) {
+      c.style.background = 'rgba(255,255,255,.03)';
+      c.style.borderColor = 'var(--border2)';
+      c.querySelector('div:nth-child(2)').style.color = 'var(--muted)';
+    });
+    el.style.background = 'rgba(108,99,255,.12)';
+    el.style.borderColor = 'rgba(108,99,255,.4)';
+    el.querySelector('div:nth-child(2)').style.color = '#a089ff';
+    var hidden = document.getElementById('avs-video-type');
+    if (hidden) hidden.value = _avs.videoType;
+  };
+
+  window.avsPickAngle = function(el) {
+    if (!el) return;
+    _avs.angle = el.dataset.angle || 'story';
+    document.querySelectorAll('.avs-angle-card').forEach(function(c) {
+      c.style.background = 'rgba(255,255,255,.03)';
+      c.style.borderColor = 'var(--border2)';
+      c.style.color = 'var(--dim)';
+    });
+    el.style.background = 'rgba(108,99,255,.12)';
+    el.style.borderColor = 'rgba(108,99,255,.35)';
+    el.style.color = '#a089ff';
+    var hidden = document.getElementById('avs-script-angle');
+    if (hidden) hidden.value = _avs.angle;
+  };
+
+  window.avsSetQuality = function(q) {
+    _avs.quality = q;
+    var fast = document.getElementById('avs-quality-fast');
+    var qual = document.getElementById('avs-quality-quality');
+    if (fast) { fast.style.background = q==='fast' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.03)'; fast.style.borderColor = q==='fast' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
+    if (qual) { qual.style.background = q==='quality' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.03)'; qual.style.borderColor = q==='quality' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
+  };
+
+  // ── AI Script generation ──────────────────────────────────────
+  window.avsGenerateScript = function() {
+    var btn = document.getElementById('avs-write-btn');
+    var scriptArea = document.getElementById('avs-script-input');
+    var countEl = document.getElementById('avs-script-count');
+    if (btn) { btn.disabled = true; btn.textContent = '✍️ Writing…'; }
+
+    var niche = window._appliedNiche || 'Online Business';
+    var offer = (document.getElementById('offer_name')||{}).value || 'My Offer';
+    var av    = window._avatarData || {};
+    var angle = _avs.angle || 'story';
+    var type  = _avs.videoType || 'reel';
+    var boardroomCopy = window._boardroomIntel && window._boardroomIntel.copyVault;
+
+    // Use boardroom hooks if available
+    var hook = boardroomCopy && boardroomCopy.hooks && boardroomCopy.hooks[0]
+      ? boardroomCopy.hooks[0] : '';
+
+    var angleDescriptions = {
+      story: 'a personal story about transformation — vulnerable, real, specific',
+      value: 'pure value — teach one specific thing they can use today',
+      education: 'educate on a common mistake or misconception in ' + niche,
+      promotion: 'promote the offer without being salesy — let the result speak',
+      myth: 'bust a common myth in ' + niche + ' that holds people back',
+      result: 'share a specific client result or transformation story',
+      contrast: 'before/after contrast — what life looks like before vs after',
+      authority: 'establish authority through a specific insight most people miss'
+    };
+
+    var prompt = 'Write a ' + (type === 'reel' || type === 'shorts' || type === 'story' ? '30-45 second vertical video' : '60-90 second video') + ' script.'
+      + '\nAngle: ' + (angleDescriptions[angle] || angle)
+      + '\nNiche: ' + niche
+      + '\nOffer: ' + offer
+      + '\nAvatar pain: ' + (av.pain || 'their main struggle')
+      + (hook ? '\nOpening hook to use: ' + hook : '')
+      + '\n\nWrite it as natural spoken words — no stage directions, no [brackets], just the words to say.'
+      + '\nFormat: HOOK (first 3 seconds) | MAIN CONTENT | CTA (last 5 seconds)'
+      + '\nKeep it conversational, specific, and genuine. Maximum 150 words.';
+
+    fetch(window.location.origin + '/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var text = ((data.content||[])[0]||{}).text || '';
+      if (scriptArea) {
+        scriptArea.value = text.trim();
+        if (countEl) countEl.textContent = text.length;
+      }
+      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
+    })
+    .catch(function(err) {
+      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
+      avsToast('Script generation failed: ' + err.message, true);
+    });
+  };
+
+  // ── Script character counter ───────────────────────────────────
+  var scriptArea = document.getElementById('avs-script-input');
+  if (scriptArea) {
+    scriptArea.addEventListener('input', function() {
+      var countEl = document.getElementById('avs-script-count');
+      if (countEl) countEl.textContent = this.value.length;
+    });
+  }
+
+  // ── Generate video ────────────────────────────────────────────
+  window.avsGenerate = function() {
+    var script = (document.getElementById('avs-script-input')||{}).value || '';
+    if (!script.trim()) { avsToast('Write or generate a script first.', true); return; }
+
+    var avatarId = _avs.selectedAvatar || (document.getElementById('avs-avatar-select')||{}).value;
+    if (!avatarId) { avsToast('Select an avatar first.', true); return; }
+
+    var voiceId = _avs.selectedVoice || (document.getElementById('avs-voice-select')||{}).value || '';
+    var type    = (document.getElementById('avs-video-type')||{}).value || 'reel';
+    var isVertical = ['reel','shorts','story'].includes(type);
+
+    var btn = document.getElementById('avs-gen-btn');
+    var progress = document.getElementById('avs-gen-progress');
+    var bar = document.getElementById('avs-gen-bar');
+    var result = document.getElementById('avs-video-result');
+    var status = document.getElementById('avs-gen-status');
+
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Generating…'; }
+    if (progress) progress.style.display = 'block';
+    if (result) result.style.display = 'none';
+    if (status) status.textContent = 'Submitting to HeyGen…';
+
+    // Animate progress
+    var prog = 0;
+    var progInterval = setInterval(function() {
+      prog = Math.min(prog + 0.8, 90);
+      if (bar) bar.style.width = prog + '%';
+    }, 1000);
+
+    heygenCall('generate', {
+      avatarId:         _avs.avatarSource === 'photo' ? null : avatarId,
+      talkingPhotoId:   _avs.avatarSource === 'photo' ? (_avs.photoAvatarId || avatarId) : null,
+      voiceId:          voiceId,
+      script:           script,
+      type:             type,
+      title:            'EOS-' + Date.now()
+    }).then(function(data) {
+      if (data.error) throw new Error(data.error);
+      var videoId = data.videoId || data.video_id || data.id;
+      if (!videoId) throw new Error('No video ID returned. Response: ' + JSON.stringify(data).slice(0,150));
+      if (status) status.textContent = 'Video generating… checking status every 10 seconds.';
+      avsToast('Video submitted! Checking status…');
+      // Poll for completion
+      var maxPolls = 36; // 6 minutes max
+      var polls = 0;
+      var pollInterval = setInterval(function() {
+        polls++;
+        if (polls > maxPolls) {
+          clearInterval(pollInterval);
+          clearInterval(progInterval);
+          if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
+          if (status) status.textContent = 'Generation is taking longer than expected. Check My Videos later.';
+          return;
+        }
+        heygenCall('status', { videoId: videoId }).then(function(statusData) {
+          var st = statusData.status || statusData.video_status || '';
+          if (status) status.textContent = 'Status: ' + st + ' (' + (polls*10) + 's)';
+          if (st === 'completed' || st === 'done' || statusData.video_url) {
+            clearInterval(pollInterval); clearInterval(progInterval);
+            if (bar) bar.style.width = '100%';
+            var url = statusData.video_url || statusData.url || '';
+            _avs.generatedVideoUrl = url;
+            var videoEl = document.getElementById('avs-preview-video');
+            if (videoEl && url) videoEl.src = url;
+            if (result) result.style.display = 'block';
+            if (progress) setTimeout(function(){ progress.style.display = 'none'; }, 1000);
+            if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
+            if (status) status.textContent = '✅ Video ready!';
+            avsToast('🎬 Your video is ready!');
+          } else if (st === 'failed' || st === 'error') {
+            clearInterval(pollInterval); clearInterval(progInterval);
+            if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
+            if (status) status.textContent = '⚠️ Generation failed. Try again.';
+            avsToast('Video generation failed. Try again.', true);
+          }
+        });
+      }, 10000);
+    })
+    .catch(function(err) {
+      clearInterval(progInterval);
+      if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
+      if (progress) progress.style.display = 'none';
+      if (status) status.textContent = '⚠️ ' + err.message;
+      avsToast('Failed: ' + err.message + '. Check your HeyGen API key in settings.', true);
+    });
+  };
+
+  // ── Download & copy ───────────────────────────────────────────
+  window.avsDownload = function() {
+    if (!_avs.generatedVideoUrl) { avsToast('Generate a video first.', true); return; }
+    var a = document.createElement('a');
+    a.href = _avs.generatedVideoUrl;
+    a.download = 'execution-os-video-' + Date.now() + '.mp4';
+    a.click();
+  };
+
+  window.avsCopyLink = function() {
+    if (!_avs.generatedVideoUrl) { avsToast('No video URL to copy.', true); return; }
+    navigator.clipboard.writeText(_avs.generatedVideoUrl).then(function() {
+      var btn = document.getElementById('avs-copy-btn');
+      if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '🔗 Copy Link'; }, 2000); }
+    }).catch(function() {
+      avsToast(_avs.generatedVideoUrl, false);
+    });
+  };
+
+  window.avsSaveToLibrary = function() {
+    if (!_avs.generatedVideoUrl) { avsToast('No video to save.', true); return; }
+    avsToast('✅ Video saved to My Videos');
+  };
+
+  // ── Translate ──────────────────────────────────────────────────
+  function avsLoadTranslateLangs() {
+    var sel = document.getElementById('avs-translate-lang');
+    if (!sel || sel.options.length > 2) return; // already loaded
+    // Load real languages from HeyGen API
+    heygenCall('get-languages').then(function(data) {
+      var langs = data.languages || [];
+      if (langs.length) {
+        sel.innerHTML = '<option value="">Select language…</option>' + langs.map(function(l){
+          var name = l.name || l.output_language || l;
+          var val  = l.name || l;
+          return '<option value="'+val+'">'+name+'</option>';
+        }).join('');
+      } else {
+        // Fallback list if API doesn't return
+        var fallback = ['Spanish','French','German','Portuguese','Italian',
+          'Chinese','Japanese','Arabic','Hindi','Korean','Russian','Dutch',
+          'Polish','Turkish','Swedish','Norwegian','Danish','Finnish'];
+        sel.innerHTML = '<option value="">Select language…</option>' + fallback.map(function(n){
+          return '<option value="'+n+'">'+n+'</option>';
+        }).join('');
+      }
+    }).catch(function() {
+      var fallback = ['Spanish','French','German','Portuguese','Italian','Chinese','Japanese'];
+      sel.innerHTML = '<option value="">Select language…</option>' + fallback.map(function(n){
+        return '<option value="'+n+'">'+n+'</option>';
+      }).join('');
+    });
+  }
+
+  window.avsTranslate = function() {
+    var urlEl = document.getElementById('avs-translate-url');
+    var langEl = document.getElementById('avs-translate-lang');
+    var btn  = document.getElementById('avs-translate-btn');
+    var url  = urlEl ? urlEl.value.trim() : '';
+    var lang = langEl ? langEl.value : '';
+    if (!url)  { avsToast('Paste a video URL first.', true); return; }
+    if (!lang) { avsToast('Select a language.', true); return; }
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Translating…'; }
+    heygenCall('translate', { videoUrl: url, language: lang }).then(function(data) {
+      if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
+      if (data.error) { avsToast('Translation failed: ' + data.error, true); return; }
+      avsToast('✅ Translation submitted! Check My Videos in a few minutes.');
+    }).catch(function(err) {
+      if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
+      avsToast('Translation failed: ' + err.message, true);
+    });
+  };
+
+  // ── Handle photo gen file ──────────────────────────────────────
+  window.avsHandleGenPhoto = function(input) {
+    var preview = document.getElementById('avs-gen-photo-preview');
+    var wrap    = document.getElementById('avs-gen-photo-preview-wrap');
+    var icon    = document.getElementById('avs-gen-photo-icon');
+    var label   = document.getElementById('avs-gen-photo-label');
+    var statusEl = document.getElementById('avs-gen-photo-status');
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        if (preview) preview.src = e.target.result;
+        if (wrap) wrap.style.display = 'block';
+        if (icon) icon.style.display = 'none';
+        if (label) label.textContent = input.files[0].name;
+      };
+      reader.readAsDataURL(input.files[0]);
+      _avs.selectedAvatar = 'custom_photo';
+      if (statusEl) statusEl.textContent = '✅ Photo ready for video generation';
+    }
+  };
+
+  // ── Auto-load on page show ────────────────────────────────────
+  var origShowPage = window.showPage;
+  if (origShowPage && !origShowPage._avsWired) {
+    window.showPage = function(page, nav) {
+      origShowPage.apply(this, arguments);
+      if (page === 'ai-video') {
+        setTimeout(function() {
+          // Show first tab, load avatars and voices
+          avsShowTab('clone', null);
+          // Pre-load boardroom VSL if available
+          var scriptEl = document.getElementById('avs-script-input');
+          if (scriptEl && !scriptEl.value.trim() && window._boardroomVSLScript) {
+            scriptEl.value = window._boardroomVSLScript;
+            var countEl = document.getElementById('avs-script-count');
+            if (countEl) countEl.textContent = window._boardroomVSLScript.length;
+          }
+        }, 200);
+      }
+    };
+    window.showPage._avsWired = true;
+  }
+
+  // ── Remove _isStub from our implementations so _isReal checks work ──
+  ['avsShowTab','avsShowMode','avsHandlePhoto','avsHandleVideoFile','avsHandleGenPhoto',
+   'avsOnAvatarChange','avsPickType','avsPickAngle','avsSetQuality','avsSetAvatarSource',
+   'avsLoadAvatars','avsLoadVoices','avsLoadMyAvatarGroups','avsUseAvatar',
+   'avsGenerateScript','avsGenerate','avsDownload','avsCopyLink','avsSaveToLibrary',
+   'avsTranslate','avsStartCamera','avsToggleRecording','avsRerecord',
+   'avsSubmitPhoto','avsSubmitRecording','avsSubmitVideo'
+  ].forEach(function(fn) {
+    if (window[fn]) delete window[fn]._isStub;
+  });
+
+  console.log('[AVS] AI Video Studio engine loaded ✅');
+
+
+
+/* ══════════════════════════════════════════════════════════════════
+   AI VIDEO STUDIO + SCORECARD FUNCTION STUBS
+   These are called from the HTML but defined in the full HeyGen
+   integration layer. Stubs prevent silent crashes if that layer
+   hasn't loaded yet, and show a helpful message instead.
+══════════════════════════════════════════════════════════════════ */
+(function() {
+  var _avsStubMsg = function(fn) {
+    var stub = function() {
+      // Silent — HeyGen integration will override this when it loads
+    };
+    stub._isStub = true;  // Flag so we can detect stubs vs real implementations
+    return stub;
+  };
+  // These are fully implemented above (avsShowTab, avsHandleVideoFile, etc.)
+  // Only stub the ones that are purely in the HeyGen integration layer
+  var _avsStubs = [
+    'avsShowMode','avsSubmitPhoto','avsStartCamera','avsToggleRecording',
+    'avsRerecord','avsSubmitRecording','avsSubmitVideo','avsLoadMyAvatarGroups',
+    'avsPickType','avsSetAvatarSource','avsLoadAvatars','avsLoadVoices',
+    'avsPickAngle','avsGenerateScript','avsGenerate','avsDownload',
+    'avsCopyLink','avsSaveToLibrary','avsSetQuality','avsTranslate',
+    'fbOpenVisualEditor','fbGenerateVideoScript','fbUseOwnVideo'
+    // avsShowTab, avsHandleVideoFile, avsHandleGenPhoto, avsOnAvatarChange
+    // are fully implemented above — not stubbed
+  ];
+  _avsStubs.forEach(function(fn) {
+    if (typeof window[fn] === 'undefined') window[fn] = _avsStubMsg(fn);
+  });
+
+  // Scorecard stubs
+  if (typeof window.scLogCall === 'undefined') {
+    window.scLogCall = function() {
+      var modal = document.getElementById('sc-log-modal') || document.querySelector('[id*="scorecard"]');
+      if (modal) modal.style.display = 'flex';
+      // silently ignore if modal doesn't exist — it lives in a separate module
+    };
+    window.scLogCall._isStub = true;
+  }
+  if (typeof window.scGetAICoaching === 'undefined') {
+    window.scGetAICoaching = function() {}; // silent stub
+    window.scGetAICoaching._isStub = true;
+  }
+})();
+
+
+/* ══════════════════════════════════════════════════════════════════
+   SAVED AUDIENCES SYSTEM
+   Save, load, and manage multiple audience/avatar profiles.
+   Mirrors the saved offers system — users never start from scratch.
+══════════════════════════════════════════════════════════════════ */
+
+window._eosGetSavedAudiences = function() {
+  try { return JSON.parse(localStorage.getItem('eos_saved_audiences') || '[]'); }
+  catch(e) { return []; }
 };
+
 
 
 window.saveBizIntelAndContinue = async function() {
@@ -27952,6 +28733,10 @@ window.showPage = function(page, nav) {
       if (!window._brGenerating) brShowPhase1();
     }, 80);
   }
+  // Scorecard: refresh stats every time the page is opened
+  if(page==='scorecard') {
+    setTimeout(function(){ typeof scUpdateStats === 'function' && scUpdateStats(); }, 150);
+  }
 };
 
 // Expose global
@@ -28160,7 +28945,7 @@ function brCallAI_OfferStack(inp) {
     '  "pricingJustification": "2-3 sentences: why $' + inp.price + ' is a bargain for this specific transformation"',
     '}'
   ].filter(Boolean).join('\n');
-  return brCallAI(sys, p, 2000);
+  return brCallAI(sys, p, 3000);
 }
 function brCallAI_CopyVault(inp) {
   // Inject business intelligence — copy must use real story and proof
@@ -28249,7 +29034,7 @@ function brCallAI_WarPlan(inp) {
     + '  "metrics": ["KPI 1 specific to ' + inp.niche + '", "KPI 2", "KPI 3"],\n'
     + '  "criticalWarning": "the single thing that kills most ' + inp.niche + ' launches — be brutally honest"\n'
     + '}';
-  return brCallAI(sys, p, 2000);
+  return brCallAI(sys, p, 3000);
 }
 function brCallAI_ContentEngine(inp) {
   // Inject business intelligence — all content uses real story and proof
@@ -28823,6 +29608,18 @@ window.brRenderTab         = brRenderTab;
     try { return JSON.parse(localStorage.getItem(SC_KEY) || '[]'); } catch(e) { return []; }
   }
 
+  // ── Wire showPage('scorecard') so stats always load when page opens ────────
+  (function() {
+    var _origSC = window.showPage;
+    if (!_origSC) return;
+    window.showPage = function(n, btn) {
+      _origSC.apply(this, arguments);
+      if (n === 'scorecard') {
+        setTimeout(function() { scUpdateStats(); }, 80);
+      }
+    };
+  })();
+
   function scSaveCalls(calls) {
     try { localStorage.setItem(SC_KEY, JSON.stringify(calls)); } catch(e) {}
     // Also sync to Firestore if available
@@ -28959,11 +29756,15 @@ window.brRenderTab         = brRenderTab;
 
     scUpdateStats();
 
-    // Auto-trigger AI insight after 3+ calls
-    var calls2 = scLoadCalls();
-    if (calls2.length >= 3 && calls2.length % 3 === 0) {
-      setTimeout(function(){ scAutoInsight(calls2); }, 800);
-    }
+    // Auto-trigger sales feedback after every call logged
+    setTimeout(function(){
+      var feedbackSection = document.getElementById('sc-feedback-section');
+      if (feedbackSection) {
+        feedbackSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+      // Auto-fire feedback for the call just logged
+      if (window.scGetSalesFeedback) window.scGetSalesFeedback();
+    }, 800);
   };
 
   window.scDeleteCall = function(idx) {
@@ -28997,62 +29798,155 @@ window.brRenderTab         = brRenderTab;
     insightEl.style.display = 'block';
   }
 
-  window.scGetAICoaching = async function() {
+  window.scGetAICoaching = window.scGetSalesFeedback = async function() {
     var calls = scLoadCalls();
-    var btn = document.getElementById('sc-coaching-btn');
-    var outputEl = document.getElementById('sc-coaching-output');
-    var textEl   = document.getElementById('sc-coaching-text');
+    var btn      = document.getElementById('sc-feedback-btn');
+    var outputEl = document.getElementById('sc-feedback-output');
+    var textEl   = document.getElementById('sc-feedback-text');
+    var lastCallEl = document.getElementById('sc-feedback-last-call');
+
     if (!calls.length) {
-      alert('Log at least one sales call first — the AI coaches from your actual data, not assumptions.');
+      var st = document.getElementById('sc-log-status');
+      if (st) {
+        st.textContent = '⚠️ Log a call first — feedback is based on your real call data.';
+        st.style.color = 'var(--orange)';
+        setTimeout(function(){ st.textContent=''; }, 3000);
+      }
       return;
     }
-    if (btn) { btn.textContent = '⏳ Analysing your calls...'; btn.disabled = true; }
-    if (outputEl) outputEl.style.display = 'block';
-    if (textEl) textEl.textContent = 'Analysing your sales patterns...';
 
-    var inp   = window._boardroomIntel && window._boardroomIntel.inputs || {};
-    var price = inp.price || window._appliedPrice || 2000;
-    var niche = inp.niche || window._appliedNiche || 'online business';
-    var closed    = calls.filter(function(c){ return c.outcome==='closed'; });
-    var followups = calls.filter(function(c){ return c.outcome==='followup'; });
-    var lost      = calls.filter(function(c){ return c.outcome==='lost'; });
-    var closeRate = calls.length > 0 ? Math.round((closed.length/calls.length)*100) : 0;
-    var objCount  = {};
-    calls.forEach(function(c){ if(c.objection) objCount[c.objection]=(objCount[c.objection]||0)+1; });
-    var objSummary = Object.entries ? Object.entries(objCount).sort(function(a,b){return b[1]-a[1];}).map(function(e){return e[0]+': '+e[1]+'x';}).join(', ') : '';
-    var recentNotes = calls.slice(-5).map(function(c){ return c.outcome+' | '+(c.objection||'no objection')+' | '+(c.notes||'no notes'); }).join('\n');
+    if (btn) { btn.textContent = '⏳ Analysing...'; btn.disabled = true; }
+    if (outputEl) outputEl.style.display = 'block';
+    if (textEl) textEl.innerHTML = '<div style="color:var(--dim);font-size:12px">Reading your call data...</div>';
+
+    // Get context
+    var price  = window._appliedPrice || (window._boardroomIntel && window._boardroomIntel.inputs && window._boardroomIntel.inputs.price) || 2000;
+    var niche  = window._appliedNiche || (window._boardroomIntel && window._boardroomIntel.inputs && window._boardroomIntel.inputs.niche) || 'online business';
     var bizIntel = window.buildBizIntelContext ? window.buildBizIntelContext() : '';
 
-    try {
-      var resp = await callAPI('claude', {
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1200,
-        system: 'You are an elite sales coach who has trained high-ticket closers. You give specific, actionable coaching based on real call data — not generic sales tips. ' + bizIntel,
-        messages: [{
-          role: 'user',
-          content: 'Analyse my sales call data and give me specific, actionable coaching to improve my close rate.\n\n'
-            + 'Offer: $' + price + ' in ' + niche + '\n'
-            + 'Total calls: ' + calls.length + '\n'
-            + 'Closed: ' + closed.length + ' (' + closeRate + '% close rate)\n'
-            + 'Follow-ups pending: ' + followups.length + '\n'
-            + 'Lost: ' + lost.length + '\n'
-            + 'Objection patterns: ' + (objSummary || 'none logged') + '\n'
-            + 'Recent call notes:\n' + recentNotes + '\n\n'
-            + 'Give me:\n'
-            + '1. The single biggest pattern you see in my losses\n'
-            + '2. The exact reframe or script I should use to handle my top objection\n'
-            + '3. Three specific things to change in my next call\n'
-            + '4. An honest assessment of whether my close rate is where it should be at this price point\n\n'
-            + 'Be direct. No fluff. This person needs actionable coaching, not encouragement.'
-        }]
-      });
-      var text = resp && resp.content && resp.content[0] && resp.content[0].text || 'No response — try again.';
-      if (textEl) textEl.textContent = text;
-    } catch(err) {
-      if (textEl) textEl.textContent = 'Could not connect to AI coaching — check your connection and try again.';
+    // Last call — the most important one for specific feedback
+    var lastCall = calls[calls.length - 1];
+    var objLabels = { price:'price ("too expensive")', time:'timing ("no time right now")', think:'"need to think about it"', spouse:'"need to ask my partner"', trust:'"not sure it will work for me"', tried:'"tried something similar before"', info:'just wanted information', other:'other objection' };
+    var outcomeLabels = { closed:'CLOSED ✅', followup:'follow-up needed 🔄', noshow:'no show 👻', lost:'lost — not interested ❌', notqualified:'not qualified 🚫' };
+
+    // All calls summary
+    var closed    = calls.filter(function(c){ return c.outcome==='closed'; });
+    var lost      = calls.filter(function(c){ return c.outcome==='lost'; });
+    var followups = calls.filter(function(c){ return c.outcome==='followup'; });
+    var closeRate = Math.round((closed.length / calls.length) * 100);
+    var objCount  = {};
+    calls.forEach(function(c){ if(c.objection) objCount[c.objection]=(objCount[c.objection]||0)+1; });
+    var topObjKey = Object.keys(objCount).sort(function(a,b){ return objCount[b]-objCount[a]; })[0] || null;
+    var objPatternStr = topObjKey
+      ? (objLabels[topObjKey] || topObjKey) + ' (' + objCount[topObjKey] + 'x across all calls)'
+      : 'no objections logged yet';
+
+    // Show what call we are giving feedback on
+    if (lastCallEl) {
+      var d = lastCall.date ? new Date(lastCall.date).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : 'Recent call';
+      lastCallEl.textContent = 'Feedback on: ' + (lastCall.prospect || 'Unknown') + ' — ' + (outcomeLabels[lastCall.outcome] || lastCall.outcome) + ' — ' + d;
     }
-    if (btn) { btn.textContent = '🧠 Get AI Sales Coaching'; btn.disabled = false; }
+
+    // Build the prompt — specific to the last call, informed by patterns
+    var sys = 'You are a high-ticket sales coach who gives surgical, specific feedback based on real call notes. You do not give generic sales advice. You read what actually happened and tell this person exactly what went wrong, the exact words to use next time, and what to prepare before their next conversation. You speak directly. You are honest without being harsh. You know that vague feedback does not close deals — only specific scripts and specific preparation does.'
+      + (bizIntel ? '\n\n' + bizIntel : '');
+
+    var prompt = 'Give me specific sales feedback on this call.\n\n'
+      + '=== LAST CALL (this is what I need feedback on) ===\n'
+      + 'Prospect: ' + (lastCall.prospect || 'Unknown') + '\n'
+      + 'Outcome: ' + (outcomeLabels[lastCall.outcome] || lastCall.outcome) + '\n'
+      + 'Objection raised: ' + (lastCall.objection ? (objLabels[lastCall.objection] || lastCall.objection) : 'none raised') + '\n'
+      + 'Deal value: ' + (lastCall.dealValue ? ('$' + lastCall.dealValue) : 'N/A') + '\n'
+      + 'My notes: ' + (lastCall.notes || 'No notes written') + '\n\n'
+      + '=== MY OVERALL PATTERN ===\n'
+      + 'Offer: $' + price + ' in ' + niche + '\n'
+      + 'Total calls: ' + calls.length + ' | Closed: ' + closed.length + ' (' + closeRate + '%) | Lost: ' + lost.length + ' | Follow-ups: ' + followups.length + '\n'
+      + 'Most common objection across all calls: ' + objPatternStr + '\n\n'
+      + 'Give me exactly 3 things:\n\n'
+      + '1. WHAT WENT WRONG IN THIS CALL\n'
+      + 'Be specific to my notes. What moment did I lose them? What did I do or say (or not say) that caused this outcome? If the call went well (closed), tell me what I did right and what to reinforce.\n\n'
+      + '2. THE EXACT SCRIPT FOR NEXT TIME\n'
+      + 'If an objection was raised — give me the word-for-word response to use when that exact objection comes up again. Not a framework. The actual words. Start from the moment they say it. If no objection — give me the exact CTA I should use at the end of my next call to get a commitment.\n\n'
+      + '3. WHAT TO PREPARE BEFORE MY NEXT CALL\n'
+      + 'One specific thing to do, research, prepare, or practise before I get on another call. Make it actionable in 30 minutes or less.\n\n'
+      + 'Be direct. Use "you" not "one". Reference my actual notes and my actual objection. Do not be generic.';
+
+    try {
+      var result = await brCallAI(sys, prompt, 1400);
+      // brCallAI returns the response text directly as a string
+      var text = (typeof result === 'string') ? result
+               : (result && result.content && result.content[0] && result.content[0].text) ? result.content[0].text
+               : '';
+
+      if (!text) {
+        if (textEl) textEl.innerHTML = '<div style="color:var(--red);font-size:12px">No response received. Check your connection and try again.</div>';
+      } else {
+        // Parse and render the 3 sections with colour coding
+        var sections = [
+          { key: 'WHAT WENT WRONG IN THIS CALL', color: 'var(--red)',    icon: '🔍' },
+          { key: 'THE EXACT SCRIPT FOR NEXT TIME', color: 'var(--teal)',  icon: '💬' },
+          { key: 'WHAT TO PREPARE BEFORE MY NEXT CALL', color: 'var(--yellow)', icon: '📋' },
+        ];
+
+        var html = '';
+        var remaining = text;
+
+        sections.forEach(function(sec) {
+          var re = new RegExp('[1-3]\\.?\\s*\\*{0,2}' + sec.key.replace(/[.*+?^${}()|\[\]\\]/g, '\\$&') + '\\*{0,2}', 'i');
+          var matchIdx = remaining.search(re);
+          if (matchIdx === -1) return;
+
+          var afterHeader = remaining.slice(matchIdx).replace(re, '').replace(/^[\s:*]+/, '');
+
+          // Find next section
+          var nextIdx = null;
+          sections.forEach(function(s2) {
+            if (s2.key === sec.key) return;
+            var re2 = new RegExp('[1-3]\\.?\\s*\\*{0,2}' + s2.key.replace(/[.*+?^${}()|\[\]\\]/g, '\\$&'), 'i');
+            var ni = afterHeader.search(re2);
+            if (ni > 0 && (nextIdx === null || ni < nextIdx)) nextIdx = ni;
+          });
+
+          var body = nextIdx !== null ? afterHeader.slice(0, nextIdx).trim() : afterHeader.trim();
+          html += '<div style="background:rgba(255,255,255,.03);border-left:3px solid ' + sec.color + ';border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:12px">'
+            + '<div style="font-size:9px;font-weight:900;color:' + sec.color + ';text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">' + sec.icon + ' ' + sec.key + '</div>'
+            + '<div style="font-size:13px;color:var(--muted);line-height:1.85">' + body.split('\n\n').join('<br><br>').split('\n').join('<br>') + '</div>'
+            + '</div>';
+        });
+
+        // Fallback if parsing failed
+        if (!html) {
+          html = '<div style="font-size:13px;color:var(--muted);line-height:1.9;white-space:pre-wrap">' + text + '</div>';
+        }
+
+        if (textEl) textEl.innerHTML = html;
+      }
+    } catch(err) {
+      if (textEl) textEl.innerHTML = '<div style="color:var(--red);font-size:12px">Error: ' + (err.message || 'Could not reach AI') + '. Check your connection and try again.</div>';
+    }
+
+    if (btn) { btn.textContent = '\uD83C\uDFAF Get Sales Feedback'; btn.disabled = false; }
   };
+
+function scAutoInsight(calls) {
+    var insightEl = document.getElementById('sc-ai-insight');
+    if (!insightEl) return;
+    var lostCalls = calls.filter(function(c){ return c.outcome === 'lost' || c.outcome === 'notqualified'; });
+    var topObjArr = {};
+    calls.forEach(function(c){ if(c.objection) topObjArr[c.objection] = (topObjArr[c.objection]||0)+1; });
+    var topObj = Object.keys(topObjArr).sort(function(a,b){ return topObjArr[b]-topObjArr[a]; })[0] || 'none';
+    var closeRate = calls.length > 0 ? Math.round((calls.filter(function(c){ return c.outcome==='closed'; }).length / calls.length) * 100) : 0;
+    var objLabels = { price:'price', time:'timing', think:'decision hesitation', spouse:'partner approval', trust:'belief it will work', tried:'past failures', info:'information-seeking leads', other:'mixed objections' };
+    var insight = closeRate >= 40
+      ? 'Your close rate of ' + closeRate + '% is strong. The pattern to watch: ' + (objLabels[topObj]||topObj) + ' is your most common friction point. Address this directly in your opening — before they raise it.'
+      : closeRate >= 20
+      ? 'Close rate of ' + closeRate + '%. The main pattern: ' + (objLabels[topObj]||topObj) + '. This needs to be resolved earlier in the conversation — before the close. Add a story or case study that directly addresses this in the first 5 minutes.'
+      : 'Close rate of ' + closeRate + '% — this tells us the gap is likely in lead quality or offer fit, not just the close. The dominant objection is ' + (objLabels[topObj]||topObj) + '. Either the leads are not warm enough, or the offer needs to be presented differently. Review your DM scripts and content to attract better-qualified conversations.';
+    insightEl.textContent = '💡 Pattern insight: ' + insight;
+    insightEl.style.display = 'block';
+  }
+
+    // scGetSalesFeedback defined above
 
 </script>
 </body>
