@@ -2,6 +2,9 @@
 // Robust DNS check that works for ALL TLDs including .site .org .io .co etc
 // Added: root domain A-record detection, Cloudflare orange-cloud detection,
 //        structured guidance/action fields for the UI to display specific fixes.
+// Fixed: domain-map now writes even when uid is missing (funnelId alone is enough).
+//        published-funnels is always updated so funnel.js can find it without uid.
+//        firestoreError is returned so client can detect silent failures.
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
@@ -22,7 +25,6 @@ module.exports = async function handler(req, res) {
   const VERCEL_TOKEN      = process.env.VERCEL_TOKEN;
   const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
 
-  // All known Vercel CNAME targets and IP ranges
   const VERCEL_TARGETS = [
     'cname.vercel-dns.com',
     'vercel-dns.com',
@@ -31,24 +33,18 @@ module.exports = async function handler(req, res) {
     '76.223.',
   ];
 
-  // Cloudflare proxy IP prefixes — if DNS resolves to these, orange cloud is ON
-  // and the user needs to switch to DNS Only (grey cloud)
   const CLOUDFLARE_PROXY_PREFIXES = [
     '104.16.', '104.17.', '104.18.', '104.19.', '104.20.', '104.21.',
     '172.64.',  '172.65.',  '172.66.',  '172.67.',  '172.68.',  '172.69.',
     '172.70.',  '172.71.',
   ];
 
-  // Root domain = exactly two parts: yourdomain.com / yourdomain.site / yourdomain.io
-  // Subdomain   = three or more:     www.yourdomain.com / go.yourdomain.com
   const parts       = clean.split('.');
   const isRoot      = parts.length === 2;
   const isSubdomain = parts.length > 2;
   const host        = isSubdomain ? parts[0] : '@';
   const tld         = parts[parts.length - 1];
 
-  // ── DNS query helper ────────────────────────────────────────────────────────
-  // Works correctly for ALL TLDs by using proper DoH (DNS over HTTPS) format
   async function dnsQuery(resolver, name, type) {
     try {
       let url, headers;
@@ -65,10 +61,8 @@ module.exports = async function handler(req, res) {
         url     = `https://doh.opendns.com/dns-query?name=${encodeURIComponent(name)}&type=${type}`;
         headers = { Accept: 'application/dns-json' };
       }
-
       const r = await fetch(url, { headers });
       if (!r.ok) return [];
-
       const j   = await r.json();
       const ans = (j.Answer || []).map(a =>
         ((a.data || '') + '').toLowerCase().replace(/\.$/, '').trim()
@@ -79,11 +73,9 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // ── 1. PARALLEL DNS CHECK — 4 resolvers × 2 record types ──────────────────
   const resolverNames = ['google', 'cloudflare', 'quad9', 'opendns'];
   const recordTypes   = ['CNAME', 'A'];
-
-  const allQueries = [];
+  const allQueries    = [];
   for (const r of resolverNames) {
     for (const t of recordTypes) {
       allQueries.push(dnsQuery(r, clean, t));
@@ -100,27 +92,15 @@ module.exports = async function handler(req, res) {
     VERCEL_TARGETS.some(t => a.includes(t))
   );
 
-  // ── 1b. CLOUDFLARE ORANGE CLOUD DETECTION ──────────────────────────────────
-  // If any resolved IP starts with a Cloudflare proxy prefix, the user has
-  // orange cloud enabled — this proxies traffic through Cloudflare and breaks
-  // Vercel's SSL certificate provisioning.
   const isCloudflareProxy = uniqueAnswers.some(a =>
     CLOUDFLARE_PROXY_PREFIXES.some(prefix => a.startsWith(prefix))
   );
 
-  // ── 1c. ROOT DOMAIN A-RECORD CHECK ─────────────────────────────────────────
-  // Root domains (yourdomain.com) cannot use CNAME at most registrars.
-  // They need an A record pointing to 76.76.21.21.
-  // If it is a root domain, check whether a valid Vercel A record exists.
   const VERCEL_A_IPS = ['76.76.21.21', '76.76.19.61'];
   const hasVercelA   = uniqueAnswers.some(a => VERCEL_A_IPS.includes(a));
   const hasCname     = uniqueAnswers.some(a => a.includes('vercel-dns.com'));
-
-  // For root domains, A record OR CNAME (some providers allow flat CNAME) both work
   const rootDomainOk = isRoot && (hasVercelA || hasCname);
 
-  // ── 2. VERCEL API CHECK — always run as backup ─────────────────────────────
-  // Especially important for .site / .org / .io where DNS resolvers are slower
   let vercelDomainData = null;
   let vercelConfirmed  = false;
 
@@ -130,9 +110,7 @@ module.exports = async function handler(req, res) {
         `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${clean}`,
         { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
       );
-
       if (checkRes.status === 404) {
-        // Domain not in project yet — add it
         await fetch(
           `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains`,
           {
@@ -141,7 +119,6 @@ module.exports = async function handler(req, res) {
             body:    JSON.stringify({ name: clean }),
           }
         );
-        // Re-fetch after adding
         const recheck = await fetch(
           `https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}/domains/${clean}`,
           { headers: { Authorization: `Bearer ${VERCEL_TOKEN}` } }
@@ -150,7 +127,6 @@ module.exports = async function handler(req, res) {
       } else if (checkRes.ok) {
         vercelDomainData = await checkRes.json();
       }
-
       if (vercelDomainData) {
         vercelConfirmed = vercelDomainData.verified === true;
         if (!vercelConfirmed && Array.isArray(vercelDomainData.verification)) {
@@ -164,10 +140,7 @@ module.exports = async function handler(req, res) {
 
   const domainVerified = dnsOk || rootDomainOk || vercelConfirmed;
 
-  // ── NOT VERIFIED — return specific guidance based on what we found ──────────
   if (!domainVerified) {
-
-    // Priority 1: Cloudflare orange cloud is the issue
     if (isCloudflareProxy) {
       return res.status(200).json({
         verified:        false,
@@ -183,8 +156,6 @@ module.exports = async function handler(req, res) {
         vercelData:      vercelDomainData,
       });
     }
-
-    // Priority 2: Root domain pointing somewhere wrong
     if (isRoot && uniqueAnswers.length > 0 && !hasVercelA && !hasCname) {
       return res.status(200).json({
         verified:   false,
@@ -199,8 +170,6 @@ module.exports = async function handler(req, res) {
         vercelData: vercelDomainData,
       });
     }
-
-    // Priority 3: Root domain with no records at all
     if (isRoot && uniqueAnswers.length === 0) {
       return res.status(200).json({
         verified:   false,
@@ -215,8 +184,6 @@ module.exports = async function handler(req, res) {
         vercelData: vercelDomainData,
       });
     }
-
-    // Priority 4: Subdomain pointing somewhere wrong
     let hint = '';
     if (uniqueAnswers.length && !uniqueAnswers.some(a => a.includes('vercel'))) {
       hint = 'Your domain currently points to: ' + uniqueAnswers.slice(0, 2).join(', ') + '. Change the CNAME value to: cname.vercel-dns.com';
@@ -225,7 +192,6 @@ module.exports = async function handler(req, res) {
     } else {
       hint = 'Records are propagating. Wait 30 minutes and try again.';
     }
-
     return res.status(200).json({
       verified:   false,
       domain:     clean,
@@ -240,9 +206,15 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  // ── VERIFIED — save to Firestore ────────────────────────────────────────────
-  let firestoreOk = false;
-  if (funnelId && uid) {
+  // ── VERIFIED — write domain-map to Firestore ─────────────────────────────────
+  // FIX: uid is now OPTIONAL. funnelId alone is enough because funnel.js falls
+  // back to published-funnels when uid is absent. Previously if uid was null
+  // (auth not loaded) the entire write was skipped — silent failure, domain
+  // never mapped, users saw "Funnel not found" even after a successful verify.
+  let firestoreOk    = false;
+  let firestoreError = null;
+
+  if (funnelId) {
     try {
       const { initializeApp, getApps, cert } = require('firebase-admin/app');
       const { getFirestore }                  = require('firebase-admin/firestore');
@@ -250,36 +222,84 @@ module.exports = async function handler(req, res) {
         initializeApp({ credential: cert({
           projectId:   process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+          privateKey:  (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
         })});
       }
-      const db     = getFirestore();
-      const record = { domain: clean, funnelId, uid, verifiedAt: new Date().toISOString() };
-      const noWww  = clean.replace(/^www\./, '');
+      const db      = getFirestore();
+      const noWww   = clean.replace(/^www\./, '');
       const withWww = 'www.' + noWww;
+      const record  = {
+        domain:     clean,
+        funnelId,
+        uid:        uid || null,
+        verifiedAt: new Date().toISOString(),
+      };
 
-      await Promise.all([
+      const writes = [
+        // Write all three domain variants so both www and non-www work
         db.collection('domain-map').doc(clean).set(record),
         db.collection('domain-map').doc(noWww).set({ ...record, domain: noWww }),
         db.collection('domain-map').doc(withWww).set({ ...record, domain: withWww }),
-        db.collection('users').doc(uid).collection('funnels').doc(funnelId)
+        // Always update published-funnels — funnel.js uses this as fallback when uid is absent
+        db.collection('published-funnels').doc(funnelId)
           .set({ domain: clean, domainVerified: true }, { merge: true }),
-      ]);
+      ];
+
+      // Also update user-scoped funnel doc if uid is available
+      if (uid) {
+        writes.push(
+          db.collection('users').doc(uid).collection('funnels').doc(funnelId)
+            .set({ domain: clean, domainVerified: true }, { merge: true })
+        );
+      }
+
+      await Promise.all(writes);
       firestoreOk = true;
     } catch(e) {
       console.error('Firestore save error:', e.message);
+      firestoreError = e.message;
     }
+  } else {
+    // No funnelId — DNS passed but we cannot map the domain to any funnel.
+    // Return verified: false so the client shows an actionable error.
+    return res.status(200).json({
+      verified:       false,
+      domain:         clean,
+      dnsOk:          true,
+      firestoreOk:    false,
+      firestoreError: 'Missing funnel ID. Please re-open your funnel in the editor and try verifying again.',
+      reason:         'DNS is correctly pointed to Vercel, but we could not link it to your funnel because the funnel ID was missing.',
+      guidance:       'DNS is correctly pointed to Vercel.',
+      action:         'Open your funnel in the Funnel Builder, go to the Domain step, and click Verify My Domain again.',
+      dnsRecords:     uniqueAnswers,
+    });
+  }
+
+  // If DNS passed but Firestore failed, tell the client explicitly
+  // so they don't think they're fully set up when they're not.
+  if (!firestoreOk) {
+    return res.status(200).json({
+      verified:       false,
+      domain:         clean,
+      dnsOk:          true,
+      firestoreOk:    false,
+      firestoreError: firestoreError || 'Unknown Firestore error',
+      reason:         'DNS is correctly pointed to Vercel, but your domain could not be saved to the database. Your funnel will not be accessible at this domain yet.',
+      guidance:       'DNS is correctly pointed to Vercel.',
+      action:         'Wait 1 minute and click Verify again. If this keeps failing, check that your Firebase environment variables (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are set correctly in your Vercel project settings.',
+      dnsRecords:     uniqueAnswers,
+    });
   }
 
   return res.status(200).json({
-    verified:   true,
-    domain:     clean,
-    dnsOk:      true,
+    verified:    true,
+    domain:      clean,
+    dnsOk:       true,
     isRoot,
-    recordType: isRoot ? 'A' : 'CNAME',
-    firestoreOk,
-    funnelUrl:  `https://${clean}`,
-    reason:     `Domain connected. Your funnel is live at https://${clean}`,
-    dnsRecords: uniqueAnswers,
+    recordType:  isRoot ? 'A' : 'CNAME',
+    firestoreOk: true,
+    funnelUrl:   `https://${clean}`,
+    reason:      `Domain connected. Your funnel is live at https://${clean}`,
+    dnsRecords:  uniqueAnswers,
   });
 };
