@@ -2877,7 +2877,7 @@ button[onclick="generateOffer()"] {
         <div class="ni-dot"></div>
       </button>
 
-      <button class="nav-item ripple-container" onclick="showPage('ai-video',this)" id="nav-ai-video" style="display:none">
+      <button class="nav-item ripple-container" onclick="showPage('ai-video',this)" id="nav-ai-video">
         <div class="ni-icon">🎬</div>
         <div class="ni-text">
           <div class="ni-label">AI VIDEO STUDIO</div>
@@ -2886,7 +2886,7 @@ button[onclick="generateOffer()"] {
         <div class="ni-dot"></div>
       </button>
 
-      <button class="nav-item ripple-container" onclick="showPage('funnels',this)" id="nav-funnels" style="display:none">
+      <button class="nav-item ripple-container" onclick="showPage('funnels',this)" id="nav-funnels">
         <div class="ni-icon">🚀</div>
         <div class="ni-text">
           <div class="ni-label">FUNNEL BUILDER</div>
@@ -2917,7 +2917,7 @@ button[onclick="generateOffer()"] {
         <div class="ni-dot"></div>
       </button>
 
-      <button class="nav-item ripple-container" onclick="showPage('email',this)" id="nav-email" style="display:none">
+      <button class="nav-item ripple-container" onclick="showPage('email',this)" id="nav-email">
         <div class="ni-icon">📨</div>
         <div class="ni-text">
           <div class="ni-label">EMAIL MARKETING</div>
@@ -7693,11 +7693,30 @@ function buildScriptSet(mode) {
   if ((window._appMode || 'affiliate') === 'affiliate') {
     return buildAffiliateScriptSet(mode);
   }
-  var niche = (document.getElementById('niche')||{}).value || '';
+  var niche = (document.getElementById('niche')||{}).value || window._appliedNiche || '';
   var av = window._avatarData || {};
   var cfg = window.NICHE_DM_CONFIG ? (window.NICHE_DM_CONFIG[niche] || {}) : {};
   var offerPrice = window._appliedPrice || 1000;
-  var offerName = (document.getElementById('offer_name')||{}).value || 'my programme';
+  var offerName = (document.getElementById('offer_name')||{}).value
+    || (window._boardroomIntel && window._boardroomIntel.offerStack && window._boardroomIntel.offerStack.rebuiltOfferName)
+    || 'my programme';
+
+  // Pull boardroom intelligence to upgrade script templates
+  var _bsBI    = window._boardroomIntel || {};
+  var _bsBIAr  = _bsBI.architect  || {};
+  var _bsBIOs  = _bsBI.offerStack || {};
+  var _bsBICv  = _bsBI.copyVault  || {};
+  var _bsBIIcp = _bsBI.icpResearch || {};
+  var _bsPositioning  = _bsBIAr.positioningStatement || _bsBIAr.dominanceAngle || '';
+  var _bsFramework    = (_bsBIOs.signatureFramework && _bsBIOs.signatureFramework.name) || '';
+  var _bsTransform    = _bsBIOs.coreTransformation || '';
+  var _bsDMOpeners    = _bsBICv.dmOpeners    || [];
+  var _bsHooks        = _bsBICv.hooks        || [];
+  var _bsIcpLang      = _bsBIIcp.exactLanguage  || [];
+  var _bsBuyTriggers  = _bsBIIcp.buyingTriggers || [];
+  // Use boardroom DM openers as first-contact hooks when available
+  var _bsHook1 = _bsDMOpeners[0] || _bsHooks[0] || '';
+  var _bsHook2 = _bsDMOpeners[1] || _bsHooks[1] || '';
   // clip helper — prevents full-sentence field values breaking script templates
   var clipS = function(str, maxWords) {
     if (!str) return '';
@@ -7739,7 +7758,7 @@ function buildScriptSet(mode) {
       tag: 'Send within 1 hour of someone engaging · ' + nicheName,
       when: 'Triggered by a like, comment, or new follower',
       lines: [
-        'Hey [Name]! I noticed you engaged with my post about ' + painPoint + ' — genuinely appreciate that.',
+        _bsHook1 ? _bsHook1.replace('[NAME]','[Name]') : ('Hey [Name]! I noticed you engaged with my post about ' + painPoint + ' — genuinely appreciate that.'),
         'Quick honest question — are you currently dealing with ' + painPoint + ', or have you found a system that works for you?',
         'I ask everyone who engages — I want to understand where people actually are, not assume. No pitch, I promise. Just curious about your situation right now.'
       ]
@@ -7749,9 +7768,9 @@ function buildScriptSet(mode) {
       tag: 'Best when they shared a personal struggle · ' + nicheName,
       when: 'Used when someone shares a struggle in a comment',
       lines: [
-        '[Name] — your comment really stood out to me. When you said that — it is almost word for word what every ' + jobLabel + ' tells me before things click for them.',
+        _bsHook2 ? _bsHook2.replace('[NAME]','[Name]') : ('[Name] — your comment really stood out to me. When you said that — it is almost word for word what every ' + jobLabel + ' tells me before things click for them.'),
         'Can I ask — how long have you been dealing with ' + painPoint + '? And be honest, because I have heard every version of this story and I genuinely want to understand yours.',
-        'Depending on where you are, I might have something that changes everything for you. But I would rather understand your situation before I say anything else.'
+        'Depending on where you are, I might have something that changes everything for you.' + (_bsPositioning ? ' ' + _bsPositioning.split('.')[0] + '.' : '') + ' But I would rather understand your situation before I say anything else.'
       ]
     },
     {
@@ -8751,14 +8770,24 @@ window.generateDMQueue = async function(context) {
   }
 
   const isAffiliate = context === 'affiliate';
-  const offer = isAffiliate ? (window._affiliateOffer || {}) : {};
-  const av = window._avatarData || {};
-  const offerName = isAffiliate ? (offer.name || 'the product') : ((document.getElementById('offer_name')||{}).value || 'my programme');
-  const pain = av.pain || offer.pain || 'their main challenge';
-  const trans = av.transformation || offer.transformation || 'their desired outcome';
-  const niche = offer.niche || (document.getElementById('niche')||{}).value || 'general';
+  const affOff  = window._affiliateOffer || {};
+  const bi      = window._boardroomIntel || {};
+  const biCopy  = bi.copyVault  || affOff.copyVault  || {};
+  const biArch  = bi.architect  || affOff.positioning || {};
+  const offer   = isAffiliate ? affOff : {};
+  const av      = window._avatarData || {};
+  const offerName   = isAffiliate ? (offer.name || offer.productName || 'the product') : ((document.getElementById('offer_name')||{}).value || 'my programme');
+  const pain        = av.pain           || offer.pain           || 'their main challenge';
+  const trans       = av.transformation || offer.transformation || 'their desired outcome';
+  const fear        = av.fear           || 'wasting money and staying stuck';
+  const tried       = av.tried          || 'other programmes';
+  const niche       = offer.niche       || (document.getElementById('niche')||{}).value || 'general';
+  const benefits    = isAffiliate ? ((offer.benefits||[]).slice(0,2).join(' and ') || '') : '';
+  const biPositioning = biArch.positioningStatement || biArch.dominanceAngle || '';
+  const dmOpeners   = (biCopy.dmOpeners || []).slice(0,2);
   const positioning = isAffiliate
-    ? 'You are an affiliate who discovered this product and genuinely recommends it — you are NOT the creator. Never position yourself as an authority or expert. Lead with curiosity, never pitch in the first message.'
+    ? 'You are an affiliate who discovered this product and genuinely recommends it — you are NOT the creator. Never position yourself as an authority or expert. Lead with curiosity and empathy. Never pitch in the first message — open the door, nothing more.'
+      + (biPositioning ? ' UNIQUE ANGLE TO WORK IN: ' + biPositioning : '')
     : 'You are the expert and creator of the offer. Lead with authority, empathy, and genuine curiosity about their situation.';
 
   btn.disabled = true;
@@ -8766,20 +8795,28 @@ window.generateDMQueue = async function(context) {
   statusEl.style.color = 'var(--teal)';
   statusEl.textContent = 'Writing personalised messages for ' + prospects.length + ' prospect' + (prospects.length > 1 ? 's' : '') + '…';
 
-  const prompt = `You are a world-class DM copywriter writing personalised outreach messages.
+  const prompt = `You are a world-class DM copywriter writing personalised outreach messages for the ${niche} niche.
 
-OFFER: ${offerName}
+PRODUCT/OFFER: ${offerName}
 NICHE: ${niche}
-TARGET AUDIENCE PAIN: ${pain}
+AUDIENCE PAIN: ${pain}
 DESIRED TRANSFORMATION: ${trans}
-POSITIONING RULE: ${positioning}
-
-Write ONE short, personalised, human-sounding DM for EACH of these prospects. Use their name and tailor the message to how they engaged. NEVER pitch in the first message — open with curiosity or value. Keep each message under 80 words. Sound like a real person, not a copywriter.
+AUDIENCE FEAR: ${fear}
+WHAT THEY HAVE TRIED: ${tried}
+${benefits ? 'PRODUCT BENEFITS: ' + benefits + '\n' : ''}POSITIONING: ${positioning}
+${dmOpeners.length ? 'PROVEN OPENER ANGLES TO DRAW FROM (adapt, never copy verbatim): ' + dmOpeners.join(' | ') + '\n' : ''}
+Write ONE short, personalised, human-sounding first message for EACH prospect.
+Rules:
+- Use their exact name
+- Tailor to HOW they engaged — reference it naturally
+- NEVER pitch or mention the product in message 1 — open with curiosity or genuine value
+- Under 80 words. Sound like a real human, not a marketer.
+- Lead with their pain or situation, not your product
 
 PROSPECTS:
 ${prospects.map((p, i) => `${i + 1}. Name: ${p.name} | How they engaged: ${p.ctx}`).join('\n')}
 
-Respond ONLY with a JSON array in this exact format, no markdown, no preamble:
+Respond ONLY with a JSON array, no markdown, no preamble:
 [{"name":"prospect name","message":"the DM message"}]`;
 
   try {
@@ -8869,9 +8906,16 @@ function renderScripts() {
   };
 
   // Expert offer card — confirms what is driving the scripts
-  var offerName     = (document.getElementById('offer_name')||{}).value || '';
+  var _rsBI = window._boardroomIntel || {};
+  var _rsBIOs = _rsBI.offerStack || {};
+  var _rsBIAr = _rsBI.architect  || {};
+  var offerName     = _rsBIOs.rebuiltOfferName
+    || (document.getElementById('offer_name')||{}).value || '';
   var offerPrice    = window._appliedPrice || 0;
-  var offerResult   = (document.getElementById('offer_result')||{}).value || '';
+  var offerResult   = _rsBIOs.coreTransformation
+    || (document.getElementById('offer_result')||{}).value || '';
+  var _rsPositioning = _rsBIAr.positioningStatement || '';
+  var _rsFramework   = (_rsBIOs.signatureFramework && _rsBIOs.signatureFramework.name) || '';
   var offerCard = '';
   if (offerName || offerPrice || offerResult) {
     offerCard = '<div style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(108,99,255,.03));border:1px solid rgba(108,99,255,.25);border-radius:16px;padding:1rem 1.25rem;margin-bottom:1.25rem;grid-column:1/-1">' +
@@ -8881,7 +8925,10 @@ function renderScripts() {
       (offerPrice ? '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Price</div><div style="font-size:14px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">$' + Number(offerPrice).toLocaleString() + '</div></div>' : '') +
       (offerResult ? '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Transformation</div><div style="font-size:11px;color:var(--muted);line-height:1.4">' + offerResult + '</div></div>' : '') +
       (niche ? '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Niche</div><div style="font-size:11px;color:var(--muted)">' + niche + '</div></div>' : '') +
-      '</div><div style="margin-top:8px;font-size:10px;color:var(--dimmer)">Scripts push to a <strong style="color:var(--white)">discovery call</strong> — you are the authority closing on your own expertise.</div></div>';
+      (_rsFramework ? '<div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.2);border-radius:10px;padding:10px 12px"><div style="font-size:9px;color:var(--purple);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px">Framework</div><div style="font-size:11px;color:var(--muted)">' + _rsFramework + '</div></div>' : '') +
+      '</div>' +
+      (_rsPositioning ? '<div style="margin-top:8px;font-size:10px;color:var(--dim);border-top:1px solid rgba(255,255,255,.05);padding-top:8px">🏛 Boardroom positioning: <em style="color:var(--muted)">' + _rsPositioning.slice(0,120) + '...</em></div>' : '') +
+      '<div style="margin-top:8px;font-size:10px;color:var(--dimmer)">Scripts push to a <strong style="color:var(--white)">discovery call</strong> — you are the authority closing on your own expertise.</div></div>';
   }
 
   var nicheLabel = niche ? ('Scripts tailored for: ' + niche + (hasAvatar ? ' · Personalised to your avatar' : '')) : 'Set up your offer + build avatar for fully personalised scripts';
@@ -15510,12 +15557,46 @@ window.build30DayCalendar = async function() {
     if (bar) bar.style.width = pct + '%';
   };
 
+  // ── Pull Boardroom intel for expert calendar personalisation ──────────────
+  const _calBI   = window._boardroomIntel || {};
+  const _calBIAr = _calBI.architect   || {};
+  const _calBIOs = _calBI.offerStack  || {};
+  const _calBICv = _calBI.copyVault   || {};
+  const _calBICe = _calBI.contentEngine || {};
+  const _calBIIcp = _calBI.icpResearch || {};
+  const _calBICi  = _calBI.competitorIntel || {};
+  const _calOfferName   = _calBIOs.rebuiltOfferName   || offerName;
+  const _calFramework   = (_calBIOs.signatureFramework && _calBIOs.signatureFramework.name) || '';
+  const _calPositioning = _calBIAr.positioningStatement || _calBIAr.dominanceAngle || '';
+  const _calDominance   = _calBICi.dominanceAngle || '';
+  const _calTransform   = _calBIOs.coreTransformation || av.transformation || '';
+  const _calHooks       = (_calBICv.hooks || []).slice(0,5).join(' | ');
+  const _calHeadlines   = (_calBICv.headlines || []).slice(0,4).join(' | ');
+  const _calEmailSubjs  = (_calBICv.emailSubjects || []).slice(0,4).join(' | ');
+  const _calIcpLang     = (_calBIIcp.exactLanguage || []).slice(0,5).join(' | ');
+  const _calIcpPains    = (_calBIIcp.topPains || []).slice(0,4).join(' | ');
+  const _calBuyTriggers = (_calBIIcp.buyingTriggers || []).slice(0,3).join(' | ');
+  const _calBoardroomCtx = (_calPositioning || _calHooks || _calIcpLang)
+    ? '\n\nBOARDROOM INTELLIGENCE \u2014 USE THIS TO PERSONALISE EVERY PIECE:\n'
+      + ('Positioning: ' + (_calPositioning || 'Not built yet') + '\n')
+      + (_calFramework   ? 'Signature Framework: '              + _calFramework   + '\n' : '')
+      + (_calTransform   ? 'Core transformation: '              + _calTransform   + '\n' : '')
+      + (_calDominance   ? 'Market dominance angle: '           + _calDominance   + '\n' : '')
+      + (_calHooks       ? 'Proven content hooks (work from these): ' + _calHooks + '\n' : '')
+      + (_calHeadlines   ? 'Proven headlines (adapt these): '   + _calHeadlines   + '\n' : '')
+      + (_calEmailSubjs  ? 'Proven email subjects (use as templates): ' + _calEmailSubjs + '\n' : '')
+      + (_calIcpLang     ? 'Exact language your ICP uses: '     + _calIcpLang     + '\n' : '')
+      + (_calIcpPains    ? 'Their top pains from research: '    + _calIcpPains    + '\n' : '')
+      + (_calBuyTriggers ? 'What triggers them to buy: '        + _calBuyTriggers + '\n' : '')
+      + 'CRITICAL: Every post, reel script, and email must embed this positioning and use the ICP\'s exact language. Generic language is not acceptable.'
+    : '';
+
   try {
     setProgress(30);
     const resp = await callAPI('build-calendar', {
       niche, price, target,
       avatar: av,
-      offer: offerName,
+      offer: _calOfferName,
       mode: 'expert',
       _maxTokens: 8000,
       _rawPrompt: `You are a 9-figure digital product operator and authority content architect. You have personally built audiences of millions and generated over $100,000,000 in digital product sales. You do not write content that informs — you write content that fundamentally changes how people think. The standard you write to: every piece must be so genuinely valuable that readers save it without being asked, forward it without prompting, and return to it weeks later. Surface content is noise. You create signal.
@@ -15531,6 +15612,7 @@ Niche: ${niche}
 Offer: ${offerName}${price > 0 ? ' — $' + Number(price).toLocaleString() : ''}
 
 ${(function(){var nv=window.getNicheVocab&&window.getNicheVocab(niche);if(!nv)return '';var lines=['NICHE LANGUAGE RULES (non-negotiable):','- This is the '+niche+' niche. Every piece must speak to: '+nv.contentFocus+'.'];if(nv.noBizTalk)lines.push('- NEVER use income figures, money amounts, or business income language. This audience connects through '+nv.transformation+' not money.');lines.push('- Transformation language: '+nv.transformation);lines.push('- Their pain framing: '+nv.painContext);lines.push('- Their desire: '+nv.desireContext);lines.push('- Proven hook style for this niche: "'+nv.exampleHook+'"');return lines.join('\n');})()}
+${_calBoardroomCtx}
 
 THE 7-DAY AUTHORITY ARC — each day serves a distinct strategic purpose:
 Day 1 — DEEP MIRROR: Write content so specific to their internal world that readers feel you read their private thoughts. Not sympathy — surgical accuracy. Name the exact feeling, the exact moment, the exact internal dialogue they have at 11pm when nobody is watching.
@@ -15788,7 +15870,8 @@ window._regenPost = async function(globalIdx) {
   try {
     const av  = window._avatarData || {};
     const vp  = window._voiceProfile || {};
-    const vpCtx = (vp.tone||vp.words) ? `\nWrite in this voice: ${vp.tone||''}. ${vp.words?'Use phrases like: '+vp.words+'.':''} ${vp.avoid?'Never use: '+vp.avoid+'.':''}` : '';
+    const vpCtx = (vp.tone||vp.words) ? `
+Write in this voice: ${vp.tone||''}. ${vp.words?'Use phrases like: '+vp.words+'.':''} ${vp.avoid?'Never use: '+vp.avoid+'.':''}` : '';
 
     const isReel  = slot.isReel || slot.slotType === 'reel1' || slot.slotType === 'reel2';
     const isEmail = slot.slotType === 'email';
@@ -16018,7 +16101,16 @@ window.copyPostScript30 = function(globalIdx) {
     window.showPostDetail30 && window.showPostDetail30(globalIdx);
     return;
   }
-  const text = `${d.weekDay || 'Day ' + (dayIdx+1)} — ${d.topic || d.postType || ''}\n${'='.repeat(50)}\n\n${d.fullScript}\n\nCALL TO ACTION:\n${d.callToAction}\n\nPOSTING TIP:\n${d.engagementTip}`;
+  const text = `${d.weekDay || 'Day ' + (dayIdx+1)} — ${d.topic || d.postType || ''}
+${'='.repeat(50)}
+
+${d.fullScript}
+
+CALL TO ACTION:
+${d.callToAction}
+
+POSTING TIP:
+${d.engagementTip}`;
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('copy-btn-30');
     if(btn) { btn.textContent = '✅ Copied!'; setTimeout(() => { btn.textContent = '📋 Copy to clipboard'; }, 2000); }
@@ -16260,22 +16352,22 @@ window.saveAffDaily = function() {
 };
 
 const AFF_SCRIPTS_DATA = [
-  {title:'Cold opener — curiosity hook',use:'First message, never pitch',tag:'Cold',
-   body:'Hey [Name] — I noticed you are into [niche]. Quick honest question: are you currently trying to solve [pain point], or have you found something that works for you?\n\nI ask because I work with people in this space and keep seeing the same pattern. Not pitching anything — genuinely curious where you are right now.'},
-  {title:'Warm lead — after content engagement',use:'Someone who liked or commented on your post',tag:'Warm',
-   body:'Hey [Name]! Saw you engaged with my post on [topic] — appreciate that.\n\nOut of curiosity — are you actively working on [goal] right now, or still exploring options?\n\nI ask because I have something that might be exactly what you need — but I want to understand your situation first.'},
+  {title:'Cold opener \u2014 curiosity hook',use:'First message, never pitch',tag:'Cold',
+   body:'Hey [Name] \u2014 I noticed you are into [niche]. Quick honest question: are you currently trying to solve [pain point], or have you found something that works for you?\n\nI ask because I work with people in this space and keep seeing the same pattern. Not pitching anything \u2014 genuinely curious where you are right now.'},
+  {title:'Warm lead \u2014 after content engagement',use:'Someone who liked or commented on your post',tag:'Warm',
+   body:'Hey [Name]! Saw you engaged with my post on [topic] \u2014 appreciate that.\n\nOut of curiosity \u2014 are you actively working on [goal] right now, or still exploring options?\n\nI ask because I have something that might be exactly what you need \u2014 but I want to understand your situation first.'},
   {title:'Soft introduction',use:'After 2 exchanges of genuine rapport',tag:'Intro',
-   body:'Actually — I have been meaning to share something with you.\n\nI have been working with [programme/broker] and it has been the most straightforward way I have seen for people to [key benefit].\n\nNo pressure at all — would you be open to me sending you more info? Completely free, takes 5 minutes to look at.'},
+   body:'Actually \u2014 I have been meaning to share something with you.\n\nI have been working with [programme/broker] and it has been the most straightforward way I have seen for people to [key benefit].\n\nNo pressure at all \u2014 would you be open to me sending you more info? Completely free, takes 5 minutes to look at.'},
   {title:'24-hour follow-up',use:'Exactly 24 hours after first message with no reply',tag:'Follow-up',
-   body:'Hey [Name] — just bumping this up in case it got buried.\n\nI asked because you seemed like the kind of person who is actually serious about [goal] — not just someone who talks about it.\n\nIf the timing is not right — completely fine. But if you are dealing with [pain point] and want a fresh perspective, I am happy to help.'},
+   body:'Hey [Name] \u2014 just bumping this up in case it got buried.\n\nI asked because you seemed like the kind of person who is actually serious about [goal] \u2014 not just someone who talks about it.\n\nIf the timing is not right \u2014 completely fine. But if you are dealing with [pain point] and want a fresh perspective, I am happy to help.'},
   {title:'Objection handler',use:'For skeptical leads who question legitimacy',tag:'Objection',
-   body:'I completely understand the skepticism — there is so much noise out there.\n\nHere is what I would say: do not take my word for it. [Programme name] has been around since [year], pays out through [payment method], and here is the verification link: [link].\n\nI would not share something I did not believe in. Would you be willing to spend 10 minutes looking at it before making a judgment?'},
-  {title:'Broker IB — trading enquiry',use:'Someone who mentioned interest in trading',tag:'Broker',
-   body:'Hey [Name] — saw you have mentioned trading a few times. Are you actively trading now or still looking for the right platform and setup?\n\nI work with a broker called [broker] — [key benefit]. I have helped quite a few people get properly set up.\n\nWould it make sense to have a quick 10-minute call so I can understand what you are looking for?'},
+   body:'I completely understand the skepticism \u2014 there is so much noise out there.\n\nHere is what I would say: do not take my word for it. [Programme name] has been around since [year], pays out through [payment method], and here is the verification link: [link].\n\nI would not share something I did not believe in. Would you be willing to spend 10 minutes looking at it before making a judgment?'},
+  {title:'Broker IB \u2014 trading enquiry',use:'Someone who mentioned interest in trading',tag:'Broker',
+   body:'Hey [Name] \u2014 saw you have mentioned trading a few times. Are you actively trading now or still looking for the right platform and setup?\n\nI work with a broker called [broker] \u2014 [key benefit]. I have helped quite a few people get properly set up.\n\nWould it make sense to have a quick 10-minute call so I can understand what you are looking for?'},
   {title:'Referral ask',use:'After someone has benefited and seems happy',tag:'Referral',
-   body:'Hey [Name] — really glad things are going well!\n\nActually — do you know anyone who might benefit from the same thing? Even 1 or 2 people who have mentioned [pain point] recently?\n\nI do not need anything fancy — just a quick introduction is enough. I take care of everything from there.'},
-  {title:'Re-engagement — gone cold',use:'For leads who replied but went silent 14+ days ago',tag:'Re-engage',
-   body:'[Name] — this will be my last reach-out, and I want to make it count.\n\nI know the timing might not have been right. But if [pain point] is still something you are dealing with — I would love one more conversation.\n\nIf not, no hard feelings. I hope you find what you are looking for either way.'},
+   body:'Hey [Name] \u2014 really glad things are going well!\n\nActually \u2014 do you know anyone who might benefit from the same thing? Even 1 or 2 people who have mentioned [pain point] recently?\n\nI do not need anything fancy \u2014 just a quick introduction is enough. I take care of everything from there.'},
+  {title:'Re-engagement \u2014 gone cold',use:'For leads who replied but went silent 14+ days ago',tag:'Re-engage',
+   body:'[Name] \u2014 this will be my last reach-out, and I want to make it count.\n\nI know the timing might not have been right. But if [pain point] is still something you are dealing with \u2014 I would love one more conversation.\n\nIf not, no hard feelings. I hope you find what you are looking for either way.'},
 ]
 
 function renderAffScripts() {
@@ -18017,7 +18109,14 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
         window._affiliateOffer.positioning  = affIntelData.positioning;
         window._affiliateOffer.contentEngine= affIntelData.contentEngine;
 
-        console.log('[Affiliate Intel] Full intelligence loaded ✅', affIntelData.tracer);
+        // ── CRITICAL: Fire brActivateGlobalIntelligence so ALL sections
+        // (Video Studio, Email, DM scripts, Funnels) get wired to this
+        // affiliate's specific product and audience immediately ──────────
+        if ((window._appMode||'affiliate') === 'affiliate' && typeof brActivateGlobalIntelligence === 'function') {
+          brActivateGlobalIntelligence(_affBoardroomIntel);
+        }
+
+        console.log('[Affiliate Intel] Full intelligence loaded and activated across all sections ✅', affIntelData.tracer);
       } catch(e) {
         console.warn('[Affiliate Intel] Agent failed:', e.message);
       }
@@ -18190,6 +18289,8 @@ Return ONLY valid JSON — no markdown, no backticks:
       const uid = window._currentUserUid;
       if (uid && window._db) {
         const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        // Save affiliate data under mode-namespaced keys so it NEVER overwrites
+        // the Expert Revenue Plan's appliedPrice/Target/Niche fields in Firestore.
         await setDoc(doc(window._db, 'users', uid), {
           affiliateOffer:    window._affiliateOffer,
           avatarData:        window._avatarData,
@@ -18199,10 +18300,11 @@ Return ONLY valid JSON — no markdown, no backticks:
             postsPerDay: 4,
             calDone: [],
           },
-          appliedNiche:  window._appliedNiche,
-          appliedPrice:  window._appliedPrice,
-          appliedTarget: window._appliedTarget,
-          lastUpdated:   new Date().toISOString(),
+          // Affiliate-namespaced — never shared with Expert Revenue Plan
+          affAppliedNiche:   window._appliedNiche,
+          affAppliedPrice:   window._appliedPrice,
+          affAppliedTarget:  window._appliedTarget,
+          lastUpdated:       new Date().toISOString(),
         }, { merge: true });
         setProgress(100, 'Everything saved to your account ✅', 'Saved to account ✅');
       } else {
@@ -19178,44 +19280,94 @@ window.runMindsetReframe = async function() {
     var countEl = document.getElementById('avs-script-count');
     if (btn) { btn.disabled = true; btn.textContent = '✍️ Writing…'; }
 
-    var niche = window._appliedNiche || 'Online Business';
-    var offer = (document.getElementById('offer_name')||{}).value || 'My Offer';
-    var av    = window._avatarData || {};
-    var angle = _avs.angle || 'story';
-    var type  = _avs.videoType || 'reel';
-    var boardroomCopy = window._boardroomIntel && window._boardroomIntel.copyVault;
+    var isAffiliate = (window._appMode || window._currentMode || 'affiliate') === 'affiliate';
+    var affOffer    = window._affiliateOffer || {};
+    var bi          = window._boardroomIntel || {};
+    var biCopy      = bi.copyVault      || affOffer.copyVault      || {};
+    var biArch      = bi.architect      || affOffer.positioning     || {};
+    var biContent   = bi.contentEngine  || affOffer.contentEngine   || {};
+    var av          = window._avatarData || {};
+    var angle       = _avs.angle    || 'story';
+    var type        = _avs.videoType || 'reel';
 
-    // Use boardroom hooks if available
-    var hook = boardroomCopy && boardroomCopy.hooks && boardroomCopy.hooks[0]
-      ? boardroomCopy.hooks[0] : '';
+    // Resolve offer details — affiliate vs expert
+    var niche = isAffiliate
+      ? (affOffer.niche || window._appliedNiche || 'Online Business')
+      : (window._appliedNiche || 'Online Business');
+    var offerName = isAffiliate
+      ? (affOffer.name || affOffer.productName || 'this product')
+      : ((document.getElementById('offer_name')||{}).value || 'My Offer');
+    var productUrl  = isAffiliate ? (affOffer.url || affOffer.productUrl || '') : '';
+    var benefits    = isAffiliate ? ((affOffer.benefits||[]).slice(0,3).join('; ')) : '';
+    var positioning = biArch.positioningStatement || biArch.dominanceAngle || '';
+
+    // Pull the best hook from boardroom copy vault — affiliate-specific if available
+    var hooks = biCopy.hooks || biCopy.reelHooks || [];
+    var hook  = hooks.length ? hooks[0] : '';
+
+    // Pre-built reel scripts from content engine — use if matching angle exists
+    var reelScripts = (biContent.days || []).map(function(d){ return d && d.reelScript ? d.reelScript : ''; }).filter(Boolean);
+    var prebuiltScript = angle === 'promotion' && reelScripts.length ? reelScripts[0] : '';
+
+    var pain   = av.pain           || affOffer.pain           || 'their biggest challenge';
+    var transf = av.transformation || affOffer.transformation || 'their desired outcome';
+    var fear   = av.fear           || 'wasting time and money on the wrong things';
+    var tried  = av.tried          || 'other courses and programmes';
 
     var angleDescriptions = {
-      story: 'a personal story about transformation — vulnerable, real, specific',
-      value: 'pure value — teach one specific thing they can use today',
-      education: 'educate on a common mistake or misconception in ' + niche,
-      promotion: 'promote the offer without being salesy — let the result speak',
-      myth: 'bust a common myth in ' + niche + ' that holds people back',
-      result: 'share a specific client result or transformation story',
-      contrast: 'before/after contrast — what life looks like before vs after',
-      authority: 'establish authority through a specific insight most people miss'
+      story:     'a personal "I discovered this" story — how you found ' + offerName + ' and what changed for you. Relatable, vulnerable, real. You are a person who found something, not a salesperson.',
+      value:     'pure education — teach ONE specific insight about ' + pain + ' that most people in ' + niche + ' get completely wrong. No pitch. Just value.',
+      education: 'expose the #1 mistake people in ' + niche + ' make when trying to escape ' + pain + '. The kind of insight that makes them say "I have been doing this wrong the whole time."',
+      promotion: 'promote ' + offerName + ' without being salesy — lead with the result (' + transf + '), show social proof if available, let the transformation sell it. You are recommending, not pitching.',
+      myth:      'bust a dangerous myth in ' + niche + ' that is keeping people stuck in ' + pain + '. Something most people believe that is actually backwards. Be bold.',
+      result:    'share a specific real result — a transformation story of someone who went from ' + pain + ' to ' + transf + ' using the right approach. Use real details and numbers if you have them.',
+      contrast:  'before/after contrast — paint exactly what life looks like while dealing with ' + pain + ' vs what it looks like after reaching ' + transf + '. Make the gap visceral.',
+      authority: 'establish authority through one specific, counterintuitive insight about ' + niche + ' that most people miss. The kind of thing that only someone who has been deep in this space would know.'
     };
 
-    var prompt = 'Write a ' + (type === 'reel' || type === 'shorts' || type === 'story' ? '30-45 second vertical video' : '60-90 second video') + ' script.'
-      + '\nAngle: ' + (angleDescriptions[angle] || angle)
-      + '\nNiche: ' + niche
-      + '\nOffer: ' + offer
-      + '\nAvatar pain: ' + (av.pain || 'their main struggle')
-      + (hook ? '\nOpening hook to use: ' + hook : '')
-      + '\n\nWrite it as natural spoken words — no stage directions, no [brackets], just the words to say.'
-      + '\nFormat: HOOK (first 3 seconds) | MAIN CONTENT | CTA (last 5 seconds)'
-      + '\nKeep it conversational, specific, and genuine. Maximum 150 words.';
+    var videoDuration = (type === 'reel' || type === 'shorts' || type === 'story') ? '30-45 second vertical video' : '60-90 second video';
+
+    var systemPrompt = 'You are a world-class short-form video scriptwriter for ' + niche + ' content.'
+      + ' You write scripts that stop the scroll in the first 3 seconds, hold attention for the full video, and drive a clear action at the end.'
+      + ' You never sound like an AI. You never use corporate language.'
+      + (isAffiliate ? ' The creator is an AFFILIATE — they discovered this product and genuinely recommend it. They are NOT the expert or the creator. They speak as a real person sharing a real discovery, never as an authority figure.' : '');
+
+    var prompt = 'Write a ' + videoDuration + ' script for ' + niche + '.\n\n'
+      + 'ANGLE: ' + (angleDescriptions[angle] || angle) + '\n'
+      + 'PRODUCT/OFFER: ' + offerName + '\n'
+      + 'NICHE: ' + niche + '\n'
+      + 'AUDIENCE PAIN: ' + pain + '\n'
+      + 'AUDIENCE TRANSFORMATION: ' + transf + '\n'
+      + 'WHAT THEY HAVE TRIED: ' + tried + '\n'
+      + 'DEEPER FEAR: ' + fear + '\n'
+      + (positioning ? 'UNIQUE ANGLE: ' + positioning + '\n' : '')
+      + (benefits ? 'KEY BENEFITS: ' + benefits + '\n' : '')
+      + (hook ? 'OPENING HOOK OPTION (adapt, do not copy verbatim): ' + hook + '\n' : '')
+      + (productUrl ? 'PRODUCT URL: ' + productUrl + ' (use [LINK] in the CTA)\n' : '')
+      + '\nWRITING RULES:'
+      + '\n- First 3 words must grab attention instantly — no "Hey guys", no "Today I want to"'
+      + '\n- Write it as natural spoken words ONLY — no stage directions, no [brackets], no (pause), just the exact words to say'
+      + '\n- Format: HOOK (first 3 seconds) | MAIN CONTENT | CTA (last 5 seconds)'
+      + '\n- Maximum 150 words. Every word earns its place.'
+      + '\n- Conversational, specific, genuine — sounds like a real person, not a copywriter';
+
+    // If there is a great prebuilt script from the content engine, use it
+    if (prebuiltScript && angle === 'promotion') {
+      if (scriptArea) {
+        scriptArea.value = prebuiltScript.trim();
+        if (countEl) countEl.textContent = prebuiltScript.length;
+      }
+      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
+      return;
+    }
 
     fetch(window.location.origin + '/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 400,
+        max_tokens: 500,
+        system: systemPrompt,
         messages: [{ role: 'user', content: prompt }]
       })
     })
@@ -19584,8 +19736,60 @@ window.loadBizIntelProfile = function(data) {
 
 /* Build the full intelligence context string injected into every AI call */
 window.buildBizIntelContext = function() {
-  var bi = window._businessIntelligence || {};
-  var vp = window._voiceProfile || {};
+  var isAffiliate = (window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  var bi   = window._businessIntelligence || {};
+  var vp   = window._voiceProfile || {};
+  var aff  = window._affiliateOffer || {};
+  var brd  = window._boardroomIntel || {};
+  var av   = window._avatarData || {};
+  var bCopy= brd.copyVault  || aff.copyVault  || {};
+  var bArch= brd.architect  || aff.positioning || {};
+
+  // ── AFFILIATE MODE — build full product + audience intelligence context ──
+  if (isAffiliate && (aff.name || aff.niche)) {
+    var parts = ['\n' + '━'.repeat(3) + ' AFFILIATE PRODUCT INTELLIGENCE ' + '━'.repeat(3)];
+    parts.push('This person is an AFFILIATE MARKETER — they promote and earn commission from third-party products.');
+    parts.push('They are NOT the creator or expert. All content and copy must position them as a genuine discoverer and recommender, never as an authority building their own brand.');
+    parts.push('');
+    parts.push('PRODUCT BEING PROMOTED: ' + (aff.name || aff.productName || 'the product'));
+    if (aff.niche)           parts.push('NICHE: '          + aff.niche);
+    if (aff.commission)      parts.push('COMMISSION: $'    + aff.commission + ' per sale');
+    if (aff.monthlyTarget)   parts.push('MONTHLY INCOME TARGET: $' + aff.monthlyTarget);
+    if (aff.url || aff.productUrl) parts.push('PRODUCT URL: ' + (aff.url || aff.productUrl));
+    if (aff.tagline)         parts.push('PRODUCT TAGLINE: ' + aff.tagline);
+    if ((aff.benefits||[]).length) parts.push('KEY PRODUCT BENEFITS: ' + aff.benefits.slice(0,4).join(' | '));
+
+    if (av.pain || av.transformation || av.job) {
+      parts.push('\nTARGET BUYER PROFILE:');
+      if (av.job)            parts.push('Who they are: ' + av.job);
+      if (av.pain)           parts.push('Core pain: '   + av.pain);
+      if (av.deeperPain||av.fear) parts.push('Deeper fear: ' + (av.deeperPain || av.fear));
+      if (av.transformation) parts.push('Desired outcome: ' + av.transformation);
+      if (av.tried)          parts.push('What they have tried: ' + av.tried);
+      if (av.motivation)     parts.push('What drives them: ' + av.motivation);
+    }
+
+    if (bArch.positioningStatement || bArch.dominanceAngle) {
+      parts.push('\nPOSITIONING INTELLIGENCE:');
+      if (bArch.positioningStatement) parts.push('Positioning angle: ' + bArch.positioningStatement);
+      if (bArch.dominanceAngle)       parts.push('Dominance angle: ' + bArch.dominanceAngle);
+    }
+    if ((bCopy.hooks||[]).length)        parts.push('\nPROVEN CONTENT HOOKS: ' + bCopy.hooks.slice(0,3).join(' | '));
+    if ((bCopy.emailSubjects||[]).length) parts.push('EMAIL SUBJECT ANGLES: ' + bCopy.emailSubjects.slice(0,3).join(' | '));
+    if ((bCopy.dmOpeners||[]).length)    parts.push('DM OPENER ANGLES: '    + bCopy.dmOpeners.slice(0,2).join(' | '));
+
+    if (vp.tone || vp.style) {
+      parts.push('\nCREATOR VOICE:');
+      if (vp.tone)  parts.push('Tone: '  + vp.tone);
+      if (vp.style) parts.push('Style: ' + vp.style);
+      if (vp.words) parts.push('Signature phrases: ' + vp.words);
+      if (vp.avoid) parts.push('Never use: ' + vp.avoid);
+    }
+    parts.push('\nEVERY output must: attract the right buyer, speak to their exact pain, and move them towards the affiliate link — without the creator needing to be the expert.');
+    return parts.join('\n');
+  }
+
+  // ── EXPERT MODE — original business intelligence context ───────────────
   if (!bi.originStory && !bi.personalProof && !vp.story) return '';
 
   var parts = ['\n' + '━'.repeat(3) + ' BUSINESS INTELLIGENCE PROFILE ' + '━'.repeat(3)];
@@ -19593,25 +19797,24 @@ window.buildBizIntelContext = function() {
   parts.push('Use ALL of this when giving advice, writing copy, or building strategy.');
   parts.push('Every output should feel like it was written by — or for — this specific person, not a generic user.');
 
-  if (bi.originStory) parts.push('THEIR ORIGIN STORY (the real version):' + '\n' + bi.originStory);
+  if (bi.originStory) parts.push('THEIR ORIGIN STORY (the real version):\n' + bi.originStory);
   if (vp.story && !bi.originStory) parts.push('THEIR STORY: ' + vp.story);
-  if (bi.personalProof) parts.push('' + '\n' + bi.personalProof);
-  if (bi.clientResults) parts.push('' + '\n' + bi.clientResults);
-  if (bi.turningPoint) parts.push('' + '\n' + bi.turningPoint);
-  if (bi.contrarianTruth) parts.push('' + '\n' + bi.contrarianTruth);
-  if (bi.whyBuilt) parts.push('' + '\n' + bi.whyBuilt);
-  if (bi.coreBelief) parts.push('' + '\n' + bi.coreBelief);
-  if (bi.additional) parts.push('' + '\n' + bi.additional);
+  if (bi.personalProof)   parts.push('\n' + bi.personalProof);
+  if (bi.clientResults)   parts.push('\n' + bi.clientResults);
+  if (bi.turningPoint)    parts.push('\n' + bi.turningPoint);
+  if (bi.contrarianTruth) parts.push('\n' + bi.contrarianTruth);
+  if (bi.whyBuilt)        parts.push('\n' + bi.whyBuilt);
+  if (bi.coreBelief)      parts.push('\n' + bi.coreBelief);
+  if (bi.additional)      parts.push('\n' + bi.additional);
 
   if (vp.tone) parts.push('\nVOICE & STYLE:');
-  if (vp.tone) parts.push('Tone: ' + vp.tone);
+  if (vp.tone)  parts.push('Tone: ' + vp.tone);
   if (vp.style) parts.push('Writing style: ' + vp.style);
   if (vp.words) parts.push('Signature phrases: ' + vp.words);
   if (vp.avoid) parts.push('Never use: ' + vp.avoid);
   if (vp.method) parts.push('Their method/framework: ' + vp.method);
 
   parts.push('\nCRITICAL: When giving advice, reference their specific story and proof. When writing content, use their real results as examples. When building strategy, build from their actual experience — not generic principles.');
-
   return parts.join('\n');
 };
 
@@ -21572,20 +21775,119 @@ window.setAppMode = function(mode) {
 window.setMode = window.setAppMode;
 
 // Apply mode and show dashboard as soon as DOM is ready
+/* ═══════════════════════════════════════════════════════════════
+   FIELD PERSISTENCE — platform-wide autosave for every input /
+   textarea / select that has a stable ID. No hardcoded list needed:
+   the system discovers fields automatically at runtime.
+
+   Skips: password fields, file pickers, hidden inputs, disabled
+   elements, and any ID that looks dynamically generated (contains
+   $, {, }, template-literal chars, or known transient prefixes).
+═══════════════════════════════════════════════════════════════ */
+(function() {
+  var PREFIX = 'eos_field_';
+
+  // IDs (or prefixes) that should NEVER be persisted
+  var SKIP_IDS    = ['rq_apikey','br-chat-input','em-contact-search','em-color-pick',
+                     'em-compose-datetime','sc-prospect','sc-deal-value','kw-inp','plat-inp',
+                     'em-sequence-live','avs-translate-url',
+                     // Revenue Plan fields are managed by the dedicated Expert-only plan system
+                     // — generic autosave must not persist or restore them across modes
+                     'price','target','niche'];
+  var SKIP_PREFIX = ['admin-','tmod-','tles-','mc-api','mc-kw','_vault','fp-','abar-',
+                     'growth-bar','growth-rev','skill-','photo-'];
+
+  function _isSkipped(id) {
+    if (!id || id.indexOf('$') !== -1 || id.indexOf('{') !== -1) return true;
+    if (SKIP_IDS.indexOf(id) !== -1) return true;
+    for (var i = 0; i < SKIP_PREFIX.length; i++) {
+      if (id.indexOf(SKIP_PREFIX[i]) === 0) return true;
+    }
+    return false;
+  }
+
+  function _shouldPersist(el) {
+    if (!el || !el.id) return false;
+    if (_isSkipped(el.id)) return false;
+    var tag  = el.tagName;
+    var type = (el.type || '').toLowerCase();
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
+    if (type === 'password' || type === 'file' || type === 'hidden' || type === 'button' || type === 'submit') return false;
+    if (el.disabled) return false;
+    return true;
+  }
+
+  // Restore all persistable fields found in the DOM right now
+  function restoreFields() {
+    var els = document.querySelectorAll('input[id], textarea[id], select[id]');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      if (!_shouldPersist(el)) continue;
+      var saved = null;
+      try { saved = localStorage.getItem(PREFIX + el.id); } catch(e) {}
+      if (saved !== null && el.value === '') el.value = saved;
+    }
+  }
+
+  // Save on every input/change event — debounced 400ms per field
+  var _timers = {};
+  function _saveField(el) {
+    if (!_shouldPersist(el)) return;
+    var id = el.id;
+    clearTimeout(_timers[id]);
+    _timers[id] = setTimeout(function() {
+      try { localStorage.setItem(PREFIX + id, el.value); } catch(e) {}
+    }, 400);
+  }
+
+  document.addEventListener('input',  function(e) { _saveField(e.target); }, true);
+  document.addEventListener('change', function(e) { _saveField(e.target); }, true);
+
+  // Expose for Firebase post-load restore call
+  window._eosRestoreFields = restoreFields;
+
+  document.addEventListener('DOMContentLoaded', restoreFields);
+})();
+
 document.addEventListener('DOMContentLoaded', function() {
   document.body.classList.add('affiliate-mode');
-  // Only highlight dashboard nav if no saved page exists
-  const _earlyLastPage = localStorage.getItem('eos_last_page');
+
+  // ── INSTANT page restore — don't wait for Firebase (eliminates the dashboard flash) ──
+  var _allValidPages = ['dashboard','plan','offer','avatar','business-dna','mindset','boardroom',
+    'calendar','scripts','tracker','routine','market','growth','advisor','perfhq',
+    'affiliate','aff-offer','funnels','email','scorecard','ai-video'];
+  var _earlyLastPage = localStorage.getItem('eos_last_page');
+  var _earlyMode     = localStorage.getItem('eos_app_mode') || 'affiliate';
+
   if (!_earlyLastPage || _earlyLastPage === 'dashboard') {
-    const dashNav = document.getElementById('nav-dashboard');
+    var dashNav = document.getElementById('nav-dashboard');
     if (dashNav) dashNav.classList.add('on');
+  } else if (_allValidPages.indexOf(_earlyLastPage) !== -1) {
+    // Navigate immediately — no Firebase wait needed
+    var _targetPage = document.getElementById('page-' + _earlyLastPage);
+    if (_targetPage) {
+      // Hide dashboard, show saved page right away
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('on'); });
+      document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('on'); });
+      _targetPage.classList.add('on');
+      var _navBtn = document.getElementById('nav-' + _earlyLastPage);
+      if (_navBtn) _navBtn.classList.add('on');
+    }
   }
+
   // Apply nav immediately using saved mode — don't wait for Firebase auth
-  const earlyMode = localStorage.getItem('eos_app_mode') || 'affiliate';
+  // ── Guarantee shared nav items are always visible regardless of timing ──
+  // AI Video Studio, Funnel Builder, Email Marketing belong to BOTH modes.
+  // They start without display:none, but this is a belt-and-suspenders guard.
+  ['nav-ai-video','nav-funnels','nav-email','nav-routine','nav-growth','nav-perfhq',
+   'nav-profile','nav-advisor','nav-dashboard'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el && el.style.display === 'none') el.style.display = 'flex';
+  });
+
   if (window.setAppMode) {
-    window.setAppMode(earlyMode);
+    window.setAppMode(_earlyMode);
   } else {
-    // setAppMode not ready yet — retry
     setTimeout(function() {
       window.setAppMode && window.setAppMode(localStorage.getItem('eos_app_mode') || 'affiliate');
     }, 200);
@@ -22601,7 +22903,7 @@ onAuthStateChanged(auth, async (user) => {
           } catch(e) {}
 
           var lastPage = localStorage.getItem('eos_last_page');
-          const validPages = ['dashboard','plan','offer','avatar','business-dna','boardroom','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','affiliate','aff-offer','funnels','email','scorecard','ai-video'];
+          const validPages = ['dashboard','plan','offer','avatar','business-dna','mindset','boardroom','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','affiliate','aff-offer','funnels','email','scorecard','ai-video'];
           if (lastPage === 'profile') { localStorage.removeItem('eos_last_page'); lastPage = null; }
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
             const navBtn = document.getElementById('nav-' + lastPage);
@@ -22618,6 +22920,9 @@ onAuthStateChanged(auth, async (user) => {
     }
   };
   applyMode(10);
+
+  // ── Restore persisted field values (typed text that survived refresh) ──────
+  try { window._eosRestoreFields && window._eosRestoreFields(); } catch(e) {}
 
   // ── Restore saved Revenue Plan data ───────────────────────────────────────
   if (userDocData.revenuePlan) loadRevenuePlan(userDocData.revenuePlan);
@@ -22656,19 +22961,30 @@ onAuthStateChanged(auth, async (user) => {
   // ── Restore Affiliate Offer ───────────────────────────────────────────────
   if (userDocData.affiliateOffer) {
     window._affiliateOffer = userDocData.affiliateOffer;
+
+    // Derive the affiliate's applied values: prefer the new namespaced Firestore fields
+    // (affAppliedPrice/Target/Niche), fall back to offer commission/target for legacy docs
+    var _affPrice  = userDocData.affAppliedPrice  || userDocData.affiliateOffer.commission    || 0;
+    var _affTarget = userDocData.affAppliedTarget || userDocData.affiliateOffer.monthlyTarget || 0;
+    var _affNiche  = userDocData.affAppliedNiche  || userDocData.affiliateOffer.niche         || '';
+
     // Only write to shared globals if currently in affiliate mode
     if ((window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate') {
-      window._appliedNiche   = userDocData.affiliateOffer.niche;
-      window._appliedPrice   = userDocData.affiliateOffer.commission;
-      window._appliedTarget  = userDocData.affiliateOffer.monthlyTarget;
+      window._appliedNiche   = _affNiche;
+      window._appliedPrice   = _affPrice;
+      window._appliedTarget  = _affTarget;
+      window._affAppliedPrice  = _affPrice;
+      window._affAppliedTarget = _affTarget;
+      window._affAppliedNiche  = _affNiche;
     }
-    // Always persist to affiliate-namespaced state
+
+    // Always persist to affiliate-namespaced localStorage state
     try {
       var _affRestoreSnap = JSON.parse(localStorage.getItem('eos_state_affiliate')||'{}');
       if (!_affRestoreSnap.appliedPrice) {
-        _affRestoreSnap.appliedPrice  = userDocData.affiliateOffer.commission    || 0;
-        _affRestoreSnap.appliedTarget = userDocData.affiliateOffer.monthlyTarget || 0;
-        _affRestoreSnap.appliedNiche  = userDocData.affiliateOffer.niche         || '';
+        _affRestoreSnap.appliedPrice  = _affPrice;
+        _affRestoreSnap.appliedTarget = _affTarget;
+        _affRestoreSnap.appliedNiche  = _affNiche;
         localStorage.setItem('eos_state_affiliate', JSON.stringify(_affRestoreSnap));
       }
     } catch(e) {}
@@ -22702,9 +23018,13 @@ onAuthStateChanged(auth, async (user) => {
 
   // ── Save functions wired to Firestore ────────────────────────────────────
   window.saveRevenuePlan = async () => {
+    // Revenue Plan is Expert-only — never save it from Affiliate mode
+    var _saveMode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+    if (_saveMode !== 'expert') return;
     const price  = parseInt((document.getElementById('price')||{}).value)||0;
     const target = parseInt((document.getElementById('target')||{}).value)||0;
     const niche  = (document.getElementById('niche')||{}).value||'';
+    if (!price || !target) return; // don't save empty/zero plan
     try {
       await setDoc(doc(db,'users',user.uid),{revenuePlan:{price,target,niche}},{merge:true});
     } catch(e) { console.warn('Save revenue plan failed:',e.message); }
@@ -23838,6 +24158,26 @@ function renderUserUI(user, userDocData, memberData) {
 // ─── Data loaders ─────────────────────────────────────────────────────────────
 function loadRevenuePlan(data) {
   if (!data) return;
+
+  // Revenue Plan belongs exclusively to Expert mode.
+  // In Affiliate mode: stash the values into the expert localStorage namespace so
+  // they are ready when the user switches back — but NEVER touch shared globals
+  // or populate DOM fields, which would cross-contaminate the affiliate session.
+  var _currentMode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+  if (_currentMode !== 'expert') {
+    try {
+      var _expSnap = JSON.parse(localStorage.getItem('eos_state_expert') || '{}');
+      if (!_expSnap.appliedPrice && data.price) {
+        _expSnap.appliedPrice  = Number(data.price)  || 0;
+        _expSnap.appliedTarget = Number(data.target) || 0;
+        _expSnap.appliedNiche  = data.niche || '';
+        localStorage.setItem('eos_state_expert', JSON.stringify(_expSnap));
+      }
+    } catch(e) {}
+    return; // hard stop: never let Expert Revenue Plan run in Affiliate mode
+  }
+
+  // Expert mode only from here — safe to populate DOM fields and shared globals
   if (data.price)  { const el=document.getElementById('price');  if(el) el.value=Number(data.price);  }
   if (data.target) { const el=document.getElementById('target'); if(el) el.value=Number(data.target); }
   if (data.niche)  {
@@ -23845,10 +24185,12 @@ function loadRevenuePlan(data) {
     if (el) { el.value=data.niche; }
   }
   if (data.price||data.target) {
-    window._appliedPrice  = Number(data.price);
-    window._appliedTarget = Number(data.target);
-    window._appliedNiche  = data.niche||'';
-    // Update avatar placeholders immediately with restored niche
+    window._appliedPrice         = Number(data.price)  || 0;
+    window._appliedTarget        = Number(data.target) || 0;
+    window._appliedNiche         = data.niche || '';
+    window._expertAppliedPrice   = window._appliedPrice;
+    window._expertAppliedTarget  = window._appliedTarget;
+    window._expertAppliedNiche   = window._appliedNiche;
     if (data.niche) setTimeout(() => window._updateAvatarPlaceholders && window._updateAvatarPlaceholders(data.niche), 200);
     setTimeout(() => window.applyAll && window.applyAll(), 300);
   }
@@ -24056,9 +24398,17 @@ async function fbGenerateFunnel() {
   if (!fbState.selectedType) return;
   fbSetView('building');
 
-  // Get user data from existing app state
-  const niche    = window._niche || window._userNiche || 'digital products';
-  const offer    = window._offerName || window._currentOfferName || 'your offer';
+  // Get user data from the correct app state globals
+  var _fbIsAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  var _fbAffOffer    = window._affiliateOffer || {};
+  var _fbBI          = window._boardroomIntel || {};
+  var _fbBIInputs    = _fbBI.inputs || {};
+  const niche  = _fbIsAffiliate
+    ? (_fbAffOffer.niche    || window._appliedNiche || 'Online Business')
+    : (_fbBIInputs.niche   || window._appliedNiche || (document.getElementById('niche')||{}).value || 'Online Business');
+  const offer  = _fbIsAffiliate
+    ? (_fbAffOffer.name     || _fbAffOffer.productName || 'affiliate offer')
+    : (_fbBIInputs.offerName || (document.getElementById('offer_name')||{}).value || 'My Programme');
   const avatar   = window._avatarData || {};
   const apiKey   = window.ANTHROPIC_API_KEY || '';
 
@@ -24456,25 +24806,68 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
     + '}'
   )
 
-  // ── EXPERT PROMPT (JSON copy request) ─────────────────────────────────────────
-  : (
-      'Write conversion copy for this ' + page.label + '.\n'
-    + expertNote + '\n'
-    + 'EXPERT PROFILE:\n'
-    + (niche      ? 'Niche: '       + niche      + '\n' : '')
-    + (offerName  ? 'Programme: '   + offerName  + '\n' : '')
-    + (monthPrice ? 'Price: '       + monthPrice + ' — NEVER show on page\n' : '')
-    + '\nIDEAL CLIENT:\n'
-    + (avJob      ? 'Who: '         + avJob      + '\n' : '')
-    + (avPain     ? 'Pain: '        + avPain     + '\n' : '')
-    + (avDesire   ? 'Want: '        + avDesire   + '\n' : '')
-    + (avFear     ? 'Fear: '        + avFear     + '\n' : '')
-    + (avTried    ? 'Tried: '       + avTried    + '\n' : '')
-    + (avKeywords ? 'Their words: ' + avKeywords + '\n' : '')
-    + (voiceTone  ? 'Expert tone: ' + voiceTone  + '\n' : '')
-    + (voiceStory ? 'Expert story: '+ voiceStory + '\n' : '')
-    + '\nPage goal: ' + cfg.goal + '\n'
-    + 'CTA action: ' + cfg.cta + '\n\n'
+  // ── EXPERT PROMPT (JSON copy request) ───────────────────────────────────────────────────────
+  : (function() {
+      var _bi   = window._boardroomIntel || {};
+      var _biAr = _bi.architect   || {};
+      var _biOs = _bi.offerStack  || {};
+      var _biCv = _bi.copyVault   || {};
+      var _biWp = _bi.warPlan     || {};
+      var _biCe = _bi.contentEngine || {};
+      var _biIcp = _bi.icpResearch || {};
+      var _biCi  = _bi.competitorIntel || {};
+
+      var _expOfferName    = _biOs.rebuiltOfferName    || offerName;
+      var _expTransform    = _biOs.coreTransformation  || avDesire;
+      var _expFramework    = (_biOs.signatureFramework && _biOs.signatureFramework.name) || voiceMethod || '';
+      var _expGuarantee    = _biOs.rebuiltGuarantee    || '';
+      var _expPositioning  = _biAr.positioningStatement || _biAr.dominanceAngle || '';
+      var _expDominance    = _biCi.dominanceAngle      || '';
+      var _expBlueOcean    = _biCi.blueOceanOpportunity|| '';
+      var _expValueStack   = (_biOs.valueStack || []).slice(0,4).map(function(v){ return v.name || v; }).join(' | ');
+      var _expPricingJust  = _biOs.pricingJustification || '';
+      var _expHeadlines    = (_biCv.headlines || []).slice(0,3).join(' | ');
+      var _expHooks        = (_biCv.hooks || []).slice(0,3).join(' | ');
+      var _expEmailSubjs   = (_biCv.emailSubjects || []).slice(0,3).join(' | ');
+      var _expDMOpeners    = (_biCv.dmOpeners || []).slice(0,2).join(' | ');
+      var _expIcpLang      = (_biIcp.exactLanguage || []).slice(0,4).join(' | ');
+      var _expBuyTriggers  = (_biIcp.buyingTriggers || []).slice(0,3).join(' | ');
+
+      var out = 'Write conversion copy for this ' + page.label + '.\n';
+      out += expertNote + '\n';
+      out += 'EXPERT PROFILE:\n';
+      out += niche            ? 'Niche: '               + niche            + '\n' : '';
+      out += _expOfferName    ? 'Programme: '           + _expOfferName    + '\n' : '';
+      out += _expFramework    ? 'Signature Framework: ' + _expFramework    + '\n' : '';
+      out += monthPrice       ? 'Price: '               + monthPrice       + ' — NEVER show on this page\n' : '';
+      out += _expPositioning  ? 'Positioning angle: '   + _expPositioning  + '\n' : '';
+      out += _expDominance    ? 'Market dominance: '    + _expDominance    + '\n' : '';
+      out += _expBlueOcean    ? 'Blue ocean: '          + _expBlueOcean    + '\n' : '';
+      out += _expPricingJust  ? 'Pricing justified by: '+ _expPricingJust  + '\n' : '';
+      out += _expGuarantee    ? 'Guarantee: '           + _expGuarantee    + '\n' : '';
+      out += _expValueStack   ? 'Value stack items: '   + _expValueStack   + '\n' : '';
+      out += '\nIDEAL CLIENT:\n';
+      out += avJob            ? 'Who: '   + avJob           + '\n' : '';
+      out += avPain           ? 'Pain: '  + avPain          + '\n' : '';
+      out += _expTransform    ? 'Want: '  + _expTransform   + '\n' : '';
+      out += avFear           ? 'Fear: '  + avFear          + '\n' : '';
+      out += avTried          ? 'Tried: ' + avTried         + '\n' : '';
+      out += _expIcpLang      ? 'Exact words they use: ' + _expIcpLang    + '\n'
+                              : (avKeywords ? 'Their words: ' + avKeywords + '\n' : '');
+      out += _expBuyTriggers  ? 'What triggers them to buy: ' + _expBuyTriggers + '\n' : '';
+      out += '\nBOARDROOM COPY VAULT (use these for headlines and hooks):\n';
+      out += _expHeadlines    ? 'Proven headlines: '   + _expHeadlines    + '\n' : '';
+      out += _expHooks        ? 'Proven hooks: '       + _expHooks        + '\n' : '';
+      out += _expEmailSubjs   ? 'Subject angles: '     + _expEmailSubjs   + '\n' : '';
+      out += _expDMOpeners    ? 'Opening lines: '      + _expDMOpeners    + '\n' : '';
+      if (voiceTone)  { out += '\nEXPERT VOICE:\nTone: ' + voiceTone + '\n'; }
+      if (voiceStory) { out += 'Story: '               + voiceStory  + '\n'; }
+      if (voiceWords) { out += 'Signature phrases: '   + voiceWords  + '\n'; }
+      if (voiceAvoid) { out += 'Never say: '           + voiceAvoid  + '\n'; }
+      out += '\nPage goal: ' + cfg.goal + '\n';
+      out += 'CTA action: '   + cfg.cta  + '\n\n';
+      return out;
+    })()
     + 'Return ONLY this JSON object with no other text:\n'
     + '{\n'
     + '  "badge": "short category label",\n'
@@ -24497,7 +24890,6 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
     + '  "guarantee": {"headline": "reassurance headline","body": "reassurance body"},\n'
     + '  "final_cta_headline": "closing CTA headline"\n'
     + '}'
-  )
 
 
   var proxyUrl = window.location.origin + '/api/generate-funnel';
@@ -26063,7 +26455,65 @@ function emExportContacts(){if(!emState.contacts.length){alert('No contacts to e
 function emUpdateStats(){var ts=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.sent)||0);},0);var to=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.opens)||0);},0);var tc=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.clicks)||0);},0);var or=ts>0?Math.round((to/ts)*100):0;var cr=ts>0?Math.round((tc/ts)*100):0;var s=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};s('em-stat-contacts',emState.contacts.length||'—');s('em-stat-campaigns',emState.campaigns.length);s('em-stat-sent',ts.toLocaleString());s('em-stat-opens',or+'%');s('em-stat-clicks',cr+'%');}
 function emRenderTemplates(){var grid=document.getElementById('em-templates-grid');if(!grid)return;var templates=[{icon:'👋',name:'Welcome Email',goal:'First impression. Set expectations.',tone:'Warm, personal'},{icon:'🔥',name:'Re-engagement',goal:'Win back cold leads.',tone:'Direct, curious'},{icon:'💎',name:'Value Drop',goal:'Give value. Build trust.',tone:'Generous, expert'},{icon:'🚀',name:'Launch Announcement',goal:'Announce a new offer.',tone:'Urgent, exciting'},{icon:'🎯',name:'Sales Close',goal:'Final push. Drive the decision.',tone:'Confident, urgent'},{icon:'❓',name:'Story Email',goal:'Tell a transformation story.',tone:'Narrative, emotional'},{icon:'📋',name:'Case Study',goal:'Show real proof.',tone:'Specific, credible'},{icon:'⚡',name:'Flash Offer',goal:'24-48 hour limited offer.',tone:'Fast, high energy'}];grid.innerHTML=templates.map(function(t){return'<div class="em-campaign-card" onclick="emUseTemplate(\''+t.name+'\')">'+'<div style="font-size:28px;margin-bottom:8px">'+t.icon+'</div>'+'<div class="em-campaign-subject">'+t.name+'</div>'+'<div style="font-size:12px;color:var(--dim);margin:6px 0;line-height:1.6">'+t.goal+'</div>'+'<div style="font-size:10px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Tone: '+t.tone+'</div>'+'</div>';}).join('');}
 function emUseTemplate(name){emShowCompose({id:'c_'+Date.now(),status:'draft',stats:{sent:0,opens:0,clicks:0}});setTimeout(function(){emAiWriteTemplate(name);},300);}
-async function emAiWriteTemplate(name){var bodyEl=document.getElementById('em-compose-body'),subjectEl=document.getElementById('em-compose-subject');if(!bodyEl)return;bodyEl.value='Building your '+name+'…';var niche=window._appliedNiche||'digital products';var offer=(window._affiliateOffer&&window._affiliateOffer.name)||'your offer';var av=window._avatarData||{};var prompt='Write a high-converting '+name+' email.\nNiche: '+niche+'\nOffer: '+offer+'\nAudience pain: '+(av.pain||'not getting results')+'\nFormat:\nSUBJECT: [subject]\nPREVIEW: [preview]\n\n[body]\n\nPlain text only, conversational, clear CTA.';try{var resp=await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,messages:[{role:'user',content:prompt}]})});var data=await resp.json();var text=data.content&&data.content[0]&&data.content[0].text||'';var sm=text.match(/SUBJECT:\s*(.+)/),pm=text.match(/PREVIEW:\s*(.+)/),bm=text.match(/PREVIEW:.+\n\n([\s\S]+)/);if(subjectEl&&sm)subjectEl.value=sm[1].trim();var pe=document.getElementById('em-compose-preview');if(pe&&pm)pe.value=pm[1].trim();bodyEl.value=bm?bm[1].trim():text;}catch(e){bodyEl.value='Build failed. Write your email here.';}}
+async function emAiWriteTemplate(name) {
+  var bodyEl    = document.getElementById('em-compose-body');
+  var subjectEl = document.getElementById('em-compose-subject');
+  if (!bodyEl) return;
+  bodyEl.value = 'Building your ' + name + '…';
+
+  var isAffiliate = (window._appMode || window._currentMode || 'affiliate') === 'affiliate';
+  var affOffer    = window._affiliateOffer || {};
+  var bi          = window._boardroomIntel || {};
+  var biCopy      = bi.copyVault  || affOffer.copyVault  || {};
+  var biArch      = bi.architect  || affOffer.positioning || {};
+  var av          = window._avatarData || {};
+
+  var niche       = isAffiliate ? (affOffer.niche || window._appliedNiche || 'digital products') : (window._appliedNiche || 'digital products');
+  var offer       = isAffiliate ? (affOffer.name || 'this product') : ((window._offerData && window._offerData.headline) || (document.getElementById('offer_name')||{}).value || 'your offer');
+  var pain        = av.pain           || affOffer.pain           || 'not getting the results they want';
+  var transf      = av.transformation || affOffer.transformation || 'their desired transformation';
+  var fear        = av.fear           || 'wasting money on something that does not work';
+  var tried       = av.tried          || 'other programmes and courses';
+  var benefits    = isAffiliate ? ((affOffer.benefits||[]).slice(0,3).join(', ')) : '';
+  var positioning = biArch.positioningStatement || '';
+  var emailSubjects = (biCopy.emailSubjects || []).slice(0,3).join(' | ');
+  var affLink     = isAffiliate ? (affOffer.url || affOffer.productUrl || '[YOUR AFFILIATE LINK]') : '';
+  var allowMoney  = window.nicheAllowsMoneyTalk ? window.nicheAllowsMoneyTalk(niche) : true;
+
+  var sys = 'You are a world-class email copywriter for the ' + niche + ' niche.'
+    + ' Write emails that feel like they are from a real person — not a marketer.'
+    + ' Every line earns its place. No fluff. No corporate language. No dashes.'
+    + (isAffiliate ? ' The sender is an AFFILIATE who genuinely discovered and recommends this product. They are NOT the expert or creator. Position from curiosity and honest discovery — never as an authority.' : '')
+    + (!allowMoney ? ' CRITICAL: Do NOT mention income, earnings, or money figures. Focus on transformation, results, and the specific goal for this niche.' : '');
+
+  var prompt = 'Write a complete ready-to-send ' + name + ' email.\n\n'
+    + 'NICHE: ' + niche + '\n'
+    + 'OFFER: ' + offer + '\n'
+    + (benefits ? 'KEY BENEFITS: ' + benefits + '\n' : '')
+    + (positioning ? 'POSITIONING: ' + positioning + '\n' : '')
+    + 'READER PAIN: ' + pain + '\n'
+    + 'DESIRED TRANSFORMATION: ' + transf + '\n'
+    + 'THEIR FEAR: ' + fear + '\n'
+    + 'WHAT THEY HAVE TRIED: ' + tried + '\n'
+    + (emailSubjects ? 'SUBJECT LINE IDEAS TO DRAW FROM: ' + emailSubjects + '\n' : '')
+    + (affLink ? 'CTA LINK: use [LINK] where the affiliate link goes\n' : '')
+    + '\nRULES: Write to ONE person (use "you"). First line makes them feel deeply seen. 200-280 words. End with ONE clear CTA.'
+    + '\nReturn EXACTLY:\nSUBJECT: [subject]\nPREVIEW: [preview max 90 chars]\n\n[full email body]';
+
+  try {
+    var resp = await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'), {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:900, system:sys, messages:[{role:'user',content:prompt}] })
+    });
+    var data = await resp.json();
+    var text = data.content && data.content[0] && data.content[0].text || '';
+    var sm = text.match(/SUBJECT:\s*(.+)/), pm = text.match(/PREVIEW:\s*(.+)/), bm = text.match(/PREVIEW:[\s\S]+?\n\n([\s\S]+)/);
+    if (subjectEl && sm) subjectEl.value = sm[1].trim();
+    var pe = document.getElementById('em-compose-preview');
+    if (pe && pm) pe.value = pm[1].trim();
+    bodyEl.value = bm ? bm[1].trim() : text;
+  } catch(e) { bodyEl.value = 'Build failed. Write your email here.'; }
+}
 async function emAiWrite(){
   var editor    = document.getElementById('em-quill-editor');
   var hiddenEl  = document.getElementById('em-compose-body');
@@ -26088,16 +26538,38 @@ async function emAiWrite(){
   var subHint   = subjectEl && subjectEl.value ? subjectEl.value : '';
   var allowMoney= window.nicheAllowsMoneyTalk ? window.nicheAllowsMoneyTalk(niche) : true;
 
+  // Build affiliate-specific context from boardroom intelligence
+  var isAffiliate  = (window._appMode || window._currentMode || 'affiliate') === 'affiliate';
+  var affOffer     = window._affiliateOffer || {};
+  var bi           = window._boardroomIntel || {};
+  var biCopy       = bi.copyVault  || affOffer.copyVault  || {};
+  var biArch       = bi.architect  || affOffer.positioning || {};
+  var positioning  = biArch.positioningStatement || biArch.dominanceAngle || '';
+  var affBenefits  = isAffiliate ? ((affOffer.benefits||[]).slice(0,3).join(', ')) : '';
+  var affLink      = isAffiliate ? (affOffer.url || affOffer.productUrl || '[YOUR AFFILIATE LINK]') : '';
+  var emailSubjects= (biCopy.emailSubjects || []).slice(0,3).join(' | ');
+  var biContext    = window._emBoardroomContext || '';
+
+  var systemRole = 'You are a world-class email copywriter in the ' + niche + ' niche.'
+    + (isAffiliate
+       ? ' The sender is an AFFILIATE — they genuinely discovered and recommend this product. They are NOT the creator or expert. Write from a place of honest personal recommendation — curiosity and conviction, never authority or hype.'
+       : ' The sender is the expert and creator of the offer.')
+    + (!allowMoney ? ' CRITICAL: Do NOT mention income, earnings, or money amounts. Focus on transformation and results only.' : '')
+    + (biContext ? '\n\n' + biContext : '');
+
   var parts = [
-    'You are a world-class email copywriter in the ' + niche + ' niche.',
     'Write ONE complete ready-to-send marketing email.',
     'OFFER: ' + offer,
+    affBenefits ? 'KEY BENEFITS: ' + affBenefits : '',
+    positioning ? 'POSITIONING ANGLE: ' + positioning : '',
     'READER PAIN: ' + pain,
     'READER DESIRE: ' + desire,
     'READER FEAR: ' + fear,
     'WHAT THEY HAVE TRIED: ' + tried,
     keywords ? 'THEIR LANGUAGE: ' + keywords : '',
+    emailSubjects ? 'PROVEN SUBJECT LINE ANGLES: ' + emailSubjects : '',
     subHint ? 'USE THIS SUBJECT: ' + subHint : '',
+    affLink ? 'CTA LINK: use [LINK] in the email body where the affiliate link goes' : '',
     !allowMoney ? 'DO NOT mention money, income figures, or earning amounts. Focus ONLY on transformation, results, and the specific goal for the '+niche+' niche.' : '',
     (function(){var nv=window.getNicheVocab&&window.getNicheVocab(niche);return nv?'NICHE CONTEXT: Write for '+niche+'. Their transformation = '+nv.transformation+'. Their pain = '+nv.painContext+'. Speak their language — not generic business language.':''})(),
     'RULES: Write to ONE person. Use you. First line makes them feel deeply seen. 200-280 words. No dashes. End with one clear CTA. Use [LINK] where clickable link goes.',
@@ -26111,7 +26583,7 @@ async function emAiWrite(){
   try {
     var resp = await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'), {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,messages:[{role:'user',content:parts}]})
+      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:systemRole,messages:[{role:'user',content:parts}]})
     });
     var data = await resp.json();
     var text = (data.content&&data.content[0]&&data.content[0].text)||'';
