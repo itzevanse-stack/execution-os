@@ -22559,11 +22559,31 @@ onAuthStateChanged(auth, async (user) => {
   // ── Render UI with real user data ─────────────────────────────────────────
   renderUserUI(user, userDocData, memberData);
 
-  // ── Restore app mode — admin-set mode ALWAYS wins over localStorage ─────────
-  // Priority: memberData.appMode (set by admin) > userDocData.appMode > localStorage > default
-  const savedMode = memberData?.appMode || userDocData.appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
-  // Sync localStorage so it always matches
+  // ── Restore app mode ─────────────────────────────────────────────────────────
+  // Source of truth priority:
+  //   1. Admin account          → always 'expert'
+  //   2. memberData.appMode     → set by admin in the members panel (highest authority for members)
+  //   3. userDocData.appMode    → previously saved to their own Firestore user doc
+  //   4. localStorage           → last mode they used in this browser
+  //   5. 'affiliate'            → absolute fallback for brand new users only
+  const savedMode = isAdmin
+    ? 'expert'
+    : (memberData?.appMode || userDocData.appMode || localStorage.getItem('eos_app_mode') || 'affiliate');
+
+  // Always sync localStorage so it matches Firestore source of truth
   localStorage.setItem('eos_app_mode', savedMode);
+
+  // If userDocData had no appMode saved yet, write it now so next login
+  // restores the correct mode even if memberData changes or is absent
+  if (!userDocData.appMode && window._db && window._doc && window._setDoc) {
+    try {
+      window._setDoc(
+        window._doc(window._db, 'users', user.uid),
+        { appMode: savedMode },
+        { merge: true }
+      ).catch(function() {});
+    } catch(e) {}
+  }
   // Apply mode — retry until setAppMode is available (handles timing)
   const applyMode = (attempts) => {
     if (window.setAppMode) {
