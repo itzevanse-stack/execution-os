@@ -235,14 +235,39 @@ module.exports = async function handler(req, res) {
         verifiedAt: new Date().toISOString(),
       };
 
+      // FIX: Read the full funnel from the user's collection so published-funnels
+      // has complete data (pages, status, etc.) not just domain fields.
+      // If the original client-side publish ever failed silently, published-funnels
+      // may be missing or incomplete — this repairs it server-side with the
+      // authoritative data from users/{uid}/funnels/{funnelId}.
+      let fullFunnelData = { domain: clean, domainVerified: true, ownerUid: uid || null };
+      if (uid) {
+        try {
+          const userFunnelSnap = await db.collection('users').doc(uid)
+            .collection('funnels').doc(funnelId).get();
+          if (userFunnelSnap.exists) {
+            fullFunnelData = {
+              ...userFunnelSnap.data(),
+              domain:         clean,
+              domainVerified: true,
+              ownerUid:       uid,
+            };
+          }
+        } catch(e) {
+          console.warn('[verify-domain] Could not read user funnel for full write:', e.message);
+          // fall through — write what we have
+        }
+      }
+
       const writes = [
         // Write all three domain variants so both www and non-www work
         db.collection('domain-map').doc(clean).set(record),
         db.collection('domain-map').doc(noWww).set({ ...record, domain: noWww }),
         db.collection('domain-map').doc(withWww).set({ ...record, domain: withWww }),
-        // Always update published-funnels — funnel.js uses this as fallback when uid is absent
+        // Write FULL funnel data so funnel.js can serve it even if client-side
+        // publish-funnels write previously failed or was incomplete
         db.collection('published-funnels').doc(funnelId)
-          .set({ domain: clean, domainVerified: true }, { merge: true }),
+          .set(fullFunnelData, { merge: true }),
       ];
 
       // Also update user-scoped funnel doc if uid is available
