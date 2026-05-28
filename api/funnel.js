@@ -83,11 +83,13 @@ module.exports = async function handler(req, res) {
     // ── CUSTOM DOMAIN ACCESS ──────────────────────────────────────────────────
     } else {
 
-      // FIX 1 — read x-forwarded-host first.
-      // When Vercel middleware rewrites the request to /api/funnel, the
-      // original custom domain is preserved in x-forwarded-host while
-      // req.headers.host becomes the internal Vercel hostname (wrong).
+      // FIX 1 — read the real custom domain from all possible sources.
+      // Middleware passes it explicitly as ?host= query param (most reliable).
+      // x-forwarded-host / x-real-host are set by middleware on the internal
+      // fetch but can be stripped by Vercel. req.headers.host after a middleware
+      // rewrite becomes the internal Vercel hostname — wrong on its own.
       const rawHost = (
+        req.query.host                  ||   // set by middleware as ?host=rawaddigital.com
         req.headers['x-forwarded-host'] ||
         req.headers['x-real-host']      ||
         req.headers.host                ||
@@ -99,7 +101,8 @@ module.exports = async function handler(req, res) {
         .replace(/^www\./, '')
         .replace(/:\d+$/, '');
 
-      console.log('[funnel] host headers —', {
+      console.log('[funnel] host resolution —', {
+        'query.host':       req.query.host || null,
         'x-forwarded-host': req.headers['x-forwarded-host'] || null,
         'host':             req.headers.host || null,
         'resolved':         host,
