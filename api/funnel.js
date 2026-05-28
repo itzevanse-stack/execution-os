@@ -7,10 +7,16 @@
  *   Layer 1 — domain-map doc lookup (fastest)
  *   Layer 2 — published-funnels query where domain == host
  *   Layer 3 — published-funnels query where domain == www.host
- *   Layer 4 — scan domain-map for any record matching host, repair and serve
+ *   Layer 4 — scan published-funnels + user funnels for domain match
  *
- * When a funnel is found via Layer 2-4, domain-map is auto-repaired so
- * subsequent requests hit Layer 1 instantly.
+ * FIX 1: Host detection now reads x-forwarded-host first (Vercel middleware
+ *         rewrite sets this to the real custom domain; req.headers.host after
+ *         rewrite becomes the internal Vercel hostname — wrong).
+ * FIX 2: Layer 1 — if ownerUid is null, still serves from published-funnels
+ *         AND falls back to a full-collection domain scan so uid=null funnels
+ *         are never silently skipped.
+ * FIX 3: Layer 4 — direct domain match on published-funnels catches funnels
+ *         with ownerUid:null that the old loop skipped entirely.
  */
 
 const { initializeApp, getApps, cert } = require('firebase-admin/app');
@@ -76,12 +82,30 @@ module.exports = async function handler(req, res) {
 
     // ── CUSTOM DOMAIN ACCESS ──────────────────────────────────────────────────
     } else {
-      const host = (req.headers.host || '').toLowerCase()
+
+      // FIX 1 — read x-forwarded-host first.
+      // When Vercel middleware rewrites the request to /api/funnel, the
+      // original custom domain is preserved in x-forwarded-host while
+      // req.headers.host becomes the internal Vercel hostname (wrong).
+      const rawHost = (
+        req.headers['x-forwarded-host'] ||
+        req.headers['x-real-host']      ||
+        req.headers.host                ||
+        ''
+      );
+      const host = rawHost.toLowerCase()
+        .split(',')[0]          // x-forwarded-host can be comma-separated; take first
+        .trim()
         .replace(/^www\./, '')
         .replace(/:\d+$/, '');
 
+      console.log('[funnel] host headers —', {
+        'x-forwarded-host': req.headers['x-forwarded-host'] || null,
+        'host':             req.headers.host || null,
+        'resolved':         host,
+      });
+
       if (!host) return res.status(400).send(notFoundPage('No domain detected.'));
-      console.log('[funnel] Domain request:', host);
 
       // LAYER 1 — domain-map doc (fast path)
       try {
@@ -90,19 +114,36 @@ module.exports = async function handler(req, res) {
           const d = getData(snap);
           funnelId = d.funnelId;
           ownerUid = d.uid;
-          console.log('[funnel] L1 hit — funnelId:', funnelId);
+          console.log('[funnel] L1 hit — funnelId:', funnelId, '| ownerUid:', ownerUid || 'null');
           if (funnelId) {
+            // Try user-scoped funnel first (most up-to-date)
             if (ownerUid) {
               try {
                 const s = await db.collection('users').doc(ownerUid).collection('funnels').doc(funnelId).get();
                 if (s.exists) funnel = getData(s);
-              } catch(e) {}
+              } catch(e) { console.warn('[funnel] L1 user-funnel error:', e.message); }
             }
+            // FIX 2 — always fall back to published-funnels even when ownerUid is null
             if (!funnel) {
               try {
                 const s = await db.collection('published-funnels').doc(funnelId).get();
-                if (s.exists) funnel = getData(s);
-              } catch(e) {}
+                if (s.exists) {
+                  const pf = getData(s);
+                  // Only use published-funnels if it has real funnel content
+                  if (pf && pf.status === 'live' && pf.pages && Object.keys(pf.pages).length > 0) {
+                    funnel = pf;
+                  } else if (pf && pf.status === 'live') {
+                    // Has status but no pages — try to find full data via ownerUid in the doc
+                    if (pf.ownerUid) {
+                      try {
+                        const s2 = await db.collection('users').doc(pf.ownerUid).collection('funnels').doc(funnelId).get();
+                        if (s2.exists) funnel = getData(s2);
+                      } catch(e) {}
+                    }
+                    if (!funnel) funnel = pf; // use what we have, page resolver will 404 gracefully
+                  }
+                }
+              } catch(e) { console.warn('[funnel] L1 published-funnels error:', e.message); }
             }
           }
         }
@@ -115,10 +156,23 @@ module.exports = async function handler(req, res) {
           const q = await db.collection('published-funnels')
             .where('domain', '==', host).limit(1).get();
           if (!q.empty) {
-            funnel   = getData(q.docs[0]);
-            funnelId = funnel.id || q.docs[0].id;
-            ownerUid = funnel.ownerUid || null;
-            console.log('[funnel] L2 hit — repairing domain-map');
+            const pf = getData(q.docs[0]);
+            funnelId = pf.id || q.docs[0].id;
+            ownerUid = pf.ownerUid || null;
+            console.log('[funnel] L2 hit — funnelId:', funnelId);
+            // If published-funnels has full data, use it
+            if (pf.pages && Object.keys(pf.pages).length > 0) {
+              funnel = pf;
+            } else if (ownerUid) {
+              // Fetch full data from user-scoped collection
+              try {
+                const s = await db.collection('users').doc(ownerUid).collection('funnels').doc(funnelId).get();
+                if (s.exists) funnel = getData(s);
+              } catch(e) {}
+              if (!funnel) funnel = pf;
+            } else {
+              funnel = pf;
+            }
             repairDomainMap(db, host, funnelId, ownerUid);
           }
         } catch(e) { console.error('[funnel] L2 error:', e.message); }
@@ -131,43 +185,76 @@ module.exports = async function handler(req, res) {
           const q = await db.collection('published-funnels')
             .where('domain', '==', 'www.' + host).limit(1).get();
           if (!q.empty) {
-            funnel   = getData(q.docs[0]);
-            funnelId = funnel.id || q.docs[0].id;
-            ownerUid = funnel.ownerUid || null;
+            const pf = getData(q.docs[0]);
+            funnelId = pf.id || q.docs[0].id;
+            ownerUid = pf.ownerUid || null;
+            console.log('[funnel] L3 hit — funnelId:', funnelId);
+            if (pf.pages && Object.keys(pf.pages).length > 0) {
+              funnel = pf;
+            } else if (ownerUid) {
+              try {
+                const s = await db.collection('users').doc(ownerUid).collection('funnels').doc(funnelId).get();
+                if (s.exists) funnel = getData(s);
+              } catch(e) {}
+              if (!funnel) funnel = pf;
+            } else {
+              funnel = pf;
+            }
             repairDomainMap(db, host, funnelId, ownerUid);
           }
-        } catch(e) {}
+        } catch(e) { console.error('[funnel] L3 error:', e.message); }
       }
 
-      // LAYER 4 — read from users/{uid}/funnels via ownerUid in published-funnels
-      // This catches the case where published-funnels has domain:'' but
-      // users/{uid}/funnels/{funnelId} has the correct domain
-      // We do this by scanning published-funnels for funnels owned by anyone
-      // whose user-scoped funnel matches the domain
+      // LAYER 4 — deep scan: check both published-funnels domain field AND
+      // user-scoped funnels. FIX 3: direct domain match now handles ownerUid:null
+      // funnels that the old loop skipped.
       if (!funnel) {
-        console.log('[funnel] L4 — scanning user funnels for domain:', host);
+        console.log('[funnel] L4 — deep scan for domain:', host);
         try {
-          // Get all live published funnels and check their authoritative user record
           const allPublished = await db.collection('published-funnels')
             .where('status', '==', 'live').get();
 
           for (const doc of allPublished.docs) {
             const d = getData(doc);
+
+            // FIX 3 — direct domain match on published-funnels (catches ownerUid:null)
+            const directDomain = (d.domain || '').replace(/^www\./, '').toLowerCase().trim();
+            if (directDomain === host) {
+              console.log('[funnel] L4 direct-domain hit — funnelId:', doc.id);
+              funnelId = doc.id;
+              ownerUid = d.ownerUid || null;
+              // Try to get full data from user-scoped collection if ownerUid available
+              if (ownerUid) {
+                try {
+                  const s = await db.collection('users').doc(ownerUid).collection('funnels').doc(funnelId).get();
+                  if (s.exists) { funnel = getData(s); break; }
+                } catch(e) {}
+              }
+              // Fall back to the published-funnels data we already have
+              if (!funnel && d.pages && Object.keys(d.pages).length > 0) {
+                funnel = d;
+              }
+              if (funnel) {
+                repairDomainMap(db, host, funnelId, ownerUid);
+                break;
+              }
+            }
+
+            // Original uid-based deep scan (finds funnels where published-funnels
+            // has domain:'' but users/{uid}/funnels has the correct domain)
             if (!d.ownerUid) continue;
             try {
-              const userFunnels = await db.collection('users').doc(d.ownerUid)
+              const userFunnelSnap = await db.collection('users').doc(d.ownerUid)
                 .collection('funnels').doc(doc.id).get();
-              if (userFunnels.exists) {
-                const uf = getData(userFunnels);
-                const ufDomain = (uf.domain || '').replace(/^www\./, '').toLowerCase();
+              if (userFunnelSnap.exists) {
+                const uf = getData(userFunnelSnap);
+                const ufDomain = (uf.domain || '').replace(/^www\./, '').toLowerCase().trim();
                 if (ufDomain === host && uf.status === 'live') {
                   funnel   = uf;
                   funnelId = doc.id;
                   ownerUid = d.ownerUid;
-                  console.log('[funnel] L4 hit — uid:', ownerUid, 'funnelId:', funnelId);
-                  // Repair everything so this never falls to L4 again
+                  console.log('[funnel] L4 user-scan hit — uid:', ownerUid, 'funnelId:', funnelId);
                   repairDomainMap(db, host, funnelId, ownerUid);
-                  // Also repair published-funnels domain field
                   db.collection('published-funnels').doc(funnelId)
                     .set({ domain: host }, { merge: true }).catch(() => {});
                   break;
