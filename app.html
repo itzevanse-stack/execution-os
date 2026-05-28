@@ -22533,6 +22533,24 @@ onAuthStateChanged(auth, async (user) => {
 
   window._currentUserUid = user.uid;
 
+  // ── Silently repair all domain mappings for this user ─────────────────────
+  // Runs in background on every login. Ensures published-funnels and
+  // domain-map are always in sync with the authoritative users/{uid}/funnels.
+  // This fixes "Funnel not found" for all users without any manual action.
+  (function() {
+    try {
+      fetch(window.location.origin + '/api/sync-domain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid: user.uid })
+      }).then(function(r) { return r.json(); }).then(function(d) {
+        if (d && d.repaired > 0) {
+          console.log('[sync-domain] Repaired', d.repaired, 'domain mappings');
+        }
+      }).catch(function() {});
+    } catch(e) {}
+  })();
+
   // ── Load user document from Firestore ──────────────────────────────────────
   let userDocData = {};
   let memberData  = {};
