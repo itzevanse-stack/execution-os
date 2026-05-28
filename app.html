@@ -18623,28 +18623,25 @@ window.runMindsetReframe = async function() {
   if (out) { out.style.display = 'block'; out.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dim);font-size:12px">Analysing your blocks and building your personal reframe...</div>'; }
 
   try {
-    var resp = await callAPI('claude', {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1400,
-      system: 'You are a powerful mindset coach who combines radical honesty with deep belief-level transformation. You do not use generic motivational language. You read exactly what someone has said about their specific limiting beliefs and you give them a surgical, honest reframe built from their actual words. You speak directly. You do not coddle. You treat them as someone capable of more than they currently believe. You are the coach who changed things for people — not because of positivity, but because of precision.'
-        + (bizIntel ? '\n\n' + bizIntel : ''),
-      messages: [{
-        role: 'user',
-        content: 'Build a personalised mindset reframe for this person. Use their exact words and specific situation — not generic coaching language.'
-          + '\n\nBusiness context: ' + niche + ' niche, $' + price + ' offer, targeting $' + (target||'their goal') + '/month'
-          + '\n\nQ1 — What the voice in their head says about why their target might not happen:\n' + (q1 || 'Not answered')
-          + '\n\nQ2 — Most they have earned in a month and the story they tell about why they have not gone past it:\n' + (q2 || 'Not answered')
-          + '\n\nQ3 — Certainty score out of 10 and what is keeping it from being a 10:\n' + (q3 || 'Not answered')
-          + '\n\nWrite their personalised mindset reframe in 4 parts:'
-          + '\n\n1. THE HONEST MIRROR (2-3 sentences): Name exactly what you see happening in their answers. Not gently — clearly. What pattern is in their words that they may not even see themselves.'
-          + '\n\n2. THE REFRAME (3-4 sentences): Take their specific limiting belief and dismantle it with a specific counter-truth. Use real logic, not motivation. Reference their exact words.'
-          + '\n\n3. THE EVIDENCE THEY ARE IGNORING (2-3 sentences): What does the fact that they are here, doing this, setting this target actually prove about them — even if they cannot see it yet.'
-          + '\n\n4. THE ONE SHIFT (1-2 sentences): The single mental shift they need to carry into everything that follows. Specific. Actionable. Something they can return to when doubt resurfaces.'
-          + '\n\nWrite in second person (you). Be direct. Be specific to their words. This is not a pep talk — it is a precision reframe.'
-      }]
-    });
-    var text = resp && resp.content && resp.content[0] && resp.content[0].text || '';
-    if (!text) throw new Error('No response');
+    var _mindsetSys = 'You are a powerful mindset coach who combines radical honesty with deep belief-level transformation. You do not use generic motivational language. You read exactly what someone has said about their specific limiting beliefs and you give them a surgical, honest reframe built from their actual words. You speak directly. You do not coddle. You treat them as someone capable of more than they currently believe. You are the coach who changed things for people — not because of positivity, but because of precision.'
+      + (bizIntel ? '\n\n' + bizIntel : '');
+    var _mindsetPrompt = 'Build a personalised mindset reframe for this person. Use their exact words and specific situation — not generic coaching language.'
+      + '\n\nBusiness context: ' + niche + ' niche, $' + price + ' offer, targeting $' + (target||'their goal') + '/month'
+      + '\n\nQ1 — What the voice in their head says about why their target might not happen:\n' + (q1 || 'Not answered')
+      + '\n\nQ2 — Most they have earned in a month and the story they tell about why they have not gone past it:\n' + (q2 || 'Not answered')
+      + '\n\nQ3 — Certainty score out of 10 and what is keeping it from being a 10:\n' + (q3 || 'Not answered')
+      + '\n\nWrite their personalised mindset reframe in 4 parts:'
+      + '\n\n1. THE HONEST MIRROR (2-3 sentences): Name exactly what you see happening in their answers. Not gently — clearly. What pattern is in their words that they may not even see themselves.'
+      + '\n\n2. THE REFRAME (3-4 sentences): Take their specific limiting belief and dismantle it with a specific counter-truth. Use real logic, not motivation. Reference their exact words.'
+      + '\n\n3. THE EVIDENCE THEY ARE IGNORING (2-3 sentences): What does the fact that they are here, doing this, setting this target actually prove about them — even if they cannot see it yet.'
+      + '\n\n4. THE ONE SHIFT (1-2 sentences): The single mental shift they need to carry into everything that follows. Specific. Actionable. Something they can return to when doubt resurfaces.'
+      + '\n\nWrite in second person (you). Be direct. Be specific to their words. This is not a pep talk — it is a precision reframe.';
+    var _mindsetRaw = await brCallAI(_mindsetSys, _mindsetPrompt, 1400);
+    var text = (_mindsetRaw && typeof _mindsetRaw === 'string') ? _mindsetRaw
+             : (_mindsetRaw && _mindsetRaw._raw) ? _mindsetRaw._raw
+             : (_mindsetRaw && _mindsetRaw.content && _mindsetRaw.content[0] && _mindsetRaw.content[0].text) ? _mindsetRaw.content[0].text
+             : '';
+    if (!text || (_mindsetRaw && _mindsetRaw._error)) throw new Error((_mindsetRaw && _mindsetRaw._error) || 'No response');
 
     // Parse the 4 sections
     var sections = [
