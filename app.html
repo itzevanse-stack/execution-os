@@ -6263,6 +6263,13 @@ button[onclick="generateOffer()"] {
         <input class="fi" id="fb-redirect-url" placeholder="https://yourdomain.com/thank-you" />
       </div>
 
+      <!-- Domain verification warning — shown if domain entered but not verified -->
+      <div id="fb-domain-unverified-warning" style="display:none;background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.3);border-radius:var(--r-md);padding:14px 18px;margin-bottom:14px;font-size:12px;color:var(--muted);line-height:1.8">
+        <strong style="color:var(--orange);display:block;margin-bottom:4px">⚠️ Verify your domain before publishing</strong>
+        You have entered a custom domain but have not verified it yet. If you publish now, your domain will not be connected and visitors will see a "Funnel not found" error.
+        <div style="margin-top:10px"><button onclick="fbVerifyDomain()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;padding:9px 20px;color:var(--text-dark);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800">🔍 Verify Domain First</button></div>
+      </div>
+
       <!-- Publish button -->
       <button onclick="fbPublishLive()" class="fb-publish-btn" id="fb-go-live-btn">
         🚀 Go Live — Publish Funnel
@@ -23996,6 +24003,16 @@ function fbSetView(v) {
   const stepMap = { create:1, building:2, editor:3, publish:5, live:6 };
   if (stepMap[v]) fbSetWizardStep(stepMap[v]);
   fbState.view = v;
+
+  // When the publish view opens, show or hide the domain warning banner
+  if (v === 'publish') {
+    var warnBanner = document.getElementById('fb-domain-unverified-warning');
+    if (warnBanner) {
+      var domainEntered = !!(fbState.domain || (fbState.current && fbState.current.domain));
+      var domainVerified = !!(fbState.domainVerified || (fbState.current && fbState.current.domainVerified));
+      warnBanner.style.display = (domainEntered && !domainVerified) ? 'block' : 'none';
+    }
+  }
 }
 
 function fbSetWizardStep(n) {
@@ -24798,7 +24815,8 @@ async function fbVerifyDomain() {
     var data = await resp.json();
     console.log('[Domain Verify]', JSON.stringify(data, null, 2));
 
-    if (data.verified) {
+    if (data.verified && data.firestoreOk) {
+      // Full success — DNS verified AND domain mapped in Firestore
       statusEl.innerHTML = '<div style="background:rgba(0,214,143,.08);border:1px solid rgba(0,214,143,.2);border-radius:8px;padding:14px 16px;font-size:12px;color:#c8cde8;line-height:1.8">'
         + '<strong style="color:var(--teal);font-size:14px;display:block;margin-bottom:6px">✅ Domain connected!</strong>'
         + 'Your funnel is now live at <strong style="color:var(--teal)">https://' + fbState.domain + '</strong>'
@@ -24807,6 +24825,29 @@ async function fbVerifyDomain() {
       fbState.domainVerified = true;
       if (fbState.current) { fbState.current.domainVerified = true; fbState.current.domain = fbState.domain; }
       fbSaveFunnelToFirestore(fbState.current);
+
+      // Hide the unverified warning banner
+      var warnBanner = document.getElementById('fb-domain-unverified-warning');
+      if (warnBanner) warnBanner.style.display = 'none';
+
+      // If funnel was already published without domain, republish now to link the domain
+      if (fbState.current && fbState.current.status === 'live') {
+        statusEl.innerHTML += '<div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);margin-top:10px;line-height:1.7">'
+          + '<strong style="color:var(--purple);display:block;margin-bottom:4px">🔄 Updating your live funnel…</strong>'
+          + 'Your funnel was already published. Re-publishing now to connect your domain.'
+          + '</div>';
+        setTimeout(function() { fbPublishLive(); }, 800);
+      }
+
+    } else if (data.dnsOk && !data.firestoreOk) {
+      // DNS is correct but Firestore mapping failed — previously showed false green success
+      statusEl.innerHTML = '<div style="background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.3);border-radius:8px;padding:14px 16px;font-size:12px;color:#c8cde8;line-height:1.8">'
+        + '<strong style="color:var(--orange);font-size:13px;display:block;margin-bottom:6px">&#9888;&#65039; DNS is correct — but we hit a database error</strong>'
+        + '<div style="margin-bottom:10px">Your domain is pointed to the right place, but we could not save the connection to the database. Your funnel will show &quot;Funnel not found&quot; until this is resolved.</div>'
+        + '<div style="background:rgba(255,255,255,.04);border-radius:6px;padding:10px 12px;font-size:11px;color:var(--muted);margin-bottom:10px">' + (data.firestoreError || 'Database write failed. Check your Firebase environment variables in Vercel.') + '</div>'
+        + '<button onclick="fbVerifyDomain()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;padding:9px 20px;color:var(--text-dark);font-size:12px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:800">&#128260; Try Again</button>'
+        + '</div>';
+      fbState.domainVerified = false;
 
     } else if (data.cloudflareProxy) {
       // Specific Cloudflare orange cloud fix
@@ -24959,6 +25000,25 @@ function fbRestoreBranding(funnel) {
 
 async function fbPublishLive() {
   if (!fbState.current) return;
+
+  // Block publish if a domain has been entered but not yet verified
+  if (fbState.domain && !fbState.domainVerified) {
+    var warn = document.getElementById('fb-domain-unverified-warning');
+    if (warn) {
+      warn.style.display = 'block';
+      warn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    var statusEl = document.getElementById('fb-domain-status');
+    if (statusEl) {
+      statusEl.style.display = 'block';
+      statusEl.innerHTML = '<div style="background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.3);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.7">'
+        + '<strong style="color:var(--orange);display:block;margin-bottom:4px">⚠️ Domain not verified — cannot publish yet</strong>'
+        + 'Click <strong style="color:var(--teal)">Verify Domain First</strong> above. Once you see the green confirmation, click Publish again.'
+        + '</div>';
+    }
+    return;
+  }
+
   var btn = document.getElementById('fb-go-live-btn');
   if (btn) { btn.textContent = '⏳ Publishing…'; btn.disabled = true; }
 
