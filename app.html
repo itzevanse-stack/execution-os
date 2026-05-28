@@ -25031,9 +25031,12 @@ async function fbPublishLive() {
   // Save to user's funnels collection
   await fbSaveFunnelToFirestore(fbState.current);
 
-  // Also save to published-funnels top-level collection so api/funnel.js can serve it without uid
+  // Save to published-funnels — do NOT gate on uid.
+  // funnel.js uses this as the fallback lookup when serving custom domains.
+  // Previously gated on uid — if uid was null at publish time the entire
+  // collection write was skipped and domain routing silently broke.
   try {
-    if (uid && window._db && window._setDoc && window._doc) {
+    if (window._db && window._setDoc && window._doc) {
       await window._setDoc(
         window._doc(window._db, 'published-funnels', fbState.current.id),
         {
@@ -25042,7 +25045,7 @@ async function fbPublishLive() {
           type:        fbState.current.type,
           pages:       fbState.current.pages,
           domain:      fbState.current.domain || '',
-          ownerUid:    uid,
+          ownerUid:    uid || null,
           status:      'live',
           publishedAt: fbState.current.publishedAt,
         },
@@ -25050,6 +25053,30 @@ async function fbPublishLive() {
       );
     }
   } catch(e) { console.warn('Published funnels save error:', e); }
+
+  // Also write domain-map directly at publish time as a safety net.
+  // This ensures the domain→funnel mapping exists even if verify-domain.js
+  // failed to write it (e.g. Firestore was unavailable, uid was missing at
+  // verify time, or the user skipped verification on an older version of the app).
+  try {
+    var _pubDomain = fbState.current.domain;
+    if (_pubDomain && fbState.current.domainVerified && window._db && window._setDoc && window._doc) {
+      var _noWww   = _pubDomain.replace(/^www\./, '');
+      var _withWww = 'www.' + _noWww;
+      var _dmRecord = {
+        domain:     _pubDomain,
+        funnelId:   fbState.current.id,
+        uid:        uid || null,
+        verifiedAt: new Date().toISOString(),
+      };
+      await Promise.all([
+        window._setDoc(window._doc(window._db, 'domain-map', _pubDomain), _dmRecord, { merge: true }),
+        window._setDoc(window._doc(window._db, 'domain-map', _noWww),    Object.assign({}, _dmRecord, { domain: _noWww }),    { merge: true }),
+        window._setDoc(window._doc(window._db, 'domain-map', _withWww),  Object.assign({}, _dmRecord, { domain: _withWww }),  { merge: true }),
+      ]);
+      console.log('[Publish] domain-map written for', _pubDomain);
+    }
+  } catch(e) { console.warn('[Publish] domain-map write error:', e); }
 
   // Determine the correct live URL
   var domain   = fbState.current.domain;
