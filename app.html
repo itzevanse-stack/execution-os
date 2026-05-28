@@ -17849,20 +17849,35 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
     let av = {};
     try {
       setProgress(15, 'Reading the sales page content…', null);
-      const resp = await fetch(window.PROXY_URL, {
+      var _affBi  = window._boardroomIntel || null;
+      var _affInp = (_affBi && _affBi.inputs) || {};
+      const resp = await fetch(window.location.origin + '/api/generate-affiliate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fetchUrl: url,
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2500,
-          messages: [{ role: 'user', content: avatarPrompt }]
+          type:          'avatar',
+          productUrl:    url,
+          productName:   productName,
+          commission:    commission,
+          monthlyTarget: monthlyTarget,
+          niche:         productNiche,
+          trafficMode:   platform || 'organic',
+          boardroomIntel: _affBi,
+          userContext: {
+            niche:         _affInp.niche         || productNiche,
+            offerName:     _affInp.offerName      || productName,
+            price:         _affInp.price          || commission,
+            target:        _affInp.target         || monthlyTarget,
+            platform:      _affInp.platform       || platform || 'organic',
+            av_pain:       _affInp.av_pain        || '',
+            av_fear:       _affInp.av_fear        || '',
+            transformation:_affInp.transformation || '',
+            av_objections: _affInp.av_objections  || '',
+          },
         })
       });
       if (!resp.ok) throw new Error('API error ' + resp.status);
-      const data = await resp.json();
-      const text = (data.content && data.content[0] && data.content[0].text) || '';
-      av = JSON.parse(text.replace(/```json|```/g,'').trim());
+      av = await resp.json();
       setProgress(40, 'Sales page analysed — building buyer profile…', 'Sales page read ✅');
     } catch(e) {
       console.warn('Sales page fetch failed, using niche-based fallback:', e.message);
@@ -18049,75 +18064,33 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
 
     setProgress(55, 'Writing your 7-day content plan…', 'Buyer profile locked ✅');
 
-    // Build full content via API
+    // Build full content via API — routed through /api/generate-affiliate
+    // so Boardroom hooks, DM openers and email subjects seed the content
     try {
-      const calResp = await fetch(window.PROXY_URL, {
+      var _calBi  = window._boardroomIntel || null;
+      var _calInp = (_calBi && _calBi.inputs) || {};
+      const calResp = await fetch(window.location.origin + '/api/generate-affiliate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 8000,
-          messages: [{ role: 'user', content: `You are a world-class content writer who creates belief-shifting, emotionally resonant content for affiliate marketers. Your content makes audiences feel deeply seen, challenges what holds them back, and builds genuine trust — never feeling like an ad.
-
-WHO YOU ARE WRITING FOR:
-They are: ${job}
-Their #1 pain: "${pain}"
-The emotional wound beneath: "${deeper}"
-What they have tried: ${tried}
-Their deepest fear: "${fear}"
-What they truly want: "${transf}"
-Who they want to become: "${av.identity||transf}"
-Product: ${pn} (${productNiche})
-Commission: $${commission}/sale${vpCtx}
-
-THE 7-DAY EMOTIONAL ARC:
-Day 1 — "${topicArc[0]}": MIRROR — describe their daily reality so precisely they think you wrote this for them personally
-Day 2 — "${topicArc[1]}": REFRAME — challenge the #1 false belief that is keeping them stuck, replace it with truth
-Day 3 — "${topicArc[2]}": RAW STORY — vulnerable, personal, the messy middle — not a success story, the moment before it clicked
-Day 4 — "${topicArc[3]}": NAME THE VILLAIN — expose the broken system, bad advice, or wrong approach they have been fed
-Day 5 — "${topicArc[4]}": THE OTHER SIDE — paint their transformed life in vivid emotional detail. Natural product mention here.
-Day 6 — "${topicArc[5]}": PROOF THROUGH JOURNEY — show transformation as a process with real moments. Organic product reference.
-Day 7 — "${topicArc[6]}": REAL CONVERSATION — one deeply honest question that makes people want to open up and reply
-
-WRITING RULES — NON-NEGOTIABLE:
-- Write like a real human, not a marketer. No hype. No "click the link in bio."
-- BANNED words: "game changer", "life-changing", "hustle", "level up", "you got this", "transform your life", "synergy"
-- Every hook must name a SPECIFIC emotion, moment, or situation — never a vague benefit
-- Facebook posts: personal and honest, 220-300 words, end with a genuine question requiring a real personal answer
-- Reel scripts: say what the viewer has been silently feeling but could never put into words
-- Emails: write as a personal letter to ONE specific person, never a broadcast
-- Days 1-4: ZERO product mentions. Days 5-6: natural story-based mentions only. Day 7: real conversation, no pitch.
-- Use their actual objections, fears, and tried solutions from above — make it specific, not generic
-
-AFFILIATE CONTENT STANDARDS — every piece must meet this:
-- You are an affiliate recommending something you genuinely believe in — NOT the creator. Never claim you built it.
-- Days 1–4: ZERO product mentions. Build trust, educate about the problem, establish credibility.
-- Day 5: Share your authentic discovery story — how and why you found this product. Personal, honest.
-- Day 6: Address the top objections with radical transparency. Name the fear. Answer it directly.
-- Day 7: Soft authentic recommendation. "Here is what changed things for me" — never "click my link."
-- The affiliate who wins is the one who educates best, not the one who sells hardest.
-
-FACEBOOK POST 1 (400–600 words — deep authority post, no product mention days 1-4):
-Hook that names the exact person and their exact situation → Deep education on the problem or its cause → A reframe that changes how they see their situation → The insight most content in this niche never gives them → Closing thought that stays with them → Genuine question that requires a personal answer. Short paragraphs. Real human voice. The reader should screenshot this and send it to a friend.
-
-REEL 1 — write the EXACT words to say, every word, 55–65 seconds:
-HOOK (2–3 seconds): Bold specific statement or callout that names exactly who this is for.
-BODY (40–50 seconds): One complete genuinely useful idea. Specific example. Actionable today, not just conceptual. 3–5 punchy points that each land individually.
-CTA (5–7 seconds): Save this. Comment one word. No product pushes on days 1-4.
-Write every word as it would be spoken.
-
-REEL 2 — different format, different energy, same standard. Write every word.
-
-EMAIL (300–450 words — a personal letter from someone who cares, not a broadcast):
-SUBJECT: Under 50 chars. Reads like a human sent it. No "newsletter" energy.
-Body: One deep lesson. Real story or example. Written to one specific person.
-CTA: On days 5-7 only, one honest recommendation. On days 1-4, just ask a question.
-P.S.: Creates curiosity or reinforces the main point differently.
-
-Return a JSON array of exactly 7 objects. No markdown, no backticks, nothing before or after:
-{"topic":"specific topic","hook":"the strongest opening line for this day","fb1":"COMPLETE Facebook post 400-600 words ready to publish — full copy, every word","reel1":"HOOK: [exact words 2-3 sec]\nBODY: [exact script every word 40-50 sec]\nCTA: [exact words 5-7 sec]","reel2":"HOOK: [exact words 2-3 sec]\nBODY: [exact script every word 40-50 sec]\nCTA: [exact words 5-7 sec]","email":"SUBJECT: [under 50 chars]\n\n[Full letter 300-450 words]\n\nCTA: [one clear action or question]\n\nP.S. [one sentence]"}
-
-Return ONLY the JSON array.` }]
+          type:          'calendar',
+          productName:   pn,
+          commission:    commission,
+          niche:         productNiche,
+          trafficMode:   platform || 'organic',
+          avatarData:    av,
+          boardroomIntel: _calBi,
+          userContext: {
+            niche:         _calInp.niche         || productNiche,
+            offerName:     _calInp.offerName      || pn,
+            price:         _calInp.price          || commission,
+            target:        _calInp.target         || monthlyTarget,
+            platform:      _calInp.platform       || platform || 'organic',
+            av_pain:       av.pain                || _calInp.av_pain        || '',
+            av_fear:       av.fear                || _calInp.av_fear        || '',
+            transformation:av.transformation      || _calInp.transformation || '',
+            av_objections: (Array.isArray(av.objections) ? av.objections.join(', ') : (av.objections || '')),
+          },
         })
       });
 
@@ -18125,7 +18098,8 @@ Return ONLY the JSON array.` }]
 
       if (calResp.ok) {
         const calData = await calResp.json();
-        const calText = ((calData.content&&calData.content[0]&&calData.content[0].text)||'').replace(/```json|```/gi,'').trim();
+        const calRaw  = calData.text || ((calData.content&&calData.content[0]&&calData.content[0].text)||'');
+        const calText = calRaw.replace(/```json|```/gi,'').trim();
         let calDays = null;
         try { calDays = JSON.parse(calText); } catch(e) {}
         if (calDays && Array.isArray(calDays)) {
@@ -21398,22 +21372,19 @@ window.setAppMode = function(mode) {
     var boardroomNavEl = document.getElementById('nav-boardroom');
     if (boardroomNavEl) boardroomNavEl.style.display = 'none';
     setNav('nav-dashboard',  'Dashboard',          'Command Centre',       false);
-    setNav('nav-plan',        null, null,            true);  // Revenue Plan HIDDEN for affiliates — targets live on Affiliate page
-    setNav('nav-offer',       null, null,            true);   // HIDDEN
+    setNav('nav-plan',        null, null,            true);
+    setNav('nav-offer',       null, null,            true);
     setNav('nav-affiliate',  'Offer Setup',         'Set up first', false);
     setNav('nav-funnels',    'Funnel Builder',      'Build & publish', false);
     setNav('nav-email',      'Email Marketing',     'Campaigns', false);
-    setNav('nav-avatar',      null, null,            true);  // Hidden in affiliate mode
-    // nav-calendar removed from sidebar — lives in Boardroom
+    setNav('nav-avatar',      null, null,            true);
     setNav('nav-scripts',    null, null,            true);
     setNav('nav-routine',    'Daily Routine',       'Step 3', false);
-    setNav('nav-tracker',     null, null,             true);  // Hidden — lives in Offer Setup tabs
+    setNav('nav-tracker',     null, null,             true);
     setNav('nav-growth',     'Growth Support',      'Training & resources', false);
     setNav('nav-perfhq',     'Performance HQ',      'Score & milestones',   false);
     setNav('nav-profile',    'My Profile',          'Account & settings',   false);
     setNav('nav-ai-video',   'AI Video Studio',     'Clone & create', false);
-
-    // nav-affiliate is already above nav-avatar in the HTML
 
     // Update section labels
     const sectionLabels = document.querySelectorAll('.nav-section-label');
@@ -22612,8 +22583,9 @@ onAuthStateChanged(auth, async (user) => {
             }
           } catch(e) {}
 
-          const lastPage = localStorage.getItem('eos_last_page');
-          const validPages = ['dashboard','plan','offer','avatar','business-dna','boardroom','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','profile','affiliate','aff-offer','funnels','email','scorecard','ai-video'];
+          var lastPage = localStorage.getItem('eos_last_page');
+          const validPages = ['dashboard','plan','offer','avatar','business-dna','boardroom','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','affiliate','aff-offer','funnels','email','scorecard','ai-video'];
+          if (lastPage === 'profile') { localStorage.removeItem('eos_last_page'); lastPage = null; }
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
             const navBtn = document.getElementById('nav-' + lastPage);
             window.showPage(lastPage, navBtn || null);
@@ -24515,7 +24487,28 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
   var resp = await fetch(proxyUrl, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt: prompt, max_tokens: 2500, mode: templateMode })
+    body: JSON.stringify({
+      prompt:         prompt,
+      max_tokens:     3000,
+      mode:           templateMode,
+      boardroomIntel: (function(){ return window._boardroomIntel || null; })(),
+      userContext:    (function(){
+        var bi  = window._boardroomIntel || null;
+        var inp = (bi && bi.inputs) || {};
+        var av  = window._avatarData   || {};
+        return {
+          niche:         inp.niche          || window._appliedNiche  || '',
+          offerName:     inp.offerName      || inp.offer            || '',
+          price:         inp.price          || window._appliedPrice  || 0,
+          target:        inp.target         || window._appliedTarget || 0,
+          platform:      inp.platform       || '',
+          av_pain:       av.pain            || inp.av_pain           || '',
+          av_fear:       av.fear            || inp.av_fear           || '',
+          av_objections: Array.isArray(av.objections) ? av.objections.join(', ') : (av.objections || ''),
+          transformation:av.transformation  || inp.transformation    || '',
+        };
+      })(),
+    })
   });
 
   if (!resp.ok) {
