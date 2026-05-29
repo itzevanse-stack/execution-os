@@ -4692,7 +4692,6 @@ button[onclick="generateOffer()"] {
         <button class="tab" onclick="showAffActiveTab('offer-viability',this)">📊 Offer Viability</button>
         <button class="tab" onclick="showAffActiveTab('strategy',this)">🎯 Strategy</button>
         <button class="tab" onclick="showAffActiveTab('content-strategy',this)">📐 Content Strategy</button>
-        <button class="tab" onclick="showAffActiveTab('calendar',this)">📅 Content Calendar</button>
         <button class="tab" onclick="showAffActiveTab('dms',this)">💬 DM Scripts</button>
         <button class="tab" onclick="showAffActiveTab('dailyplan',this)">⚡ Daily Plan</button>
         <button class="tab" onclick="showAffActiveTab('tracker',this)">📊 Commissions</button>
@@ -4706,12 +4705,11 @@ button[onclick="generateOffer()"] {
       <div id="aff-tab-avatar"   style="display:none"><div id="aff-avatar-body"></div></div>
       <div id="aff-tab-content-strategy" style="display:none"><div id="aff-content-strategy-body"></div></div>
       <div id="aff-tab-calendar" style="display:none">
-        <div style="overflow-x:auto">
-          <div class="cal-head">
-            <div class="cal-dh">Mon</div><div class="cal-dh">Tue</div><div class="cal-dh">Wed</div>
-            <div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div><div class="cal-dh">Sun</div>
-          </div>
-          <div id="cal-body" class="cal-body" style="min-width:700px"></div>
+        <div style="text-align:center;padding:3rem 1rem">
+          <div style="font-size:40px;margin-bottom:14px">📅</div>
+          <div style="font-size:16px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Your Content Calendar</div>
+          <div style="font-size:12px;color:var(--dim);max-width:360px;margin:0 auto 24px;line-height:1.7">Your 7-day content plan is ready. View it in the full Content Calendar — download posts, track what's published, and regenerate anything you want to change.</div>
+          <button onclick="showPage('calendar',document.getElementById('nav-calendar'))" style="padding:14px 32px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:50px;color:var(--text-dark);font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 6px 20px rgba(78,204,163,.3)">📅 Open Content Calendar →</button>
         </div>
       </div>
       <div id="aff-tab-dms"      style="display:none"><div id="aff-dms-body"></div></div>
@@ -5744,17 +5742,20 @@ button[onclick="generateOffer()"] {
               </div>
             </div>
             <div id="avs-stock-section">
-              <select class="fi" id="avs-avatar-select" onchange="avsOnAvatarChange()" style="font-size:11px;padding:7px 10px;margin-bottom:6px">
-                <option value="">Loading avatars…</option>
-              </select>
-              <div id="avs-avatar-preview-wrap" style="display:none;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:8px;padding:8px 10px;align-items:center;gap:8px">
+              <!-- Visual avatar card grid — replaces plain <select> -->
+              <div id="avs-avatar-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px;max-height:220px;overflow-y:auto;scrollbar-width:thin"></div>
+              <!-- Hidden input stores selected avatar ID -->
+              <input type="hidden" id="avs-avatar-select" value="" />
+              <!-- Selected avatar confirmation strip -->
+              <div id="avs-avatar-preview-wrap" style="display:none;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:8px 10px;align-items:center;gap:8px;margin-top:4px">
                 <img id="avs-avatar-thumb" src="" style="width:32px;height:32px;border-radius:6px;object-fit:cover;flex-shrink:0" />
-                <div>
-                  <div id="avs-avatar-name-display" style="font-size:11px;font-weight:700;color:var(--white);line-height:1.3"></div>
+                <div style="flex:1">
+                  <div id="avs-avatar-name-display" style="font-size:11px;font-weight:700;color:var(--teal);line-height:1.3"></div>
                   <div id="avs-avatar-gender-display" style="font-size:9px;color:var(--dim);margin-top:1px"></div>
                 </div>
+                <span style="font-size:14px">✅</span>
               </div>
-              <button onclick="avsLoadAvatars()" style="background:none;border:none;color:var(--dimmer);font-size:9px;cursor:pointer;font-family:Poppins,sans-serif;padding:2px 0">↻ Refresh avatars</button>
+              <button onclick="avsLoadAvatars()" style="background:none;border:none;color:var(--dimmer);font-size:9px;cursor:pointer;font-family:Poppins,sans-serif;padding:2px 0;margin-top:4px">↻ Refresh avatars</button>
             </div>
             <div id="avs-photo-section" style="display:none">
               <div id="avs-gen-photo-area" onclick="document.getElementById('avs-gen-photo-file').click()" style="border:1px dashed rgba(108,99,255,.25);border-radius:8px;padding:14px;text-align:center;cursor:pointer;background:rgba(108,99,255,.02)" onmouseover="this.style.borderColor='rgba(108,99,255,.5)'" onmouseout="this.style.borderColor='rgba(108,99,255,.25)'">
@@ -5772,10 +5773,11 @@ button[onclick="generateOffer()"] {
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer)">Voice</div>
               <button onclick="avsLoadVoices()" style="background:none;border:none;color:var(--dimmer);font-size:9px;cursor:pointer;font-family:Poppins,sans-serif;padding:0">↻ Refresh</button>
             </div>
-            <select class="fi" id="avs-voice-select" style="font-size:11px;padding:7px 10px">
-              <option value="">Loading voices…</option>
-            </select>
-            <div style="font-size:9px;color:var(--dimmer);margin-top:5px;line-height:1.5">Any voice works with any avatar.</div>
+            <!-- Voice list with preview buttons -->
+            <div id="avs-voice-list" style="max-height:200px;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:4px"></div>
+            <!-- Hidden input stores selected voice ID -->
+            <input type="hidden" id="avs-voice-select" value="" />
+            <div id="avs-voice-selected-label" style="font-size:9px;color:var(--teal);margin-top:5px;line-height:1.5;min-height:14px"></div>
           </div>
         </div>
 
@@ -18277,29 +18279,103 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
       av = await resp.json();
       setProgress(40, 'Sales page analysed — building buyer profile…', 'Sales page read ✅');
     } catch(e) {
-      console.warn('Sales page fetch failed, using niche-based fallback:', e.message);
-      setProgress(30, 'Building buyer profile from niche data…', null);
+      console.warn('Direct sales page fetch failed:', e.message);
+
+      // ── FALLBACK 1: Try Jina.ai reader proxy (bypasses JS rendering + bot blocks) ──
+      let jinaSuccess = false;
       try {
-        const fallbackResp = await fetch(window.PROXY_URL, {
+        setProgress(20, 'Page blocked direct access — trying alternative reader…', null);
+        const jinaResp = await fetch(window.location.origin + '/api/generate-affiliate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 2000,
-            messages: [{ role: 'user', content: `Build a deep buyer psychology profile for a ${productNiche} affiliate product.
-Product URL: ${url}
-Product name: ${productName || 'not specified'}
-Commission: $${commission} per sale
-Monthly target: $${monthlyTarget}
-
-Return ONLY valid JSON with all these fields:
-productName, productTagline, productBenefits (array), name, age, gender, location, job, industry, income, pain, deeperPain, fear, tried, transformation, motivation, identity, objections (array of 3), contentAngles (array of 5), dmHooks (array of 3), emailSubjectLines (array of 3), niche, commission` }]
+            type:          'avatar',
+            productUrl:    'https://r.jina.ai/' + url,  // Jina reader strips JS, returns clean text
+            productName:   productName,
+            commission:    commission,
+            monthlyTarget: monthlyTarget,
+            niche:         productNiche,
+            trafficMode:   platform || 'organic',
           })
         });
-        const fd = await fallbackResp.json();
-        av = JSON.parse(((fd.content&&fd.content[0]&&fd.content[0].text)||'').replace(/```json|```/g,'').trim());
-        setProgress(40, 'Buyer profile built — writing content…', 'Profile built ✅');
-      } catch(e2) {
+        if (jinaResp.ok) {
+          const jinaData = await jinaResp.json();
+          if (jinaData && jinaData.pain) {
+            av = jinaData;
+            jinaSuccess = true;
+            setProgress(40, 'Sales page read via proxy — buyer profile built ✅', 'Sales page read ✅');
+          }
+        }
+      } catch(jinaErr) {
+        console.warn('Jina proxy also failed:', jinaErr.message);
+      }
+
+      if (!jinaSuccess) {
+        // ── FALLBACK 2: Ask the user to paste sales page text ──────────────
+        // Even 200 words from the sales page produces far better psychology
+        // than the generic niche fallback. Show a paste UI and wait for input.
+        const pasteResult = await new Promise(function(resolve) {
+          const pasteOverlay = document.createElement('div');
+          pasteOverlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+          pasteOverlay.innerHTML = '<div style="background:var(--card);border:1px solid var(--border2);border-radius:20px;padding:28px;max-width:520px;width:100%">'
+            + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--orange);font-weight:800;margin-bottom:8px">⚠️ Page Could Not Be Read Automatically</div>'
+            + '<div style="font-size:15px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Paste anything from the sales page</div>'
+            + '<div style="font-size:12px;color:var(--dim);margin-bottom:16px;line-height:1.6">Even just the headline, bullet points, or one paragraph is enough. Open the sales page, copy any text, and paste it here.</div>'
+            + '<textarea id="aff-paste-input" style="width:100%;min-height:120px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:12px;padding:12px;color:var(--white);font-size:12px;font-family:Inter,sans-serif;line-height:1.7;resize:vertical;outline:none;box-sizing:border-box" placeholder="Paste sales page text here…"></textarea>'
+            + '<div style="display:flex;gap:10px;margin-top:14px">'
+            + '<button id="aff-paste-skip" style="flex:1;padding:12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Skip — use niche profile</button>'
+            + '<button id="aff-paste-submit" style="flex:2;padding:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:10px;color:var(--text-dark);font-size:12px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">Analyse Pasted Text →</button>'
+            + '</div></div>';
+          document.body.appendChild(pasteOverlay);
+          document.getElementById('aff-paste-submit').onclick = function() {
+            const text = (document.getElementById('aff-paste-input') || {}).value || '';
+            pasteOverlay.remove();
+            resolve(text.trim());
+          };
+          document.getElementById('aff-paste-skip').onclick = function() {
+            pasteOverlay.remove();
+            resolve('');
+          };
+        });
+
+        if (pasteResult && pasteResult.length > 30) {
+          // User pasted text — build avatar from it
+          setProgress(30, 'Building buyer profile from pasted content…', null);
+          try {
+            const pasteResp = await fetch(window.PROXY_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 2000,
+                messages: [{ role: 'user', content: `Build a deep buyer psychology profile from this sales page content.\n\nSALES PAGE TEXT:\n${pasteResult.slice(0, 3000)}\n\nProduct niche: ${productNiche}\nCommission: $${commission}\nMonthly target: $${monthlyTarget}\n\nReturn ONLY valid JSON with all these fields:\nproductName, productTagline, productBenefits (array of 3), name, age, gender, location, job, industry, income, pain, deeperPain, fear, tried, transformation, motivation, identity, objections (array of 3), contentAngles (array of 5), dmHooks (array of 3), emailSubjectLines (array of 3), niche, commission` }]
+              })
+            });
+            const pd = await pasteResp.json();
+            av = JSON.parse(((pd.content&&pd.content[0]&&pd.content[0].text)||'').replace(/```json|```/g,'').trim());
+            setProgress(40, 'Buyer profile built from your pasted content ✅', 'Profile built ✅');
+          } catch(pasteErr) {
+            console.warn('Paste analysis failed, falling back to niche profile:', pasteErr.message);
+          }
+        }
+
+        // ── FALLBACK 3: Niche-based profile (last resort) ──────────────────
+        if (!av || !av.pain) {
+          setProgress(30, 'Building buyer profile from niche data…', null);
+          try {
+            const fallbackResp = await fetch(window.PROXY_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                model: 'claude-sonnet-4-20250514',
+                max_tokens: 2000,
+                messages: [{ role: 'user', content: `Build a deep buyer psychology profile for a ${productNiche} affiliate product.\nProduct URL: ${url}\nProduct name: ${productName || 'not specified'}\nCommission: $${commission} per sale\nMonthly target: $${monthlyTarget}\n\nReturn ONLY valid JSON with all these fields:\nproductName, productTagline, productBenefits (array), name, age, gender, location, job, industry, income, pain, deeperPain, fear, tried, transformation, motivation, identity, objections (array of 3), contentAngles (array of 5), dmHooks (array of 3), emailSubjectLines (array of 3), niche, commission` }]
+              })
+            });
+            const fd = await fallbackResp.json();
+            av = JSON.parse(((fd.content&&fd.content[0]&&fd.content[0].text)||'').replace(/```json|```/g,'').trim());
+            setProgress(40, 'Buyer profile built — writing content…', 'Profile built ✅');
+          } catch(e2) {
         // Niche-specific rich fallback data
         const _nf = {
           "Digital Products & Info Business": { name:"Sarah", age:"28-42", gender:"Mixed", location:"USA, UK, Australia, Canada", job:"Corporate employee trying to build income online", income:"$35K-$65K/year", pain:"I know I have knowledge worth sharing but I have no idea how to package it into something people actually pay for", deeperPain:"Fear of being seen as a fraud or wasting months building something nobody buys", transformation:"Launch a digital product that earns $5K-$10K/month without depending on a 9-5 job", fear:"Creating a course and hearing crickets — wasting months on something nobody wants", tried:"YouTube tutorials, free challenges, cheap courses — all gave information but no real system", motivation:"Proving to myself and my family that I can build something real outside a traditional job", identity:"A recognised creator who earns from their expertise on their own terms", personality:"Skeptical but curious", influences:"Alex Hormozi, Dan Koe, Amy Porterfield, Creator Economy Facebook groups", objections:["This will not work for someone like me with no audience","I don't know what to sell","I've tried this before and got nowhere"], keywords:["how to make money online","how to sell digital products","passive income ideas","how to start an online business","digital product business","make money from home","online income streams"] },
@@ -18332,7 +18408,9 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
           niche: productNiche, commission
         };
       }   // close catch(e2)
-    }     // close catch(e)
+        }   // close if(!av||!av.pain)
+      }     // close if(!jinaSuccess)
+    }       // close catch(e)
 
     // ── Store core data ───────────────────────────────────────────────
     window._avatarData = av;
@@ -18422,8 +18500,111 @@ productName, productTagline, productBenefits (array), name, age, gender, locatio
         }
 
         console.log('[Affiliate Intel] Full intelligence loaded and activated across all sections ✅', affIntelData.tracer);
+
+        // ── DEPTH CALL: Content pillars + email sequence + 30-day roadmap ──
+        // Runs after the main intel agent to add the Boardroom-equivalent depth
+        // that was previously missing from Affiliate mode.
+        try {
+          const depthPrompt = `You are an elite affiliate marketing strategist. Build a deep content and campaign architecture for this affiliate.
+
+PRODUCT: ${av.productName || productName} in the ${av.niche || productNiche} niche
+COMMISSION: $${commission} per sale | TARGET: $${monthlyTarget}/month
+BUYER: ${av.job || 'online entrepreneur'} — Pain: "${av.pain}" — Transformation: "${av.transformation}"
+POSITIONING: ${affIntelData.positioning && affIntelData.positioning.dominanceAngle ? affIntelData.positioning.dominanceAngle : 'authentic recommendation'}
+
+Return ONLY valid JSON:
+{
+  "contentPillars": [
+    { "pillar": "pillar name", "why": "why this works for this specific buyer", "formats": ["best content formats"] },
+    { "pillar": "pillar 2", "why": "why", "formats": ["formats"] },
+    { "pillar": "pillar 3", "why": "why", "formats": ["formats"] },
+    { "pillar": "pillar 4", "why": "why", "formats": ["formats"] }
+  ],
+  "emailSequence": [
+    { "day": 1, "subject": "subject line", "angle": "what this email teaches — pure value, no pitch", "purpose": "build trust" },
+    { "day": 2, "subject": "subject line", "angle": "angle", "purpose": "deepen pain awareness" },
+    { "day": 3, "subject": "subject line", "angle": "angle", "purpose": "introduce the solution concept" },
+    { "day": 4, "subject": "subject line", "angle": "angle", "purpose": "social proof and results" },
+    { "day": 5, "subject": "subject line", "angle": "angle", "purpose": "soft recommendation" },
+    { "day": 7, "subject": "subject line", "angle": "angle", "purpose": "direct recommendation with urgency" }
+  ],
+  "promotionRoadmap": [
+    { "phase": "Phase 1 — Days 1-14", "goal": "build authority in the niche", "dailyActions": ["action 1", "action 2", "action 3"], "metric": "what to measure" },
+    { "phase": "Phase 2 — Days 15-21", "goal": "warm the audience", "dailyActions": ["action 1", "action 2"], "metric": "what to measure" },
+    { "phase": "Phase 3 — Days 22-30", "goal": "convert warm leads to sales", "dailyActions": ["action 1", "action 2"], "metric": "what to measure" }
+  ],
+  "platformStrategy": {
+    "primary": "best platform for this niche and buyer",
+    "secondary": "second platform",
+    "reasoning": "why these two platforms over others",
+    "contentFrequency": "how many posts per day and what types"
+  }
+}`;
+
+          const depthResp = await fetch(window.PROXY_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              model: 'claude-sonnet-4-20250514',
+              max_tokens: 3000,
+              messages: [{ role: 'user', content: depthPrompt }]
+            })
+          });
+          if (depthResp.ok) {
+            const depthRaw = await depthResp.json();
+            const depthText = ((depthRaw.content&&depthRaw.content[0]&&depthRaw.content[0].text)||'').replace(/```json|```/g,'').trim();
+            const depthData = JSON.parse(depthText);
+            if (depthData && depthData.contentPillars) {
+              // Store on affiliateOffer for use by Content Studio and Automate tab
+              window._affiliateOffer.contentPillars   = depthData.contentPillars;
+              window._affiliateOffer.emailSequence    = depthData.emailSequence;
+              window._affiliateOffer.promotionRoadmap = depthData.promotionRoadmap;
+              window._affiliateOffer.platformStrategy = depthData.platformStrategy;
+              // Also wire into the boardroom intel content engine so carousels use proper pillars
+              if (window._boardroomIntel) {
+                window._boardroomIntel.contentEngine = window._boardroomIntel.contentEngine || {};
+                window._boardroomIntel.contentEngine.pillars = depthData.contentPillars.map(function(p){ return p.pillar; });
+              }
+              if (window._affiliateOffer.contentEngine) {
+                window._affiliateOffer.contentEngine.pillars = depthData.contentPillars.map(function(p){ return p.pillar; });
+              }
+              try { localStorage.setItem('eos_aff_depth_intel', JSON.stringify(depthData)); } catch(e3) {}
+              console.log('[Affiliate Intel] Depth intelligence loaded — content pillars, email sequence, 30-day roadmap ✅');
+            }
+          }
+        } catch(depthErr) {
+          console.warn('[Affiliate Intel] Depth call failed:', depthErr.message);
+        }
       } catch(e) {
         console.warn('[Affiliate Intel] Agent failed:', e.message);
+      }
+    })();
+
+    // ── Auto-run Promotion Intelligence in background (Fix 3) ────────────
+    // Finds saturated angles + open positioning gaps automatically.
+    // Stores dominance angle on _affiliateOffer so calendar and DM prompts
+    // can use it — user doesn't need to find the tab manually.
+    (async function() {
+      try {
+        var offer = window._affiliateOffer || {};
+        var promoResult = await affCallAI_PromoIntel(offer, av);
+        if (promoResult && promoResult.yourDominanceAngle) {
+          // Store on affiliateOffer so _carGetContext and DM scripts can read it
+          window._affiliateOffer.dominanceAngle  = promoResult.yourDominanceAngle;
+          window._affiliateOffer.openGaps        = promoResult.openGaps        || [];
+          window._affiliateOffer.saturatedAngles = promoResult.saturatedAngles || [];
+          window._affiliateOffer.reviewStrategy  = promoResult.reviewStrategy  || '';
+          // Also store on the research intel object so the Promotion Intelligence tab
+          // renders without needing a second manual click
+          if (!window._affiliateResearchIntel) window._affiliateResearchIntel = {};
+          window._affiliateResearchIntel.promoIntel = promoResult;
+          // Re-render the tab if it's currently visible
+          if (typeof window.renderAffPromoIntel === 'function') window.renderAffPromoIntel();
+          try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e2) {}
+          console.log('[Affiliate] Promotion intelligence loaded — dominance angle:', promoResult.yourDominanceAngle);
+        }
+      } catch(e) {
+        console.warn('[Affiliate] Promotion intel background run failed:', e.message);
       }
     })();
 
@@ -18483,6 +18664,7 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
           niche:         productNiche,
           trafficMode:   platform || 'organic',
           avatarData:    av,
+          voiceProfile:  vp,          // ← voice now reaches calendar content
           boardroomIntel: _calBi,
           userContext: {
             niche:         _calInp.niche         || productNiche,
@@ -18535,6 +18717,14 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
     setProgress(85, 'Writing your DM scripts…', 'Calendar ready ✅');
 
     try {
+      // Include dominance angle if promotion intelligence has already run
+      var _dominanceCtx = (window._affiliateOffer && window._affiliateOffer.dominanceAngle)
+        ? '\n\nYOUR POSITIONING ANGLE (stand out from every other affiliate promoting this):\n' + window._affiliateOffer.dominanceAngle
+        + (window._affiliateOffer.saturatedAngles && window._affiliateOffer.saturatedAngles.length
+           ? '\n\nAVOID THESE SATURATED ANGLES (every other affiliate is already using them):\n' + window._affiliateOffer.saturatedAngles.map(function(a){ return '✗ ' + a.angle; }).join('\n')
+           : '')
+        : '';
+
       const dmResp = await fetch(window.PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -18548,7 +18738,7 @@ Role: ${job}
 Pain: "${pain}"
 Fear: "${fear}"
 Tried: "${tried}"
-Wants: "${transf}"${vpCtx}
+Wants: "${transf}"${vpCtx}${_dominanceCtx}
 
 SCRIPT RULES:
 - Each script opens with something so specific the person feels you are talking directly to them
@@ -19441,28 +19631,72 @@ window.runMindsetReframe = async function() {
         return;
       }
       container.innerHTML = avatars.map(function(av) {
+        var avId    = av.avatar_id || av.id || '';
+        var avName  = av.avatar_name || av.name || 'Custom Avatar';
+        var avThumb = av.thumbnail_url || av.preview_image_url || '';
         return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)">'
-          + (av.thumbnail_url ? '<img src="'+av.thumbnail_url+'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">' : '<div style="width:40px;height:40px;border-radius:8px;background:rgba(108,99,255,.1);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">🤳</div>')
-          + '<div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">'+(av.avatar_name||av.name||'Custom Avatar')+'</div>'
-          + '<div style="font-size:9px;color:var(--dimmer)">ID: '+(av.avatar_id||av.id||'—')+'</div></div>'
-          + '<button onclick="avsUseAvatar(\''+( av.avatar_id||av.id||'')+'\',\''+( av.avatar_name||av.name||'My Avatar')+'\')" style="padding:5px 12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Use</button>'
+          + (avThumb ? '<img src="'+avThumb+'" style="width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0">' : '<div style="width:40px;height:40px;border-radius:8px;background:rgba(108,99,255,.1);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px">🤳</div>')
+          + '<div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">'+avName+'</div>'
+          + '<div style="font-size:9px;color:var(--dimmer)">ID: '+avId+'</div></div>'
+          + '<button onclick="avsUseAvatar(\''+avId+'\',\''+avName.replace(/'/g,"\\'")+'\',' + "'custom'" + ',\''+avThumb+'\')" style="padding:5px 12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Use →</button>'
           + '</div>';
       }).join('');
     });
   };
 
-  window.avsUseAvatar = function(id, name, type) {
+  window.avsUseAvatar = function(id, name, type, thumbUrl) {
     if (type === 'photo') {
       _avs.photoAvatarId = id;
-      _avs.avatarSource = 'photo';
+      _avs.avatarSource  = 'photo';
     } else {
       _avs.selectedAvatar = id;
     }
-    avsShowTab('generate', null);
-    avsSetAvatarSource(type === 'photo' ? 'photo' : 'stock');
-    var statusEl = document.getElementById('avs-gen-photo-status');
-    if (statusEl) statusEl.textContent = '✅ Using: ' + name;
-    avsToast('✅ Avatar selected: ' + name + ' — go to Generate Video');
+
+    // Navigate to Build Video tab (not 'generate' — that tab doesn't exist)
+    var buildBtn = document.querySelector('.avs-tab[onclick*="build"]');
+    avsShowTab('build', buildBtn);
+
+    // If it's a photo avatar, switch the source toggle to Photo
+    if (type === 'photo') {
+      avsSetAvatarSource('photo');
+      var statusEl = document.getElementById('avs-gen-photo-status');
+      if (statusEl) statusEl.textContent = '✅ Using: ' + name;
+    } else {
+      // Switch to Stock source and pre-select this avatar in the dropdown
+      avsSetAvatarSource('stock');
+      var sel = document.getElementById('avs-avatar-select');
+      if (sel) {
+        // Try to select the matching option if it exists
+        var matched = false;
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === id) {
+            sel.selectedIndex = i;
+            matched = true;
+            break;
+          }
+        }
+        // If not in dropdown yet, inject it
+        if (!matched) {
+          var opt = document.createElement('option');
+          opt.value = id;
+          opt.text  = name;
+          if (thumbUrl) opt.dataset.thumb = thumbUrl;
+          sel.insertBefore(opt, sel.firstChild);
+          sel.selectedIndex = 0;
+        }
+        avsOnAvatarChange();
+      }
+    }
+
+    // Show confirmation in the Build Video avatar preview area
+    var wrap   = document.getElementById('avs-avatar-preview-wrap');
+    var thumb  = document.getElementById('avs-avatar-thumb');
+    var nameEl = document.getElementById('avs-avatar-name-display');
+    if (wrap)   wrap.style.display = 'flex';
+    if (nameEl) nameEl.textContent  = name;
+    if (thumb && thumbUrl) thumb.src = thumbUrl;
+
+    avsToast('✅ Avatar selected: ' + name + ' — ready to build video');
   };
 
   // ── Load stock avatars into generate tab ──────────────────────
@@ -19489,41 +19723,162 @@ window.runMindsetReframe = async function() {
     });
   };
 
-  // ── Load voices ───────────────────────────────────────────────
-  window.avsLoadVoices = function() {
-    if (window.avsLoadVoices._isStub) return;
-    var sel = document.getElementById('avs-voice-select');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Loading voices…</option>';
-    heygenCall('get-voices').then(function(data) {
-      if (!data || data.error === 'heygen_not_deployed') { sel.innerHTML = '<option value="">HeyGen not deployed</option>'; return; }
-      var voices = (data && data.voices) || [];
-      if (!voices.length) { sel.innerHTML = '<option value="">No voices found</option>'; return; }
-      sel.innerHTML = voices.map(function(v) {
-        var id = v.voice_id || v.id || '';
-        var name = (v.display_name||v.name||'Voice') + (v.language ? ' ('+v.language+')' : '');
-        return '<option value="'+id+'">'+name+'</option>';
+  // ── Load stock avatars into visual card grid ──────────────────
+  window.avsLoadAvatars = function() {
+    if (window.avsLoadAvatars._isStub) return;
+    var grid = document.getElementById('avs-avatar-grid');
+    if (!grid) return;
+    grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:12px">Loading avatars…</div>';
+    heygenCall('list-avatar-groups').then(function(data) {
+      var avatars = (data && data.groups) || [];
+      if (!avatars.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:16px">No avatars found.</div>';
+        return;
+      }
+      grid.innerHTML = avatars.map(function(av) {
+        var id      = av.avatar_id || av.id || '';
+        var name    = (av.avatar_name || av.name || 'Avatar').replace(/"/g, '&quot;');
+        var thumb   = av.preview_image_url || av.thumbnail_url || '';
+        var preview = av.preview_video_url || '';
+        var gender  = av.gender || '';
+        return '<div class="avs-av-card" data-id="'+id+'" data-name="'+name+'" data-thumb="'+thumb+'" data-gender="'+gender+'" onclick="avsSelectAvatarCard(this)"'
+          + ' style="border:1px solid var(--border2);border-radius:10px;overflow:hidden;cursor:pointer;background:rgba(255,255,255,.02);transition:all .15s;position:relative">'
+          + (thumb
+            ? '<img src="'+thumb+'" style="width:100%;aspect-ratio:1;object-fit:cover;display:block" loading="lazy">'
+            : '<div style="width:100%;aspect-ratio:1;background:rgba(108,99,255,.1);display:flex;align-items:center;justify-content:center;font-size:28px">🎭</div>')
+          + (preview
+            ? '<button onclick="event.stopPropagation();avsPreviewAvatarVideo(\''+preview+'\')" style="position:absolute;top:4px;right:4px;width:22px;height:22px;border-radius:50%;background:rgba(0,0,0,.65);border:none;color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Preview avatar">▶</button>'
+            : '')
+          + '<div style="padding:4px 5px;font-size:9px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+name+'</div>'
+          + '</div>';
       }).join('');
-      _avs.selectedVoice = sel.value;
+      // Auto-select first avatar
+      var first = grid.querySelector('.avs-av-card');
+      if (first) avsSelectAvatarCard(first);
     }).catch(function() {
-      sel.innerHTML = '<option value="">Could not load voices</option>';
+      grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--red);text-align:center;padding:12px">Could not load avatars</div>';
     });
   };
 
-  // ── Avatar change preview ──────────────────────────────────────
+  // ── Select an avatar card ──────────────────────────────────────
+  window.avsSelectAvatarCard = function(el) {
+    // Deselect all
+    var grid = document.getElementById('avs-avatar-grid');
+    if (grid) grid.querySelectorAll('.avs-av-card').forEach(function(c) {
+      c.style.borderColor = 'var(--border2)';
+      c.style.background  = 'rgba(255,255,255,.02)';
+    });
+    // Select this card
+    el.style.borderColor = 'rgba(78,204,163,.6)';
+    el.style.background  = 'rgba(78,204,163,.06)';
+    var id     = el.dataset.id;
+    var name   = el.dataset.name;
+    var thumb  = el.dataset.thumb;
+    var gender = el.dataset.gender;
+    _avs.selectedAvatar = id;
+    // Update hidden input
+    var sel = document.getElementById('avs-avatar-select');
+    if (sel) sel.value = id;
+    // Update confirmation strip
+    var wrap   = document.getElementById('avs-avatar-preview-wrap');
+    var thumbEl= document.getElementById('avs-avatar-thumb');
+    var nameEl = document.getElementById('avs-avatar-name-display');
+    var genEl  = document.getElementById('avs-avatar-gender-display');
+    if (wrap)   wrap.style.display = 'flex';
+    if (thumbEl && thumb) thumbEl.src = thumb;
+    if (nameEl) nameEl.textContent  = name;
+    if (genEl)  genEl.textContent   = gender;
+  };
+
+  // ── Preview avatar video in a small modal ─────────────────────
+  window.avsPreviewAvatarVideo = function(videoUrl) {
+    var existing = document.getElementById('avs-preview-modal');
+    if (existing) existing.remove();
+    var modal = document.createElement('div');
+    modal.id = 'avs-preview-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center';
+    modal.innerHTML = '<div style="position:relative;max-width:320px;width:90%">'
+      + '<button onclick="document.getElementById(\'avs-preview-modal\').remove()" style="position:absolute;top:-36px;right:0;background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:16px">×</button>'
+      + '<video src="'+videoUrl+'" autoplay controls style="width:100%;border-radius:12px;display:block"></video>'
+      + '</div>';
+    modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+    document.body.appendChild(modal);
+  };
+
+  // ── Load voices into interactive list with preview ────────────
+  window.avsLoadVoices = function() {
+    if (window.avsLoadVoices._isStub) return;
+    var list = document.getElementById('avs-voice-list');
+    if (!list) return;
+    list.innerHTML = '<div style="font-size:10px;color:var(--dim);padding:8px;text-align:center">Loading voices…</div>';
+    heygenCall('get-voices').then(function(data) {
+      if (!data || data.error === 'heygen_not_deployed') {
+        list.innerHTML = '<div style="font-size:10px;color:var(--dim);padding:8px;text-align:center">HeyGen not deployed</div>';
+        return;
+      }
+      var voices = (data && data.voices) || [];
+      if (!voices.length) {
+        list.innerHTML = '<div style="font-size:10px;color:var(--dim);padding:8px;text-align:center">No voices found</div>';
+        return;
+      }
+      list.innerHTML = voices.map(function(v) {
+        var id       = v.voice_id || v.id || '';
+        var name     = v.display_name || v.name || 'Voice';
+        var lang     = v.language || '';
+        var gender   = v.gender || '';
+        var preview  = v.preview_audio || v.preview_audio_url || '';
+        var label    = name + (lang ? ' · ' + lang : '') + (gender ? ' · ' + gender : '');
+        return '<div class="avs-voice-row" data-id="'+id+'" data-name="'+name.replace(/"/g,'&quot;')+'" onclick="avsSelectVoiceRow(this)"'
+          + ' style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;border:1px solid transparent;cursor:pointer;transition:all .12s;background:rgba(255,255,255,.02)">'
+          + '<div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+label+'</div></div>'
+          + (preview
+            ? '<button onclick="event.stopPropagation();avsPreviewVoice(\''+preview+'\')" style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.25);color:#a089ff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Preview voice">▶</button>'
+            : '')
+          + '</div>';
+      }).join('');
+      // Auto-select first voice
+      var first = list.querySelector('.avs-voice-row');
+      if (first) avsSelectVoiceRow(first);
+    }).catch(function() {
+      list.innerHTML = '<div style="font-size:10px;color:var(--red);padding:8px;text-align:center">Could not load voices</div>';
+    });
+  };
+
+  // ── Select a voice row ────────────────────────────────────────
+  window.avsSelectVoiceRow = function(el) {
+    var list = document.getElementById('avs-voice-list');
+    if (list) list.querySelectorAll('.avs-voice-row').forEach(function(r) {
+      r.style.borderColor = 'transparent';
+      r.style.background  = 'rgba(255,255,255,.02)';
+    });
+    el.style.borderColor = 'rgba(108,99,255,.35)';
+    el.style.background  = 'rgba(108,99,255,.07)';
+    var id   = el.dataset.id;
+    var name = el.dataset.name;
+    _avs.selectedVoice = id;
+    var sel   = document.getElementById('avs-voice-select');
+    var label = document.getElementById('avs-voice-selected-label');
+    if (sel)   sel.value = id;
+    if (label) label.textContent = '✅ ' + name;
+  };
+
+  // ── Preview voice audio ───────────────────────────────────────
+  window.avsPreviewVoice = function(audioUrl) {
+    var existing = document.getElementById('avs-voice-preview-audio');
+    if (existing) { existing.pause(); existing.remove(); }
+    var audio = document.createElement('audio');
+    audio.id  = 'avs-voice-preview-audio';
+    audio.src = audioUrl;
+    audio.autoplay = true;
+    document.body.appendChild(audio);
+    audio.onended = function() { audio.remove(); };
+  };
+
+  // ── Avatar change (legacy — kept for compatibility) ───────────
   window.avsOnAvatarChange = function() {
     var sel = document.getElementById('avs-avatar-select');
     if (!sel || !sel.value) return;
-    var opt = sel.options[sel.selectedIndex];
-    var wrap  = document.getElementById('avs-avatar-preview-wrap');
-    var thumb = document.getElementById('avs-avatar-thumb');
-    var nameEl = document.getElementById('avs-avatar-name-display');
-    var genderEl = document.getElementById('avs-avatar-gender-display');
     _avs.selectedAvatar = sel.value;
-    if (wrap) wrap.style.display = 'flex';
-    if (thumb && opt.dataset.thumb) thumb.src = opt.dataset.thumb;
-    if (nameEl) nameEl.textContent = opt.text;
-    if (genderEl) genderEl.textContent = opt.dataset.gender || '';
   };
 
   // ── Avatar source toggle ──────────────────────────────────────
@@ -20028,23 +20383,48 @@ window.carSelectCount = function(n, el) {
 
 function _carGetContext() {
   var isAff = (window._appMode || 'affiliate') === 'affiliate';
-  var bi  = window._boardroomIntel || {};
-  var av  = window._avatarData || window._aiAvatarData || {};
-  var inp = bi.inputs || {};
-  var ce  = bi.contentEngine || {};
-  var cv  = bi.copyVault || {};
-  var ao  = window._affiliateOffer || {};
-  return {
-    niche:       inp.niche || ao.niche || window._appliedNiche || av.niche || 'Online Business',
-    offerName:   inp.offerName || ao.name || window._lastOfferOutput && window._lastOfferOutput.name || 'My Offer',
-    price:       inp.price || ao.commission || window._appliedPrice || 997,
-    pain:        av.pain || ao.pain || 'their biggest challenge',
-    transformation: av.transformation || ao.transformation || av.desired || 'their desired outcome',
-    pillars:     Array.isArray(ce.pillars) ? ce.pillars.join(', ') : (ce.pillars || ''),
-    angles:      Array.isArray(cv.hooks)   ? cv.hooks.slice(0,5).join(' | ') : '',
-    voice:       window._voiceProfile ? JSON.stringify(window._voiceProfile).slice(0,300) : '',
-    isAffiliate: isAff
-  };
+
+  if (isAff) {
+    // ── AFFILIATE MODE — read ONLY from _affiliateOffer ──────────────────
+    var ao  = window._affiliateOffer || {};
+    var affCE = ao.contentEngine || {};
+    var affCV = ao.copyVault     || {};
+    // Include competitor dominance angle if promotion intelligence has run
+    var dominanceNote = ao.dominanceAngle
+      ? ' YOUR POSITIONING ANGLE (nobody else is using this): ' + ao.dominanceAngle
+      : '';
+    return {
+      niche:          ao.niche          || window._appliedNiche || 'Online Business',
+      offerName:      ao.name           || ao.offerName         || 'My Affiliate Offer',
+      price:          ao.commission     || window._appliedPrice || 0,
+      pain:           ao.pain           || ao.avatarPain        || 'their biggest challenge',
+      transformation: ao.transformation || ao.desired           || 'their desired outcome',
+      pillars:        Array.isArray(affCE.pillars) ? affCE.pillars.join(', ') : (ao.pillars || ''),
+      angles:         Array.isArray(affCV.hooks)   ? affCV.hooks.slice(0,5).join(' | ') : '',
+      voice:          window._voiceProfile ? JSON.stringify(window._voiceProfile).slice(0,300) : '',
+      dominanceAngle: ao.dominanceAngle || '',
+      extraContext:   dominanceNote,
+      isAffiliate:    true,
+    };
+  } else {
+    // ── EXPERT MODE — read ONLY from _boardroomIntel ─────────────────────
+    var bi  = window._boardroomIntel || {};
+    var av  = window._avatarData     || window._aiAvatarData || {};
+    var inp = bi.inputs        || {};
+    var ce  = bi.contentEngine || {};
+    var cv  = bi.copyVault     || {};
+    return {
+      niche:          inp.niche          || window._appliedNiche || av.niche || 'Online Business',
+      offerName:      inp.offerName      || (window._lastOfferOutput && window._lastOfferOutput.name) || 'My Offer',
+      price:          inp.price          || window._appliedPrice || 997,
+      pain:           av.pain            || inp.av_pain          || 'their biggest challenge',
+      transformation: av.transformation  || inp.transformation   || av.desired || 'their desired outcome',
+      pillars:        Array.isArray(ce.pillars) ? ce.pillars.join(', ') : (ce.pillars || ''),
+      angles:         Array.isArray(cv.hooks)   ? cv.hooks.slice(0,5).join(' | ') : '',
+      voice:          window._voiceProfile ? JSON.stringify(window._voiceProfile).slice(0,300) : '',
+      isAffiliate:    false,
+    };
+  }
 }
 
 function _carBestTime(niche) {
@@ -20484,9 +20864,17 @@ function autoRenderChecklist() {
   var intelReady = isAff
     ? !!(window._affiliateOffer && window._affiliateOffer.name && (window._aiAvatarData || window._avatarData))
     : !!(window._boardroomIntel && window._boardroomIntel.copyVault);
-  var bi  = window._boardroomIntel || {};
-  var ce  = bi.contentEngine || {};
-  var pillarsCount = Array.isArray(ce.pillars) ? ce.pillars.length : (ce.pillars ? 1 : 0);
+
+  // Read pillars from the correct source for the current mode
+  var pillarsCount = 0;
+  if (isAff) {
+    var affCE = (window._affiliateOffer && window._affiliateOffer.contentEngine) || {};
+    pillarsCount = Array.isArray(affCE.pillars) ? affCE.pillars.length : (affCE.pillars ? 1 : 0);
+  } else {
+    var bi  = window._boardroomIntel || {};
+    var ce  = bi.contentEngine || {};
+    pillarsCount = Array.isArray(ce.pillars) ? ce.pillars.length : (ce.pillars ? 1 : 0);
+  }
   var clones = window._autoClones || [];
   var clone1 = !!(clones[0] && clones[0].avatarId);
   var clone2 = !!(clones[1] && clones[1].avatarId);
