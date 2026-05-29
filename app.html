@@ -2863,10 +2863,6 @@ button[onclick="generateOffer()"] {
         <div class="ni-dot"></div>
       </button>
 
-      <!-- Content Calendar nav removed — calendar lives inside The Boardroom (Content Engine tab) -->
-      <!-- Page still exists at #page-calendar for programmatic navigation -->
-
-      <!-- AI Video — shows after offer/avatar setup -->
       <!-- THE BOARDROOM — Central intelligence layer -->
       <button class="nav-item ripple-container expert-only" onclick="showPage('boardroom',this)" id="nav-boardroom" style="display:none">
         <div class="ni-icon">🏛</div>
@@ -2877,11 +2873,25 @@ button[onclick="generateOffer()"] {
         <div class="ni-dot"></div>
       </button>
 
+      <!-- Section: Content Engine -->
+      <div class="nav-section-label" id="nav-label-content-engine">Content Engine</div>
+
+      <!-- CONTENT STUDIO (formerly AI Video Studio) -->
       <button class="nav-item ripple-container" onclick="showPage('ai-video',this)" id="nav-ai-video">
         <div class="ni-icon">🎬</div>
         <div class="ni-text">
-          <div class="ni-label">AI VIDEO STUDIO</div>
-          <div class="ni-step">Clone yourself and build video</div>
+          <div class="ni-label">CONTENT STUDIO</div>
+          <div class="ni-step">Create · Automate · Publish</div>
+        </div>
+        <div class="ni-dot"></div>
+      </button>
+
+      <!-- CONTENT CALENDAR — standalone sidebar item -->
+      <button class="nav-item ripple-container" onclick="showPage('calendar',this)" id="nav-calendar">
+        <div class="ni-icon">📅</div>
+        <div class="ni-text">
+          <div class="ni-label">CONTENT CALENDAR</div>
+          <div class="ni-step">Your publishing schedule</div>
         </div>
         <div class="ni-dot"></div>
       </button>
@@ -3721,8 +3731,12 @@ button[onclick="generateOffer()"] {
         </div>
         <div class="av-fields">
           <div class="fr">
+            <div class="fl">What do you call this ideal customer? Give them a name — this helps you write to a real person, not an abstract audience.</div>
+            <input class="fi" id="av_name" placeholder="e.g. Sarah, Marcus, The Burnt-Out Nurse, The Side Hustle Dad" oninput="markFilled()">
+          </div>
+          <div class="fr">
             <div class="fl">What is the story they tell themselves about why this hasn't worked yet? (their internal narrative — not the real reason)</div>
-            <input class="fi" id="av_name" placeholder="e.g. 'I don't have a big enough audience yet' or 'I need to learn more first' or 'I'm not an expert like them'" oninput="markFilled()">
+            <input class="fi" id="av_self_story" placeholder="e.g. 'I don't have a big enough audience yet' or 'I need to learn more first' or 'I'm not an expert like them'" oninput="markFilled()">
           </div>
           <div class="fr two">
             <div>
@@ -4117,14 +4131,12 @@ button[onclick="generateOffer()"] {
       </div>
     </div>
 
-    <!-- GENERATE OFFER BUTTON -->
+    <!-- SAVE OFFER BUTTON -->
     <div style="text-align:center">
     <button onclick="generateOffer()" id="build-offer-btn" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,var(--orange),#ff6b35);color:#fff;border:none;border-radius:50px;font-family:'Poppins',sans-serif;font-weight:800;font-size:13px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;margin-bottom:2rem;box-shadow:0 6px 20px rgba(255,140,66,.35)">
       Save My Offer &amp; Enter The Boardroom →
     </button>
     </div>
-      🔥 Build My High-Ticket Offer + 3 Funnel Strategies
-    </button>
 
     <div class="eos-progress-nav" style="margin-bottom:2rem">
       <div class="eos-progress-nav-header">
@@ -4180,29 +4192,68 @@ button[onclick="generateOffer()"] {
 
   <!-- CALENDAR PAGE -->
   <div class="page" id="page-calendar">
-    <div style="padding:12px 1.25rem 0;display:flex;align-items:center;gap:10px">
-      <button onclick="showPage('boardroom',document.getElementById('nav-boardroom'))" style="display:flex;align-items:center;gap:7px;padding:7px 14px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;color:var(--purple);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">← Back to The Boardroom</button>
-      <div style="font-size:11px;color:var(--dimmer)">Content Calendar · Generated from The Boardroom</div>
+
+    <!-- 5A: Page header -->
+    <div class="hero-strip" style="background:linear-gradient(135deg,rgba(78,204,163,.07),rgba(108,99,255,.04));margin:0 1.25rem var(--sp-4)">
+      <div class="tag-pill" style="background:rgba(78,204,163,.12);color:var(--teal);border:1px solid rgba(78,204,163,.2)">📅 Content Calendar</div>
+      <div class="h1" style="margin-bottom:var(--sp-2)">Content Calendar</div>
+      <div class="strip-sub">Your complete publishing schedule. Everything ready to download and post.</div>
     </div>
-    <div class="hero-strip"><div class="strip-inner"><div><div class="tag-pill"><span>Content Calendar</span></div><div class="h1" style="font-size:clamp(20px,3vw,30px)">Your <em>niche-tailored</em> content plan</div><div class="strip-sub">4 pieces of content per day: 2 Facebook posts + 3 Reel scripts + 1 email. Tailored to your niche. Click any day to view full scripts.</div></div></div></div>
-    <div id="cal-ai-banner" style="display:none;background:linear-gradient(135deg,rgba(78,204,163,.12),rgba(108,99,255,.08));border:1px solid rgba(78,204,163,.3);border-radius:14px;padding:14px 18px;margin-bottom:1.25rem;align-items:center;gap:12px">
-      <span style="font-size:20px">🤖</span>
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.5px">Content Plan Built by Execution OS</div>
-        <div style="font-size:11px;color:var(--dim);margin-top:2px">Your niche-tailored plan is loaded. Click any post type to view the full script, hook &amp; copy.</div>
+
+    <div style="padding:0 1.25rem 80px">
+
+      <!-- 5B: Overview bar -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" id="cal-overview-bar">
+        <div class="card-dark" style="text-align:center">
+          <div style="font-size:24px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif" id="cal-stat-ready">—</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Pieces Ready</div>
+        </div>
+        <div class="card-dark" style="text-align:center">
+          <div style="font-size:24px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif" id="cal-stat-published">—</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Published</div>
+        </div>
+        <div class="card-dark" style="text-align:center">
+          <div style="font-size:12px;font-weight:800;color:var(--yellow);font-family:Poppins,sans-serif;line-height:1.3" id="cal-stat-next">—</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Next Up</div>
+        </div>
+        <div class="card-dark" style="text-align:center">
+          <div style="font-size:24px;font-weight:900;color:var(--orange);font-family:Poppins,sans-serif" id="cal-stat-streak">—</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Day Streak 🔥</div>
+        </div>
       </div>
-      <button onclick="window.calSyncEmailsToMarketing&&window.calSyncEmailsToMarketing()" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:8px;padding:7px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0">📧 Sync Emails to Marketing</button>
+
+      <!-- 5C: Automation completion banner -->
+      <div id="cal-auto-banner" style="display:none;background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.25);border-radius:var(--r-md);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">🎉</span>
+          <div id="cal-auto-banner-text" style="font-size:12px;font-weight:700;color:var(--teal)"></div>
+        </div>
+        <button onclick="calDismissAutoBanner()" style="padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;flex-shrink:0">Dismiss</button>
+      </div>
+
+      <!-- 5D: Day-by-day calendar list -->
+      <div id="cal-days-list" style="display:flex;flex-direction:column;gap:10px"></div>
+
+      <!-- Empty state -->
+      <div id="cal-empty-state" style="display:none;text-align:center;padding:3rem 1rem">
+        <div style="font-size:40px;margin-bottom:12px">📅</div>
+        <div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">No content scheduled yet</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:20px">Generate content in Content Studio and send it here, or run the Automate tab to fill 30 days at once.</div>
+        <button onclick="showPage('ai-video',document.getElementById('nav-ai-video'))" style="padding:13px 28px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer;box-shadow:0 6px 20px rgba(108,99,255,.3)">Go to Content Studio →</button>
+      </div>
+
+    </div><!-- /padding -->
+
+    <!-- 5E: Post package modal -->
+    <div id="cal-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;overflow-y:auto">
+      <div style="max-width:640px;margin:40px auto;padding:0 16px 80px">
+        <div class="card-dark" style="position:relative">
+          <button onclick="calCloseModal()" style="position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1">×</button>
+          <div id="cal-modal-content" style="padding-right:24px"></div>
+        </div>
+      </div>
     </div>
-    <div class="tab-strip">
-      <button class="tab on" onclick="setWeek(1,this)">Week 1</button>
-      <button class="tab" onclick="setWeek(2,this)">Week 2</button>
-      <button class="tab" onclick="setWeek(3,this)">Week 3</button>
-      <button class="tab" onclick="setWeek(4,this)">Week 4</button>
-    </div>
-    <div class="cal-wrap">
-      <div class="cal-head"><div class="cal-dh">Mon</div><div class="cal-dh">Tue</div><div class="cal-dh">Wed</div><div class="cal-dh">Thu</div><div class="cal-dh">Fri</div><div class="cal-dh">Sat</div><div class="cal-dh">Sun</div></div>
-      <div class="cal-body" id="cal-body"></div>
-    </div>
+
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════
@@ -5332,37 +5383,63 @@ button[onclick="generateOffer()"] {
           <div style="width:52px;height:52px;border-radius:50%;border:3px solid rgba(108,99,255,.15);border-top-color:#6c63ff;animation:spin .75s linear infinite;margin:0 auto 1.25rem"></div>
           <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:8px">Building Your Boardroom Intelligence</div>
           <div id="br-loading-msg" style="font-size:15px;font-weight:800;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:6px">Reading your strategy session answers...</div>
-          <div style="font-size:12px;color:var(--dim);margin-bottom:1.5rem" id="br-loading-sub">Running 6 AI analyses — this takes about 30 seconds</div>
-          <div style="display:flex;flex-direction:column;gap:6px;text-align:left;max-width:400px;margin:0 auto 1.5rem">
+          <div style="font-size:12px;color:var(--dim);margin-bottom:1.5rem" id="br-loading-sub">Running 11 AI analyses — this takes about 60 seconds</div>
+          <!-- Stage checklist -->
+          <div style="display:flex;flex-direction:column;gap:6px;text-align:left;max-width:420px;margin:0 auto 1.5rem">
             <div id="_brl_0" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
-              <span id="_brl_ic0" style="font-size:16px">🎯</span>
-              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">30-Day Revenue Plan</div><div style="font-size:10px;color:var(--dimmer)">Your exact path to $<span class="br-target-inline">—</span>/month</div></div>
+              <span style="font-size:14px">🎯</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">30-Day Revenue Plan</div></div>
               <span id="_brl_st0" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
             </div>
             <div id="_brl_1" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
-              <span id="_brl_ic1" style="font-size:16px">🏛</span>
-              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Business Architect</div><div style="font-size:10px;color:var(--dimmer)">Positioning · Category · Competitive moat</div></div>
+              <span style="font-size:14px">🏛</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Business Architect</div></div>
               <span id="_brl_st1" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
             </div>
             <div id="_brl_2" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
-              <span id="_brl_ic2" style="font-size:16px">💎</span>
-              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Offer Refinement</div><div style="font-size:10px;color:var(--dimmer)">Value stack · Framework · Guarantee</div></div>
+              <span style="font-size:14px">💎</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Offer Refinement</div></div>
               <span id="_brl_st2" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
             </div>
             <div id="_brl_3" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
-              <span id="_brl_ic3" style="font-size:16px">✍️</span>
-              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Copy Vault</div><div style="font-size:10px;color:var(--dimmer)">Headlines · DM scripts · Email subjects · VSL</div></div>
+              <span style="font-size:14px">✍️</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Copy Vault</div></div>
               <span id="_brl_st3" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
             </div>
             <div id="_brl_4" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
-              <span id="_brl_ic4" style="font-size:16px">⚔️</span>
-              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Launch War Plan</div><div style="font-size:10px;color:var(--dimmer)">30-day day-by-day battle plan</div></div>
+              <span style="font-size:14px">⚔️</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Launch War Plan</div></div>
               <span id="_brl_st4" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
             </div>
             <div id="_brl_5" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
-              <span id="_brl_ic5" style="font-size:16px">📅</span>
-              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Content Calendar</div><div style="font-size:10px;color:var(--dimmer)">7 days of ready-to-post content</div></div>
+              <span style="font-size:14px">📅</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Content Calendar</div></div>
               <span id="_brl_st5" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+            </div>
+            <div id="_brl_6" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
+              <span style="font-size:14px">🚀</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Funnel Strategy</div></div>
+              <span id="_brl_st6" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+            </div>
+            <div id="_brl_7" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
+              <span style="font-size:14px">🔬</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">ICP Research</div></div>
+              <span id="_brl_st7" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+            </div>
+            <div id="_brl_8" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
+              <span style="font-size:14px">🥊</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Competitor Intel</div></div>
+              <span id="_brl_st8" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+            </div>
+            <div id="_brl_9" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
+              <span style="font-size:14px">📊</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Market Viability</div></div>
+              <span id="_brl_st9" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+            </div>
+            <div id="_brl_10" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
+              <span style="font-size:14px">📐</span>
+              <div style="flex:1"><div style="font-size:11px;font-weight:700;color:var(--white)">Content Strategy</div></div>
+              <span id="_brl_st10" style="font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
             </div>
           </div>
           <div style="width:100%;height:5px;background:rgba(255,255,255,.05);border-radius:5px;overflow:hidden">
@@ -5408,7 +5485,7 @@ button[onclick="generateOffer()"] {
         <button class="br-tab" onclick="brShowTab('copy-vault',this)" data-tab="copy-vault" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">✍️ Copy Vault</button>
         <button class="br-tab" onclick="brShowTab('war-plan',this)" data-tab="war-plan" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">⚔️ Launch War Plan</button>
         <button class="br-tab" onclick="brShowTab('content-strategy',this)" data-tab="content-strategy" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">📐 Content Strategy</button>
-        <button class="br-tab" onclick="brShowTab('content-engine',this)" data-tab="content-engine" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">📅 Content Calendar</button>
+        <!-- Content Calendar tab removed from Boardroom — now lives as standalone sidebar item -->
         <button class="br-tab" onclick="brShowTab('funnel-strategy',this)" data-tab="funnel-strategy" style="padding:9px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:10px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0;transition:all .15s">🚀 Funnel Strategy</button>
       </div>
     </div>
@@ -5453,12 +5530,25 @@ button[onclick="generateOffer()"] {
 <div class="page" id="page-ai-video" style="display:none">
 
   <div class="hero-strip" style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.04));margin:0 1.25rem var(--sp-4)">
-    <div class="tag-pill" style="background:linear-gradient(135deg,#6c63ff,#5040cc);margin-bottom:var(--sp-3)"><span style="color:#fff">AI Video Studio</span></div>
-    <div class="h1" style="margin-bottom:var(--sp-2)">AI Video Studio</div>
-    <div class="strip-sub">Create studio-quality videos from any script. Clone your voice and face. Translate into 175 languages. Everything happens right here.</div>
+    <div class="tag-pill" style="background:linear-gradient(135deg,#6c63ff,#5040cc);margin-bottom:var(--sp-3)"><span style="color:#fff">Content Studio</span></div>
+    <div class="h1" style="margin-bottom:var(--sp-2)">Content Studio</div>
+    <div class="strip-sub">Clone yourself. Build carousels. Automate 30 days of content. Everything powered by your Boardroom intelligence.</div>
   </div>
 
   <div style="padding:0 1.25rem 1.25rem">
+
+    <!-- 2B: Readiness Banner — shows whether Boardroom / Offer Setup is complete -->
+    <div id="cs-readiness-banner" style="margin-bottom:14px"></div>
+
+    <!-- 2C: Content Studio top-level tab navigation (3 tabs) -->
+    <div id="cs-tab-nav" style="display:flex;gap:8px;margin-bottom:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-md);padding:4px;overflow-x:auto;scrollbar-width:none">
+      <button class="cs-tab-btn on" onclick="csShowTab('video',this)" style="flex:1;padding:10px 16px;border-radius:var(--r-sm);border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .18s;background:linear-gradient(135deg,rgba(108,99,255,.2),rgba(108,99,255,.1));color:#a089ff;border:1px solid rgba(108,99,255,.3)">🎬 AI Video Studio</button>
+      <button class="cs-tab-btn" onclick="csShowTab('carousel',this)" style="flex:1;padding:10px 16px;border-radius:var(--r-sm);border:1px solid transparent;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .18s;background:transparent;color:var(--dim)">🖼 Carousel</button>
+      <button class="cs-tab-btn" onclick="csShowTab('automate',this)" style="flex:1;padding:10px 16px;border-radius:var(--r-sm);border:1px solid transparent;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .18s;background:transparent;color:var(--dim)">⚡ Automate</button>
+    </div>
+
+    <!-- 2D: Tab 1 — AI Video Studio (all existing content, completely unchanged) -->
+    <div id="cs-tab-video">
 
     <!-- Status bar -->
     <div id="heygen-setup-card"></div>
@@ -5797,7 +5887,221 @@ button[onclick="generateOffer()"] {
       </div>
     </div>
 
+    </div><!-- /cs-tab-video -->
 
+    <!-- 2E: Tab 2 — Carousel (populated in Task 3) -->
+    <div id="cs-tab-carousel" style="display:none">
+
+      <!-- 3A: Generator controls -->
+      <div class="card-dark" style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🖼 Carousel Generator</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:18px">AI picks your topic from your content pillars if you leave it blank. All output is 1080×1080px.</div>
+
+        <!-- Topic input -->
+        <div class="inp-box" style="margin-bottom:14px">
+          <div class="inp-lbl">Topic (optional — AI picks from your pillars if blank)</div>
+          <input id="car-topic" class="fi" placeholder="e.g. Why most people fail at this…" style="margin-top:4px" />
+        </div>
+
+        <!-- Style selector -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700;margin-bottom:10px">Style</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="car-style-grid">
+            <div class="car-style-card on" onclick="carSelectStyle('educational',this)" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:6px">📚</div>
+              <div style="font-size:11px;font-weight:800;color:var(--teal);font-family:Poppins,sans-serif">Educational</div>
+            </div>
+            <div class="car-style-card" onclick="carSelectStyle('story',this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:6px">📖</div>
+              <div style="font-size:11px;font-weight:800;color:var(--dim);font-family:Poppins,sans-serif">Story</div>
+            </div>
+            <div class="car-style-card" onclick="carSelectStyle('list',this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:6px">📋</div>
+              <div style="font-size:11px;font-weight:800;color:var(--dim);font-family:Poppins,sans-serif">List</div>
+            </div>
+            <div class="car-style-card" onclick="carSelectStyle('controversy',this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:6px">🔥</div>
+              <div style="font-size:11px;font-weight:800;color:var(--dim);font-family:Poppins,sans-serif">Controversy</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slide count -->
+        <div style="margin-bottom:18px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700;margin-bottom:10px">Number of Slides</div>
+          <div style="display:flex;gap:8px">
+            <button class="car-count-btn" onclick="carSelectCount(5,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid var(--border2);background:rgba(255,255,255,.03);color:var(--dim);font-family:Poppins,sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:all .15s">5</button>
+            <button class="car-count-btn on" onclick="carSelectCount(6,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.12);color:#a089ff;font-family:Poppins,sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:all .15s">6</button>
+            <button class="car-count-btn" onclick="carSelectCount(7,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid var(--border2);background:rgba(255,255,255,.03);color:var(--dim);font-family:Poppins,sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:all .15s">7</button>
+          </div>
+        </div>
+
+        <button onclick="carGenerate()" id="car-generate-btn" style="display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;box-shadow:0 6px 22px rgba(108,99,255,.35);transition:all .18s">✨ Generate Carousel</button>
+        <div id="car-status" style="text-align:center;margin-top:10px;font-size:11px;color:var(--dim);min-height:16px"></div>
+      </div>
+
+      <!-- 3B-3E: Output area (hidden until generated) -->
+      <div id="car-output" style="display:none">
+
+        <!-- Slide thumbnails -->
+        <div class="card-dark" style="margin-bottom:16px">
+          <div style="font-size:11px;font-weight:800;color:var(--white);margin-bottom:12px;font-family:Poppins,sans-serif">Slide Preview</div>
+          <div id="car-thumbnails" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin"></div>
+          <div style="margin-top:14px;border-radius:var(--r-md);overflow:hidden;background:var(--bg2)">
+            <canvas id="car-preview-canvas" width="540" height="540" style="display:block;width:100%;max-width:540px;margin:0 auto;border-radius:var(--r-md)"></canvas>
+          </div>
+        </div>
+
+        <!-- Hook, Caption, Hashtags -->
+        <div class="card-dark" style="margin-bottom:16px">
+          <!-- Hook -->
+          <div style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700">Hook</div>
+              <div style="display:flex;gap:6px">
+                <button onclick="carCopy('hook')" id="car-copy-hook" style="padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
+                <button onclick="carRegenerate('hook')" style="padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
+              </div>
+            </div>
+            <div id="car-hook-text" style="font-size:13px;color:var(--white);line-height:1.6;font-weight:700"></div>
+          </div>
+          <!-- Caption -->
+          <div style="margin-bottom:14px;border-top:1px solid var(--border3);padding-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700">Caption</div>
+              <div style="display:flex;gap:6px">
+                <button onclick="carCopy('caption')" id="car-copy-caption" style="padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
+                <button onclick="carRegenerate('caption')" style="padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
+              </div>
+            </div>
+            <div id="car-caption-text" style="font-size:12px;color:var(--muted);line-height:1.8;white-space:pre-wrap"></div>
+          </div>
+          <!-- Hashtags -->
+          <div style="border-top:1px solid var(--border3);padding-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700">Hashtags (30)</div>
+              <div style="display:flex;gap:6px">
+                <button onclick="carCopy('hashtags')" id="car-copy-hashtags" style="padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
+                <button onclick="carRegenerate('hashtags')" style="padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
+              </div>
+            </div>
+            <div id="car-hashtags-text" style="font-size:11px;color:var(--teal);line-height:2;word-break:break-word"></div>
+          </div>
+        </div>
+
+        <!-- Best time + Send to Calendar -->
+        <div class="card-dark" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Best Time to Post</div>
+            <div id="car-best-time" style="font-size:13px;font-weight:700;color:var(--yellow)"></div>
+          </div>
+          <button onclick="carSendToCalendar()" id="car-send-btn" style="padding:13px 28px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;box-shadow:0 6px 20px rgba(78,204,163,.3)">✅ Confirm &amp; Send to Calendar</button>
+        </div>
+        <div id="car-send-confirm" style="display:none;text-align:center;margin-top:12px;padding:12px;background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);font-size:12px;font-weight:700;color:var(--teal)"></div>
+      </div>
+
+    </div><!-- /cs-tab-carousel -->
+
+    <!-- 2E: Tab 3 — Automate (populated in Task 4) -->
+    <div id="cs-tab-automate" style="display:none">
+
+      <!-- 4A: Readiness checklist -->
+      <div class="card-dark" style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">⚡ Automation Readiness</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Everything below must be ready before you can start. The system will run in the background — you can close the app once it's started.</div>
+        <div id="auto-checklist" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px"></div>
+        <div id="auto-checklist-warning" style="display:none;padding:10px 14px;background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.2);border-radius:var(--r-md);font-size:11px;color:var(--orange);margin-bottom:12px"></div>
+      </div>
+
+      <!-- 4B: Automation settings -->
+      <div class="card-dark" style="margin-bottom:16px" id="auto-settings-card">
+        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:16px;font-family:Poppins,sans-serif">⚙️ Automation Settings</div>
+
+        <!-- Duration -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700;margin-bottom:10px">Duration</div>
+          <div style="display:flex;gap:8px">
+            <button class="auto-dur-btn" onclick="autoSelectDuration(7,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid var(--border2);background:rgba(255,255,255,.03);color:var(--dim);font-family:Poppins,sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all .15s">7 Days</button>
+            <button class="auto-dur-btn" onclick="autoSelectDuration(14,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid var(--border2);background:rgba(255,255,255,.03);color:var(--dim);font-family:Poppins,sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all .15s">14 Days</button>
+            <button class="auto-dur-btn on" onclick="autoSelectDuration(30,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.12);color:#a089ff;font-family:Poppins,sans-serif;font-weight:800;font-size:13px;cursor:pointer;transition:all .15s">30 Days</button>
+          </div>
+        </div>
+
+        <!-- Clone rotation -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700;margin-bottom:8px">Clone Rotation</div>
+          <select id="auto-rotation" class="fi" style="margin-top:0">
+            <option value="sequential">Sequential (Clone 1 → 2 → 3 → repeat)</option>
+            <option value="random">Random</option>
+            <option value="alternate">Alternate (Clone 1 → 2 → 1 → 2…)</option>
+          </select>
+        </div>
+
+        <!-- Content types -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700;margin-bottom:10px">Content Per Day</div>
+          <div style="display:flex;flex-direction:column;gap:6px" id="auto-content-types">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="auto-ct-fb1" checked style="accent-color:var(--teal)"><span style="font-size:12px;color:var(--muted)">📝 FB Post 1 — 6:00am</span></label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="auto-ct-reel1" checked style="accent-color:var(--teal)"><span style="font-size:12px;color:var(--muted)">🎬 Reel 1 — 9:00am</span></label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="auto-ct-carousel" checked style="accent-color:var(--teal)"><span style="font-size:12px;color:var(--muted)">🖼 Carousel — 12:00pm</span></label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="auto-ct-fb2" checked style="accent-color:var(--teal)"><span style="font-size:12px;color:var(--muted)">📝 FB Post 2 — 3:00pm</span></label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="auto-ct-reel2" checked style="accent-color:var(--teal)"><span style="font-size:12px;color:var(--muted)">🎬 Reel 2 — 6:00pm</span></label>
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="auto-ct-email" checked style="accent-color:var(--teal)"><span style="font-size:12px;color:var(--muted)">📨 Email — 8:00pm</span></label>
+          </div>
+        </div>
+
+        <!-- Start date -->
+        <div style="margin-bottom:0">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700;margin-bottom:8px">Start Date</div>
+          <input type="date" id="auto-start-date" class="fi" />
+        </div>
+      </div>
+
+      <!-- 4C: Start toggle + button -->
+      <div class="card-dark" style="margin-bottom:16px;text-align:center" id="auto-start-card">
+        <div style="display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:16px">
+          <span style="font-size:12px;font-weight:700;color:var(--dim)">Automation</span>
+          <div id="auto-toggle-wrap" onclick="autoToggle()" style="width:52px;height:28px;border-radius:14px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);cursor:pointer;position:relative;transition:all .25s">
+            <div id="auto-toggle-knob" style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .25s;box-shadow:0 2px 6px rgba(0,0,0,.3)"></div>
+          </div>
+          <span id="auto-toggle-label" style="font-size:12px;font-weight:700;color:var(--dim)">Off</span>
+        </div>
+        <button id="auto-start-btn" onclick="autoStart()" disabled style="padding:16px 40px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:14px;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;box-shadow:0 6px 22px rgba(108,99,255,.35);opacity:.45;transition:all .2s">⚡ START AUTOMATION</button>
+        <div style="font-size:10px;color:var(--dimmer);margin-top:12px">Once started, you can close this app. The system keeps working.</div>
+      </div>
+
+      <!-- 4D: Progress view (hidden until automation starts) -->
+      <div id="auto-progress-view" style="display:none">
+        <div class="card-dark" style="margin-bottom:16px">
+          <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:14px;font-family:Poppins,sans-serif">🚀 Automation Running</div>
+          <div style="font-size:11px;color:var(--teal);margin-bottom:12px;font-weight:700">✅ You can close this app. We'll keep working.</div>
+          <!-- Overall progress bar -->
+          <div style="margin-bottom:12px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+              <div style="font-size:11px;color:var(--dim)">Overall Progress</div>
+              <div id="auto-progress-pct" style="font-size:11px;font-weight:800;color:var(--teal)">0%</div>
+            </div>
+            <div style="height:6px;background:rgba(255,255,255,.06);border-radius:6px;overflow:hidden">
+              <div id="auto-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:6px;transition:width .6s ease"></div>
+            </div>
+          </div>
+          <!-- Day-by-day list -->
+          <div id="auto-days-list" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
+          <!-- Time remaining -->
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border3)">
+            <div style="font-size:11px;color:var(--dim)">Estimated time remaining: <span id="auto-time-remaining" style="color:var(--white);font-weight:700">Calculating…</span></div>
+          </div>
+        </div>
+        <!-- Completion screen (hidden until done) -->
+        <div id="auto-complete-screen" style="display:none;text-align:center;padding:2rem">
+          <div style="font-size:48px;margin-bottom:12px">🏆</div>
+          <div id="auto-complete-title" style="font-size:20px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px"></div>
+          <div id="auto-complete-count" style="font-size:14px;color:var(--teal);margin-bottom:20px"></div>
+          <button onclick="showPage('calendar',document.getElementById('nav-calendar'))" style="padding:14px 32px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:50px;color:var(--text-dark);font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 6px 20px rgba(78,204,163,.3)">📅 Open Content Calendar →</button>
+        </div>
+      </div>
+
+    </div><!-- /cs-tab-automate -->
 
   </div>
 </div>
@@ -10800,6 +11104,7 @@ function generateAvatar(){
     personality:    gv('av_personality'),
     influences:     gv('av_influences'),
     objections:     gv('av_objections'),
+    selfStory:      gv('av_self_story'),
     deeperPain:     gv('av_fear'),
     savedAt:        Date.now()
   };
@@ -19613,6 +19918,805 @@ window.runMindsetReframe = async function() {
   console.log('[AVS] AI Video Studio engine loaded ✅');
 
 
+// ══════════════════════════════════════════════════════════════════
+// CONTENT STUDIO — Tab controller + Readiness Banner
+// ══════════════════════════════════════════════════════════════════
+window.csShowTab = function(tab, btn) {
+  // Hide all CS tab panels
+  ['cs-tab-video','cs-tab-carousel','cs-tab-automate'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+  // Show selected panel
+  var active = document.getElementById('cs-tab-' + tab);
+  if (active) active.style.display = 'block';
+  // Update tab button styles
+  document.querySelectorAll('.cs-tab-btn').forEach(function(b) {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--dim)';
+    b.style.borderColor = 'transparent';
+    b.classList.remove('on');
+  });
+  if (btn) {
+    btn.style.background = 'linear-gradient(135deg,rgba(108,99,255,.2),rgba(108,99,255,.1))';
+    btn.style.color = '#a089ff';
+    btn.style.borderColor = 'rgba(108,99,255,.3)';
+    btn.classList.add('on');
+  }
+  // Lazy-init carousel/automate if first open
+  if (tab === 'carousel' && typeof window.csInitCarousel === 'function') window.csInitCarousel();
+  if (tab === 'automate' && typeof window.csInitAutomate === 'function') window.csInitAutomate();
+};
+
+window.csRenderReadinessBanner = function() {
+  var el = document.getElementById('cs-readiness-banner');
+  if (!el) return;
+  var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+  var isReady, sourceName, sourcePage, sourceNav;
+  if (isAffiliate) {
+    // Affiliate mode: check whether Offer Setup has completed (avatar generated)
+    isReady = !!(window._affiliateOffer && window._affiliateOffer.name && (window._aiAvatarData || window._avatarData));
+    sourceName = 'Offer Setup';
+    sourcePage = 'affiliate';
+    sourceNav  = 'nav-affiliate';
+  } else {
+    // Expert mode: check whether Boardroom intelligence has been generated
+    isReady = !!(window._boardroomIntel && window._boardroomIntel.copyVault);
+    sourceName = 'The Boardroom';
+    sourcePage = 'boardroom';
+    sourceNav  = 'nav-boardroom';
+  }
+  if (isReady) {
+    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.25);border-radius:var(--r-md);padding:12px 16px;margin-bottom:4px">'
+      + '<div style="display:flex;align-items:center;gap:10px"><div style="font-size:18px">✅</div><div><div style="font-size:12px;font-weight:800;color:var(--teal);font-family:Poppins,sans-serif">' + sourceName + ' Complete — Your content intelligence is loaded.</div><div style="font-size:10px;color:var(--dim);margin-top:2px">All AI content will be fully personalised to your offer and audience.</div></div></div>'
+      + '<button onclick="showPage(\'' + sourcePage + '\',document.getElementById(\'' + sourceNav + '\'))" style="flex-shrink:0;padding:7px 14px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:8px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">View →</button>'
+      + '</div>';
+  } else {
+    el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.25);border-radius:var(--r-md);padding:12px 16px;margin-bottom:4px">'
+      + '<div style="display:flex;align-items:center;gap:10px"><div style="font-size:18px">⚠️</div><div><div style="font-size:12px;font-weight:800;color:var(--orange);font-family:Poppins,sans-serif">Complete ' + sourceName + ' First</div><div style="font-size:10px;color:var(--dim);margin-top:2px">Complete it to unlock fully personalised AI content generation.</div></div></div>'
+      + '<button onclick="showPage(\'' + sourcePage + '\',document.getElementById(\'' + sourceNav + '\'))" style="flex-shrink:0;padding:7px 14px;background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.25);border-radius:8px;color:var(--orange);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Go →</button>'
+      + '</div>';
+  }
+};
+
+// Hook csRenderReadinessBanner into showPage
+(function() {
+  var _origShowPage = window.showPage;
+  window.showPage = function(page, nav) {
+    if (_origShowPage) _origShowPage.apply(this, arguments);
+    if (page === 'ai-video') {
+      setTimeout(window.csRenderReadinessBanner, 80);
+    }
+  };
+})();
+
+// ══════════════════════════════════════════════════════════════════
+// CAROUSEL GENERATOR — Task 3
+// ══════════════════════════════════════════════════════════════════
+window._carStyle     = 'educational';
+window._carCount     = 6;
+window._carData      = null;   // last generated JSON
+window._carCanvases  = [];     // array of HTMLCanvasElement at 1080x1080
+
+window.carSelectStyle = function(style, el) {
+  window._carStyle = style;
+  document.querySelectorAll('.car-style-card').forEach(function(c) {
+    c.style.background = 'rgba(255,255,255,.03)';
+    c.style.borderColor = 'var(--border2)';
+    c.querySelector('div:last-child').style.color = 'var(--dim)';
+    c.classList.remove('on');
+  });
+  el.style.background   = 'rgba(78,204,163,.1)';
+  el.style.borderColor  = 'rgba(78,204,163,.3)';
+  el.querySelector('div:last-child').style.color = 'var(--teal)';
+  el.classList.add('on');
+};
+
+window.carSelectCount = function(n, el) {
+  window._carCount = n;
+  document.querySelectorAll('.car-count-btn').forEach(function(b) {
+    b.style.background   = 'rgba(255,255,255,.03)';
+    b.style.borderColor  = 'var(--border2)';
+    b.style.color        = 'var(--dim)';
+    b.classList.remove('on');
+  });
+  el.style.background  = 'rgba(108,99,255,.12)';
+  el.style.borderColor = 'rgba(108,99,255,.3)';
+  el.style.color       = '#a089ff';
+  el.classList.add('on');
+};
+
+function _carGetContext() {
+  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  var bi  = window._boardroomIntel || {};
+  var av  = window._avatarData || window._aiAvatarData || {};
+  var inp = bi.inputs || {};
+  var ce  = bi.contentEngine || {};
+  var cv  = bi.copyVault || {};
+  var ao  = window._affiliateOffer || {};
+  return {
+    niche:       inp.niche || ao.niche || window._appliedNiche || av.niche || 'Online Business',
+    offerName:   inp.offerName || ao.name || window._lastOfferOutput && window._lastOfferOutput.name || 'My Offer',
+    price:       inp.price || ao.commission || window._appliedPrice || 997,
+    pain:        av.pain || ao.pain || 'their biggest challenge',
+    transformation: av.transformation || ao.transformation || av.desired || 'their desired outcome',
+    pillars:     Array.isArray(ce.pillars) ? ce.pillars.join(', ') : (ce.pillars || ''),
+    angles:      Array.isArray(cv.hooks)   ? cv.hooks.slice(0,5).join(' | ') : '',
+    voice:       window._voiceProfile ? JSON.stringify(window._voiceProfile).slice(0,300) : '',
+    isAffiliate: isAff
+  };
+}
+
+function _carBestTime(niche) {
+  var n = (niche || '').toLowerCase();
+  if (n.includes('fitness') || n.includes('health'))    return '📅 Best time: Tuesday–Thursday, 7–9am or 6–8pm';
+  if (n.includes('business') || n.includes('coach'))    return '📅 Best time: Monday–Wednesday, 8–10am or 12–2pm';
+  if (n.includes('finance') || n.includes('money'))     return '📅 Best time: Sunday–Tuesday, 9–11am';
+  return '📅 Best time: Tuesday–Thursday, 12–2pm';
+}
+
+window.carGenerate = async function() {
+  var btn    = document.getElementById('car-generate-btn');
+  var status = document.getElementById('car-status');
+  var output = document.getElementById('car-output');
+  var topic  = (document.getElementById('car-topic') || {}).value || '';
+  var ctx    = _carGetContext();
+
+  btn.textContent = '⏳ Generating…';
+  btn.disabled    = true;
+  if (status)  status.textContent = 'Reading your content intelligence…';
+  if (output)  output.style.display = 'none';
+
+  var styleDescriptions = {
+    educational: 'Educational — teach one concept step by step. Each slide builds on the last.',
+    story:       'Story — personal or client narrative. Open with tension, resolve with transformation.',
+    list:        'List format — numbered tips or mistakes. Each slide is one item.',
+    controversy: 'Controversial take — challenge a widely-held belief. Provocative but backed up.'
+  };
+
+  var sys = 'You are an elite Instagram carousel copywriter for ' + ctx.niche + '. You write carousels that stop the scroll, build authority, and convert followers into buyers. You NEVER use generic language. Every word is specific to this niche and this audience. Return ONLY valid JSON — no markdown, no code fences, no explanation.';
+
+  var prompt = 'Write a ' + window._carCount + '-slide Instagram carousel.\n\n'
+    + 'BUSINESS CONTEXT:\n'
+    + 'Niche: ' + ctx.niche + '\n'
+    + 'Offer: ' + ctx.offerName + ' ($' + ctx.price + ')\n'
+    + 'Audience pain: ' + ctx.pain + '\n'
+    + 'Transformation: ' + ctx.transformation + '\n'
+    + (ctx.pillars ? 'Content pillars: ' + ctx.pillars + '\n' : '')
+    + (ctx.angles  ? 'Proven hook angles: ' + ctx.angles + '\n' : '')
+    + (topic       ? 'Topic: ' + topic + '\n' : 'Pick the most powerful topic from the content pillars above.\n')
+    + 'Style: ' + (styleDescriptions[window._carStyle] || window._carStyle) + '\n\n'
+    + 'Return this exact JSON structure:\n'
+    + '{\n'
+    + '  "hook": "viral slide 1 headline — max 8 words, must stop the scroll",\n'
+    + '  "slides": [\n'
+    + '    { "headline": "slide headline max 7 words", "body": "supporting text max 20 words" }\n'
+    + '  ],\n'
+    + '  "cta": "final slide call to action tied to the offer",\n'
+    + '  "caption_hook": "opening caption line — different from slide hook",\n'
+    + '  "caption_body": "3-4 sentence caption with value + personal story connecting to the offer",\n'
+    + '  "caption_cta": "caption closing call to action",\n'
+    + '  "hashtags": ["tag1","tag2",...] (exactly 30 strings — no # symbols — 10 large, 10 medium, 10 niche-specific)\n'
+    + '}\n\n'
+    + 'slides array must have exactly ' + (window._carCount - 1) + ' items (slide 1 is the hook, final slide is the CTA). Be specific. No generic advice.';
+
+  try {
+    if (status) status.textContent = 'Generating carousel copy…';
+    var result = await brCallAI(sys, prompt, 2000);
+    if (!result || result._error) throw new Error(result ? result._error : 'No response');
+
+    window._carData = result;
+    if (status) status.textContent = 'Rendering slides…';
+
+    // Render canvases
+    await carRenderSlides(result, ctx);
+
+    // Populate output fields
+    var captionFull = [result.caption_hook, result.caption_body, result.caption_cta].filter(Boolean).join('\n\n');
+    var hashtagsStr = Array.isArray(result.hashtags) ? result.hashtags.map(function(t){ return '#'+t.replace(/^#/,''); }).join(' ') : '';
+
+    var hookEl     = document.getElementById('car-hook-text');
+    var captionEl  = document.getElementById('car-caption-text');
+    var hashEl     = document.getElementById('car-hashtags-text');
+    var timeEl     = document.getElementById('car-best-time');
+    if (hookEl)    hookEl.textContent    = result.hook || '';
+    if (captionEl) captionEl.textContent = captionFull;
+    if (hashEl)    hashEl.textContent    = hashtagsStr;
+    if (timeEl)    timeEl.textContent    = _carBestTime(ctx.niche);
+
+    // Reset send button
+    var sendBtn = document.getElementById('car-send-btn');
+    var sendConf = document.getElementById('car-send-confirm');
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '✅ Confirm & Send to Calendar'; }
+    if (sendConf) sendConf.style.display = 'none';
+
+    if (output) output.style.display = 'block';
+    if (status) status.textContent = '';
+  } catch(err) {
+    if (status) status.textContent = '⚠️ ' + (err.message || 'Generation failed. Try again.');
+  }
+
+  btn.textContent = '✨ Generate Carousel';
+  btn.disabled    = false;
+};
+
+window.carRenderSlides = async function(data, ctx) {
+  window._carCanvases = [];
+  var thumbRow = document.getElementById('car-thumbnails');
+  var previewCanvas = document.getElementById('car-preview-canvas');
+  if (thumbRow) thumbRow.innerHTML = '';
+
+  // Build slide list: hook slide + content slides + CTA slide
+  var slides = [];
+  slides.push({ headline: data.hook || 'Slide 1', body: 'Swipe to learn more →', isHook: true });
+  if (Array.isArray(data.slides)) {
+    data.slides.forEach(function(s) { slides.push(s); });
+  }
+  slides.push({ headline: data.cta || 'Ready to transform?', body: ctx.offerName || 'Learn more', isCTA: true });
+
+  for (var i = 0; i < slides.length; i++) {
+    var c = document.createElement('canvas');
+    c.width  = 1080;
+    c.height = 1080;
+    var gc = c.getContext('2d');
+
+    // Background gradient
+    var grad = gc.createLinearGradient(0, 0, 1080, 1080);
+    if (slides[i].isCTA) {
+      grad.addColorStop(0, '#0e0e2a');
+      grad.addColorStop(1, '#1a1040');
+    } else if (slides[i].isHook) {
+      grad.addColorStop(0, '#0c0c20');
+      grad.addColorStop(1, '#111130');
+    } else {
+      grad.addColorStop(0, '#0f0f26');
+      grad.addColorStop(1, '#121228');
+    }
+    gc.fillStyle = grad;
+    gc.fillRect(0, 0, 1080, 1080);
+
+    // Teal accent bar (top)
+    var accentGrad = gc.createLinearGradient(0, 0, 1080, 0);
+    accentGrad.addColorStop(0, '#4ecca3');
+    accentGrad.addColorStop(1, '#6c63ff');
+    gc.fillStyle = accentGrad;
+    gc.fillRect(60, 50, 960, 6);
+
+    // Glow circle (decorative)
+    var glow = gc.createRadialGradient(900, 200, 0, 900, 200, 320);
+    glow.addColorStop(0, 'rgba(108,99,255,.12)');
+    glow.addColorStop(1, 'rgba(108,99,255,0)');
+    gc.fillStyle = glow;
+    gc.fillRect(0, 0, 1080, 1080);
+
+    // Headline
+    gc.fillStyle = '#ffffff';
+    gc.font      = 'bold 68px Poppins, Arial, sans-serif';
+    gc.textAlign = 'left';
+    var headline = (slides[i].headline || '').toUpperCase();
+    _carWrapText(gc, headline, 70, 200, 940, 84);
+
+    // Body text
+    gc.fillStyle = '#c8cde8';
+    gc.font      = '36px Inter, Arial, sans-serif';
+    _carWrapText(gc, slides[i].body || '', 70, 600, 940, 48);
+
+    // Slide number
+    gc.fillStyle = 'rgba(78,204,163,.6)';
+    gc.font      = 'bold 28px Poppins, Arial, sans-serif';
+    gc.textAlign = 'right';
+    gc.fillText((i + 1) + ' / ' + slides.length, 1010, 1040);
+
+    // Swipe prompt on slide 1
+    if (slides[i].isHook) {
+      gc.fillStyle = 'rgba(255,255,255,.35)';
+      gc.font      = '28px Inter, Arial, sans-serif';
+      gc.textAlign = 'left';
+      gc.fillText('Swipe to read →', 70, 1040);
+    }
+
+    // CTA accent
+    if (slides[i].isCTA) {
+      var ctaGrad = gc.createLinearGradient(60, 0, 1020, 0);
+      ctaGrad.addColorStop(0, '#4ecca3');
+      ctaGrad.addColorStop(1, '#6c63ff');
+      gc.strokeStyle = ctaGrad;
+      gc.lineWidth   = 3;
+      gc.strokeRect(60, 100, 960, 880);
+    }
+
+    window._carCanvases.push(c);
+
+    // Thumbnail
+    var thumb = document.createElement('canvas');
+    thumb.width  = 120;
+    thumb.height = 120;
+    var tc = thumb.getContext('2d');
+    tc.drawImage(c, 0, 0, 120, 120);
+    thumb.style.cssText = 'border-radius:8px;cursor:pointer;border:2px solid ' + (i === 0 ? 'var(--teal)' : 'transparent') + ';flex-shrink:0;transition:border-color .15s';
+    (function(idx, th) {
+      th.onclick = function() {
+        if (previewCanvas) {
+          var px = previewCanvas.getContext('2d');
+          previewCanvas.width  = 540;
+          previewCanvas.height = 540;
+          px.drawImage(window._carCanvases[idx], 0, 0, 540, 540);
+        }
+        document.querySelectorAll('#car-thumbnails canvas').forEach(function(t){ t.style.borderColor = 'transparent'; });
+        th.style.borderColor = 'var(--teal)';
+      };
+    })(i, thumb);
+    if (thumbRow) thumbRow.appendChild(thumb);
+  }
+
+  // Show slide 0 in preview
+  if (previewCanvas && window._carCanvases.length > 0) {
+    previewCanvas.width  = 540;
+    previewCanvas.height = 540;
+    previewCanvas.getContext('2d').drawImage(window._carCanvases[0], 0, 0, 540, 540);
+  }
+};
+
+function _carWrapText(gc, text, x, y, maxW, lineH) {
+  if (!text) return;
+  var words = text.split(' ');
+  var line  = '';
+  var cy    = y;
+  for (var i = 0; i < words.length; i++) {
+    var test = line + (line ? ' ' : '') + words[i];
+    if (gc.measureText(test).width > maxW && line) {
+      gc.fillText(line, x, cy);
+      line = words[i];
+      cy  += lineH;
+      if (cy > 980) break;
+    } else {
+      line = test;
+    }
+  }
+  if (line) gc.fillText(line, x, cy);
+}
+
+window.carRegenerate = async function(element) {
+  var ctx  = _carGetContext();
+  var data = window._carData;
+  if (!data) return;
+
+  var statusEl = document.getElementById('car-status');
+  if (statusEl) statusEl.textContent = 'Regenerating ' + element + '…';
+
+  var sys = 'You are an elite carousel copywriter for ' + ctx.niche + '. Return ONLY valid JSON — one key with the new content.';
+  var prompts = {
+    hook:     'Write a fresh viral hook headline for an Instagram carousel about "' + (data.hook || ctx.pain) + '" in the ' + ctx.niche + ' niche. Max 8 words. Return JSON: { "hook": "..." }',
+    caption:  'Write a fresh Instagram caption for a carousel. Niche: ' + ctx.niche + '. Offer: ' + ctx.offerName + '. Pain: ' + ctx.pain + '. Return JSON: { "caption_hook":"...", "caption_body":"...", "caption_cta":"..." }',
+    hashtags: 'Generate 30 Instagram hashtags for a carousel in ' + ctx.niche + '. 10 large (1M+ posts), 10 medium (100K–1M), 10 niche-specific. Return JSON: { "hashtags":["tag1","tag2",...] } — no # symbols.'
+  };
+
+  try {
+    var result = await brCallAI(sys, prompts[element] || prompts.hook, 600);
+    if (!result || result._error) throw new Error(result ? result._error : 'No response');
+
+    if (element === 'hook') {
+      data.hook = result.hook || data.hook;
+      var hookEl = document.getElementById('car-hook-text');
+      if (hookEl) hookEl.textContent = data.hook;
+    } else if (element === 'caption') {
+      data.caption_hook = result.caption_hook || data.caption_hook;
+      data.caption_body = result.caption_body || data.caption_body;
+      data.caption_cta  = result.caption_cta  || data.caption_cta;
+      var capEl = document.getElementById('car-caption-text');
+      if (capEl) capEl.textContent = [data.caption_hook, data.caption_body, data.caption_cta].filter(Boolean).join('\n\n');
+    } else if (element === 'hashtags') {
+      data.hashtags = result.hashtags || data.hashtags;
+      var hashEl = document.getElementById('car-hashtags-text');
+      if (hashEl) hashEl.textContent = (data.hashtags || []).map(function(t){ return '#'+t.replace(/^#/,''); }).join(' ');
+    }
+    window._carData = data;
+    if (statusEl) statusEl.textContent = '';
+  } catch(err) {
+    if (statusEl) statusEl.textContent = '⚠️ Redo failed — try again.';
+    setTimeout(function(){ if (statusEl) statusEl.textContent = ''; }, 3000);
+  }
+};
+
+window.carCopy = function(element) {
+  var data = window._carData;
+  if (!data) return;
+  var text = '';
+  if (element === 'hook')     text = data.hook || '';
+  if (element === 'caption')  text = [data.caption_hook, data.caption_body, data.caption_cta].filter(Boolean).join('\n\n');
+  if (element === 'hashtags') text = (data.hashtags || []).map(function(t){ return '#'+t.replace(/^#/,''); }).join(' ');
+  navigator.clipboard && navigator.clipboard.writeText(text).catch(function(){});
+  var btnId = 'car-copy-' + element;
+  var btn = document.getElementById(btnId);
+  if (btn) { var orig = btn.textContent; btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = orig; }, 1500); }
+};
+
+window.carSendToCalendar = async function() {
+  var sendBtn  = document.getElementById('car-send-btn');
+  var sendConf = document.getElementById('car-send-confirm');
+  var data     = window._carData;
+  if (!data || !window._carCanvases.length) return;
+
+  sendBtn.disabled    = true;
+  sendBtn.textContent = '⏳ Sending…';
+
+  try {
+    // Convert canvases to base64 PNG
+    var images = window._carCanvases.map(function(c){ return c.toDataURL('image/png'); });
+    var captionFull = [data.caption_hook, data.caption_body, data.caption_cta].filter(Boolean).join('\n\n');
+    var hashtags = (data.hashtags || []).map(function(t){ return '#'+t.replace(/^#/,''); }).join(' ');
+    var ctx = _carGetContext();
+
+    // Find next available day slot in calendar
+    var dayNum = 1;
+    try {
+      var calKey = 'eos_calendar30_' + (window._appMode || 'affiliate');
+      var calRaw = localStorage.getItem(calKey);
+      if (calRaw) {
+        var calArr = JSON.parse(calRaw);
+        // Find first day where carousel slot is empty
+        for (var d = 0; d < calArr.length; d++) {
+          var daySlots = calArr[d] || [];
+          var hasCarousel = daySlots.some(function(s){ return s.slotType === 'carousel' || s.postType === 'Carousel'; });
+          if (!hasCarousel) { dayNum = d + 1; break; }
+        }
+      }
+    } catch(e) {}
+
+    // Build the calendar entry
+    var entry = {
+      type:       'carousel',
+      images:     images,       // base64 array (stored locally; in production → Firebase Storage URLs)
+      hook:       data.hook,
+      caption:    captionFull,
+      hashtags:   hashtags,
+      bestTime:   _carBestTime(ctx.niche),
+      style:      window._carStyle,
+      topic:      (document.getElementById('car-topic') || {}).value || data.hook,
+      status:     'ready',
+      createdAt:  new Date().toISOString(),
+      scheduledTime: '12:00pm',
+      dayNum:     dayNum
+    };
+
+    // Save to localStorage (mirrors Firestore write pattern)
+    try {
+      var calStoreKey = 'eos_calendar_entries';
+      var existing = JSON.parse(localStorage.getItem(calStoreKey) || '[]');
+      existing.push(entry);
+      localStorage.setItem(calStoreKey, JSON.stringify(existing));
+    } catch(e) {}
+
+    // Also write to Firestore if available
+    try {
+      if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+        var dayStr = 'day' + dayNum;
+        window._setDoc(
+          window._doc(window._db, 'calendar', window._currentUserUid, 'days', dayStr),
+          { carousel: { ...entry, images: '[stored_locally]' } },
+          { merge: true }
+        ).catch(function(){});
+      }
+    } catch(e) {}
+
+    var DN = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    var dayName = DN[(dayNum - 1) % 7] || 'Day ' + dayNum;
+    sendBtn.textContent = '✅ Sent to Calendar';
+    if (sendConf) {
+      sendConf.style.display = 'block';
+      sendConf.textContent = '📅 Added to your Content Calendar — Day ' + dayNum + ', ' + dayName + ' at 12:00pm';
+    }
+  } catch(err) {
+    sendBtn.disabled    = false;
+    sendBtn.textContent = '✅ Confirm & Send to Calendar';
+    var st = document.getElementById('car-status');
+    if (st) { st.textContent = '⚠️ Could not save — try again.'; setTimeout(function(){ st.textContent=''; }, 3000); }
+  }
+};
+
+// ══════════════════════════════════════════════════════════════════
+// AUTOMATE TAB — Task 4
+// ══════════════════════════════════════════════════════════════════
+window._autoDuration    = 30;
+window._autoRotation    = 'sequential';
+window._autoToggleOn    = false;
+window._autoContentTypes= { fb1:true, reel1:true, carousel:true, fb2:true, reel2:true, email:true };
+
+// Set today as default start date
+(function() {
+  var d = document.getElementById('auto-start-date');
+  if (d) d.value = new Date().toISOString().slice(0,10);
+})();
+
+window.csInitAutomate = function() {
+  autoRenderChecklist();
+};
+
+window.autoSelectDuration = function(n, el) {
+  window._autoDuration = n;
+  document.querySelectorAll('.auto-dur-btn').forEach(function(b) {
+    b.style.background  = 'rgba(255,255,255,.03)';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color       = 'var(--dim)';
+    b.classList.remove('on');
+  });
+  el.style.background  = 'rgba(108,99,255,.12)';
+  el.style.borderColor = 'rgba(108,99,255,.3)';
+  el.style.color       = '#a089ff';
+  el.classList.add('on');
+};
+
+window.autoToggle = function() {
+  window._autoToggleOn = !window._autoToggleOn;
+  var wrap  = document.getElementById('auto-toggle-wrap');
+  var knob  = document.getElementById('auto-toggle-knob');
+  var label = document.getElementById('auto-toggle-label');
+  var btn   = document.getElementById('auto-start-btn');
+  if (window._autoToggleOn) {
+    if (wrap)  { wrap.style.background = 'rgba(108,99,255,.5)'; wrap.style.borderColor = 'rgba(108,99,255,.6)'; }
+    if (knob)  knob.style.left = '27px';
+    if (label) { label.textContent = 'Ready'; label.style.color = '#a089ff'; }
+    // Only enable button if checklist passes
+    var ok = autoChecklistValid();
+    if (btn) { btn.disabled = !ok; btn.style.opacity = ok ? '1' : '.45'; }
+  } else {
+    if (wrap)  { wrap.style.background = 'rgba(255,255,255,.1)'; wrap.style.borderColor = 'rgba(255,255,255,.15)'; }
+    if (knob)  knob.style.left = '3px';
+    if (label) { label.textContent = 'Off'; label.style.color = 'var(--dim)'; }
+    if (btn)   { btn.disabled = true; btn.style.opacity = '.45'; }
+  }
+};
+
+function autoChecklistValid() {
+  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  var intelReady = isAff
+    ? !!(window._affiliateOffer && window._affiliateOffer.name && (window._aiAvatarData || window._avatarData))
+    : !!(window._boardroomIntel && window._boardroomIntel.copyVault);
+  var clones = window._autoClones || [];
+  var clone1Ready = !!(clones[0] && clones[0].avatarId);
+  return intelReady && clone1Ready;
+}
+
+function autoRenderChecklist() {
+  var el = document.getElementById('auto-checklist');
+  if (!el) return;
+  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  var intelReady = isAff
+    ? !!(window._affiliateOffer && window._affiliateOffer.name && (window._aiAvatarData || window._avatarData))
+    : !!(window._boardroomIntel && window._boardroomIntel.copyVault);
+  var bi  = window._boardroomIntel || {};
+  var ce  = bi.contentEngine || {};
+  var pillarsCount = Array.isArray(ce.pillars) ? ce.pillars.length : (ce.pillars ? 1 : 0);
+  var clones = window._autoClones || [];
+  var clone1 = !!(clones[0] && clones[0].avatarId);
+  var clone2 = !!(clones[1] && clones[1].avatarId);
+  var clone3 = !!(clones[2] && clones[2].avatarId);
+  var offerReady = isAff
+    ? !!(window._affiliateOffer && window._affiliateOffer.name)
+    : !!(window._lastOfferOutput || (document.getElementById('offer_name') || {}).value);
+
+  var items = [
+    { label: isAff ? 'Offer Setup complete'          : 'Boardroom intelligence ready',
+      done: intelReady, critical: true },
+    { label: 'Content pillars: ' + (pillarsCount ? pillarsCount + ' pillars loaded' : 'not yet generated'),
+      done: pillarsCount > 0, critical: false },
+    { label: 'Clone 1 — ' + (clone1 ? (clones[0].name || 'Ready') : 'Not set up'),
+      done: clone1, critical: true },
+    { label: 'Clone 2 — ' + (clone2 ? (clones[1].name || 'Ready') : 'Not set up'),
+      done: clone2, critical: false },
+    { label: 'Clone 3 — ' + (clone3 ? (clones[2].name || 'Ready') : 'Not set up') + ((!clone3 && clone1) ? ' (optional)' : ''),
+      done: clone3, critical: false },
+    { label: 'Offer configured: ' + (offerReady ? 'Yes' : 'Not yet'),
+      done: offerReady, critical: false }
+  ];
+
+  el.innerHTML = items.map(function(item) {
+    var color  = item.done ? 'var(--teal)' : (item.critical ? 'var(--red)' : 'var(--orange)');
+    var icon   = item.done ? '✅' : (item.critical ? '❌' : '⚠️');
+    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:var(--r-sm)">'
+      + '<span style="font-size:14px">' + icon + '</span>'
+      + '<span style="font-size:12px;color:' + color + ';font-weight:' + (item.critical ? '700' : '600') + '">' + item.label + '</span>'
+      + '</div>';
+  }).join('');
+
+  // Show warning if critical items missing
+  var warn = document.getElementById('auto-checklist-warning');
+  var missing = items.filter(function(i){ return i.critical && !i.done; });
+  if (warn) {
+    if (missing.length) {
+      warn.style.display = 'block';
+      warn.textContent   = '⚠️ Complete these before starting: ' + missing.map(function(m){ return m.label.split('—')[0].trim(); }).join(', ');
+    } else {
+      warn.style.display = 'none';
+    }
+  }
+
+  // Clone 3 soft note
+  if (clone1 && clone2 && !clone3) {
+    el.innerHTML += '<div style="padding:8px 12px;font-size:11px;color:var(--dim);background:rgba(255,255,255,.02);border-radius:var(--r-sm);border:1px solid rgba(255,255,255,.04)">💡 Running with 2 clones. Add Clone 3 for maximum variety.</div>';
+  }
+}
+
+window.autoStart = async function() {
+  var btn = document.getElementById('auto-start-btn');
+  if (!window._autoToggleOn) return;
+  if (!autoChecklistValid()) return;
+
+  // Gather settings
+  var duration   = window._autoDuration;
+  var rotation   = (document.getElementById('auto-rotation') || {}).value || 'sequential';
+  var startDate  = (document.getElementById('auto-start-date') || {}).value || new Date().toISOString().slice(0,10);
+  var cloneIds   = (window._autoClones || []).filter(function(c){ return c && c.avatarId; }).map(function(c){ return c.avatarId; });
+  var uid        = window._currentUserUid || 'local';
+  var isAffiliate= (window._appMode || 'affiliate') === 'affiliate';
+  var types = {
+    fb1:      !!(document.getElementById('auto-ct-fb1')      || {}).checked,
+    reel1:    !!(document.getElementById('auto-ct-reel1')    || {}).checked,
+    carousel: !!(document.getElementById('auto-ct-carousel') || {}).checked,
+    fb2:      !!(document.getElementById('auto-ct-fb2')      || {}).checked,
+    reel2:    !!(document.getElementById('auto-ct-reel2')    || {}).checked,
+    email:    !!(document.getElementById('auto-ct-email')    || {}).checked
+  };
+
+  var job = {
+    userId:        uid,
+    duration:      duration,
+    startDate:     startDate,
+    contentTypes:  types,
+    rotationStyle: rotation,
+    cloneIds:      cloneIds,
+    isAffiliate:   isAffiliate,
+    status:        'running',
+    createdAt:     new Date().toISOString(),
+    progress:      { daysComplete: 0, totalDays: duration, currentAction: 'Starting…' }
+  };
+
+  btn.textContent = '⏳ Starting…';
+  btn.disabled    = true;
+
+  // Write initial job state to Firestore so Calendar listener can track it
+  try {
+    if (window._db && window._setDoc && window._doc && uid !== 'local') {
+      await window._setDoc(
+        window._doc(window._db, 'automationJobs', uid, 'currentJob', 'job'),
+        job
+      );
+    }
+  } catch(e) { console.warn('[automate] Firestore job write failed:', e.message); }
+
+  // Save to localStorage as fallback
+  try { localStorage.setItem('eos_auto_job', JSON.stringify(job)); } catch(e) {}
+
+  // Switch to progress view
+  var settings  = document.getElementById('auto-settings-card');
+  var startCard = document.getElementById('auto-start-card');
+  var progress  = document.getElementById('auto-progress-view');
+  if (settings)  settings.style.display  = 'none';
+  if (startCard) startCard.style.display = 'none';
+  if (progress)  progress.style.display  = 'block';
+
+  autoRenderDayList(job);
+
+  // ── Call /api/automate day by day ────────────────────────────────────────
+  // Each call generates one full day (~30-60s). We loop through all days
+  // sequentially, updating the progress UI after each one completes.
+  var aborted = false;
+  window._autoAbort = function() { aborted = true; };
+
+  for (var day = 1; day <= duration; day++) {
+    if (aborted) break;
+
+    // Update current action in UI
+    job.progress.currentAction = 'Generating Day ' + day + ' of ' + duration + '…';
+    autoRenderDayList(job);
+
+    try {
+      var resp = await fetch('/api/automate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ uid: uid, dayNumber: day, job: job }),
+      });
+
+      var result = await resp.json();
+
+      if (!resp.ok || result.error) {
+        console.error('[automate] Day ' + day + ' error:', result.error);
+        // Continue to next day rather than aborting the whole job
+        job.progress.currentAction = 'Day ' + day + ' had an issue — continuing…';
+      } else {
+        // Update progress from server response
+        job.progress.daysComplete  = result.progress.daysComplete;
+        job.progress.currentAction = result.progress.currentAction;
+        try { localStorage.setItem('eos_auto_job', JSON.stringify(job)); } catch(e) {}
+      }
+
+      autoRenderDayList(job);
+      autoUpdateProgress(job);
+
+      if (result.isComplete) break;
+
+    } catch(err) {
+      console.error('[automate] Day ' + day + ' fetch error:', err.message);
+      job.progress.currentAction = 'Day ' + day + ' timed out — continuing…';
+      autoRenderDayList(job);
+    }
+  }
+
+  // ── All days complete ────────────────────────────────────────────────────
+  if (!aborted) {
+    job.status = 'complete';
+    job.progress.daysComplete = duration;
+    try { localStorage.setItem('eos_auto_job', JSON.stringify(job)); } catch(e) {}
+
+    var completeEl = document.getElementById('auto-complete-screen');
+    var titleEl    = document.getElementById('auto-complete-title');
+    var countEl    = document.getElementById('auto-complete-count');
+    var count = duration * Object.values(types).filter(Boolean).length;
+    if (titleEl)    titleEl.textContent = 'Your ' + duration + '-day content machine is ready 🎉';
+    if (countEl)    countEl.textContent = count + ' pieces of content generated and scheduled.';
+    if (completeEl) completeEl.style.display = 'block';
+
+    autoUpdateProgress(job);
+
+    // Refresh the Content Calendar so generated content appears immediately
+    setTimeout(function() {
+      if (typeof window.calRefresh === 'function') window.calRefresh();
+    }, 1000);
+  }
+};
+
+function autoRenderDayList(job) {
+  var listEl = document.getElementById('auto-days-list');
+  if (!listEl) return;
+  var total = job.duration || 30;
+  var done  = (job.progress && job.progress.daysComplete) || 0;
+  var html = '';
+  for (var d = 1; d <= total; d++) {
+    var state = d <= done ? 'complete' : (d === done + 1 ? 'active' : 'waiting');
+    var icon  = state === 'complete' ? '✅' : (state === 'active' ? '⏳' : '○');
+    var color = state === 'complete' ? 'var(--teal)' : (state === 'active' ? 'var(--yellow)' : 'var(--dimmer)');
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border3)">'
+      + '<span style="font-size:12px;width:18px;flex-shrink:0">' + icon + '</span>'
+      + '<span style="font-size:11px;color:' + color + ';font-weight:' + (state !== 'waiting' ? '700' : '500') + '">Day ' + d
+      + (state === 'active' ? ' — ' + ((job.progress && job.progress.currentAction) || 'Processing…') : '')
+      + (state === 'complete' ? ' — Complete' : '')
+      + '</span>'
+      + '</div>';
+  }
+  listEl.innerHTML = html;
+}
+
+function autoUpdateProgress(data) {
+  if (!data || !data.progress) return;
+  var done  = data.progress.daysComplete || 0;
+  var total = data.duration || window._autoDuration || 30;
+  var pct   = Math.min(100, Math.round((done / total) * 100));
+  var bar   = document.getElementById('auto-progress-bar');
+  var pctEl = document.getElementById('auto-progress-pct');
+  if (bar)   bar.style.width    = pct + '%';
+  if (pctEl) pctEl.textContent  = pct + '%';
+
+  // Time remaining estimate (approx 4 min per day)
+  var remaining = (total - done) * 4;
+  var timeEl = document.getElementById('auto-time-remaining');
+  if (timeEl) timeEl.textContent = remaining > 60 ? Math.round(remaining/60) + ' hrs' : remaining + ' min';
+
+  autoRenderDayList(data);
+
+  // Check completion
+  if (data.status === 'complete') {
+    var completeEl = document.getElementById('auto-complete-screen');
+    var titleEl    = document.getElementById('auto-complete-title');
+    var countEl    = document.getElementById('auto-complete-count');
+    var types = data.contentTypes || {};
+    var count = done * Object.values(types).filter(Boolean).length;
+    if (titleEl)   titleEl.textContent = 'Your ' + total + '-day content machine is ready 🎉';
+    if (countEl)   countEl.textContent = count + ' pieces of content generated and scheduled.';
+    if (completeEl) completeEl.style.display = 'block';
+  }
+}
+
+
 
 /* ══════════════════════════════════════════════════════════════════
    AI VIDEO STUDIO + SCORECARD FUNCTION STUBS
@@ -21571,54 +22675,63 @@ window.setAppMode = function(mode) {
     // Explicitly hide Boardroom from affiliate sidebar
     var boardroomNavEl = document.getElementById('nav-boardroom');
     if (boardroomNavEl) boardroomNavEl.style.display = 'none';
-    setNav('nav-dashboard',  'Dashboard',          'Command Centre',       false);
+    setNav('nav-dashboard',  'Dashboard',          'Command Centre',          false);
     setNav('nav-plan',        null, null,            true);
     setNav('nav-offer',       null, null,            true);
-    setNav('nav-affiliate',  'Offer Setup',         'Set up first', false);
-    setNav('nav-funnels',    'Funnel Builder',      'Build & publish', false);
-    setNav('nav-email',      'Email Marketing',     'Campaigns', false);
+    setNav('nav-affiliate',  'Offer Setup',         'Set up first',            false);
+    setNav('nav-ai-video',   'Content Studio',      'Create · Automate · Publish', false);
+    setNav('nav-calendar',   'Content Calendar',    'Your publishing schedule', false);
+    setNav('nav-funnels',    'Funnel Builder',      'Build & publish',         false);
+    setNav('nav-email',      'Email Marketing',     'Campaigns',               false);
     setNav('nav-avatar',      null, null,            true);
-    setNav('nav-scripts',    null, null,            true);
-    setNav('nav-routine',    'Daily Routine',       'Step 3', false);
+    setNav('nav-scripts',    null, null,             true);
+    setNav('nav-routine',    'Daily Routine',       'Daily Execution',         false);
     setNav('nav-tracker',     null, null,             true);
-    setNav('nav-growth',     'Growth Support',      'Training & resources', false);
-    setNav('nav-perfhq',     'Performance HQ',      'Score & milestones',   false);
-    setNav('nav-profile',    'My Profile',          'Account & settings',   false);
-    setNav('nav-ai-video',   'AI Video Studio',     'Clone & create', false);
+    setNav('nav-growth',     'Growth Support',      'Training & resources',    false);
+    setNav('nav-perfhq',     'Performance HQ',      'Score & milestones',      false);
+    setNav('nav-profile',    'My Profile',          'Account & settings',      false);
 
-    // Update section labels
+    // Update section labels for Affiliate Mode:
+    // Affiliate Setup · Content Engine · Daily Execution · Growth · Performance
     const sectionLabels = document.querySelectorAll('.nav-section-label');
     if (sectionLabels[0]) sectionLabels[0].textContent = 'Affiliate Setup';
-    if (sectionLabels[1]) sectionLabels[1].textContent = 'Daily Execution';
+    if (sectionLabels[1]) sectionLabels[1].textContent = 'Content Engine';
+    if (sectionLabels[2]) sectionLabels[2].textContent = 'Daily Execution';
+    if (sectionLabels[3]) sectionLabels[3].textContent = 'Growth';
+    if (sectionLabels[4]) sectionLabels[4].textContent = 'Performance';
 
   } else {
     // ── EXPERT NAV ───────────────────────────────────────────────────────
-    setNav('nav-dashboard',  'Dashboard',          'Command Centre', false);
-    setNav('nav-plan',       'Revenue Plan',        'Step 1', false);  // Restored for expert
-    setNav('nav-avatar',     'Ideal Customer',      'Step 2', false);
-    setNav('nav-offer',      'Offer Creation',      'Step 3', false);
-    setNav('nav-boardroom',  'The Boardroom',       'Step 4', false);
-    // nav-calendar removed from sidebar — lives in Boardroom
-    setNav('nav-funnels',    'Funnel Builder',      'Step 5', false);
-    setNav('nav-email',      'Email Marketing',     'Step 6', false);
-    setNav('nav-routine',    'Daily Routine',       'Step 7', false);
-    setNav('nav-scripts',    'DM & Sales',          'Step 8', false);
-    setNav('nav-tracker',    'Daily Tracker',       'Log activity', false);
-    setNav('nav-ai-video',   'AI Video Studio',     'Clone & create', false);
+    setNav('nav-dashboard',  'Dashboard',          'Command Centre',          false);
+    setNav('nav-plan',       'Revenue Plan',        'Step 1',                  false);
+    setNav('nav-avatar',     'Ideal Customer',      'Step 2',                  false);
+    setNav('nav-offer',      'Offer Creation',      'Step 3',                  false);
+    setNav('nav-boardroom',  'The Boardroom',       'Step 4',                  false);
+    setNav('nav-ai-video',   'Content Studio',      'Create · Automate · Publish', false);
+    setNav('nav-calendar',   'Content Calendar',    'Your publishing schedule', false);
+    setNav('nav-funnels',    'Funnel Builder',      'Step 5',                  false);
+    setNav('nav-email',      'Email Marketing',     'Step 6',                  false);
+    setNav('nav-routine',    'Daily Routine',       'Step 7',                  false);
+    setNav('nav-scripts',    'DM & Sales',          'Step 8',                  false);
+    setNav('nav-tracker',    'Daily Tracker',       'Log activity',            false);
     setNav('nav-affiliate',   null, null,            true);   // Hidden in Expert mode
-    setNav('nav-growth',     'Growth Support',      'Training & resources', false);
-    setNav('nav-perfhq',     'Performance HQ',      'Score & milestones', false);
-    setNav('nav-profile',    'My Profile',          'Account & settings', false);
+    setNav('nav-growth',     'Growth Support',      'Training & resources',    false);
+    setNav('nav-perfhq',     'Performance HQ',      'Score & milestones',      false);
+    setNav('nav-profile',    'My Profile',          'Account & settings',      false);
 
     // Restore nav visibility for expert mode
     ['nav-plan','nav-avatar','nav-scripts','nav-tracker','nav-funnels'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = '';
     });
-    // Restore section labels
+    // Update section labels for Expert Mode:
+    // Your Business · Content Engine · Daily Execution · Growth · Performance
     const sectionLabelsE = document.querySelectorAll('.nav-section-label');
     if (sectionLabelsE[0]) sectionLabelsE[0].textContent = 'Your Business';
-    if (sectionLabelsE[1]) sectionLabelsE[1].textContent = 'Daily Execution';
+    if (sectionLabelsE[1]) sectionLabelsE[1].textContent = 'Content Engine';
+    if (sectionLabelsE[2]) sectionLabelsE[2].textContent = 'Daily Execution';
+    if (sectionLabelsE[3]) sectionLabelsE[3].textContent = 'Growth';
+    if (sectionLabelsE[4]) sectionLabelsE[4].textContent = 'Performance';
   }
 
   // ── Body class for CSS hooks ──────────────────────────────────────────
@@ -21877,9 +22990,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Apply nav immediately using saved mode — don't wait for Firebase auth
   // ── Guarantee shared nav items are always visible regardless of timing ──
-  // AI Video Studio, Funnel Builder, Email Marketing belong to BOTH modes.
-  // They start without display:none, but this is a belt-and-suspenders guard.
-  ['nav-ai-video','nav-funnels','nav-email','nav-routine','nav-growth','nav-perfhq',
+  // Content Studio, Content Calendar, Funnel Builder, Email Marketing belong to BOTH modes.
+  ['nav-ai-video','nav-calendar','nav-funnels','nav-email','nav-routine','nav-growth','nav-perfhq',
    'nav-profile','nav-advisor','nav-dashboard'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el && el.style.display === 'none') el.style.display = 'flex';
@@ -22802,6 +23914,11 @@ onAuthStateChanged(auth, async (user) => {
   window._authDone = true;
 
   window._currentUserUid = user.uid;
+
+  // Start Calendar Firestore listener as soon as auth is confirmed
+  setTimeout(function() {
+    if (typeof window.calInitFirestoreListener === 'function') window.calInitFirestoreListener();
+  }, 1200);
 
   // ── Silently repair all domain mappings for this user ─────────────────────
   // Runs in background on every login. Ensures published-funnels and
@@ -26930,7 +28047,7 @@ window._eosSaveCurrentAudience = function(customName) {
   var niche=window._appliedNiche||'';
   var name=customName||(job?job.split('/')[0].split(',')[0].trim().slice(0,30)+(niche?' · '+niche.split('&')[0].trim().slice(0,18):''):'My Audience');
   var snap={niche:niche};
-  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections'].forEach(function(id){var el=document.getElementById(id);if(el)snap[id]=el.value;});
+  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections','av_self_story'].forEach(function(id){var el=document.getElementById(id);if(el)snap[id]=el.value;});
   snap._keywords=Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll&&document.getElementById('kw-wrap').querySelectorAll('.tag')||[]).map(function(t){return t.textContent.replace('×','').trim();});
   if(window._avatarData)snap._avatarData=window._avatarData;
   if(window._aiAvatarData)snap._aiAvatarData=window._aiAvatarData;
@@ -26947,7 +28064,7 @@ window._eosLoadAudience = function(audienceId) {
   if(!a||!a.data)return false;
   var d=a.data;
   if(d.niche){var ne=document.getElementById('niche');if(ne){ne.value=d.niche;ne.dispatchEvent(new Event('change',{bubbles:true}));}window._appliedNiche=d.niche;}
-  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections'].forEach(function(id){if(d[id]===undefined)return;var el=document.getElementById(id);if(el){el.value=d[id];el.dispatchEvent(new Event('input',{bubbles:true}));}});
+  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections','av_self_story'].forEach(function(id){if(d[id]===undefined)return;var el=document.getElementById(id);if(el){el.value=d[id];el.dispatchEvent(new Event('input',{bubbles:true}));}});
   if(d._keywords&&d._keywords.length){var kw=document.getElementById('kw-wrap');if(kw){kw.querySelectorAll('.tag').forEach(function(t){t.remove();});d._keywords.forEach(function(k){if(!k)return;var t=document.createElement('span');t.className='tag';t.innerHTML=k+'<span onclick="removeTag(this,event)" style="margin-left:5px;cursor:pointer;opacity:.6">×</span>';kw.insertBefore(t,kw.querySelector('#kw-inp')||kw.firstChild);});}}
   if(d._avatarData)window._avatarData=d._avatarData;
   if(d._aiAvatarData)window._aiAvatarData=d._aiAvatarData;
@@ -27504,11 +28621,28 @@ function brShowPhase1() {
         var fsR = document.getElementById('br-tab-funnel-strategy');
         if (fsR && typeof _brRenderFunnelStrategy === 'function') fsR.innerHTML = _brRenderFunnelStrategy(parsed.funnelStrategy||{}, parsed.inputs||{});
 
+        // Render the 4 previously missing tabs from cache
+        var icpPanelR = document.getElementById('br-tab-icp-research');
+        if (icpPanelR && typeof _brRenderICPResearch === 'function') icpPanelR.innerHTML = _brRenderICPResearch(parsed.icpResearch || {}, parsed.inputs || {});
+
+        var compPanelR = document.getElementById('br-tab-competitor-intel');
+        if (compPanelR && typeof _brRenderCompetitorIntel === 'function') compPanelR.innerHTML = _brRenderCompetitorIntel(parsed.competitorIntel || {}, parsed.inputs || {});
+
+        var mktPanelR = document.getElementById('br-tab-market-viability');
+        if (mktPanelR && typeof _brRenderMarketViability === 'function') mktPanelR.innerHTML = _brRenderMarketViability(parsed.marketViability || {}, parsed.inputs || {});
+
+        // Content Strategy uses its own renderer
+        if (parsed.contentStrategy) {
+          window._boardroomIntel = window._boardroomIntel || parsed;
+          window._boardroomIntel.contentStrategy = parsed.contentStrategy;
+          if (typeof window.renderBrContentStrategy === 'function') window.renderBrContentStrategy();
+        }
+
         if (tabsNavR)   tabsNavR.style.display = 'block';
         if (powBannerR) {
           powBannerR.style.display = 'flex';
           var pdR = document.getElementById('br-powered-desc');
-          if (pdR && parsed.inputs) pdR.textContent = 'Boardroom active for ' + (parsed.inputs.niche||'') + ' · ' + (parsed.inputs.offerName||'') + ' · All 6 rooms powered';
+          if (pdR && parsed.inputs) pdR.textContent = 'Boardroom active for ' + (parsed.inputs.niche||'') + ' · ' + (parsed.inputs.offerName||'') + ' · All 11 analyses complete';
         }
 
         var firstTabR = document.querySelector('.br-tab[data-tab="war-room"]');
@@ -27865,30 +28999,60 @@ async function brBuildPlan() {
     _brStage(4, 'running');
     var warPlanResult = await brCallAI_WarPlan(inp);
     _brStage(4, 'done');
-    _brProgress(82, 'Creating your 7-day content calendar...');
+    _brProgress(72, 'Creating your content engine...');
 
     // CALL 6: Content Engine
     _brStage(5, 'running');
     var contentResult = await brCallAI_ContentEngine(inp);
     _brStage(5, 'done');
-    _brProgress(92, 'Building your funnel strategy...');
+    _brProgress(78, 'Building your funnel strategy...');
 
     // CALL 7: Funnel Strategy
+    _brStage(6, 'running');
     var funnelResult = await brCallAI_FunnelStrategy(inp);
-    _brProgress(100, 'Activating your Boardroom...');
+    _brStage(6, 'done');
+    _brProgress(84, 'Researching your ideal customer profile...');
 
-    // Assemble intel
+    // CALL 8: ICP Research
+    _brStage(7, 'running');
+    var icpResult = await brCallAI_ICPResearch(inp);
+    _brStage(7, 'done');
+    _brProgress(89, 'Analysing your competitors...');
+
+    // CALL 9: Competitor Intel
+    _brStage(8, 'running');
+    var competitorResult = await brCallAI_CompetitorIntel(inp);
+    _brStage(8, 'done');
+    _brProgress(93, 'Assessing your market viability...');
+
+    // CALL 10: Market Viability
+    _brStage(9, 'running');
+    var marketResult = await brCallAI_MarketViability(inp);
+    _brStage(9, 'done');
+    _brProgress(97, 'Building your content strategy...');
+
+    // CALL 11: Content Strategy
+    _brStage(10, 'running');
+    var contentStrategyResult = await brCallAI_ContentStrategy(inp);
+    _brStage(10, 'done');
+    _brProgress(100, 'Activating your full Boardroom...');
+
+    // Assemble intel — all 11 analyses
     var intel = {
-      generatedAt:    Date.now(),
-      inputs:         inp,
-      answers:        answers,
-      plan:           planResult,
-      architect:      architectResult  || {},
-      offerStack:     offerStackResult || {},
-      copyVault:      copyVaultResult  || {},
-      warPlan:        warPlanResult    || {},
-      contentEngine:  contentResult    || {},
-      funnelStrategy: funnelResult     || {}
+      generatedAt:      Date.now(),
+      inputs:           inp,
+      answers:          answers,
+      plan:             planResult,
+      architect:        architectResult       || {},
+      offerStack:       offerStackResult      || {},
+      copyVault:        copyVaultResult       || {},
+      warPlan:          warPlanResult         || {},
+      contentEngine:    contentResult         || {},
+      funnelStrategy:   funnelResult          || {},
+      icpResearch:      icpResult             || {},
+      competitorIntel:  competitorResult      || {},
+      marketViability:  marketResult          || {},
+      contentStrategy:  contentStrategyResult || {}
     };
 
     window._boardroomIntel = intel;
@@ -27921,10 +29085,24 @@ async function brBuildPlan() {
       var fsPanel = document.getElementById('br-tab-funnel-strategy');
       if (fsPanel) fsPanel.innerHTML = _brRenderFunnelStrategy(funnelResult, inp);
 
+      var icpPanel = document.getElementById('br-tab-icp-research');
+      if (icpPanel && typeof _brRenderICPResearch === 'function') icpPanel.innerHTML = _brRenderICPResearch(icpResult, inp);
+
+      var compPanel = document.getElementById('br-tab-competitor-intel');
+      if (compPanel && typeof _brRenderCompetitorIntel === 'function') compPanel.innerHTML = _brRenderCompetitorIntel(competitorResult, inp);
+
+      var mktPanel = document.getElementById('br-tab-market-viability');
+      if (mktPanel && typeof _brRenderMarketViability === 'function') mktPanel.innerHTML = _brRenderMarketViability(marketResult, inp);
+
+      // Content Strategy uses its own renderer
+      if (typeof window.renderBrContentStrategy === 'function') {
+        window.renderBrContentStrategy();
+      }
+
       if (powBanner) {
         powBanner.style.display = 'flex';
         var powDesc = document.getElementById('br-powered-desc');
-        if (powDesc) powDesc.textContent = 'Boardroom active for ' + (inp.niche || 'your business') + ' · ' + (inp.offerName || 'your offer') + ' · All 6 rooms powered';
+        if (powDesc) powDesc.textContent = 'Boardroom active for ' + (inp.niche || 'your business') + ' · ' + (inp.offerName || 'your offer') + ' · All 11 analyses complete';
       }
 
       if (tabsNav) tabsNav.style.display = 'block';
@@ -29274,7 +30452,7 @@ function brResetBoardroom() {
   window._brChatState      = { step: 0, answers: {} };
 
   // Reset all tab panels
-  ['war-room','architect','offer-stack','client-attraction','copy-vault','war-plan','content-engine','funnel-strategy'].forEach(function(t) {
+  ['war-room','architect','offer-stack','client-attraction','copy-vault','war-plan','content-engine','funnel-strategy','icp-research','competitor-intel','market-viability','content-strategy'].forEach(function(t) {
     var p = document.getElementById('br-tab-' + t);
     if (p) { p.innerHTML = ''; p.style.display = 'none'; }
   });
@@ -30094,6 +31272,12 @@ window.brActivateGlobalIntelligence = function(intel) {
       .map(function(d){ return { day: d.day, script: d.reelScript, theme: d.theme }; });
   }
 
+  // ── Wire new intel keys into global intelligence ──
+  if (intel.icpResearch)     window._boardroomIntel.icpResearch     = intel.icpResearch;
+  if (intel.competitorIntel) window._boardroomIntel.competitorIntel = intel.competitorIntel;
+  if (intel.marketViability) window._boardroomIntel.marketViability = intel.marketViability;
+  if (intel.contentStrategy) window._boardroomIntel.contentStrategy = intel.contentStrategy;
+
   // ── 8. Show "Powered by Boardroom" badge in relevant pages ──
   setTimeout(function() {
     ['page-funnels','page-email','page-scripts','page-ai-video'].forEach(function(pageId) {
@@ -30535,6 +31719,601 @@ function scAutoInsight(calls) {
 
     // scGetSalesFeedback defined above
 
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// CONTENT CALENDAR — Task 5
+// ══════════════════════════════════════════════════════════════════
+
+window._calEntries = [];   // flat array of all calendar entries
+window._calModal   = null; // currently open entry
+
+// ── Load entries from localStorage + Firestore ──
+function calLoadEntries() {
+  var entries = [];
+  // From carousel sends / individual generates
+  try {
+    var raw = localStorage.getItem('eos_calendar_entries');
+    if (raw) entries = entries.concat(JSON.parse(raw));
+  } catch(e) {}
+  // From existing Boardroom calendar (legacy format)
+  try {
+    var calKey = 'eos_calendar30_' + (window._appMode || 'affiliate');
+    var calRaw = localStorage.getItem(calKey);
+    if (calRaw) {
+      var calArr = JSON.parse(calRaw);
+      calArr.forEach(function(daySlots, dayIdx) {
+        if (!Array.isArray(daySlots)) return;
+        daySlots.forEach(function(slot) {
+          entries.push({
+            dayNum:        dayIdx + 1,
+            type:          slot.postType || slot.slotType || 'post',
+            content:       slot.fullScript || slot.viralHook || '',
+            hook:          slot.viralHook || '',
+            caption:       slot.callToAction || '',
+            scheduledTime: slot.postType === 'Email' ? '8:00pm' : slot.postType === 'Reel 1' ? '9:00am' : slot.postType === 'Reel 2' ? '6:00pm' : '6:00am',
+            status:        'ready',
+            source:        'boardroom'
+          });
+        });
+      });
+    }
+  } catch(e) {}
+  // Automation job entries
+  try {
+    if (window._db && window._currentUserUid) {
+      // Firestore entries loaded via listener (see calInitFirestoreListener)
+    }
+  } catch(e) {}
+  window._calEntries = entries;
+  return entries;
+}
+
+// ── Firestore live listener — writes from Cloud Function appear in real time ──
+window._calFirestoreUnsub = null;
+
+window.calInitFirestoreListener = function() {
+  // Guard: only run if Firebase is available and user is authenticated
+  if (!window._db || !window._currentUserUid) return;
+  // Only init once per session
+  if (window._calFirestoreUnsub) return;
+
+  try {
+    var _collection = window._collection || (window.firebase && window.firebase.firestore && function(db, path) { return db.collection(path); });
+    var _query      = window._query;
+    var _onSnapshot = window._onSnapshot;
+
+    if (!_onSnapshot) return;
+
+    // Listen to all days under calendar/{userId}/days
+    var daysRef;
+    if (window._collection && window._query) {
+      daysRef = window._collection(window._db, 'calendar/' + window._currentUserUid + '/days');
+    } else if (window._db.collection) {
+      daysRef = window._db.collection('calendar').doc(window._currentUserUid).collection('days');
+    }
+    if (!daysRef) return;
+
+    window._calFirestoreUnsub = _onSnapshot(daysRef, function(snapshot) {
+      if (!snapshot || !snapshot.docs) return;
+      // Parse Firestore docs into the flat entry array format
+      var fsEntries = [];
+      snapshot.docs.forEach(function(doc) {
+        var dayNum = parseInt((doc.id || '').replace('day','')) || 0;
+        if (!dayNum) return;
+        var data = doc.data ? doc.data() : doc;
+        var TIMES = { fb1:'6:00am', reel1:'9:00am', carousel:'12:00pm', fb2:'3:00pm', reel2:'6:00pm', email:'8:00pm' };
+        var TYPE_LABELS = { fb1:'FB Post 1', reel1:'Reel 1', carousel:'Carousel', fb2:'FB Post 2', reel2:'Reel 2', email:'Email' };
+        Object.keys(TIMES).forEach(function(key) {
+          var piece = data[key];
+          if (!piece) return;
+          fsEntries.push({
+            dayNum:        dayNum,
+            type:          piece.type || TYPE_LABELS[key] || key,
+            content:       piece.content || piece.script || '',
+            hook:          piece.hook || '',
+            caption:       piece.caption || '',
+            hashtags:      piece.hashtags || '',
+            videoUrl:      piece.videoUrl || '',
+            imageUrls:     piece.imageUrls || [],
+            images:        piece.imageUrls || piece.images || [],
+            scheduledTime: piece.scheduledTime || TIMES[key],
+            status:        piece.status || 'ready',
+            bestTime:      piece.bestTime || '',
+            source:        'firestore'
+          });
+        });
+      });
+
+      // Merge Firestore entries with localStorage entries (localStorage takes precedence for published status)
+      var lsEntries = [];
+      try {
+        var raw = localStorage.getItem('eos_calendar_entries');
+        if (raw) lsEntries = JSON.parse(raw);
+      } catch(e) {}
+
+      // Build a lookup of localStorage entries by dayNum+type
+      var lsLookup = {};
+      lsEntries.forEach(function(e) {
+        lsLookup[(e.dayNum||0) + '_' + (e.type||'')] = e;
+      });
+
+      // For each Firestore entry, use localStorage published status if it exists
+      fsEntries.forEach(function(fe) {
+        var lsMatch = lsLookup[fe.dayNum + '_' + fe.type];
+        if (lsMatch && lsMatch.status === 'published') fe.status = 'published';
+      });
+
+      // Combine: FS entries + any LS-only entries (manually generated, not from automation)
+      var fsLookup = {};
+      fsEntries.forEach(function(e) { fsLookup[e.dayNum + '_' + e.type] = true; });
+      var lsOnly = lsEntries.filter(function(e) { return !fsLookup[(e.dayNum||0) + '_' + (e.type||'')]; });
+
+      window._calEntries = fsEntries.concat(lsOnly);
+
+      // Re-render calendar if it's currently visible
+      var calPage = document.getElementById('page-calendar');
+      if (calPage && calPage.style.display !== 'none') {
+        calRenderStats(window._calEntries);
+        calRenderDayList(window._calEntries);
+      }
+    }, function(err) {
+      console.warn('[Calendar] Firestore listener error:', err.message);
+    });
+
+    console.log('[Calendar] Firestore live listener active ✅');
+  } catch(err) {
+    console.warn('[Calendar] Could not init Firestore listener:', err.message);
+  }
+};
+
+// ── Render overview stats ──
+function calRenderStats(entries) {
+  var ready     = entries.filter(function(e){ return e.status !== 'published'; }).length;
+  var published = entries.filter(function(e){ return e.status === 'published'; }).length;
+  // Next unpublished
+  var next = entries.find(function(e){ return e.status !== 'published'; });
+  var nextStr = next ? (next.type || 'Post') + ' · ' + (next.scheduledTime || '—') : '—';
+  // Streak from localStorage
+  var streak = 0;
+  try { streak = parseInt(localStorage.getItem('eos_cal_streak') || '0') || 0; } catch(e) {}
+  var el = function(id){ return document.getElementById(id); };
+  if (el('cal-stat-ready'))     el('cal-stat-ready').textContent     = ready;
+  if (el('cal-stat-published')) el('cal-stat-published').textContent = published;
+  if (el('cal-stat-next'))      el('cal-stat-next').textContent      = nextStr;
+  if (el('cal-stat-streak'))    el('cal-stat-streak').textContent    = streak + ' days';
+}
+
+// ── Group entries by day and render list ──
+function calRenderDayList(entries) {
+  var listEl = document.getElementById('cal-days-list');
+  var emptyEl = document.getElementById('cal-empty-state');
+  if (!listEl) return;
+
+  if (!entries.length) {
+    listEl.innerHTML   = '';
+    if (emptyEl) emptyEl.style.display = 'block';
+    return;
+  }
+  if (emptyEl) emptyEl.style.display = 'none';
+
+  // Group by dayNum
+  var byDay = {};
+  entries.forEach(function(e) {
+    var d = e.dayNum || 1;
+    if (!byDay[d]) byDay[d] = [];
+    byDay[d].push(e);
+  });
+
+  var today = new Date();
+  var DN = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var sortedDays = Object.keys(byDay).map(Number).sort(function(a,b){ return a-b; });
+
+  listEl.innerHTML = sortedDays.map(function(dayNum) {
+    var dayEntries = byDay[dayNum];
+    var readyCount = dayEntries.filter(function(e){ return e.status !== 'published'; }).length;
+    var pubCount   = dayEntries.filter(function(e){ return e.status === 'published';  }).length;
+    var dayDate    = new Date(today);
+    dayDate.setDate(today.getDate() + dayNum - 1);
+    var dateStr    = dayDate.toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+    var isToday    = dayNum === 1;
+    var borderStyle= isToday ? 'border-left:3px solid var(--teal);' : '';
+
+    var itemsHtml = dayEntries.map(function(entry, idx) {
+      var typeEmoji = { reel:'🎬', carousel:'🖼', email:'📨', post:'📝', 'fb post':'📝', 'reel 1':'🎬', 'reel 2':'🎬' };
+      var typeLower = (entry.type || 'post').toLowerCase();
+      var emoji = typeEmoji[typeLower] || '📝';
+      var badge = entry.status === 'published'
+        ? '<span style="padding:2px 8px;border-radius:50px;background:rgba(39,200,64,.1);border:1px solid rgba(39,200,64,.2);color:#27c840;font-size:9px;font-weight:700">Published</span>'
+        : entry.status === 'rendering'
+        ? '<span style="padding:2px 8px;border-radius:50px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);color:#a089ff;font-size:9px;font-weight:700">Rendering…</span>'
+        : entry.status === 'missing'
+        ? '<span onclick="event.stopPropagation();calGenerateNow(\'' + (entry.type||'post') + '\')" style="padding:2px 8px;border-radius:50px;background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.25);color:var(--orange);font-size:9px;font-weight:700;cursor:pointer">Generate Now →</span>'
+        : '<span style="padding:2px 8px;border-radius:50px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.2);color:var(--teal);font-size:9px;font-weight:700">Ready</span>';
+      var entryKey = JSON.stringify({ dayNum: dayNum, idx: idx });
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer" onclick=\'calOpenModal(' + JSON.stringify(entry) + ')\'>'
+        + '<span style="font-size:16px">' + emoji + '</span>'
+        + '<div style="flex:1">'
+        + '<div style="font-size:12px;font-weight:700;color:var(--white)">' + (entry.type || 'Post') + '</div>'
+        + '<div style="font-size:10px;color:var(--dim)">' + (entry.scheduledTime || '—') + '</div>'
+        + '</div>'
+        + badge
+        + '<span style="color:var(--dimmer);font-size:16px;margin-left:6px">›</span>'
+        + '</div>';
+    }).join('');
+
+    return '<div style="background:var(--card);border:1px solid var(--border2);border-radius:var(--r-lg);overflow:hidden;' + borderStyle + '">'
+      + '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;background:rgba(255,255,255,.02)" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'none\'?\'block\':\'none\'">'
+      + '<div style="display:flex;align-items:center;gap:10px">'
+      + (isToday ? '<span style="font-size:10px;padding:2px 8px;background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.25);border-radius:50px;color:var(--teal);font-weight:700">TODAY</span>' : '')
+      + '<span style="font-size:13px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">Day ' + dayNum + '</span>'
+      + '<span style="font-size:11px;color:var(--dim)">' + dateStr + '</span>'
+      + '</div>'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      + '<span style="font-size:10px;color:var(--dim)">' + readyCount + ' ready · ' + pubCount + ' published</span>'
+      + '<span style="color:var(--dimmer);font-size:14px">⌄</span>'
+      + '</div>'
+      + '</div>'
+      + '<div>' + itemsHtml + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ── Open post package modal ──
+window.calOpenModal = function(entry) {
+  window._calModal = entry;
+  var overlay = document.getElementById('cal-modal-overlay');
+  var content = document.getElementById('cal-modal-content');
+  if (!overlay || !content) return;
+
+  var typeLower = (entry.type || 'post').toLowerCase();
+  var isReel      = typeLower.includes('reel');
+  var isCarousel  = typeLower.includes('carousel');
+  var isEmail     = typeLower.includes('email');
+
+  var html = '<div style="margin-bottom:20px">'
+    + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Day ' + (entry.dayNum || '—') + ' · ' + (entry.scheduledTime || '—') + '</div>'
+    + '<div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">' + (entry.type || 'Post') + '</div>'
+    + '</div>';
+
+  // Best time
+  if (entry.bestTime) {
+    html += '<div style="padding:10px 14px;background:rgba(255,217,61,.07);border:1px solid rgba(255,217,61,.2);border-radius:var(--r-md);margin-bottom:16px;font-size:11px;color:var(--yellow);font-weight:700">' + entry.bestTime + '</div>';
+  }
+
+  if (isReel && entry.videoUrl) {
+    // Video player
+    html += '<video controls style="width:100%;border-radius:var(--r-md);margin-bottom:16px;background:#000" src="' + entry.videoUrl + '"></video>';
+    if (entry.cloneName) html += '<div style="font-size:10px;color:var(--dim);margin-bottom:12px">Clone: ' + entry.cloneName + '</div>';
+    html += calModalCopySection('Hook', entry.hook || entry.viralHook || '', 'modal-hook');
+    html += calModalCopySection('Caption', entry.caption || '', 'modal-caption');
+    html += calModalCopySection('Hashtags', entry.hashtags || '', 'modal-hashtags');
+    html += '<div style="display:flex;gap:8px;margin-top:16px">'
+      + '<a href="' + (entry.videoUrl || '#') + '" download style="flex:1;padding:12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--r-md);color:var(--muted);font-size:12px;font-weight:700;text-align:center;text-decoration:none;font-family:Poppins,sans-serif">⬇️ Download MP4</a>'
+      + '<button onclick="calMarkPublished()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:12px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">✅ Mark as Published</button>'
+      + '</div>';
+  } else if (isCarousel && entry.images) {
+    // Carousel slide thumbnails
+    var imgs = Array.isArray(entry.images) ? entry.images : [];
+    html += '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px">'
+      + imgs.map(function(src, i) {
+          return '<img src="' + src + '" style="width:80px;height:80px;border-radius:8px;object-fit:cover;cursor:pointer;flex-shrink:0;border:2px solid ' + (i===0?'var(--teal)':'transparent') + '"'
+            + ' onclick="document.getElementById(\'cal-carousel-preview\').src=\'' + src + '\'" />';
+        }).join('')
+      + '</div>';
+    html += '<img id="cal-carousel-preview" src="' + (imgs[0] || '') + '" style="width:100%;border-radius:var(--r-md);margin-bottom:16px" />';
+    html += calModalCopySection('Hook', entry.hook || '', 'modal-hook');
+    html += calModalCopySection('Caption', entry.caption || '', 'modal-caption');
+    html += calModalCopySection('Hashtags', entry.hashtags || '', 'modal-hashtags');
+    html += '<div style="display:flex;gap:8px;margin-top:16px">'
+      + '<button onclick="calDownloadCarouselZip()" style="flex:1;padding:12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--r-md);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">⬇️ Download Slides (PNG)</button>'
+      + '<button onclick="calMarkPublished()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:12px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">✅ Mark as Published</button>'
+      + '</div>';
+  } else {
+    // Written content (FB Post, Email)
+    html += '<div id="cal-content-display" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px;font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:14px;white-space:pre-wrap">' + (entry.content || entry.fullScript || entry.hook || '(No content)') + '</div>';
+    html += '<div style="display:flex;gap:6px;margin-bottom:14px">'
+      + '<button onclick="calEditContent()" id="cal-edit-btn" style="padding:8px 16px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">✏️ Edit</button>'
+      + '<button onclick="calCopyAll()" style="padding:8px 16px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.2);border-radius:8px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📋 Copy All</button>'
+      + '</div>';
+    if (entry.caption)  html += calModalCopySection('Caption', entry.caption, 'modal-caption');
+    if (entry.hashtags) html += calModalCopySection('Hashtags', entry.hashtags, 'modal-hashtags');
+    html += '<button onclick="calMarkPublished()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;margin-top:12px">✅ Mark as Published</button>';
+  }
+
+  content.innerHTML = html;
+  overlay.style.display = 'block';
+};
+
+function calModalCopySection(label, text, id) {
+  return '<div style="margin-bottom:12px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
+    + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700">' + label + '</div>'
+    + '<div style="display:flex;gap:6px">'
+    + '<button onclick="calModalCopy(\'' + id + '\')" id="' + id + '-copy" style="padding:4px 10px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>'
+    + '<button onclick="calRegenerate(\'' + id.replace('modal-','') + '\')" style="padding:4px 10px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>'
+    + '</div></div>'
+    + '<div id="' + id + '" style="font-size:12px;color:var(--muted);line-height:1.7">' + (text || '—') + '</div>'
+    + '</div>';
+}
+
+// ── calRegenerate — regenerate a single element in the calendar modal ──
+window.calRegenerate = async function(element) {
+  var entry = window._calModal;
+  if (!entry) return;
+
+  // Find the display element in the modal
+  var displayId = 'modal-' + element;
+  var displayEl = document.getElementById(displayId);
+  if (!displayEl) return;
+
+  // Show loading state
+  var origText = displayEl.textContent;
+  displayEl.textContent = '⏳ Regenerating…';
+  displayEl.style.opacity = '0.5';
+
+  // Build context from the entry and Boardroom intelligence
+  var ctx = _carGetContext ? _carGetContext() : {};
+  var niche    = ctx.niche    || entry.niche    || 'Online Business';
+  var offerName= ctx.offerName|| entry.offerName|| 'My Offer';
+  var pillar   = entry.pillar || ctx.pillars    || 'Value';
+
+  var sys = 'You are an elite social media copywriter for ' + niche + '. Return ONLY valid JSON — no markdown, no fences.';
+  var prompts = {
+    hook:     'Write a fresh viral hook for a ' + (entry.type||'post') + ' about "' + pillar + '" in ' + niche + '. Max 10 words. Must stop the scroll. Return JSON: { "hook": "..." }',
+    caption:  'Write a fresh Instagram/Facebook caption for a ' + (entry.type||'post') + '. Niche: ' + niche + '. Offer: ' + offerName + '. 3-4 sentences, value + story + CTA. Return JSON: { "caption": "..." }',
+    hashtags: 'Generate 30 hashtags for ' + niche + '. 10 large (1M+ posts), 10 medium (100K-1M), 10 niche-specific. No # symbols. Return JSON: { "hashtags": ["tag1","tag2",...] }'
+  };
+
+  var prompt = prompts[element] || prompts.hook;
+
+  try {
+    var result = await brCallAI(sys, prompt, 500);
+    if (!result || result._error) throw new Error(result ? result._error : 'No response');
+
+    var newText = '';
+    if (element === 'hook')     newText = result.hook || origText;
+    if (element === 'caption')  newText = result.caption || origText;
+    if (element === 'hashtags') newText = Array.isArray(result.hashtags)
+      ? result.hashtags.map(function(t){ return '#' + t.replace(/^#/,''); }).join(' ')
+      : origText;
+
+    displayEl.textContent = newText;
+    displayEl.style.opacity = '1';
+
+    // Update the modal entry and persist
+    if (window._calModal) window._calModal[element] = newText;
+
+    // Save to localStorage
+    try {
+      var entries = JSON.parse(localStorage.getItem('eos_calendar_entries') || '[]');
+      var match = entries.find(function(e){ return e.dayNum === entry.dayNum && e.type === entry.type; });
+      if (match) {
+        match[element] = newText;
+        localStorage.setItem('eos_calendar_entries', JSON.stringify(entries));
+      }
+    } catch(e) {}
+
+    // Save to Firestore
+    try {
+      if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+        var update = {};
+        update[entry.type.toLowerCase().replace(/\s/g,'') + '.' + element] = newText;
+        window._setDoc(
+          window._doc(window._db, 'calendar', window._currentUserUid, 'days', 'day' + entry.dayNum),
+          update, { merge: true }
+        ).catch(function(){});
+      }
+    } catch(e) {}
+
+  } catch(err) {
+    displayEl.textContent = origText;
+    displayEl.style.opacity = '1';
+    console.warn('[calRegenerate] Failed:', err.message);
+  }
+};
+
+window.calModalCopy = function(id) {
+  var el = document.getElementById(id);
+  var text = el ? el.textContent : '';
+  navigator.clipboard && navigator.clipboard.writeText(text).catch(function(){});
+  var btn = document.getElementById(id + '-copy');
+  if (btn) { var orig = btn.textContent; btn.textContent = 'Copied!'; setTimeout(function(){ btn.textContent = orig; }, 1500); }
+};
+
+window.calCopyAll = function() {
+  var entry = window._calModal;
+  if (!entry) return;
+  var all = [entry.content || entry.fullScript || '', entry.caption || '', entry.hashtags || ''].filter(Boolean).join('\n\n');
+  navigator.clipboard && navigator.clipboard.writeText(all).catch(function(){});
+};
+
+window.calEditContent = function() {
+  var disp = document.getElementById('cal-content-display');
+  if (!disp) return;
+  var textarea = document.createElement('textarea');
+  textarea.value = disp.textContent;
+  textarea.id    = 'cal-content-edit';
+  textarea.style.cssText = 'width:100%;min-height:140px;background:rgba(255,255,255,.04);border:1px solid rgba(78,204,163,.3);border-radius:var(--r-md);padding:12px;color:var(--white);font-size:13px;font-family:Inter,sans-serif;line-height:1.7;resize:vertical;outline:none';
+  disp.replaceWith(textarea);
+  var editBtn = document.getElementById('cal-edit-btn');
+  if (editBtn) {
+    editBtn.textContent = '💾 Save Changes';
+    editBtn.onclick = function() {
+      var newText = document.getElementById('cal-content-edit').value;
+      if (window._calModal) window._calModal.content = newText;
+      // Persist to localStorage
+      try {
+        var entries = JSON.parse(localStorage.getItem('eos_calendar_entries') || '[]');
+        var match = entries.find(function(e){ return e.dayNum === window._calModal.dayNum && e.type === window._calModal.type; });
+        if (match) { match.content = newText; localStorage.setItem('eos_calendar_entries', JSON.stringify(entries)); }
+      } catch(e) {}
+      calCloseModal();
+    };
+  }
+};
+
+window.calMarkPublished = function() {
+  var entry = window._calModal;
+  if (!entry) return;
+  entry.status     = 'published';
+  entry.publishedAt= new Date().toISOString();
+  // Update in localStorage
+  try {
+    var entries = JSON.parse(localStorage.getItem('eos_calendar_entries') || '[]');
+    var match = entries.find(function(e){ return e.dayNum === entry.dayNum && e.type === entry.type; });
+    if (match) { match.status = 'published'; match.publishedAt = entry.publishedAt; localStorage.setItem('eos_calendar_entries', JSON.stringify(entries)); }
+  } catch(e) {}
+  // Increment streak if all today's pieces published
+  try {
+    var allTodayDone = window._calEntries.filter(function(e){ return e.dayNum === 1; }).every(function(e){ return e.status === 'published'; });
+    if (allTodayDone) {
+      var streak = parseInt(localStorage.getItem('eos_cal_streak') || '0') || 0;
+      localStorage.setItem('eos_cal_streak', String(streak + 1));
+    }
+  } catch(e) {}
+  // Write to Firestore if available
+  try {
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      window._setDoc(window._doc(window._db, 'calendar', window._currentUserUid, 'days', 'day' + entry.dayNum),
+        { [entry.type]: { status: 'published', publishedAt: entry.publishedAt } }, { merge: true }).catch(function(){});
+    }
+  } catch(e) {}
+  calCloseModal();
+  calRefresh();
+};
+
+window.calCloseModal = function() {
+  var overlay = document.getElementById('cal-modal-overlay');
+  if (overlay) overlay.style.display = 'none';
+  window._calModal = null;
+};
+
+window.calDownloadCarouselZip = async function() {
+  var entry = window._calModal;
+  if (!entry || !entry.images) return;
+  // Load JSZip from CDN if not present
+  if (typeof JSZip === 'undefined') {
+    await new Promise(function(res, rej) {
+      var s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+  var zip = new JSZip();
+  var images = Array.isArray(entry.images) ? entry.images : [];
+  images.forEach(function(dataUrl, i) {
+    var base64 = dataUrl.replace(/^data:image\/png;base64,/, '');
+    zip.file('slide_' + (i + 1) + '.png', base64, { base64: true });
+  });
+  var blob = await zip.generateAsync({ type: 'blob' });
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'carousel_day' + (entry.dayNum || 1) + '.zip';
+  a.click();
+};
+
+// ── Automation banner ──
+window.calDismissAutoBanner = function() {
+  var el = document.getElementById('cal-auto-banner');
+  if (el) el.style.display = 'none';
+  try { localStorage.setItem('eos_auto_banner_dismissed', '1'); } catch(e) {}
+};
+
+function calCheckAutoBanner() {
+  var dismissed = localStorage.getItem('eos_auto_banner_dismissed');
+  if (dismissed) return;
+  try {
+    var jobRaw = localStorage.getItem('eos_auto_job');
+    if (jobRaw) {
+      var job = JSON.parse(jobRaw);
+      if (job.status === 'complete' || job.progress) {
+        var done  = (job.progress && job.progress.daysComplete) || job.duration || 0;
+        var types = job.contentTypes || {};
+        var count = done * Object.values(types).filter(Boolean).length;
+        var banner = document.getElementById('cal-auto-banner');
+        var text   = document.getElementById('cal-auto-banner-text');
+        if (banner && text) {
+          text.textContent = 'Your ' + done + '-day content is ready — ' + count + ' pieces loaded and scheduled.';
+          banner.style.display = 'flex';
+        }
+      }
+    }
+  } catch(e) {}
+}
+
+// ── calGenerateNow — navigate to Content Studio and activate the right tab ──
+window.calGenerateNow = function(type) {
+  var typeLower = (type || '').toLowerCase();
+  var isCarousel = typeLower.includes('carousel');
+  var isReel     = typeLower.includes('reel') || typeLower.includes('video');
+  var isEmail    = typeLower.includes('email');
+
+  // Navigate to Content Studio
+  var navEl = document.getElementById('nav-ai-video');
+  if (typeof window.showPage === 'function') window.showPage('ai-video', navEl);
+
+  // Activate the correct tab after a brief delay for page render
+  setTimeout(function() {
+    var csTabBtns = document.querySelectorAll('.cs-tab-btn');
+    if (isCarousel) {
+      // Activate Carousel tab
+      csTabBtns.forEach(function(b) {
+        if (b.textContent.includes('Carousel')) {
+          if (typeof window.csShowTab === 'function') window.csShowTab('carousel', b);
+        }
+      });
+    } else if (isReel) {
+      // Activate AI Video Studio tab (already default)
+      csTabBtns.forEach(function(b) {
+        if (b.textContent.includes('AI Video')) {
+          if (typeof window.csShowTab === 'function') window.csShowTab('video', b);
+        }
+      });
+    } else if (isEmail) {
+      // Written content — navigate to Email Marketing instead
+      var emailNav = document.getElementById('nav-email');
+      if (typeof window.showPage === 'function') window.showPage('email', emailNav);
+    } else {
+      // FB Post or other written content — stay on Content Studio video tab
+      // and scroll to a quick-generate prompt if available
+      csTabBtns.forEach(function(b) {
+        if (b.textContent.includes('AI Video')) {
+          if (typeof window.csShowTab === 'function') window.csShowTab('video', b);
+        }
+      });
+    }
+  }, 350);
+};
+
+// ── Main refresh function ──
+window.calRefresh = function() {
+  // Start Firestore listener on first refresh (idempotent — only runs once)
+  calInitFirestoreListener();
+  var entries = calLoadEntries();
+  calRenderStats(entries);
+  calRenderDayList(entries);
+  calCheckAutoBanner();
+};
+
+// ── Hook into showPage ──
+(function() {
+  var _calOrigShow = window.showPage;
+  window.showPage = function(page, nav) {
+    if (_calOrigShow) _calOrigShow.apply(this, arguments);
+    if (page === 'calendar') {
+      setTimeout(window.calRefresh, 80);
+    }
+  };
+})();
+
+// Set today's date default for automate tab
+(function() {
+  var d = document.getElementById('auto-start-date');
+  if (d && !d.value) d.value = new Date().toISOString().slice(0,10);
+})();
 </script>
 </body>
 </html>
