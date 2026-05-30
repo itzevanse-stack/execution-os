@@ -5017,6 +5017,14 @@ button[onclick="generateOffer()"] {
           <div class="fr"><div class="fl">Business / Brand name</div><input class="fi" id="prof-brand" placeholder="e.g. Freedom Digital Co."></div>
           <div class="fr"><div class="fl">Your niche / industry</div><input class="fi" id="prof-niche" placeholder="e.g. Health & Fitness coaching"></div>
           <div class="fr"><div class="fl">Member since</div><input class="fi" id="prof-joined" disabled style="opacity:.6;cursor:not-allowed" placeholder="—"></div>
+          <div class="fr">
+            <div class="fl">Your timezone</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input class="fi" id="prof-timezone" placeholder="Detecting…" style="flex:1" readonly>
+              <button onclick="profDetectTimezone()" title="Re-detect timezone" style="flex-shrink:0;width:34px;height:34px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:8px;color:var(--teal);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">↻</button>
+            </div>
+            <div id="prof-timezone-note" style="font-size:9px;color:var(--dimmer);margin-top:3px;line-height:1.5">Used to display posting times in your local time. Auto-detected from your browser.</div>
+          </div>
           <button onclick="saveProfile()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;margin-top:4px" id="save-profile-btn">Save Changes</button>
           <div id="save-profile-msg" style="font-size:11px;text-align:center;color:var(--teal);display:none;margin-top:-4px">✅ Saved successfully!</div>
         </div>
@@ -5539,10 +5547,26 @@ button[onclick="generateOffer()"] {
     <div id="cs-readiness-banner" style="margin-bottom:14px"></div>
 
     <!-- 2C: Content Studio top-level tab navigation (3 tabs) -->
-    <div id="cs-tab-nav" style="display:flex;gap:8px;margin-bottom:20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:var(--r-md);padding:4px;overflow-x:auto;scrollbar-width:none">
-      <button class="cs-tab-btn on" onclick="csShowTab('video',this)" style="flex:1;padding:10px 16px;border-radius:var(--r-sm);border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .18s;background:linear-gradient(135deg,rgba(108,99,255,.2),rgba(108,99,255,.1));color:#a089ff;border:1px solid rgba(108,99,255,.3)">🎬 AI Video Studio</button>
-      <button class="cs-tab-btn" onclick="csShowTab('carousel',this)" style="flex:1;padding:10px 16px;border-radius:var(--r-sm);border:1px solid transparent;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .18s;background:transparent;color:var(--dim)">🖼 Carousel</button>
-      <button class="cs-tab-btn" onclick="csShowTab('automate',this)" style="flex:1;padding:10px 16px;border-radius:var(--r-sm);border:1px solid transparent;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .18s;background:transparent;color:var(--dim)">⚡ Automate</button>
+    <!-- Content Studio segmented tab control -->
+    <div style="display:flex;justify-content:center;margin-bottom:24px">
+      <div id="cs-tab-nav" style="display:inline-flex;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:50px;padding:4px;gap:2px;box-shadow:0 2px 12px rgba(0,0,0,.25)">
+
+        <button class="cs-tab-btn on" onclick="csShowTab('video',this)"
+          style="display:flex;align-items:center;gap:7px;padding:9px 20px;border-radius:50px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);background:linear-gradient(135deg,#6c63ff,#5040cc);color:#fff;box-shadow:0 4px 14px rgba(108,99,255,.45);letter-spacing:.2px">
+          <span style="font-size:14px">🎬</span> AI Video
+        </button>
+
+        <button class="cs-tab-btn" onclick="csShowTab('carousel',this)"
+          style="display:flex;align-items:center;gap:7px;padding:9px 20px;border-radius:50px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);background:transparent;color:rgba(255,255,255,.45);letter-spacing:.2px">
+          <span style="font-size:14px">🖼</span> Carousel
+        </button>
+
+        <button class="cs-tab-btn" onclick="csShowTab('automate',this)"
+          style="display:flex;align-items:center;gap:7px;padding:9px 20px;border-radius:50px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);background:transparent;color:rgba(255,255,255,.45);letter-spacing:.2px">
+          <span style="font-size:14px">⚡</span> Automate
+        </button>
+
+      </div>
     </div>
 
     <!-- 2D: Tab 1 — AI Video Studio (all existing content, completely unchanged) -->
@@ -5822,7 +5846,7 @@ button[onclick="generateOffer()"] {
 
         <div id="avs-video-result" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border2)">
           <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:8px">✅ Video Ready</div>
-          <video id="avs-preview-video" controls playsinline style="width:100%;border-radius:10px;max-height:280px;background:#000;display:block"></video>
+          <video id="avs-preview-video" controls playsinline style="width:100%;border-radius:10px;background:#000;display:block;max-width:100%"></video>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px">
             <button onclick="avsDownload()" style="padding:9px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:7px;font-weight:800;font-size:11px;font-family:Poppins,sans-serif;cursor:pointer">⬇ Download MP4</button>
             <button onclick="avsCopyLink()" id="avs-copy-btn" style="padding:9px;background:rgba(255,255,255,.04);color:var(--dim);border:1px solid var(--border2);border-radius:7px;font-weight:700;font-size:11px;font-family:Poppins,sans-serif;cursor:pointer">🔗 Copy Link</button>
@@ -5938,7 +5962,45 @@ button[onclick="generateOffer()"] {
           </div>
         </div>
 
-        <button onclick="carGenerate()" id="car-generate-btn" style="display:block;width:100%;padding:14px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;box-shadow:0 6px 22px rgba(108,99,255,.35);transition:all .18s">✨ Generate Carousel</button>
+        <!-- ── YOUR OWN PHOTOS ─────────────────────────────────────── -->
+        <div style="margin-bottom:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div>
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700">Your Own Photos (optional)</div>
+              <div style="font-size:10px;color:var(--dim);margin-top:2px">Upload your client results, transformation photos, earnings, or brand shots. AI uses yours instead of stock photos.</div>
+            </div>
+            <button onclick="carClearPhotos()" id="car-clear-photos-btn" style="display:none;padding:4px 10px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);border-radius:6px;color:var(--red);font-size:9px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;flex-shrink:0;margin-left:8px">Clear all</button>
+          </div>
+
+          <!-- Drop zone -->
+          <div id="car-dropzone"
+            onclick="document.getElementById('car-photo-input').click()"
+            ondragover="event.preventDefault();this.style.borderColor='var(--teal)';this.style.background='rgba(78,204,163,.06)'"
+            ondragleave="this.style.borderColor='rgba(255,255,255,.12)';this.style.background='rgba(255,255,255,.02)'"
+            ondrop="carHandleDrop(event)"
+            style="border:2px dashed rgba(255,255,255,.12);border-radius:var(--r-md);padding:18px;text-align:center;cursor:pointer;background:rgba(255,255,255,.02);transition:all .2s">
+            <div style="font-size:24px;margin-bottom:6px">📷</div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted)">Drop photos here or click to upload</div>
+            <div style="font-size:9px;color:var(--dimmer);margin-top:3px">JPG · PNG · WebP · up to 6 photos · max 10MB each</div>
+          </div>
+          <input type="file" id="car-photo-input" accept="image/*" multiple style="display:none" onchange="carHandlePhotoUpload(this.files)">
+
+          <!-- Upload previews -->
+          <div id="car-photo-previews" style="display:none;margin-top:10px">
+            <div style="font-size:9px;color:var(--dimmer);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px">YOUR PHOTOS — drag to reorder · click × to remove</div>
+            <div id="car-photo-grid" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+            <div style="margin-top:8px;padding:8px 10px;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.15);border-radius:8px;font-size:10px;color:var(--teal)">
+              ✅ <strong id="car-photo-count">0</strong> photo(s) uploaded — these will be used as backgrounds instead of stock photos
+            </div>
+          </div>
+        </div>
+        <!-- ── END YOUR OWN PHOTOS ──────────────────────────────────── -->
+
+        <div style="text-align:center;margin-top:4px">
+          <button onclick="carGenerate()" id="car-generate-btn" style="display:inline-flex;align-items:center;gap:8px;padding:13px 36px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;box-shadow:0 6px 22px rgba(108,99,255,.35);transition:all .18s">
+            <span style="font-size:15px">✨</span> Generate Carousel
+          </button>
+        </div>
         <div id="car-status" style="text-align:center;margin-top:10px;font-size:11px;color:var(--dim);min-height:16px"></div>
       </div>
 
@@ -6050,6 +6112,8 @@ button[onclick="generateOffer()"] {
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="auto-ct-reel2" checked style="accent-color:var(--teal)"><span style="font-size:12px;color:var(--muted)">🎬 Reel 2 — 6:00pm</span></label>
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer"><input type="checkbox" id="auto-ct-email" checked style="accent-color:var(--teal)"><span style="font-size:12px;color:var(--muted)">📨 Email — 8:00pm</span></label>
           </div>
+          <!-- Timezone note — populated by timezone engine -->
+          <div id="auto-tz-note" style="margin-top:8px;font-size:10px;color:var(--dimmer);padding:6px 10px;background:rgba(255,255,255,.02);border-radius:6px;border:1px solid rgba(255,255,255,.04)">🕐 Detecting your timezone…</div>
         </div>
 
         <!-- Start date -->
@@ -19897,6 +19961,23 @@ window.runMindsetReframe = async function() {
     el.querySelector('div:nth-child(2)').style.color = '#a089ff';
     var hidden = document.getElementById('avs-video-type');
     if (hidden) hidden.value = _avs.videoType;
+
+    // ── Update preview video aspect ratio to match selected format ──
+    var isVertical = ['reel','shorts','story'].includes(_avs.videoType);
+    var videoEl  = document.getElementById('avs-preview-video');
+    var resultEl = document.getElementById('avs-video-result');
+    if (videoEl) {
+      videoEl.style.aspectRatio = isVertical ? '9/16' : '16/9';
+      videoEl.style.maxHeight   = isVertical ? '540px' : '280px';
+      videoEl.style.maxWidth    = isVertical ? '304px' : '100%';
+      videoEl.style.margin      = isVertical ? '0 auto'  : '0';
+      videoEl.style.display     = 'block';
+    }
+    if (resultEl && resultEl.style.display !== 'none') {
+      // Hide stale result from a previous format selection
+      var oldSrc = videoEl ? videoEl.src : '';
+      if (!oldSrc) resultEl.style.display = 'none';
+    }
   };
 
   window.avsPickAngle = function(el) {
@@ -19963,42 +20044,69 @@ window.runMindsetReframe = async function() {
     var fear   = av.fear           || 'wasting time and money on the wrong things';
     var tried  = av.tried          || 'other courses and programmes';
 
+    // Determine word count target based on video type
+    // Speaking pace: ~130 words/minute average
+    // Reel/Shorts/Story = 60-90 seconds = 130-195 words (target 180)
+    // VSL/YouTube/Ad    = up to 90 seconds = target 195 words
+    var isShortForm  = ['reel','shorts','story'].includes(type);
+    var wordTarget   = isShortForm ? '170-200' : '185-210';
+    var durationNote = isShortForm
+      ? '90 seconds maximum when read aloud at a natural, conversational pace'
+      : '90 seconds maximum when read aloud at a natural pace';
+
     var angleDescriptions = {
-      story:     'a personal "I discovered this" story — how you found ' + offerName + ' and what changed for you. Relatable, vulnerable, real. You are a person who found something, not a salesperson.',
-      value:     'pure education — teach ONE specific insight about ' + pain + ' that most people in ' + niche + ' get completely wrong. No pitch. Just value.',
-      education: 'expose the #1 mistake people in ' + niche + ' make when trying to escape ' + pain + '. The kind of insight that makes them say "I have been doing this wrong the whole time."',
-      promotion: 'promote ' + offerName + ' without being salesy — lead with the result (' + transf + '), show social proof if available, let the transformation sell it. You are recommending, not pitching.',
-      myth:      'bust a dangerous myth in ' + niche + ' that is keeping people stuck in ' + pain + '. Something most people believe that is actually backwards. Be bold.',
-      result:    'share a specific real result — a transformation story of someone who went from ' + pain + ' to ' + transf + ' using the right approach. Use real details and numbers if you have them.',
-      contrast:  'before/after contrast — paint exactly what life looks like while dealing with ' + pain + ' vs what it looks like after reaching ' + transf + '. Make the gap visceral.',
-      authority: 'establish authority through one specific, counterintuitive insight about ' + niche + ' that most people miss. The kind of thing that only someone who has been deep in this space would know.'
+      story:     'PERSONAL DISCOVERY STORY — You stumbled onto something. You were in the same position as the viewer — dealing with ' + pain + '. Then you found ' + offerName + ' and something shifted. Tell that story in first person. Be vulnerable and specific. Make them feel like you are talking directly to them. End with a nudge toward the same discovery.',
+      value:     'PURE VALUE BOMB — Teach one specific insight about ' + niche + ' that most people get completely wrong. The kind of thing that makes them stop scrolling and say "I never thought of it that way." No pitch. Just genuine value that makes them trust you instantly.',
+      education: 'EXPOSE THE COSTLY MISTAKE — Name the #1 mistake people in ' + niche + ' make when dealing with ' + pain + '. Be specific — not "they give up too soon" but the actual tactical error. Then give them the exact correction. Make them feel smarter for watching.',
+      promotion: 'RESULT-LED RECOMMENDATION — Lead with the transformation, not the product. Open with what someone achieved by solving ' + pain + '. Make the result vivid and specific. Then naturally recommend ' + offerName + ' as the vehicle. Sound like a friend who genuinely found something amazing, not a salesperson.',
+      myth:      'MYTH DESTRUCTION — Name a dangerous belief in ' + niche + ' that keeps people stuck in ' + pain + '. State it boldly. Then dismantle it completely. Be provocative. The people who disagree will comment, the people who agree will share — both help.',
+      result:    'TRANSFORMATION REVEAL — Walk through a specific journey from ' + pain + ' to ' + transf + '. Use exact details, real moments, real turning points. Make it so vivid they can picture themselves in the story. End with what made the difference.',
+      contrast:  'BEFORE AND AFTER — Paint two worlds. World 1: what life looks and feels like right now, trapped in ' + pain + '. The specific frustrations, the specific embarrassments, the specific exhaustion. World 2: what life looks like after reaching ' + transf + '. Make the gap between those two worlds impossible to ignore.',
+      authority: 'COUNTERINTUITIVE INSIGHT — Share one thing about ' + niche + ' that only someone who has spent serious time in this space would know. The kind of insight that makes someone screenshot it. The kind that builds instant credibility. Be bold and specific.'
     };
 
-    var videoDuration = (type === 'reel' || type === 'shorts' || type === 'story') ? '30-45 second vertical video' : '60-90 second video';
+    var systemPrompt = 'You are writing a video script to be spoken aloud verbatim by a real person on camera. '
+      + 'Your only job is to write the exact words they will say — nothing else. '
+      + 'NO section labels. NO "Hook:", NO "Bridge:", NO "CTA:", NO "[pause]", NO "(beat)", NO stage directions of any kind. '
+      + 'Just clean, spoken words from the first word to the last. '
+      + 'Every sentence flows naturally into the next. The script should feel like a real person talking, not a document being read. '
+      + 'You write for ' + niche + ' audiences. '
+      + (isAffiliate ? 'The creator is recommending a product they genuinely discovered and believe in — they are NOT the expert who built it. They speak as a real person sharing a real finding, with genuine enthusiasm, never as a pitch person.' : 'The creator is the expert — they speak from their own experience and authority in ' + niche + '.');
 
-    var systemPrompt = 'You are a world-class short-form video scriptwriter for ' + niche + ' content.'
-      + ' You write scripts that stop the scroll in the first 3 seconds, hold attention for the full video, and drive a clear action at the end.'
-      + ' You never sound like an AI. You never use corporate language.'
-      + (isAffiliate ? ' The creator is an AFFILIATE — they discovered this product and genuinely recommend it. They are NOT the expert or the creator. They speak as a real person sharing a real discovery, never as an authority figure.' : '');
+    var voiceContext = '';
+    if (window._voiceProfile) {
+      var vp = window._voiceProfile;
+      if (vp.tone || vp.style || vp.example) {
+        voiceContext = '\n\nCREATOR VOICE (match this exactly):'
+          + (vp.tone   ? '\nTone: '   + vp.tone   : '')
+          + (vp.style  ? '\nStyle: '  + vp.style  : '')
+          + (vp.words  ? '\nUse phrases like: ' + vp.words  : '')
+          + (vp.avoid  ? '\nNever use: '        + vp.avoid  : '')
+          + (vp.example? '\nMatch this voice:\n' + vp.example.slice(0,300) : '');
+      }
+    }
 
-    var prompt = 'Write a ' + videoDuration + ' script for ' + niche + '.\n\n'
-      + 'ANGLE: ' + (angleDescriptions[angle] || angle) + '\n'
-      + 'PRODUCT/OFFER: ' + offerName + '\n'
-      + 'NICHE: ' + niche + '\n'
-      + 'AUDIENCE PAIN: ' + pain + '\n'
-      + 'AUDIENCE TRANSFORMATION: ' + transf + '\n'
-      + 'WHAT THEY HAVE TRIED: ' + tried + '\n'
-      + 'DEEPER FEAR: ' + fear + '\n'
-      + (positioning ? 'UNIQUE ANGLE: ' + positioning + '\n' : '')
-      + (benefits ? 'KEY BENEFITS: ' + benefits + '\n' : '')
-      + (hook ? 'OPENING HOOK OPTION (adapt, do not copy verbatim): ' + hook + '\n' : '')
-      + (productUrl ? 'PRODUCT URL: ' + productUrl + ' (use [LINK] in the CTA)\n' : '')
-      + '\nWRITING RULES:'
-      + '\n- First 3 words must grab attention instantly — no "Hey guys", no "Today I want to"'
-      + '\n- Write it as natural spoken words ONLY — no stage directions, no [brackets], no (pause), just the exact words to say'
-      + '\n- Format: HOOK (first 3 seconds) | MAIN CONTENT | CTA (last 5 seconds)'
-      + '\n- Maximum 150 words. Every word earns its place.'
-      + '\n- Conversational, specific, genuine — sounds like a real person, not a copywriter';
+    var prompt = 'SCRIPT BRIEF:\n'
+      + 'Angle: ' + (angleDescriptions[angle] || angle) + '\n'
+      + 'Niche: ' + niche + '\n'
+      + 'Audience pain: ' + pain + '\n'
+      + 'Transformation they want: ' + transf + '\n'
+      + 'What they have already tried: ' + tried + '\n'
+      + 'Deeper fear underneath: ' + fear + '\n'
+      + (positioning ? 'Unique positioning angle: ' + positioning + '\n' : '')
+      + (benefits    ? 'Key benefits of the offer: ' + benefits + '\n' : '')
+      + (hook        ? 'Opening direction (do NOT copy verbatim — use as inspiration only): ' + hook + '\n' : '')
+      + (productUrl  ? 'When mentioning the product link, say: "link in bio" or "link is in my bio"\n' : '')
+      + voiceContext
+      + '\n\nSCRIPT REQUIREMENTS:'
+      + '\n• ' + wordTarget + ' words — reads aloud in ' + durationNote
+      + '\n• First sentence: must stop the scroll in under 3 seconds. No "Hey guys", no "Today I want to talk about", no "So", no "Welcome back". Start mid-thought, mid-story, or with a bold statement.'
+      + '\n• Every sentence must serve a purpose — earn its place or cut it'
+      + '\n• Zero corporate language, zero buzzwords, zero clichés'
+      + '\n• Sounds like one real human talking to one other real human — intimate, direct, specific'
+      + '\n• The final sentence must create a clear, low-friction next step — not "smash that like button", not "click the link" cold — earn the action first'
+      + '\n• Do NOT write section labels, headers, brackets, parentheses, or any formatting — just the spoken words'
+      + '\n\nWrite the script now. Output only the spoken words. Nothing else.';
 
     // If there is a great prebuilt script from the content engine, use it
     if (prebuiltScript && angle === 'promotion') {
@@ -20015,7 +20123,7 @@ window.runMindsetReframe = async function() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 500,
+        max_tokens: 800,
         system: systemPrompt,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -20261,6 +20369,18 @@ window.runMindsetReframe = async function() {
 
   console.log('[AVS] AI Video Studio engine loaded ✅');
 
+  // Initialise portrait aspect ratio for default reel selection
+  (function() {
+    var videoEl = document.getElementById('avs-preview-video');
+    if (videoEl) {
+      videoEl.style.aspectRatio = '9/16';
+      videoEl.style.maxHeight   = '540px';
+      videoEl.style.maxWidth    = '304px';
+      videoEl.style.margin      = '0 auto';
+      videoEl.style.display     = 'block';
+    }
+  })();
+
 
 // ══════════════════════════════════════════════════════════════════
 // CONTENT STUDIO — Tab controller + Readiness Banner
@@ -20274,19 +20394,21 @@ window.csShowTab = function(tab, btn) {
   // Show selected panel
   var active = document.getElementById('cs-tab-' + tab);
   if (active) active.style.display = 'block';
-  // Update tab button styles
+
+  // Update tab button styles — pill active state
   document.querySelectorAll('.cs-tab-btn').forEach(function(b) {
-    b.style.background = 'transparent';
-    b.style.color = 'var(--dim)';
-    b.style.borderColor = 'transparent';
+    b.style.background  = 'transparent';
+    b.style.color       = 'rgba(255,255,255,.45)';
+    b.style.boxShadow   = 'none';
     b.classList.remove('on');
   });
   if (btn) {
-    btn.style.background = 'linear-gradient(135deg,rgba(108,99,255,.2),rgba(108,99,255,.1))';
-    btn.style.color = '#a089ff';
-    btn.style.borderColor = 'rgba(108,99,255,.3)';
+    btn.style.background = 'linear-gradient(135deg,#6c63ff,#5040cc)';
+    btn.style.color      = '#fff';
+    btn.style.boxShadow  = '0 4px 14px rgba(108,99,255,.45)';
     btn.classList.add('on');
   }
+
   // Lazy-init carousel/automate if first open
   if (tab === 'carousel' && typeof window.csInitCarousel === 'function') window.csInitCarousel();
   if (tab === 'automate' && typeof window.csInitAutomate === 'function') window.csInitAutomate();
@@ -20368,6 +20490,8 @@ window.carSelectCount = function(n, el) {
   el.style.borderColor = 'rgba(108,99,255,.3)';
   el.style.color       = '#a089ff';
   el.classList.add('on');
+  // Refresh photo grid to update the max-photos limit and dropzone visibility
+  if (window._carUserPhotos && window._carUserPhotos.length) carRenderPhotoGrid();
 };
 
 function _carGetContext() {
@@ -20430,6 +20554,7 @@ window.carGenerate = async function() {
   var output = document.getElementById('car-output');
   var topic  = (document.getElementById('car-topic') || {}).value || '';
   var ctx    = _carGetContext();
+  var userPhotoCount = (window._carUserPhotos || []).length;
 
   btn.textContent = '⏳ Generating…';
   btn.disabled    = true;
@@ -20489,7 +20614,9 @@ window.carGenerate = async function() {
     if (!result || result._error) throw new Error(result ? result._error : 'No response');
 
     window._carData = result;
-    if (status) status.textContent = 'Fetching niche images…';
+    if (status) status.textContent = userPhotoCount > 0
+      ? 'Composing your ' + userPhotoCount + ' photo(s) with AI copy…'
+      : 'Fetching niche images…';
 
     // ── Fetch Pexels background images for each slide ──────────────────
     var bgImages = await carFetchNicheImages(result, ctx.niche);
@@ -20528,27 +20655,195 @@ window.carGenerate = async function() {
   btn.disabled    = false;
 };
 
-// ── Fetch niche-relevant background images from Pexels ───────────────
+// ══════════════════════════════════════════════════════════════════
+// CAROUSEL PHOTO UPLOAD SYSTEM
+// ══════════════════════════════════════════════════════════════════
+
+// Storage: array of { dataUrl, file, brightness, isLight }
+window._carUserPhotos = [];
+
+// ── Handle file input change ──────────────────────────────────────
+window.carHandlePhotoUpload = function(files) {
+  if (!files || !files.length) return;
+  Array.from(files).forEach(function(file) {
+    if (!file.type.startsWith('image/')) return;
+    if (file.size > 10 * 1024 * 1024) {
+      var st = document.getElementById('car-status');
+      if (st) st.textContent = '⚠️ ' + file.name + ' is over 10MB — skipped.';
+      return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      carAddUserPhoto(e.target.result, file.name);
+    };
+    reader.readAsDataURL(file);
+  });
+  // Reset input so same file can be re-uploaded if needed
+  var input = document.getElementById('car-photo-input');
+  if (input) input.value = '';
+};
+
+// ── Handle drag and drop ──────────────────────────────────────────
+window.carHandleDrop = function(e) {
+  e.preventDefault();
+  var dz = document.getElementById('car-dropzone');
+  if (dz) { dz.style.borderColor = 'rgba(255,255,255,.12)'; dz.style.background = 'rgba(255,255,255,.02)'; }
+  var files = e.dataTransfer && e.dataTransfer.files;
+  if (files && files.length) carHandlePhotoUpload(files);
+};
+
+// ── Add one photo to the collection ──────────────────────────────
+window.carAddUserPhoto = async function(dataUrl, name) {
+  var maxPhotos = window._carCount || 6;
+  if (window._carUserPhotos.length >= maxPhotos) {
+    var st = document.getElementById('car-status');
+    if (st) st.textContent = '⚠️ Maximum ' + maxPhotos + ' photos (one per slide). Remove one to add another.';
+    return;
+  }
+
+  // Analyse brightness to know how to overlay text
+  var brightness = await _carAnalyseBrightness(dataUrl);
+  var isLight    = brightness > 140; // 0-255 scale
+
+  var photo = { dataUrl: dataUrl, name: name || 'photo', brightness: brightness, isLight: isLight };
+  window._carUserPhotos.push(photo);
+  carRenderPhotoGrid();
+};
+
+// ── Analyse average brightness of an image ───────────────────────
+function _carAnalyseBrightness(dataUrl) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload = function() {
+      var c  = document.createElement('canvas');
+      var sc = 80; // sample at small size — fast
+      c.width = c.height = sc;
+      var gc = c.getContext('2d');
+      gc.drawImage(img, 0, 0, sc, sc);
+      var d = gc.getImageData(0, 0, sc, sc).data;
+      var sum = 0, count = 0;
+      for (var i = 0; i < d.length; i += 4) {
+        // Perceived luminance
+        sum += 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+        count++;
+      }
+      resolve(count > 0 ? sum / count : 128);
+    };
+    img.onerror = function() { resolve(128); };
+    img.src = dataUrl;
+  });
+}
+
+// ── Render the photo preview grid ────────────────────────────────
+window.carRenderPhotoGrid = function() {
+  var grid      = document.getElementById('car-photo-grid');
+  var previews  = document.getElementById('car-photo-previews');
+  var count     = document.getElementById('car-photo-count');
+  var clearBtn  = document.getElementById('car-clear-photos-btn');
+  var dropzone  = document.getElementById('car-dropzone');
+  var photos    = window._carUserPhotos;
+
+  if (!grid) return;
+
+  if (count)    count.textContent  = photos.length;
+  if (previews) previews.style.display = photos.length ? 'block' : 'none';
+  if (clearBtn) clearBtn.style.display = photos.length ? 'block' : 'none';
+  if (dropzone) {
+    dropzone.style.display = photos.length >= (window._carCount || 6) ? 'none' : 'block';
+  }
+
+  grid.innerHTML = photos.map(function(photo, idx) {
+    return '<div style="position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;flex-shrink:0;cursor:grab">'
+      + '<img src="' + photo.dataUrl + '" style="width:100%;height:100%;object-fit:cover;display:block">'
+      + '<div style="position:absolute;top:2px;left:4px;background:rgba(0,0,0,.65);border-radius:4px;padding:1px 5px;font-size:9px;font-weight:800;color:#fff">' + (idx+1) + '</div>'
+      + '<button onclick="carRemovePhoto(' + idx + ')" style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(255,50,50,.85);border:none;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1">×</button>'
+      + (photo.isLight ? '<div style="position:absolute;bottom:2px;right:3px;font-size:8px">☀️</div>' : '')
+      + '</div>';
+  }).join('');
+};
+
+// ── Remove a photo by index ───────────────────────────────────────
+window.carRemovePhoto = function(idx) {
+  window._carUserPhotos.splice(idx, 1);
+  carRenderPhotoGrid();
+};
+
+// ── Clear all uploaded photos ─────────────────────────────────────
+window.carClearPhotos = function() {
+  window._carUserPhotos = [];
+  carRenderPhotoGrid();
+};
+
+// ── Load a user photo as an Image element ────────────────────────
+function _carLoadUserPhoto(photo) {
+  return new Promise(function(resolve) {
+    var img = new Image();
+    img.onload  = function() { resolve(img); };
+    img.onerror = function() { resolve(null); };
+    img.src = photo.dataUrl;
+  });
+}
+
+// ── Get smart overlay for a photo based on brightness ────────────
+function _carGetSmartOverlay(photo, theme) {
+  if (!photo) return null;
+  var T = _carThemes[theme] || _carThemes.navy;
+  if (photo.isLight) {
+    // Light image (earnings screenshot, bright photo) — heavier dark overlay
+    // Also flip text color to stay readable
+    return { overlay: 'rgba(5,5,20,.82)', isLightBg: true };
+  }
+  // Dark/medium image — use theme overlay but slightly heavier for readability
+  var b = photo.brightness;
+  var opacity = b > 100 ? 0.72 : 0.58; // brighter image = more overlay needed
+  return { overlay: T.overlay.replace(/[\d.]+\)$/, opacity + ')'), isLightBg: false };
+}
+
+// ── carFetchNicheImages — fetch Pexels ONLY for slides without user photos ──
 window.carFetchNicheImages = async function(data, niche) {
   try {
-    // Build search queries for each slide
-    var queries = [];
-    queries.push(data.hookImageKeyword || niche + ' success lifestyle');
-    if (Array.isArray(data.slides)) {
-      data.slides.forEach(function(s) {
-        queries.push(s.imageKeyword || niche + ' professional');
-      });
-    }
-    queries.push(data.ctaImageKeyword || niche + ' transformation');
+    var userPhotos = window._carUserPhotos || [];
+    var allSlides  = [data.hook].concat(Array.isArray(data.slides) ? data.slides : []).concat([data.cta]);
+    var totalSlides= allSlides.length;
 
+    // Build queries only for slides that DON'T have a user photo
+    var queries = [];
+    var slideIdxNeedingPexels = [];
+
+    for (var i = 0; i < totalSlides; i++) {
+      if (userPhotos[i]) {
+        queries.push(null); // placeholder — won't be searched
+      } else {
+        var slide = typeof allSlides[i] === 'object' ? allSlides[i] : {};
+        queries.push(slide.imageKeyword || niche + ' professional');
+        slideIdxNeedingPexels.push(i);
+      }
+    }
+
+    if (!slideIdxNeedingPexels.length) return new Array(totalSlides).fill(null);
+
+    var pexelsQueries = queries.filter(function(q){ return q !== null; });
     var resp = await fetch('/api/images', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ queries: queries, perQuery: 1 }),
+      body:    JSON.stringify({ queries: pexelsQueries, perQuery: 1 }),
     });
-    if (!resp.ok) return [];
-    var result = await resp.json();
-    return result.images || [];
+
+    var result   = resp.ok ? await resp.json() : { images: [] };
+    var pexelsArr= result.images || [];
+
+    // Reassemble into full-length array — null where user photo exists
+    var finalImages = new Array(totalSlides).fill(null);
+    var pexelsIdx   = 0;
+    for (var j = 0; j < totalSlides; j++) {
+      if (userPhotos[j]) {
+        finalImages[j] = null; // signal to use user photo
+      } else {
+        finalImages[j] = pexelsArr[pexelsIdx] || null;
+        pexelsIdx++;
+      }
+    }
+    return finalImages;
   } catch(e) {
     console.warn('[Carousel] Image fetch failed:', e.message);
     return [];
@@ -20670,17 +20965,43 @@ function _carDrawBodyWithAccent(gc, text, accentPhrase, x, y, maxW, lineH, mainC
 }
 
 // ── Render a single slide canvas ─────────────────────────────────────
-async function _carRenderOneSlide(slide, bgImageObj, theme, slideNum, totalSlides, niche, userHandle) {
+async function _carRenderOneSlide(slide, bgImageObj, theme, slideNum, totalSlides, niche, userHandle, userPhoto) {
   var c  = document.createElement('canvas');
   c.width = c.height = 1080;
   var gc = c.getContext('2d');
   var T  = _carThemes[theme] || _carThemes.navy;
 
-  // ── 1. Background image or gradient fallback ──────────────────────
-  if (bgImageObj) {
-    gc.drawImage(bgImageObj, 0, 0, 1080, 1080);
+  // ── Determine overlay — smarter when user photo is involved ──────
+  var overlayColor = T.overlay;
+  var isLightBg    = false;
+  if (userPhoto) {
+    var smart = _carGetSmartOverlay(userPhoto, theme);
+    if (smart) {
+      overlayColor = smart.overlay;
+      isLightBg    = smart.isLightBg;
+    }
+  }
+
+  // ── 1. Background: user photo takes priority over Pexels ─────────
+  var bgSource = null;
+  if (userPhoto) {
+    bgSource = await _carLoadUserPhoto(userPhoto);
+  } else if (bgImageObj) {
+    bgSource = bgImageObj;
+  }
+
+  if (bgSource) {
+    // Smart crop: fill the canvas maintaining aspect ratio
+    var iw = bgSource.naturalWidth  || bgSource.width  || 1080;
+    var ih = bgSource.naturalHeight || bgSource.height || 1080;
+    var scale  = Math.max(1080 / iw, 1080 / ih);
+    var drawW  = iw * scale;
+    var drawH  = ih * scale;
+    var drawX  = (1080 - drawW) / 2;
+    var drawY  = (1080 - drawH) / 2;
+    gc.drawImage(bgSource, drawX, drawY, drawW, drawH);
   } else {
-    // Gradient fallback — richer than before
+    // Gradient fallback
     var bg = gc.createLinearGradient(0, 0, 1080, 1080);
     var gradColors = {
       navy:   ['#0a0f28','#1a2050'], teal:   ['#052830','#0d4a50'],
@@ -20694,8 +21015,8 @@ async function _carRenderOneSlide(slide, bgImageObj, theme, slideNum, totalSlide
     gc.fillRect(0, 0, 1080, 1080);
   }
 
-  // ── 2. Dark overlay for text readability ─────────────────────────
-  gc.fillStyle = T.overlay;
+  // ── 2. Overlay ────────────────────────────────────────────────────
+  gc.fillStyle = overlayColor;
   gc.fillRect(0, 0, 1080, 1080);
 
   // ── 3. Slide number badge (top-left circle) ───────────────────────
@@ -20834,14 +21155,17 @@ window.carRenderSlides = async function(data, ctx, bgImages) {
     var slide  = slides[i];
     var theme  = slide.colorTheme || _carThemeCycle[i % _carThemeCycle.length];
 
-    // Load background image
+    // User photo takes priority — Pexels only fills remaining slots
+    var userPhoto = (window._carUserPhotos && window._carUserPhotos[i]) || null;
+
+    // Load Pexels background image (only if no user photo for this slide)
     var bgObj = null;
-    if (bgImages[i] && bgImages[i].url) {
+    if (!userPhoto && bgImages[i] && bgImages[i].url) {
       bgObj = await _carLoadImage(bgImages[i].url);
     }
 
     var canvas = await _carRenderOneSlide(
-      slide, bgObj, theme, i + 1, total, ctx.niche, userHandle
+      slide, bgObj, theme, i + 1, total, ctx.niche, userHandle, userPhoto
     );
     window._carCanvases.push(canvas);
 
@@ -21194,6 +21518,7 @@ window.autoStart = async function() {
     rotationStyle: rotation,
     cloneIds:      cloneIds,
     isAffiliate:   isAffiliate,
+    timezone:      window._userTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
     status:        'running',
     createdAt:     new Date().toISOString(),
     progress:      { daysComplete: 0, totalDays: duration, currentAction: 'Starting…' }
@@ -24797,14 +25122,29 @@ onAuthStateChanged(auth, async (user) => {
   };
 
   window.saveProfile = async () => {
-    const name  = (document.getElementById('prof-name')||{}).value||'';
-    const brand = (document.getElementById('prof-brand')||{}).value||'';
-    const niche = (document.getElementById('prof-niche')||{}).value||'';
+    const name     = (document.getElementById('prof-name')||{}).value||'';
+    const brand    = (document.getElementById('prof-brand')||{}).value||'';
+    const niche    = (document.getElementById('prof-niche')||{}).value||'';
+    const timezone = (document.getElementById('prof-timezone')||{}).value || window._userTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+    window._userTimezone = timezone;
     try {
-      await setDoc(doc(db,'users',user.uid),{name,brand,niche},{merge:true});
+      await setDoc(doc(db,'users',user.uid),{name,brand,niche,timezone},{merge:true});
       const msg = document.getElementById('save-profile-msg');
       if (msg) { msg.style.display='block'; setTimeout(()=>msg.style.display='none',2500); }
     } catch(e) { console.warn('Save profile failed:',e.message); }
+  };
+
+  window.profDetectTimezone = function() {
+    var tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    var el = document.getElementById('prof-timezone');
+    if (el) el.value = tz;
+    window._userTimezone = tz;
+    // Save to Firestore immediately
+    try {
+      if (window._currentUserUid && typeof setDoc === 'function' && typeof doc === 'function' && typeof db !== 'undefined') {
+        setDoc(doc(db,'users',window._currentUserUid),{timezone:tz},{merge:true}).catch(function(){});
+      }
+    } catch(e) {}
   };
 
   
@@ -32564,7 +32904,7 @@ function calRenderDayList(entries) {
         + '<span style="font-size:16px">' + emoji + '</span>'
         + '<div style="flex:1">'
         + '<div style="font-size:12px;font-weight:700;color:var(--white)">' + (entry.type || 'Post') + '</div>'
-        + '<div style="font-size:10px;color:var(--dim)">' + (entry.scheduledTime || '—') + '</div>'
+        + '<div style="font-size:10px;color:var(--dim)">' + (window._tzFormatScheduledTime ? window._tzFormatScheduledTime(entry.scheduledTime || '—') : (entry.scheduledTime || '—')) + '</div>'
         + '</div>'
         + badge
         + '<span style="color:var(--dimmer);font-size:16px;margin-left:6px">›</span>'
@@ -32601,7 +32941,7 @@ window.calOpenModal = function(entry) {
   var isEmail     = typeLower.includes('email');
 
   var html = '<div style="margin-bottom:20px">'
-    + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Day ' + (entry.dayNum || '—') + ' · ' + (entry.scheduledTime || '—') + '</div>'
+    + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Day ' + (entry.dayNum || '—') + ' · ' + (window._tzFormatScheduledTime ? window._tzFormatScheduledTime(entry.scheduledTime || '—') : (entry.scheduledTime || '—')) + '</div>'
     + '<div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">' + (entry.type || 'Post') + '</div>'
     + '</div>';
 
@@ -32611,8 +32951,15 @@ window.calOpenModal = function(entry) {
   }
 
   if (isReel && entry.videoUrl) {
-    // Video player
-    html += '<video controls style="width:100%;border-radius:var(--r-md);margin-bottom:16px;background:#000" src="' + entry.videoUrl + '"></video>';
+    // Portrait for reels, landscape for other video types
+    var entryVideoType = (entry.videoType || entry.type || '').toLowerCase();
+    var isPortrait = entryVideoType.includes('reel') || entryVideoType.includes('story') || entryVideoType.includes('shorts');
+    var videoStyle = isPortrait
+      ? 'width:100%;max-width:320px;max-height:570px;border-radius:var(--r-md);margin:0 auto;display:block;aspect-ratio:9/16;background:#000'
+      : 'width:100%;border-radius:var(--r-md);margin-bottom:16px;background:#000;aspect-ratio:16/9';
+    html += '<div style="' + (isPortrait ? 'text-align:center;margin-bottom:16px' : 'margin-bottom:16px') + '">'
+          + '<video controls style="' + videoStyle + '" src="' + entry.videoUrl + '"></video>'
+          + '</div>';
     if (entry.cloneName) html += '<div style="font-size:10px;color:var(--dim);margin-bottom:12px">Clone: ' + entry.cloneName + '</div>';
     html += calModalCopySection('Hook', entry.hook || entry.viralHook || '', 'modal-hook');
     html += calModalCopySection('Caption', entry.caption || '', 'modal-caption');
@@ -32942,6 +33289,160 @@ window.calRefresh = function() {
   var d = document.getElementById('auto-start-date');
   if (d && !d.value) d.value = new Date().toISOString().slice(0,10);
 })();
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// TIMEZONE ENGINE — detect, store, display everywhere
+// ══════════════════════════════════════════════════════════════════
+
+// ── 1. Detect on load ────────────────────────────────────────────
+(function() {
+  var tz = '';
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch(e) {}
+  if (!tz) tz = 'UTC';
+  window._userTimezone = tz;
+  function _setTzField() {
+    var el = document.getElementById('prof-timezone');
+    if (el && !el.value) el.value = tz;
+  }
+  _setTzField();
+  setTimeout(_setTzField, 800);
+  setTimeout(_setTzField, 2500);
+})();
+
+// ── 2. Load from Firestore profile ───────────────────────────────
+window._tzLoadFromProfile = function(profileData) {
+  if (profileData && profileData.timezone) {
+    window._userTimezone = profileData.timezone;
+    var el = document.getElementById('prof-timezone');
+    if (el) el.value = profileData.timezone;
+  }
+};
+
+// ── 3. Get short timezone abbreviation ───────────────────────────
+function _tzGetAbbr(tz) {
+  try {
+    var parts = Intl.DateTimeFormat('en-US', {
+      timeZone: tz, timeZoneName: 'short'
+    }).formatToParts(new Date());
+    var p = parts.find(function(x){ return x.type === 'timeZoneName'; });
+    if (p) return p.value;
+  } catch(e) {}
+  return _tzGetOffsetLabel(tz);
+}
+
+// ── 4. Get UTC offset label e.g. GMT+1 ───────────────────────────
+function _tzGetOffsetLabel(tz) {
+  try {
+    var now   = new Date();
+    var utc   = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+    var local = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+    var diff  = (local - utc) / 60000;
+    var h = Math.floor(Math.abs(diff) / 60);
+    var m = Math.abs(diff) % 60;
+    var s = diff >= 0 ? '+' : '-';
+    return 'GMT' + s + h + (m ? ':' + String(m).padStart(2,'0') : '');
+  } catch(e) { return 'UTC'; }
+}
+
+// ── 5. Full display name e.g. "Lagos (WAT, GMT+1)" ───────────────
+window._tzGetDisplayName = function() {
+  var tz    = window._userTimezone || 'UTC';
+  var abbr  = _tzGetAbbr(tz);
+  var offset= _tzGetOffsetLabel(tz);
+  var city  = tz.split('/').pop().replace(/_/g, ' ');
+  return city + ' (' + abbr + ', ' + offset + ')';
+};
+
+// ── 6. Format a time string with zone abbr ───────────────────────
+window._tzFormatScheduledTime = function(timeStr) {
+  if (!timeStr || timeStr === '—') return timeStr || '—';
+  if (/[A-Z]{2,5}$/.test(timeStr.trim()) || /GMT[+-]/.test(timeStr)) return timeStr;
+  return timeStr + ' ' + _tzGetAbbr(window._userTimezone || 'UTC');
+};
+
+// ── 7. Update Automate tab content-type labels ────────────────────
+window._tzUpdateAutomateLabels = function() {
+  var abbr = _tzGetAbbr(window._userTimezone || 'UTC');
+  var map = {
+    'auto-ct-fb1':      { e:'📝', l:'FB Post 1',  t:'6:00am'  },
+    'auto-ct-reel1':    { e:'🎬', l:'Reel 1',     t:'9:00am'  },
+    'auto-ct-carousel': { e:'🖼', l:'Carousel',   t:'12:00pm' },
+    'auto-ct-fb2':      { e:'📝', l:'FB Post 2',  t:'3:00pm'  },
+    'auto-ct-reel2':    { e:'🎬', l:'Reel 2',     t:'6:00pm'  },
+    'auto-ct-email':    { e:'📨', l:'Email',       t:'8:00pm'  },
+  };
+  Object.keys(map).forEach(function(id) {
+    var cb   = document.getElementById(id);
+    if (!cb) return;
+    var span = cb.nextElementSibling;
+    if (!span) return;
+    var item = map[id];
+    span.textContent = item.e + ' ' + item.l + ' — ' + item.t + ' ' + abbr;
+  });
+  var note = document.getElementById('auto-tz-note');
+  if (note) note.textContent = '🕐 Times shown in your local timezone: ' + window._tzGetDisplayName();
+};
+
+// ── 8. Hook csShowTab → update labels when Automate opens ────────
+(function() {
+  var _orig = window.csShowTab;
+  window.csShowTab = function(tab, btn) {
+    if (_orig) _orig.apply(this, arguments);
+    if (tab === 'automate') setTimeout(window._tzUpdateAutomateLabels, 120);
+  };
+})();
+
+// ── 9. Hook calRefresh → append zone to posted times in calendar ─
+(function() {
+  var _origRefresh = window.calRefresh;
+  window.calRefresh = function() {
+    if (_origRefresh) _origRefresh.apply(this, arguments);
+    setTimeout(function() {
+      document.querySelectorAll('[data-raw-time]').forEach(function(el) {
+        if (!el.dataset.tzApplied) {
+          el.textContent    = window._tzFormatScheduledTime(el.dataset.rawTime);
+          el.dataset.tzApplied = '1';
+        }
+      });
+    }, 160);
+  };
+})();
+
+// ── 10. Load timezone from Firestore when user signs in ───────────
+(function() {
+  var _origAuthCb = window._onAuthStateChanged || null;
+  // Hook into the auth flow — userData is loaded in the existing onAuthStateChanged
+  // We patch the profile load so _tzLoadFromProfile is called with the user's doc data
+  var _origSetAppMode = window.setAppMode;
+  window.setAppMode = function(mode) {
+    if (_origSetAppMode) _origSetAppMode.apply(this, arguments);
+    // After mode is set, try to load timezone from Firestore profile
+    if (window._currentUserUid && window._db) {
+      try {
+        var _getDoc  = window._getDoc  || (window.firebase && window.firebase.firestore && function(ref){ return ref.get(); });
+        var _docFn   = window._doc;
+        if (_getDoc && _docFn && window._db) {
+          _getDoc(_docFn(window._db, 'users', window._currentUserUid)).then(function(snap) {
+            if (snap && snap.exists && snap.exists()) {
+              var data = snap.data ? snap.data() : {};
+              window._tzLoadFromProfile(data);
+              window._tzUpdateAutomateLabels();
+            }
+          }).catch(function(){});
+        }
+      } catch(e) {}
+    }
+  };
+})();
+
+// ── 11. Initial run ───────────────────────────────────────────────
+setTimeout(function() {
+  window._tzUpdateAutomateLabels();
+}, 1200);
+
+console.log('[TZ] Timezone engine loaded —', window._userTimezone, '(' + _tzGetAbbr(window._userTimezone||'UTC') + ')');
 </script>
 </body>
 </html>
