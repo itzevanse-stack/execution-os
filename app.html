@@ -2751,6 +2751,169 @@ button[onclick="generateOffer()"] {
 <body>
 <!-- MODE ONBOARDING (shown once on first login) -->
 
+
+<!-- ══════════════════════════════════════════════════════════════════
+     ONBOARDING WIZARD OVERLAY
+     Shows on first login only — dismissed on step 5 completion
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(5,5,20,.96);z-index:99999;overflow-y:auto;backdrop-filter:blur(8px)">
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+    <div id="onboarding-card" style="width:100%;max-width:560px;background:var(--card);border:1px solid rgba(255,255,255,.1);border-radius:24px;padding:36px;position:relative;box-shadow:0 40px 80px rgba(0,0,0,.6)">
+
+      <!-- Skip link -->
+      <button onclick="onboardSkip()" style="position:absolute;top:18px;right:20px;background:none;border:none;color:var(--dimmer);font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600">Skip for now →</button>
+
+      <!-- Progress dots -->
+      <div style="display:flex;gap:6px;margin-bottom:28px">
+        <div class="ob-dot" id="ob-dot-1" style="height:4px;border-radius:2px;background:var(--purple);transition:all .3s;flex:1"></div>
+        <div class="ob-dot" id="ob-dot-2" style="height:4px;border-radius:2px;background:rgba(255,255,255,.1);transition:all .3s;flex:1"></div>
+        <div class="ob-dot" id="ob-dot-3" style="height:4px;border-radius:2px;background:rgba(255,255,255,.1);transition:all .3s;flex:1"></div>
+        <div class="ob-dot" id="ob-dot-4" style="height:4px;border-radius:2px;background:rgba(255,255,255,.1);transition:all .3s;flex:1"></div>
+        <div class="ob-dot" id="ob-dot-5" style="height:4px;border-radius:2px;background:rgba(255,255,255,.1);transition:all .3s;flex:1"></div>
+      </div>
+
+      <!-- ── STEP 1: Welcome — mode already set by admin ── -->
+      <div id="ob-step-1">
+        <div style="font-size:36px;margin-bottom:14px">👋</div>
+        <div style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px;line-height:1.3">Welcome to Execution OS.</div>
+        <div id="ob-welcome-sub" style="font-size:13px;color:var(--dim);margin-bottom:28px;line-height:1.7">Let's get you set up in 2 minutes so the platform is fully personalised to your business from day one.</div>
+
+        <!-- Mode confirmation chip — read-only, set by admin -->
+        <div id="ob-mode-chip" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:50px;margin-bottom:24px;font-size:12px;font-weight:700;font-family:Poppins,sans-serif"></div>
+
+        <!-- What they'll get preview -->
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
+            <span style="font-size:16px">🧠</span><span style="font-size:12px;color:var(--muted)">AI builds your complete content intelligence</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
+            <span style="font-size:16px">💬</span><span style="font-size:12px;color:var(--muted)">5 personalised DM scripts ready to send today</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
+            <span style="font-size:16px">📅</span><span style="font-size:12px;color:var(--muted)">7-day content calendar built from your offer</span>
+          </div>
+        </div>
+
+        <button onclick="onboardNext(1)" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 6px 20px rgba(108,99,255,.35)">Let's Build Your Intelligence →</button>
+      </div>
+
+      <!-- ── STEP 2: Quick Setup ── -->
+      <div id="ob-step-2" style="display:none">
+        <div style="font-size:28px;margin-bottom:12px">⚡</div>
+        <div style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Quick setup</div>
+        <div id="ob-step2-sub" style="font-size:13px;color:var(--dim);margin-bottom:24px;line-height:1.7"></div>
+
+        <!-- Expert fields -->
+        <div id="ob-expert-fields">
+          <div style="margin-bottom:14px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Your niche</div>
+            <input id="ob-niche" class="fi" placeholder="e.g. Health & fitness coaching, Online business, Real estate investing" />
+          </div>
+          <div style="margin-bottom:14px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Your offer name</div>
+            <input id="ob-offer" class="fi" placeholder="e.g. 12-Week Body Transformation Programme" />
+          </div>
+          <div style="margin-bottom:20px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Price point</div>
+            <input id="ob-price" class="fi" type="number" placeholder="e.g. 1997" />
+          </div>
+        </div>
+
+        <!-- Affiliate fields -->
+        <div id="ob-affiliate-fields" style="display:none">
+          <div style="margin-bottom:14px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Your affiliate link</div>
+            <input id="ob-aff-url" class="fi" placeholder="https://..." />
+          </div>
+          <div style="margin-bottom:14px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Your niche</div>
+            <input id="ob-aff-niche" class="fi" placeholder="e.g. Fitness, Business, Personal Development" />
+          </div>
+          <div style="margin-bottom:20px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Your commission per sale ($)</div>
+            <input id="ob-aff-commission" class="fi" type="number" placeholder="e.g. 500" />
+          </div>
+        </div>
+
+        <div id="ob-step2-error" style="display:none;font-size:11px;color:var(--red);margin-bottom:10px"></div>
+        <div style="display:flex;gap:10px">
+          <button onclick="onboardBack(2)" style="padding:14px 24px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:50px;color:var(--muted);font-family:Poppins,sans-serif;font-weight:700;font-size:13px;cursor:pointer">← Back</button>
+          <button onclick="onboardNext(2)" style="flex:1;padding:14px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 6px 20px rgba(108,99,255,.35)">Build My Intelligence →</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 3: Intelligence Generation ── -->
+      <div id="ob-step-3" style="display:none;text-align:center">
+        <div style="font-size:40px;margin-bottom:16px">🧠</div>
+        <div style="font-size:20px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Building your intelligence layer</div>
+        <div id="ob-step3-msg" style="font-size:12px;color:var(--dim);margin-bottom:28px;line-height:1.7">Analysing your offer and building your complete content intelligence…</div>
+        <!-- Animated stages -->
+        <div style="display:flex;flex-direction:column;gap:8px;text-align:left;margin-bottom:28px">
+          <div id="ob-ai-stage-0" style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,255,255,.03);border-radius:10px;opacity:.35;transition:opacity .4s">
+            <span style="font-size:14px">🎯</span><span style="font-size:11px;color:var(--white);font-weight:700">Mapping your audience psychology</span>
+            <span id="ob-ai-st0" style="margin-left:auto;font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+          </div>
+          <div id="ob-ai-stage-1" style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,255,255,.03);border-radius:10px;opacity:.35;transition:opacity .4s">
+            <span style="font-size:14px">✍️</span><span style="font-size:11px;color:var(--white);font-weight:700">Writing your copy vault</span>
+            <span id="ob-ai-st1" style="margin-left:auto;font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+          </div>
+          <div id="ob-ai-stage-2" style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,255,255,.03);border-radius:10px;opacity:.35;transition:opacity .4s">
+            <span style="font-size:14px">💬</span><span style="font-size:11px;color:var(--white);font-weight:700">Crafting your DM scripts</span>
+            <span id="ob-ai-st2" style="margin-left:auto;font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+          </div>
+          <div id="ob-ai-stage-3" style="display:flex;align-items:center;gap:10px;padding:9px 14px;background:rgba(255,255,255,.03);border-radius:10px;opacity:.35;transition:opacity .4s">
+            <span style="font-size:14px">📅</span><span style="font-size:11px;color:var(--white);font-weight:700">Building your content engine</span>
+            <span id="ob-ai-st3" style="margin-left:auto;font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
+          </div>
+        </div>
+        <div id="ob-step3-error" style="display:none;font-size:11px;color:var(--red);margin-bottom:12px"></div>
+      </div>
+
+      <!-- ── STEP 4: First Output Preview ── -->
+      <div id="ob-step-4" style="display:none">
+        <div style="font-size:28px;margin-bottom:12px">🔥</div>
+        <div style="font-size:20px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:6px">Your intelligence is ready.</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7">Here's a preview of what Execution OS just built for your business:</div>
+        <!-- Preview cards -->
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+          <div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:14px 16px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#a089ff;font-weight:700;margin-bottom:6px">🎣 Your #1 Hook</div>
+            <div id="ob-preview-hook" style="font-size:13px;font-weight:700;color:var(--white);line-height:1.5"></div>
+          </div>
+          <div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:14px 16px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:700;margin-bottom:6px">💬 Your Best DM Opener</div>
+            <div id="ob-preview-dm" style="font-size:12px;color:var(--muted);line-height:1.6"></div>
+          </div>
+          <div style="background:rgba(255,217,61,.05);border:1px solid rgba(255,217,61,.15);border-radius:12px;padding:14px 16px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:700;margin-bottom:6px">📐 Your Dominant Content Angle</div>
+            <div id="ob-preview-angle" style="font-size:12px;color:var(--muted);line-height:1.6"></div>
+          </div>
+        </div>
+        <button onclick="onboardNext(4)" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:50px;color:var(--text-dark);font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 6px 20px rgba(78,204,163,.3)">Generate My First Content →</button>
+      </div>
+
+      <!-- ── STEP 5: Launch ── -->
+      <div id="ob-step-5" style="display:none;text-align:center">
+        <div style="font-size:48px;margin-bottom:16px">🚀</div>
+        <div style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">You're ready to execute.</div>
+        <div style="font-size:13px;color:var(--dim);margin-bottom:28px;line-height:1.7">Your intelligence is loaded across the entire platform. Every section is now powered by your specific offer and audience. What do you want to create first?</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+          <button onclick="onboardLaunch('carousel')" style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);border-radius:14px;color:#a089ff;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-align:left">
+            <span style="font-size:20px">🖼</span><div><div style="font-weight:800">Generate a Carousel</div><div style="font-size:10px;opacity:.7;margin-top:1px">AI builds a branded Instagram carousel from your intelligence</div></div>
+          </button>
+          <button onclick="onboardLaunch('reel')" style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.2);border-radius:14px;color:var(--teal);font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-align:left">
+            <span style="font-size:20px">🎬</span><div><div style="font-weight:800">Write a Reel Script</div><div style="font-size:10px;opacity:.7;margin-top:1px">AI writes a 90-second reel in your voice from your offer</div></div>
+          </button>
+          <button onclick="onboardLaunch('dms')" style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.15);border-radius:14px;color:var(--yellow);font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-align:left">
+            <span style="font-size:20px">💬</span><div><div style="font-weight:800">See My DM Scripts</div><div style="font-size:10px;opacity:.7;margin-top:1px">5 personalised DM openers ready to use right now</div></div>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- ══ SIDEBAR ══════════════════════════════════════════════════════════ -->
@@ -2941,6 +3104,15 @@ button[onclick="generateOffer()"] {
         <div class="ni-text">
           <div class="ni-label">DAILY ROUTINE</div>
           <div class="ni-step">Step 6</div>
+        </div>
+        <div class="ni-dot"></div>
+      </button>
+
+      <button class="nav-item ripple-container" onclick="showPage('leads',this)" id="nav-leads">
+        <div class="ni-icon">🎯</div>
+        <div class="ni-text">
+          <div class="ni-label">LEAD PIPELINE</div>
+          <div class="ni-step">Track & close conversations</div>
         </div>
         <div class="ni-dot"></div>
       </button>
@@ -4322,6 +4494,69 @@ button[onclick="generateOffer()"] {
   </div>
 
   <!-- TRACKER PAGE -->
+  <!-- LEAD PIPELINE PAGE -->
+  <div class="page" id="page-leads">
+    <div class="hero-strip" style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.04));margin:0 1.25rem var(--sp-4)">
+      <div class="tag-pill" style="background:rgba(108,99,255,.15);color:#a089ff;border:1px solid rgba(108,99,255,.3)">🎯 Lead Pipeline</div>
+      <div class="h1" style="margin-bottom:var(--sp-2)">Lead Pipeline</div>
+      <div class="strip-sub" id="leads-page-sub">Track every conversation. Know exactly who to follow up with and when.</div>
+    </div>
+    <div style="padding:0 1.25rem 100px">
+
+      <!-- Stats bar -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" id="leads-stats-bar">
+        <div class="card-dark" style="text-align:center">
+          <div id="leads-stat-total" style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">0</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Total Leads</div>
+        </div>
+        <div class="card-dark" style="text-align:center">
+          <div id="leads-stat-hot" style="font-size:22px;font-weight:900;color:var(--orange);font-family:Poppins,sans-serif">0</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Hot 🔥</div>
+        </div>
+        <div class="card-dark" style="text-align:center">
+          <div id="leads-stat-closed" style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">0</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Closed Won</div>
+        </div>
+        <div class="card-dark" style="text-align:center">
+          <div id="leads-stat-followup" style="font-size:22px;font-weight:900;color:var(--red);font-family:Poppins,sans-serif">0</div>
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Follow Up Due</div>
+        </div>
+      </div>
+
+      <!-- Pipeline status bar — rendered dynamically by leadsRenderPipelineBar() -->
+      <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none" id="leads-pipeline-bar"></div>
+
+      <!-- Add Lead button -->
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button onclick="leadsOpenAddModal()" style="display:inline-flex;align-items:center;gap:7px;padding:10px 20px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;box-shadow:0 4px 14px rgba(108,99,255,.35)">
+          <span style="font-size:14px">+</span> Add Lead
+        </button>
+      </div>
+
+      <!-- Lead list -->
+      <div id="leads-list" style="display:flex;flex-direction:column;gap:8px"></div>
+
+      <!-- Empty state -->
+      <div id="leads-empty" style="display:none;text-align:center;padding:3rem 1rem">
+        <div style="font-size:40px;margin-bottom:12px">🎯</div>
+        <div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">No leads yet</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:20px">Every conversation is a potential client. Start tracking them here.</div>
+        <button onclick="leadsOpenAddModal()" style="padding:12px 28px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer">+ Add Your First Lead</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Lead detail modal -->
+  <div id="leads-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9000;overflow-y:auto">
+    <div style="max-width:560px;margin:40px auto;padding:0 16px 80px">
+      <div class="card-dark" style="position:relative">
+        <button onclick="leadsCloseModal()" style="position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>
+        <div id="leads-modal-content"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="page" id="page-tracker">
     <div class="hero-strip"><div class="strip-inner"><div><div class="tag-pill tag-pill-yellow"><span>Daily Tracker</span></div><div class="h1" style="font-size:clamp(20px,3vw,30px)">What gets <em>measured</em> gets done</div><div class="strip-sub">Hit + to log each action. Reset every morning. Your streak is your edge.</div></div></div></div>
     <div class="tracker-card" id="tracker-card"></div>
@@ -4684,6 +4919,16 @@ button[onclick="generateOffer()"] {
             </button>
           </div>
         </div>
+
+        <!-- Tracking link strip -->
+        <div id="aff-tracking-strip" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.18);border-radius:10px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#a089ff;font-weight:700;margin-bottom:6px">🔗 Your Tracking Link — share this instead of your raw link</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input id="aff-tracking-link-input" readonly style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:7px;padding:7px 10px;font-size:11px;color:var(--white);font-family:monospace;outline:none" placeholder="Generating link…" />
+            <button onclick="affCopyTrackingLink()" id="aff-copy-link-btn" style="flex-shrink:0;padding:7px 14px;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:7px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap">Copy</button>
+          </div>
+          <div style="font-size:9px;color:var(--dimmer);margin-top:5px">✅ Commission-safe · Every click tracked · Original link preserved</div>
+        </div>
       </div>
 
       <div class="tab-strip" id="aff-active-tabs" style="margin-bottom:1.25rem">
@@ -4695,6 +4940,7 @@ button[onclick="generateOffer()"] {
         <button class="tab" onclick="showAffActiveTab('dms',this)">💬 DM Scripts</button>
         <button class="tab" onclick="showAffActiveTab('dailyplan',this)">⚡ Daily Plan</button>
         <button class="tab" onclick="showAffActiveTab('tracker',this)">📊 Commissions</button>
+        <button class="tab" onclick="showAffActiveTab('link-analytics',this)">📈 Link Analytics</button>
         <button class="tab" onclick="showAffActiveTab('tam',this)">🌍 Market Opportunity</button>
       </div>
 
@@ -4716,6 +4962,91 @@ button[onclick="generateOffer()"] {
       <div id="aff-tab-dailyplan"  style="display:none"><div id="aff-dailyplan-body"></div></div>
       <div id="aff-tab-tracker"  style="display:none"><div id="aff-tracker-body"></div></div>
       <div id="aff-tab-dailytracker" style="display:none"><div id="aff-daily-tracker-body"></div></div>
+
+      <!-- Link Analytics Tab Panel -->
+      <div id="aff-tab-link-analytics" style="display:none">
+        <!-- Live stats bar -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
+          <div class="card-dark" style="text-align:center">
+            <div id="la-total-clicks" style="font-size:26px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">—</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Total Clicks</div>
+          </div>
+          <div class="card-dark" style="text-align:center">
+            <div id="la-unique-clicks" style="font-size:26px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">—</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Unique Clicks</div>
+          </div>
+          <div class="card-dark" style="text-align:center">
+            <div id="la-top-country" style="font-size:18px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif;line-height:1.3">—</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Top Country</div>
+          </div>
+          <div class="card-dark" style="text-align:center">
+            <div id="la-last-click" style="font-size:13px;font-weight:800;color:var(--orange);font-family:Poppins,sans-serif;line-height:1.4">—</div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-top:4px">Last Click</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+
+          <!-- Countries -->
+          <div class="card-dark">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:12px">🌍 Countries</div>
+            <div id="la-countries" style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;color:var(--dimmer);text-align:center;padding:12px">No clicks yet</div>
+            </div>
+          </div>
+
+          <!-- Traffic Sources -->
+          <div class="card-dark">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:12px">📲 Traffic Sources</div>
+            <div id="la-sources" style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;color:var(--dimmer);text-align:center;padding:12px">No clicks yet</div>
+            </div>
+          </div>
+
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+
+          <!-- Devices -->
+          <div class="card-dark">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:12px">📱 Devices</div>
+            <div id="la-devices" style="display:flex;flex-direction:column;gap:8px">
+              <div style="font-size:11px;color:var(--dimmer);text-align:center;padding:12px">No clicks yet</div>
+            </div>
+          </div>
+
+          <!-- Top Cities -->
+          <div class="card-dark">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:12px">🏙 Top Cities</div>
+            <div id="la-cities" style="display:flex;flex-direction:column;gap:6px">
+              <div style="font-size:11px;color:var(--dimmer);text-align:center;padding:12px">No clicks yet</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Live feed -->
+        <div class="card-dark">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">⚡ Live Click Feed</div>
+            <div id="la-live-dot" style="display:flex;align-items:center;gap:5px;font-size:9px;color:var(--teal)">
+              <div style="width:6px;height:6px;border-radius:50%;background:var(--teal);animation:pulse 2s infinite"></div>
+              Live
+            </div>
+          </div>
+          <div id="la-live-feed" style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;scrollbar-width:thin">
+            <div style="font-size:11px;color:var(--dimmer);text-align:center;padding:16px">Waiting for clicks…</div>
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="la-empty" style="display:none;text-align:center;padding:3rem 1rem">
+          <div style="font-size:40px;margin-bottom:12px">📊</div>
+          <div style="font-size:14px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">No clicks yet</div>
+          <div style="font-size:12px;color:var(--dim);max-width:320px;margin:0 auto">Start sharing your tracking link and every click will appear here in real time.</div>
+        </div>
+      </div>
+
       <div id="aff-tab-tam" style="display:none"><div id="tam-affiliate-content">
         <div style="text-align:center;padding:3rem 1rem">
           <div style="font-size:32px;margin-bottom:12px">📊</div>
@@ -6650,16 +6981,48 @@ button[onclick="generateOffer()"] {
 
     <!-- ── VIEW: LIVE ── -->
     <div id="fb-view-live" style="display:none">
-      <div style="text-align:center;padding:60px 24px">
-        <div style="font-size:56px;margin-bottom:var(--sp-4)">🎉</div>
-        <div style="font-size:26px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal);margin-bottom:var(--sp-2)">Your Funnel Is Live!</div>
-        <div style="font-size:14px;color:var(--dim);max-width:400px;margin:0 auto var(--sp-6);line-height:1.7">Your funnel is published and accepting visitors, leads, and payments. Share your link and start driving traffic.</div>
-        <div id="fb-live-url" style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-lg);padding:14px 20px;font-size:14px;color:var(--teal);font-weight:700;margin-bottom:var(--sp-5);display:inline-block;cursor:pointer" onclick="fbCopyLiveUrl()">
-          https://yourdomain.com — click to copy
+      <div style="padding:32px 24px">
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:48px;margin-bottom:12px">🎉</div>
+          <div style="font-size:22px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal);margin-bottom:8px">Your Funnel Is Live!</div>
+          <div style="font-size:13px;color:var(--dim);max-width:420px;margin:0 auto;line-height:1.7">Published and live. Now share it — every click is tracked so you know exactly what's working.</div>
         </div>
+
+        <!-- Funnel URL -->
+        <div style="margin-bottom:20px;text-align:center">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Your Funnel URL</div>
+          <div id="fb-live-url" style="display:inline-block;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-lg);padding:11px 20px;font-size:13px;color:var(--teal);font-weight:700;cursor:pointer" onclick="fbCopyLiveUrl()">
+            https://yourdomain.com — click to copy
+          </div>
+        </div>
+
+        <!-- ── AFFILIATE MODE: single tracking link ─────────────────── -->
+        <div id="fb-aff-tracking-section" style="display:none;margin-bottom:24px">
+          <div class="card-dark">
+            <div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">🔗 Your CTA Button Is Already Tracked</div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:14px;line-height:1.6">Every click on your funnel's CTA button flows through your tracker before reaching the affiliate product. Commission is safe — your affiliate ID arrives intact every time.</div>
+            <div style="padding:10px 14px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:8px;font-size:11px;color:var(--teal);line-height:1.6">
+              ✅ Clicks tracked · ✅ Country &amp; city logged · ✅ Device &amp; source logged · ✅ Commission protected
+            </div>
+          </div>
+        </div>
+
+        <!-- ── EXPERT MODE: per-source tracking links ───────────────── -->
+        <div id="fb-expert-tracking-section" style="display:none;margin-bottom:24px">
+          <div class="card-dark">
+            <div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">📊 Track Where Your Visitors Come From</div>
+            <div style="font-size:11px;color:var(--dim);margin-bottom:16px;line-height:1.6">Use a different link for each platform. See exactly which source is driving the most funnel visitors.</div>
+            <div id="fb-source-links" style="display:flex;flex-direction:column;gap:8px"></div>
+            <div style="margin-top:12px;font-size:10px;color:var(--dimmer);line-height:1.5">
+              All links go to the same funnel. Each one is tracked separately so you know which platform is working.
+            </div>
+          </div>
+        </div>
+
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
           <button onclick="fbBackToList()" class="fb-publish-btn" style="width:auto;padding:11px 24px;font-size:12px">← Back to Funnels</button>
           <button onclick="fbGoToEditor()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:11px 24px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Edit Funnel</button>
+          <button onclick="showPage('ai-video',document.getElementById('nav-ai-video'))" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:var(--r-md);padding:11px 24px;color:#a089ff;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Create Content →</button>
         </div>
       </div>
     </div><!-- /fb-view-live -->
@@ -26654,7 +27017,14 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
     ? (affOffer.commission || window._appliedPrice || '')
     : (window._appliedPrice || '');
 
-  var offerUrl         = isAffiliate ? (affOffer.url || '') : '';
+  var offerUrl = isAffiliate ? (affOffer.url || '') : '';
+
+  // ── Use tracking link for affiliate CTA if available ─────────────
+  // This means every click through the funnel CTA is tracked
+  if (isAffiliate && window._affTrackingSlug) {
+    var _trackOrigin = window.location.origin || 'https://build.skillslibrary.com';
+    offerUrl = _trackOrigin + '/r/' + window._affTrackingSlug;
+  }
   var offerTagline     = isAffiliate ? (affOffer.tagline || '') : '';
   var offerPlatform    = isAffiliate ? (affOffer.platform || '') : '';
   var offerBenefits    = isAffiliate
@@ -27604,6 +27974,18 @@ async function fbPublishLive() {
   fbSetView('live');
   if (btn) { btn.textContent = '🚀 Go Live — Publish Funnel'; btn.disabled = false; }
 
+  // ── Show tracking section based on mode ────────────────────────
+  var isAffMode = (window._appMode || 'affiliate') === 'affiliate';
+  var affSection = document.getElementById('fb-aff-tracking-section');
+  var expSection = document.getElementById('fb-expert-tracking-section');
+  if (affSection) affSection.style.display = isAffMode ? 'block' : 'none';
+  if (expSection) expSection.style.display = !isAffMode ? 'block' : 'none';
+
+  if (!isAffMode) {
+    // Expert mode — generate per-source tracking links
+    fbRenderSourceTrackingLinks(liveUrl, uid);
+  }
+
   var existing = fbState.funnels.find(function(f) { return f.id === fbState.current.id; });
   if (existing) { existing.status = 'live'; existing.liveUrl = liveUrl; }
 }
@@ -27615,6 +27997,80 @@ function fbCopyLiveUrl() {
   el.textContent = '✅ Copied to clipboard!';
   setTimeout(function(){ el.textContent = url + ' — click to copy'; }, 2000);
 }
+
+// ── Generate per-source tracking links for Expert mode ───────────
+window.fbRenderSourceTrackingLinks = async function(funnelUrl, uid) {
+  var container = document.getElementById('fb-source-links');
+  if (!container) return;
+
+  var SOURCES = [
+    { key: 'ig',    label: '📸 Instagram',  note: 'Bio link, stories, posts' },
+    { key: 'fb',    label: '💙 Facebook',   note: 'Posts, groups, ads' },
+    { key: 'email', label: '📧 Email',      note: 'Campaigns, newsletters' },
+    { key: 'dm',    label: '💬 DMs',        note: 'Direct messages' },
+    { key: 'wa',    label: '💚 WhatsApp',   note: 'Groups, broadcasts' },
+    { key: 'tt',    label: '⬛ TikTok',     note: 'Bio link' },
+  ];
+
+  var origin = window.location.origin || 'https://build.skillslibrary.com';
+
+  // Get or create expert base slug
+  var baseSlug = window._expertTrackingSlug;
+  if (!baseSlug) {
+    baseSlug = _laGenSlug(8);
+    window._expertTrackingSlug = baseSlug;
+  }
+
+  // Save each source slug to Firestore
+  var savePromises = SOURCES.map(function(src) {
+    var slug     = baseSlug + '_' + src.key;
+    var linkData = {
+      slug:        slug,
+      originalUrl: funnelUrl,
+      userId:      uid || window._currentUserUid || null,
+      source:      src.key,
+      createdAt:   new Date().toISOString(),
+      totalClicks:  0,
+      uniqueClicks: 0,
+      active:      true,
+      mode:        'expert',
+    };
+    // Save to Firestore
+    try {
+      if (window._db && window._setDoc && window._doc) {
+        return window._setDoc(
+          window._doc(window._db, 'links', (uid || 'anon') + '_' + src.key),
+          linkData
+        ).catch(function(){});
+      }
+    } catch(e) {}
+    return Promise.resolve();
+  });
+
+  await Promise.all(savePromises);
+
+  // Render the source link rows
+  container.innerHTML = SOURCES.map(function(src) {
+    var slug      = baseSlug + '_' + src.key;
+    var trackLink = origin + '/r/' + slug;
+    var inputId   = 'fb-src-link-' + src.key;
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border3)">'
+      + '<div style="width:110px;flex-shrink:0">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--muted)">' + src.label + '</div>'
+      + '<div style="font-size:9px;color:var(--dimmer)">' + src.note + '</div>'
+      + '</div>'
+      + '<input id="' + inputId + '" readonly value="' + trackLink + '" style="flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:6px 8px;font-size:10px;color:var(--muted);font-family:monospace;outline:none;min-width:0">'
+      + '<button onclick="fbCopySourceLink(\'' + inputId + '\',this)" style="flex-shrink:0;padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>'
+      + '</div>';
+  }).join('');
+};
+
+window.fbCopySourceLink = function(inputId, btn) {
+  var input = document.getElementById(inputId);
+  if (!input) return;
+  navigator.clipboard && navigator.clipboard.writeText(input.value).catch(function(){});
+  if (btn) { btn.textContent = '✅'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
+};
 
 // ── LOAD & RENDER ──
 async function fbLoadList() {
@@ -33443,6 +33899,910 @@ setTimeout(function() {
 }, 1200);
 
 console.log('[TZ] Timezone engine loaded —', window._userTimezone, '(' + _tzGetAbbr(window._userTimezone||'UTC') + ')');
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// ONBOARDING WIZARD
+// ══════════════════════════════════════════════════════════════════
+window._obMode    = '';   // 'expert' or 'affiliate'
+window._obData    = {};   // collected setup data
+window._obIntel   = null; // generated intelligence
+
+// ── Check if onboarding needed ────────────────────────────────────
+window.onboardCheck = function() {
+  // Don't show on auth pages
+  if (window.location.pathname.includes('auth') || window.location.pathname.includes('login')) return;
+  try {
+    var done = localStorage.getItem('eos_onboarding_complete');
+    if (done) return;
+    // Also check Firestore
+    if (window._db && window._currentUserUid && window._getDoc && window._doc) {
+      window._getDoc(window._doc(window._db, 'users', window._currentUserUid)).then(function(snap) {
+        if (snap && snap.exists && snap.exists()) {
+          var d = snap.data ? snap.data() : {};
+          if (d.onboardingComplete) {
+            localStorage.setItem('eos_onboarding_complete', '1');
+            return;
+          }
+        }
+        onboardShow();
+      }).catch(function() { onboardShow(); });
+    } else {
+      onboardShow();
+    }
+  } catch(e) { onboardShow(); }
+};
+
+window.onboardShow = function() {
+  var el = document.getElementById('onboarding-overlay');
+  if (el) el.style.display = 'block';
+
+  // Read mode from the session — set by admin before user logged in
+  var mode = window._appMode || window._currentMode || 'affiliate';
+  window._obMode = mode;
+
+  // Populate the welcome screen with mode-specific content
+  var chip = document.getElementById('ob-mode-chip');
+  var sub  = document.getElementById('ob-welcome-sub');
+  if (chip) {
+    var isAff = mode === 'affiliate';
+    chip.style.background   = isAff ? 'rgba(78,204,163,.1)'   : 'rgba(108,99,255,.12)';
+    chip.style.border       = isAff ? '1px solid rgba(78,204,163,.25)' : '1px solid rgba(108,99,255,.3)';
+    chip.style.color        = isAff ? 'var(--teal)' : '#a089ff';
+    chip.innerHTML          = (isAff ? '🔗 Affiliate Mode' : '🎯 Expert Mode') + ' &nbsp;·&nbsp; <span style="opacity:.6;font-weight:600">set by your admin</span>';
+  }
+  if (sub) {
+    sub.textContent = mode === 'affiliate'
+      ? 'Paste your affiliate link and we\'ll build your full campaign strategy — buyer profile, DM scripts, content plan — in under 60 seconds.'
+      : 'Tell us about your offer and we\'ll build your complete business intelligence — copy vault, DM scripts, content engine — in under 60 seconds.';
+  }
+
+  // Pre-fill step 2 subtitle
+  var step2sub = document.getElementById('ob-step2-sub');
+  if (step2sub) {
+    step2sub.textContent = mode === 'affiliate'
+      ? 'Paste your affiliate link and we\'ll analyse the sales page and build your complete campaign strategy automatically.'
+      : 'Tell us about your offer so we can build intelligence specific to your business.';
+  }
+
+  // Show/hide correct input fields for step 2
+  var ef = document.getElementById('ob-expert-fields');
+  var af = document.getElementById('ob-affiliate-fields');
+  if (ef) ef.style.display = mode === 'expert'    ? 'block' : 'none';
+  if (af) af.style.display = mode === 'affiliate' ? 'block' : 'none';
+
+  onboardGoto(1);
+};
+
+window.onboardSkip = function() {
+  onboardComplete();
+};
+
+window.onboardComplete = function() {
+  localStorage.setItem('eos_onboarding_complete', '1');
+  try {
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      window._setDoc(window._doc(window._db,'users',window._currentUserUid),
+        { onboardingComplete: true }, { merge: true }).catch(function(){});
+    }
+  } catch(e) {}
+  var el = document.getElementById('onboarding-overlay');
+  if (el) el.style.display = 'none';
+};
+
+
+window.onboardNext = async function(fromStep) {
+  if (fromStep === 1) {
+    // Mode is already set from session — just move to step 2
+    // (step 2 fields are already shown/hidden by onboardShow)
+    onboardGoto(2);
+
+  } else if (fromStep === 2) {
+    // Validate
+    var err = document.getElementById('ob-step2-error');
+    if (window._obMode === 'expert') {
+      var niche  = (document.getElementById('ob-niche') ||{}).value||'';
+      var offer  = (document.getElementById('ob-offer') ||{}).value||'';
+      var price  = (document.getElementById('ob-price') ||{}).value||'';
+      if (!niche || !offer) {
+        if (err) { err.textContent = 'Please fill in your niche and offer name.'; err.style.display = 'block'; }
+        return;
+      }
+      window._obData = { niche, offer, price };
+    } else {
+      var url    = (document.getElementById('ob-aff-url')       ||{}).value||'';
+      var aNiche = (document.getElementById('ob-aff-niche')     ||{}).value||'';
+      var comm   = (document.getElementById('ob-aff-commission')||{}).value||'';
+      if (!url) {
+        if (err) { err.textContent = 'Please enter your affiliate link.'; err.style.display = 'block'; }
+        return;
+      }
+      window._obData = { url, niche: aNiche, commission: comm };
+    }
+    if (err) err.style.display = 'none';
+    onboardGoto(3);
+    onboardRunIntelligence();
+
+  } else if (fromStep === 4) {
+    onboardGoto(5);
+  }
+};
+
+window.onboardBack = function(fromStep) {
+  onboardGoto(fromStep - 1);
+};
+
+window.onboardGoto = function(step) {
+  for (var i = 1; i <= 5; i++) {
+    var s = document.getElementById('ob-step-' + i);
+    var d = document.getElementById('ob-dot-' + i);
+    if (s) s.style.display = i === step ? 'block' : 'none';
+    if (d) {
+      d.style.background = i < step ? 'var(--teal)' : i === step ? 'var(--purple)' : 'rgba(255,255,255,.1)';
+    }
+  }
+};
+
+window.onboardRunIntelligence = async function() {
+  var stages = ['ob-ai-stage-0','ob-ai-stage-1','ob-ai-stage-2','ob-ai-stage-3'];
+  var labels  = ['ob-ai-st0','ob-ai-st1','ob-ai-st2','ob-ai-st3'];
+
+  function setStage(i, status) {
+    var el = document.getElementById(stages[i]);
+    var lb = document.getElementById(labels[i]);
+    if (el) el.style.opacity = status === 'done' ? '1' : status === 'running' ? '1' : '.35';
+    if (lb) {
+      lb.textContent = status;
+      lb.style.color = status === 'done' ? 'var(--teal)' : status === 'running' ? 'var(--yellow)' : 'var(--dimmer)';
+    }
+  }
+
+  var msg = document.getElementById('ob-step3-msg');
+  var errEl = document.getElementById('ob-step3-error');
+
+  try {
+    setStage(0, 'running');
+    if (msg) msg.textContent = 'Mapping your audience psychology…';
+
+    // Set app mode
+    if (typeof window.setAppMode === 'function') window.setAppMode(window._obMode);
+
+    var intel;
+    if (window._obMode === 'expert') {
+      // Pre-populate key fields so boardroom has something to work with
+      var nicheEl = document.getElementById('offer_niche') || document.getElementById('inp-niche');
+      var offerEl = document.getElementById('offer_name');
+      var priceEl = document.getElementById('inp-price');
+      if (nicheEl) nicheEl.value = window._obData.niche;
+      if (offerEl) offerEl.value = window._obData.offer;
+      if (priceEl) priceEl.value = window._obData.price;
+
+      // Call Claude directly for a quick intelligence build
+      var resp = await fetch(window.location.origin + '/api/claude', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514', max_tokens: 1500,
+          system: 'You are an elite business strategist. Return ONLY valid JSON — no markdown.',
+          messages: [{ role: 'user', content: 'Build quick intelligence for a ' + window._obData.niche + ' business selling "' + window._obData.offer + '" at $' + (window._obData.price||'997') + '.\n\nReturn: { "hook": "best viral hook for this offer max 10 words", "dm_opener": "first DM message to send a cold prospect (2-3 sentences, specific to this niche, NO generic phrases)", "content_angle": "the single best content angle to establish authority in ' + window._obData.niche + ' (1-2 sentences)", "pain": "the deepest pain this audience has", "transformation": "the transformation they want" }' }]
+        })
+      });
+      setStage(0, 'done'); setStage(1, 'running');
+      if (msg) msg.textContent = 'Writing your copy vault…';
+      var data = await resp.json();
+      var text  = ((data.content||[])[0]||{}).text || '';
+      intel = JSON.parse(text.replace(/```json|```/g,'').trim());
+
+    } else {
+      // Affiliate mode — call generate-affiliate
+      setStage(0, 'running');
+      if (msg) msg.textContent = 'Reading your affiliate offer page…';
+      var aResp = await fetch(window.location.origin + '/api/generate-affiliate', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'avatar', productUrl: window._obData.url, niche: window._obData.niche, commission: window._obData.commission || 500, monthlyTarget: 3000, trafficMode: 'organic' })
+      });
+      setStage(0, 'done'); setStage(1, 'running');
+      if (msg) msg.textContent = 'Writing your copy vault…';
+      var av = await aResp.json();
+      intel = {
+        hook:            av.contentAngles && av.contentAngles[0] ? av.contentAngles[0] : 'This changed everything for me',
+        dm_opener:       av.dmHooks && av.dmHooks[0] ? av.dmHooks[0] : 'I found something that genuinely worked for ' + (av.job||'people like you'),
+        content_angle:   av.tried ? 'Most people in ' + (window._obData.niche||'this space') + ' have already tried ' + av.tried + ' without results — here\'s what actually works' : 'The real reason people fail in ' + (window._obData.niche||'this space'),
+        pain:            av.pain || 'their biggest challenge',
+        transformation:  av.transformation || 'their desired outcome',
+      };
+      window._affiliateOffer = av;
+    }
+
+    setStage(1, 'done'); setStage(2, 'running');
+    if (msg) msg.textContent = 'Crafting your DM scripts…';
+    await new Promise(function(r){ setTimeout(r, 800); });
+    setStage(2, 'done'); setStage(3, 'running');
+    if (msg) msg.textContent = 'Building your content engine…';
+    await new Promise(function(r){ setTimeout(r, 600); });
+    setStage(3, 'done');
+
+    window._obIntel = intel;
+
+    // Populate preview
+    var hookEl  = document.getElementById('ob-preview-hook');
+    var dmEl    = document.getElementById('ob-preview-dm');
+    var angEl   = document.getElementById('ob-preview-angle');
+    if (hookEl) hookEl.textContent = intel.hook || '—';
+    if (dmEl)   dmEl.textContent   = intel.dm_opener || '—';
+    if (angEl)  angEl.textContent  = intel.content_angle || '—';
+
+    // Store in global intel
+    if (window._obMode === 'expert') {
+      window._boardroomIntel = window._boardroomIntel || {};
+      window._boardroomIntel.copyVault = { hooks: [intel.hook] };
+      window._boardroomIntel.inputs    = { niche: window._obData.niche, offerName: window._obData.offer, price: window._obData.price };
+    } else {
+      window._affiliateOffer = window._affiliateOffer || {};
+      window._affiliateOffer.name  = window._obData.url;
+      window._affiliateOffer.niche = window._obData.niche;
+      window._affiliateOffer.pain  = intel.pain;
+      window._affiliateOffer.transformation = intel.transformation;
+    }
+
+    await new Promise(function(r){ setTimeout(r, 400); });
+    onboardGoto(4);
+
+  } catch(e) {
+    console.warn('[Onboard] Intelligence failed:', e.message);
+    if (errEl) { errEl.textContent = 'Something went wrong — ' + e.message + '. You can complete setup manually.'; errEl.style.display = 'block'; }
+    // Move to step 4 anyway with placeholder data
+    window._obIntel = { hook: 'This is the content that changes everything', dm_opener: 'I\'ve been following you — I found something that directly addresses ' + (window._obData.niche||'your niche') + '.', content_angle: 'The #1 mistake people make in ' + (window._obData.niche||'this space') };
+    var hk = document.getElementById('ob-preview-hook'); if (hk) hk.textContent = window._obIntel.hook;
+    var dm = document.getElementById('ob-preview-dm');   if (dm) dm.textContent = window._obIntel.dm_opener;
+    var an = document.getElementById('ob-preview-angle');if (an) an.textContent = window._obIntel.content_angle;
+    setTimeout(function(){ onboardGoto(4); }, 1500);
+  }
+};
+
+window.onboardLaunch = function(destination) {
+  onboardComplete();
+  if (destination === 'carousel') {
+    showPage('ai-video', document.getElementById('nav-ai-video'));
+    setTimeout(function() {
+      if (typeof window.csShowTab === 'function') {
+        var btns = document.querySelectorAll('.cs-tab-btn');
+        btns.forEach(function(b){ if (b.textContent.includes('Carousel')) window.csShowTab('carousel', b); });
+      }
+    }, 400);
+  } else if (destination === 'reel') {
+    showPage('ai-video', document.getElementById('nav-ai-video'));
+  } else if (destination === 'dms') {
+    showPage('scripts', document.getElementById('nav-scripts'));
+  }
+};
+
+// ── Hook into Firebase auth to trigger check after login ──────────
+(function() {
+  var _origSetMode = window.setAppMode;
+  window.setAppMode = function(mode) {
+    if (_origSetMode) _origSetMode.apply(this, arguments);
+    // Delay slightly so Firestore connection is ready
+    setTimeout(function() {
+      if (window._currentUserUid) onboardCheck();
+    }, 2000);
+  };
+})();
+
+
+// ══════════════════════════════════════════════════════════════════
+// LEAD PIPELINE TRACKER
+// ══════════════════════════════════════════════════════════════════
+window._leads        = [];
+window._leadsFilter  = 'all';
+window._leadsEditId  = null; // ID being edited in modal
+
+// ── Mode-aware status definitions ────────────────────────────────
+var LEAD_STATUSES_EXPERT = {
+  cold:    { label: '🧊 Cold',       color: '#60a5fa', bg: 'rgba(96,165,250,.1)',  border: 'rgba(96,165,250,.25)' },
+  warm:    { label: '☀️ Warm',        color: '#fbbf24', bg: 'rgba(251,191,36,.1)',  border: 'rgba(251,191,36,.25)' },
+  hot:     { label: '🔥 Hot',         color: '#f97316', bg: 'rgba(249,115,22,.1)',  border: 'rgba(249,115,22,.25)' },
+  booked:  { label: '📅 Booked',      color: '#a089ff', bg: 'rgba(160,137,255,.1)', border: 'rgba(160,137,255,.25)' },
+  won:     { label: '✅ Closed Won',  color: '#4ecca3', bg: 'rgba(78,204,163,.1)',  border: 'rgba(78,204,163,.25)' },
+  lost:    { label: '❌ Lost',        color: '#ef4444', bg: 'rgba(239,68,68,.1)',   border: 'rgba(239,68,68,.25)' },
+};
+
+var LEAD_STATUSES_AFFILIATE = {
+  cold:       { label: '🧊 Cold',         color: '#60a5fa', bg: 'rgba(96,165,250,.1)',  border: 'rgba(96,165,250,.25)' },
+  replied:    { label: '💬 Replied',       color: '#fbbf24', bg: 'rgba(251,191,36,.1)',  border: 'rgba(251,191,36,.25)' },
+  interested: { label: '👀 Interested',    color: '#f97316', bg: 'rgba(249,115,22,.1)',  border: 'rgba(249,115,22,.25)' },
+  sent:       { label: '🔗 Link Sent',     color: '#a089ff', bg: 'rgba(160,137,255,.1)', border: 'rgba(160,137,255,.25)' },
+  won:        { label: '✅ Converted',     color: '#4ecca3', bg: 'rgba(78,204,163,.1)',  border: 'rgba(78,204,163,.25)' },
+  lost:       { label: '❌ Lost',          color: '#ef4444', bg: 'rgba(239,68,68,.1)',   border: 'rgba(239,68,68,.25)' },
+};
+
+// Returns the correct status set for the current mode
+function getLeadStatuses() {
+  return (window._appMode || 'affiliate') === 'affiliate'
+    ? LEAD_STATUSES_AFFILIATE
+    : LEAD_STATUSES_EXPERT;
+}
+
+// LEAD_STATUSES is accessed via getLeadStatuses() throughout
+
+var PLATFORM_ICONS = { Facebook:'💙', Instagram:'💜', WhatsApp:'💚', LinkedIn:'🔷', TikTok:'⬛', Other:'💬' };
+
+// ── Render mode-aware pipeline filter bar ─────────────────────────
+window.leadsRenderPipelineBar = function() {
+  var bar = document.getElementById('leads-pipeline-bar');
+  if (!bar) return;
+  var statuses = getLeadStatuses();
+  var activeFilter = window._leadsFilter || 'all';
+  var btnStyle = 'padding:7px 16px;border-radius:50px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:Poppins,sans-serif;transition:all .15s;';
+  var html = '<button class="leads-filter-btn' + (activeFilter==='all'?' on':'') + '" onclick="leadsSetFilter(\'all\',this)" style="' + btnStyle + (activeFilter==='all' ? 'border:1px solid rgba(108,99,255,.35);background:rgba(108,99,255,.12);color:#a089ff;' : 'border:1px solid var(--border2);background:transparent;color:var(--dim);') + '">All</button>';
+  Object.keys(statuses).forEach(function(k) {
+    var isActive = activeFilter === k;
+    html += '<button class="leads-filter-btn' + (isActive?' on':'') + '" onclick="leadsSetFilter(\'' + k + '\',this)" style="' + btnStyle + (isActive ? 'border:1px solid rgba(108,99,255,.35);background:rgba(108,99,255,.12);color:#a089ff;' : 'border:1px solid var(--border2);background:transparent;color:var(--dim);') + '">' + statuses[k].label + '</button>';
+  });
+  bar.innerHTML = html;
+};
+
+// ── Load leads from localStorage + Firestore ──────────────────────
+window.leadsLoad = function() {
+  try {
+    var raw = localStorage.getItem('eos_leads');
+    window._leads = raw ? JSON.parse(raw) : [];
+  } catch(e) { window._leads = []; }
+  leadsRenderPipelineBar();
+  leadsRender();
+};
+
+window.leadsSave = function() {
+  try { localStorage.setItem('eos_leads', JSON.stringify(window._leads)); } catch(e) {}
+  // Sync to Firestore
+  try {
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      window._setDoc(window._doc(window._db,'users',window._currentUserUid),
+        { leads: window._leads }, { merge: true }).catch(function(){});
+    }
+  } catch(e) {}
+};
+
+// ── Render the leads list ─────────────────────────────────────────
+window.leadsRender = function() {
+  var list   = document.getElementById('leads-list');
+  var empty  = document.getElementById('leads-empty');
+  if (!list) return;
+
+  var filtered = window._leads.filter(function(l) {
+    if (window._leadsFilter === 'all') return true;
+    return l.status === window._leadsFilter;
+  });
+
+  // Sort: overdue follow-ups first, then by addedAt desc
+  var now = Date.now();
+  filtered.sort(function(a,b) {
+    var aOverdue = a.followUpDate && new Date(a.followUpDate).getTime() < now ? 1 : 0;
+    var bOverdue = b.followUpDate && new Date(b.followUpDate).getTime() < now ? 1 : 0;
+    if (aOverdue !== bOverdue) return bOverdue - aOverdue;
+    return new Date(b.addedAt||0) - new Date(a.addedAt||0);
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+  } else {
+    if (empty) empty.style.display = 'none';
+    list.innerHTML = filtered.map(function(lead) {
+      var S   = getLeadStatuses()[lead.status] || getLeadStatuses().cold;
+      var PI  = PLATFORM_ICONS[lead.platform] || '💬';
+      var now = Date.now();
+      var overdue = lead.followUpDate && new Date(lead.followUpDate).getTime() < now && lead.status !== 'won' && lead.status !== 'lost';
+      var fuDate  = lead.followUpDate ? new Date(lead.followUpDate).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+      return '<div style="background:var(--card);border:1px solid ' + (overdue ? 'rgba(239,68,68,.3)' : 'var(--border2)') + ';border-radius:var(--r-lg);padding:14px 16px;cursor:pointer;transition:all .15s" onclick="leadsOpenDetail(\'' + lead.id + '\')">'
+        + '<div style="display:flex;align-items:center;gap:10px">'
+        + '<div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;font-weight:900;color:#fff">' + ((lead.name||'?')[0]||'?').toUpperCase() + '</div>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="display:flex;align-items:center;gap:6px">'
+        + '<div style="font-size:13px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">' + (lead.name||'Unknown') + '</div>'
+        + (overdue ? '<div style="padding:1px 6px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.25);border-radius:4px;font-size:8px;font-weight:800;color:#ef4444">FOLLOW UP</div>' : '')
+        + '</div>'
+        + '<div style="font-size:10px;color:var(--dim);margin-top:2px">' + PI + ' ' + (lead.platform||'') + (lead.handle ? ' · @' + lead.handle : '') + '</div>'
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">'
+        + '<span style="padding:3px 10px;border-radius:50px;background:' + S.bg + ';border:1px solid ' + S.border + ';color:' + S.color + ';font-size:9px;font-weight:700">' + S.label + '</span>'
+        + (fuDate ? '<span style="font-size:9px;color:' + (overdue?'var(--red)':'var(--dimmer)') + '">' + fuDate + '</span>' : '')
+        + '</div>'
+        + '</div>'
+        + (lead.notes ? '<div style="font-size:11px;color:var(--dim);margin-top:8px;border-top:1px solid var(--border3);padding-top:8px;line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">' + lead.notes + '</div>' : '')
+        + '</div>';
+    }).join('');
+  }
+
+  leadsUpdateStats();
+};
+
+// ── Update stats bar ──────────────────────────────────────────────
+window.leadsUpdateStats = function() {
+  var leads = window._leads;
+  var now   = Date.now();
+  document.getElementById('leads-stat-total').textContent    = leads.length;
+  document.getElementById('leads-stat-hot').textContent      = leads.filter(function(l){ return l.status==='hot'; }).length;
+  document.getElementById('leads-stat-closed').textContent   = leads.filter(function(l){ return l.status==='won'; }).length;
+  document.getElementById('leads-stat-followup').textContent = leads.filter(function(l){ return l.followUpDate && new Date(l.followUpDate).getTime()<now && l.status!=='won' && l.status!=='lost'; }).length;
+};
+
+// ── Set filter ────────────────────────────────────────────────────
+window.leadsSetFilter = function(filter, btn) {
+  window._leadsFilter = filter;
+  document.querySelectorAll('.leads-filter-btn').forEach(function(b){
+    b.style.background  = 'transparent';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color       = 'var(--dim)';
+    b.classList.remove('on');
+  });
+  if (btn) {
+    btn.style.background  = 'rgba(108,99,255,.12)';
+    btn.style.borderColor = 'rgba(108,99,255,.35)';
+    btn.style.color       = '#a089ff';
+    btn.classList.add('on');
+  }
+  leadsRender();
+};
+
+// ── Open Add Lead modal ───────────────────────────────────────────
+window.leadsOpenAddModal = function() {
+  window._leadsEditId = null;
+  leadsShowModal({
+    name:'', handle:'', platform:'Instagram', status:'cold', notes:'', followUpDate:'', activity:[]
+  }, false);
+};
+
+// ── Open lead detail ──────────────────────────────────────────────
+window.leadsOpenDetail = function(id) {
+  var lead = window._leads.find(function(l){ return l.id === id; });
+  if (!lead) return;
+  window._leadsEditId = id;
+  leadsShowModal(lead, true);
+};
+
+// ── Show modal ────────────────────────────────────────────────────
+window.leadsShowModal = function(lead, isEdit) {
+  var overlay = document.getElementById('leads-modal-overlay');
+  var content = document.getElementById('leads-modal-content');
+  if (!overlay || !content) return;
+
+  var S = getLeadStatuses()[lead.status] || getLeadStatuses().cold;
+
+  var statusOptions = Object.keys(getLeadStatuses()).map(function(k) {
+    return '<option value="' + k + '"' + (k===lead.status?' selected':'') + '>' + getLeadStatuses()[k].label + '</option>';
+  }).join('');
+
+  var platformOptions = Object.keys(PLATFORM_ICONS).map(function(p) {
+    return '<option value="' + p + '"' + (p===lead.platform?' selected':'') + '>' + PLATFORM_ICONS[p] + ' ' + p + '</option>';
+  }).join('');
+
+  var activityLog = (lead.activity||[]).map(function(a) {
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--border3);font-size:11px;color:var(--dim)">'
+      + '<span style="color:var(--dimmer);margin-right:8px">' + new Date(a.date).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) + '</span>'
+      + a.note + '</div>';
+  }).join('');
+
+  content.innerHTML = '<div style="padding-right:24px">'
+    + '<div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:20px">' + (isEdit ? 'Lead Detail' : 'Add New Lead') + '</div>'
+    // Name + Handle
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
+    + '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Name</div><input id="lm-name" class="fi" value="' + (lead.name||'') + '" placeholder="Full name" /></div>'
+    + '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Handle</div><input id="lm-handle" class="fi" value="' + (lead.handle||'') + '" placeholder="@username" /></div>'
+    + '</div>'
+    // Platform + Status
+    + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
+    + '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Platform</div><select id="lm-platform" class="fi">' + platformOptions + '</select></div>'
+    + '<div><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Status</div><select id="lm-status" class="fi">' + statusOptions + '</select></div>'
+    + '</div>'
+    // Follow-up date
+    + '<div style="margin-bottom:12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Follow-up date</div><input id="lm-followup" class="fi" type="date" value="' + (lead.followUpDate||'') + '" /></div>'
+    // Notes
+    + '<div style="margin-bottom:16px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Notes</div><textarea id="lm-notes" class="fi" rows="3" placeholder="What did they say? What are their objections? What matters to them?">' + (lead.notes||'') + '</textarea></div>'
+    // Action buttons
+    + '<div style="display:flex;gap:8px;margin-bottom:' + (isEdit ? '16px' : '0') + '">'
+    + '<button onclick="leadsSaveModal(' + (isEdit?'true':'false') + ')" style="flex:2;padding:12px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer">' + (isEdit?'Save Changes':'Add Lead') + '</button>'
+    + (isEdit ? '<button onclick="leadsGetScript()" style="flex:1;padding:12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:50px;color:var(--teal);font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">💬 Get Script</button>' : '')
+    + (isEdit ? '<button onclick="leadsDeleteLead(\'' + lead.id + '\')" style="flex-shrink:0;padding:12px 16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:50px;color:var(--red);font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">Delete</button>' : '')
+    + '</div>'
+    // Activity log (edit only)
+    + (isEdit ? '<div style="border-top:1px solid var(--border2);padding-top:14px;margin-top:4px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:10px">Activity Log</div>'
+      + (activityLog || '<div style="font-size:11px;color:var(--dimmer)">No activity logged yet.</div>')
+      + '<div style="display:flex;gap:8px;margin-top:10px"><input id="lm-activity-note" class="fi" placeholder="Log a note, call result, or message sent…" style="flex:1" />'
+      + '<button onclick="leadsLogActivity(\'' + lead.id + '\')" style="flex-shrink:0;padding:9px 16px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:50px;color:#a089ff;font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">+ Log</button></div>'
+      + '</div>' : '')
+    + '</div>';
+
+  overlay.style.display = 'block';
+};
+
+// ── Save modal ────────────────────────────────────────────────────
+window.leadsSaveModal = function(isEdit) {
+  var name      = (document.getElementById('lm-name')     ||{}).value||'';
+  var handle    = (document.getElementById('lm-handle')   ||{}).value||'';
+  var platform  = (document.getElementById('lm-platform') ||{}).value||'Instagram';
+  var status    = (document.getElementById('lm-status')   ||{}).value||'cold';
+  var followUp  = (document.getElementById('lm-followup') ||{}).value||'';
+  var notes     = (document.getElementById('lm-notes')    ||{}).value||'';
+  if (!name) { alert('Please enter a name.'); return; }
+
+  if (isEdit && window._leadsEditId) {
+    var lead = window._leads.find(function(l){ return l.id === window._leadsEditId; });
+    if (lead) {
+      lead.name = name; lead.handle = handle; lead.platform = platform;
+      lead.status = status; lead.followUpDate = followUp; lead.notes = notes;
+      lead.updatedAt = new Date().toISOString();
+    }
+  } else {
+    window._leads.push({
+      id:           'lead_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+      name:name, handle:handle, platform:platform, status:status,
+      followUpDate:followUp, notes:notes, activity:[],
+      addedAt:  new Date().toISOString(),
+      updatedAt:new Date().toISOString(),
+    });
+  }
+  leadsSave();
+  leadsCloseModal();
+  leadsRender();
+};
+
+// ── Log activity ──────────────────────────────────────────────────
+window.leadsLogActivity = function(id) {
+  var note = (document.getElementById('lm-activity-note')||{}).value||'';
+  if (!note) return;
+  var lead = window._leads.find(function(l){ return l.id === id; });
+  if (!lead) return;
+  if (!lead.activity) lead.activity = [];
+  lead.activity.unshift({ date: new Date().toISOString(), note: note });
+  lead.updatedAt = new Date().toISOString();
+  leadsSave();
+  // Re-render the activity log in the modal
+  leadsOpenDetail(id);
+};
+
+// ── Delete lead ───────────────────────────────────────────────────
+window.leadsDeleteLead = function(id) {
+  if (!confirm('Delete this lead?')) return;
+  window._leads = window._leads.filter(function(l){ return l.id !== id; });
+  leadsSave();
+  leadsCloseModal();
+  leadsRender();
+};
+
+// ── Get DM script based on lead status — mode-aware ──────────────
+window.leadsGetScript = function() {
+  var status    = (document.getElementById('lm-status')||{}).value || 'cold';
+  var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+  leadsCloseModal();
+  showPage('scripts', document.getElementById('nav-scripts'));
+  setTimeout(function() {
+    // Expert: call-booking pipeline  |  Affiliate: link-sending pipeline
+    var scriptTypeMap = isAffiliate
+      ? { cold:'opener', replied:'follow-up', interested:'value-add', sent:'follow-up', won:'referral', lost:'re-engage' }
+      : { cold:'opener', warm:'follow-up',   hot:'closing',          booked:'pre-call', won:'referral', lost:'re-engage' };
+    window._leadsRequestedScriptType = scriptTypeMap[status] || 'opener';
+    document.dispatchEvent(new CustomEvent('leadScriptRequest', { detail: { status: status, isAffiliate: isAffiliate } }));
+  }, 400);
+};
+
+// ── Close modal ───────────────────────────────────────────────────
+window.leadsCloseModal = function() {
+  var overlay = document.getElementById('leads-modal-overlay');
+  if (overlay) overlay.style.display = 'none';
+  window._leadsEditId = null;
+};
+
+// ── Hook into showPage to load leads on navigation ────────────────
+(function() {
+  var _origShow = window.showPage;
+  window.showPage = function(page, nav) {
+    if (_origShow) _origShow.apply(this, arguments);
+    if (page === 'leads') {
+      setTimeout(function() {
+        // Update subtitle and pipeline bar for current mode
+        var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+        var subEl = document.getElementById('leads-page-sub');
+        if (subEl) subEl.textContent = isAffiliate
+          ? 'Track every DM conversation. Cold → Replied → Interested → Link Sent → Converted.'
+          : 'Track every conversation from cold to closed. Know exactly who to follow up and when.';
+        leadsLoad();
+        // Also load from Firestore if available
+        if (window._db && window._currentUserUid && window._getDoc && window._doc) {
+          window._getDoc(window._doc(window._db,'users',window._currentUserUid)).then(function(snap) {
+            if (snap && snap.exists && snap.exists()) {
+              var d = snap.data ? snap.data() : {};
+              if (d.leads && d.leads.length) {
+                window._leads = d.leads;
+                leadsRenderPipelineBar();
+                leadsRender();
+              }
+            }
+          }).catch(function(){});
+        }
+      }, 80);
+    }
+  };
+})();
+
+// Add nav-leads to both modes in setAppMode
+(function() {
+  var _origSetNav = window.setNav;
+  // nav-leads is always shown in both modes — add it to the guaranteed list
+  var existingGuarantee = document.getElementById('nav-leads');
+  if (existingGuarantee) existingGuarantee.style.display = 'flex';
+})();
+
+console.log('[EOS] Onboarding wizard + Lead Pipeline loaded ✅');
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// AFFILIATE LINK TRACKING SYSTEM
+// ══════════════════════════════════════════════════════════════════
+
+window._affTrackingSlug  = null;
+window._laUnsub          = null; // Firestore listener unsubscribe
+window._laClicks         = [];   // cached click events
+
+// ── Generate a short random slug ─────────────────────────────────
+function _laGenSlug(len) {
+  var chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  var slug  = '';
+  for (var i = 0; i < (len || 8); i++) {
+    slug += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return slug;
+}
+
+// ── Get or create tracking link for this user ─────────────────────
+window.affInitTrackingLink = async function() {
+  var uid = window._currentUserUid;
+  var url = window._affiliateOffer && (window._affiliateOffer.url || window._affiliateOffer.productUrl);
+  if (!uid || !url) return;
+
+  // Check if a slug already exists for this user
+  try {
+    if (window._db && window._getDoc && window._doc) {
+      var snap = await window._getDoc(window._doc(window._db, 'links', uid));
+      if (snap && snap.exists && snap.exists()) {
+        var data = snap.data ? snap.data() : {};
+        window._affTrackingSlug = data.slug;
+      }
+    }
+  } catch(e) {}
+
+  // Create a new slug if none exists
+  if (!window._affTrackingSlug) {
+    window._affTrackingSlug = _laGenSlug(8);
+    try {
+      if (window._db && window._setDoc && window._doc) {
+        await window._setDoc(window._doc(window._db, 'links', uid), {
+          slug:        window._affTrackingSlug,
+          originalUrl: url,
+          userId:      uid,
+          createdAt:   new Date().toISOString(),
+          totalClicks:  0,
+          uniqueClicks: 0,
+          active:      true,
+        });
+      }
+    } catch(e) {
+      console.warn('[tracking] Could not save slug:', e.message);
+    }
+    // Fallback: store in localStorage
+    try { localStorage.setItem('eos_aff_slug_' + uid, window._affTrackingSlug); } catch(e) {}
+  }
+
+  // Display the tracking link
+  affShowTrackingLink();
+};
+
+// ── Display the tracking link in the strip ───────────────────────
+window.affShowTrackingLink = function() {
+  var slug  = window._affTrackingSlug;
+  if (!slug) return;
+  var origin = window.location.origin || 'https://build.skillslibrary.com';
+  var link   = origin + '/r/' + slug;
+  var strip  = document.getElementById('aff-tracking-strip');
+  var input  = document.getElementById('aff-tracking-link-input');
+  if (strip) strip.style.display = 'block';
+  if (input) input.value = link;
+  window._affTrackingLink = link;
+};
+
+// ── Copy tracking link ────────────────────────────────────────────
+window.affCopyTrackingLink = function() {
+  var link = window._affTrackingLink || (document.getElementById('aff-tracking-link-input')||{}).value;
+  if (!link) return;
+  navigator.clipboard && navigator.clipboard.writeText(link).catch(function(){});
+  var btn = document.getElementById('aff-copy-link-btn');
+  if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = 'Copy'; }, 2000); }
+};
+
+// ── Start Firestore real-time listener for click events ───────────
+window.laStartListener = function() {
+  var uid = window._currentUserUid;
+  if (!uid || !window._db || !window._onSnapshot || !window._collection || !window._query || !window._orderBy || !window._limit) return;
+  if (window._laUnsub) return; // already listening
+
+  try {
+    var eventsRef = window._collection(window._db, 'clicks', uid, 'events');
+    // Order by timestamp desc, last 100 clicks
+    var q = window._query(eventsRef, window._orderBy('timestampMs','desc'), window._limit(100));
+    window._laUnsub = window._onSnapshot(q, function(snapshot) {
+      window._laClicks = [];
+      snapshot.forEach(function(doc) {
+        window._laClicks.push(doc.data());
+      });
+      laRenderAnalytics(window._laClicks);
+    }, function(err) {
+      console.warn('[analytics] Listener error:', err.message);
+    });
+  } catch(e) {
+    console.warn('[analytics] Could not start listener:', e.message);
+  }
+};
+
+// ── Render analytics from click array ────────────────────────────
+window.laRenderAnalytics = function(clicks) {
+  if (!clicks || !clicks.length) {
+    var empty = document.getElementById('la-empty');
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  var empty2 = document.getElementById('la-empty');
+  if (empty2) empty2.style.display = 'none';
+
+  // Get totals from link document (more reliable than counting events)
+  var total   = clicks.length;
+  var unique  = new Set(clicks.map(function(c){ return c.ip; })).size;
+
+  // Top country
+  var countryCounts = _laCount(clicks, 'country');
+  var topCountry    = Object.keys(countryCounts)[0] || '—';
+
+  // Last click time
+  var latest   = clicks[0];
+  var lastTime = latest ? _laTimeAgo(latest.timestampMs) : '—';
+
+  // Update stat cards
+  _laSet('la-total-clicks',  total);
+  _laSet('la-unique-clicks', unique);
+  _laSet('la-top-country',   topCountry);
+  _laSet('la-last-click',    lastTime);
+
+  // Render breakdown bars
+  laRenderBars('la-countries', countryCounts, total, true);
+  laRenderBars('la-sources',   _laCount(clicks, 'source'),  total, false);
+  laRenderBars('la-devices',   _laCount(clicks, 'device'),  total, false);
+
+  // Cities (text list, no bar)
+  var cityCounts = _laCount(clicks, 'city');
+  var cityEl = document.getElementById('la-cities');
+  if (cityEl) {
+    cityEl.innerHTML = Object.keys(cityCounts).slice(0,6).map(function(city) {
+      return '<div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);padding:3px 0">'
+        + '<span>' + city + '</span><span style="color:var(--dim);font-weight:700">' + cityCounts[city] + '</span></div>';
+    }).join('') || '<div style="font-size:11px;color:var(--dimmer);text-align:center">No data yet</div>';
+  }
+
+  // Live feed
+  var feedEl = document.getElementById('la-live-feed');
+  if (feedEl) {
+    feedEl.innerHTML = clicks.slice(0,15).map(function(c) {
+      var flag = _laFlag(c.countryCode || '');
+      return '<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)">'
+        + '<span style="font-size:14px;flex-shrink:0">' + flag + '</span>'
+        + '<div style="flex:1;min-width:0">'
+        + '<div style="font-size:10px;font-weight:700;color:var(--muted)">' + (c.city||'Unknown') + ', ' + (c.country||'Unknown') + '</div>'
+        + '<div style="font-size:9px;color:var(--dimmer)">' + (c.source||'Direct') + ' · ' + (c.device||'Unknown') + ' · ' + (c.browser||'') + '</div>'
+        + '</div>'
+        + '<span style="font-size:9px;color:var(--dimmer);flex-shrink:0">' + _laTimeAgo(c.timestampMs) + '</span>'
+        + '</div>';
+    }).join('') || '<div style="font-size:11px;color:var(--dimmer);text-align:center;padding:16px">Waiting for clicks…</div>';
+  }
+};
+
+// ── Render percentage bars for a breakdown ───────────────────────
+function laRenderBars(elId, counts, total, showFlag) {
+  var el = document.getElementById(elId);
+  if (!el) return;
+  var keys = Object.keys(counts).slice(0,5);
+  if (!keys.length) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--dimmer);text-align:center;padding:8px">No data yet</div>';
+    return;
+  }
+  el.innerHTML = keys.map(function(key) {
+    var count = counts[key];
+    var pct   = total > 0 ? Math.round((count / total) * 100) : 0;
+    var flag  = showFlag ? _laFlag(key === 'Nigeria' ? 'NG' : '') + ' ' : '';
+    return '<div style="margin-bottom:4px">'
+      + '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:3px">'
+      + '<span>' + flag + key + '</span><span style="font-weight:700">' + pct + '%<span style="color:var(--dimmer);font-weight:500"> (' + count + ')</span></span></div>'
+      + '<div style="height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--purple),var(--teal));border-radius:3px;transition:width .5s ease"></div>'
+      + '</div></div>';
+  }).join('');
+}
+
+// ── Helpers ───────────────────────────────────────────────────────
+function _laSet(id, val) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+function _laCount(arr, key) {
+  var counts = {};
+  arr.forEach(function(item) {
+    var v = item[key] || 'Unknown';
+    counts[v] = (counts[v] || 0) + 1;
+  });
+  // Sort by count desc
+  return Object.fromEntries(
+    Object.entries(counts).sort(function(a,b){ return b[1]-a[1]; })
+  );
+}
+
+function _laTimeAgo(ms) {
+  if (!ms) return '—';
+  var diff = Date.now() - ms;
+  if (diff < 60000)  return Math.floor(diff/1000) + 's ago';
+  if (diff < 3600000)return Math.floor(diff/60000) + 'm ago';
+  if (diff < 86400000)return Math.floor(diff/3600000) + 'h ago';
+  return Math.floor(diff/86400000) + 'd ago';
+}
+
+function _laFlag(countryCode) {
+  if (!countryCode || countryCode.length !== 2) return '🌐';
+  // Convert country code to regional indicator emoji
+  var cc = countryCode.toUpperCase();
+  return String.fromCodePoint(cc.charCodeAt(0)+127397) + String.fromCodePoint(cc.charCodeAt(1)+127397);
+}
+
+// ── Hook into showAffActiveTab ────────────────────────────────────
+(function() {
+  var _origShowAffTab = window.showAffActiveTab;
+  window.showAffActiveTab = function(tab, btn) {
+    if (_origShowAffTab) _origShowAffTab.apply(this, arguments);
+    if (tab === 'link-analytics') {
+      // Start listener if not already running
+      setTimeout(function() {
+        laStartListener();
+        // Render cached clicks if available
+        if (window._laClicks && window._laClicks.length) {
+          laRenderAnalytics(window._laClicks);
+        }
+      }, 120);
+    }
+  };
+})();
+
+// ── Hook into analyseAffiliateProduct completion ──────────────────
+// When Offer Setup finishes, generate the tracking link automatically
+(function() {
+  var _origActivateGlobal = window.brActivateGlobalIntelligence;
+  window.brActivateGlobalIntelligence = function(intel) {
+    if (_origActivateGlobal) _origActivateGlobal.apply(this, arguments);
+    // Only init tracking link in affiliate mode
+    if ((window._appMode || 'affiliate') === 'affiliate' && window._affiliateOffer && window._affiliateOffer.url) {
+      setTimeout(window.affInitTrackingLink, 500);
+    }
+  };
+})();
+
+// Also init when mode is set (for returning users)
+(function() {
+  var _origSetMode = window.setAppMode;
+  window.setAppMode = function(mode) {
+    if (_origSetMode) _origSetMode.apply(this, arguments);
+    if (mode === 'affiliate' && window._affiliateOffer && window._affiliateOffer.url) {
+      setTimeout(window.affInitTrackingLink, 800);
+    }
+  };
+})();
+
+console.log('[EOS] Link Tracking system loaded ✅');
 </script>
 </body>
 </html>
