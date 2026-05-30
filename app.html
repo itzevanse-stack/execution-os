@@ -4965,6 +4965,24 @@ button[onclick="generateOffer()"] {
 
       <!-- Link Analytics Tab Panel -->
       <div id="aff-tab-link-analytics" style="display:none">
+
+        <!-- Your tracking link — always visible at the top -->
+        <div class="card-dark" style="margin-bottom:16px">
+          <div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">🔗 Your Tracking Link</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:12px;line-height:1.6">Paste this as the destination URL behind any CTA button — in Systeme.io, ClickFunnels, GoHighLevel, your website, email, or anywhere else. Every click is tracked regardless of which tool you use.</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <input id="la-tracking-link-input" readonly style="flex:1;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:9px 12px;font-size:11px;color:var(--white);font-family:monospace;outline:none" placeholder="Generating your link…" />
+            <button onclick="laCopyTrackingLink()" id="la-copy-link-btn" style="flex-shrink:0;padding:9px 18px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;box-shadow:0 4px 12px rgba(108,99,255,.3)">Copy Link</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:9px;color:var(--dimmer)">Works with:</span>
+            <span style="font-size:9px;padding:2px 8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;color:var(--dim)">Systeme.io</span>
+            <span style="font-size:9px;padding:2px 8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;color:var(--dim)">ClickFunnels</span>
+            <span style="font-size:9px;padding:2px 8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;color:var(--dim)">GoHighLevel</span>
+            <span style="font-size:9px;padding:2px 8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;color:var(--dim)">WordPress</span>
+            <span style="font-size:9px;padding:2px 8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:4px;color:var(--dim)">Any page builder</span>
+          </div>
+        </div>
         <!-- Live stats bar -->
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
           <div class="card-dark" style="text-align:center">
@@ -34609,6 +34627,8 @@ window.affShowTrackingLink = function() {
   if (strip) strip.style.display = 'block';
   if (input) input.value = link;
   window._affTrackingLink = link;
+  // Also populate the analytics tab input
+  if (typeof window.laPopulateTrackingLink === 'function') window.laPopulateTrackingLink();
 };
 
 // ── Copy tracking link ────────────────────────────────────────────
@@ -34760,16 +34780,44 @@ function _laFlag(countryCode) {
   return String.fromCodePoint(cc.charCodeAt(0)+127397) + String.fromCodePoint(cc.charCodeAt(1)+127397);
 }
 
+// ── Copy tracking link from analytics tab ────────────────────────
+window.laCopyTrackingLink = function() {
+  var input = document.getElementById('la-tracking-link-input');
+  var btn   = document.getElementById('la-copy-link-btn');
+  if (!input || !input.value) return;
+  navigator.clipboard && navigator.clipboard.writeText(input.value).catch(function(){});
+  if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = 'Copy Link'; }, 2000); }
+};
+
+// ── Populate the tracking link input in the analytics tab ────────
+window.laPopulateTrackingLink = function() {
+  var input  = document.getElementById('la-tracking-link-input');
+  if (!input) return;
+  var origin = window.location.origin || 'https://build.skillslibrary.com';
+  var isAff  = (window._appMode || 'affiliate') === 'affiliate';
+  var slug   = isAff
+    ? window._affTrackingSlug
+    : window._expertTrackingSlug; // base slug for expert
+
+  if (slug) {
+    // For affiliate: single link. For expert: show Instagram link by default (most common)
+    var suffix = isAff ? '' : '_ig';
+    input.value = origin + '/r/' + slug + suffix;
+  } else {
+    input.value = '';
+    input.placeholder = 'Complete Offer Setup first to generate your link';
+  }
+};
+
 // ── Hook into showAffActiveTab ────────────────────────────────────
 (function() {
   var _origShowAffTab = window.showAffActiveTab;
   window.showAffActiveTab = function(tab, btn) {
     if (_origShowAffTab) _origShowAffTab.apply(this, arguments);
     if (tab === 'link-analytics') {
-      // Start listener if not already running
       setTimeout(function() {
+        laPopulateTrackingLink();
         laStartListener();
-        // Render cached clicks if available
         if (window._laClicks && window._laClicks.length) {
           laRenderAnalytics(window._laClicks);
         }
