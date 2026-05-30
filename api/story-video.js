@@ -120,7 +120,13 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
-  const { uid, framework, start, turn, end, style, charMode, avatarId, voiceId, voiceMode, niche, offerName } = req.body || {};
+  const {
+    uid, framework, start, turn, end, style, charMode, avatarId, voiceId, voiceMode,
+    // Full intelligence context
+    niche, offerName, pain, deeperPain, fear, tried, transformation, identity, motivation,
+    dominanceAngle, positioning, contentAngles, hooks, voiceContext, voiceTone,
+    isAffiliate, productUrl, benefits,
+  } = req.body || {};
 
   if (!start || !turn || !end) {
     return res.status(400).json({ error: 'Story details required (start, turn, end)' });
@@ -143,21 +149,35 @@ module.exports = async function handler(req, res) {
         role:    'user',
         content: `Write a cinematic story video script using this framework: ${FRAMEWORK_DESCRIPTIONS[framework] || FRAMEWORK_DESCRIPTIONS.transformation}
 
-STORY DETAILS:
+STORY DETAILS (these are the REAL events — make them vivid and specific):
 Where they started: "${start}"
 The turning point: "${turn}"
 Where they are now: "${end}"
-${niche ? 'Niche: ' + niche : ''}
-${offerName ? 'Offer: ' + offerName : ''}
+
+AUDIENCE INTELLIGENCE:
+${niche        ? 'Niche: '                     + niche           : ''}
+${offerName    ? 'Offer/Product: '             + offerName       : ''}
+${pain         ? 'Audience pain: '             + pain            : ''}
+${deeperPain   ? 'Deeper emotional wound: '    + deeperPain      : ''}
+${fear         ? 'Deepest fear: '              + fear            : ''}
+${tried        ? 'What they have tried: '      + tried           : ''}
+${transformation ? 'Transformation they want: '+ transformation  : ''}
+${identity     ? 'How they see themselves: '   + identity        : ''}
+${dominanceAngle ? 'Your unique positioning angle (stand out with this): ' + dominanceAngle : ''}
+${contentAngles  ? 'Proven content angles: '   + contentAngles   : ''}
+${Array.isArray(hooks) && hooks.length ? 'Proven hooks for this audience: ' + hooks.slice(0,3).join(' | ') : ''}
+${isAffiliate  ? 'IMPORTANT: You are an affiliate recommending this product — you discovered it, not built it. Speak as a real person sharing a real finding, not a salesperson.' : 'You are the expert and creator. Speak with authority from your own experience.'}
+${voiceContext ? '\n' + voiceContext : ''}
+${voiceTone    ? 'Voice tone: '               + voiceTone       : ''}
 
 REQUIREMENTS:
 - Total narration: 195-240 words (reads in 90-110 seconds at natural pace)
-- 8-10 scenes total, each 4-6 seconds of footage
+- 8-10 scenes total, each 4-6 seconds
 - First 3 words must stop the scroll — no "Hey guys", no "Today I want to", no "So"
-- Every scene has a visual description specific enough for AI video generation
-- Narration is split into segments — each segment plays over 1-2 scenes
+- Every scene has a highly specific visual description for AI video generation
+- Narration is emotionally raw and real — not polished corporate speak
 - No section labels, no brackets, no stage directions in the narration
-- Raw, real, specific — sounds like a real person talking, not a copywriter
+- Each scene's narrationSegment flows naturally from the previous — one continuous story
 
 Return this EXACT JSON structure:
 {
@@ -167,15 +187,15 @@ Return this EXACT JSON structure:
     {
       "id": 1,
       "duration": 5,
-      "visualPrompt": "highly specific visual description for AI generation — describe exactly what is seen, camera angle, action, environment, mood",
-      "narrationSegment": "the exact words spoken during this scene (2-4 sentences)",
+      "visualPrompt": "highly specific visual for AI generation — exact camera angle, action, environment, mood, lighting",
+      "narrationSegment": "exact words spoken during this scene (2-4 sentences)",
       "isAvatarScene": false
     }
   ],
   "musicMood": "one of: emotional-piano, epic-cinematic, inspirational-uplifting, raw-acoustic"
 }
 
-If charMode is "avatar", make scenes 3, 6, and 9 isAvatarScene: true (avatar speaks directly to camera).
+If charMode is "avatar", make scenes 3, 6, and 9 isAvatarScene: true.
 Current charMode: ${charMode || 'cinematic'}`
       }],
     });
