@@ -52,6 +52,7 @@ module.exports = async function handler(req, res) {
         avatar_id:         a.avatar_id,
         avatar_name:       a.avatar_name || a.avatar_id,
         preview_image_url: a.preview_image_url || '',
+        preview_video_url: a.preview_video_url || '',
         default_voice_id:  a.default_voice?.voice_id || '',
         gender:            a.gender || '',
         type:              a.avatar_type || 'stock',
