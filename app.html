@@ -19702,25 +19702,14 @@ window.runMindsetReframe = async function() {
   // ── Load stock avatars into generate tab ──────────────────────
   window.avsLoadAvatars = function() {
     if (window.avsLoadAvatars._isStub) return;
-    var sel = document.getElementById('avs-avatar-select');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Loading…</option>';
-    heygenCall('list-avatar-groups').then(function(data) {
-      var avatars = (data && data.groups) || [];
-      if (!avatars.length) {
-        sel.innerHTML = '<option value="">No avatars found</option>';
-        return;
+    // Legacy stub — avs-avatar-select is now a hidden input, visual grid handled below
+    // Still call get-avatars so _avs state can be pre-populated
+    heygenCall('get-avatars').then(function(data) {
+      var avatars = (data && data.avatars) || [];
+      if (avatars.length && !_avs.selectedAvatar) {
+        _avs.selectedAvatar = avatars[0].avatar_id;
       }
-      sel.innerHTML = avatars.map(function(av) {
-        var id = av.avatar_id || av.id || '';
-        var name = av.avatar_name || av.name || 'Avatar';
-        return '<option value="'+id+'" data-thumb="'+(av.preview_image_url||av.thumbnail_url||'')+'" data-gender="'+(av.gender||'')+'">' + name + '</option>';
-      }).join('');
-      // Trigger preview on first avatar
-      avsOnAvatarChange();
-    }).catch(function() {
-      sel.innerHTML = '<option value="">Could not load avatars</option>';
-    });
+    }).catch(function() {});
   };
 
   // ── Load stock avatars into visual card grid ──────────────────
@@ -19729,10 +19718,10 @@ window.runMindsetReframe = async function() {
     var grid = document.getElementById('avs-avatar-grid');
     if (!grid) return;
     grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:12px">Loading avatars…</div>';
-    heygenCall('list-avatar-groups').then(function(data) {
-      var avatars = (data && data.groups) || [];
+    heygenCall('get-avatars').then(function(data) {
+      var avatars = (data && data.avatars) || [];
       if (!avatars.length) {
-        grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:16px">No avatars found.</div>';
+        grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:16px">No avatars found.<br>Connect HeyGen in your account.</div>';
         return;
       }
       grid.innerHTML = avatars.map(function(av) {
@@ -19826,7 +19815,7 @@ window.runMindsetReframe = async function() {
         var name     = v.display_name || v.name || 'Voice';
         var lang     = v.language || '';
         var gender   = v.gender || '';
-        var preview  = v.preview_audio || v.preview_audio_url || '';
+        var preview  = v.preview_url || v.preview_audio || v.preview_audio_url || '';
         var label    = name + (lang ? ' · ' + lang : '') + (gender ? ' · ' + gender : '');
         return '<div class="avs-voice-row" data-id="'+id+'" data-name="'+name.replace(/"/g,'&quot;')+'" onclick="avsSelectVoiceRow(this)"'
           + ' style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;border:1px solid transparent;cursor:pointer;transition:all .12s;background:rgba(255,255,255,.02)">'
@@ -20469,27 +20458,46 @@ window.carGenerate = async function() {
     + 'Return this exact JSON structure:\n'
     + '{\n'
     + '  "hook": "viral slide 1 headline — max 8 words, must stop the scroll",\n'
+    + '  "hookAccentWord": "one word from the hook to highlight in accent color",\n'
+    + '  "hookIcon": "single relevant emoji for slide 1",\n'
+    + '  "hookImageKeyword": "2-3 word Pexels search query for slide 1 background photo — specific to niche",\n'
     + '  "slides": [\n'
-    + '    { "headline": "slide headline max 7 words", "body": "supporting text max 20 words" }\n'
+    + '    {\n'
+    + '      "headline": "slide headline max 7 words",\n'
+    + '      "accentWord": "one word from headline to highlight",\n'
+    + '      "body": "supporting text max 20 words",\n'
+    + '      "accentPhrase": "2-4 words from body to highlight in color",\n'
+    + '      "icon": "single relevant emoji",\n'
+    + '      "imageKeyword": "2-3 word Pexels search query specific to this slide topic and niche",\n'
+    + '      "colorTheme": "one of: navy, teal, purple, yellow, green, crimson"\n'
+    + '    }\n'
     + '  ],\n'
     + '  "cta": "final slide call to action tied to the offer",\n'
+    + '  "ctaAccentWord": "one word from CTA to highlight",\n'
+    + '  "ctaImageKeyword": "2-3 word Pexels search for CTA slide background",\n'
     + '  "caption_hook": "opening caption line — different from slide hook",\n'
     + '  "caption_body": "3-4 sentence caption with value + personal story connecting to the offer",\n'
     + '  "caption_cta": "caption closing call to action",\n'
-    + '  "hashtags": ["tag1","tag2",...] (exactly 30 strings — no # symbols — 10 large, 10 medium, 10 niche-specific)\n'
+    + '  "hashtags": ["tag1","tag2",...],\n'
+    + '  "scriptAccent": "short inspirational phrase in script style for final slide (max 6 words)"\n'
     + '}\n\n'
-    + 'slides array must have exactly ' + (window._carCount - 1) + ' items (slide 1 is the hook, final slide is the CTA). Be specific. No generic advice.';
+    + 'slides array must have exactly ' + (window._carCount - 1) + ' items. colorTheme must cycle through different values — no two adjacent slides the same. imageKeywords must be visually specific to the ' + ctx.niche + ' niche. Be specific. No generic advice.';
 
   try {
     if (status) status.textContent = 'Generating carousel copy…';
-    var result = await brCallAI(sys, prompt, 2000);
+    var result = await brCallAI(sys, prompt, 2500);
     if (!result || result._error) throw new Error(result ? result._error : 'No response');
 
     window._carData = result;
+    if (status) status.textContent = 'Fetching niche images…';
+
+    // ── Fetch Pexels background images for each slide ──────────────────
+    var bgImages = await carFetchNicheImages(result, ctx.niche);
+
     if (status) status.textContent = 'Rendering slides…';
 
-    // Render canvases
-    await carRenderSlides(result, ctx);
+    // Render canvases with photographic backgrounds
+    await carRenderSlides(result, ctx, bgImages);
 
     // Populate output fields
     var captionFull = [result.caption_hook, result.caption_body, result.caption_cta].filter(Boolean).join('\n\n');
@@ -20520,116 +20528,348 @@ window.carGenerate = async function() {
   btn.disabled    = false;
 };
 
-window.carRenderSlides = async function(data, ctx) {
+// ── Fetch niche-relevant background images from Pexels ───────────────
+window.carFetchNicheImages = async function(data, niche) {
+  try {
+    // Build search queries for each slide
+    var queries = [];
+    queries.push(data.hookImageKeyword || niche + ' success lifestyle');
+    if (Array.isArray(data.slides)) {
+      data.slides.forEach(function(s) {
+        queries.push(s.imageKeyword || niche + ' professional');
+      });
+    }
+    queries.push(data.ctaImageKeyword || niche + ' transformation');
+
+    var resp = await fetch('/api/images', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ queries: queries, perQuery: 1 }),
+    });
+    if (!resp.ok) return [];
+    var result = await resp.json();
+    return result.images || [];
+  } catch(e) {
+    console.warn('[Carousel] Image fetch failed:', e.message);
+    return [];
+  }
+};
+
+// ── Load an image element from URL (with CORS) ───────────────────────
+function _carLoadImage(url) {
+  return new Promise(function(resolve) {
+    if (!url) return resolve(null);
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload  = function() { resolve(img); };
+    img.onerror = function() { resolve(null); };
+    img.src = url;
+  });
+}
+
+// ── Color theme definitions ──────────────────────────────────────────
+var _carThemes = {
+  navy:    { overlay: 'rgba(10,15,40,.72)',  accent: '#FFD93D', badge: '#FFD93D', badgeText: '#0a0f28' },
+  teal:    { overlay: 'rgba(5,40,45,.70)',   accent: '#4ECCA3', badge: '#4ECCA3', badgeText: '#05282d' },
+  purple:  { overlay: 'rgba(35,10,60,.74)',  accent: '#C77DFF', badge: '#C77DFF', badgeText: '#230a3c' },
+  yellow:  { overlay: 'rgba(30,20,0,.68)',   accent: '#FFB347', badge: '#FFD93D', badgeText: '#1e1400' },
+  green:   { overlay: 'rgba(5,35,15,.72)',   accent: '#A8E063', badge: '#A8E063', badgeText: '#05230f' },
+  crimson: { overlay: 'rgba(45,5,10,.74)',   accent: '#FF6B6B', badge: '#FF6B6B', badgeText: '#2d050a' },
+};
+
+var _carThemeCycle = ['navy','teal','purple','yellow','green','crimson'];
+
+// ── Draw text with accent word highlighted ───────────────────────────
+function _carDrawAccentText(gc, text, accentWord, x, y, maxW, lineH, mainColor, accentColor, font, accentFont) {
+  if (!text) return;
+  // Split text into words, find accent word position
+  var words = text.split(' ');
+  var lines = [];
+  var line  = '';
+  // First pass — wrap into lines
+  words.forEach(function(word) {
+    var test = line ? line + ' ' + word : word;
+    if (gc.measureText(test).width > maxW && line) {
+      lines.push(line);
+      line = word;
+    } else {
+      line = test;
+    }
+  });
+  if (line) lines.push(line);
+
+  var cy = y;
+  lines.forEach(function(ln) {
+    var lnWords = ln.split(' ');
+    var cx = x;
+    lnWords.forEach(function(w, wi) {
+      var isAccent = accentWord && w.replace(/[^a-zA-Z]/g,'').toLowerCase() === accentWord.replace(/[^a-zA-Z]/g,'').toLowerCase();
+      gc.font      = isAccent ? (accentFont || font) : font;
+      gc.fillStyle = isAccent ? accentColor : mainColor;
+      gc.fillText(w, cx, cy);
+      cx += gc.measureText(w + ' ').width;
+    });
+    cy += lineH;
+  });
+  return cy;
+}
+
+// ── Draw body text with accent phrase highlighted ────────────────────
+function _carDrawBodyWithAccent(gc, text, accentPhrase, x, y, maxW, lineH, mainColor, accentColor, font) {
+  if (!text) return y;
+  gc.font = font;
+  // Simple approach: find the accent phrase and split around it
+  var parts = [{ text: text, accent: false }];
+  if (accentPhrase) {
+    var lower = text.toLowerCase();
+    var idx   = lower.indexOf(accentPhrase.toLowerCase());
+    if (idx >= 0) {
+      parts = [
+        { text: text.slice(0, idx),                       accent: false },
+        { text: text.slice(idx, idx + accentPhrase.length), accent: true  },
+        { text: text.slice(idx + accentPhrase.length),    accent: false },
+      ].filter(function(p){ return p.text; });
+    }
+  }
+  // Re-join and wrap with color info
+  var words = [];
+  parts.forEach(function(part) {
+    part.text.split(' ').forEach(function(w) {
+      if (w) words.push({ w: w, accent: part.accent });
+    });
+  });
+
+  var lines  = [];
+  var curLine= [];
+  var curW   = 0;
+  words.forEach(function(item) {
+    var ww = gc.measureText(item.w + ' ').width;
+    if (curW + ww > maxW && curLine.length) {
+      lines.push(curLine);
+      curLine = [item];
+      curW    = ww;
+    } else {
+      curLine.push(item);
+      curW += ww;
+    }
+  });
+  if (curLine.length) lines.push(curLine);
+
+  var cy = y;
+  lines.forEach(function(ln) {
+    var cx = x;
+    ln.forEach(function(item) {
+      gc.fillStyle = item.accent ? accentColor : mainColor;
+      gc.fillText(item.w, cx, cy);
+      cx += gc.measureText(item.w + ' ').width;
+    });
+    cy += lineH;
+    if (cy > 990) return;
+  });
+  return cy;
+}
+
+// ── Render a single slide canvas ─────────────────────────────────────
+async function _carRenderOneSlide(slide, bgImageObj, theme, slideNum, totalSlides, niche, userHandle) {
+  var c  = document.createElement('canvas');
+  c.width = c.height = 1080;
+  var gc = c.getContext('2d');
+  var T  = _carThemes[theme] || _carThemes.navy;
+
+  // ── 1. Background image or gradient fallback ──────────────────────
+  if (bgImageObj) {
+    gc.drawImage(bgImageObj, 0, 0, 1080, 1080);
+  } else {
+    // Gradient fallback — richer than before
+    var bg = gc.createLinearGradient(0, 0, 1080, 1080);
+    var gradColors = {
+      navy:   ['#0a0f28','#1a2050'], teal:   ['#052830','#0d4a50'],
+      purple: ['#1a0530','#2d1060'], yellow: ['#1e1400','#3d2800'],
+      green:  ['#05230f','#0d3d1a'], crimson:['#2d050a','#500a12'],
+    };
+    var gc2 = gradColors[theme] || gradColors.navy;
+    bg.addColorStop(0, gc2[0]);
+    bg.addColorStop(1, gc2[1]);
+    gc.fillStyle = bg;
+    gc.fillRect(0, 0, 1080, 1080);
+  }
+
+  // ── 2. Dark overlay for text readability ─────────────────────────
+  gc.fillStyle = T.overlay;
+  gc.fillRect(0, 0, 1080, 1080);
+
+  // ── 3. Slide number badge (top-left circle) ───────────────────────
+  var badgeR = 38;
+  var badgeX = 64, badgeY = 64;
+  gc.beginPath();
+  gc.arc(badgeX, badgeY, badgeR, 0, Math.PI * 2);
+  gc.fillStyle = T.badge;
+  gc.fill();
+  gc.font      = 'bold 34px Poppins, Arial, sans-serif';
+  gc.fillStyle = T.badgeText;
+  gc.textAlign = 'center';
+  gc.fillText(String(slideNum), badgeX, badgeY + 12);
+
+  // ── 4. Top accent line ────────────────────────────────────────────
+  var accentGrad = gc.createLinearGradient(80, 0, 980, 0);
+  accentGrad.addColorStop(0, T.accent);
+  accentGrad.addColorStop(1, 'rgba(255,255,255,.1)');
+  gc.fillStyle  = accentGrad;
+  gc.fillRect(110, 46, 600, 5);
+
+  // ── 5. Slide icon (emoji rendered as text) ────────────────────────
+  if (slide.icon) {
+    gc.font      = '72px serif';
+    gc.textAlign = 'left';
+    gc.fillStyle = '#ffffff';
+    gc.fillText(slide.icon, 68, 240);
+  }
+
+  // ── 6. Headline with accent word ──────────────────────────────────
+  gc.textAlign = 'left';
+  var headlineY = slide.icon ? 340 : 280;
+  _carDrawAccentText(
+    gc,
+    (slide.headline || '').toUpperCase(),
+    (slide.accentWord || slide.hookAccentWord || '').toUpperCase(),
+    68, headlineY, 940, 88,
+    '#ffffff', T.accent,
+    'bold 72px Poppins, Arial Black, sans-serif',
+    'bold 72px Poppins, Arial Black, sans-serif'
+  );
+
+  // ── 7. Divider line ───────────────────────────────────────────────
+  var divY = headlineY + (slide.headline ? Math.ceil(slide.headline.split(' ').length / 4) * 88 + 20 : 100);
+  gc.fillStyle = T.accent;
+  gc.fillRect(68, divY, 80, 4);
+
+  // ── 8. Body text with accent phrase ──────────────────────────────
+  if (slide.body) {
+    gc.font = '36px Inter, Arial, sans-serif';
+    _carDrawBodyWithAccent(
+      gc, slide.body, slide.accentPhrase,
+      68, divY + 50, 940, 50,
+      'rgba(255,255,255,.88)', T.accent,
+      '36px Inter, Arial, sans-serif'
+    );
+  }
+
+  // ── 9. Swipe prompt on slide 1 ────────────────────────────────────
+  if (slide.isHook) {
+    gc.font      = 'bold 30px Poppins, Arial, sans-serif';
+    gc.fillStyle = T.accent;
+    gc.textAlign = 'left';
+    gc.fillText('Swipe Left →', 68, 980);
+  }
+
+  // ── 10. Script accent text on CTA slide ───────────────────────────
+  if (slide.isCTA && slide.scriptAccent) {
+    gc.save();
+    gc.font      = 'italic 42px Georgia, serif';
+    gc.fillStyle = 'rgba(255,255,255,.7)';
+    gc.textAlign = 'center';
+    gc.fillText(slide.scriptAccent, 540, 920);
+    gc.restore();
+  }
+
+  // ── 11. Bottom CTA strip (last slide only) ────────────────────────
+  if (slide.isCTA || slideNum === totalSlides) {
+    gc.fillStyle = 'rgba(0,0,0,.75)';
+    gc.fillRect(0, 1010, 1080, 70);
+    gc.font      = 'bold 22px Poppins, Arial, sans-serif';
+    gc.fillStyle = 'rgba(255,255,255,.9)';
+    gc.textAlign = 'center';
+    var ctaText  = userHandle
+      ? '🚀  FOLLOW @' + userHandle.replace('@','') + ' FOR MORE ' + (niche || 'TIPS').toUpperCase()
+      : '🚀  FOLLOW FOR MORE ' + (niche || 'TIPS').toUpperCase();
+    gc.fillText(ctaText.slice(0, 60), 540, 1052);
+  }
+
+  // ── 12. Slide counter (bottom-right) ─────────────────────────────
+  gc.font      = 'bold 24px Poppins, Arial, sans-serif';
+  gc.fillStyle = 'rgba(255,255,255,.45)';
+  gc.textAlign = 'right';
+  gc.fillText(slideNum + ' / ' + totalSlides, 1012, 990);
+
+  return c;
+}
+
+// ── Main render function ──────────────────────────────────────────────
+window.carRenderSlides = async function(data, ctx, bgImages) {
   window._carCanvases = [];
-  var thumbRow = document.getElementById('car-thumbnails');
+  var thumbRow      = document.getElementById('car-thumbnails');
   var previewCanvas = document.getElementById('car-preview-canvas');
   if (thumbRow) thumbRow.innerHTML = '';
+  bgImages = bgImages || [];
 
-  // Build slide list: hook slide + content slides + CTA slide
+  // Build full slide list
   var slides = [];
-  slides.push({ headline: data.hook || 'Slide 1', body: 'Swipe to learn more →', isHook: true });
+  slides.push({
+    headline:       data.hook || 'Slide 1',
+    accentWord:     data.hookAccentWord || '',
+    body:           'Swipe to learn more →',
+    accentPhrase:   '',
+    icon:           data.hookIcon || '',
+    imageKeyword:   data.hookImageKeyword || '',
+    isHook:         true,
+  });
   if (Array.isArray(data.slides)) {
     data.slides.forEach(function(s) { slides.push(s); });
   }
-  slides.push({ headline: data.cta || 'Ready to transform?', body: ctx.offerName || 'Learn more', isCTA: true });
+  slides.push({
+    headline:       data.cta || 'Ready to start?',
+    accentWord:     data.ctaAccentWord || '',
+    body:           ctx.offerName || '',
+    accentPhrase:   '',
+    icon:           '🎯',
+    imageKeyword:   data.ctaImageKeyword || '',
+    scriptAccent:   data.scriptAccent || '',
+    isCTA:          true,
+  });
+
+  var total       = slides.length;
+  var userHandle  = (window._voiceProfile && window._voiceProfile.handle) || '';
 
   for (var i = 0; i < slides.length; i++) {
-    var c = document.createElement('canvas');
-    c.width  = 1080;
-    c.height = 1080;
-    var gc = c.getContext('2d');
+    var slide  = slides[i];
+    var theme  = slide.colorTheme || _carThemeCycle[i % _carThemeCycle.length];
 
-    // Background gradient
-    var grad = gc.createLinearGradient(0, 0, 1080, 1080);
-    if (slides[i].isCTA) {
-      grad.addColorStop(0, '#0e0e2a');
-      grad.addColorStop(1, '#1a1040');
-    } else if (slides[i].isHook) {
-      grad.addColorStop(0, '#0c0c20');
-      grad.addColorStop(1, '#111130');
-    } else {
-      grad.addColorStop(0, '#0f0f26');
-      grad.addColorStop(1, '#121228');
-    }
-    gc.fillStyle = grad;
-    gc.fillRect(0, 0, 1080, 1080);
-
-    // Teal accent bar (top)
-    var accentGrad = gc.createLinearGradient(0, 0, 1080, 0);
-    accentGrad.addColorStop(0, '#4ecca3');
-    accentGrad.addColorStop(1, '#6c63ff');
-    gc.fillStyle = accentGrad;
-    gc.fillRect(60, 50, 960, 6);
-
-    // Glow circle (decorative)
-    var glow = gc.createRadialGradient(900, 200, 0, 900, 200, 320);
-    glow.addColorStop(0, 'rgba(108,99,255,.12)');
-    glow.addColorStop(1, 'rgba(108,99,255,0)');
-    gc.fillStyle = glow;
-    gc.fillRect(0, 0, 1080, 1080);
-
-    // Headline
-    gc.fillStyle = '#ffffff';
-    gc.font      = 'bold 68px Poppins, Arial, sans-serif';
-    gc.textAlign = 'left';
-    var headline = (slides[i].headline || '').toUpperCase();
-    _carWrapText(gc, headline, 70, 200, 940, 84);
-
-    // Body text
-    gc.fillStyle = '#c8cde8';
-    gc.font      = '36px Inter, Arial, sans-serif';
-    _carWrapText(gc, slides[i].body || '', 70, 600, 940, 48);
-
-    // Slide number
-    gc.fillStyle = 'rgba(78,204,163,.6)';
-    gc.font      = 'bold 28px Poppins, Arial, sans-serif';
-    gc.textAlign = 'right';
-    gc.fillText((i + 1) + ' / ' + slides.length, 1010, 1040);
-
-    // Swipe prompt on slide 1
-    if (slides[i].isHook) {
-      gc.fillStyle = 'rgba(255,255,255,.35)';
-      gc.font      = '28px Inter, Arial, sans-serif';
-      gc.textAlign = 'left';
-      gc.fillText('Swipe to read →', 70, 1040);
+    // Load background image
+    var bgObj = null;
+    if (bgImages[i] && bgImages[i].url) {
+      bgObj = await _carLoadImage(bgImages[i].url);
     }
 
-    // CTA accent
-    if (slides[i].isCTA) {
-      var ctaGrad = gc.createLinearGradient(60, 0, 1020, 0);
-      ctaGrad.addColorStop(0, '#4ecca3');
-      ctaGrad.addColorStop(1, '#6c63ff');
-      gc.strokeStyle = ctaGrad;
-      gc.lineWidth   = 3;
-      gc.strokeRect(60, 100, 960, 880);
-    }
-
-    window._carCanvases.push(c);
+    var canvas = await _carRenderOneSlide(
+      slide, bgObj, theme, i + 1, total, ctx.niche, userHandle
+    );
+    window._carCanvases.push(canvas);
 
     // Thumbnail
     var thumb = document.createElement('canvas');
     thumb.width  = 120;
     thumb.height = 120;
-    var tc = thumb.getContext('2d');
-    tc.drawImage(c, 0, 0, 120, 120);
-    thumb.style.cssText = 'border-radius:8px;cursor:pointer;border:2px solid ' + (i === 0 ? 'var(--teal)' : 'transparent') + ';flex-shrink:0;transition:border-color .15s';
+    thumb.getContext('2d').drawImage(canvas, 0, 0, 120, 120);
+    thumb.style.cssText = 'border-radius:8px;cursor:pointer;border:2px solid '
+      + (i === 0 ? 'var(--teal)' : 'transparent')
+      + ';flex-shrink:0;transition:border-color .15s';
     (function(idx, th) {
       th.onclick = function() {
         if (previewCanvas) {
-          var px = previewCanvas.getContext('2d');
           previewCanvas.width  = 540;
           previewCanvas.height = 540;
-          px.drawImage(window._carCanvases[idx], 0, 0, 540, 540);
+          previewCanvas.getContext('2d').drawImage(window._carCanvases[idx], 0, 0, 540, 540);
         }
-        document.querySelectorAll('#car-thumbnails canvas').forEach(function(t){ t.style.borderColor = 'transparent'; });
+        document.querySelectorAll('#car-thumbnails canvas').forEach(function(t){
+          t.style.borderColor = 'transparent';
+        });
         th.style.borderColor = 'var(--teal)';
       };
     })(i, thumb);
     if (thumbRow) thumbRow.appendChild(thumb);
   }
 
-  // Show slide 0 in preview
+  // Show first slide in preview
   if (previewCanvas && window._carCanvases.length > 0) {
     previewCanvas.width  = 540;
     previewCanvas.height = 540;
