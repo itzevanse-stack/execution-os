@@ -6991,6 +6991,62 @@ button[onclick="generateOffer()"] {
             </div>
           </div>
 
+          <!-- ── MEDIA PANEL ──────────────────────────────────────── -->
+          <div style="margin-bottom:12px;border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden">
+
+            <!-- Collapsible header -->
+            <div onclick="fbToggleMediaPanel()" id="fb-media-header" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:rgba(255,255,255,.03);transition:background .15s" onmouseenter="this.style.background='rgba(255,255,255,.05)'" onmouseleave="this.style.background='rgba(255,255,255,.03)'">
+              <div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;display:flex;align-items:center;gap:7px">
+                <span>🖼</span> Media
+              </div>
+              <span id="fb-media-chevron" style="font-size:11px;color:var(--dimmer);transition:transform .2s">▼</span>
+            </div>
+
+            <!-- Panel body -->
+            <div id="fb-media-body" style="display:none;padding:12px;border-top:1px solid rgba(255,255,255,.05)">
+
+              <!-- Video section -->
+              <div style="margin-bottom:14px">
+                <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:7px">🎬 Video</div>
+                <input id="fb-video-url" class="fi" style="font-size:11px;padding:8px 10px;margin-bottom:7px" placeholder="Paste YouTube, Vimeo, or direct MP4 URL…" />
+                <button onclick="fbEmbedVideo()" style="width:100%;padding:8px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:8px;color:#fff;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">Embed Video →</button>
+                <div style="margin-top:6px;font-size:9px;color:var(--dimmer);line-height:1.5">Works with YouTube · Vimeo · Wistia · Loom · MP4 links</div>
+              </div>
+
+              <div style="height:1px;background:rgba(255,255,255,.05);margin-bottom:14px"></div>
+
+              <!-- Image section -->
+              <div>
+                <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:7px">🖼 Image</div>
+                <input id="fb-image-url" class="fi" style="font-size:11px;padding:8px 10px;margin-bottom:7px" placeholder="Paste image URL or upload below…" />
+
+                <!-- Drop zone / file upload -->
+                <div id="fb-img-dropzone"
+                  onclick="document.getElementById('fb-img-input').click()"
+                  ondragover="event.preventDefault();this.style.borderColor='var(--teal)'"
+                  ondragleave="this.style.borderColor='rgba(255,255,255,.1)'"
+                  ondrop="fbHandleImgDrop(event)"
+                  style="border:1px dashed rgba(255,255,255,.1);border-radius:8px;padding:10px;text-align:center;cursor:pointer;font-size:10px;color:var(--dimmer);margin-bottom:7px;transition:border-color .2s">
+                  Click to upload or drop image here
+                </div>
+                <input type="file" id="fb-img-input" accept="image/*" style="display:none" onchange="fbHandleImgUpload(this.files)">
+
+                <!-- Placement selector -->
+                <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Place in:</div>
+                <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+                  <button class="fb-place-btn on" onclick="fbSelectPlacement('hero',this)" style="padding:4px 10px;border-radius:6px;border:1px solid rgba(78,204,163,.3);background:rgba(78,204,163,.08);color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s">Hero</button>
+                  <button class="fb-place-btn" onclick="fbSelectPlacement('profile',this)" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s">Profile photo</button>
+                  <button class="fb-place-btn" onclick="fbSelectPlacement('section',this)" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s">Section BG</button>
+                  <button class="fb-place-btn" onclick="fbSelectPlacement('product',this)" style="padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s">Product image</button>
+                </div>
+
+                <button onclick="fbApplyImage()" style="width:100%;padding:8px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:8px;color:var(--teal);font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">Apply Image →</button>
+              </div>
+
+            </div>
+          </div>
+          <!-- ── END MEDIA PANEL ──────────────────────────────────── -->
+
           <div class="fb-ai-messages" id="fb-ai-messages">
             <div class="fb-msg ai">
               <div class="fb-msg-avatar">🧠</div>
@@ -27593,24 +27649,95 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      prompt:         prompt,
-      max_tokens:     3000,
-      mode:           templateMode,
-      boardroomIntel: (function(){ return window._boardroomIntel || null; })(),
-      userContext:    (function(){
-        var bi  = window._boardroomIntel || null;
-        var inp = (bi && bi.inputs) || {};
-        var av  = window._avatarData   || {};
+      prompt:     prompt,
+      max_tokens: 3500,
+      mode:       templateMode,
+
+      // ── Full mode-isolated intelligence ───────────────────────────
+      // Uses _getFullIntelContext() to guarantee zero cross-contamination
+      // between Affiliate and Expert modes
+      intelContext: (function() {
+        var ctx = typeof window._getFullIntelContext === 'function'
+          ? window._getFullIntelContext()
+          : {};
+
+        // Also pass raw boardroomIntel for Expert mode backwards compat
+        var bi  = window._boardroomIntel || {};
+        var inp = bi.inputs             || {};
+        var ar  = bi.architect          || {};
+        var os  = bi.offerStack         || {};
+        var cv  = bi.copyVault          || {};
+        var ce  = bi.contentEngine      || {};
+        var wp  = bi.warPlan            || {};
+        var icp = bi.icpResearch        || {};
+        var ci  = bi.competitorIntel    || {};
+        var ao  = window._affiliateOffer || {};
+        var vp  = window._voiceProfile  || {};
+
         return {
-          niche:         inp.niche          || window._appliedNiche  || '',
-          offerName:     inp.offerName      || inp.offer            || '',
-          price:         inp.price          || window._appliedPrice  || 0,
-          target:        inp.target         || window._appliedTarget || 0,
-          platform:      inp.platform       || '',
-          av_pain:       av.pain            || inp.av_pain           || '',
-          av_fear:       av.fear            || inp.av_fear           || '',
-          av_objections: Array.isArray(av.objections) ? av.objections.join(', ') : (av.objections || ''),
-          transformation:av.transformation  || inp.transformation    || '',
+          // Mode
+          isAffiliate:        ctx.isAffiliate || false,
+          mode:               ctx.mode        || 'expert',
+
+          // Offer
+          niche:              ctx.niche             || '',
+          offerName:          ctx.offerName         || '',
+          price:              ctx.price             || '',
+          productUrl:         ctx.productUrl        || '',
+          benefits:           ctx.benefits          || '',
+          offerTagline:       ao.tagline            || os.rebuiltTagline || '',
+          signatureFramework: (os.signatureFramework && os.signatureFramework.name) || '',
+          guarantee:          os.rebuiltGuarantee   || '',
+          coreTransformation: os.coreTransformation || ctx.transformation || '',
+
+          // Buyer psychology
+          pain:               ctx.pain          || '',
+          deeperPain:         ctx.deeperPain    || '',
+          fear:               ctx.fear          || '',
+          tried:              ctx.tried         || '',
+          transformation:     ctx.transformation|| '',
+          identity:           ctx.identity      || '',
+          motivation:         ctx.motivation    || '',
+          objections:         ctx.objections    || '',
+          avatarJob:          ctx.avatarJob     || '',
+          avatarAge:          ctx.avatarAge     || '',
+          keywords:           (icp.languagePatterns || icp.keywords || []).join(', '),
+
+          // Positioning
+          dominanceAngle:     ctx.dominanceAngle   || ar.positioningStatement || '',
+          positioningStatement: ar.positioningStatement || '',
+          uniqueMechanism:    ar.uniqueMechanism    || '',
+          marketGap:          ci.marketGap          || '',
+          categoryDesign:     ar.categoryDesign     || '',
+          targetCustomerLine: ar.targetCustomerSentence || '',
+          saturatedAngles:    ctx.saturatedAngles   || '',
+
+          // Proven copy assets
+          headlines:          Array.isArray(cv.headlines)    ? cv.headlines.slice(0,5)    : [],
+          hooks:              Array.isArray(cv.hooks)        ? cv.hooks.slice(0,5)        : (ctx.hooks || []),
+          dmOpeners:          Array.isArray(cv.dmOpeners)    ? cv.dmOpeners.slice(0,3)    : [],
+          emailSubjects:      Array.isArray(cv.emailSubjects)? cv.emailSubjects.slice(0,3): [],
+          contentPillars:     ctx.pillars ? ctx.pillars.split(', ') : (Array.isArray(ce.pillars) ? ce.pillars : []),
+          contentAngles:      ctx.contentAngles || '',
+          vslOpener:          cv.vslOpener      || '',
+          closingScript:      cv.closingScript  || '',
+
+          // Revenue
+          monthlyTarget:      window._appliedTarget || inp.target || '',
+          salesNeeded:        (bi.revenueBreakdown && bi.revenueBreakdown.salesNeeded) || '',
+
+          // Voice profile
+          voiceTone:          ctx.voiceTone    || vp.tone  || '',
+          voiceStyle:         ctx.voiceStyle   || vp.style || '',
+          voicePhrases:       ctx.voicePhrases || vp.words || '',
+          voiceAvoid:         ctx.voiceAvoid   || vp.avoid || '',
+          voiceStory:         ctx.voiceStory   || vp.story || '',
+          voiceExample:       ctx.voiceExample || (vp.example ? vp.example.slice(0,400) : ''),
+
+          // Affiliate-specific
+          commission:         ao.commission    || '',
+          platform:           ao.platform      || '',
+          affiliateUrl:       ctx.productUrl   || '',
         };
       })(),
     })
@@ -27629,34 +27756,77 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
 function fbSetupEditor(funnel) {
   var nameEl = document.getElementById('fb-editor-funnel-name');
   if (nameEl) nameEl.textContent = funnel.name;
-  // Restore branding previews
   fbRestoreBranding(funnel);
-  var tabs = document.getElementById('fb-page-tabs');
-  if (tabs) {
-    tabs.innerHTML = '';
-    var first = true;
-    // Use stable pageOrder array — Firestore does not preserve Object key insertion order
-  var pageIds = (funnel.pageOrder && funnel.pageOrder.length) ? funnel.pageOrder : Object.keys(funnel.pages || {});
-  pageIds.forEach(function(pageId) {
-      var page = funnel.pages[pageId];
-      var tab = document.createElement('button');
-      tab.className = 'tab' + (first ? ' on' : '');
-      tab.textContent = page.label;
-      tab.onclick = function() {
-        document.querySelectorAll('#fb-page-tabs .tab').forEach(function(t) { t.classList.remove('on'); });
-        tab.classList.add('on');
-        fbState.currentPage = pageId;
-        fbRenderPreview(pageId);
-      };
-      tabs.appendChild(tab);
-      if (first) { fbState.currentPage = pageId; first = false; }
-    });
-  }
-  // Use pageOrder for stable ordering — Object.keys() order not guaranteed after Firestore round-trip
+  fbRebuildPageTabs(funnel);
   var firstPageId = (funnel.pageOrder && funnel.pageOrder[0]) || funnel.homePage || Object.keys(funnel.pages || {})[0];
-  if (firstPageId) fbRenderPreview(firstPageId);
+  if (firstPageId) { fbState.currentPage = firstPageId; fbRenderPreview(firstPageId); }
   var urlBar = document.getElementById('fb-preview-url');
   if (urlBar) urlBar.textContent = funnel.domain ? 'https://' + funnel.domain : 'https://yourdomain.com';
+}
+
+// ── Rebuild page tabs (called after add/delete) ───────────────────
+function fbRebuildPageTabs(funnel) {
+  var tabs = document.getElementById('fb-page-tabs');
+  if (!tabs) return;
+  tabs.innerHTML = '';
+
+  var pageIds = (funnel.pageOrder && funnel.pageOrder.length)
+    ? funnel.pageOrder
+    : Object.keys(funnel.pages || {});
+
+  pageIds.forEach(function(pageId, idx) {
+    var page = funnel.pages[pageId];
+    if (!page) return;
+
+    // Tab wrapper
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-flex;align-items:center;gap:0';
+
+    // Tab button
+    var tab = document.createElement('button');
+    var isActive = (pageId === fbState.currentPage) || (idx === 0 && !fbState.currentPage);
+    tab.className = 'tab' + (isActive ? ' on' : '');
+    tab.textContent = page.label;
+    tab.style.paddingRight = '28px'; // room for × button
+    tab.onclick = function() {
+      document.querySelectorAll('#fb-page-tabs .tab').forEach(function(t){ t.classList.remove('on'); });
+      tab.classList.add('on');
+      fbState.currentPage = pageId;
+      fbRenderPreview(pageId);
+    };
+
+    // Delete × button (only show if more than 1 page)
+    var del = document.createElement('button');
+    del.textContent = '×';
+    del.title = 'Remove this page';
+    del.style.cssText = 'position:absolute;right:6px;top:50%;transform:translateY(-50%);width:16px;height:16px;border-radius:50%;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.2);color:#ef4444;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1;opacity:0;transition:opacity .15s;z-index:2';
+    wrap.addEventListener('mouseenter', function(){ del.style.opacity = '1'; });
+    wrap.addEventListener('mouseleave', function(){ del.style.opacity = '0'; });
+    del.onclick = function(e) {
+      e.stopPropagation();
+      fbDeletePage(pageId);
+    };
+
+    wrap.appendChild(tab);
+    wrap.appendChild(del);
+    tabs.appendChild(wrap);
+
+    if (idx === 0 && !fbState.currentPage) fbState.currentPage = pageId;
+  });
+
+  // ── Add Page button ──────────────────────────────────────────────
+  var addBtn = document.createElement('button');
+  addBtn.innerHTML = '+ Add Page';
+  addBtn.style.cssText = 'padding:6px 14px;border-radius:var(--r-sm);border:1px dashed rgba(78,204,163,.25);background:rgba(78,204,163,.04);color:var(--teal);font-family:Poppins,sans-serif;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px;white-space:nowrap;transition:all .15s';
+  addBtn.onmouseenter = function(){ addBtn.style.borderColor='rgba(78,204,163,.5)'; addBtn.style.background='rgba(78,204,163,.08)'; };
+  addBtn.onmouseleave = function(){ addBtn.style.borderColor='rgba(78,204,163,.25)'; addBtn.style.background='rgba(78,204,163,.04)'; };
+  addBtn.onclick = fbShowAddPageModal;
+  tabs.appendChild(addBtn);
+
+  // Hide delete buttons if only 1 page
+  if (pageIds.length <= 1) {
+    tabs.querySelectorAll('[title="Remove this page"]').forEach(function(b){ b.style.display='none'; });
+  }
 }
 
 function fbRenderPreview(pageId) {
@@ -27674,6 +27844,432 @@ function fbRenderPreview(pageId) {
   iframe.srcdoc = page.html;
   frame.appendChild(iframe);
 }
+
+// ── Delete a page from the funnel ────────────────────────────────
+function fbDeletePage(pageId) {
+  var funnel = fbState.current;
+  if (!funnel || !funnel.pages) return;
+  var pageIds = funnel.pageOrder || Object.keys(funnel.pages);
+  if (pageIds.length <= 1) {
+    avsToast('A funnel must have at least one page.');
+    return;
+  }
+  var pageName = (funnel.pages[pageId] && funnel.pages[pageId].label) || pageId;
+  if (!confirm('Remove "' + pageName + '" from this funnel? This cannot be undone.')) return;
+
+  // Remove from pages and pageOrder
+  delete funnel.pages[pageId];
+  funnel.pageOrder = (funnel.pageOrder || []).filter(function(id){ return id !== pageId; });
+
+  // If deleted page was active, switch to first remaining
+  if (fbState.currentPage === pageId) {
+    fbState.currentPage = funnel.pageOrder[0] || null;
+  }
+
+  // Rebuild tabs and preview
+  fbRebuildPageTabs(funnel);
+  if (fbState.currentPage) fbRenderPreview(fbState.currentPage);
+
+  // Save to Firestore
+  fbSaveFunnelToFirestore(funnel).catch(function(){});
+  avsToast('✅ "' + pageName + '" removed');
+}
+
+// ── Add Page modal ────────────────────────────────────────────────
+function fbShowAddPageModal() {
+  var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+
+  var PAGE_OPTIONS = [
+    { id: 'optin',     label: 'Opt-In Page',       icon: '📧', desc: 'Collect name & email for free access' },
+    { id: 'vsl',       label: 'Video Page',         icon: '🎬', desc: 'Video + CTA to book a call or buy' },
+    { id: 'booking',   label: 'Booking Page',       icon: '📅', desc: 'Calendar embed to book a strategy call' },
+    { id: 'apply',     label: 'Application Page',   icon: '📝', desc: 'Qualify leads before a call' },
+    { id: 'landing',   label: 'Landing Page',       icon: '🚀', desc: 'Strong positioning, no price' },
+    { id: 'bridge',    label: 'Bridge Page',        icon: '🌉', desc: 'Warm up cold traffic before the offer' },
+    { id: 'presell',   label: 'Pre-Sell Page',      icon: '🔥', desc: 'Build desire before the sales page' },
+    { id: 'sales',     label: 'Sales Page',         icon: '💰', desc: 'Full sales page with price and buy button' },
+    { id: 'checkout',  label: 'Checkout Page',      icon: '🛒', desc: 'Order form and payment' },
+    { id: 'upsell',    label: 'Upsell Page',        icon: '⬆️', desc: 'One-time upgrade offer after purchase' },
+    { id: 'thankyou',  label: 'Thank You Page',     icon: '🎉', desc: 'Confirm purchase and give next steps' },
+    { id: 'register',  label: 'Registration Page',  icon: '🎟️', desc: 'Register for a free webinar or training' },
+    { id: 'confirm',   label: 'Confirmation Page',  icon: '✅', desc: 'Confirm registration and build excitement' },
+    { id: 'replay',    label: 'Replay Page',        icon: '▶️', desc: 'Catch no-shows with the replay' },
+    { id: 'tripwire',  label: 'Tripwire Page',      icon: '⚡', desc: 'Low-ticket irresistible entry offer' },
+  ];
+
+  // Remove pages already in the funnel from the list
+  var existingIds = Object.keys(fbState.current && fbState.current.pages || {});
+  var available   = PAGE_OPTIONS.filter(function(p){ return !existingIds.includes(p.id); });
+
+  if (!available.length) {
+    avsToast('All standard page types are already in this funnel.');
+    return;
+  }
+
+  // Create modal
+  var existing = document.getElementById('fb-add-page-modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'fb-add-page-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)';
+  modal.innerHTML = '<div style="background:#0f0f22;border:1px solid rgba(78,204,163,.15);border-radius:20px;padding:28px;max-width:540px;width:100%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 40px 80px rgba(0,0,0,.5)">'
+    + '<button onclick="document.getElementById(\'fb-add-page-modal\').remove()" style="position:absolute;top:16px;right:16px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">×</button>'
+    + '<div style="font-size:15px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">Add a Page</div>'
+    + '<div style="font-size:11px;color:var(--dim);margin-bottom:20px">Choose a page type — it will be generated using your intelligence and added to the funnel.</div>'
+    + '<div style="display:flex;flex-direction:column;gap:8px">'
+    + available.map(function(p) {
+        return '<div onclick="fbAddPage(\'' + p.id + '\',\'' + p.label + '\');document.getElementById(\'fb-add-page-modal\').remove()" '
+          + 'style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;cursor:pointer;transition:all .15s" '
+          + 'onmouseenter="this.style.borderColor=\'rgba(78,204,163,.25)\';this.style.background=\'rgba(78,204,163,.04)\'" '
+          + 'onmouseleave="this.style.borderColor=\'rgba(255,255,255,.07)\';this.style.background=\'rgba(255,255,255,.03)\'">'
+          + '<span style="font-size:22px;flex-shrink:0">' + p.icon + '</span>'
+          + '<div><div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">' + p.label + '</div>'
+          + '<div style="font-size:10px;color:var(--dim);margin-top:1px">' + p.desc + '</div></div>'
+          + '</div>';
+      }).join('')
+    + '</div></div>';
+
+  modal.addEventListener('click', function(e){ if (e.target === modal) modal.remove(); });
+  document.body.appendChild(modal);
+}
+
+// ── Generate and add a new page ───────────────────────────────────
+// ══════════════════════════════════════════════════════════════════
+// FUNNEL MEDIA PANEL — Video embed + Image placement
+// ══════════════════════════════════════════════════════════════════
+
+window._fbMediaPlacement = 'hero'; // default
+
+// ── Toggle panel open/close ───────────────────────────────────────
+window.fbToggleMediaPanel = function() {
+  var body     = document.getElementById('fb-media-body');
+  var chevron  = document.getElementById('fb-media-chevron');
+  if (!body) return;
+  var isOpen   = body.style.display !== 'none';
+  body.style.display    = isOpen ? 'none' : 'block';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+};
+
+// ── Select image placement ────────────────────────────────────────
+window.fbSelectPlacement = function(placement, btn) {
+  window._fbMediaPlacement = placement;
+  document.querySelectorAll('.fb-place-btn').forEach(function(b) {
+    b.style.background  = 'transparent';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color       = 'var(--dim)';
+    b.classList.remove('on');
+  });
+  if (btn) {
+    btn.style.background  = 'rgba(78,204,163,.08)';
+    btn.style.borderColor = 'rgba(78,204,163,.3)';
+    btn.style.color       = 'var(--teal)';
+    btn.classList.add('on');
+  }
+};
+
+// ── Handle image file drop ────────────────────────────────────────
+window.fbHandleImgDrop = function(e) {
+  e.preventDefault();
+  var dz = document.getElementById('fb-img-dropzone');
+  if (dz) dz.style.borderColor = 'rgba(255,255,255,.1)';
+  var files = e.dataTransfer && e.dataTransfer.files;
+  if (files && files.length) fbHandleImgUpload(files);
+};
+
+// ── Handle image file upload ──────────────────────────────────────
+window.fbHandleImgUpload = function(files) {
+  if (!files || !files.length) return;
+  var file = files[0];
+  if (!file.type.startsWith('image/')) { avsToast('Please upload an image file.'); return; }
+  if (file.size > 10 * 1024 * 1024)   { avsToast('Image must be under 10MB.'); return; }
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    // Upload to Cloudinary
+    fbUploadToCloudinary(dataUrl, file.name, function(cloudUrl) {
+      var input = document.getElementById('fb-image-url');
+      if (input) input.value = cloudUrl || dataUrl;
+      var dz = document.getElementById('fb-img-dropzone');
+      if (dz) dz.innerHTML = '✅ ' + file.name + ' uploaded';
+    });
+  };
+  reader.readAsDataURL(file);
+};
+
+// ── Upload to Cloudinary ──────────────────────────────────────────
+window.fbUploadToCloudinary = function(dataUrl, filename, callback) {
+  // Use Cloudinary upload via the existing API infrastructure
+  var cloudName = 'dkjrpsvxv'; // from env
+  var uploadPreset = 'funnel_media'; // unsigned preset — create in Cloudinary dashboard
+
+  var formData = new FormData();
+  formData.append('file',           dataUrl);
+  formData.append('upload_preset',  uploadPreset);
+  formData.append('folder',         'funnel-media');
+
+  fetch('https://api.cloudinary.com/v1_1/' + cloudName + '/image/upload', {
+    method: 'POST',
+    body:   formData,
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (data.secure_url) {
+      callback(data.secure_url);
+    } else {
+      // Fallback — use the data URL directly (works but not persistent)
+      console.warn('[media] Cloudinary upload failed — using local data URL');
+      callback(dataUrl);
+    }
+  })
+  .catch(function(err) {
+    console.warn('[media] Upload error:', err.message);
+    callback(dataUrl); // fallback
+  });
+};
+
+// ── Convert YouTube/Vimeo/Loom URL to embed URL ───────────────────
+function fbGetEmbedUrl(url) {
+  if (!url) return null;
+  url = url.trim();
+
+  // YouTube — handle youtu.be, watch?v=, /embed/
+  var yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  if (yt) return 'https://www.youtube.com/embed/' + yt[1] + '?rel=0&modestbranding=1';
+
+  // Vimeo
+  var vi = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  if (vi) return 'https://player.vimeo.com/video/' + vi[1] + '?badge=0&autopause=0';
+
+  // Wistia
+  var wi = url.match(/wistia\.(?:com|net)\/medias\/([a-z0-9]+)/i);
+  if (wi) return 'https://fast.wistia.net/embed/iframe/' + wi[1];
+
+  // Loom
+  var lo = url.match(/loom\.com\/share\/([a-f0-9]+)/i);
+  if (lo) return 'https://www.loom.com/embed/' + lo[1];
+
+  // Wistia embed page format
+  if (url.includes('wistia.com/embed')) return url;
+
+  // Direct MP4 / video file — return as-is for <video> tag
+  if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)) return url;
+
+  return null;
+}
+
+// ── Embed video into current funnel page ──────────────────────────
+window.fbEmbedVideo = function() {
+  var input = document.getElementById('fb-video-url');
+  var url   = input && input.value.trim();
+  if (!url) { avsToast('Paste a video URL first.'); return; }
+
+  var embedUrl = fbGetEmbedUrl(url);
+  if (!embedUrl) { avsToast('URL not recognised. Try YouTube, Vimeo, Wistia, Loom, or an MP4 link.'); return; }
+
+  var pageId = fbState.currentPage;
+  var page   = fbState.current && fbState.current.pages && fbState.current.pages[pageId];
+  if (!page || !page.html) { avsToast('No page loaded.'); return; }
+
+  var isDirect = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(embedUrl);
+
+  // Build embed HTML
+  var embedHtml = isDirect
+    ? '<video src="' + embedUrl + '" controls style="width:100%;height:100%;display:block;border-radius:inherit"></video>'
+    : '<iframe src="' + embedUrl + '" frameborder="0" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen style="width:100%;height:100%;display:block;border-radius:inherit"></iframe>';
+
+  // Replace the video placeholder in the page HTML
+  var html = page.html;
+
+  // Strategy 1 — replace existing iframe inside .video-wrap or aspect-ratio:16/9 containers
+  html = html.replace(
+    /<div[^>]*class="video-wrap"[^>]*>[\s\S]*?<\/div>/,
+    '<div class="video-wrap">' + embedHtml + '</div>'
+  );
+
+  // Strategy 2 — replace placeholder "Paste your video embed code here" block
+  html = html.replace(
+    /<div[^>]*style="[^"]*aspect-ratio:16\/9[^"]*"[^>]*>[\s\S]*?<\/div>/,
+    '<div style="background:#07070f;border-radius:18px;overflow:hidden;aspect-ratio:16/9;max-width:720px;margin:0 auto">' + embedHtml + '</div>'
+  );
+
+  // Strategy 3 — replace any existing iframe src in the page
+  if (html.includes('<iframe') && html.includes('frameborder')) {
+    html = html.replace(/<iframe[^>]*src="[^"]*"[^>]*>/,
+      '<iframe src="' + embedUrl + '" frameborder="0" allow="autoplay;fullscreen;picture-in-picture" allowfullscreen style="width:100%;height:100%;display:block">');
+  }
+
+  // Strategy 4 — if nothing matched, insert before the first CTA section
+  if (html === page.html) {
+    var embedSection = '<section style="padding:40px 0;background:#08080f"><div style="max-width:720px;margin:0 auto;padding:0 28px"><div style="border-radius:18px;overflow:hidden;aspect-ratio:16/9">' + embedHtml + '</div></div></section>';
+    html = html.replace(/<section[^>]*class[^>]*section[^>]*>/,
+      embedSection + '<section ');
+  }
+
+  page.html = html;
+  fbRenderPreview(pageId);
+  fbSaveFunnelToFirestore(fbState.current).catch(function(){});
+  if (input) input.value = '';
+  avsToast('✅ Video embedded successfully');
+};
+
+// ── Apply image to funnel page ────────────────────────────────────
+window.fbApplyImage = function() {
+  var input = document.getElementById('fb-image-url');
+  var url   = input && input.value.trim();
+  if (!url) { avsToast('Paste an image URL or upload a file first.'); return; }
+
+  var placement = window._fbMediaPlacement || 'hero';
+  var pageId    = fbState.currentPage;
+  var page      = fbState.current && fbState.current.pages && fbState.current.pages[pageId];
+  if (!page || !page.html) { avsToast('No page loaded.'); return; }
+
+  var html = page.html;
+
+  if (placement === 'hero') {
+    // Add/replace hero background image
+    // Strategy 1 — replace existing hero-glow radial gradient bg with a real image overlay
+    if (html.includes('id="hero-section"')) {
+      // Insert bg-image style on the hero section
+      html = html.replace(
+        /(<section[^>]*id="hero-section"[^>]*style=")([^"]*)/,
+        '$1$2;background-image:url(' + url + ');background-size:cover;background-position:center;background-repeat:no-repeat'
+      );
+    } else {
+      // Wrap first section with bg image
+      html = html.replace(
+        /<section /,
+        '<section style="background-image:url(' + url + ');background-size:cover;background-position:center" '
+      );
+    }
+  } else if (placement === 'profile') {
+    // Replace profile/avatar placeholder or add after badge
+    if (html.includes('testi-avatar') || html.includes('profile')) {
+      // Add a circular profile image near the top
+      var profileImg = '<div style="width:80px;height:80px;border-radius:50%;overflow:hidden;border:2px solid rgba(78,204,163,.3);margin:0 auto 20px"><img src="' + url + '" style="width:100%;height:100%;object-fit:cover"></div>';
+      html = html.replace(/<h1 /, profileImg + '<h1 ');
+    }
+  } else if (placement === 'product') {
+    // Add product image before the features section or after bullets
+    var productImg = '<div style="text-align:center;margin:40px 0"><img src="' + url + '" style="max-width:100%;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.4)"></div>';
+    // Insert before FAQ or testimonials or after bullets
+    var insertBefore = html.indexOf('<section');
+    var secondSection = html.indexOf('<section', insertBefore + 10);
+    if (secondSection > 0) {
+      html = html.slice(0, secondSection) + productImg + html.slice(secondSection);
+    }
+  } else if (placement === 'section') {
+    // Replace background of the second section
+    html = html.replace(
+      /(<section[^>]*class="section section-alt"[^>]*)/,
+      '$1 style="background-image:url(' + url + ');background-size:cover;background-position:center;background-attachment:fixed"'
+    );
+  }
+
+  page.html = html;
+  fbRenderPreview(pageId);
+  fbSaveFunnelToFirestore(fbState.current).catch(function(){});
+  if (input) input.value = '';
+  var dz = document.getElementById('fb-img-dropzone');
+  if (dz) dz.innerHTML = 'Click to upload or drop image here';
+  avsToast('✅ Image applied to ' + placement);
+};
+
+window.fbAddPage = async function(pageId, label) {
+  var funnel = fbState.current;
+  if (!funnel) return;
+
+  avsToast('⏳ Building ' + label + '…');
+
+  // Determine template mode
+  var templateMode = 'optin';
+  if (['vsl','training','replay'].includes(pageId))   templateMode = 'vsl';
+  if (['booking','apply'].includes(pageId))           templateMode = 'booking';
+  if (['landing','bridge','presell'].includes(pageId))templateMode = 'bridge';
+
+  // Get intelligence context
+  var ctx = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
+  var isAffiliate = ctx.isAffiliate || false;
+
+  var PAGE_STRATS = {
+    optin:    { goal: 'Collect name and email for free access. Never show price.', cta: 'Get Free Access Now' },
+    vsl:      { goal: 'Video page — build desire, CTA to book a call. Never show price.', cta: 'Book Your Free Strategy Call' },
+    booking:  { goal: 'Book a free strategy call. Simple, friction-free.', cta: 'Confirm Your Spot' },
+    apply:    { goal: 'Premium application — feel exclusive, not everyone gets in.', cta: 'Submit My Application' },
+    landing:  { goal: 'Strong positioning landing page. No price. One CTA: apply or book.', cta: 'Apply Now' },
+    bridge:   { goal: 'Warm up cold traffic before the offer. Build curiosity and desire.', cta: 'See What I Recommend' },
+    presell:  { goal: 'Pre-sell the main offer. Build massive desire before price reveal.', cta: 'Get Access Now' },
+    sales:    { goal: 'Full sales page. Tell the story, show the offer, reveal the price.', cta: 'Get Instant Access' },
+    checkout: { goal: 'Order form. Eliminate friction. Complete the sale.', cta: 'Complete My Order' },
+    upsell:   { goal: 'One-time upgrade. Fast, specific, compelling.', cta: 'Yes, Add This' },
+    thankyou: { goal: 'Confirm and celebrate. Give clear next steps.', cta: 'Access My Purchase' },
+    register: { goal: 'Register for free webinar. Sell the event.', cta: 'Reserve My Free Seat' },
+    confirm:  { goal: 'Confirm registration. Build excitement and commitment.', cta: 'Add to Calendar' },
+    replay:   { goal: 'Replay page — urgency, catch no-shows.', cta: 'Watch The Replay Now' },
+    tripwire: { goal: 'Low-ticket irresistible offer. Value stack + price reveal.', cta: 'Get It Now' },
+  };
+
+  var cfg = PAGE_STRATS[pageId] || PAGE_STRATS.landing;
+
+  var prompt = 'Write conversion copy for a ' + label + '.\n\n'
+    + 'OFFER: ' + (ctx.offerName || '') + '\n'
+    + 'NICHE: ' + (ctx.niche || '') + '\n'
+    + 'PAGE GOAL: ' + cfg.goal + '\n'
+    + 'CTA ACTION: ' + cfg.cta + '\n'
+    + (ctx.pain ? 'AUDIENCE PAIN: ' + ctx.pain + '\n' : '')
+    + (ctx.transformation ? 'TRANSFORMATION: ' + ctx.transformation + '\n' : '')
+    + (ctx.dominanceAngle ? 'POSITIONING: ' + ctx.dominanceAngle + '\n' : '')
+    + '\nReturn ONLY valid JSON matching the standard funnel copy schema.';
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/generate-funnel', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt,
+        max_tokens:  2500,
+        mode:        templateMode,
+        intelContext: {
+          isAffiliate:     ctx.isAffiliate    || false,
+          niche:           ctx.niche          || '',
+          offerName:       ctx.offerName      || '',
+          price:           ctx.price          || '',
+          pain:            ctx.pain           || '',
+          deeperPain:      ctx.deeperPain     || '',
+          fear:            ctx.fear           || '',
+          tried:           ctx.tried          || '',
+          transformation:  ctx.transformation || '',
+          dominanceAngle:  ctx.dominanceAngle || '',
+          hooks:           ctx.hooks          || [],
+          voiceTone:       ctx.voiceTone      || '',
+          productUrl:      ctx.productUrl     || '',
+        },
+      }),
+    });
+
+    var data = await resp.json();
+    var html  = (data.content && data.content[0] && data.content[0].text) || '';
+    if (!html) throw new Error('Empty response');
+
+    // Add page to funnel
+    funnel.pages[pageId] = { label, html };
+    if (!funnel.pageOrder) funnel.pageOrder = Object.keys(funnel.pages);
+    if (!funnel.pageOrder.includes(pageId)) funnel.pageOrder.push(pageId);
+
+    // Rebuild tabs and switch to new page
+    fbState.currentPage = pageId;
+    fbRebuildPageTabs(funnel);
+    fbRenderPreview(pageId);
+
+    // Save
+    await fbSaveFunnelToFirestore(funnel);
+    avsToast('✅ ' + label + ' added to your funnel');
+
+  } catch(err) {
+    avsToast('⚠️ Could not generate page: ' + (err.message || 'try again'));
+  }
+};
 
 function fbToggleDevice(device) {
   fbState.device = device;
