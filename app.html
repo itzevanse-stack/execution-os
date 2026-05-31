@@ -4792,7 +4792,7 @@ button[onclick="generateOffer()"] {
     </div>
 
     <!-- ══ MY OFFERS LIBRARY ════════════════════════════════════════════ -->
-    <div id="aff-offers-library" style="margin-bottom:1.25rem;display:none">
+    <div id="aff-offers-library" style="margin-bottom:1.25rem">
       <div style="background:var(--card);border:1px solid var(--border2);border-radius:18px;overflow:hidden">
         <div style="padding:14px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">
           <div>
@@ -18927,9 +18927,11 @@ window.analyseAffiliateProduct = async function() {
   };
 
   // ── Show results panel when done ──────────────────────────────────────
-  const showResults = () => {
-    const av    = window._avatarData    || {};
-    const offer = window._affiliateOffer|| {};
+  // Pass av explicitly so showResults always uses the fresh data
+  // not the global which may still be null from the stale-data clear
+  const showResults = (freshAv) => {
+    const av    = freshAv || window._avatarData || {};
+    const offer = window._affiliateOffer || {};
     if (statusEl) statusEl.style.display='none';
     if (btnEl)    { btnEl.disabled=false; btnEl.innerHTML='⚡ Regenerate'; }
     const setupPanel = document.getElementById('aff-setup-panel');
@@ -18944,6 +18946,12 @@ window.analyseAffiliateProduct = async function() {
     window.renderAffAvatarView    && window.renderAffAvatarView(av);
     window.renderAffDMScripts     && window.renderAffDMScripts(av, offer.name||productName, offer.commission||commission);
     window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission||commission);
+    // Restore Promo Intel and Offer Viability to their "generate" button state
+    // (they were cleared with "Analysing new offer…" — now show the proper empty state)
+    window.renderAffPromoIntel     && window.renderAffPromoIntel();
+    window.renderAffOfferViability && window.renderAffOfferViability();
+    // Refresh My Offers library so newly saved offer appears immediately
+    window.affRenderOffersLibrary  && window.affRenderOffersLibrary();
     if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
       window.showAffActiveTab && window.showAffActiveTab('buyer-research', document.querySelector('#aff-active-tabs .tab'));
     }
@@ -19604,7 +19612,7 @@ Return ONLY valid JSON — no markdown, no backticks:
     setProgress(100, 'Ready — check each tab', null);
   }
 
-  setTimeout(showResults, 500);
+  setTimeout(function(){ showResults(window._avatarData || {}); }, 500);
 }
 ;
 
@@ -34952,10 +34960,16 @@ window.affRenderOffersLibrary = function(activeId) {
   var grid    = document.getElementById('aff-offers-grid');
   if (!grid) return;
 
-  // Show library only if has offers
-  if (library) library.style.display = offers.length ? 'block' : 'none';
+  // Always visible in affiliate mode — show empty state when no offers yet
+  if (library) library.style.display = 'block';
 
-  if (!offers.length) { grid.innerHTML = ''; return; }
+  if (!offers.length) {
+    grid.innerHTML = '<div style="text-align:center;padding:20px;color:var(--dimmer);font-size:12px;line-height:1.8">'
+      + '<div style="font-size:28px;margin-bottom:8px">📦</div>'
+      + 'No offers saved yet. Analyse your first affiliate offer below and it will appear here automatically.'
+      + '</div>';
+    return;
+  }
 
   // Active offer ID — use current _affiliateOffer url to match
   var currentUrl = window._affiliateOffer && window._affiliateOffer.url;
@@ -35007,7 +35021,7 @@ window.affLoadOffersFromFirestore = function() {
       setTimeout(function() {
         affRenderOffersLibrary();
         affLoadOffersFromFirestore();
-      }, 600);
+      }, 400);
     }
   };
 })();
@@ -35018,10 +35032,17 @@ window.affLoadOffersFromFirestore = function() {
   window.showPage = function(page, nav) {
     if (_origShow) _origShow.apply(this, arguments);
     if (page === 'affiliate') {
-      setTimeout(affRenderOffersLibrary, 200);
+      setTimeout(affRenderOffersLibrary, 100);
     }
   };
 })();
+
+// ── Initial render on script load ────────────────────────────────
+setTimeout(function() {
+  if ((window._appMode || 'affiliate') === 'affiliate') {
+    affRenderOffersLibrary();
+  }
+}, 1500);
 </script>
 
 <script>
