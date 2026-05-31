@@ -958,7 +958,7 @@ body.expert-mode .expert-only    { display: flex !important; }
   -webkit-box-orient: vertical;
 }
 
-/* E-OS Video button */
+/* Video Studio button */
 .cal-slot-heygen {
   display: inline-flex;
   align-items: center;
@@ -2784,7 +2784,7 @@ button[onclick="generateOffer()"] {
         <!-- What they'll get preview -->
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
           <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
-            <span style="font-size:16px">🧠</span><span style="font-size:12px;color:var(--muted)">AI builds your complete content intelligence</span>
+            <span style="font-size:16px">🧠</span><span style="font-size:12px;color:var(--muted)">Execution OS builds your complete content intelligence</span>
           </div>
           <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
             <span style="font-size:16px">💬</span><span style="font-size:12px;color:var(--muted)">5 personalised DM scripts ready to send today</span>
@@ -2899,10 +2899,10 @@ button[onclick="generateOffer()"] {
         <div style="font-size:13px;color:var(--dim);margin-bottom:28px;line-height:1.7">Your intelligence is loaded across the entire platform. Every section is now powered by your specific offer and audience. What do you want to create first?</div>
         <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
           <button onclick="onboardLaunch('carousel')" style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);border-radius:14px;color:#a089ff;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-align:left">
-            <span style="font-size:20px">🖼</span><div><div style="font-weight:800">Generate a Carousel</div><div style="font-size:10px;opacity:.7;margin-top:1px">AI builds a branded Instagram carousel from your intelligence</div></div>
+            <span style="font-size:20px">🖼</span><div><div style="font-weight:800">Generate a Carousel</div><div style="font-size:10px;opacity:.7;margin-top:1px">Builds a branded carousel from your intelligence</div></div>
           </button>
           <button onclick="onboardLaunch('reel')" style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.2);border-radius:14px;color:var(--teal);font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-align:left">
-            <span style="font-size:20px">🎬</span><div><div style="font-weight:800">Write a Reel Script</div><div style="font-size:10px;opacity:.7;margin-top:1px">AI writes a 90-second reel in your voice from your offer</div></div>
+            <span style="font-size:20px">🎬</span><div><div style="font-weight:800">Write a Reel Script</div><div style="font-size:10px;opacity:.7;margin-top:1px">Video Studio writes a 90-second reel in your voice from your offer</div></div>
           </button>
           <button onclick="onboardLaunch('dms')" style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.15);border-radius:14px;color:var(--yellow);font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-align:left">
             <span style="font-size:20px">💬</span><div><div style="font-weight:800">See My DM Scripts</div><div style="font-size:10px;opacity:.7;margin-top:1px">5 personalised DM openers ready to use right now</div></div>
@@ -3008,7 +3008,7 @@ button[onclick="generateOffer()"] {
       </button>
 
       <!-- AFFILIATE: My Affiliate Offer (hidden in expert mode) -->
-      <button class="nav-item ripple-container affiliate-only" style="display:none" onclick="showPage('aff-offer',this)" id="nav-aff-offer">
+      <button class="nav-item ripple-container affiliate-only" style="display:none" onclick="showPage('affiliate',this)" id="nav-aff-offer">
         <div class="ni-icon">🔗</div>
         <div class="ni-text">
           <div class="ni-label">My Affiliate Offer</div>
@@ -3039,7 +3039,7 @@ button[onclick="generateOffer()"] {
       <!-- Section: Content Engine -->
       <div class="nav-section-label" id="nav-label-content-engine">Content Engine</div>
 
-      <!-- CONTENT STUDIO (formerly AI Video Studio) -->
+      <!-- CONTENT STUDIO -->
       <button class="nav-item ripple-container" onclick="showPage('ai-video',this)" id="nav-ai-video">
         <div class="ni-icon">🎬</div>
         <div class="ni-text">
@@ -3230,7 +3230,23 @@ button[onclick="generateOffer()"] {
   <div class="page on" id="page-dashboard" style="display:block;opacity:1">
     <div style="padding-top:1.5rem">
 
-      <!-- Welcome strip -->
+      <!-- Setup completion nudge — shows when setup is incomplete -->
+      <div id="setup-nudge-banner" style="display:none;margin:0 1.25rem 16px">
+        <div style="background:linear-gradient(135deg,rgba(255,140,66,.08),rgba(108,99,255,.06));border:1px solid rgba(255,140,66,.3);border-radius:var(--r-lg);padding:16px 18px">
+          <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+            <div style="font-size:28px;flex-shrink:0;margin-top:2px">⚡</div>
+            <div style="flex:1;min-width:220px">
+              <div id="nudge-title" style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">Complete your setup to unlock the full platform</div>
+              <div id="nudge-sub" style="font-size:11px;color:var(--dim);line-height:1.6;margin-bottom:12px">The AI can't personalise anything until it knows your offer and audience. It takes 2 minutes.</div>
+              <div id="nudge-steps" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0">
+              <button id="nudge-cta-btn" onclick="setupNudgeCTA()" style="padding:11px 22px;background:linear-gradient(135deg,var(--orange),#e8530a);border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:11px;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(255,140,66,.4)">Complete Setup →</button>
+              <button onclick="setupNudgeDismiss()" style="padding:4px 10px;background:transparent;border:none;color:var(--dimmer);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif">Remind me later</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div id="db-welcome" style="background:linear-gradient(145deg,rgba(78,204,163,.1),rgba(108,99,255,.06),var(--card));border:1px solid rgba(78,204,163,.2);border-radius:20px;padding:1.5rem 1.75rem;margin-bottom:1.5rem;position:relative;overflow:hidden">
         <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--teal),var(--purple),var(--yellow))"></div>
         <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:1rem">
@@ -4374,6 +4390,24 @@ button[onclick="generateOffer()"] {
 
     <div style="padding:0 1.25rem 80px">
 
+      <!-- Calendar toolbar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <!-- View toggle -->
+        <div style="display:inline-flex;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:50px;padding:3px;gap:2px">
+          <button class="cal-view-btn on" id="cal-view-list" onclick="calSetView('list',this)" style="padding:7px 16px;border-radius:50px;border:none;font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer;background:linear-gradient(135deg,#6c63ff,#5040cc);color:#fff;box-shadow:0 2px 8px rgba(108,99,255,.4);transition:all .2s">📋 List</button>
+          <button class="cal-view-btn" id="cal-view-week" onclick="calSetView('week',this)" style="padding:7px 16px;border-radius:50px;border:none;font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer;background:transparent;color:rgba(255,255,255,.45);transition:all .2s">📅 Week</button>
+        </div>
+        <!-- Status filter -->
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="cal-filter-btn on" onclick="calSetFilter('all',this)" style="padding:6px 14px;border-radius:50px;border:1px solid rgba(108,99,255,.35);background:rgba(108,99,255,.12);color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s">All</button>
+          <button class="cal-filter-btn" onclick="calSetFilter('ready',this)" style="padding:6px 14px;border-radius:50px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s">✅ Ready</button>
+          <button class="cal-filter-btn" onclick="calSetFilter('published',this)" style="padding:6px 14px;border-radius:50px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s">🟢 Published</button>
+          <button class="cal-filter-btn" onclick="calSetFilter('pending',this)" style="padding:6px 14px;border-radius:50px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s">⏳ Pending</button>
+        </div>
+        <!-- Download all -->
+        <button onclick="calDownloadAll()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:50px;color:var(--teal);font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">⬇️ Download All</button>
+      </div>
+
       <!-- 5B: Overview bar -->
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px" id="cal-overview-bar">
         <div class="card-dark" style="text-align:center">
@@ -4403,8 +4437,15 @@ button[onclick="generateOffer()"] {
         <button onclick="calDismissAutoBanner()" style="padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;flex-shrink:0">Dismiss</button>
       </div>
 
-      <!-- 5D: Day-by-day calendar list -->
-      <div id="cal-days-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      <!-- List view -->
+      <div id="cal-list-view">
+        <div id="cal-days-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
+      <!-- Week view grid -->
+      <div id="cal-week-view" style="display:none">
+        <div id="cal-week-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;min-width:0"></div>
+      </div>
 
       <!-- Empty state -->
       <div id="cal-empty-state" style="display:none;text-align:center;padding:3rem 1rem">
@@ -4880,7 +4921,7 @@ button[onclick="generateOffer()"] {
         </div>
         <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;text-align:center">
           <div style="width:32px;height:32px;border-radius:50%;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.2);display:flex;align-items:center;justify-content:center;font-size:14px;margin:0 auto 8px">🤖</div>
-          <div style="font-size:11px;font-weight:800;color:var(--white);margin-bottom:3px">E-OS Analyses</div>
+          <div style="font-size:11px;font-weight:800;color:var(--white);margin-bottom:3px">Deep Analyses</div>
           <div style="font-size:10px;color:var(--dim);line-height:1.5">Execution-OS builds your buyer avatar automatically</div>
         </div>
         <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:14px;text-align:center">
@@ -5738,7 +5779,7 @@ button[onclick="generateOffer()"] {
           <div style="width:52px;height:52px;border-radius:50%;border:3px solid rgba(108,99,255,.15);border-top-color:#6c63ff;animation:spin .75s linear infinite;margin:0 auto 1.25rem"></div>
           <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:1px;color:var(--purple);margin-bottom:8px">Building Your Boardroom Intelligence</div>
           <div id="br-loading-msg" style="font-size:15px;font-weight:800;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:6px">Reading your strategy session answers...</div>
-          <div style="font-size:12px;color:var(--dim);margin-bottom:1.5rem" id="br-loading-sub">Running 11 AI analyses — this takes about 60 seconds</div>
+          <div style="font-size:12px;color:var(--dim);margin-bottom:1.5rem" id="br-loading-sub">Running 11 deep analyses — this takes about 60 seconds</div>
           <!-- Stage checklist -->
           <div style="display:flex;flex-direction:column;gap:6px;text-align:left;max-width:420px;margin:0 auto 1.5rem">
             <div id="_brl_0" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;opacity:.3;transition:opacity .4s">
@@ -5880,7 +5921,7 @@ button[onclick="generateOffer()"] {
 
 </div><!-- /page-boardroom -->
 
-<!-- AI VIDEO STUDIO — E-OS Video (powered by professional video AI)         -->
+<!-- VIDEO STUDIO -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
 <div class="page" id="page-ai-video" style="display:none">
 
@@ -5902,7 +5943,7 @@ button[onclick="generateOffer()"] {
 
         <button class="cs-tab-btn on" onclick="csShowTab('video',this)"
           style="display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:50px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);background:linear-gradient(135deg,#6c63ff,#5040cc);color:#fff;box-shadow:0 4px 14px rgba(108,99,255,.45);letter-spacing:.2px">
-          <span style="font-size:14px">🎬</span> AI Video
+          <span style="font-size:14px">🎬</span> Video Studio
         </button>
 
         <button class="cs-tab-btn" onclick="csShowTab('carousel',this)"
@@ -5923,7 +5964,7 @@ button[onclick="generateOffer()"] {
       </div>
     </div>
 
-    <!-- 2D: Tab 1 — AI Video Studio (all existing content, completely unchanged) -->
+    <!-- Tab 1 — Video Studio -->
     <div id="cs-tab-video">
 
     <!-- Status bar -->
@@ -6179,12 +6220,12 @@ button[onclick="generateOffer()"] {
           </div>
           <input type="hidden" id="avs-script-angle" value="story" />
 
-          <!-- 2 + 3. Script label left, Write with AI button right -->
+          <!-- Script label left, Write Script button right -->
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
             <div style="font-size:11px;font-weight:700;color:var(--white);font-family:Poppins,sans-serif">Your script</div>
-            <button onclick="avsGenerateScript()" id="avs-write-btn" style="background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.18);border-radius:6px;padding:4px 12px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">✍️ Write with AI</button>
+            <button onclick="avsGenerateScript()" id="avs-write-btn" style="background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.18);border-radius:6px;padding:4px 12px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">✍️ Write Script</button>
           </div>
-          <textarea class="fi" id="avs-script-input" rows="5" placeholder="Your script will appear here after clicking Write with AI. You can also type or paste your own."></textarea>
+          <textarea class="fi" id="avs-script-input" rows="5" placeholder="Your script will appear here after clicking Write Script. You can also type or paste your own."></textarea>
           <div style="font-size:9px;color:var(--dimmer);margin-top:3px;text-align:right"><span id="avs-script-count">0</span> / 1500</div>
         </div>
 
@@ -6277,11 +6318,11 @@ button[onclick="generateOffer()"] {
       <!-- 3A: Generator controls -->
       <div class="card-dark" style="margin-bottom:16px">
         <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🖼 Carousel Generator</div>
-        <div style="font-size:11px;color:var(--dim);margin-bottom:18px">AI picks your topic from your content pillars if you leave it blank. All output is 1080×1080px.</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:18px">Picks your topic from your content pillars if you leave it blank. All output is 1080×1080px.</div>
 
         <!-- Topic input -->
         <div class="inp-box" style="margin-bottom:14px">
-          <div class="inp-lbl">Topic (optional — AI picks from your pillars if blank)</div>
+          <div class="inp-lbl">Topic (optional — picks from your pillars if blank)</div>
           <input id="car-topic" class="fi" placeholder="e.g. Why most people fail at this…" style="margin-top:4px" />
         </div>
 
@@ -6568,7 +6609,7 @@ button[onclick="generateOffer()"] {
               <span id="sv-st0" style="margin-left:auto;font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
             </div>
             <div class="sv-stage" id="sv-stage-1" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px;opacity:.4;transition:opacity .4s">
-              <span style="font-size:14px">🎬</span><span style="font-size:11px;color:var(--white);font-weight:700">Generating cinematic scenes with Runway AI</span>
+              <span style="font-size:14px">🎬</span><span style="font-size:11px;color:var(--white);font-weight:700">Generating cinematic scenes with Runway</span>
               <span id="sv-st1" style="margin-left:auto;font-size:9px;color:var(--dimmer);font-weight:800;text-transform:uppercase">waiting</span>
             </div>
             <div class="sv-stage" id="sv-stage-2" style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:8px;opacity:.4;transition:opacity .4s">
@@ -6728,8 +6769,8 @@ button[onclick="generateOffer()"] {
       <div class="strip-inner">
         <div>
           <div class="tag-pill" style="background:rgba(78,204,163,.12);color:var(--teal);border:1px solid rgba(78,204,163,.2)">🚀 Funnel Builder</div>
-          <div class="h1">Build Your <em>Complete Sales Funnel</em> with AI</div>
-          <div class="strip-sub">Your offer, your avatar, your copy — already loaded. The AI builds your entire funnel in seconds. Edit by typing, publish with one click.</div>
+          <div class="h1">Build Your <em>Complete Sales Funnel</em></div>
+          <div class="strip-sub">Your offer, your avatar, your copy — already loaded. Builds your entire funnel in seconds. Edit by typing, publish with one click.</div>
         </div>
         <div class="strip-right">
           <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -6748,7 +6789,7 @@ button[onclick="generateOffer()"] {
       </div>
       <div class="wstep" id="wstep-2">
         <div class="wstep-num">2</div>
-        <div>AI Generates</div>
+        <div>Instant Build</div>
       </div>
       <div class="wstep" id="wstep-3">
         <div class="wstep-num">3</div>
@@ -6815,7 +6856,7 @@ button[onclick="generateOffer()"] {
         <button onclick="fbBackToList()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 14px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">← Back</button>
         <div>
           <div style="font-size:18px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">What kind of funnel do you need?</div>
-          <div style="font-size:12px;color:var(--dim);margin-top:2px">Your offer details are already loaded. Pick a type and the AI builds everything.</div>
+          <div style="font-size:12px;color:var(--dim);margin-top:2px">Your offer details are already loaded. Pick a type and it builds everything.</div>
         </div>
       </div>
 
@@ -6858,7 +6899,7 @@ button[onclick="generateOffer()"] {
             <span id="fb-selected-icon"></span> <span id="fb-selected-name"></span> selected
           </div>
           <button class="fb-publish-btn" style="width:auto;padding:10px 24px;font-size:12px" onclick="fbGenerateFunnel()">
-            ⚡ Build Funnel with AI →
+            ⚡ Build My Funnel →
           </button>
         </div>
       </div>
@@ -6924,7 +6965,7 @@ button[onclick="generateOffer()"] {
         <div class="fb-ai-panel">
           <div class="fb-ai-header">
             <div class="fb-ai-title">🧠 AI Editor</div>
-            <div class="fb-ai-sub">Tell the AI what to change and it updates your page instantly</div>
+            <div class="fb-ai-sub">Type what you want to change and it updates instantly</div>
           </div>
           <!-- Video Tools Panel — shown on video/optin pages -->
           <div id="fb-heygen-strip" style="display:none;margin:0 0 10px">
@@ -6946,7 +6987,7 @@ button[onclick="generateOffer()"] {
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
               <button onclick="fbUseOwnVideo()" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;padding:8px 6px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;line-height:1.5;text-align:center">🎥 My Own<br><span style="font-size:9px;opacity:.7">Wistia/Vimeo/YouTube</span></button>
-              <button onclick="fbGenerateHeyGenVideo()" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;padding:8px 6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;line-height:1.5;text-align:center">🤖 Build AI<br><span style="font-size:9px;opacity:.7">E-OS Video</span></button>
+              <button onclick="fbGenerateHeyGenVideo()" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;padding:8px 6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;line-height:1.5;text-align:center">🎬 Build<br><span style="font-size:9px;opacity:.7">Video Studio</span></button>
             </div>
           </div>
 
@@ -7400,7 +7441,7 @@ button[onclick="generateOffer()"] {
           </div>
         </div>
         <div style="margin-top:16px;display:flex;gap:8px">
-          <button onclick="emGenerateSequence()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:9px 18px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">⚡ Regenerate with AI</button>
+          <button onclick="emGenerateSequence()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:9px 18px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">⚡ Regenerate</button>
           <button onclick="emToggleSequence(this)" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);border-radius:var(--r-md);padding:9px 18px;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">⏸ Pause Sequence</button>
         </div>
       </div>
@@ -7602,7 +7643,7 @@ button[onclick="generateOffer()"] {
 
             <!-- ROW 2: AI Write + angles -->
             <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(78,204,163,.03);border-bottom:1px solid var(--border2);flex-wrap:wrap">
-              <button onclick="emAiWrite()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:6px;padding:5px 14px;color:var(--text-dark);font-family:Poppins,sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">⚡ Write with AI</button>
+              <button onclick="emAiWrite()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:6px;padding:5px 14px;color:var(--text-dark);font-family:Poppins,sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">⚡ Write Email</button>
               <div style="width:1px;height:18px;background:var(--border2)"></div>
               <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer)">Rewrite</span>
               <button class="em-toolbar-btn" onclick="emAiRewrite('make it shorter and more punchy')">Shorter</button>
@@ -10838,7 +10879,7 @@ function _showAnalysisUI(outputEl, inp) {
           // Refined message
           if(data.refinedCoreMessage){
             vh += '<div style="background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.22);border-radius:11px;padding:11px 14px;margin-bottom:12px">';
-            vh += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:800;margin-bottom:6px">🎯 AI-Refined Core Message</div>';
+            vh += '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:800;margin-bottom:6px">🎯 ✅ Core Message</div>';
             vh += '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6">'+data.refinedCoreMessage+'</div></div>';
           }
 
@@ -11127,7 +11168,7 @@ ${_vp_cal.avoid ? '- NEVER use these words/phrases: ' + _vp_cal.avoid : ''}
 ${_vp_cal.story ? '- Creator story: ' + _vp_cal.story : ''}
 ${_vp_cal.method ? '- Their framework/method: ' + _vp_cal.method : ''}
 ${_vp_cal.example ? '- Match this voice exactly (real content sample):\n' + _vp_cal.example : ''}
-CRITICAL: Every post must sound like this specific person wrote it — not generic AI content.` : '';
+CRITICAL: Every post must sound like this specific person wrote it — not generic content.` : '';
 
     prompt = body._rawPrompt || `You are a world-class content creator and authority builder with $100M+ in digital product sales. You understand that the only content worth creating is content so genuinely valuable that readers stop, save it, and come back to it. You have built audiences of millions not through volume but through depth — content that changes how people think, not just what they know.
 
@@ -12272,7 +12313,7 @@ window.renderAICalendar30 = function(week) {
       slotsHtml += `<div class="cal-slot" onclick="window.showPostDetail30(${globalIdx})">
         <span class="cal-slot-badge ${sm.badgeClass}">${sm.icon} ${sm.label}</span>
         <span class="cal-slot-hook">${hook}</span>
-        ${sm.reel ? `<button class="cal-slot-heygen" onclick="event.stopPropagation();calSendScriptToVideoStudio(${globalIdx})" style="background:rgba(108,99,255,.15);border-color:rgba(108,99,255,.3);color:#a089ff">🎬 AI Video</button>` : ''}
+        ${sm.reel ? `<button class="cal-slot-heygen" onclick="event.stopPropagation();calSendScriptToVideoStudio(${globalIdx})" style="background:rgba(108,99,255,.15);border-color:rgba(108,99,255,.3);color:#a089ff">🎬 Video Studio</button>` : ''}
       </div>`;
     });
 
@@ -16988,7 +17029,7 @@ window.showPostDetail30 = function(globalIdx) {
       </div>
       <div style="display:flex;flex-direction:column;gap:8px">
         <button onclick="copyPostScript30(${globalIdx})" style="width:100%;padding:12px;background:linear-gradient(135deg,${accentColor === 'var(--purple)' ? 'var(--purple),var(--purple2)' : accentColor === 'var(--red)' ? '#ff6b6b,#ff4500' : 'var(--teal),var(--teal2)'});color:${isEmail || isReel ? '#fff' : 'var(--text-dark)'};border:none;border-radius:12px;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px" id="copy-btn-30">📋 Copy script to clipboard</button>
-        ${isReel ? '<button onclick="calSendScriptToVideoStudio('+globalIdx+')" style="width:100%;padding:12px;background:linear-gradient(135deg,#6c63ff,#5040cc);color:#fff;border:none;border-radius:12px;font-family:\'Poppins\',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px">🎬 Build AI Video</button>' : ''}
+        ${isReel ? '<button onclick="calSendScriptToVideoStudio('+globalIdx+')" style="width:100%;padding:12px;background:linear-gradient(135deg,#6c63ff,#5040cc);color:#fff;border:none;border-radius:12px;font-family:\'Poppins\',sans-serif;font-weight:800;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px">🎬 Build in Video Studio</button>' : ''}
       </div>
     </div>
   </div>`;
@@ -18240,7 +18281,7 @@ Format your response as clean HTML using these exact section headers wrapped in 
 // Cleans the reel script and opens HeyGen with everything ready
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Send reel script to AI Video Studio
+// Send reel script to Video Studio
 window.calSendScriptToVideoStudio = function(globalIdx) {
   if (!window._aiCalendar30) { alert('Build your content calendar first.'); return; }
   const dayIdx  = Math.floor(globalIdx / 5);
@@ -18254,8 +18295,8 @@ window.calSendScriptToVideoStudio = function(globalIdx) {
   const modal = document.getElementById('post-detail-modal');
   if (modal) modal.remove();
 
-  // Navigate to AI Video Studio and pre-fill the script
-  window.showPage('avs');
+  // Navigate to Video Studio and pre-fill the script
+  showPage('ai-video', document.getElementById('nav-ai-video'));
   setTimeout(function() {
     // Switch to Build Video tab
     const genTab = document.querySelector('[onclick*="avs-tab-build"]') ||
@@ -18674,12 +18715,21 @@ window.adj = window.adj; // keep reference
 
 // ─── Tab switcher ─────────────────────────────────────────────────────────
 window.showAffActiveTab = function(tab, btn) {
-  ['buyer-research','promo-intel','offer-viability','strategy','avatar','content-strategy','calendar','dms','tracker','dailytracker','dailyplan','tam'].forEach(t => {
+  ['buyer-research','promo-intel','offer-viability','strategy','avatar','content-strategy','calendar','dms','tracker','dailytracker','dailyplan','tam','link-analytics'].forEach(t => {
     const el = document.getElementById('aff-tab-' + t);
     if (el) el.style.display = t === tab ? 'block' : 'none';
   });
   document.querySelectorAll('#aff-active-tabs .tab').forEach(b => b.classList.remove('on'));
   if (btn) btn.classList.add('on');
+  if (tab === 'link-analytics') {
+    setTimeout(function() {
+      if (typeof window.laPopulateTrackingLink === 'function') window.laPopulateTrackingLink();
+      if (typeof window.laStartListener === 'function') window.laStartListener();
+      if (window._laClicks && window._laClicks.length && typeof window.laRenderAnalytics === 'function') {
+        window.laRenderAnalytics(window._laClicks);
+      }
+    }, 80);
+  }
   if (tab === 'tracker')  window.renderAffCommTracker && window.renderAffCommTracker();
   if (tab === 'dailyplan') window.renderAffDailyPlan && window.renderAffDailyPlan();
   if (tab === 'tam') setTimeout(() => window.renderTAM && window.renderTAM('affiliate'), 60);
@@ -20673,7 +20723,7 @@ window.runMindsetReframe = async function() {
         scriptArea.value = prebuiltScript.trim();
         if (countEl) countEl.textContent = prebuiltScript.length;
       }
-      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
+      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write Script'; }
       return;
     }
 
@@ -20694,10 +20744,10 @@ window.runMindsetReframe = async function() {
         scriptArea.value = text.trim();
         if (countEl) countEl.textContent = text.length;
       }
-      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
+      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write Script'; }
     })
     .catch(function(err) {
-      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write with AI'; }
+      if (btn) { btn.disabled = false; btn.textContent = '✍️ Write Script'; }
       avsToast('Script generation failed: ' + err.message, true);
     });
   };
@@ -20926,7 +20976,7 @@ window.runMindsetReframe = async function() {
     if (window[fn]) delete window[fn]._isStub;
   });
 
-  console.log('[AVS] AI Video Studio engine loaded ✅');
+  console.log('[AVS] Video Studio engine loaded ✅');
 
   // Initialise portrait aspect ratio for default reel selection
   (function() {
@@ -20988,12 +21038,12 @@ window.csRenderReadinessBanner = function() {
   }
   if (isReady) {
     el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.25);border-radius:var(--r-md);padding:12px 16px;margin-bottom:4px">'
-      + '<div style="display:flex;align-items:center;gap:10px"><div style="font-size:18px">✅</div><div><div style="font-size:12px;font-weight:800;color:var(--teal);font-family:Poppins,sans-serif">' + sourceName + ' Complete — Your content intelligence is loaded.</div><div style="font-size:10px;color:var(--dim);margin-top:2px">All AI content will be fully personalised to your offer and audience.</div></div></div>'
+      + '<div style="display:flex;align-items:center;gap:10px"><div style="font-size:18px">✅</div><div><div style="font-size:12px;font-weight:800;color:var(--teal);font-family:Poppins,sans-serif">' + sourceName + ' Complete — Your content intelligence is loaded.</div><div style="font-size:10px;color:var(--dim);margin-top:2px">All content will be fully personalised to your offer and audience.</div></div></div>'
       + '<button onclick="showPage(\'' + sourcePage + '\',document.getElementById(\'' + sourceNav + '\'))" style="flex-shrink:0;padding:7px 14px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.25);border-radius:8px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">View →</button>'
       + '</div>';
   } else {
     el.innerHTML = '<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,140,66,.07);border:1px solid rgba(255,140,66,.25);border-radius:var(--r-md);padding:12px 16px;margin-bottom:4px">'
-      + '<div style="display:flex;align-items:center;gap:10px"><div style="font-size:18px">⚠️</div><div><div style="font-size:12px;font-weight:800;color:var(--orange);font-family:Poppins,sans-serif">Complete ' + sourceName + ' First</div><div style="font-size:10px;color:var(--dim);margin-top:2px">Complete it to unlock fully personalised AI content generation.</div></div></div>'
+      + '<div style="display:flex;align-items:center;gap:10px"><div style="font-size:18px">⚠️</div><div><div style="font-size:12px;font-weight:800;color:var(--orange);font-family:Poppins,sans-serif">Complete ' + sourceName + ' First</div><div style="font-size:10px;color:var(--dim);margin-top:2px">Complete it to unlock fully personalised E-OS content generation.</div></div></div>'
       + '<button onclick="showPage(\'' + sourcePage + '\',document.getElementById(\'' + sourceNav + '\'))" style="flex-shrink:0;padding:7px 14px;background:rgba(255,140,66,.1);border:1px solid rgba(255,140,66,.25);border-radius:8px;color:var(--orange);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Go →</button>'
       + '</div>';
   }
@@ -21169,7 +21219,7 @@ window.carGenerate = async function() {
 
     window._carData = result;
     if (status) status.textContent = userPhotoCount > 0
-      ? 'Composing your ' + userPhotoCount + ' photo(s) with AI copy…'
+      ? 'Composing your ' + userPhotoCount + ' photo(s)…'
       : 'Fetching niche images…';
 
     // ── Fetch Pexels background images for each slide ──────────────────
@@ -22639,7 +22689,7 @@ window.renderAffBuyerResearch = function() {
    CONTENT STRATEGY AI CALLER + RENDERER
    Works for BOTH Affiliate Mode and Expert Mode Boardroom.
    Produces a platform-specific, tool-integrated content architecture
-   using AI Video Studio, ManyChat, email — focused on quality leads.
+   using Video Studio, ManyChat, email — focused on quality leads.
 ══════════════════════════════════════════════════════════════════ */
 
 function buildContentStrategyPrompt(inp, mode) {
@@ -22659,7 +22709,7 @@ function buildContentStrategyPrompt(inp, mode) {
 
   var toolsCtx = [
     'TOOLS AVAILABLE INSIDE EXECUTION OS (use ALL of these in the strategy):',
-    '1. AI Video Studio — creates reels, VSLs, and video content at scale. Specify the exact video formats, hook styles, and posting frequency.',
+    '1. Video Studio — creates reels, VSLs, and video content at scale. Specify the exact video formats, hook styles, and posting frequency.',
     '2. ManyChat — automates DM responses to comments and keywords on reels/posts. Every piece of content should have a ManyChat keyword trigger that captures leads automatically.',
     '3. Content Calendar — 7-day rotating content blocks. Strategy must feed directly into it.',
     '4. Email Marketing — automated sequences nurture leads captured by ManyChat. Specify which email sequences to run and when.',
@@ -22741,7 +22791,7 @@ function buildContentStrategyPrompt(inp, mode) {
 function affCallAI_ContentStrategy(offer, av, researchIntel) {
   // Inject business intelligence context
   var _bizCtx = window.buildBizIntelContext ? window.buildBizIntelContext() : '';
-  var sys = 'You are an elite content strategist specialising in affiliate marketing automation. You build content systems that attract quality leads on autopilot using AI Video Studio, ManyChat, and email sequences. You never recommend paid ads until $10k/month is proven organically. Return ONLY valid compact JSON.';
+  var sys = 'You are an elite content strategist specialising in affiliate marketing automation. You build content systems that attract quality leads on autopilot using Video Studio, ManyChat, and email sequences. You never recommend paid ads until $10k/month is proven organically. Return ONLY valid compact JSON.';
   var researchCtx = '';
   if (researchIntel && researchIntel.buyerResearch) {
     var br = researchIntel.buyerResearch;
@@ -22759,7 +22809,7 @@ function affCallAI_ContentStrategy(offer, av, researchIntel) {
 
 /* ── Expert Boardroom Content Strategy AI Caller ── */
 function brCallAI_ContentStrategy(inp) {
-  var sys = 'You are an elite content strategist specialising in expert digital product businesses. You build content systems that attract quality leads on autopilot using AI Video Studio, ManyChat, and email sequences — automating the entire lead generation process. You never recommend paid ads until $10k/month is proven organically. Return ONLY valid compact JSON.';
+  var sys = 'You are an elite content strategist specialising in expert digital product businesses. You build content systems that attract quality leads on autopilot using Video Studio, ManyChat, and email sequences — automating the entire lead generation process. You never recommend paid ads until $10k/month is proven organically. Return ONLY valid compact JSON.';
   var researchCtx = '';
   var intel = window._boardroomIntel || {};
   if (intel.icpResearch) {
@@ -22808,7 +22858,7 @@ function _renderContentStrategy(d, mode) {
   });
   h += '</div></div>';
 
-  // AI Video Studio strategy
+  // Video Studio strategy
   if (d.aiVideoStudioStrategy) {
     var vs = d.aiVideoStudioStrategy;
     h += '<div style="background:linear-gradient(135deg,rgba(108,99,255,.1),rgba(78,204,163,.06));border:1px solid rgba(108,99,255,.3);border-radius:16px;padding:1.25rem;margin-bottom:1.25rem">'
@@ -22934,7 +22984,7 @@ window.renderAffContentStrategy = function() {
     el.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem">'
       + '<div style="font-size:40px;margin-bottom:14px">📐</div>'
       + '<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Content Strategy</div>'
-      + '<div style="font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.8;max-width:440px;margin-left:auto;margin-right:auto">Builds your complete content architecture — which platforms to use, exactly how to use AI Video Studio for this niche, how to wire ManyChat to automate every lead, your email sequence, and the weekly flywheel that compounds over 90 days. Built specifically around your offer, your buyer, and the tools inside Execution OS.</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.8;max-width:440px;margin-left:auto;margin-right:auto">Builds your complete content architecture — which platforms to use, exactly how to use Video Studio for this niche, how to wire ManyChat to automate every lead, your email sequence, and the weekly flywheel that compounds over 90 days. Built specifically around your offer, your buyer, and the tools inside Execution OS.</div>'
       + '<div style="font-size:11px;color:var(--dimmer);margin-bottom:20px">Run Buyer Intelligence first for the most personalised strategy.</div>'
       + '<button onclick="window.runAffContentStrategy()" style="padding:12px 28px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:50px;color:var(--text-dark);font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 6px 20px rgba(78,204,163,.35)">📐 Build My Content Strategy</button>'
       + '</div>';
@@ -22958,7 +23008,7 @@ window.runAffContentStrategy = async function() {
   var niche = offer.niche || 'your niche';
   var msgs = [
     'Analysing the best content platforms for ' + niche + '...',
-    'Building your AI Video Studio strategy for this niche...',
+    'Building your Video Studio strategy for this niche...',
     'Designing your ManyChat automation keyword sequence...',
     'Mapping your email nurture sequence for quality leads...',
     'Building the weekly content flywheel that compounds...',
@@ -22990,7 +23040,7 @@ window.renderBrContentStrategy = function() {
     panel.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem">'
       + '<div style="font-size:40px;margin-bottom:14px">📐</div>'
       + '<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Content Strategy</div>'
-      + '<div style="font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.8;max-width:440px;margin-left:auto;margin-right:auto">Builds your complete content architecture — platform priority stack, AI Video Studio strategy for your niche, ManyChat automation to capture leads from every post, email nurture sequence, and the weekly flywheel that compounds your authority and lead flow over 90 days. Built from your ICP research and Boardroom intelligence.</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.8;max-width:440px;margin-left:auto;margin-right:auto">Builds your complete content architecture — platform priority stack, Video Studio strategy for your niche, ManyChat automation to capture leads from every post, email nurture sequence, and the weekly flywheel that compounds your authority and lead flow over 90 days. Built from your ICP research and Boardroom intelligence.</div>'
       + '<div style="font-size:11px;color:var(--dimmer);margin-bottom:20px">Run ICP Research and Business Architect first for maximum precision.</div>'
       + '<button onclick="brRegenerateTab(' + "'content-strategy'" + ')" style="padding:12px 28px;background:linear-gradient(135deg,var(--purple),#4a3fcc);border:none;border-radius:50px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 6px 20px rgba(108,99,255,.35)">📐 Build My Content Strategy</button>'
       + '</div>';
@@ -24827,7 +24877,7 @@ if (document.readyState !== 'loading') {
     av.textContent = role==='user'?'👤':'⚡';
     const bubble = document.createElement('div');
     bubble.style.cssText = 'max-width:85%;padding:12px 16px;border-radius:'+(role==='user'?'16px 4px 16px 16px':'4px 16px 16px 16px')+';font-size:13px;line-height:1.6;'+(role==='user'?'background:linear-gradient(135deg,var(--purple),var(--teal));color:#fff':'background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--muted)');
-    bubble.innerHTML = isTyping ? '<span style="opacity:.5">E-OS is thinking<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></span>' : fmtMsg(content);
+    bubble.innerHTML = isTyping ? '<span style="opacity:.5">Thinking<span class="typing-dot">.</span><span class="typing-dot">.</span><span class="typing-dot">.</span></span>' : fmtMsg(content);
     wrap.appendChild(av); wrap.appendChild(bubble);
     msgs.appendChild(wrap); msgs.scrollTop = msgs.scrollHeight;
     return wrap;
@@ -28263,6 +28313,48 @@ window.fbCopySourceLink = function(inputId, btn) {
   if (btn) { btn.textContent = '✅'; setTimeout(function(){ btn.textContent = 'Copy'; }, 1500); }
 };
 
+// ── Funnel Builder — additional function stubs ────────────────────
+window.fbShowCloneModal = function() {
+  avsToast('Funnel cloning coming soon — paste a competitor funnel URL to clone its structure.');
+};
+
+window.fbOpenVisualEditor = function() {
+  fbSetView('editor');
+};
+
+window.fbGenerateVideoScript = function() {
+  // Navigate to Video Studio with funnel context pre-loaded
+  var offer = window._boardroomIntel && window._boardroomIntel.inputs
+    ? (window._boardroomIntel.inputs.offerName || '')
+    : (window._affiliateOffer && window._affiliateOffer.name || '');
+  showPage('ai-video', document.getElementById('nav-ai-video'));
+  setTimeout(function() {
+    // Pre-select VSL format and set angle to promotion
+    var vslCard = document.querySelector('.avs-type-card[data-type="vsl"]');
+    if (vslCard) avsPickType(vslCard);
+    var promoAngle = document.querySelector('[onclick*="avsPickAngle"][onclick*="promotion"]');
+    if (promoAngle) promoAngle.click();
+    if (typeof avsToast === 'function') avsToast('✅ VSL format selected — click Write Script to generate your script');
+  }, 400);
+};
+
+window.fbUseOwnVideo = function() {
+  var url = prompt('Paste your video URL (Wistia, Vimeo, YouTube, or direct MP4):');
+  if (!url) return;
+  if (window.fbState && window.fbState.current) {
+    window.fbState.current.videoUrl = url;
+    window.fbState.current.videoType = 'external';
+  }
+  avsToast('✅ Video URL saved — it will be embedded in your funnel');
+};
+
+window.fbGenerateHeyGenVideo = function() {
+  showPage('ai-video', document.getElementById('nav-ai-video'));
+  setTimeout(function() {
+    if (typeof avsToast === 'function') avsToast('✅ Build your video in Video Studio — come back and paste the URL into your funnel');
+  }, 400);
+};
+
 // ── LOAD & RENDER ──
 async function fbLoadList() {
   var uid = window._currentUserUid || window._currentUid || (window.auth && window.auth.currentUser && window.auth.currentUser.uid);
@@ -30924,7 +31016,7 @@ window.brRegenerateTab = async function(tab) {
     'content-strategy': [
       'Analysing your niche content landscape...',
       'Identifying the highest-converting content formats for your audience...',
-      'Mapping your AI Video Studio strategy for maximum reach...',
+      'Mapping your Video Studio strategy for maximum reach...',
       'Building your ManyChat automation sequence...',
       'Designing your quality lead attraction flywheel...',
       'Sequencing your platform priority stack...',
@@ -32871,7 +32963,7 @@ window.brActivateGlobalIntelligence = function(intel) {
     window.generateDMQueue._boardroomWired = true;
   }
 
-  // ── 6. Pre-load VSL script into AI Video Studio ──
+  // ── 6. Pre-load VSL script into Video Studio ──
   if (cv.vslOpeningScript) {
     window._boardroomVSLScript = cv.vslOpeningScript;
     var scriptEl = document.getElementById('avs-script-input');
@@ -33888,9 +33980,9 @@ window.calGenerateNow = function(type) {
         }
       });
     } else if (isReel) {
-      // Activate AI Video Studio tab (already default)
+      // Activate Video Studio tab (already default)
       csTabBtns.forEach(function(b) {
-        if (b.textContent.includes('AI Video')) {
+        if (b.textContent.includes('Video Studio')) {
           if (typeof window.csShowTab === 'function') window.csShowTab('video', b);
         }
       });
@@ -33902,7 +33994,7 @@ window.calGenerateNow = function(type) {
       // FB Post or other written content — stay on Content Studio video tab
       // and scroll to a quick-generate prompt if available
       csTabBtns.forEach(function(b) {
-        if (b.textContent.includes('AI Video')) {
+        if (b.textContent.includes('Video Studio')) {
           if (typeof window.csShowTab === 'function') window.csShowTab('video', b);
         }
       });
@@ -35164,6 +35256,375 @@ window.laPopulateTrackingLink = function() {
 })();
 
 console.log('[EOS] Link Tracking system loaded ✅');
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// FIX 1 — ONBOARDING COMPLETION TRACKING + NUDGE
+// ══════════════════════════════════════════════════════════════════
+
+window._setupNudgeDismissed = false;
+
+// ── Check setup completion and show nudge if needed ───────────────
+window.setupNudgeCheck = function() {
+  if (window._setupNudgeDismissed) return;
+
+  var isAff      = (window._appMode || 'affiliate') === 'affiliate';
+  var banner     = document.getElementById('setup-nudge-banner');
+  var stepsEl    = document.getElementById('nudge-steps');
+  var titleEl    = document.getElementById('nudge-title');
+  var subEl      = document.getElementById('nudge-sub');
+  var ctaBtn     = document.getElementById('nudge-cta-btn');
+  if (!banner) return;
+
+  // Check dismiss expiry (24 hours)
+  var dismissedAt = parseInt(localStorage.getItem('eos_nudge_dismissed') || '0');
+  if (dismissedAt && Date.now() - dismissedAt < 24 * 60 * 60 * 1000) return;
+
+  var steps    = [];
+  var complete = true;
+
+  if (isAff) {
+    // Affiliate setup steps
+    var hasOffer   = !!(window._affiliateOffer && (window._affiliateOffer.name || window._affiliateOffer.url));
+    var hasAvatar  = !!(window._avatarData && window._avatarData.pain);
+    var hasCalendar= !!(window._calEntries && window._calEntries.length > 0);
+
+    steps = [
+      { label: 'Offer Setup',      done: hasOffer,    action: "showPage('affiliate',document.getElementById('nav-aff-offer'))" },
+      { label: 'Buyer Profile',    done: hasAvatar,   action: "showPage('affiliate',document.getElementById('nav-aff-offer'))" },
+      { label: 'Content Calendar', done: hasCalendar, action: "showPage('ai-video',document.getElementById('nav-ai-video'))" },
+    ];
+
+    var doneCount = steps.filter(function(s){ return s.done; }).length;
+    complete = doneCount === steps.length;
+
+    if (!complete) {
+      titleEl.textContent = doneCount === 0
+        ? 'Start with Offer Setup to unlock everything'
+        : doneCount === 1 ? 'Almost there — 2 more steps to full power' : 'One step away from a fully powered platform';
+      subEl.textContent = 'Complete all 3 steps and everything becomes personalised to your exact offer and audience.';
+      ctaBtn.textContent = hasOffer ? 'Continue Setup →' : 'Start Offer Setup →';
+      ctaBtn.setAttribute('data-action', "showPage('affiliate',document.getElementById('nav-aff-offer'))");
+    }
+  } else {
+    // Expert setup steps
+    var hasBoardroom = !!(window._boardroomIntel && window._boardroomIntel.copyVault);
+    var hasOffer2    = !!(window._boardroomIntel && window._boardroomIntel.inputs && window._boardroomIntel.inputs.offerName);
+    var hasCalendar2 = !!(window._calEntries && window._calEntries.length > 0);
+
+    steps = [
+      { label: 'Boardroom',        done: hasBoardroom, action: "showPage('boardroom',document.getElementById('nav-boardroom'))" },
+      { label: 'Offer Details',    done: hasOffer2,    action: "showPage('boardroom',document.getElementById('nav-boardroom'))" },
+      { label: 'First Content',    done: hasCalendar2, action: "showPage('ai-video',document.getElementById('nav-ai-video'))" },
+    ];
+
+    var doneCount2 = steps.filter(function(s){ return s.done; }).length;
+    complete = doneCount2 === steps.length;
+
+    if (!complete) {
+      titleEl.textContent = doneCount2 === 0
+        ? 'Run the Boardroom to activate your full intelligence layer'
+        : 'Complete your setup — you\'re ' + doneCount2 + '/3 done';
+      subEl.textContent = 'The Boardroom builds your complete business intelligence — copy vault, DM scripts, content strategy — in one session.';
+      ctaBtn.textContent = hasBoardroom ? 'Continue Setup →' : 'Open Boardroom →';
+    }
+  }
+
+  if (complete) { banner.style.display = 'none'; return; }
+
+  // Render step chips
+  if (stepsEl) {
+    stepsEl.innerHTML = steps.map(function(s) {
+      return '<div style="display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:50px;background:' + (s.done ? 'rgba(78,204,163,.1)' : 'rgba(255,255,255,.05)') + ';border:1px solid ' + (s.done ? 'rgba(78,204,163,.25)' : 'rgba(255,255,255,.1)') + '">'
+        + '<span style="font-size:11px">' + (s.done ? '✅' : '⭕') + '</span>'
+        + '<span style="font-size:10px;font-weight:700;color:' + (s.done ? 'var(--teal)' : 'var(--dim)') + '">' + s.label + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  banner.style.display = 'block';
+};
+
+window.setupNudgeCTA = function() {
+  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  if (isAff) {
+    showPage('affiliate', document.getElementById('nav-aff-offer'));
+  } else {
+    showPage('boardroom', document.getElementById('nav-boardroom'));
+  }
+  document.getElementById('setup-nudge-banner').style.display = 'none';
+};
+
+window.setupNudgeDismiss = function() {
+  window._setupNudgeDismissed = true;
+  localStorage.setItem('eos_nudge_dismissed', Date.now().toString());
+  var banner = document.getElementById('setup-nudge-banner');
+  if (banner) {
+    banner.style.opacity = '0';
+    banner.style.transition = 'opacity .3s';
+    setTimeout(function(){ banner.style.display = 'none'; }, 300);
+  }
+};
+
+// Hook into showPage to check nudge on dashboard visit
+(function() {
+  var _origShow = window.showPage;
+  window.showPage = function(page, nav) {
+    if (_origShow) _origShow.apply(this, arguments);
+    if (page === 'dashboard') setTimeout(window.setupNudgeCheck, 300);
+  };
+})();
+
+// Initial check after auth
+setTimeout(window.setupNudgeCheck, 2500);
+
+
+// ══════════════════════════════════════════════════════════════════
+// FIX 2 — CONTENT CALENDAR PUBLISHING DASHBOARD
+// ══════════════════════════════════════════════════════════════════
+
+window._calView   = 'list'; // 'list' | 'week'
+window._calFilter = 'all';  // 'all' | 'ready' | 'published' | 'pending'
+
+// ── View toggle ───────────────────────────────────────────────────
+window.calSetView = function(view, btn) {
+  window._calView = view;
+  document.querySelectorAll('.cal-view-btn').forEach(function(b) {
+    b.style.background = 'transparent';
+    b.style.color      = 'rgba(255,255,255,.45)';
+    b.style.boxShadow  = 'none';
+    b.classList.remove('on');
+  });
+  if (btn) {
+    btn.style.background = 'linear-gradient(135deg,#6c63ff,#5040cc)';
+    btn.style.color      = '#fff';
+    btn.style.boxShadow  = '0 2px 8px rgba(108,99,255,.4)';
+    btn.classList.add('on');
+  }
+  var listView = document.getElementById('cal-list-view');
+  var weekView = document.getElementById('cal-week-view');
+  if (listView) listView.style.display = view === 'list' ? 'block' : 'none';
+  if (weekView) weekView.style.display = view === 'week' ? 'block' : 'none';
+  if (view === 'week') calRenderWeekView(window._calEntries || []);
+};
+
+// ── Status filter ─────────────────────────────────────────────────
+window.calSetFilter = function(filter, btn) {
+  window._calFilter = filter;
+  document.querySelectorAll('.cal-filter-btn').forEach(function(b) {
+    b.style.background  = 'transparent';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color       = 'var(--dim)';
+    b.classList.remove('on');
+  });
+  if (btn) {
+    btn.style.background  = 'rgba(108,99,255,.12)';
+    btn.style.borderColor = 'rgba(108,99,255,.35)';
+    btn.style.color       = '#a089ff';
+    btn.classList.add('on');
+  }
+  calRefresh();
+};
+
+// ── Override calRenderDayList to respect filter ───────────────────
+(function() {
+  var _origRender = window.calRenderDayList || function(){};
+  window.calRenderDayList = function(entries) {
+    // Apply filter
+    var filtered = entries;
+    if (window._calFilter === 'ready')     filtered = entries.filter(function(e){ return e.status === 'ready'; });
+    if (window._calFilter === 'published') filtered = entries.filter(function(e){ return e.status === 'published'; });
+    if (window._calFilter === 'pending')   filtered = entries.filter(function(e){ return !e.status || e.status === 'pending' || e.status === 'missing'; });
+    _origRender(filtered);
+  };
+})();
+
+// ── Week view renderer ────────────────────────────────────────────
+window.calRenderWeekView = function(entries) {
+  var grid = document.getElementById('cal-week-grid');
+  if (!grid || !entries.length) return;
+
+  var DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var TYPE_ICONS = { 'fb post 1':'📝','fb post 2':'📝','reel 1':'🎬','reel 2':'🎬','carousel':'🖼','email':'📨' };
+
+  // Group entries by day (1-indexed)
+  var byDay = {};
+  entries.forEach(function(e) {
+    var d = e.dayNum || 1;
+    if (!byDay[d]) byDay[d] = [];
+    byDay[d].push(e);
+  });
+
+  var maxDay     = Math.max.apply(null, Object.keys(byDay).map(Number));
+  var weeksCount = Math.ceil(maxDay / 7);
+
+  // Week selector
+  var currentWeek = window._calCurrentWeek || 1;
+  var totalWeeks  = weeksCount;
+
+  var weekHtml = '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;grid-column:1/-1">'
+    + '<button onclick="calPrevWeek()" style="padding:6px 14px;border-radius:50px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:Poppins,sans-serif">'
+    + (currentWeek > 1 ? '← Week ' + (currentWeek-1) : '←') + '</button>'
+    + '<div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">Week ' + currentWeek + ' of ' + totalWeeks + ' — Days ' + ((currentWeek-1)*7+1) + '–' + Math.min(currentWeek*7, maxDay) + '</div>'
+    + '<button onclick="calNextWeek(' + totalWeeks + ')" style="padding:6px 14px;border-radius:50px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-size:11px;cursor:pointer;font-family:Poppins,sans-serif">'
+    + (currentWeek < totalWeeks ? 'Week ' + (currentWeek+1) + ' →' : '→') + '</button>'
+    + '</div>';
+
+  // Day headers
+  var headerHtml = DAYS.map(function(d) {
+    return '<div style="text-align:center;font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;padding:6px 0">' + d + '</div>';
+  }).join('');
+
+  // Day cells for this week
+  var startDay = (currentWeek-1)*7 + 1;
+  var cellsHtml = '';
+  for (var d = startDay; d <= startDay+6; d++) {
+    var dayEntries = byDay[d] || [];
+    var allPublished = dayEntries.length && dayEntries.every(function(e){ return e.status === 'published'; });
+    var somePublished = dayEntries.some(function(e){ return e.status === 'published'; });
+    var borderColor  = allPublished ? 'rgba(39,200,64,.3)' : somePublished ? 'rgba(78,204,163,.2)' : 'var(--border2)';
+    var bgColor      = allPublished ? 'rgba(39,200,64,.05)' : 'rgba(255,255,255,.02)';
+
+    var itemsHtml = dayEntries.slice(0,4).map(function(entry) {
+      var typeLower = (entry.type||'post').toLowerCase();
+      var icon = TYPE_ICONS[typeLower] || '📝';
+      var published = entry.status === 'published';
+      return '<div onclick=\'calOpenModal(' + JSON.stringify(entry) + ')\' style="display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:4px;background:rgba(255,255,255,.03);cursor:pointer;margin-bottom:3px">'
+        + '<span style="font-size:11px">' + icon + '</span>'
+        + '<span style="font-size:8px;color:' + (published ? 'rgba(39,200,64,.8)' : 'var(--dim)') + ';overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">' + (entry.type||'Post') + '</span>'
+        + (published ? '<span style="font-size:8px">✓</span>' : '')
+        + '</div>';
+    }).join('');
+
+    var pubCount  = dayEntries.filter(function(e){ return e.status === 'published'; }).length;
+    var totalCount= dayEntries.length;
+
+    cellsHtml += '<div style="border:1px solid ' + borderColor + ';border-radius:var(--r-md);background:' + bgColor + ';padding:8px;min-height:120px">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+      + '<span style="font-size:10px;font-weight:800;color:var(--muted)">Day ' + d + '</span>'
+      + (totalCount ? '<span style="font-size:8px;color:var(--dimmer)">' + pubCount + '/' + totalCount + '</span>' : '')
+      + '</div>'
+      + (itemsHtml || '<div style="font-size:9px;color:rgba(255,255,255,.15);text-align:center;margin-top:16px">Empty</div>')
+      + '</div>';
+  }
+
+  grid.innerHTML = weekHtml + headerHtml + cellsHtml;
+};
+
+window.calPrevWeek = function() {
+  if ((window._calCurrentWeek || 1) > 1) {
+    window._calCurrentWeek = (window._calCurrentWeek || 1) - 1;
+    calRenderWeekView(window._calEntries || []);
+  }
+};
+
+window.calNextWeek = function(max) {
+  if ((window._calCurrentWeek || 1) < max) {
+    window._calCurrentWeek = (window._calCurrentWeek || 1) + 1;
+    calRenderWeekView(window._calEntries || []);
+  }
+};
+
+// ── Mark as Published directly from calendar list ─────────────────
+window.calMarkPublished = function(dayNum, idx, btn) {
+  if (btn) {
+    btn.textContent  = '✅ Published';
+    btn.style.background = 'rgba(39,200,64,.1)';
+    btn.style.borderColor = 'rgba(39,200,64,.25)';
+    btn.style.color  = '#27c840';
+    btn.disabled     = true;
+  }
+  // Update in entries array
+  var entries = window._calEntries || [];
+  var count   = 0;
+  entries.forEach(function(e) {
+    if (e.dayNum === dayNum) {
+      if (count === idx) e.status = 'published';
+      count++;
+    }
+  });
+  // Save to Firestore + localStorage
+  try { localStorage.setItem('eos_calendar_entries', JSON.stringify(entries)); } catch(e2) {}
+  try {
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      window._setDoc(window._doc(window._db,'users',window._currentUserUid),
+        { calendarEntries: entries }, { merge: true }).catch(function(){});
+    }
+  } catch(e3) {}
+  // Refresh stats
+  calRenderStats(entries);
+};
+
+// ── Download all ready content as a text file ─────────────────────
+window.calDownloadAll = function() {
+  var entries = window._calEntries || [];
+  if (!entries.length) { alert('No content to download yet.'); return; }
+
+  var byDay = {};
+  entries.forEach(function(e) {
+    var d = e.dayNum || 1;
+    if (!byDay[d]) byDay[d] = [];
+    byDay[d].push(e);
+  });
+
+  var lines = ['EXECUTION OS — CONTENT CALENDAR EXPORT', '='.repeat(50), ''];
+  Object.keys(byDay).map(Number).sort(function(a,b){return a-b;}).forEach(function(day) {
+    lines.push('DAY ' + day);
+    lines.push('-'.repeat(30));
+    byDay[day].forEach(function(entry) {
+      lines.push('');
+      lines.push('[' + (entry.type||'Post').toUpperCase() + '] — ' + (entry.scheduledTime||''));
+      if (entry.content || entry.script) lines.push(entry.content || entry.script);
+      if (entry.subject)  lines.push('Subject: ' + entry.subject);
+      if (entry.caption)  { lines.push(''); lines.push('Caption:'); lines.push(entry.caption); }
+      if (entry.hashtags) { lines.push(''); lines.push('Hashtags: ' + entry.hashtags); }
+      lines.push('');
+    });
+    lines.push('');
+  });
+
+  var blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href   = url;
+  a.download = 'content-calendar-' + new Date().toISOString().slice(0,10) + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ── Add Mark as Published button to calendar day entries ──────────
+(function() {
+  var _origRenderDayList = window.calRenderDayList;
+  // Patch the day list render to add publish buttons inline
+  // This wraps the existing render function and adds a publish button
+  // to each "Ready" entry row
+  window._calAddPublishButtons = function() {
+    var listEl = document.getElementById('cal-days-list');
+    if (!listEl) return;
+    // Add publish buttons to all Ready entries
+    listEl.querySelectorAll('[data-entry-ref]').forEach(function(row) {
+      var ref  = JSON.parse(row.getAttribute('data-entry-ref'));
+      var isPublished = ref.status === 'published';
+      if (!isPublished) {
+        var existing = row.querySelector('.cal-publish-btn');
+        if (!existing) {
+          var btn = document.createElement('button');
+          btn.className = 'cal-publish-btn';
+          btn.textContent = '+ Published';
+          btn.style.cssText = 'margin-left:6px;padding:3px 9px;border-radius:50px;border:1px solid rgba(39,200,64,.25);background:rgba(39,200,64,.06);color:#27c840;font-size:9px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;flex-shrink:0';
+          btn.onclick = function(e) {
+            e.stopPropagation();
+            calMarkPublished(ref.dayNum, ref.idx, btn);
+          };
+          row.appendChild(btn);
+        }
+      }
+    });
+  };
+})();
+
+console.log('[EOS] Setup nudge + Calendar dashboard loaded ✅');
 </script>
 
 <script>
