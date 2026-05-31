@@ -18942,6 +18942,11 @@ window.analyseAffiliateProduct = async function() {
     const metaEl = document.getElementById('aff-active-meta');
     if (nameEl) nameEl.textContent = offer.name||productName||'Your Offer';
     if (metaEl) metaEl.textContent = '$'+(offer.commission||commission).toLocaleString()+' commission · '+(offer.niche||productNiche);
+    // Also update the hero card in the page strip
+    const heroName = document.getElementById('aff-hero-name');
+    const heroComm = document.getElementById('aff-hero-comm');
+    if (heroName) heroName.textContent = offer.name||productName||'Your Offer';
+    if (heroComm) heroComm.textContent = '$'+(offer.commission||commission).toLocaleString()+' commission · '+(offer.niche||productNiche);
     window.renderAffStrategy      && window.renderAffStrategy(av);
     window.renderAffAvatarView    && window.renderAffAvatarView(av);
     window.renderAffDMScripts     && window.renderAffDMScripts(av, offer.name||productName, offer.commission||commission);
@@ -21317,7 +21322,7 @@ window.carGenerate = async function() {
 
   try {
     if (status) status.textContent = 'Generating carousel copy…';
-    var result = await brCallAI(sys, prompt, 2500);
+    var result = await brCallAI(sys, prompt, 1200);
     if (!result || result._error) throw new Error(result ? result._error : 'No response');
 
     window._carData = result;
@@ -25754,6 +25759,15 @@ onAuthStateChanged(auth, async (user) => {
       window._affAppliedTarget = _affTarget;
       window._affAppliedNiche  = _affNiche;
     }
+
+    // Update hero card to reflect restored offer
+    setTimeout(function() {
+      var heroName = document.getElementById('aff-hero-name');
+      var heroComm = document.getElementById('aff-hero-comm');
+      var offer    = window._affiliateOffer || {};
+      if (heroName && offer.name) heroName.textContent = offer.name;
+      if (heroComm && offer.name) heroComm.textContent = '$' + (_affPrice||0) + ' commission · ' + (_affNiche||'');
+    }, 300);
 
     // Always persist to affiliate-namespaced localStorage state
     try {
@@ -32899,7 +32913,8 @@ function brBuildAnalysisUI(inp) {
 }
 
 /* ── 5 Parallel AI Calls ── */
-async function brCallAI(systemPrompt, userPrompt, maxTokens) {
+async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount) {
+  _retryCount = _retryCount || 0;
   try {
     var endpoint = window.PROXY_URL || (window.location.origin + '/api/claude');
     var _brCtl = new AbortController();
@@ -32917,6 +32932,14 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens) {
     });
 
     clearTimeout(_brTid);
+
+    // ── Handle rate limit (429) — retry with exponential backoff ────────
+    if (resp.status === 429 && _retryCount < 4) {
+      var waitSecs = Math.pow(2, _retryCount + 1); // 2, 4, 8, 16 seconds
+      console.warn('[brCallAI] Rate limited — retrying in ' + waitSecs + 's (attempt ' + (_retryCount+1) + '/4)');
+      await new Promise(function(resolve){ setTimeout(resolve, waitSecs * 1000); });
+      return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount + 1);
+    }
     var rawText = await resp.text();
     console.log('[Boardroom] HTTP status:', resp.status, '| Response length:', rawText.length);
 
@@ -32930,6 +32953,10 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens) {
 
     if (!resp.ok || data.error) {
       var errMsg = (data.error && (data.error.message || JSON.stringify(data.error))) || ('HTTP ' + resp.status);
+      // Friendly message for rate limit
+      if (resp.status === 429 || (errMsg && errMsg.includes('rate_limit'))) {
+        errMsg = 'Too many requests at once — please wait 30 seconds and try again.';
+      }
       console.error('[Boardroom] API error:', errMsg);
       return { _error: errMsg };
     }
