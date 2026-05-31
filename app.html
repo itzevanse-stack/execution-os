@@ -4791,6 +4791,21 @@ button[onclick="generateOffer()"] {
       </div>
     </div>
 
+    <!-- ══ MY OFFERS LIBRARY ════════════════════════════════════════════ -->
+    <div id="aff-offers-library" style="margin-bottom:1.25rem;display:none">
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:18px;overflow:hidden">
+        <div style="padding:14px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">📦 My Offers</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:2px">Switch between your saved affiliate offers instantly</div>
+          </div>
+          <button onclick="affShowSetupForNew()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:50px;color:var(--text-dark);font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">+ Analyse New Offer</button>
+        </div>
+        <div id="aff-offers-grid" style="padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px"></div>
+      </div>
+    </div>
+    <!-- ══ END MY OFFERS LIBRARY ═════════════════════════════════════════ -->
+
     <!-- ══ SETUP PANEL ══════════════════════════════════════════════════ -->
     <div id="aff-setup-panel">
 
@@ -18875,6 +18890,27 @@ window.analyseAffiliateProduct = async function() {
   const ed = document.getElementById('aff-validation-error');
   if (ed) ed.style.display='none';
 
+  // ── CRITICAL: Clear ALL stale data before new analysis ─────────────────
+  // This prevents old offer intelligence from bleeding into new offer tabs
+  window._affiliateOffer          = null;
+  window._avatarData              = null;
+  window._affiliateBoardroomIntel = null;
+  window._affTrackingSlug         = null;
+  window._laClicks                = [];
+  // Clear all intelligence tab content so old data is never shown
+  ['aff-tab-buyer-research','aff-tab-promo-intel','aff-tab-offer-viability',
+   'aff-tab-strategy','aff-tab-content-strategy','aff-tab-dms',
+   'aff-tab-dailyplan','aff-tab-tam','aff-tab-tracker'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dimmer);font-size:12px">Analysing new offer…</div>';
+  });
+  // Clear tracking link strip
+  var trackStrip = document.getElementById('aff-tracking-strip');
+  if (trackStrip) trackStrip.style.display = 'none';
+  var trackInput = document.getElementById('aff-tracking-link-input');
+  if (trackInput) trackInput.value = '';
+  // ── End clear ──────────────────────────────────────────────────────────
+
   // ── UI: show progress ─────────────────────────────────────────────────
   const statusEl = document.getElementById('aff-analyse-status');
   const btnEl    = document.getElementById('aff-analyse-btn');
@@ -19172,8 +19208,11 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
       buyer: av.job, pain: av.pain, transformation: av.transformation,
       benefits: av.productBenefits||[],
       productUrl: url, productName: av.productName||productName,
-      _avatarSnapshot: av  // keep avatar scoped to affiliate offer
+      _avatarSnapshot: av
     };
+
+    // ── Save to multi-offer library ───────────────────────────────────────
+    affSaveOfferToLibrary(window._affiliateOffer, av);
     // Write to affiliate-only globals — never cross-contaminate expert globals
     if ((window._appMode||'affiliate') === 'affiliate') {
       window._appliedNiche  = av.niche||productNiche;
@@ -34778,6 +34817,211 @@ setTimeout(function() {
 }, 1200);
 
 console.log('[TZ] Timezone engine loaded —', window._userTimezone, '(' + _tzGetAbbr(window._userTimezone||'UTC') + ')');
+</script>
+
+<script>
+// ══════════════════════════════════════════════════════════════════
+// AFFILIATE MULTI-OFFER LIBRARY
+// Saves every analysed offer, lets users switch between them instantly
+// ══════════════════════════════════════════════════════════════════
+
+var AFF_OFFERS_KEY = 'eos_aff_offers';
+
+// ── Get all saved offers ──────────────────────────────────────────
+window.affGetSavedOffers = function() {
+  try { return JSON.parse(localStorage.getItem(AFF_OFFERS_KEY) || '[]'); }
+  catch(e) { return []; }
+};
+
+// ── Save current offer to library ────────────────────────────────
+window.affSaveOfferToLibrary = function(offer, avatarData) {
+  if (!offer || !offer.url) return;
+  var offers  = affGetSavedOffers();
+  var existing = offers.findIndex(function(o){ return o.url === offer.url; });
+  var entry = {
+    id:           existing >= 0 ? offers[existing].id : 'aff_' + Date.now(),
+    name:         offer.name        || offer.productName || offer.url,
+    niche:        offer.niche       || '',
+    commission:   offer.commission  || 0,
+    monthlyTarget:offer.monthlyTarget || 0,
+    url:          offer.url,
+    platform:     offer.platform    || 'Affiliate',
+    pain:         offer.pain        || '',
+    transformation: offer.transformation || '',
+    savedAt:      new Date().toISOString(),
+    // Full snapshot for instant restore
+    offerSnapshot:  offer,
+    avatarSnapshot: avatarData || offer._avatarSnapshot || null,
+  };
+
+  if (existing >= 0) offers[existing] = entry;
+  else offers.unshift(entry);
+  if (offers.length > 10) offers = offers.slice(0, 10); // max 10 offers
+
+  localStorage.setItem(AFF_OFFERS_KEY, JSON.stringify(offers));
+
+  // Also sync to Firestore
+  try {
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      window._setDoc(window._doc(window._db,'users',window._currentUserUid),
+        { affiliateOffers: offers }, { merge: true }).catch(function(){});
+    }
+  } catch(e) {}
+
+  affRenderOffersLibrary();
+};
+
+// ── Delete an offer from library ──────────────────────────────────
+window.affDeleteOffer = function(offerId) {
+  if (!confirm('Remove this offer from your library?')) return;
+  var offers = affGetSavedOffers().filter(function(o){ return o.id !== offerId; });
+  localStorage.setItem(AFF_OFFERS_KEY, JSON.stringify(offers));
+  affRenderOffersLibrary();
+  avsToast('Offer removed');
+};
+
+// ── Load an offer from library and activate it ────────────────────
+window.affLoadOffer = function(offerId) {
+  var offers = affGetSavedOffers();
+  var entry  = offers.find(function(o){ return o.id === offerId; });
+  if (!entry) return;
+
+  // Restore offer and avatar data
+  if (entry.offerSnapshot)  window._affiliateOffer = entry.offerSnapshot;
+  if (entry.avatarSnapshot) window._avatarData     = entry.avatarSnapshot;
+
+  // Restore niche/price globals
+  window._appliedNiche  = entry.niche       || window._appliedNiche;
+  window._appliedPrice  = entry.commission  || window._appliedPrice;
+  window._appliedTarget = entry.monthlyTarget || window._appliedTarget;
+
+  // Restore URL field
+  var urlInput = document.getElementById('aff-product-url');
+  if (urlInput) urlInput.value = entry.url || '';
+
+  // Switch to active view
+  var setupPanel = document.getElementById('aff-setup-panel');
+  var activeView = document.getElementById('aff-active-view');
+  if (setupPanel) setupPanel.style.display = 'none';
+  if (activeView) activeView.style.display = 'block';
+
+  // Update hero card
+  var heroName = document.getElementById('aff-hero-name');
+  var heroComm = document.getElementById('aff-hero-comm');
+  if (heroName) heroName.textContent = entry.name;
+  if (heroComm) heroComm.textContent = '$' + (entry.commission||0) + ' commission · ' + (entry.niche||'');
+
+  // Generate tracking link for this offer
+  window._affTrackingSlug = null;
+  window._laClicks        = [];
+  setTimeout(function() {
+    if (typeof window.affInitTrackingLink === 'function') window.affInitTrackingLink();
+  }, 500);
+
+  // Mark as active in grid
+  affRenderOffersLibrary(offerId);
+
+  avsToast('✅ Switched to: ' + entry.name);
+};
+
+// ── Show setup panel for a new offer ─────────────────────────────
+window.affShowSetupForNew = function() {
+  // Clear current offer state so user starts fresh
+  var urlInput = document.getElementById('aff-product-url');
+  var nameInput = document.getElementById('aff-product-name');
+  var commInput = document.getElementById('aff-commission');
+  if (urlInput)  urlInput.value  = '';
+  if (nameInput) nameInput.value = '';
+  if (commInput) commInput.value = '';
+
+  // Show setup, hide active view
+  var setupPanel = document.getElementById('aff-setup-panel');
+  var activeView = document.getElementById('aff-active-view');
+  if (setupPanel) setupPanel.style.display = 'block';
+  if (activeView) activeView.style.display = 'none';
+
+  // Scroll to URL input
+  var urlEl = document.getElementById('aff-product-url');
+  if (urlEl) { urlEl.focus(); urlEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+};
+
+// ── Render the offers library grid ───────────────────────────────
+window.affRenderOffersLibrary = function(activeId) {
+  var offers  = affGetSavedOffers();
+  var library = document.getElementById('aff-offers-library');
+  var grid    = document.getElementById('aff-offers-grid');
+  if (!grid) return;
+
+  // Show library only if has offers
+  if (library) library.style.display = offers.length ? 'block' : 'none';
+
+  if (!offers.length) { grid.innerHTML = ''; return; }
+
+  // Active offer ID — use current _affiliateOffer url to match
+  var currentUrl = window._affiliateOffer && window._affiliateOffer.url;
+  if (!activeId && currentUrl) {
+    var found = offers.find(function(o){ return o.url === currentUrl; });
+    if (found) activeId = found.id;
+  }
+
+  grid.innerHTML = offers.map(function(offer) {
+    var isActive = offer.id === activeId;
+    var niche    = offer.niche || 'Unknown niche';
+    var comm     = offer.commission ? '$' + offer.commission + ' commission' : '';
+    var savedStr = offer.savedAt ? new Date(offer.savedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : '';
+
+    return '<div style="background:' + (isActive ? 'rgba(78,204,163,.06)' : 'rgba(255,255,255,.02)') + ';border:1px solid ' + (isActive ? 'rgba(78,204,163,.25)' : 'rgba(255,255,255,.06)') + ';border-radius:14px;padding:14px;position:relative;transition:all .2s">'
+      + (isActive ? '<div style="position:absolute;top:10px;right:10px;background:rgba(78,204,163,.15);border:1px solid rgba(78,204,163,.3);border-radius:50px;padding:2px 8px;font-size:9px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.5px">Active</div>' : '')
+      + '<div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px;padding-right:' + (isActive ? '52px' : '0') + ';line-height:1.3">' + (offer.name||'Unnamed Offer') + '</div>'
+      + '<div style="font-size:10px;color:var(--dim);margin-bottom:10px">' + niche + (comm ? ' · ' + comm : '') + '</div>'
+      + '<div style="font-size:9px;color:var(--dimmer);margin-bottom:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + (offer.url||'') + '</div>'
+      + '<div style="display:flex;gap:6px;align-items:center">'
+      + (!isActive ? '<button onclick="affLoadOffer(\'' + offer.id + '\')" style="flex:1;padding:7px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:8px;color:#fff;font-family:Poppins,sans-serif;font-weight:800;font-size:10px;cursor:pointer">Switch to This →</button>' : '<div style="flex:1;font-size:10px;color:var(--teal);font-weight:700">✅ Currently active</div>')
+      + '<button onclick="affDeleteOffer(\'' + offer.id + '\')" title="Remove" style="width:28px;height:28px;border-radius:8px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);color:var(--red);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>'
+      + '</div>'
+      + '<div style="font-size:9px;color:var(--dimmer);margin-top:8px;text-align:right">Saved ' + savedStr + '</div>'
+      + '</div>';
+  }).join('');
+};
+
+// ── Load offers from Firestore on login ──────────────────────────
+window.affLoadOffersFromFirestore = function() {
+  if (!window._db || !window._currentUserUid || !window._getDoc || !window._doc) return;
+  window._getDoc(window._doc(window._db,'users',window._currentUserUid)).then(function(snap) {
+    if (!snap || !snap.exists || !snap.exists()) return;
+    var d = snap.data ? snap.data() : {};
+    if (d.affiliateOffers && d.affiliateOffers.length) {
+      // Merge with localStorage — Firestore is source of truth
+      localStorage.setItem(AFF_OFFERS_KEY, JSON.stringify(d.affiliateOffers));
+      affRenderOffersLibrary();
+    }
+  }).catch(function(){});
+};
+
+// ── Hook into setAppMode to render library when affiliate mode loads ──
+(function() {
+  var _orig = window.setAppMode;
+  window.setAppMode = function(mode) {
+    if (_orig) _orig.apply(this, arguments);
+    if (mode === 'affiliate') {
+      setTimeout(function() {
+        affRenderOffersLibrary();
+        affLoadOffersFromFirestore();
+      }, 600);
+    }
+  };
+})();
+
+// ── Hook into showPage('affiliate') to render library ────────────
+(function() {
+  var _origShow = window.showPage;
+  window.showPage = function(page, nav) {
+    if (_origShow) _origShow.apply(this, arguments);
+    if (page === 'affiliate') {
+      setTimeout(affRenderOffersLibrary, 200);
+    }
+  };
+})();
 </script>
 
 <script>
