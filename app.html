@@ -22213,13 +22213,19 @@ window.autoStart = async function() {
   var cloneIds   = (window._autoClones || []).filter(function(c){ return c && c.avatarId; }).map(function(c){ return c.avatarId; });
   var uid        = window._currentUserUid || 'local';
   var isAffiliate= (window._appMode || 'affiliate') === 'affiliate';
+  // Default ALL content types to true if checkbox doesn't exist in DOM
+  // (happens when user hasn't opened Automate tab in this session)
+  function getChecked(id) {
+    var el = document.getElementById(id);
+    return el ? !!el.checked : true; // default TRUE if element not found
+  }
   var types = {
-    fb1:      !!(document.getElementById('auto-ct-fb1')      || {}).checked,
-    reel1:    !!(document.getElementById('auto-ct-reel1')    || {}).checked,
-    carousel: !!(document.getElementById('auto-ct-carousel') || {}).checked,
-    fb2:      !!(document.getElementById('auto-ct-fb2')      || {}).checked,
-    reel2:    !!(document.getElementById('auto-ct-reel2')    || {}).checked,
-    email:    !!(document.getElementById('auto-ct-email')    || {}).checked
+    fb1:      getChecked('auto-ct-fb1'),
+    reel1:    getChecked('auto-ct-reel1'),
+    carousel: getChecked('auto-ct-carousel'),
+    fb2:      getChecked('auto-ct-fb2'),
+    reel2:    getChecked('auto-ct-reel2'),
+    email:    getChecked('auto-ct-email'),
   };
 
   var job = {
