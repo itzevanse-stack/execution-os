@@ -4406,6 +4406,7 @@ button[onclick="generateOffer()"] {
         </div>
         <!-- Download all -->
         <button onclick="calDownloadAll()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:50px;color:var(--teal);font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">⬇️ Download All</button>
+        <button onclick="calFillMissingModal()" style="display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:50px;color:#a089ff;font-family:Poppins,sans-serif;font-weight:700;font-size:11px;cursor:pointer;white-space:nowrap">🔧 Fill Missing</button>
       </div>
 
       <!-- 5B: Overview bar -->
@@ -36451,6 +36452,102 @@ window.calMarkPublished = function(dayNum, idx, btn) {
 };
 
 // ── Download all ready content as a text file ─────────────────────
+// ── Fill Missing content types ────────────────────────────────────
+window.calFillMissingModal = function() {
+  var entries    = window._calEntries || [];
+  var allDays    = Array.from(new Set(entries.map(function(e){ return e.dayNum; }))).sort(function(a,b){return a-b;});
+  var allTypes   = ['carousel','fb1','fb2','reel1','reel2','email'];
+  var typeLabels = { carousel:'🖼 Carousel', fb1:'📝 FB Post 1', fb2:'📝 FB Post 2', reel1:'🎬 Reel 1', reel2:'🎬 Reel 2', email:'📨 Email' };
+
+  // Detect which types are missing across all days
+  var presentTypes = {};
+  entries.forEach(function(e) {
+    var key = (e.type||'').toLowerCase().replace(' ','');
+    // Map display type back to key
+    var typeMap = { 'carousel':'carousel','fbpost1':'fb1','fbpost2':'fb2','reel1':'reel1','reel2':'reel2','email':'email','post1':'fb1','post2':'fb2' };
+    var mappedKey = typeMap[key] || null;
+    if (mappedKey) presentTypes[mappedKey] = true;
+  });
+
+  var missingTypes = allTypes.filter(function(t){ return !presentTypes[t]; });
+
+  var existing = document.getElementById('cal-fill-modal');
+  if (existing) existing.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'cal-fill-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)';
+
+  if (!missingTypes.length) {
+    modal.innerHTML = '<div style="background:#0f0f22;border:1px solid rgba(78,204,163,.15);border-radius:20px;padding:32px;max-width:400px;width:100%;text-align:center">'
+      + '<div style="font-size:36px;margin-bottom:12px">✅</div>'
+      + '<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">All content types present</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-bottom:20px">Every content type exists in your calendar.</div>'
+      + '<button onclick="document.getElementById(\'cal-fill-modal\').remove()" style="padding:10px 24px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:50px;color:var(--muted);font-family:Poppins,sans-serif;font-size:12px;cursor:pointer">Close</button>'
+      + '</div>';
+  } else {
+    modal.innerHTML = '<div style="background:#0f0f22;border:1px solid rgba(108,99,255,.15);border-radius:20px;padding:28px;max-width:460px;width:100%">'
+      + '<button onclick="document.getElementById(\'cal-fill-modal\').remove()" style="float:right;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:var(--muted);font-size:14px;cursor:pointer">×</button>'
+      + '<div style="font-size:15px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:6px">🔧 Fill Missing Content</div>'
+      + '<div style="font-size:11px;color:var(--dim);margin-bottom:18px">These content types are missing from your calendar. Select one to generate it for all ' + allDays.length + ' days.</div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px">'
+      + missingTypes.map(function(t) {
+          return '<button onclick="calFillMissing(\'' + t + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;cursor:pointer;color:var(--white);font-family:Poppins,sans-serif;font-size:12px;font-weight:700;width:100%;text-align:left;transition:all .15s" onmouseenter="this.style.borderColor=\'rgba(108,99,255,.3)\'" onmouseleave="this.style.borderColor=\'rgba(255,255,255,.07)\'">'
+            + '<span>' + (typeLabels[t]||t) + '</span>'
+            + '<span style="font-size:10px;color:var(--dimmer)">Generate for all ' + allDays.length + ' days →</span>'
+            + '</button>';
+        }).join('')
+      + '</div></div>';
+  }
+
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
+  document.body.appendChild(modal);
+};
+
+window.calFillMissing = async function(missingType) {
+  var modal = document.getElementById('cal-fill-modal');
+  if (modal) modal.remove();
+
+  var entries = window._calEntries || [];
+  var allDays = Array.from(new Set(entries.map(function(e){ return e.dayNum; }))).sort(function(a,b){return a-b;});
+  var isAff   = (window._appMode || 'affiliate') === 'affiliate';
+  var uid     = window._currentUserUid;
+
+  if (!uid) { avsToast('Please log in first.'); return; }
+  if (!allDays.length) { avsToast('No calendar days found.'); return; }
+
+  var typeLabels = { carousel:'Carousel', fb1:'FB Post 1', fb2:'FB Post 2', reel1:'Reel 1', reel2:'Reel 2', email:'Email' };
+  var label = typeLabels[missingType] || missingType;
+
+  avsToast('⏳ Generating ' + label + ' for ' + allDays.length + ' days — this will take a minute…');
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/fill-missing', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        uid,
+        missingType,
+        dayNumbers:  allDays,
+        isAffiliate: isAff,
+      }),
+    });
+    var data = await resp.json();
+    if (data.ok) {
+      avsToast('✅ ' + label + ' added to ' + data.filled + ' days — calendar refreshing…');
+      // Firestore listener will auto-refresh the calendar
+      // Force a manual refresh after 2 seconds as backup
+      setTimeout(function() {
+        if (typeof calRefresh === 'function') calRefresh();
+      }, 2000);
+    } else {
+      avsToast('⚠️ Some days failed — try again.');
+    }
+  } catch(err) {
+    avsToast('⚠️ Error: ' + (err.message || 'try again'));
+  }
+};
+
 window.calDownloadAll = function() {
   var entries = window._calEntries || [];
   if (!entries.length) { alert('No content to download yet.'); return; }
