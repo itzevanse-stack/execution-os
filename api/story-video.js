@@ -1,301 +1,218 @@
-// api/story-video.js — Cinematic Story Video Generator
-// Orchestrates: Claude (script) → Runway ML (scenes) → HeyGen (voiceover + avatar) → Cloudinary (stitch)
-//
-// POST body: { uid, framework, start, turn, end, style, charMode, avatarId, voiceId, voiceMode }
-// Returns:   { ok, taskId, scenes, scriptText, voiceJobId }
-//   (client polls /api/story-video-status for completion)
+/**
+ * POST /api/story-video
+ *
+ * Fire-and-return architecture:
+ *  1. Generate cinematic script via Claude (fast, ~2-3s)
+ *  2. Build scene prompts
+ *  3. Submit each scene to Runway Gen-3 (returns taskId immediately — no waiting)
+ *  4. Write job document to Firestore with status: 'processing'
+ *  5. Return { ok: true, jobId } to client immediately
+ *
+ * Completion is handled by /api/story-video-webhook (Runway callback)
+ * or polled via /api/story-video-status (reads Firestore).
+ *
+ * This keeps the Vercel function well under the 10s / 60s execution limit.
+ */
 
-'use strict';
+import Anthropic from '@anthropic-ai/sdk';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 
-const Anthropic = require('@anthropic-ai/sdk');
-const { initializeApp, getApps, cert } = require('firebase-admin/app');
-const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
-
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-
-function getDb() {
-  if (!getApps().length) {
-    initializeApp({ credential: cert({
+// ── Firebase Admin init ───────────────────────────────────────────
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
       projectId:   process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey:  (process.env.FIREBASE_PRIVATE_KEY||'').replace(/\\n/g,'\n'),
-    })});
-  }
-  return getFirestore();
+      privateKey:  (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+    }),
+  });
 }
+const db = getFirestore();
 
-// ── Runway ML API ─────────────────────────────────────────────────
-const RUNWAY_KEY = process.env.RUNWAY_API_KEY;
-const RUNWAY_BASE = 'https://api.dev.runwayml.com/v1';
+// ── Runway helper ─────────────────────────────────────────────────
+const RUNWAY_API   = 'https://api.dev.runwayml.com/v1';
+const RUNWAY_KEY   = process.env.RUNWAY_API_KEY;
+const RUNWAY_MODEL = 'gen3a_turbo'; // or 'gen4_turbo'
 
-async function runwayGenerateScene(prompt, duration) {
-  // Gen-4.5 supports text-to-video — no promptImage required
-  const resp = await fetch(`${RUNWAY_BASE}/image_to_video`, {
+async function submitRunwayScene(textPrompt, durationSeconds = 5) {
+  const resp = await fetch(`${RUNWAY_API}/image_to_video`, {
     method: 'POST',
     headers: {
-      'Authorization':    `Bearer ${RUNWAY_KEY}`,
-      'Content-Type':     'application/json',
+      'Content-Type':  'application/json',
+      'Authorization': `Bearer ${RUNWAY_KEY}`,
       'X-Runway-Version': '2024-11-06',
     },
     body: JSON.stringify({
-      model:      'gen4_turbo',
-      promptText: prompt,
-      duration:   duration || 5,
-      ratio:      '720:1280', // 9:16 portrait for social
-      watermark:  false,
+      model:          RUNWAY_MODEL,
+      promptText:     textPrompt,
+      duration:       durationSeconds,
+      ratio:          '720:1280', // 9:16 vertical
+      watermark:      false,
     }),
   });
   if (!resp.ok) {
     const err = await resp.text();
-    throw new Error(`Runway API ${resp.status}: ${err.slice(0,200)}`);
+    throw new Error(`Runway scene submit failed: ${resp.status} — ${err}`);
   }
   const data = await resp.json();
-  return data.id; // task ID — poll for completion
+  // Runway returns { id: 'task_xxx', status: 'PENDING', ... }
+  return data.id;
 }
 
-// ── HeyGen voiceover ──────────────────────────────────────────────
-async function heygenVoiceover(script, voiceId) {
-  const resp = await fetch('https://api.heygen.com/v2/video/generate', {
-    method: 'POST',
-    headers: {
-      'x-api-key':    process.env.HEYGEN_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      video_inputs: [{
-        character: { type: 'text', input_text: script },
-        voice:     { type: 'voice_id', voice_id: voiceId },
-      }],
-      test:         false,
-      aspect_ratio: '9:16',
-    }),
-  });
-  if (!resp.ok) throw new Error(`HeyGen ${resp.status}`);
-  const data = await resp.json();
-  return data.data?.video_id || null;
-}
-
-// ── HeyGen avatar segment ─────────────────────────────────────────
-async function heygenAvatarSegment(script, avatarId, voiceId) {
-  const resp = await fetch('https://api.heygen.com/v2/video/generate', {
-    method: 'POST',
-    headers: {
-      'x-api-key':    process.env.HEYGEN_API_KEY,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      video_inputs: [{
-        character: { type: 'avatar', avatar_id: avatarId },
-        voice:     { type: 'voice_id', voice_id: voiceId },
-        script:    { type: 'text', input_text: script },
-      }],
-      test:         false,
-      aspect_ratio: '9:16',
-    }),
-  });
-  if (!resp.ok) throw new Error(`HeyGen avatar ${resp.status}`);
-  const data = await resp.json();
-  return data.data?.video_id || null;
-}
-
-// ── Build Runway scene prompts from style + framework ─────────────
-function buildScenePrompts(scenes, style, framework) {
-  const STYLE_SUFFIXES = {
-    cinematic:   'cinematic 4K, dramatic lighting, shallow depth of field, film grain, dark moody atmosphere, professional cinematography',
-    lifestyle:   'bright natural lighting, vibrant colors, luxury lifestyle aesthetic, aspirational, golden hour, 4K',
-    documentary: 'handheld camera feel, authentic, close-up details, raw emotional, documentary style, natural light',
-  };
-  const suffix = STYLE_SUFFIXES[style] || STYLE_SUFFIXES.cinematic;
-  return scenes.map(function(s) {
-    return s.visualPrompt + '. ' + suffix + '. No text, no watermarks, photorealistic.';
-  });
-}
-
-// ═══════════════════════════════════════════════════════════════════
-// HANDLER
-// ═══════════════════════════════════════════════════════════════════
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin',  '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
-
+// ── Claude script generation ──────────────────────────────────────
+async function generateCinematicScript(body) {
   const {
-    uid, framework, start, turn, end, style, charMode, avatarId, voiceId, voiceMode,
-    // Full intelligence context
-    niche, offerName, pain, deeperPain, fear, tried, transformation, identity, motivation,
-    dominanceAngle, positioning, contentAngles, hooks, voiceContext, voiceTone,
-    isAffiliate, productUrl, benefits,
-  } = req.body || {};
+    framework = 'hsa', start, turn, end, style = 'cinematic',
+    niche, offerName, pain, transformation, deeperPain,
+    fear, tried, identity, dominanceAngle, positioning,
+    contentAngles, hooks, voiceContext, isAffiliate,
+  } = body;
 
-  if (!start || !turn || !end) {
-    return res.status(400).json({ error: 'Story details required (start, turn, end)' });
-  }
-
-  const FRAMEWORK_DESCRIPTIONS = {
-    transformation: 'A powerful transformation story — from struggle/failure to remarkable success. Emotional arc: despair → discovery → action → triumph.',
-    rejection:      'A rejection-to-triumph story — repeated failures and setbacks leading to an unexpected breakthrough. Arc: repeated rejection → breaking point → discovery → victory.',
-    discovery:      'A discovery story — stumbling upon something that changed everything. Arc: frustration with current situation → accidental discovery → scepticism → results → evangelism.',
-    beforeafter:    'A vivid before/after contrast story — painting two worlds so clearly the audience can feel both. Arc: painful before state → moment of change → dramatic after state.',
+  const frameworkDescriptions = {
+    hsa: 'Hook → Story → Ask. Open with a single cinematic hook image, build through a transformation story, close with a soft invitation.',
+    pas: 'Problem → Agitate → Solution. Make the problem vivid and painful, deepen the emotional wound, then reveal the relief.',
+    aida:'Attention → Interest → Desire → Action. Arrest the eye, build fascination, create desire, deliver a clear call.',
+    before_after: 'Before / After. Two worlds — the darkness before, the light after. The contrast does the selling.',
   };
+
+  const styleGuide = {
+    cinematic: 'Ultra-cinematic. Each scene is a single striking image — strong shadow, dramatic light, shallow depth of field. Think A24 or luxury brand campaign.',
+    documentary:'Raw and real. Handheld feel. Natural light. Authentic faces. Intimate and unpolished on purpose.',
+    minimal:   'Clean and stark. Lots of negative space. Minimalist props. Bold, quiet tension.',
+    viral:     'Fast-paced, high-energy. Unexpected angles. Quick cuts implied. Designed to stop the scroll instantly.',
+  };
+
+  const systemPrompt = `You are a world-class cinematic story director writing visual scene descriptions for a short-form video ad. 
+Your scenes will be sent directly to Runway AI for image-to-video generation.
+Each scene description must be a single, vivid visual moment — described as a cinematographer would describe it to a camera operator.
+No dialogue. No text overlays. No narration in the scene descriptions. Pure visual storytelling.
+You are working in the ${niche || 'online business'} niche.
+Style guide: ${styleGuide[style] || styleGuide.cinematic}`;
+
+  const prompt = `STORY BRIEF:
+Framework: ${frameworkDescriptions[framework] || frameworkDescriptions.hsa}
+Opening situation (where the character IS): ${start}
+Turning point (what CHANGES or is DISCOVERED): ${turn}
+Resolution (where they END UP / the transformation): ${end}
+
+AUDIENCE CONTEXT:
+Pain point: ${pain || ''}
+Deeper emotional wound: ${deeperPain || ''}
+Transformation they want: ${transformation || ''}
+Deepest fear: ${fear || ''}
+What they have tried before: ${tried || ''}
+How they see themselves: ${identity || ''}
+${dominanceAngle ? 'Unique positioning angle: ' + dominanceAngle : ''}
+${voiceContext ? '\n' + voiceContext : ''}
+
+TASK:
+Write exactly 5 scene descriptions and a narration script.
+
+Respond ONLY with valid JSON in this exact shape — no markdown, no preamble:
+{
+  "scenes": [
+    { "id": 1, "prompt": "<cinematographer-level visual description>", "duration": 5 },
+    { "id": 2, "prompt": "<visual description>", "duration": 5 },
+    { "id": 3, "prompt": "<visual description>", "duration": 5 },
+    { "id": 4, "prompt": "<visual description>", "duration": 5 },
+    { "id": 5, "prompt": "<visual description>", "duration": 5 }
+  ],
+  "narration": "<60-90 word voiceover script — spoken words only, no stage directions, no labels>"
+}
+
+Scene requirements:
+- Each prompt is 1-3 sentences, purely visual — no character names, no dialogue, no text overlays
+- Scenes must flow as a coherent story arc following the framework above
+- Make each scene visually distinct — vary the shot distance (wide / medium / close-up) across the 5 scenes
+- Style: ${styleGuide[style] || styleGuide.cinematic}`;
+
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const msg = await anthropic.messages.create({
+    model:      'claude-sonnet-4-5',
+    max_tokens: 1200,
+    system:     systemPrompt,
+    messages:   [{ role: 'user', content: prompt }],
+  });
+
+  const raw = (msg.content[0]?.text || '').replace(/```json|```/g, '').trim();
+  return JSON.parse(raw);
+}
+
+// ── Main handler ──────────────────────────────────────────────────
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ ok: false, error: 'Method not allowed' });
+  }
 
   try {
-    // ── STEP 1: Generate script + scene breakdown via Claude ──────
-    const scriptResp = await client.messages.create({
-      model:      'claude-sonnet-4-20250514',
-      max_tokens: 2000,
-      system:     `You are an elite short-form video scriptwriter and cinematic director. You write emotionally powerful 90-120 second story videos that stop the scroll and hook attention in the first 3 seconds. You NEVER use generic language. Every scene is viscerally specific. Return ONLY valid JSON.`,
-      messages: [{
-        role:    'user',
-        content: `Write a cinematic story video script using this framework: ${FRAMEWORK_DESCRIPTIONS[framework] || FRAMEWORK_DESCRIPTIONS.transformation}
+    const body = req.body;
 
-STORY DETAILS (these are the REAL events — make them vivid and specific):
-Where they started: "${start}"
-The turning point: "${turn}"
-Where they are now: "${end}"
-
-AUDIENCE INTELLIGENCE:
-${niche        ? 'Niche: '                     + niche           : ''}
-${offerName    ? 'Offer/Product: '             + offerName       : ''}
-${pain         ? 'Audience pain: '             + pain            : ''}
-${deeperPain   ? 'Deeper emotional wound: '    + deeperPain      : ''}
-${fear         ? 'Deepest fear: '              + fear            : ''}
-${tried        ? 'What they have tried: '      + tried           : ''}
-${transformation ? 'Transformation they want: '+ transformation  : ''}
-${identity     ? 'How they see themselves: '   + identity        : ''}
-${dominanceAngle ? 'Your unique positioning angle (stand out with this): ' + dominanceAngle : ''}
-${contentAngles  ? 'Proven content angles: '   + contentAngles   : ''}
-${Array.isArray(hooks) && hooks.length ? 'Proven hooks for this audience: ' + hooks.slice(0,3).join(' | ') : ''}
-${isAffiliate  ? 'IMPORTANT: You are an affiliate recommending this product — you discovered it, not built it. Speak as a real person sharing a real finding, not a salesperson.' : 'You are the expert and creator. Speak with authority from your own experience.'}
-${voiceContext ? '\n' + voiceContext : ''}
-${voiceTone    ? 'Voice tone: '               + voiceTone       : ''}
-
-REQUIREMENTS:
-- Total narration: 195-240 words (reads in 90-110 seconds at natural pace)
-- 8-10 scenes total, each 4-6 seconds
-- First 3 words must stop the scroll — no "Hey guys", no "Today I want to", no "So"
-- Every scene has a highly specific visual description for AI video generation
-- Narration is emotionally raw and real — not polished corporate speak
-- No section labels, no brackets, no stage directions in the narration
-- Each scene's narrationSegment flows naturally from the previous — one continuous story
-
-Return this EXACT JSON structure:
-{
-  "hook": "the very first sentence — under 10 words, stops the scroll cold",
-  "fullNarration": "complete narration text as one flowing piece — 195-240 words, no labels",
-  "scenes": [
-    {
-      "id": 1,
-      "duration": 5,
-      "visualPrompt": "highly specific visual for AI generation — exact camera angle, action, environment, mood, lighting",
-      "narrationSegment": "exact words spoken during this scene (2-4 sentences)",
-      "isAvatarScene": false
-    }
-  ],
-  "musicMood": "one of: emotional-piano, epic-cinematic, inspirational-uplifting, raw-acoustic"
-}
-
-If charMode is "avatar", make scenes 3, 6, and 9 isAvatarScene: true.
-Current charMode: ${charMode || 'cinematic'}`
-      }],
-    });
-
-    const rawText = scriptResp.content?.[0]?.text || '';
-    const clean   = rawText.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
-    const s = clean.indexOf('{'), e2 = clean.lastIndexOf('}');
-    if (s < 0 || e2 < 0) throw new Error('Script generation returned invalid JSON');
-    const scriptData = JSON.parse(clean.slice(s, e2+1));
-
-    const { scenes, fullNarration, hook, musicMood } = scriptData;
-    if (!scenes || !scenes.length) throw new Error('No scenes generated');
-
-    // ── STEP 2: Submit all scenes to Runway ML (parallel) ─────────
-    const scenePrompts = buildScenePrompts(scenes, style, framework);
-    const runwayTaskIds = [];
-
-    // Submit non-avatar scenes to Runway
-    for (let i = 0; i < scenes.length; i++) {
-      if (scenes[i].isAvatarScene && charMode === 'avatar') {
-        runwayTaskIds.push(null); // placeholder — avatar will be generated by HeyGen
-      } else {
-        try {
-          const taskId = await runwayGenerateScene(scenePrompts[i], scenes[i].duration || 5);
-          runwayTaskIds.push(taskId);
-        } catch(e) {
-          console.warn(`[story-video] Scene ${i+1} Runway failed:`, e.message);
-          runwayTaskIds.push(null);
-        }
-        // Small delay between Runway calls to avoid rate limiting
-        await new Promise(r => setTimeout(r, 300));
-      }
-    }
-
-    // ── STEP 3: Submit voiceover to HeyGen ───────────────────────
-    let voiceJobId = null;
+    // 1. Generate cinematic script + scene prompts via Claude
+    let scriptData;
     try {
-      if (voiceMode === 'clone' || voiceMode === 'heygen') {
-        voiceJobId = await heygenVoiceover(fullNarration, voiceId);
-      }
-    } catch(e) {
-      console.warn('[story-video] Voiceover failed:', e.message);
+      scriptData = await generateCinematicScript(body);
+    } catch (e) {
+      console.error('[story-video] Claude script error:', e.message);
+      return res.status(500).json({ ok: false, error: 'Script generation failed: ' + e.message });
     }
 
-    // ── STEP 4: Submit avatar segments to HeyGen (if avatar mode) ─
-    const avatarJobIds = {};
-    if (charMode === 'avatar' && avatarId && voiceId) {
-      for (let i = 0; i < scenes.length; i++) {
-        if (scenes[i].isAvatarScene) {
-          try {
-            const avatarJobId = await heygenAvatarSegment(scenes[i].narrationSegment, avatarId, voiceId);
-            avatarJobIds[i] = avatarJobId;
-          } catch(e) {
-            console.warn(`[story-video] Avatar scene ${i+1} failed:`, e.message);
-          }
-          await new Promise(r => setTimeout(r, 300));
-        }
-      }
+    const { scenes, narration } = scriptData;
+    if (!scenes || scenes.length === 0) {
+      return res.status(500).json({ ok: false, error: 'No scenes returned from script generation.' });
     }
 
-    // ── STEP 5: Save job to Firestore for polling ─────────────────
-    const jobId = 'sv_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
-    const jobData = {
+    // 2. Submit all scenes to Runway concurrently (each call returns a taskId in <1s)
+    let runwayTasks;
+    try {
+      runwayTasks = await Promise.all(
+        scenes.map(scene => submitRunwayScene(scene.prompt, scene.duration || 5))
+      );
+    } catch (e) {
+      console.error('[story-video] Runway submit error:', e.message);
+      return res.status(500).json({ ok: false, error: 'Runway submission failed: ' + e.message });
+    }
+
+    // 3. Build job document and write to Firestore
+    const jobId   = `sv_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const jobDoc  = {
       jobId,
-      uid:          uid || null,
-      status:       'processing',
-      framework,
-      style,
-      charMode:     charMode || 'cinematic',
-      scriptData,
-      fullNarration,
-      hook,
-      musicMood:    musicMood || 'inspirational-uplifting',
-      runwayTaskIds,
-      voiceJobId,
-      avatarJobIds,
-      scenes,
-      createdAt:    FieldValue.serverTimestamp(),
-      sceneUrls:    {},   // filled in by status polling
-      voiceUrl:     null,
-      finalVideoUrl:null,
+      uid:           body.uid || null,
+      status:        'processing',
+      progress:      10,
+      statusLabel:   'Scenes submitted to Runway…',
+      narration,
+      scenes:        scenes.map((s, i) => ({
+        id:          s.id,
+        prompt:      s.prompt,
+        duration:    s.duration || 5,
+        runwayTaskId: runwayTasks[i],
+        status:      'pending',
+        videoUrl:    null,
+      })),
+      // Context stored for webhook enrichment
+      niche:         body.niche        || '',
+      offerName:     body.offerName    || '',
+      style:         body.style        || 'cinematic',
+      charMode:      body.charMode     || 'stock',
+      avatarId:      body.avatarId     || null,
+      voiceId:       body.voiceId      || null,
+      voiceMode:     body.voiceMode    || 'heygen',
+      framework:     body.framework    || 'hsa',
+      createdAt:     FieldValue.serverTimestamp(),
+      updatedAt:     FieldValue.serverTimestamp(),
+      finalVideoUrl: null,
+      error:         null,
     };
 
-    const db = getDb();
-    await db.collection('storyJobs').doc(jobId).set(jobData);
+    await db.collection('story_video_jobs').doc(jobId).set(jobDoc);
+    console.log(`[story-video] Job ${jobId} created with ${runwayTasks.length} Runway tasks`);
 
-    return res.status(200).json({
-      ok:          true,
-      jobId,
-      sceneCount:  scenes.length,
-      narration:   fullNarration,
-      hook,
-      runwayTaskIds,
-      voiceJobId,
-      avatarJobIds,
-    });
+    // 4. Return immediately — client polls /api/story-video-status
+    return res.status(200).json({ ok: true, jobId, sceneCount: scenes.length });
 
-  } catch(err) {
-    console.error('[story-video] Error:', err.message);
-    return res.status(500).json({ ok: false, error: err.message });
+  } catch (err) {
+    console.error('[story-video] Unhandled error:', err);
+    return res.status(500).json({ ok: false, error: err.message || 'Internal server error' });
   }
-};
+}
