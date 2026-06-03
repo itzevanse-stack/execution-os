@@ -33,9 +33,12 @@ const db = getFirestore();
 // ── Runway helper ─────────────────────────────────────────────────
 const RUNWAY_API   = 'https://api.dev.runwayml.com/v1';
 const RUNWAY_KEY   = process.env.RUNWAY_API_KEY;
-const RUNWAY_MODEL = 'gen3a_turbo'; // or 'gen4_turbo'
+const RUNWAY_MODEL = 'gen4.5'; // valid text_to_video model (gen3a_turbo/gen4_turbo are image_to_video only)
 
 async function submitRunwayScene(textPrompt, durationSeconds = 5) {
+  // Clamp duration to gen4.5 valid range: 2–10 seconds
+  const duration = Math.min(10, Math.max(2, Math.round(durationSeconds)));
+
   const resp = await fetch(`${RUNWAY_API}/text_to_video`, {
     method: 'POST',
     headers: {
@@ -46,9 +49,8 @@ async function submitRunwayScene(textPrompt, durationSeconds = 5) {
     body: JSON.stringify({
       model:      RUNWAY_MODEL,
       promptText: textPrompt,
-      duration:   durationSeconds,
-      ratio:      '9:16',     // vertical — valid values: 16:9 | 9:16 | 768:1280 | 1280:768
-      watermark:  false,
+      duration,
+      ratio:      '720:1280', // vertical 9:16 — valid for gen4.5 text_to_video
     }),
   });
   if (!resp.ok) {
@@ -56,7 +58,7 @@ async function submitRunwayScene(textPrompt, durationSeconds = 5) {
     throw new Error(`Runway scene submit failed: ${resp.status} — ${err}`);
   }
   const data = await resp.json();
-  // Runway returns { id: 'task_xxx', status: 'PENDING', ... }
+  // Runway returns { id: 'task_xxx' }
   return data.id;
 }
 
