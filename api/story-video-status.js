@@ -1,342 +1,236 @@
-// api/story-video-status.js — Poll job status and stitch when all scenes ready
-// Called by the client every 5 seconds after /api/story-video returns a jobId
-//
-// GET  ?jobId=sv_xxx
-// POST { jobId }
-// Returns: { status, progress, finalVideoUrl, sceneUrls, error }
+/**
+ * GET /api/story-video-status?jobId=sv_xxx
+ *
+ * Reads the Firestore job document and returns its current status.
+ * Also checks Runway task status for any pending scenes and advances
+ * the job progress, so the job self-heals even without the webhook.
+ */
 
-'use strict';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue }      from 'firebase-admin/firestore';
 
-const { initializeApp, getApps, cert } = require('firebase-admin/app');
-const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
-const cloudinary                        = require('cloudinary').v2;
-
-function getDb() {
-  if (!getApps().length) {
-    initializeApp({ credential: cert({
+if (!getApps().length) {
+  initializeApp({
+    credential: cert({
       projectId:   process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey:  (process.env.FIREBASE_PRIVATE_KEY||'').replace(/\\n/g,'\n'),
-    })});
-  }
-  return getFirestore();
+      privateKey:  (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+    }),
+  });
 }
+const db = getFirestore();
 
-// Configure Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
+const RUNWAY_API = 'https://api.dev.runwayml.com/v1';
+const RUNWAY_KEY = process.env.RUNWAY_API_KEY;
 
-const RUNWAY_KEY  = process.env.RUNWAY_API_KEY;
-const RUNWAY_BASE = 'https://api.dev.runwayml.com/v1';
-
-// ── Check Runway task status ──────────────────────────────────────
 async function checkRunwayTask(taskId) {
-  const resp = await fetch(`${RUNWAY_BASE}/tasks/${taskId}`, {
+  const resp = await fetch(`${RUNWAY_API}/tasks/${taskId}`, {
     headers: {
-      'Authorization':  `Bearer ${RUNWAY_KEY}`,
+      'Authorization': `Bearer ${RUNWAY_KEY}`,
       'X-Runway-Version': '2024-11-06',
     },
   });
-  if (!resp.ok) return { status: 'PENDING' };
-  const data = await resp.json();
-  return {
-    status:   data.status,        // PENDING | RUNNING | SUCCEEDED | FAILED
-    videoUrl: data.output?.[0]    // URL when SUCCEEDED
-              || data.artifacts?.[0]?.url
-              || null,
-    progress: data.progressRatio || 0,
-  };
+  if (!resp.ok) return null;
+  return resp.json();
 }
 
-// ── Check HeyGen job status ───────────────────────────────────────
-async function checkHeyGenJob(jobId) {
-  const resp = await fetch(`https://api.heygen.com/v1/video_status.get?video_id=${jobId}`, {
-    headers: { 'x-api-key': process.env.HEYGEN_API_KEY },
-  });
-  if (!resp.ok) return { status: 'pending' };
-  const data = await resp.json();
-  return {
-    status:   data.data?.status   || 'pending',
-    videoUrl: data.data?.video_url || null,
-  };
-}
-
-// ── Upload URL to Cloudinary ──────────────────────────────────────
-async function uploadToCloudinary(url, publicId) {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(url, {
-      resource_type: 'video',
-      public_id:     publicId,
-      folder:        'story-videos',
-      overwrite:     true,
-    }, (err, result) => {
-      if (err) reject(err);
-      else resolve(result.secure_url);
-    });
-  });
-}
-
-// ── Stitch all clips into final video via Cloudinary ─────────────
-async function stitchVideo(job, sceneUrls, voiceUrl) {
-  const { scenes, charMode, musicMood, jobId } = job;
-
-  // Build ordered list of clip URLs
-  const orderedClips = scenes.map((scene, i) => {
-    if (scene.isAvatarScene && charMode === 'avatar' && job.avatarUrls && job.avatarUrls[i]) {
-      return job.avatarUrls[i];
-    }
-    return sceneUrls[i] || null;
-  }).filter(Boolean);
-
-  if (!orderedClips.length) throw new Error('No scene clips available for stitching');
-
-  // Upload all clips to Cloudinary first (they need to be Cloudinary assets)
-  const cloudinaryClips = [];
-  for (let i = 0; i < orderedClips.length; i++) {
-    const publicId = `story-videos/${jobId}/scene_${i}`;
-    try {
-      const cdnUrl = await uploadToCloudinary(orderedClips[i], publicId);
-      cloudinaryClips.push(cdnUrl);
-    } catch(e) {
-      console.warn(`[stitch] Scene ${i} upload failed:`, e.message);
-    }
+export default async function handler(req, res) {
+  if (req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  if (!cloudinaryClips.length) throw new Error('No clips uploaded to Cloudinary');
+  const { jobId } = req.query;
+  if (!jobId) return res.status(400).json({ error: 'Missing jobId' });
 
-  // Build the concatenation transformation
-  // Cloudinary concatenates video using the fl_splice transformation
-  const basePublicId = `story-videos/${jobId}/scene_0`;
-  const spliceTransformations = [];
+  try {
+    const docRef  = db.collection('story_video_jobs').doc(jobId);
+    const docSnap = await docRef.get();
 
-  // Add each subsequent clip as a splice
-  for (let i = 1; i < cloudinaryClips.length; i++) {
-    const clipPublicId = `story-videos/${jobId}/scene_${i}`;
-    spliceTransformations.push({
-      overlay: `video:${clipPublicId.replace(/\//g, ':')}`,
-      flags:   'splice',
-    });
-    spliceTransformations.push({ flags: 'layer_apply' });
-  }
+    if (!docSnap.exists) {
+      return res.status(404).json({ status: 'failed', error: 'Job not found' });
+    }
 
-  // Add voiceover if available
-  if (voiceUrl) {
-    try {
-      const voicePublicId = `story-videos/${jobId}/voice`;
-      await uploadToCloudinary(voiceUrl, voicePublicId);
-      spliceTransformations.push({
-        overlay: `video:${voicePublicId.replace(/\//g,':')}`,
-        flags:   'layer_apply',
-        audio_codec: 'aac',
+    const job = docSnap.data();
+
+    // If already complete or failed, return as-is
+    if (job.status === 'complete' || job.status === 'failed') {
+      return res.status(200).json({
+        status:        job.status,
+        progress:      job.status === 'complete' ? 100 : job.progress,
+        statusLabel:   job.status === 'complete' ? 'Complete!' : (job.error || 'Failed'),
+        finalVideoUrl: job.finalVideoUrl || null,
+        narration:     job.narration     || '',
+        error:         job.error         || null,
       });
-    } catch(e) {
-      console.warn('[stitch] Voice overlay failed:', e.message);
     }
-  }
 
-  // Add background music
-  const MUSIC_TRACKS = {
-    'emotional-piano':       'story-music-piano',
-    'epic-cinematic':        'story-music-epic',
-    'inspirational-uplifting':'story-music-inspire',
-    'raw-acoustic':          'story-music-acoustic',
-  };
-  // Note: In production, upload royalty-free music files to Cloudinary
-  // with these public IDs. For now, skip music if tracks aren't available.
+    // Poll each pending Runway task to advance progress
+    if (job.scenes && job.scenes.length > 0) {
+      const scenes = [...job.scenes];
+      let completedCount = scenes.filter(s => s.status === 'complete').length;
+      let anyUpdated = false;
 
-  // Generate the final stitched video URL
-  const finalPublicId = `story-videos/${jobId}/final`;
-  const result = await new Promise((resolve, reject) => {
-    cloudinary.uploader.explicit(basePublicId, {
-      resource_type:   'video',
-      type:            'upload',
-      eager:           [{ transformation: spliceTransformations }],
-      eager_async:     false,
-      public_id_prefix: finalPublicId,
-    }, (err, result) => {
-      if (err) reject(err);
-      else resolve(result);
+      for (let i = 0; i < scenes.length; i++) {
+        const scene = scenes[i];
+        if (scene.status === 'complete') continue;
+        if (!scene.runwayTaskId) continue;
+
+        try {
+          const task = await checkRunwayTask(scene.runwayTaskId);
+          if (!task) continue;
+
+          if (task.status === 'SUCCEEDED') {
+            scenes[i] = {
+              ...scene,
+              status:   'complete',
+              videoUrl: task.output?.[0] || null,
+            };
+            completedCount++;
+            anyUpdated = true;
+          } else if (task.status === 'FAILED') {
+            scenes[i] = { ...scene, status: 'failed' };
+            anyUpdated = true;
+          }
+        } catch (e) {
+          // Non-fatal — just log and continue
+          console.warn(`[story-video-status] Runway check failed for task ${scene.runwayTaskId}:`, e.message);
+        }
+      }
+
+      const total   = scenes.length;
+      const pct     = Math.round(10 + (completedCount / total) * 55); // 10-65% for scene rendering
+      const allDone = completedCount === total;
+
+      const updates = { scenes, progress: pct, updatedAt: FieldValue.serverTimestamp() };
+
+      if (allDone) {
+        // All scenes rendered — trigger stitching phase
+        updates.status      = 'stitching';
+        updates.progress    = 70;
+        updates.statusLabel = 'All scenes rendered — stitching video…';
+        anyUpdated = true;
+      } else {
+        updates.statusLabel = `Rendering scenes… (${completedCount}/${total} done)`;
+      }
+
+      if (anyUpdated) {
+        await docRef.update(updates);
+        Object.assign(job, updates);
+      }
+
+      // If now stitching, kick off the stitch in the background (non-blocking)
+      if (job.status === 'stitching' || updates.status === 'stitching') {
+        const completedScenes = scenes.filter(s => s.status === 'complete' && s.videoUrl);
+        if (completedScenes.length > 0) {
+          // Fire-and-forget stitch call (Cloudinary or FFmpeg)
+          // The webhook or next poll will pick up the result
+          kickoffStitch(jobId, job, completedScenes).catch(e =>
+            console.error('[story-video-status] Stitch kickoff error:', e.message)
+          );
+        }
+      }
+    }
+
+    // Re-read after potential updates
+    const updated = (await docRef.get()).data();
+
+    return res.status(200).json({
+      status:      updated.status,
+      progress:    updated.progress     || 10,
+      statusLabel: updated.statusLabel  || 'Processing…',
+      finalVideoUrl: updated.finalVideoUrl || null,
+      narration:   updated.narration    || '',
+      error:       updated.error        || null,
     });
-  });
 
-  return result?.eager?.[0]?.secure_url
-    || result?.secure_url
-    || cloudinaryClips[0]; // fallback to first clip if stitching fails
+  } catch (err) {
+    console.error('[story-video-status] Error:', err);
+    return res.status(500).json({ status: 'failed', error: err.message });
+  }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// HANDLER
-// ═══════════════════════════════════════════════════════════════════
-module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin',  '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  if (req.method === 'OPTIONS') return res.status(204).end();
+// ── Stitch helper (fire-and-forget) ──────────────────────────────
+async function kickoffStitch(jobId, job, completedScenes) {
+  const CLOUDINARY_CLOUD  = process.env.CLOUDINARY_CLOUD_NAME || 'dkjrpsvxv';
+  const CLOUDINARY_KEY    = process.env.CLOUDINARY_API_KEY;
+  const CLOUDINARY_SECRET = process.env.CLOUDINARY_API_SECRET;
 
-  const jobId = req.query.jobId || (req.body && req.body.jobId);
-  if (!jobId) return res.status(400).json({ error: 'jobId required' });
+  const docRef = db.collection('story_video_jobs').doc(jobId);
 
-  const db = getDb();
-  const jobRef  = db.collection('storyJobs').doc(jobId);
-  const jobSnap = await jobRef.get();
+  // Already stitching in progress guard
+  const snap = await docRef.get();
+  if (snap.data()?.stitchStarted) return;
+  await docRef.update({ stitchStarted: true, updatedAt: FieldValue.serverTimestamp() });
 
-  if (!jobSnap.exists) return res.status(404).json({ error: 'Job not found' });
-  const job = jobSnap.data();
+  try {
+    // Build a Cloudinary multi-video concatenation transformation
+    // Each scene becomes a layer: fl_splice,l_video:PUBLIC_ID
+    // We need to upload each scene URL first and get public IDs, then concat
+    const uploadResults = await Promise.all(
+      completedScenes.map(async (scene, i) => {
+        const formData = new URLSearchParams();
+        formData.append('file',   scene.videoUrl);
+        formData.append('upload_preset', 'ml_default');
+        formData.append('resource_type', 'video');
+        formData.append('public_id', `story_${jobId}_scene_${i}`);
 
-  // If already complete or failed, return immediately
-  if (job.status === 'complete') {
-    return res.status(200).json({
-      ok:            true,
+        const ts  = Math.floor(Date.now() / 1000);
+        const str = `public_id=story_${jobId}_scene_${i}&timestamp=${ts}${CLOUDINARY_SECRET}`;
+        const sig = await sha1(str);
+
+        const fd = new FormData();
+        fd.append('file',          scene.videoUrl);
+        fd.append('timestamp',     ts.toString());
+        fd.append('api_key',       CLOUDINARY_KEY);
+        fd.append('signature',     sig);
+        fd.append('public_id',     `story_${jobId}_scene_${i}`);
+        fd.append('resource_type', 'video');
+
+        const r = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/video/upload`,
+          { method: 'POST', body: fd }
+        );
+        const d = await r.json();
+        if (!d.public_id) throw new Error('Cloudinary upload failed: ' + JSON.stringify(d));
+        return d.public_id;
+      })
+    );
+
+    // Build concat URL: base + splice each additional scene
+    // Cloudinary multi_concat: use the first video + fl_splice for each subsequent
+    const [base, ...rest] = uploadResults;
+    let transformation = '';
+    for (const pid of rest) {
+      const encoded = pid.replace(/\//g, ':');
+      transformation += `/fl_splice,l_video:${encoded}/fl_layer_apply`;
+    }
+
+    // Add narration audio via HeyGen if voiceMode is heygen
+    // (advanced — omit here; narration audio handled separately via HeyGen avatar overlay)
+
+    const finalUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD}/video/upload${transformation}/q_auto/${base}.mp4`;
+
+    await docRef.update({
       status:        'complete',
       progress:      100,
-      finalVideoUrl: job.finalVideoUrl,
-      narration:     job.fullNarration,
-      hook:          job.hook,
+      statusLabel:   'Complete!',
+      finalVideoUrl: finalUrl,
+      updatedAt:     FieldValue.serverTimestamp(),
+    });
+
+    console.log(`[story-video stitch] Job ${jobId} complete — ${finalUrl}`);
+
+  } catch (err) {
+    console.error(`[story-video stitch] Job ${jobId} stitch failed:`, err.message);
+    await docRef.update({
+      status:    'failed',
+      error:     'Stitching failed: ' + err.message,
+      updatedAt: FieldValue.serverTimestamp(),
     });
   }
-  if (job.status === 'failed') {
-    return res.status(200).json({ ok: false, status: 'failed', error: job.error || 'Generation failed' });
-  }
+}
 
-  // ── Check Runway scene progress ───────────────────────────────
-  const runwayTaskIds = job.runwayTaskIds || [];
-  const sceneUrls     = { ...(job.sceneUrls || {}) };
-  let   allScenesReady= true;
-  let   completedCount= 0;
-
-  for (let i = 0; i < runwayTaskIds.length; i++) {
-    const taskId = runwayTaskIds[i];
-    if (!taskId) {
-      // Avatar scene — skip Runway check
-      completedCount++;
-      continue;
-    }
-    if (sceneUrls[i]) {
-      completedCount++;
-      continue;
-    }
-    try {
-      const result = await checkRunwayTask(taskId);
-      if (result.status === 'SUCCEEDED' && result.videoUrl) {
-        sceneUrls[i] = result.videoUrl;
-        completedCount++;
-      } else if (result.status === 'FAILED') {
-        console.warn(`[status] Scene ${i} failed`);
-        completedCount++; // count it so we don't block forever
-      } else {
-        allScenesReady = false;
-      }
-    } catch(e) {
-      allScenesReady = false;
-    }
-  }
-
-  // ── Check HeyGen voiceover ────────────────────────────────────
-  let voiceUrl  = job.voiceUrl;
-  let voiceReady= !!voiceUrl;
-  if (!voiceReady && job.voiceJobId) {
-    try {
-      const vStatus = await checkHeyGenJob(job.voiceJobId);
-      if (vStatus.status === 'completed' && vStatus.videoUrl) {
-        voiceUrl   = vStatus.videoUrl;
-        voiceReady = true;
-      }
-    } catch(e) {}
-  }
-  if (!job.voiceJobId) voiceReady = true; // No voice job — skip
-
-  // ── Check HeyGen avatar segments ──────────────────────────────
-  const avatarJobIds = job.avatarJobIds || {};
-  const avatarUrls   = { ...(job.avatarUrls || {}) };
-  let   avatarsReady = true;
-
-  for (const [sceneIdx, avatarJobId] of Object.entries(avatarJobIds)) {
-    if (avatarUrls[sceneIdx]) continue;
-    try {
-      const aStatus = await checkHeyGenJob(avatarJobId);
-      if (aStatus.status === 'completed' && aStatus.videoUrl) {
-        avatarUrls[sceneIdx] = aStatus.videoUrl;
-      } else if (aStatus.status !== 'failed') {
-        avatarsReady = false;
-      }
-    } catch(e) {
-      avatarsReady = false;
-    }
-  }
-
-  // Calculate progress
-  const totalScenes = runwayTaskIds.length || 1;
-  let   progress    = Math.round((completedCount / totalScenes) * 70); // scenes = 70%
-  if (voiceReady)  progress = Math.min(progress + 15, 85);  // voice = +15%
-  if (avatarsReady)progress = Math.min(progress + 10, 95);  // avatars = +10%
-
-  // Update Firestore with latest URLs
-  const updates = {
-    sceneUrls,
-    avatarUrls,
-    updatedAt: FieldValue.serverTimestamp(),
-  };
-  if (voiceUrl)  updates.voiceUrl  = voiceUrl;
-  await jobRef.update(updates);
-
-  // ── All ready — stitch final video ───────────────────────────
-  if (allScenesReady && voiceReady && avatarsReady) {
-    try {
-      await jobRef.update({ status: 'stitching' });
-
-      const jobWithAvatars = { ...job, avatarUrls, sceneUrls };
-      const finalVideoUrl  = await stitchVideo(jobWithAvatars, sceneUrls, voiceUrl);
-
-      await jobRef.update({
-        status:        'complete',
-        finalVideoUrl,
-        completedAt:   FieldValue.serverTimestamp(),
-      });
-
-      // Save to user's video library in Firestore
-      if (job.uid) {
-        const db2 = getDb();
-        await db2.collection('users').doc(job.uid).collection('videos').add({
-          type:         'story',
-          title:        job.hook || 'Story Video',
-          videoUrl:     finalVideoUrl,
-          framework:    job.framework,
-          style:        job.style,
-          narration:    job.fullNarration,
-          createdAt:    FieldValue.serverTimestamp(),
-        });
-      }
-
-      return res.status(200).json({
-        ok:            true,
-        status:        'complete',
-        progress:      100,
-        finalVideoUrl,
-        narration:     job.fullNarration,
-        hook:          job.hook,
-      });
-    } catch(stitchErr) {
-      await jobRef.update({ status: 'failed', error: stitchErr.message });
-      return res.status(200).json({ ok: false, status: 'failed', error: stitchErr.message });
-    }
-  }
-
-  // Still processing
-  const statusLabel = !allScenesReady
-    ? `Generating scenes… (${completedCount}/${totalScenes} ready)`
-    : !voiceReady   ? 'Creating voiceover…'
-    : !avatarsReady ? 'Rendering avatar segments…'
-    : 'Preparing to stitch…';
-
-  return res.status(200).json({
-    ok:         true,
-    status:     'processing',
-    progress,
-    statusLabel,
-    scenesDone: completedCount,
-    scenesTotal:totalScenes,
-  });
-};
+async function sha1(str) {
+  const crypto = await import('crypto');
+  return crypto.createHash('sha1').update(str).digest('hex');
+}
