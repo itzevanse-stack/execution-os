@@ -7821,7 +7821,7 @@ window.callAPI = async function(messages, maxTokens) {
     'https://execution-os-xi.vercel.app/api/claude',
   ];
   var body = JSON.stringify({
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-sonnet-4-6',
     max_tokens: maxTokens || 2500,
     messages: messages
   });
@@ -9887,7 +9887,7 @@ Respond ONLY with a JSON array, no markdown, no preamble:
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 1000,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -10697,7 +10697,7 @@ async function _runOfferIntelligence(inp) {
   try {
     var resp = await fetch(window.PROXY_URL || (window.location.origin + '/api/claude'), {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2500,
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2500,
         messages: [{ role: 'user', content: prompt }] })
     });
     var data = await resp.json();
@@ -11169,7 +11169,7 @@ async function callClaude(prompt, maxTokens) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: maxTokens || 2000,
           messages: messages,
           prompt: prompt,  // build-funnel uses prompt field
@@ -11536,7 +11536,7 @@ YOUR OPERATING RULES:
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 4000,
         system: systemPrompt,
         messages: messages
@@ -11554,7 +11554,7 @@ YOUR OPERATING RULES:
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
+      model: 'claude-sonnet-4-6',
       max_tokens: body._maxTokens || 2000,
       messages: [{ role: 'user', content: prompt }]
     })
@@ -12513,6 +12513,125 @@ window.doLogout = function() {
 };
 
 // ====================================================================
+// ── ALLIANCE PARTNERS ADMIN ──────────────────────────────────────
+var _allAlliancePartners = [];
+var _currentTierFilter   = 'all';
+
+window.loadAlliancePartners = async function() {
+  var listEl  = document.getElementById('alliance-partner-list');
+  var statEl  = document.getElementById('ap-stat-total');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="font-size:12px;color:var(--dimmer);text-align:center;padding:28px">Loading…</div>';
+
+  try {
+    var snap = await db.collection('alliance_partners').orderBy('joinedAt','desc').get();
+    _allAlliancePartners = snap.docs.map(function(d) {
+      var data = d.data();
+      return {
+        id:       d.id,
+        name:     data.name     || '',
+        email:    data.email    || '',
+        tier:     data.tier     || 'Starter',
+        status:   data.status   || 'active',
+        joinedAt: data.joinedAt ? data.joinedAt.toDate() : null,
+      };
+    });
+
+    // Update stat pill
+    var total    = _allAlliancePartners.length;
+    var starters = _allAlliancePartners.filter(function(p){return p.tier==='Starter';}).length;
+    var pros     = _allAlliancePartners.filter(function(p){return p.tier==='Pro';}).length;
+    var elites   = _allAlliancePartners.filter(function(p){return p.tier==='Elite';}).length;
+    if (statEl) statEl.textContent = total + ' Partner' + (total !== 1 ? 's' : '');
+
+    // Update tier tab counts
+    var tabAll     = document.getElementById('ap-tab-all');
+    var tabStarter = document.getElementById('ap-tab-starter');
+    var tabPro     = document.getElementById('ap-tab-pro');
+    var tabElite   = document.getElementById('ap-tab-elite');
+    if (tabAll)     tabAll.textContent     = 'All (' + total + ')';
+    if (tabStarter) tabStarter.textContent = 'Starter $1K (' + starters + ')';
+    if (tabPro)     tabPro.textContent     = 'Pro $2K (' + pros + ')';
+    if (tabElite)   tabElite.textContent   = 'Elite $3K (' + elites + ')';
+
+    renderAlliancePartners();
+  } catch(e) {
+    console.error('loadAlliancePartners:', e);
+    if (listEl) listEl.innerHTML = '<div style="font-size:12px;color:var(--red);text-align:center;padding:20px">Failed to load partners. Check Firestore permissions.</div>';
+  }
+};
+
+window.filterAllianceTier = function(tier) {
+  _currentTierFilter = tier;
+  // Update tab styles
+  ['all','Starter','Pro','Elite'].forEach(function(t) {
+    var el = document.getElementById('ap-tab-' + t.toLowerCase());
+    if (!el) return;
+    if (t === tier) {
+      el.style.background = 'rgba(0,200,150,.15)';
+      el.style.borderColor = 'rgba(0,200,150,.4)';
+      el.style.color = 'var(--teal)';
+    } else {
+      el.style.background = 'transparent';
+      el.style.borderColor = 'var(--border2)';
+      el.style.color = 'var(--dim)';
+    }
+  });
+  renderAlliancePartners();
+};
+
+function renderAlliancePartners() {
+  var listEl = document.getElementById('alliance-partner-list');
+  if (!listEl) return;
+
+  var filtered = _currentTierFilter === 'all'
+    ? _allAlliancePartners
+    : _allAlliancePartners.filter(function(p){ return p.tier === _currentTierFilter; });
+
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div style="font-size:12px;color:var(--dimmer);text-align:center;padding:28px">No partners found for this tier.</div>';
+    return;
+  }
+
+  var tierColors = { Starter: 'var(--teal)', Pro: 'var(--yellow)', Elite: '#ff6b6b' };
+  var tierBgs    = { Starter: 'rgba(0,200,150,.1)', Pro: 'rgba(255,217,61,.1)', Elite: 'rgba(255,107,107,.1)' };
+
+  listEl.innerHTML = filtered.map(function(p) {
+    var color  = tierColors[p.tier]  || 'var(--teal)';
+    var bg     = tierBgs[p.tier]     || 'rgba(0,200,150,.1)';
+    var date   = p.joinedAt ? p.joinedAt.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : 'Unknown';
+    var initials = p.name.split(' ').map(function(w){return w[0]||'';}).slice(0,2).join('').toUpperCase();
+
+    return '<div style="display:grid;grid-template-columns:1fr 1.4fr .7fr .9fr .6fr;gap:8px;align-items:center;padding:10px 12px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid var(--border2);transition:background .2s" onmouseenter="this.style.background=\'rgba(255,255,255,.05)\'" onmouseleave="this.style.background=\'rgba(255,255,255,.03)\'">'
+      + '<div style="display:flex;align-items:center;gap:8px">'
+      +   '<div style="width:30px;height:30px;border-radius:50%;background:' + bg + ';border:1px solid ' + color + ';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:' + color + ';flex-shrink:0">' + initials + '</div>'
+      +   '<div style="font-size:12px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.name + '</div>'
+      + '</div>'
+      + '<div style="font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + p.email + '</div>'
+      + '<div><span style="background:' + bg + ';color:' + color + ';font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ' + color + '">' + p.tier + '</span></div>'
+      + '<div style="font-size:11px;color:var(--dim)">' + date + '</div>'
+      + '<div><span style="background:rgba(0,200,150,.1);color:var(--teal);font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px">Active</span></div>'
+      + '</div>';
+  }).join('');
+}
+
+// Auto-load alliance partners when admin panel becomes visible
+var _apObserver = new MutationObserver(function(mutations) {
+  mutations.forEach(function(m) {
+    if (m.attributeName === 'style') {
+      var panel = document.getElementById('admin-panel');
+      if (panel && panel.style.display !== 'none' && _allAlliancePartners.length === 0) {
+        loadAlliancePartners();
+      }
+    }
+  });
+});
+(function tryObserve() {
+  var panel = document.getElementById('admin-panel');
+  if (panel) { _apObserver.observe(panel, { attributes: true }); }
+  else { setTimeout(tryObserve, 1000); }
+})();
+
 // ADMIN: Add member manually after closing a high-ticket deal
 // ====================================================================
 const ADMIN_EMAIL = 'itzevan.se@gmail.com'; // Admin email for in-app panel
@@ -13980,7 +14099,7 @@ function toTransform(str) {
 }
 
 // ─── AI COPY ENHANCER (Anthropic API) ────────────────────────────────────────
-// Cleans and rewrites a batch of generated copy through Claude claude-sonnet-4-20250514
+// Cleans and rewrites a batch of generated copy through Claude claude-sonnet-4-6
 // Returns improved versions with correct grammar and natural flow
 async function enhanceCopyWithAI(pieces, context) {
   const { niche, job, pain, transformation, incomeGoal, duration } = context;
@@ -19146,7 +19265,7 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 2000,
                 messages: [{ role: 'user', content: `Build a deep buyer psychology profile from this sales page content.\n\nSALES PAGE TEXT:\n${pasteResult.slice(0, 3000)}\n\nProduct niche: ${productNiche}\nCommission: $${commission}\nMonthly target: $${monthlyTarget}\n\nReturn ONLY valid JSON with all these fields:\nproductName, productTagline, productBenefits (array of 3), name, age, gender, location, job, industry, income, pain, deeperPain, fear, tried, transformation, motivation, identity, objections (array of 3), contentAngles (array of 5), dmHooks (array of 3), emailSubjectLines (array of 3), niche, commission` }]
               })
@@ -19167,7 +19286,7 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                model: 'claude-sonnet-4-20250514',
+                model: 'claude-sonnet-4-6',
                 max_tokens: 2000,
                 messages: [{ role: 'user', content: `Build a deep buyer psychology profile for a ${productNiche} affiliate product.\nProduct URL: ${url}\nProduct name: ${productName || 'not specified'}\nCommission: $${commission} per sale\nMonthly target: $${monthlyTarget}\n\nReturn ONLY valid JSON with all these fields:\nproductName, productTagline, productBenefits (array), name, age, gender, location, job, industry, income, pain, deeperPain, fear, tried, transformation, motivation, identity, objections (array of 3), contentAngles (array of 5), dmHooks (array of 3), emailSubjectLines (array of 3), niche, commission` }]
               })
@@ -19348,7 +19467,7 @@ Return ONLY valid JSON:
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              model: 'claude-sonnet-4-20250514',
+              model: 'claude-sonnet-4-6',
               max_tokens: 3000,
               messages: [{ role: 'user', content: depthPrompt }]
             })
@@ -19532,7 +19651,7 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: 'claude-sonnet-4-6',
           max_tokens: 3000,
           messages: [{ role: 'user', content: `Write 5 high-converting DM scripts for an affiliate marketer promoting "${pn}" (${productNiche}).
 
@@ -20840,7 +20959,7 @@ window.runMindsetReframe = async function() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 800,
         system: systemPrompt,
         messages: [{ role: 'user', content: prompt }]
@@ -25298,7 +25417,7 @@ Your personality and style:
           var _fbResp = await fetch(window.location.origin + '/api/claude', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: msgs2send })
+            body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: msgs2send })
           });
           if (_fbResp.ok) {
             var _fbData = await _fbResp.json();
@@ -29703,7 +29822,7 @@ async function emGenerateSequence() {
   try {
     var resp = await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'), {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:3000, messages:[{role:'user',content:prompt}]})
+      body: JSON.stringify({model:'claude-sonnet-4-6', max_tokens:3000, messages:[{role:'user',content:prompt}]})
     });
     var data = await resp.json();
     var text = ((data.content||[])[0]||{}).text||'';
@@ -29991,7 +30110,7 @@ async function emAiWriteTemplate(name) {
   try {
     var resp = await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'), {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:900, system:sys, messages:[{role:'user',content:prompt}] })
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:900, system:sys, messages:[{role:'user',content:prompt}] })
     });
     var data = await resp.json();
     var text = data.content && data.content[0] && data.content[0].text || '';
@@ -30071,7 +30190,7 @@ async function emAiWrite(){
   try {
     var resp = await fetch(window.PROXY_URL||(window.location.origin+'/api/claude'), {
       method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1200,system:systemRole,messages:[{role:'user',content:parts}]})
+      body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,system:systemRole,messages:[{role:'user',content:parts}]})
     });
     var data = await resp.json();
     var text = (data.content&&data.content[0]&&data.content[0].text)||'';
@@ -30126,7 +30245,7 @@ function emAiRewrite(instruction){
   editor.innerHTML = '<p style="color:var(--dim);font-style:italic">Rewriting…</p>';
   fetch(window.PROXY_URL||(window.location.origin+'/api/claude'),{
     method:'POST', headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+    body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,
       messages:[{role:'user',content:instruction+'. Rewrite this email:\n\n'+current+'\n\nReturn ONLY the rewritten body. No subject. No preamble.'}]})
   }).then(function(r){ return r.json(); }).then(function(data){
     var text = (data.content&&data.content[0]&&data.content[0].text)||'';
@@ -32206,7 +32325,7 @@ async function brCallAI_WithSearch(systemPrompt, userPrompt, maxTokens) {
       headers: { 'Content-Type': 'application/json' },
       signal: ctl.signal,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: maxTokens || 4000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
@@ -32931,7 +33050,7 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount) {
       headers: { 'Content-Type': 'application/json' },
       signal: _brCtl.signal,
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: maxTokens || 3000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
@@ -35400,7 +35519,7 @@ window.onboardRunIntelligence = async function() {
       var resp = await fetch(window.location.origin + '/api/claude', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514', max_tokens: 1500,
+          model: 'claude-sonnet-4-6', max_tokens: 1500,
           system: 'You are an elite business strategist. Return ONLY valid JSON — no markdown.',
           messages: [{ role: 'user', content: 'Build quick intelligence for a ' + window._obData.niche + ' business selling "' + window._obData.offer + '" at $' + (window._obData.price||'997') + '.\n\nReturn: { "hook": "best viral hook for this offer max 10 words", "dm_opener": "first DM message to send a cold prospect (2-3 sentences, specific to this niche, NO generic phrases)", "content_angle": "the single best content angle to establish authority in ' + window._obData.niche + ' (1-2 sentences)", "pain": "the deepest pain this audience has", "transformation": "the transformation they want" }' }]
         })
