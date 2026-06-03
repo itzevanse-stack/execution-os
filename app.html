@@ -37522,6 +37522,7 @@ window.svShowResult = function(data) {
 
   if (progView)   progView.style.display   = 'none';
   if (resultView) resultView.style.display = 'block';
+
   if (videoEl && data.finalVideoUrl) {
     videoEl.src = data.finalVideoUrl;
     videoEl.load();
@@ -37530,7 +37531,26 @@ window.svShowResult = function(data) {
   if (dlBtn && data.finalVideoUrl) dlBtn.href = data.finalVideoUrl;
   if (btn) { btn.disabled = false; btn.innerHTML = '<span style="font-size:16px">🎥</span> Generate Story Video'; }
 
-  // Save to library
+  // If individual scene URLs are available, show them as download links
+  if (data.sceneUrls && data.sceneUrls.length > 0) {
+    var existing = document.getElementById('sv-scene-downloads');
+    if (existing) existing.remove();
+    var wrap = document.createElement('div');
+    wrap.id = 'sv-scene-downloads';
+    wrap.style.cssText = 'margin-top:12px;padding:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:10px';
+    wrap.innerHTML = '<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📥 Individual Scenes</div>'
+      + data.sceneUrls.map(function(url, i) {
+          return '<a href="' + url + '" target="_blank" download style="display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);color:rgba(255,255,255,.6);font-size:11px;font-weight:700;text-decoration:none;margin-bottom:5px">'
+            + '🎬 Scene ' + (i+1) + ' <span style="font-size:9px;color:rgba(255,255,255,.3);margin-left:auto">Download ↓</span></a>';
+        }).join('');
+    if (resultView) resultView.appendChild(wrap);
+  }
+
+  // Show stitch error note if fallback was used
+  if (data.error && data.error.includes('fallback')) {
+    if (typeof avsToast === 'function') avsToast('⚠️ Full stitch failed — showing Scene 1. Download individual scenes below.', true);
+  }
+
   window._avsLastVideoUrl = data.finalVideoUrl;
 };
 
