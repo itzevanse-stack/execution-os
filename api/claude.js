@@ -1,6 +1,10 @@
 const Anthropic = require('@anthropic-ai/sdk');
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const anthropic = new Anthropic({
+  apiKey:     process.env.ANTHROPIC_API_KEY,
+  timeout:    30000, // 30s — default is 600s which causes silent 30-min hangs
+  maxRetries: 1,     // default is 2; with 30s timeout = max 60s before error surfaces
+});
 
 /**
  * /api/claude  —  EXECUTION OS Core Intelligence Endpoint
