@@ -36,19 +36,19 @@ const RUNWAY_KEY   = process.env.RUNWAY_API_KEY;
 const RUNWAY_MODEL = 'gen3a_turbo'; // or 'gen4_turbo'
 
 async function submitRunwayScene(textPrompt, durationSeconds = 5) {
-  const resp = await fetch(`${RUNWAY_API}/image_to_video`, {
+  const resp = await fetch(`${RUNWAY_API}/text_to_video`, {
     method: 'POST',
     headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${RUNWAY_KEY}`,
+      'Content-Type':     'application/json',
+      'Authorization':    `Bearer ${RUNWAY_KEY}`,
       'X-Runway-Version': '2024-11-06',
     },
     body: JSON.stringify({
-      model:          RUNWAY_MODEL,
-      promptText:     textPrompt,
-      duration:       durationSeconds,
-      ratio:          '720:1280', // 9:16 vertical
-      watermark:      false,
+      model:      RUNWAY_MODEL,
+      promptText: textPrompt,
+      duration:   durationSeconds,
+      ratio:      '9:16',     // vertical — valid values: 16:9 | 9:16 | 768:1280 | 1280:768
+      watermark:  false,
     }),
   });
   if (!resp.ok) {
