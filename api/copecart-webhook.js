@@ -8,11 +8,33 @@ import { Resend } from 'resend';
 
 const WEBHOOK_SECRET = process.env.COPECART_WEBHOOK_SECRET || 'EOS-Alliance-2026';
 
-const PRODUCT_TIERS = {
-  '205c4f02': { tier: 'Starter', amount: 1000 },
-  '0a72f4bd': { tier: 'Pro',     amount: 2000 },
-  '25cbdc78': { tier: 'Elite',   amount: 3000 },
+// Payment amounts — first payment includes entry fee + first month
+const PAYMENT_MAP = [
+  { min: 3150, max: 3250, tier: 'Elite',   amount: 3197, type: 'entry',        label: 'Elite Entry + First Month' },
+  { min: 2150, max: 2250, tier: 'Pro',     amount: 2197, type: 'entry',        label: 'Pro Entry + First Month'   },
+  { min: 1150, max: 1250, tier: 'Starter', amount: 1197, type: 'entry',        label: 'Starter Entry + First Month' },
+  { min: 180,  max: 210,  tier: null,      amount: 197,  type: 'subscription', label: 'Monthly Subscription'      },
+];
+
+// Subscription product IDs to identify tier on renewals
+const SUBSCRIPTION_TIER_MAP = {
+  '616eabaa': 'Starter',
+  '0a72f4bd': 'Pro',
+  '25cbdc78': 'Elite',
 };
+
+function identifyProduct(productId, amount) {
+  const paid = parseFloat(amount) || 0;
+  // Match by amount range first — most reliable
+  const match = PAYMENT_MAP.find(p => paid >= p.min && paid <= p.max);
+  if (match) {
+    // For subscriptions, try to identify tier from product ID
+    const tier = match.tier || SUBSCRIPTION_TIER_MAP[productId] || 'Unknown';
+    return { ...match, tier };
+  }
+  // Fallback
+  return { tier: 'Unknown', amount: paid, type: 'unknown', label: 'Unknown Payment' };
+}
 
 function initFirebase() {
   if (getApps().length === 0) {
@@ -57,8 +79,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, skipped: true });
     }
 
-    // Identify tier from product ID
-    const tierInfo = PRODUCT_TIERS[productId] || { tier: 'Unknown', amount: parseFloat(amountRaw) || 0 };
+    // Identify tier and type from product ID + amount
+    const tierInfo = identifyProduct(productId, amountRaw);
 
     initFirebase();
     const db     = getFirestore();
@@ -91,12 +113,18 @@ export default async function handler(req, res) {
 
     // ── Update running totals in a stats doc ──────────────────────
     const statsRef = db.collection('admin_stats').doc('copecart');
+    const isEntry  = tierInfo.type === 'entry';
     await statsRef.set({
       totalRevenue:                    FieldValue.increment(tierInfo.amount),
       totalSales:                      FieldValue.increment(1),
       [`tier_${tierInfo.tier}_sales`]: FieldValue.increment(1),
       [`tier_${tierInfo.tier}_rev`]:   FieldValue.increment(tierInfo.amount),
-      lastSaleAt:                      FieldValue.serverTimestamp(),
+      // Separate entry fees from subscription renewals
+      ...(isEntry
+        ? { entryRevenue: FieldValue.increment(tierInfo.amount), entrySales: FieldValue.increment(1) }
+        : { subscriptionRevenue: FieldValue.increment(tierInfo.amount), subscriptionRenewals: FieldValue.increment(1) }
+      ),
+      lastSaleAt: FieldValue.serverTimestamp(),
     }, { merge: true });
 
     // ── Notify admin ──────────────────────────────────────────────
