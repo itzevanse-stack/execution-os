@@ -29,19 +29,20 @@ const RUNWAY_KEY = process.env.RUNWAY_API_KEY;
 const RUNWAY_BASE = 'https://api.dev.runwayml.com/v1';
 
 async function runwayGenerateScene(prompt, duration) {
+  // Gen-4.5 supports text-to-video — no promptImage required
   const resp = await fetch(`${RUNWAY_BASE}/image_to_video`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${RUNWAY_KEY}`,
-      'Content-Type':  'application/json',
+      'Authorization':    `Bearer ${RUNWAY_KEY}`,
+      'Content-Type':     'application/json',
       'X-Runway-Version': '2024-11-06',
     },
     body: JSON.stringify({
-      model:         'gen3a_turbo',
-      promptText:    prompt,
-      duration:      duration || 5,
-      ratio:         '720:1280', // 9:16 portrait for social
-      watermark:     false,
+      model:      'gen4_turbo',
+      promptText: prompt,
+      duration:   duration || 5,
+      ratio:      '720:1280', // 9:16 portrait for social
+      watermark:  false,
     }),
   });
   if (!resp.ok) {
