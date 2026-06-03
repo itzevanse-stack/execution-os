@@ -113,17 +113,26 @@ export default async function handler(req, res) {
       });
     }
 
-    // All scenes complete — trigger the dedicated stitch function
+    // All scenes complete — trigger the dedicated stitch function (once only)
     if (allDone && !job.stitchStarted) {
-      const stitchUrl = (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : 'https://build.skillslibrary.com') + '/api/story-video-stitch';
+      // Write stitchStarted=true immediately so concurrent polls don't double-trigger
+      await docRef.update({
+        stitchStarted: true,
+        status:        'stitching',
+        progress:      70,
+        statusLabel:   'All scenes ready — starting stitch…',
+        updatedAt:     FieldValue.serverTimestamp(),
+      });
 
-      fetch(stitchUrl, {
+      const base = process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'https://build.skillslibrary.com';
+
+      fetch(base + '/api/story-video-stitch', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ jobId }),
-      }).catch(e => console.warn('[status] Stitch trigger failed:', e.message));
+      }).catch(e => console.error('[status] Stitch trigger failed:', e.message));
     }
 
     return res.status(200).json({
