@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to the Execution OS Alliance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:#080808;font-family:'Poppins',sans-serif;color:#fff;min-height:100vh;overflow-x:hidden;}
+
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(245,200,66,.3);}50%{box-shadow:0 0 50px rgba(245,200,66,.7);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@keyframes shimmer{0%{background-position:0% center;}100%{background-position:200% center;}}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.pulse-dot{width:7px;height:7px;background:#F5C842;border-radius:50%;display:inline-block;animation:pulse 2s ease-in-out infinite;}
+
+/* PAGE */
+.page{max-width:860px;margin:0 auto;padding:60px 24px 80px;text-align:center;animation:fadeUp .8s ease-out;}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(245,200,66,.4);background:rgba(245,200,66,.07);border-radius:100px;padding:7px 18px;font-size:12px;font-weight:700;color:#F5C842;letter-spacing:.1em;text-transform:uppercase;margin-bottom:28px;}
+
+/* HEADLINE */
+.headline{font-size:clamp(28px,5vw,52px);font-weight:900;line-height:1.1;margin-bottom:16px;}
+.headline em{font-style:normal;color:#F5C842;}
+.subheadline{font-size:clamp(16px,2.5vw,20px);font-weight:600;color:rgba(255,255,255,.55);margin-bottom:48px;}
+
+/* VIDEO */
+.video-wrap{position:relative;width:100%;padding-top:56.25%;border-radius:16px;overflow:hidden;border:2px solid rgba(245,200,66,.2);box-shadow:0 0 80px rgba(245,200,66,.1);background:#111;margin-bottom:48px;}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:none;}
+.video-thumb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:pointer;background:#111;}
+.play-btn{width:80px;height:80px;border-radius:50%;background:rgba(245,200,66,.1);border:2px solid rgba(245,200,66,.35);display:flex;align-items:center;justify-content:center;transition:all .25s;animation:glow 2.5s ease-in-out infinite;}
+.play-btn:hover{background:rgba(245,200,66,.22);border-color:#F5C842;transform:scale(1.08);}
+.play-btn svg{width:28px;height:28px;fill:#F5C842;margin-left:4px;}
+.video-label{font-size:15px;font-weight:700;color:rgba(255,255,255,.7);}
+
+/* COMMUNITY BUTTON */
+.community-btn{display:inline-block;background:#F5C842;color:#080808;font-family:'Poppins',sans-serif;font-size:17px;font-weight:900;padding:20px 56px;border-radius:14px;text-decoration:none;cursor:pointer;border:none;animation:glow 3s ease-in-out infinite;transition:transform .2s;}
+.community-btn:hover{transform:scale(1.03);}
+
+/* MODAL OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.overlay.active{opacity:1;pointer-events:all;}
+
+/* MODAL */
+.modal{background:linear-gradient(145deg,#111100,#0a0a00);border:1px solid rgba(245,200,66,.25);border-radius:20px;padding:44px 40px;max-width:480px;width:100%;position:relative;transform:translateY(30px);transition:transform .3s;}
+.overlay.active .modal{transform:translateY(0);}
+.modal-close{position:absolute;top:16px;right:20px;background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;line-height:1;transition:color .2s;}
+.modal-close:hover{color:#fff;}
+.modal-title{font-size:22px;font-weight:900;color:#fff;margin-bottom:6px;}
+.modal-sub{font-size:13px;color:rgba(255,255,255,.45);margin-bottom:28px;line-height:1.65;}
+
+/* FORM */
+.field{margin-bottom:16px;text-align:left;}
+.field label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:8px;}
+.field input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px;color:#fff;font-family:'Poppins',sans-serif;font-size:14px;outline:none;transition:border-color .2s;}
+.field input:focus{border-color:rgba(245,200,66,.5);}
+.field input::placeholder{color:rgba(255,255,255,.25);}
+
+/* TIER SELECTOR */
+.tier-label{display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:rgba(255,255,255,.45);margin-bottom:12px;text-align:left;}
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px;}
+.tier-opt{position:relative;}
+.tier-opt input{position:absolute;opacity:0;width:0;height:0;}
+.tier-opt label{display:block;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .2s;}
+.tier-opt label .tier-name{display:block;font-size:11px;font-weight:700;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:4px;letter-spacing:.5px;}
+.tier-opt label .tier-price{display:block;font-size:18px;font-weight:900;color:rgba(255,255,255,.3);}
+.tier-opt input:checked + label{border-color:#F5C842;background:rgba(245,200,66,.1);}
+.tier-opt input:checked + label .tier-name{color:#F5C842;}
+.tier-opt input:checked + label .tier-price{color:#F5C842;}
+.tier-opt label:hover{border-color:rgba(245,200,66,.4);}
+
+/* SUBMIT */
+.submit-btn{width:100%;background:#F5C842;color:#080808;font-family:'Poppins',sans-serif;font-size:15px;font-weight:900;padding:17px;border-radius:12px;border:none;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+.submit-btn:hover{transform:scale(1.02);box-shadow:0 8px 28px rgba(245,200,66,.4);}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.spinner{width:18px;height:18px;border:2px solid rgba(0,0,0,.3);border-top-color:#080808;border-radius:50%;animation:spin 1s linear infinite;display:none;}
+.submit-btn.loading .spinner{display:block;}
+.submit-btn.loading .btn-text{display:none;}
+
+/* ERROR / SUCCESS */
+.msg{font-size:13px;text-align:center;margin-top:12px;display:none;}
+.msg.error{color:#ff6b6b;}
+
+@media(max-width:540px){
+  .page{padding:40px 16px 60px;}
+  .modal{padding:32px 20px;}
+  .tiers{grid-template-columns:repeat(3,1fr);gap:8px;}
+}
+</style>
+</head>
+<body>
+
+<!-- PAGE -->
+<div class="page">
+
+  <div class="badge">
+    <span class="pulse-dot"></span>
+    Welcome to the Alliance
+  </div>
+
+  <h1 class="headline">
+    Welcome to the<br>
+    <em>Execution OS Alliance.</em><br>
+    You Just Made The Right Decision.
+  </h1>
+
+  <p class="subheadline">Watch The Short Video Before You Leave</p>
+
+  <!-- VIDEO -->
+  <div class="video-wrap" id="videoWrap">
+    <div class="video-thumb" id="videoThumb" onclick="loadVideo()">
+      <div class="play-btn">
+        <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="video-label">Click to watch your onboarding message</div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY BUTTON -->
+  <button class="community-btn" onclick="openModal()">
+    Join Our Private Community →
+  </button>
+
+</div>
+
+<!-- MODAL OVERLAY -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">One Last Step</div>
+    <p class="modal-sub">Enter your details below. We will set up your Execution OS access and send everything to your inbox immediately.</p>
+
+    <div class="field">
+      <label>Your Full Name</label>
+      <input type="text" id="fname" placeholder="Enter your full name" required>
+    </div>
+
+    <div class="field">
+      <label>Email You Used To Join</label>
+      <input type="email" id="femail" placeholder="Enter your email address" required>
+    </div>
+
+    <div class="tier-label">Which Tier Did You Join?</div>
+    <div class="tiers">
+      <div class="tier-opt">
+        <input type="radio" name="tier" id="t-starter" value="Starter">
+        <label for="t-starter">
+          <span class="tier-name">Starter</span>
+          <span class="tier-price">$1K</span>
+        </label>
+      </div>
+      <div class="tier-opt">
+        <input type="radio" name="tier" id="t-pro" value="Pro">
+        <label for="t-pro">
+          <span class="tier-name">Pro</span>
+          <span class="tier-price">$2K</span>
+        </label>
+      </div>
+      <div class="tier-opt">
+        <input type="radio" name="tier" id="t-elite" value="Elite">
+        <label for="t-elite">
+          <span class="tier-name">Elite</span>
+          <span class="tier-price">$3K</span>
+        </label>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
+      <span class="btn-text">Confirm and Join Community →</span>
+      <span class="spinner"></span>
+    </button>
+
+    <div class="msg error" id="errMsg"></div>
+  </div>
+</div>
+
+<script>
+var FB_GROUP = 'https://web.facebook.com/share/g/1HMdXipo6A/';
+var API_URL  = '/api/alliance-welcome';
+
+function loadVideo(){
+  var w = document.getElementById('videoWrap');
+  w.innerHTML = '<iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID?autoplay=1&rel=0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen></iframe>';
+}
+
+function openModal(){
+  document.getElementById('overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(){
+  document.getElementById('overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function handleOverlayClick(e){
+  if(e.target === document.getElementById('overlay')) closeModal();
+}
+
+function handleSubmit(){
+  var name  = document.getElementById('fname').value.trim();
+  var email = document.getElementById('femail').value.trim();
+  var tier  = document.querySelector('input[name="tier"]:checked');
+  var err   = document.getElementById('errMsg');
+  var btn   = document.getElementById('submitBtn');
+
+  err.style.display = 'none';
+
+  if(!name){err.textContent='Please enter your full name.';err.style.display='block';return;}
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){err.textContent='Please enter a valid email address.';err.style.display='block';return;}
+  if(!tier){err.textContent='Please select the tier you joined.';err.style.display='block';return;}
+
+  // Show loading
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  // Fire API in background — do NOT wait
+  fetch(API_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({name: name, email: email, tier: tier.value})
+  }).catch(function(e){ console.warn('API error:', e); });
+
+  // Redirect immediately — don't wait for API response
+  setTimeout(function(){
+    window.location.href = FB_GROUP;
+  }, 800);
+}
+</script>
+
+</body>
+</html>
