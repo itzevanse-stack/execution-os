@@ -6573,7 +6573,7 @@ button[onclick="generateOffer()"] {
         <!-- Avatar selector (shown only when avatar is selected) -->
         <div id="sv-avatar-selector" style="display:none;margin-top:10px">
           <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:8px">Choose your avatar</div>
-          <div id="sv-avatar-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px"></div>
+          <div id="sv-avatar-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:220px;overflow-y:auto;scrollbar-width:thin"></div>
         </div>
       </div>
 
@@ -6593,7 +6593,7 @@ button[onclick="generateOffer()"] {
         </div>
         <!-- HeyGen voice picker (shown when HeyGen voice selected) -->
         <div id="sv-heygen-voice-picker" style="display:none;margin-top:10px">
-          <div id="sv-voice-list-wrap" style="max-height:160px;overflow-y:auto;scrollbar-width:thin"></div>
+          <div id="sv-voice-list-wrap" style="max-height:240px;overflow-y:auto;scrollbar-width:thin"></div>
         </div>
       </div>
 
@@ -20955,9 +20955,12 @@ window.runMindsetReframe = async function() {
       return;
     }
 
+    var _avsAbort = new AbortController();
+    var _avsTimeout = setTimeout(function() { _avsAbort.abort(); }, 25000);
     fetch(window.location.origin + '/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: _avsAbort.signal,
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 800,
@@ -20965,9 +20968,18 @@ window.runMindsetReframe = async function() {
         messages: [{ role: 'user', content: prompt }]
       })
     })
-    .then(function(r) { return r.json(); })
+    .then(function(r) {
+      clearTimeout(_avsTimeout);
+      if (!r.ok) throw new Error('API error ' + r.status);
+      return r.json();
+    })
     .then(function(data) {
       var text = ((data.content||[])[0]||{}).text || '';
+      if (!text) {
+        if (btn) { btn.disabled = false; btn.textContent = '✍️ Write Script'; }
+        avsToast('Script generation failed — no response from API.', true);
+        return;
+      }
       if (scriptArea) {
         scriptArea.value = text.trim();
         if (countEl) countEl.textContent = text.length;
@@ -20975,8 +20987,10 @@ window.runMindsetReframe = async function() {
       if (btn) { btn.disabled = false; btn.textContent = '✍️ Write Script'; }
     })
     .catch(function(err) {
+      clearTimeout(_avsTimeout);
       if (btn) { btn.disabled = false; btn.textContent = '✍️ Write Script'; }
-      avsToast('Script generation failed: ' + err.message, true);
+      var msg = err.name === 'AbortError' ? 'Request timed out (25s) — check Vercel logs for api/claude' : err.message;
+      avsToast('Script generation failed: ' + msg, true);
     });
   };
 
@@ -29102,7 +29116,40 @@ window.fbShowCloneModal = function() {
 };
 
 window.fbOpenVisualEditor = function() {
-  fbSetView('editor');
+  if (!fbState.current || !fbState.currentPage) { if (typeof avsToast === 'function') avsToast('Open a funnel first.'); return; }
+  var page = fbState.current.pages && fbState.current.pages[fbState.currentPage];
+  if (!page || !page.html) { if (typeof avsToast === 'function') avsToast('No page content to edit. Generate a funnel first.'); return; }
+  var existing = document.getElementById('fb-visual-editor-modal'); if (existing) existing.remove();
+  var modal = document.createElement('div');
+  modal.id = 'fb-visual-editor-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999999;display:flex;flex-direction:column;backdrop-filter:blur(4px)';
+  var toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:12px 20px;background:#0a0a1a;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0';
+  toolbar.innerHTML = '<div style="display:flex;align-items:center;gap:12px"><div style="font-size:13px;font-weight:800;color:#fff;font-family:Poppins,sans-serif">\u270f\ufe0f Visual Edit \u2014 ' + (page.label||'Page') + '</div><div style="font-size:10px;color:rgba(255,255,255,.4);font-family:Poppins,sans-serif">Click any text to edit directly</div></div>'
+    + '<div style="display:flex;gap:8px"><button id="fb-ve-discard" style="padding:7px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">\u2715 Discard</button><button id="fb-ve-save" style="padding:7px 18px;border-radius:8px;border:none;background:linear-gradient(135deg,#4ecca3,#2db88c);color:#0a0a1a;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">\u2705 Apply Changes</button></div>';
+  var iframeWrap = document.createElement('div');
+  iframeWrap.style.cssText = 'flex:1;overflow:auto;background:#f0f0f0;display:flex;justify-content:center;padding:20px';
+  var iframe = document.createElement('iframe');
+  iframe.id = 'fb-ve-iframe';
+  iframe.style.cssText = 'width:100%;max-width:960px;border:none;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,.4);background:#fff;height:calc(100vh - 120px)';
+  var editableHtml = page.html.replace('</head>', '<style>[contenteditable]:hover{outline:2px dashed rgba(108,99,255,.5)!important;cursor:text!important}[contenteditable]:focus{outline:2px solid rgba(78,204,163,.8)!important}a{pointer-events:none!important}</style></head>');
+  editableHtml = editableHtml.replace(/<(h[1-6]|p|span|li|td|th|label|button|a)(\s)/gi,'<$1 contenteditable="true"$2').replace(/<(h[1-6]|p|span|li|td|th|label|button|a)>/gi,'<$1 contenteditable="true">');
+  iframe.srcdoc = editableHtml;
+  iframeWrap.appendChild(iframe); modal.appendChild(toolbar); modal.appendChild(iframeWrap); document.body.appendChild(modal);
+  document.getElementById('fb-ve-discard').onclick = function() { modal.remove(); };
+  document.getElementById('fb-ve-save').onclick = function() {
+    try {
+      var doc = iframe.contentDocument || (iframe.contentWindow && iframe.contentWindow.document);
+      if (!doc) { modal.remove(); return; }
+      var html = doc.documentElement.outerHTML;
+      html = html.replace(/\s*contenteditable="true"/gi,'').replace(/<style>\[contenteditable\][\s\S]*?<\/style>/gi,'');
+      fbState.current.pages[fbState.currentPage].html = html;
+      fbRenderPreview(fbState.currentPage);
+      if (typeof fbSaveFunnelToFirestore === 'function') fbSaveFunnelToFirestore(fbState.current).catch(function(){});
+      modal.remove();
+      if (typeof avsToast === 'function') avsToast('\u2705 Visual edits applied and saved.');
+    } catch(e) { modal.remove(); if (typeof avsToast === 'function') avsToast('Could not apply: ' + e.message, true); }
+  };
 };
 
 window.fbGenerateVideoScript = function() {
@@ -35998,52 +36045,33 @@ window.affInitTrackingLink = async function() {
   var url = window._affiliateOffer && (window._affiliateOffer.url || window._affiliateOffer.productUrl);
   if (!uid || !url) return;
 
-  // Check localStorage cache first (fast path)
   var cachedSlug = null;
   try { cachedSlug = localStorage.getItem('eos_aff_slug_' + uid); } catch(e) {}
-
   if (cachedSlug) {
-    // Verify doc still exists in Firestore and destination URL is current
     try {
       if (window._db && window._getDoc && window._doc) {
         var snap = await window._getDoc(window._doc(window._db, 'links', cachedSlug));
         if (snap && snap.exists && snap.exists()) {
-          var data = snap.data ? snap.data() : {};
           window._affTrackingSlug = cachedSlug;
-          // If the offer URL changed, update the destination silently
-          if (data.originalUrl !== url && window._updateDoc) {
-            window._updateDoc(window._doc(window._db, 'links', cachedSlug), {
-              originalUrl: url,
-              updatedAt:   new Date().toISOString(),
-            }).catch(function(){});
+          var snapData = snap.data ? snap.data() : {};
+          if (snapData.originalUrl !== url && window._updateDoc) {
+            window._updateDoc(window._doc(window._db, 'links', cachedSlug), { originalUrl: url, updatedAt: new Date().toISOString() }).catch(function(){});
           }
         }
       }
     } catch(e) {}
   }
-
-  // Create a new slug if none found
   if (!window._affTrackingSlug) {
     var newSlug = _laGenSlug(8);
     try {
       if (window._db && window._setDoc && window._doc) {
-        // CRITICAL FIX: document ID = slug, not uid
-        // The /r/:slug redirect route looks up links/<slug> directly
         await window._setDoc(window._doc(window._db, 'links', newSlug), {
-          slug:        newSlug,
-          originalUrl: url,
-          userId:      uid,
-          createdAt:   new Date().toISOString(),
-          totalClicks:  0,
-          uniqueClicks: 0,
-          active:      true,
+          slug: newSlug, originalUrl: url, userId: uid,
+          createdAt: new Date().toISOString(), totalClicks: 0, uniqueClicks: 0, active: true,
         });
         window._affTrackingSlug = newSlug;
       }
-    } catch(e) {
-      console.warn('[tracking] Could not save slug:', e.message);
-      window._affTrackingSlug = newSlug; // still usable in memory
-    }
+    } catch(e) { console.warn('[tracking] Could not save slug:', e.message); window._affTrackingSlug = newSlug; }
     try { localStorage.setItem('eos_aff_slug_' + uid, window._affTrackingSlug); } catch(e) {}
   }
 
@@ -36838,28 +36866,62 @@ window.svSelectVoice = function(mode, el) {
 
 // ── Load avatars into story avatar grid ───────────────────────────
 window.svLoadAvatarsForStory = function() {
+  var wrap = document.getElementById('sv-avatar-selector');
   var grid = document.getElementById('sv-avatar-grid');
-  if (!grid || grid.innerHTML.trim()) return; // already loaded
-  grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:8px">Loading…</div>';
+  if (!grid) return;
+  // Force reload if refresh requested, else skip if already loaded
+  if (grid.dataset.loaded === '1') return;
+  grid.dataset.loaded = '1';
+  grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:8px">Loading avatars…</div>';
   if (typeof heygenCall !== 'function') return;
   heygenCall('get-avatars').then(function(data) {
     var avatars = (data && data.avatars) || [];
     if (!avatars.length) {
-      grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center">No avatars found</div>';
+      grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center">No avatars found. Make sure your HeyGen API key is connected.</div>';
       return;
     }
-    grid.innerHTML = avatars.slice(0,8).map(function(av) {
-      var id    = av.avatar_id || '';
-      var name  = (av.avatar_name || 'Avatar').replace(/"/g,'&quot;');
-      var thumb = av.preview_image_url || '';
-      return '<div onclick="svSelectAvatar(\'' + id + '\',this)" style="border:1px solid var(--border2);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .15s;background:rgba(255,255,255,.02)">'
-        + (thumb ? '<img src="' + thumb + '" style="width:100%;aspect-ratio:1;object-fit:cover;display:block">' : '<div style="width:100%;aspect-ratio:1;background:rgba(108,99,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px">🎭</div>')
-        + '<div style="padding:3px 5px;font-size:8px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + name + '</div>'
-        + '</div>';
-    }).join('');
-  }).catch(function() {
-    grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--red);text-align:center">Could not load avatars</div>';
+    // Store all avatars for search filtering
+    grid._allAvatars = avatars;
+    svRenderAvatarGrid(avatars);
+
+    // Add search box above grid if more than 8 avatars
+    if (avatars.length > 8) {
+      var searchWrap = document.getElementById('sv-avatar-search-wrap');
+      if (!searchWrap) {
+        searchWrap = document.createElement('div');
+        searchWrap.id = 'sv-avatar-search-wrap';
+        searchWrap.style.cssText = 'margin-bottom:7px';
+        searchWrap.innerHTML = '<input id="sv-avatar-search" placeholder="Search avatars…" style="width:100%;padding:6px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:var(--white);font-size:10px;font-family:Poppins,sans-serif;box-sizing:border-box" />';
+        grid.parentNode.insertBefore(searchWrap, grid);
+        document.getElementById('sv-avatar-search').addEventListener('input', function() {
+          var q = this.value.toLowerCase();
+          var filtered = q
+            ? grid._allAvatars.filter(function(av){ return (av.avatar_name||'').toLowerCase().includes(q); })
+            : grid._allAvatars;
+          svRenderAvatarGrid(filtered);
+        });
+      }
+    }
+  }).catch(function(e) {
+    grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--red);text-align:center;padding:8px">Could not load avatars: ' + (e && e.message || 'check HeyGen API key') + '</div>';
   });
+};
+
+window.svRenderAvatarGrid = function(avatars) {
+  var grid = document.getElementById('sv-avatar-grid');
+  if (!grid) return;
+  grid._allAvatars = grid._allAvatars || avatars;
+  grid.innerHTML = avatars.length === 0
+    ? '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:8px">No matching avatars</div>'
+    : avatars.map(function(av) {
+        var id    = av.avatar_id || '';
+        var name  = (av.avatar_name || 'Avatar').replace(/"/g,'&quot;');
+        var thumb = av.preview_image_url || av.preview_video_url || '';
+        return '<div onclick="svSelectAvatar(\'' + id + '\',this)" style="border:1px solid var(--border2);border-radius:8px;overflow:hidden;cursor:pointer;transition:all .15s;background:rgba(255,255,255,.02)">'
+          + (thumb ? '<img src="' + thumb + '" style="width:100%;aspect-ratio:1;object-fit:cover;display:block" loading="lazy">' : '<div style="width:100%;aspect-ratio:1;background:rgba(108,99,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px">🎭</div>')
+          + '<div style="padding:3px 5px;font-size:8px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + name + '</div>'
+          + '</div>';
+      }).join('');
 };
 
 window.svSelectAvatar = function(id, el) {
@@ -36879,7 +36941,7 @@ window.svLoadVoicesForStory = function() {
   heygenCall('get-voices').then(function(data) {
     var voices = (data && data.voices) || [];
     if (!voices.length) { wrap.innerHTML = '<div style="font-size:10px;color:var(--dim);padding:8px">No voices found</div>'; return; }
-    wrap.innerHTML = voices.slice(0,12).map(function(v) {
+    wrap.innerHTML = voices.map(function(v) {
       var id      = v.voice_id || v.id || '';
       var name    = v.display_name || v.name || 'Voice';
       var lang    = v.language || '';
@@ -37029,7 +37091,18 @@ window.svGenerate = async function() {
 // ── Poll for job completion ───────────────────────────────────────
 window.svPoll = function(jobId) {
   if (window._sv.pollTimer) clearInterval(window._sv.pollTimer);
+  var pollCount = 0; var maxPolls = 72;
   window._sv.pollTimer = setInterval(async function() {
+    pollCount++;
+    if (pollCount > maxPolls) {
+      clearInterval(window._sv.pollTimer);
+      var errView = document.getElementById('sv-error-view'); var progView = document.getElementById('sv-progress-view');
+      if (progView) progView.style.display = 'none';
+      if (errView) { errView.style.display = 'block'; errView.textContent = '⚠️ Timed out after 6 minutes. Check My Videos or try again.'; }
+      var btn = document.getElementById('sv-generate-btn');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<span style="font-size:16px">🎥</span> Generate Story Video'; }
+      return;
+    }
     try {
       var resp = await fetch('/api/story-video-status?jobId=' + jobId);
       var data = await resp.json();
