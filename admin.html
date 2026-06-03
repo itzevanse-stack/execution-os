@@ -161,6 +161,10 @@ td{padding:10px 16px;font-size:12px;color:var(--muted);font-weight:500}
       <div class="nav-item" onclick="showSection('geo',this)"><div class="nav-item-icon">🌍</div>Geo &amp; Countries</div>
       <div class="nav-section">Access Control</div>
       <div class="nav-item" onclick="showSection('access',this)"><div class="nav-item-icon">🔑</div>Add / Manage Users</div>
+      <div class="nav-section">Revenue</div>
+      <div class="nav-item" onclick="showSection('copecart',this)"><div class="nav-item-icon">💰</div>Copecart Sales</div>
+      <div class="nav-section">Alliance</div>
+      <div class="nav-item" onclick="showSection('partners',this)"><div class="nav-item-icon">🤝</div>Alliance Partners</div>
       <div class="nav-section">Content</div>
       <div class="nav-item" onclick="showSection('emails',this)"><div class="nav-item-icon">📧</div>Email Capture</div>
       <div class="nav-item" onclick="showSection('funnels',this)"><div class="nav-item-icon">🚀</div>Funnels &amp; Analytics</div>
@@ -400,6 +404,139 @@ td{padding:10px 16px;font-size:12px;color:var(--muted);font-weight:500}
       </div>
 
       <!-- TRACKER DATA -->
+      <!-- COPECART SALES SECTION -->
+      <div id="section-copecart" style="display:none">
+
+        <!-- Stats row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem">
+          <div class="fb-stat-card teal">
+            <div class="fb-stat-val" id="cc-total-rev">$0</div>
+            <div class="fb-stat-lbl">Total Revenue</div>
+          </div>
+          <div class="fb-stat-card yellow">
+            <div class="fb-stat-val" id="cc-total-sales">0</div>
+            <div class="fb-stat-lbl">Total Sales</div>
+          </div>
+          <div class="fb-stat-card purple">
+            <div class="fb-stat-val" id="cc-this-month">$0</div>
+            <div class="fb-stat-lbl">This Month</div>
+          </div>
+          <div class="fb-stat-card" style="border-color:rgba(255,107,107,.3)">
+            <div class="fb-stat-val" id="cc-last-sale" style="color:#ff6b6b;font-size:13px">—</div>
+            <div class="fb-stat-lbl">Last Sale</div>
+          </div>
+        </div>
+
+        <!-- Tier breakdown -->
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem">
+          <div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.25);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:12px;color:var(--teal);font-weight:700;margin-bottom:4px">Starter — $1,000/sale</div>
+              <div style="font-size:24px;font-weight:900;color:var(--white)" id="cc-starter-sales">0 sales</div>
+            </div>
+            <div style="font-size:20px;font-weight:900;color:var(--teal)" id="cc-starter-rev">$0</div>
+          </div>
+          <div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.25);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:12px;color:var(--yellow);font-weight:700;margin-bottom:4px">Pro — $2,000/sale</div>
+              <div style="font-size:24px;font-weight:900;color:var(--white)" id="cc-pro-sales">0 sales</div>
+            </div>
+            <div style="font-size:20px;font-weight:900;color:var(--yellow)" id="cc-pro-rev">$0</div>
+          </div>
+          <div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.25);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:12px;color:#ff6b6b;font-weight:700;margin-bottom:4px">Elite — $3,000/sale</div>
+              <div style="font-size:24px;font-weight:900;color:var(--white)" id="cc-elite-sales">0 sales</div>
+            </div>
+            <div style="font-size:20px;font-weight:900;color:#ff6b6b" id="cc-elite-rev">$0</div>
+          </div>
+        </div>
+
+        <!-- Transactions table -->
+        <div class="table-card">
+          <div class="table-head-row">
+            <div>
+              <div class="chart-title">💳 All Transactions</div>
+              <div class="chart-sub" id="cc-count-lbl">Loading…</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <input class="table-search" id="cc-search" placeholder="Search name or email…" oninput="filterCCSales(this.value)">
+              <button onclick="exportCCCSV()" style="padding:7px 14px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:8px;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer">⬇ Export CSV</button>
+              <button onclick="loadCopecartSales()" style="padding:7px 14px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:var(--dim);cursor:pointer">↻ Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Buyer</th>
+                  <th>Email</th>
+                  <th>Tier</th>
+                  <th>Amount</th>
+                  <th>Transaction ID</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="cc-tbody">
+                <tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">Loading sales…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALLIANCE PARTNERS SECTION -->
+      <div id="section-partners" style="display:none">
+
+        <!-- Stats row -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.25rem" id="ap-stats-row">
+          <div class="fb-stat-card teal"><div class="fb-stat-val" id="ap-total">0</div><div class="fb-stat-lbl">Total Partners</div></div>
+          <div class="fb-stat-card yellow"><div class="fb-stat-val" id="ap-starter">0</div><div class="fb-stat-lbl">Starter $1K</div></div>
+          <div class="fb-stat-card purple"><div class="fb-stat-val" id="ap-pro">0</div><div class="fb-stat-lbl">Pro $2K</div></div>
+          <div class="fb-stat-card" style="border-color:rgba(255,107,107,.3)"><div class="fb-stat-val" style="color:#ff6b6b" id="ap-elite">0</div><div class="fb-stat-lbl">Elite $3K</div></div>
+        </div>
+
+        <!-- Table card -->
+        <div class="table-card">
+          <div class="table-head-row">
+            <div>
+              <div class="chart-title">🤝 Alliance Partners</div>
+              <div class="chart-sub" id="ap-count-lbl">Loading…</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <!-- Tier filter -->
+              <div style="display:flex;gap:4px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:50px;padding:3px">
+                <button class="stab on" id="ap-tab-all" onclick="filterAP('all',this)">All</button>
+                <button class="stab" id="ap-tab-starter" onclick="filterAP('Starter',this)">Starter</button>
+                <button class="stab" id="ap-tab-pro" onclick="filterAP('Pro',this)">Pro</button>
+                <button class="stab" id="ap-tab-elite" onclick="filterAP('Elite',this)">Elite</button>
+              </div>
+              <input class="table-search" id="ap-search" placeholder="Search name or email…" oninput="filterAPSearch(this.value)">
+              <button onclick="exportAPCSV()" style="padding:7px 14px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:8px;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:var(--teal);cursor:pointer">⬇ Export CSV</button>
+              <button onclick="loadAlliancePartners()" style="padding:7px 14px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;font-family:'Poppins',sans-serif;font-size:11px;font-weight:700;color:var(--dim);cursor:pointer">↻ Refresh</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Tier</th>
+                  <th>Joined</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ap-tbody">
+                <tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">Loading partners…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <div id="section-tracker" style="display:none">
         <div class="table-card">
           <div class="table-head-row"><div class="chart-title">User Daily Tracker Activity</div></div>
@@ -869,6 +1006,8 @@ const sectionMeta = {
   emails:{title:'Email Contacts',sub:'All captured emails for outreach and marketing'},
   funnels:{title:'Funnels & Analytics',sub:'Page visits to grow.html, all published funnels, leads captured and conversion rates'},
   tracker:{title:'User Tracker Data',sub:'Daily tracker activity and revenue generated by users'},
+  partners:{title:'Alliance Partners',sub:'Everyone who joined through the partnership page — real-time from Firestore'},
+  copecart:{title:'Copecart Sales',sub:'Every sale from Copecart reported in real time via IPN webhook'},
 };
 
 window.showSection = function(name, el) {
@@ -881,6 +1020,8 @@ window.showSection = function(name, el) {
   document.getElementById('section-title').textContent = meta.title || name;
   document.getElementById('section-sub').textContent   = meta.sub   || '';
   if (name === 'access')  loadMembers();
+  if (name === 'partners') loadAlliancePartners();
+  if (name === 'copecart')  loadCopecartSales();
   if (name === 'funnels') { renderFunnelsOverview(); loadAllFunnels(); }
 };
 
@@ -1110,6 +1251,242 @@ window.revokeAccess = async function(docId, displayName) {
 };
 
 setInterval(() => { if (document.visibilityState === 'visible') loadAllData(); }, 60000);
+
+// ════════════════════════════════════════
+// ALLIANCE PARTNERS
+// ════════════════════════════════════════
+let _apAll = [];
+let _apTierFilter = 'all';
+
+window.loadAlliancePartners = async function() {
+  const tbody  = document.getElementById('ap-tbody');
+  const cntLbl = document.getElementById('ap-count-lbl');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr>';
+
+  try {
+    const snap = await getDocs(collection(db, 'alliance_partners'));
+    _apAll = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id:       d.id,
+        name:     data.name     || '',
+        email:    data.email    || '',
+        tier:     data.tier     || 'Starter',
+        status:   data.status   || 'active',
+        joinedAt: data.joinedAt ? data.joinedAt.toDate() : null,
+      };
+    }).sort((a,b) => (b.joinedAt||0) - (a.joinedAt||0));
+
+    // Stats
+    const total   = _apAll.length;
+    const starter = _apAll.filter(p => p.tier === 'Starter').length;
+    const pro     = _apAll.filter(p => p.tier === 'Pro').length;
+    const elite   = _apAll.filter(p => p.tier === 'Elite').length;
+
+    document.getElementById('ap-total').textContent   = total;
+    document.getElementById('ap-starter').textContent = starter;
+    document.getElementById('ap-pro').textContent     = pro;
+    document.getElementById('ap-elite').textContent   = elite;
+
+    // Tab counts
+    document.getElementById('ap-tab-all').textContent     = 'All (' + total + ')';
+    document.getElementById('ap-tab-starter').textContent = 'Starter (' + starter + ')';
+    document.getElementById('ap-tab-pro').textContent     = 'Pro (' + pro + ')';
+    document.getElementById('ap-tab-elite').textContent   = 'Elite (' + elite + ')';
+
+    renderAP();
+  } catch(e) {
+    console.error('loadAlliancePartners:', e);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--red);padding:2rem">Error loading partners — check Firestore.</td></tr>';
+  }
+};
+
+window.filterAP = function(tier, el) {
+  _apTierFilter = tier;
+  document.querySelectorAll('#ap-tab-all,#ap-tab-starter,#ap-tab-pro,#ap-tab-elite').forEach(t => t.classList.remove('on'));
+  if (el) el.classList.add('on');
+  renderAP();
+};
+
+window.filterAPSearch = function(q) {
+  renderAP(q.toLowerCase());
+};
+
+function renderAP(query) {
+  const tbody   = document.getElementById('ap-tbody');
+  const cntLbl  = document.getElementById('ap-count-lbl');
+  if (!tbody) return;
+
+  let list = _apTierFilter === 'all' ? _apAll : _apAll.filter(p => p.tier === _apTierFilter);
+  if (query) list = list.filter(p => p.name.toLowerCase().includes(query) || p.email.toLowerCase().includes(query));
+
+  if (cntLbl) cntLbl.textContent = list.length + ' partner' + (list.length !== 1 ? 's' : '');
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">No partners found.</td></tr>';
+    return;
+  }
+
+  const tierColor = { Starter:'var(--teal)', Pro:'var(--yellow)', Elite:'#ff6b6b' };
+  const tierBg    = { Starter:'rgba(78,204,163,.12)', Pro:'rgba(255,217,61,.12)', Elite:'rgba(255,107,107,.12)' };
+
+  tbody.innerHTML = list.map(p => {
+    const col    = tierColor[p.tier] || 'var(--teal)';
+    const bg     = tierBg[p.tier]   || 'rgba(78,204,163,.12)';
+    const date   = p.joinedAt ? p.joinedAt.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : 'N/A';
+    const init   = p.name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:50%;background:${bg};border:1px solid ${col};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:${col};flex-shrink:0">${init}</div>
+        <span style="font-weight:600">${p.name}</span>
+      </div></td>
+      <td style="color:var(--dim)">${p.email}</td>
+      <td><span style="background:${bg};color:${col};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${col}">${p.tier}</span></td>
+      <td style="color:var(--dim);font-size:12px">${date}</td>
+      <td><span style="background:rgba(78,204,163,.1);color:var(--teal);font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px">Active</span></td>
+      <td><button onclick="copyToClipboard('${p.email}')" style="padding:4px 10px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;font-family:'Poppins',sans-serif;font-size:10px;font-weight:600;color:var(--dim);cursor:pointer">Copy Email</button></td>
+    </tr>`;
+  }).join('');
+}
+
+window.exportAPCSV = function() {
+  const rows = [['Name','Email','Tier','Joined','Status']];
+  _apAll.forEach(p => rows.push([
+    p.name, p.email, p.tier,
+    p.joinedAt ? p.joinedAt.toLocaleDateString() : 'N/A',
+    p.status
+  ]));
+  const csv = rows.map(r => r.map(c => '"'+c+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'alliance-partners.csv';
+  a.click();
+};
+
+window.copyToClipboard = function(text) {
+  navigator.clipboard.writeText(text).catch(() => {});
+};
+// ════════════════════════════════════════
+
+// ════════════════════════════════════════
+// COPECART SALES
+// ════════════════════════════════════════
+let _ccAll = [];
+
+window.loadCopecartSales = async function() {
+  const tbody  = document.getElementById('cc-tbody');
+  const cntLbl = document.getElementById('cc-count-lbl');
+  if (!tbody) return;
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr>';
+
+  try {
+    const snap = await getDocs(collection(db, 'copecart_sales'));
+    _ccAll = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a,b) => {
+        const ta = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(0);
+        const tb = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(0);
+        return tb - ta;
+      });
+
+    // Totals
+    const totalRev   = _ccAll.reduce((s,x) => s + (x.amount||0), 0);
+    const totalSales = _ccAll.length;
+
+    // This month
+    const now = new Date();
+    const monthRev = _ccAll
+      .filter(x => { const d = x.createdAt?.toDate?.(); return d && d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear(); })
+      .reduce((s,x) => s + (x.amount||0), 0);
+
+    // By tier
+    const byTier = { Starter:{sales:0,rev:0}, Pro:{sales:0,rev:0}, Elite:{sales:0,rev:0} };
+    _ccAll.forEach(x => {
+      const t = x.tier || 'Starter';
+      if (byTier[t]) { byTier[t].sales++; byTier[t].rev += (x.amount||0); }
+    });
+
+    // Last sale
+    const last = _ccAll[0];
+    const lastDate = last?.createdAt?.toDate ? last.createdAt.toDate().toLocaleDateString('en-GB',{day:'numeric',month:'short'}) : 'None';
+
+    // Update stat cards
+    document.getElementById('cc-total-rev').textContent   = '$' + totalRev.toLocaleString();
+    document.getElementById('cc-total-sales').textContent = totalSales;
+    document.getElementById('cc-this-month').textContent  = '$' + monthRev.toLocaleString();
+    document.getElementById('cc-last-sale').textContent   = lastDate;
+
+    // Tier cards
+    document.getElementById('cc-starter-sales').textContent = byTier.Starter.sales + ' sale' + (byTier.Starter.sales!==1?'s':'');
+    document.getElementById('cc-starter-rev').textContent   = '$' + byTier.Starter.rev.toLocaleString();
+    document.getElementById('cc-pro-sales').textContent     = byTier.Pro.sales + ' sale' + (byTier.Pro.sales!==1?'s':'');
+    document.getElementById('cc-pro-rev').textContent       = '$' + byTier.Pro.rev.toLocaleString();
+    document.getElementById('cc-elite-sales').textContent   = byTier.Elite.sales + ' sale' + (byTier.Elite.sales!==1?'s':'');
+    document.getElementById('cc-elite-rev').textContent     = '$' + byTier.Elite.rev.toLocaleString();
+
+    if (cntLbl) cntLbl.textContent = totalSales + ' transaction' + (totalSales!==1?'s':'');
+    renderCCSales();
+
+  } catch(e) {
+    console.error('loadCopecartSales:', e);
+    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--red);padding:2rem">Error loading sales — check Firestore.</td></tr>';
+  }
+};
+
+window.filterCCSales = function(q) { renderCCSales(q.toLowerCase()); };
+
+function renderCCSales(query) {
+  const tbody = document.getElementById('cc-tbody');
+  if (!tbody) return;
+
+  let list = query
+    ? _ccAll.filter(x => (x.buyerName||'').toLowerCase().includes(query) || (x.buyerEmail||'').toLowerCase().includes(query))
+    : _ccAll;
+
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">No transactions found.</td></tr>';
+    return;
+  }
+
+  const tierColor = { Starter:'var(--teal)', Pro:'var(--yellow)', Elite:'#ff6b6b' };
+  const tierBg    = { Starter:'rgba(78,204,163,.12)', Pro:'rgba(255,217,61,.12)', Elite:'rgba(255,107,107,.12)' };
+
+  tbody.innerHTML = list.map(x => {
+    const col  = tierColor[x.tier] || 'var(--teal)';
+    const bg   = tierBg[x.tier]   || 'rgba(78,204,163,.12)';
+    const date = x.createdAt?.toDate ? x.createdAt.toDate().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : 'N/A';
+    const init = (x.buyerName||'?').split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div style="width:28px;height:28px;border-radius:50%;background:${bg};border:1px solid ${col};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:${col};flex-shrink:0">${init}</div>
+        <span style="font-weight:600">${x.buyerName||'Unknown'}</span>
+      </div></td>
+      <td style="color:var(--dim);font-size:12px">${x.buyerEmail||''}</td>
+      <td><span style="background:${bg};color:${col};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${col}">${x.tier||'Unknown'}</span></td>
+      <td style="font-weight:700;color:#4ade80">$${(x.amount||0).toLocaleString()}</td>
+      <td style="color:var(--dimmer);font-size:11px;font-family:monospace">${(x.transactionId||'').substring(0,16)}…</td>
+      <td style="color:var(--dim);font-size:12px">${date}</td>
+      <td><span style="background:rgba(78,204,163,.1);color:var(--teal);font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px">Paid</span></td>
+    </tr>`;
+  }).join('');
+}
+
+window.exportCCCSV = function() {
+  const rows = [['Buyer Name','Email','Tier','Amount','Transaction ID','Date','Status']];
+  _ccAll.forEach(x => rows.push([
+    x.buyerName||'', x.buyerEmail||'', x.tier||'',
+    '$'+(x.amount||0), x.transactionId||'',
+    x.createdAt?.toDate ? x.createdAt.toDate().toLocaleDateString() : 'N/A',
+    'Paid'
+  ]));
+  const csv = rows.map(r => r.map(c => '"'+c+'"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'copecart-sales.csv';
+  a.click();
+};
+// ════════════════════════════════════════
 </script>
 </body>
 </html>
