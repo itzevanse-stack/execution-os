@@ -35998,24 +35998,39 @@ window.affInitTrackingLink = async function() {
   var url = window._affiliateOffer && (window._affiliateOffer.url || window._affiliateOffer.productUrl);
   if (!uid || !url) return;
 
-  // Check if a slug already exists for this user
-  try {
-    if (window._db && window._getDoc && window._doc) {
-      var snap = await window._getDoc(window._doc(window._db, 'links', uid));
-      if (snap && snap.exists && snap.exists()) {
-        var data = snap.data ? snap.data() : {};
-        window._affTrackingSlug = data.slug;
-      }
-    }
-  } catch(e) {}
+  // Check localStorage cache first (fast path)
+  var cachedSlug = null;
+  try { cachedSlug = localStorage.getItem('eos_aff_slug_' + uid); } catch(e) {}
 
-  // Create a new slug if none exists
+  if (cachedSlug) {
+    // Verify doc still exists in Firestore and destination URL is current
+    try {
+      if (window._db && window._getDoc && window._doc) {
+        var snap = await window._getDoc(window._doc(window._db, 'links', cachedSlug));
+        if (snap && snap.exists && snap.exists()) {
+          var data = snap.data ? snap.data() : {};
+          window._affTrackingSlug = cachedSlug;
+          // If the offer URL changed, update the destination silently
+          if (data.originalUrl !== url && window._updateDoc) {
+            window._updateDoc(window._doc(window._db, 'links', cachedSlug), {
+              originalUrl: url,
+              updatedAt:   new Date().toISOString(),
+            }).catch(function(){});
+          }
+        }
+      }
+    } catch(e) {}
+  }
+
+  // Create a new slug if none found
   if (!window._affTrackingSlug) {
-    window._affTrackingSlug = _laGenSlug(8);
+    var newSlug = _laGenSlug(8);
     try {
       if (window._db && window._setDoc && window._doc) {
-        await window._setDoc(window._doc(window._db, 'links', uid), {
-          slug:        window._affTrackingSlug,
+        // CRITICAL FIX: document ID = slug, not uid
+        // The /r/:slug redirect route looks up links/<slug> directly
+        await window._setDoc(window._doc(window._db, 'links', newSlug), {
+          slug:        newSlug,
           originalUrl: url,
           userId:      uid,
           createdAt:   new Date().toISOString(),
@@ -36023,11 +36038,12 @@ window.affInitTrackingLink = async function() {
           uniqueClicks: 0,
           active:      true,
         });
+        window._affTrackingSlug = newSlug;
       }
     } catch(e) {
       console.warn('[tracking] Could not save slug:', e.message);
+      window._affTrackingSlug = newSlug; // still usable in memory
     }
-    // Fallback: store in localStorage
     try { localStorage.setItem('eos_aff_slug_' + uid, window._affTrackingSlug); } catch(e) {}
   }
 
