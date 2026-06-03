@@ -173,8 +173,20 @@ module.exports = async function handler(req, res) {
 
   const body     = req.body || {};
   const messages = body.messages;
-  const model    = body.model || 'claude-sonnet-4-20250514';
   const system   = body.system;
+
+  // Normalise model string — the app sends shorthand aliases like 'claude-sonnet-4-6'
+  // which are not valid Anthropic API model IDs. Map them to the correct versioned ID.
+  const MODEL_MAP = {
+    'claude-sonnet-4-6':        'claude-sonnet-4-5',
+    'claude-sonnet-4-5':        'claude-sonnet-4-5',
+    'claude-opus-4-6':          'claude-opus-4-5',
+    'claude-opus-4-5':          'claude-opus-4-5',
+    'claude-haiku-4-6':         'claude-haiku-4-5-20251001',
+    'claude-haiku-4-5':         'claude-haiku-4-5-20251001',
+  };
+  const rawModel = body.model || 'claude-sonnet-4-5';
+  const model    = MODEL_MAP[rawModel] || rawModel;
 
   if (!messages || !messages.length) {
     return res.status(400).json({ ok: false, error: 'messages required' });
