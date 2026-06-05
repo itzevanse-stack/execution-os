@@ -8616,7 +8616,7 @@ function build(){
 }
 
 function setWeek(w,el){currentWeek=w;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');if(window._aiCalendar30){renderAICalendar30(w);}else{renderCal(w);}}
-function renderCal(w){const wd=CAL_DATA[w-1];document.getElementById('cal-body').innerHTML=wd.days.map(d=>`<div class="cal-cell" onclick="this.classList.toggle('done')"><span class="plat-tag ${d.plat==='Facebook'?'fb':'ig'}">${d.plat}</span><div class="cal-txt">${d.task}</div><div class="cal-sub">${d.goal}</div></div>`).join('')}
+function renderCal(w){const wd=CAL_DATA[w-1];var cb=document.getElementById('cal-body');if(!cb||!wd)return;cb.innerHTML=wd.days.map(d=>`<div class="cal-cell" onclick="this.classList.toggle('done')"><span class="plat-tag ${d.plat==='Facebook'?'fb':'ig'}">${d.plat}</span><div class="cal-txt">${d.task}</div><div class="cal-sub">${d.goal}</div></div>`).join('')}
 // ====================================================================
 // NICHE-AWARE DM SCRIPTS
 // ====================================================================
@@ -38148,7 +38148,7 @@ window.vsStart = function(tabId, mode) {
 var _origBrShow = window.brShowTab;
 window.brShowTab = function(tab, btn) {
   _origBrShow && _origBrShow(tab, btn);
-  if (window._vsState.speaking || window._vsState.generating) window.vsStop();
+  if (window._vsState.speaking) window.vsStop(); // only stop audio, not generation
   setTimeout(function() {
     var panel = document.getElementById('br-tab-' + tab);
     if (panel && (panel.innerText||'').trim().length > 80) {
@@ -38159,17 +38159,24 @@ window.brShowTab = function(tab, btn) {
 
 // Patch showAffActiveTab
 var _origAffShow = window.showAffActiveTab;
+var _affTabBusy  = false;
 window.showAffActiveTab = function(tab, btn) {
   _origAffShow && _origAffShow(tab, btn);
-  if (window._vsState.speaking || window._vsState.generating) window.vsStop();
+  if (window._vsState.speaking) window.vsStop();
+  if (_affTabBusy) return; // re-entrancy guard
+  _affTabBusy = true;
   var skip = ['link-analytics','tracker','dailytracker','calendar'];
-  if (skip.includes(tab)) return;
-  setTimeout(function() {
-    var panel = document.getElementById('aff-tab-' + tab);
-    if (panel && (panel.innerText||'').trim().length > 80) {
-      window.vsInjectButton(panel, tab, 'affiliate');
-    }
-  }, 600);
+  if (!skip.includes(tab)) {
+    setTimeout(function() {
+      _affTabBusy = false;
+      var panel = document.getElementById('aff-tab-' + tab);
+      if (panel && (panel.innerText||'').trim().length > 80) {
+        window.vsInjectButton(panel, tab, 'affiliate');
+      }
+    }, 600);
+  } else {
+    _affTabBusy = false;
+  }
 };
 
 if (window.speechSynthesis) {
