@@ -38184,5 +38184,466 @@ window.showAffActiveTab = function(tab, btn) {
 })();
 </script>
 
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   E-OS COACH — AI Platform Guide & Action Director
+   Knows the entire platform. Knows the user's business context.
+   Tells them exactly what to do, where to go, and why — by voice.
+   ═══════════════════════════════════════════════════════════════════ */
+
+window._eosCoach = {
+  open:       false,
+  generating: false,
+  audioEl:    null,
+  abortCtrl:  null,
+};
+
+// ── FULL PLATFORM KNOWLEDGE MAP ─────────────────────────────────
+var EOS_PLATFORM_MAP = {
+  expert: {
+    sequence: [
+      { page:'plan',       label:'Revenue Plan',        step:1, what:'Set your monthly income target and how many sales you need to hit it' },
+      { page:'offer',      label:'Offer Creation',      step:2, what:'Build your high-ticket offer with positioning, pricing, and your unique mechanism' },
+      { page:'avatar',     label:'Ideal Customer',      step:3, what:'Define your exact buyer — their pain, fears, language, and transformation' },
+      { page:'boardroom',  label:'The Boardroom',       step:4, what:'Run the full AI intelligence system — market research, competitor analysis, positioning, copy vault, content strategy, funnel strategy, and your 90-day launch war plan' },
+      { page:'calendar',   label:'Content Calendar',    step:5, what:'Generate 30 days of ready-to-post content — reels, carousels, emails, stories — all personalised to your niche and avatar' },
+      { page:'ai-video',   label:'Content Studio',      step:6, what:'Build your talking-head videos using your HeyGen avatar. Choose your angle, write the script, pick your avatar and voice, then generate' },
+      { page:'funnels',    label:'Funnel Builder',      step:7, what:'Build your sales funnel — landing page, VSL page, checkout page — with AI-generated copy based on your offer and avatar' },
+      { page:'scripts',    label:'DM and Sales Scripts',step:8, what:'Get personalised DM openers, objection handlers, and closing scripts for your niche' },
+      { page:'email',      label:'Email Marketing',     step:9, what:'Set up your email list, create campaigns, and send broadcasts to your leads' },
+      { page:'routine',    label:'Daily Routine',       step:10,what:'Build your power routine — the daily execution system that compounds results over 60 days' },
+      { page:'tracker',    label:'Daily Tracker',       step:11,what:'Log your daily activity, track sales, and monitor your momentum toward your income goal' },
+    ],
+    boardroomTabs: {
+      'war-room':         'Your 90-day battle plan with weekly revenue milestones and exact daily actions',
+      'icp-research':     'Deep buyer psychology research — the exact language, fears, and desires your ideal client has right now',
+      'competitor-intel': 'What your competitors are doing, where they are weak, and how to position yourself to win',
+      'market-viability': 'Real market data confirming demand for your offer and your best entry angle',
+      'architect':        'Your complete business architecture — revenue model, client journey, and scaling roadmap',
+      'offer-stack':      'Your refined offer with irresistible positioning, bonuses, and pricing structure',
+      'client-attraction':'Your client attraction system — platforms, content pillars, and outreach strategy',
+      'copy-vault':       'Ready-to-use headlines, hooks, email subjects, and ad copy for your offer',
+      'war-plan':         'Your 90-day launch war plan with exact weekly and daily execution steps',
+      'content-strategy': 'Your content flywheel — topics, formats, posting schedule, and growth strategy',
+      'funnel-strategy':  'Your complete funnel architecture with page structure and conversion strategy',
+    }
+  },
+  affiliate: {
+    sequence: [
+      { page:'affiliate',  label:'Offer Analysis',      step:1, what:'Analyse your affiliate offer — enter the product URL and let the AI research the market, buyers, and promotion strategy' },
+      { page:'affiliate',  label:'Buyer Intelligence',  step:2, what:'Study your buyer intelligence — this tells you exactly who buys this product, what language they use, and what triggers their decision' },
+      { page:'affiliate',  label:'Promo Intel',         step:3, what:'Get your promotion intelligence — proven hooks, angles, and content strategies that convert for this specific offer' },
+      { page:'affiliate',  label:'Strategy',            step:4, what:'Follow your personalised affiliate strategy — your 30-day roadmap to your first commissions' },
+      { page:'calendar',   label:'Content Calendar',    step:5, what:'Generate 30 days of content promoting your affiliate offer — reels, carousels, stories, and emails' },
+      { page:'ai-video',   label:'Content Studio',      step:6, what:'Build your promo videos using HeyGen — pick an avatar, write your script using one of the 8 content angles, and generate' },
+      { page:'affiliate',  label:'DM Scripts',          step:7, what:'Use your DM scripts to reach warm leads and convert them to buyers through direct conversation' },
+      { page:'affiliate',  label:'Daily Plan',          step:8, what:'Follow your daily action plan — exactly what to post, who to DM, and what to track every single day' },
+    ]
+  }
+};
+
+// ── GET USER PROGRESS STATE ──────────────────────────────────────
+function eosCoachGetContext() {
+  var mode      = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate');
+  var isAff     = mode === 'affiliate';
+  var ctx       = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
+  var av        = window._avatarData     || {};
+  var bi        = window._boardroomIntel || {};
+  var obData    = window._obData         || {};
+  var affOffer  = window._affiliateOffer || {};
+
+  // Detect what the user has completed
+  var hasRevPlan   = !!(obData.niche || obData.price || localStorage.getItem('eos_rev_plan'));
+  var hasOffer     = !!(ctx.offerName && ctx.offerName !== 'My Offer');
+  var hasAvatar    = !!(av && av.job);
+  var hasBoardroom = !!(bi && (bi.plan || bi.icpResearch));
+  var hasCalendar  = !!(window._aiCalendar30 && window._aiCalendar30.length > 0);
+  var hasVideo     = !!(window._avs && window._avs.generatedVideoUrl);
+  var hasAffOffer  = !!(affOffer.name || affOffer.url);
+
+  // Days on platform
+  var joinDate = null;
+  try {
+    var ud = window._userDocData || {};
+    joinDate = ud.createdAt || ud.grantedAt || localStorage.getItem('eos_join_date');
+    if (!joinDate) {
+      joinDate = new Date().toISOString();
+      localStorage.setItem('eos_join_date', joinDate);
+    }
+  } catch(e) {}
+  var daysActive = joinDate ? Math.floor((Date.now() - new Date(joinDate).getTime()) / 86400000) : 0;
+
+  // Current page
+  var currentPage = window._currentPage || 'dashboard';
+  var currentBrTab = null;
+  if (currentPage === 'boardroom') {
+    var activeBtn = document.querySelector('.br-tab.on');
+    currentBrTab = activeBtn ? activeBtn.getAttribute('data-tab') : 'war-room';
+  }
+  var currentAffTab = null;
+  if (currentPage === 'affiliate') {
+    var activeAffBtn = document.querySelector('#aff-active-tabs .tab.on');
+    currentAffTab = activeAffBtn ? activeAffBtn.textContent.trim() : null;
+  }
+
+  return {
+    mode, isAff,
+    niche:        ctx.niche     || obData.niche  || affOffer.niche  || 'your niche',
+    offerName:    ctx.offerName || obData.offer  || affOffer.name   || 'your offer',
+    avatarName:   ctx.avatarName || av.job        || 'your ideal customer',
+    pain:         ctx.pain       || av.pain        || 'their biggest challenge',
+    transformation: ctx.transformation || av.transformation || 'their desired outcome',
+    price:        ctx.price      || obData.price  || '',
+    hasRevPlan, hasOffer, hasAvatar, hasBoardroom, hasCalendar, hasVideo, hasAffOffer,
+    daysActive,
+    currentPage,
+    currentBrTab,
+    currentAffTab,
+  };
+}
+
+// ── DETERMINE NEXT ACTION ────────────────────────────────────────
+function eosCoachNextStep(ctx) {
+  if (ctx.isAff) {
+    if (!ctx.hasAffOffer) return { page:'affiliate', action:'analyse your first affiliate offer', urgency:'critical' };
+    if (!ctx.hasCalendar) return { page:'calendar',  action:'generate your 30-day content calendar', urgency:'high' };
+    if (!ctx.hasVideo)    return { page:'ai-video',  action:'create your first promo video in Content Studio', urgency:'high' };
+    return { page:'affiliate', action:'follow your daily action plan', urgency:'normal' };
+  } else {
+    if (!ctx.hasRevPlan)   return { page:'plan',      action:'set your revenue target in the Revenue Plan', urgency:'critical' };
+    if (!ctx.hasOffer)     return { page:'offer',     action:'complete your Offer Creation', urgency:'critical' };
+    if (!ctx.hasAvatar)    return { page:'avatar',    action:'build your Ideal Customer avatar', urgency:'critical' };
+    if (!ctx.hasBoardroom) return { page:'boardroom', action:'run The Boardroom intelligence system', urgency:'high' };
+    if (!ctx.hasCalendar)  return { page:'calendar',  action:'generate your Content Calendar', urgency:'high' };
+    if (!ctx.hasVideo)     return { page:'ai-video',  action:'create your first video in Content Studio', urgency:'high' };
+    return { page:'tracker', action:'log your daily activity in the Daily Tracker', urgency:'normal' };
+  }
+}
+
+// ── BUILD THE COACHING PROMPT ────────────────────────────────────
+function eosCoachBuildPrompt(ctx, request) {
+  var nextStep = eosCoachNextStep(ctx);
+  var map      = ctx.isAff ? EOS_PLATFORM_MAP.affiliate : EOS_PLATFORM_MAP.expert;
+
+  var platformGuide = map.sequence.map(function(s) {
+    return 'Step ' + s.step + ' — ' + s.label + ': ' + s.what;
+  }).join('\n');
+
+  if (!ctx.isAff && EOS_PLATFORM_MAP.expert.boardroomTabs) {
+    platformGuide += '\n\nInside The Boardroom (Step 4), there are 11 intelligence tabs:\n';
+    Object.keys(EOS_PLATFORM_MAP.expert.boardroomTabs).forEach(function(k) {
+      platformGuide += '- ' + k + ': ' + EOS_PLATFORM_MAP.expert.boardroomTabs[k] + '\n';
+    });
+  }
+
+  var userState = 'USER PROGRESS:\n'
+    + 'Mode: ' + (ctx.isAff ? 'Affiliate' : 'Expert') + '\n'
+    + 'Niche: ' + ctx.niche + '\n'
+    + 'Offer: ' + ctx.offerName + '\n'
+    + 'Target audience: ' + ctx.avatarName + '\n'
+    + 'Core pain: ' + ctx.pain + '\n'
+    + 'Transformation: ' + ctx.transformation + '\n'
+    + (ctx.price ? 'Price point: $' + ctx.price + '\n' : '')
+    + 'Days on platform: ' + ctx.daysActive + '\n'
+    + 'Revenue plan set: '   + (ctx.hasRevPlan   ? 'Yes' : 'No') + '\n'
+    + 'Offer built: '        + (ctx.hasOffer     ? 'Yes' : 'No') + '\n'
+    + 'Avatar built: '       + (ctx.hasAvatar    ? 'Yes' : 'No') + '\n'
+    + 'Boardroom run: '      + (ctx.hasBoardroom ? 'Yes' : 'No') + '\n'
+    + 'Calendar generated: ' + (ctx.hasCalendar  ? 'Yes' : 'No') + '\n'
+    + 'First video made: '   + (ctx.hasVideo     ? 'Yes' : 'No') + '\n'
+    + 'Currently on: '       + ctx.currentPage   + (ctx.currentBrTab ? ' > ' + ctx.currentBrTab : '') + (ctx.currentAffTab ? ' > ' + ctx.currentAffTab : '') + '\n'
+    + 'Next recommended action: ' + nextStep.action;
+
+  var systemPrompt = 'You are the E-OS Coach — the built-in AI success advisor inside Execution OS, a $6,000 premium business platform. You speak directly to the user like a world-class business mentor who knows their specific situation inside out. Your voice is confident, warm, direct, and specific. You never speak generically. You always reference their exact niche, offer, and audience. You know every feature of the platform and guide users to use it correctly in the right sequence to reach $10,000 per month within 60 days.';
+
+  var prompt = userState + '\n\n'
+    + 'COMPLETE PLATFORM SEQUENCE:\n' + platformGuide + '\n\n'
+    + 'COACHING REQUEST: ' + (request || 'Give me a personalised platform coaching session — tell me exactly where I am, what I should do next, how to do it, and what result to expect') + '\n\n'
+    + 'INSTRUCTIONS:\n'
+    + 'Speak directly to this person. Reference their specific niche (' + ctx.niche + '), offer (' + ctx.offerName + '), and audience (' + ctx.avatarName + ') throughout.\n'
+    + 'Be very specific about WHERE things are in the platform — tell them exactly which page to go to, which tab to click, what to fill in.\n'
+    + 'If they are on a specific page, acknowledge it and give guidance relevant to that page.\n'
+    + 'After covering their current situation, tell them their single most important next action with precise step-by-step instructions.\n'
+    + 'End with a powerful motivational close that is specific to their situation — not generic inspiration.\n'
+    + 'Speak in a natural, conversational tone — no bullet points, no section headers, no markdown. Pure spoken coaching.\n'
+    + 'Keep it to 350-400 words maximum.\n\n'
+    + 'Begin coaching now. Output only spoken words — nothing else.';
+
+  return { systemPrompt, prompt };
+}
+
+// ── OPEN THE COACH ───────────────────────────────────────────────
+window.eosCoachOpen = function(request) {
+  if (window._eosCoach.generating) return;
+
+  // Remove existing panel
+  var ex = document.getElementById('eos-coach-panel');
+  if (ex) ex.remove();
+
+  var ctx      = eosCoachGetContext();
+  var prompts  = eosCoachBuildPrompt(ctx, request);
+  var nextStep = eosCoachNextStep(ctx);
+
+  // Build the panel
+  var panel = document.createElement('div');
+  panel.id = 'eos-coach-panel';
+  panel.style.cssText = 'position:fixed;bottom:80px;right:24px;width:340px;background:#0d0d1f;border:1px solid rgba(108,99,255,.35);border-radius:20px;z-index:99998;box-shadow:0 16px 60px rgba(0,0,0,.7);font-family:Poppins,sans-serif;overflow:hidden;transition:all .3s';
+
+  panel.innerHTML = ''
+    // Header
+    + '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:linear-gradient(135deg,rgba(108,99,255,.2),rgba(78,204,163,.1));border-bottom:1px solid rgba(255,255,255,.07)">'
+    +   '<div style="display:flex;align-items:center;gap:10px">'
+    +     '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#6c63ff,#4ecca3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🧠</div>'
+    +     '<div><div style="font-size:12px;font-weight:800;color:#fff">E-OS Coach</div>'
+    +     '<div style="font-size:9px;color:rgba(255,255,255,.4)">Your personal business advisor</div></div>'
+    +   '</div>'
+    +   '<button onclick="eosCoachClose()" style="width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center">✕</button>'
+    + '</div>'
+    // Status bar
+    + '<div id="eos-coach-status" style="padding:10px 16px;font-size:10px;color:rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:8px">'
+    +   '<div id="eos-coach-dot" style="width:7px;height:7px;border-radius:50%;background:#f7c948;flex-shrink:0;animation:vsPulse 1.2s ease-in-out infinite"></div>'
+    +   '<span id="eos-coach-status-text">Analysing your progress and preparing your coaching session…</span>'
+    + '</div>'
+    // Quick actions
+    + '<div style="padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.05)">'
+    +   '<div style="font-size:9px;color:rgba(255,255,255,.3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px">Quick coaching</div>'
+    +   '<div style="display:flex;flex-wrap:wrap;gap:5px">'
+    +   ['What should I do next?','How do I use Content Studio?','Explain The Boardroom','How do I get to $10k?','Walk me through the platform'].map(function(q) {
+          var safeQ = q.replace(/'/g, '&#39;');
+          return '<button onclick="eosCoachAsk(\'' + safeQ + '\')" style="padding:5px 10px;border-radius:20px;border:1px solid rgba(108,99,255,.25);background:rgba(108,99,255,.06);color:rgba(160,137,255,.8);font-size:9px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;transition:all .15s" onmouseenter="this.style.borderColor=\'rgba(108,99,255,.5)\'" onmouseleave="this.style.borderColor=\'rgba(108,99,255,.25)\'">' + q + '</button>';
+        }).join('')
+    +   '</div>'
+    + '</div>'
+    // Audio player
+    + '<div id="eos-coach-player" style="padding:12px 16px;display:none">'
+    +   '<div style="display:flex;align-items:center;gap:10px">'
+    +     '<button id="eos-coach-playbtn" onclick="eosCoachTogglePlay()" style="width:36px;height:36px;border-radius:50%;border:none;background:linear-gradient(135deg,#6c63ff,#4ecca3);color:#fff;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">⏸</button>'
+    +     '<div style="flex:1">'
+    +       '<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:5px"><div id="eos-coach-progress" style="height:100%;background:linear-gradient(90deg,#6c63ff,#4ecca3);width:0%;transition:width .5s"></div></div>'
+    +       '<div style="font-size:9px;color:rgba(255,255,255,.35)" id="eos-coach-time">0:00</div>'
+    +     '</div>'
+    +   '</div>'
+    + '</div>'
+    // Transcript
+    + '<div id="eos-coach-transcript" style="padding:12px 16px;max-height:200px;overflow-y:auto;font-size:11px;line-height:1.75;color:rgba(255,255,255,.65);display:none;border-top:1px solid rgba(255,255,255,.05)"></div>'
+    // Next action CTA
+    + '<div id="eos-coach-cta" style="padding:12px 16px;display:none;border-top:1px solid rgba(255,255,255,.07)">'
+    +   '<div style="font-size:9px;color:rgba(255,255,255,.35);margin-bottom:6px;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Your next action</div>'
+    +   '<button id="eos-coach-cta-btn" style="width:100%;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#6c63ff,#4ecca3);color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">'
+    +     '→ ' + nextStep.action.charAt(0).toUpperCase() + nextStep.action.slice(1)
+    +   '</button>'
+    + '</div>';
+
+  document.body.appendChild(panel);
+  window._eosCoach.open = true;
+
+  // Wire the CTA button
+  document.getElementById('eos-coach-cta-btn').onclick = function() {
+    eosCoachClose();
+    if (window.showPage) window.showPage(nextStep.page, document.getElementById('nav-' + nextStep.page));
+  };
+
+  // Generate the coaching audio
+  eosCoachGenerate(prompts.systemPrompt, prompts.prompt, ctx);
+};
+
+// ── GENERATE COACHING ────────────────────────────────────────────
+function eosCoachGenerate(systemPrompt, prompt, ctx) {
+  window._eosCoach.generating = true;
+
+  var abort   = new AbortController();
+  var timeout = setTimeout(function() { abort.abort(); }, 90000);
+  window._eosCoach.abortCtrl = abort;
+
+  fetch(window.location.origin + '/api/claude', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal:  abort.signal,
+    body: JSON.stringify({
+      model:      'claude-sonnet-4-6',
+      max_tokens: 700,
+      system:     systemPrompt,
+      messages:   [{ role: 'user', content: prompt }],
+    }),
+  })
+  .then(function(r) {
+    clearTimeout(timeout);
+    if (!r.ok) throw new Error('API error ' + r.status);
+    return r.json();
+  })
+  .then(function(data) {
+    window._eosCoach.generating = false;
+    var text = ((data.content||[])[0]||{}).text || '';
+    if (!text) { eosCoachStatusUpdate('error', 'Could not generate coaching. Try again.'); return; }
+
+    // Show transcript
+    var tr = document.getElementById('eos-coach-transcript');
+    if (tr) { tr.style.display = 'block'; tr.textContent = text; }
+
+    // Show CTA
+    var cta = document.getElementById('eos-coach-cta');
+    if (cta) cta.style.display = 'block';
+
+    // Convert to audio via ElevenLabs
+    eosCoachStatusUpdate('loading', 'Generating your coaching audio…');
+    eosCoachSpeak(text);
+  })
+  .catch(function(err) {
+    clearTimeout(timeout);
+    window._eosCoach.generating = false;
+    eosCoachStatusUpdate('error', err.name === 'AbortError' ? 'Timed out. Try again.' : err.message);
+  });
+}
+
+// ── SPEAK VIA ELEVENLABS ─────────────────────────────────────────
+function eosCoachSpeak(text) {
+  fetch(window.location.origin + '/api/tts', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ text: text }),
+  })
+  .then(function(r) {
+    if (!r.ok) return r.json().then(function(e){ throw new Error(e.error || 'TTS error ' + r.status); });
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data.audio) throw new Error('No audio returned');
+
+    var binary = atob(data.audio);
+    var bytes  = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    var blob   = new Blob([bytes], { type: 'audio/mpeg' });
+    var url    = URL.createObjectURL(blob);
+
+    var audio  = new Audio(url);
+    window._eosCoach.audioEl  = audio;
+    window._eosCoach.audioUrl = url;
+
+    var player   = document.getElementById('eos-coach-player');
+    var playBtn  = document.getElementById('eos-coach-playbtn');
+    var progress = document.getElementById('eos-coach-progress');
+    var timeEl   = document.getElementById('eos-coach-time');
+
+    if (player) player.style.display = 'block';
+    eosCoachStatusUpdate('playing', 'Your coaching session is ready');
+
+    audio.addEventListener('timeupdate', function() {
+      if (!audio.duration) return;
+      var pct = (audio.currentTime / audio.duration) * 100;
+      if (progress) progress.style.width = pct + '%';
+      var m = Math.floor(audio.currentTime / 60);
+      var s = Math.floor(audio.currentTime % 60);
+      if (timeEl) timeEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+    });
+
+    audio.addEventListener('ended', function() {
+      if (playBtn) playBtn.textContent = '▶';
+      URL.revokeObjectURL(url);
+      eosCoachStatusUpdate('done', 'Session complete — transcript below');
+    });
+
+    audio.play().then(function() {
+      if (playBtn) playBtn.textContent = '⏸';
+    }).catch(function() {
+      eosCoachStatusUpdate('done', 'Tap ▶ to play your coaching session');
+      if (playBtn) playBtn.textContent = '▶';
+    });
+  })
+  .catch(function(err) {
+    // TTS failed — still show transcript
+    eosCoachStatusUpdate('done', 'Transcript ready below (audio unavailable)');
+    console.warn('[eosCoach] TTS error:', err.message);
+  });
+}
+
+window.eosCoachTogglePlay = function() {
+  var audio   = window._eosCoach.audioEl;
+  var playBtn = document.getElementById('eos-coach-playbtn');
+  if (!audio) return;
+  if (audio.paused) {
+    audio.play();
+    if (playBtn) playBtn.textContent = '⏸';
+  } else {
+    audio.pause();
+    if (playBtn) playBtn.textContent = '▶';
+  }
+};
+
+window.eosCoachAsk = function(question) {
+  eosCoachClose();
+  setTimeout(function() { window.eosCoachOpen(question); }, 100);
+};
+
+window.eosCoachClose = function() {
+  if (window._eosCoach.audioEl) { window._eosCoach.audioEl.pause(); window._eosCoach.audioEl = null; }
+  if (window._eosCoach.abortCtrl) { window._eosCoach.abortCtrl.abort(); window._eosCoach.abortCtrl = null; }
+  window._eosCoach.generating = false;
+  window._eosCoach.open = false;
+  var panel = document.getElementById('eos-coach-panel');
+  if (panel) panel.remove();
+};
+
+function eosCoachStatusUpdate(state, msg) {
+  var dot  = document.getElementById('eos-coach-dot');
+  var text = document.getElementById('eos-coach-status-text');
+  if (text) text.textContent = msg;
+  if (dot) {
+    var colors = { error:'#f87171', loading:'#f7c948', playing:'#4ecca3', done:'#4ecca3' };
+    dot.style.background = colors[state] || '#6c63ff';
+    dot.style.animation  = (state === 'playing' || state === 'loading') ? 'vsPulse 1.2s ease-in-out infinite' : 'none';
+  }
+}
+
+// ── FLOATING COACH BUTTON ────────────────────────────────────────
+(function buildCoachButton() {
+  var btn = document.createElement('button');
+  btn.id = 'eos-coach-fab';
+  btn.title = 'E-OS Coach — Your personal business advisor';
+  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;border:none;background:linear-gradient(135deg,#6c63ff,#4ecca3);color:#fff;font-size:22px;cursor:pointer;z-index:99997;box-shadow:0 4px 24px rgba(108,99,255,.5);transition:all .2s;display:flex;align-items:center;justify-content:center';
+  btn.innerHTML = '🧠';
+  btn.onclick = function() {
+    if (window._eosCoach.open) {
+      eosCoachClose();
+    } else {
+      window.eosCoachOpen();
+    }
+  };
+  btn.onmouseenter = function() { this.style.transform = 'scale(1.1)'; this.style.boxShadow = '0 6px 32px rgba(108,99,255,.7)'; };
+  btn.onmouseleave = function() { this.style.transform = 'none'; this.style.boxShadow = '0 4px 24px rgba(108,99,255,.5)'; };
+
+  // Pulse ring to draw attention
+  var ring = document.createElement('div');
+  ring.style.cssText = 'position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;border:2px solid rgba(108,99,255,.4);z-index:99996;animation:eosCoachPing 2s ease-out infinite;pointer-events:none';
+
+  if (!document.getElementById('eos-coach-ping-style')) {
+    var s = document.createElement('style');
+    s.id = 'eos-coach-ping-style';
+    s.textContent = '@keyframes eosCoachPing{0%{transform:scale(1);opacity:.6}100%{transform:scale(1.8);opacity:0}}';
+    document.head.appendChild(s);
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.body.appendChild(btn);
+    document.body.appendChild(ring);
+    // Stop ping after 10 seconds
+    setTimeout(function() { if (ring.parentNode) ring.remove(); }, 10000);
+  });
+  if (document.readyState !== 'loading') {
+    document.body.appendChild(btn);
+    document.body.appendChild(ring);
+    setTimeout(function() { if (ring.parentNode) ring.remove(); }, 10000);
+  }
+})();
+
+// Track current page for context awareness
+var _coachOrigShowPage = window.showPage;
+window.showPage = function(page, btn) {
+  window._currentPage = page;
+  _coachOrigShowPage && _coachOrigShowPage(page, btn);
+};
+
+</script>
+
 </body>
 </html>
