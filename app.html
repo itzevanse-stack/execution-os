@@ -37885,7 +37885,7 @@ window.vsStart = function(tabId, mode) {
     + 'Write entirely in spoken conversational language. No bullet symbols. No markdown. No section headers. No colons before lists.\n'
     + 'Every paragraph must feel written specifically for this person and their business.\n'
     + 'Reference their niche, offer name, audience pain, and transformation throughout.\n'
-    + 'Minimum 600 words. This is a thorough coaching session not a summary.\n'
+    + 'Aim for 400-500 words. Thorough but concise — every sentence must earn its place.\n'
     + 'End on something that makes them feel clear, capable, and ready to act.\n\n'
     + 'Write the full narration now. Output only the spoken words, nothing else.';
 
@@ -37893,7 +37893,7 @@ window.vsStart = function(tabId, mode) {
   window._vsState.generating = true;
 
   var abort   = new AbortController();
-  var timeout = setTimeout(function() { abort.abort(); }, 60000);
+  var timeout = setTimeout(function() { abort.abort(); }, 120000); // 2 min — narration is long
   window._vsState._abortCtrl = abort;
 
   fetch(window.location.origin + '/api/claude', {
@@ -37901,7 +37901,7 @@ window.vsStart = function(tabId, mode) {
     headers: { 'Content-Type': 'application/json' },
     signal: abort.signal,
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6', max_tokens: 2000,
+      model: 'claude-sonnet-4-6', max_tokens: 1500,
       system: systemPrompt,
       messages: [{ role: 'user', content: prompt }],
     }),
