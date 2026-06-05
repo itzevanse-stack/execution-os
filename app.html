@@ -21071,7 +21071,12 @@ window.runMindsetReframe = async function() {
         }
         heygenCall('status', { videoId: videoId }).then(function(statusData) {
           var st = statusData.status || statusData.video_status || '';
-          if (status) status.textContent = 'Status: ' + st + ' (' + (polls*10) + 's)';
+          var elapsed = polls * 10;
+          var mins = Math.floor(elapsed / 60);
+          var secs = elapsed % 60;
+          var timeStr = mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
+          var statusMsg = st === 'processing' ? 'HeyGen is rendering your video (' + timeStr + ')… this takes 5-15 minutes for a full script. Your video will save automatically when done.' : 'Status: ' + st + ' (' + timeStr + ')';
+          if (status) status.textContent = statusMsg;
           if (st === 'completed' || st === 'done' || statusData.video_url) {
             clearInterval(pollInterval); clearInterval(progInterval);
             if (bar) bar.style.width = '100%';
@@ -36147,7 +36152,7 @@ window.onboardRunIntelligence = async function() {
       var resp = await fetch(window.location.origin + '/api/claude', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-6', max_tokens: 1500,
+          model: 'claude-sonnet-4-6', max_tokens: 800,
           system: 'You are an elite business strategist. Return ONLY valid JSON — no markdown.',
           messages: [{ role: 'user', content: 'Build quick intelligence for a ' + window._obData.niche + ' business selling "' + window._obData.offer + '" at $' + (window._obData.price||'997') + '.\n\nReturn: { "hook": "best viral hook for this offer max 10 words", "dm_opener": "first DM message to send a cold prospect (2-3 sentences, specific to this niche, NO generic phrases)", "content_angle": "the single best content angle to establish authority in ' + window._obData.niche + ' (1-2 sentences)", "pain": "the deepest pain this audience has", "transformation": "the transformation they want" }' }]
         })
@@ -37856,7 +37861,7 @@ window.vsStart = function(tabId, mode) {
     return;
   }
 
-  var contentForAI = rawText.length > 6000 ? rawText.slice(0, 6000) + '...' : rawText;
+  var contentForAI = rawText.length > 2500 ? rawText.slice(0, 2500) + '...' : rawText;
   var ctx       = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
   var niche     = ctx.niche           || 'online business';
   var offerName = ctx.offerName       || 'your offer';
@@ -37865,7 +37870,7 @@ window.vsStart = function(tabId, mode) {
   var avatar    = ctx.avatarName      || ctx.avatar || 'your target audience';
   var label     = _vsTabLabels[tabId] || 'this section';
 
-  var systemPrompt = 'You are an elite business strategist and personal advisor inside Execution OS, a premium business operating platform. You are delivering a private voice coaching session to the business owner. Your tone is authoritative, warm, direct, and highly specific. You speak like a mentor who deeply understands their business. Never generic, never vague. Reference their exact situation in every paragraph.';
+  var systemPrompt = 'You are a strategic business advisor. Be specific, direct, and reference the user context throughout.';
 
   var prompt = 'The business owner is in the ' + label + ' section of their platform.\n\n'
     + 'THEIR BUSINESS CONTEXT:\n'
@@ -37885,7 +37890,7 @@ window.vsStart = function(tabId, mode) {
     + 'Write entirely in spoken conversational language. No bullet symbols. No markdown. No section headers. No colons before lists.\n'
     + 'Every paragraph must feel written specifically for this person and their business.\n'
     + 'Reference their niche, offer name, audience pain, and transformation throughout.\n'
-    + 'Aim for 400-500 words. Thorough but concise — every sentence must earn its place.\n'
+    + 'Keep it to 300-350 words. Concise, specific, and actionable.\n'
     + 'End on something that makes them feel clear, capable, and ready to act.\n\n'
     + 'Write the full narration now. Output only the spoken words, nothing else.';
 
@@ -37908,15 +37913,21 @@ window.vsStart = function(tabId, mode) {
   })
   .then(function(r) {
     clearTimeout(timeout);
-    if (!r.ok) throw new Error('API error ' + r.status);
+    if (!r.ok) {
+      return r.json().then(function(e) {
+        throw new Error('API ' + r.status + ': ' + (e.error || 'unknown error'));
+      }).catch(function() {
+        throw new Error('API error ' + r.status);
+      });
+    }
     return r.json();
   })
   .then(function(data) {
     window._vsState.generating = false;
     var text = ((data.content||[])[0]||{}).text || '';
     if (!text) {
-      vsUpdateBar('Could not generate breakdown. Try again.');
-      setTimeout(window.vsStop, 3000);
+      vsUpdateBar('No response from API. Error: ' + JSON.stringify(data).slice(0,80));
+      setTimeout(window.vsStop, 5000);
       return;
     }
     vsSpeak(text, label);
@@ -37924,8 +37935,9 @@ window.vsStart = function(tabId, mode) {
   .catch(function(err) {
     clearTimeout(timeout);
     window._vsState.generating = false;
-    vsUpdateBar((err.name === 'AbortError' ? 'Request timed out.' : err.message));
-    setTimeout(window.vsStop, 3000);
+    var msg = err.name === 'AbortError' ? 'Timed out (2 min). Try again.' : err.message;
+    vsUpdateBar('⚠️ ' + msg);
+    setTimeout(window.vsStop, 6000);
   });
 };
 
