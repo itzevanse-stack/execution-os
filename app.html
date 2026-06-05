@@ -37942,131 +37942,94 @@ window.vsStart = function(tabId, mode) {
 };
 
 function vsSpeak(text, label) {
-  // Always show transcript immediately — user gets value even if speech fails
+  // Show transcript immediately so user always gets the content
   vsShowTranscript(text);
+  vsUpdateBar('\uD83C\uDF99 Generating audio\u2026');
 
-  if (!window.speechSynthesis) {
-    vsUpdateBar('\u2705 Transcript ready below (speech not supported in this browser)');
+  // Call our ElevenLabs TTS backend
+  fetch(window.location.origin + '/api/tts', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ text: text }),
+  })
+  .then(function(r) {
+    if (!r.ok) return r.json().then(function(e){ throw new Error(e.error || 'TTS error ' + r.status); });
+    return r.json();
+  })
+  .then(function(data) {
+    if (!data.audio) throw new Error('No audio returned');
+
+    // Decode base64 to blob and play
+    var binary = atob(data.audio);
+    var bytes  = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    var blob   = new Blob([bytes], { type: data.mimeType || 'audio/mpeg' });
+    var url    = URL.createObjectURL(blob);
+
+    // Create audio element
+    var audio  = new Audio(url);
+    window._vsState.audioEl = audio;
+    window._vsState.speaking = true;
+
+    // Update bar with player controls
+    vsUpdateBar('\uD83C\uDF99 ' + (label || 'Strategic Breakdown') + ' \u2014 Playing\u2026');
     var pb = document.getElementById('vs-pause-btn');
-    if (pb) pb.style.display = 'none';
-    return;
-  }
+    if (pb) pb.style.display = 'inline-block';
 
-  vsUpdateBar('\uD83C\uDF99 ' + (label||'Strategic Breakdown') + ' \u2014 Playing\u2026');
-  var pauseBtn = document.getElementById('vs-pause-btn');
-  if (pauseBtn) pauseBtn.style.display = 'inline-block';
+    audio.onended = function() {
+      window._vsState.speaking = false;
+      URL.revokeObjectURL(url);
+      vsUpdateBar('\u2705 Breakdown complete \u2014 transcript below');
+      var pb = document.getElementById('vs-pause-btn');
+      if (pb) pb.style.display = 'none';
+    };
 
-  // Chrome blocks speechSynthesis if called from async context (user gesture expired).
-  // Fix: cancel any existing speech first, then use a minimal timeout to re-enter
-  // the browser's speech queue cleanly.
-  window.speechSynthesis.cancel();
+    audio.onerror = function() {
+      window._vsState.speaking = false;
+      vsUpdateBar('\u26a0\ufe0f Audio playback error. Transcript is below.');
+    };
 
-  // Chrome also stops mid-way through long text — split into paragraphs and chain them
-  var paragraphs = text.split(/\n\n+/).filter(function(p){ return p.trim().length > 0; });
-  if (paragraphs.length === 0) paragraphs = [text];
+    audio.play().catch(function(e) {
+      // Autoplay blocked — show play button in transcript
+      window._vsState.speaking = false;
+      vsUpdateBar('\u25B6 Click to play \u2014 browser requires a tap to start audio');
+      var pb = document.getElementById('vs-pause-btn');
+      if (pb) { pb.style.display = 'inline-block'; pb.textContent = '\u25B6 Play'; }
+    });
+  })
+  .catch(function(err) {
+    window._vsState.speaking = false;
+    vsUpdateBar('\u26a0\ufe0f ' + err.message);
+    console.error('[vsSpeak] TTS error:', err.message);
+  });
 
-  var voices = window.speechSynthesis.getVoices();
-  var pick = voices.find(function(v){
-    return v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Alex') || v.name.includes('Karen'));
-  }) || voices.find(function(v){ return v.lang.startsWith('en'); }) || voices[0];
-
-  var idx = 0;
-  var stopped = false;
-
-  function speakNext() {
-    if (stopped || idx >= paragraphs.length) {
-      if (!stopped) {
-        window._vsState.speaking = false;
-        vsUpdateBar('\u2705 Breakdown complete \u2014 transcript below');
-        var pb = document.getElementById('vs-pause-btn');
-        if (pb) pb.style.display = 'none';
-      }
-      return;
+  // Store stop reference
+  window._vsState._stopChain = function() {
+    if (window._vsState.audioEl) {
+      window._vsState.audioEl.pause();
+      window._vsState.audioEl = null;
     }
-    var utter = new SpeechSynthesisUtterance(paragraphs[idx]);
-    if (pick) utter.voice = pick;
-    utter.rate   = 0.92;
-    utter.pitch  = 1.0;
-    utter.volume = 1.0;
-
-    utter.onstart = function() {
-      window._vsState.speaking = true;
-      window._vsState.paused   = false;
-    };
-    utter.onend = function() {
-      idx++;
-      speakNext();
-    };
-    utter.onerror = function(e) {
-      if (e.error === 'interrupted' || e.error === 'canceled') return;
-      // 'not-allowed' = gesture expired. Show transcript, keep bar open.
-      if (e.error === 'not-allowed') {
-        stopped = true;
-        window._vsState.speaking = false;
-        vsUpdateBar('\u2139\uFE0F Browser blocked autoplay. Transcript is below \u2014 click Replay to try again.');
-        var pb = document.getElementById('vs-pause-btn');
-        if (pb) pb.style.display = 'none';
-        // Add replay button to transcript
-        var tr = document.getElementById('vs-transcript-panel');
-        if (tr) {
-          var rb = tr.querySelector('.vs-replay-btn');
-          if (!rb) {
-            rb = document.createElement('button');
-            rb.className = 'vs-replay-btn';
-            rb.style.cssText = 'display:block;margin:12px auto 0;padding:8px 20px;border-radius:20px;border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.1);color:#a089ff;font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif';
-            rb.textContent = '\u25B6\uFE0F Replay Audio';
-            rb.onclick = function() {
-              stopped = false; idx = 0;
-              window.speechSynthesis.cancel();
-              setTimeout(speakNext, 100);
-            };
-            tr.appendChild(rb);
-          }
-        }
-        return;
-      }
-      console.warn('[vsSpeak] error:', e.error);
-      idx++;
-      speakNext();
-    };
-
-    window._vsState.utterance = utter;
-    window.speechSynthesis.speak(utter);
-
-    // Chrome long-utterance bug workaround: resume every 10s to prevent it cutting off
-    var resumeTimer = setInterval(function() {
-      if (stopped || !window._vsState.speaking) { clearInterval(resumeTimer); return; }
-      if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-        window.speechSynthesis.pause();
-        window.speechSynthesis.resume();
-      }
-    }, 10000);
-  }
-
-  // Store stop reference so vsStop() can halt the chain
-  window._vsState._stopChain = function() { stopped = true; };
-
-  setTimeout(speakNext, 150);
+  };
 }
 
 window.vsTogglePause = function() {
-  if (!window._vsState.speaking) return;
+  var audio = window._vsState.audioEl;
+  var pb    = document.getElementById('vs-pause-btn');
+  if (!audio) return;
   if (window._vsState.paused) {
-    window.speechSynthesis.resume();
+    audio.play();
     window._vsState.paused = false;
-    var pb = document.getElementById('vs-pause-btn');
     if (pb) pb.textContent = '\u23F8 Pause';
   } else {
-    window.speechSynthesis.pause();
+    audio.pause();
     window._vsState.paused = true;
-    var pb = document.getElementById('vs-pause-btn');
     if (pb) pb.textContent = '\u25B6 Resume';
   }
 };
 
 window.vsStop = function() {
   if (window._vsState._stopChain) { window._vsState._stopChain(); window._vsState._stopChain = null; }
-  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (window._vsState.audioEl)    { window._vsState.audioEl.pause(); window._vsState.audioEl = null; }
   if (window._vsState._abortCtrl) { window._vsState._abortCtrl.abort(); window._vsState._abortCtrl = null; }
   window._vsState.speaking = window._vsState.paused = window._vsState.generating = false;
   var bar = document.getElementById('vs-floating-bar');
@@ -38191,9 +38154,7 @@ window.showAffActiveTab = function(tab, btn) {
   }
 };
 
-if (window.speechSynthesis) {
-  window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
-}
+// ElevenLabs TTS — no browser speechSynthesis needed
 
 // ── Auto-inject on page load for whichever tab is already visible ──
 (function vsAutoInjectOnLoad() {
