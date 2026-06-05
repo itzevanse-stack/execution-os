@@ -8036,7 +8036,8 @@ function togglePain(i){const el=document.getElementById('pi-'+i);if(selectedPain
 function addTag(e,wrap,inp){if(e.key!=='Enter')return;e.preventDefault();const val=e.target.value.trim();if(!val)return;const t=document.createElement('div');t.className='tag';t.innerHTML=val+'<button class="tag-rm" onclick="removeTag(this,event)">×</button>';document.getElementById(inp).before(t);e.target.value='';markFilled()}
 function removeTag(btn,e){if(e)e.stopPropagation();btn.parentElement.remove();markFilled()}
 function markFilled(){
-  document.querySelectorAll('#main-nav .nav-btn')[3].classList.add('filled');
+  var navBtn = document.querySelectorAll('#main-nav .nav-btn')[3];
+  if (navBtn) navBtn.classList.add('filled');
   clearTimeout(window._avSaveTimer);
   window._avSaveTimer=setTimeout(()=>{ window.saveAvatarData && window.saveAvatarData(); },1500);
 }
@@ -20892,14 +20893,16 @@ window.runMindsetReframe = async function() {
     var voiceContext  = ctx.voiceContext    || '';
 
     // Determine word count target based on video type
-    // Speaking pace: ~130 words/minute average
-    // Reel/Shorts/Story = 60-90 seconds = 130-195 words (target 180)
-    // VSL/YouTube/Ad    = up to 90 seconds = target 195 words
+    // Speaking pace: ~130-140 words/minute natural conversational pace
+    // ALL formats: minimum 1 minute, maximum 1.5 minutes
+    // 1 min   @ 135 wpm = 135 words (floor)
+    // 1.5 min @ 135 wpm = 202 words (ceiling)
+    // Target zone: 150-200 words
     var isShortForm  = ['reel','shorts','story'].includes(type);
-    var wordTarget   = isShortForm ? '170-200' : '185-210';
+    var wordTarget   = isShortForm ? '150-185' : '165-200';
     var durationNote = isShortForm
-      ? '90 seconds maximum when read aloud at a natural, conversational pace'
-      : '90 seconds maximum when read aloud at a natural pace';
+      ? 'between 1 minute and 1 minute 30 seconds when read aloud at a natural, conversational pace. NEVER under 1 minute. NEVER over 1 minute 30 seconds.'
+      : 'between 1 minute and 1 minute 30 seconds when read aloud at a natural pace. NEVER under 1 minute. NEVER over 1 minute 30 seconds.';
 
     var angleDescriptions = {
       story:     'PERSONAL DISCOVERY STORY — You stumbled onto something. You were in the same position as the viewer — dealing with ' + pain + '. Then you found ' + offerName + ' and something shifted. Tell that story in first person. Be vulnerable and specific. Make them feel like you are talking directly to them. End with a nudge toward the same discovery.',
@@ -20936,7 +20939,7 @@ window.runMindsetReframe = async function() {
       + (productUrl     ? 'When mentioning the link say: "link in bio" or "link is in my bio"\n' : '')
       + (ctx.voiceContext ? '\n' + ctx.voiceContext + '\n' : '')
       + '\n\nSCRIPT REQUIREMENTS:'
-      + '\n• ' + wordTarget + ' words — reads aloud in ' + durationNote
+      + '\n• ' + wordTarget + ' words exactly — reads aloud in ' + durationNote + ' Count your words before finishing. If under 150, expand. If over 200, trim.'
       + '\n• First sentence: must stop the scroll in under 3 seconds. No "Hey guys", no "Today I want to talk about", no "So", no "Welcome back". Start mid-thought, mid-story, or with a bold statement.'
       + '\n• Every sentence must serve a purpose — earn its place or cut it'
       + '\n• Zero corporate language, zero buzzwords, zero clichés'
@@ -20964,7 +20967,7 @@ window.runMindsetReframe = async function() {
       signal: _avsAbort.signal,
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 800,
+        max_tokens: 1200,
         system: systemPrompt,
         messages: [{ role: 'user', content: prompt }]
       })
@@ -21047,8 +21050,8 @@ window.runMindsetReframe = async function() {
       if (!videoId) throw new Error('No video ID returned. Response: ' + JSON.stringify(data).slice(0,150));
       if (status) status.textContent = 'Video generating… checking status every 10 seconds.';
       avsToast('Video submitted! Checking status…');
-      // Poll for completion
-      var maxPolls = 36; // 6 minutes max
+      // Poll for completion — HeyGen can take 8-15 min for longer scripts
+      var maxPolls = 90; // 15 minutes max
       var polls = 0;
       var pollInterval = setInterval(function() {
         polls++;
@@ -21057,6 +21060,13 @@ window.runMindsetReframe = async function() {
           clearInterval(progInterval);
           if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
           if (status) status.textContent = 'Generation is taking longer than expected. Check My Videos later.';
+          // Save videoId so user can check it manually
+          try {
+            var pending = JSON.parse(localStorage.getItem('eos_pending_videos') || '[]');
+            pending.unshift({ videoId: videoId, ts: Date.now(), script: script.slice(0,80) });
+            localStorage.setItem('eos_pending_videos', JSON.stringify(pending.slice(0,10)));
+          } catch(e) {}
+          avsToast('Video is still processing on HeyGen. Check My Videos in a few minutes.', false);
           return;
         }
         heygenCall('status', { videoId: videoId }).then(function(statusData) {
@@ -37595,5 +37605,307 @@ window.svReset = function() {
   if (window._sv.pollTimer) clearInterval(window._sv.pollTimer);
 };
 </script>
+
+<script>
+/* =======================================================================
+   VOICE STRATEGIST — Strategic audio breakdown for Boardroom + Offer Set-up
+   ======================================================================= */
+
+window._vsState = {
+  speaking: false, paused: false,
+  utterance: null, barEl: null, generating: false,
+};
+
+var _vsTabLabels = {
+  'war-room':'War Room Strategy','icp-research':'ICP Research and Buyer Psychology',
+  'competitor-intel':'Competitor Intelligence','market-viability':'Market Viability Analysis',
+  'architect':'Business Architect Blueprint','offer-stack':'Offer Refinement',
+  'client-attraction':'Client Attraction System','copy-vault':'Copy Vault',
+  'war-plan':'Launch War Plan','content-strategy':'Content Strategy',
+  'funnel-strategy':'Funnel Strategy','buyer-research':'Buyer Intelligence',
+  'promo-intel':'Promo Intel','offer-viability':'Offer Viability',
+  'strategy':'Affiliate Strategy','avatar':'Buyer Avatar',
+  'dms':'DM Scripts','dailyplan':'Daily Action Plan','tam':'Market Opportunity',
+};
+
+window.vsInjectButton = function(panelEl, tabId, mode) {
+  if (!panelEl) return;
+  var ex = panelEl.querySelector('.vs-btn-wrap');
+  if (ex) ex.remove();
+  var label = _vsTabLabels[tabId] || 'This Section';
+  var wrap  = document.createElement('div');
+  wrap.className = 'vs-btn-wrap';
+  wrap.style.cssText = 'display:flex;justify-content:center;padding:20px 0 8px';
+  wrap.innerHTML = '<button onclick="window.vsStart(\'' + tabId + '\',\'' + (mode||'expert') + '\')" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(78,204,163,.1));border:1px solid rgba(108,99,255,.3);border-radius:50px;color:#a089ff;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;transition:all .2s" onmouseenter="this.style.background=\'linear-gradient(135deg,rgba(108,99,255,.25),rgba(78,204,163,.18))\'" onmouseleave="this.style.background=\'linear-gradient(135deg,rgba(108,99,255,.15),rgba(78,204,163,.1))\'"><span style="font-size:15px">\uD83C\uDF99</span> Strategic Voice Breakdown</button>';
+  panelEl.insertBefore(wrap, panelEl.firstChild);
+};
+
+window.vsStart = function(tabId, mode) {
+  if (window._vsState.generating) return;
+  window.vsStop();
+
+  var panelId = mode === 'affiliate' ? 'aff-tab-' + tabId : 'br-tab-' + tabId;
+  var panel   = document.getElementById(panelId);
+  if (!panel) return;
+
+  var rawText = (panel.innerText || panel.textContent || '').replace(/\s+/g,' ').trim();
+  if (rawText.length < 80) {
+    vsShowBar('generating');
+    vsUpdateBar('No content yet. Generate the analysis first, then come back.');
+    setTimeout(window.vsStop, 3000);
+    return;
+  }
+
+  var contentForAI = rawText.length > 6000 ? rawText.slice(0, 6000) + '...' : rawText;
+  var ctx       = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
+  var niche     = ctx.niche           || 'online business';
+  var offerName = ctx.offerName       || 'your offer';
+  var pain      = ctx.pain            || 'their biggest challenge';
+  var transf    = ctx.transformation  || 'their desired outcome';
+  var avatar    = ctx.avatarName      || ctx.avatar || 'your target audience';
+  var label     = _vsTabLabels[tabId] || 'this section';
+
+  var systemPrompt = 'You are an elite business strategist and personal advisor inside Execution OS, a premium business operating platform. You are delivering a private voice coaching session to the business owner. Your tone is authoritative, warm, direct, and highly specific. You speak like a mentor who deeply understands their business. Never generic, never vague. Reference their exact situation in every paragraph.';
+
+  var prompt = 'The business owner is in the ' + label + ' section of their platform.\n\n'
+    + 'THEIR BUSINESS CONTEXT:\n'
+    + 'Niche: ' + niche + '\n'
+    + 'Offer: ' + offerName + '\n'
+    + 'Target audience: ' + avatar + '\n'
+    + 'Core pain they solve: ' + pain + '\n'
+    + 'Transformation they deliver: ' + transf + '\n\n'
+    + 'SECTION CONTENT TO WALK THROUGH:\n'
+    + contentForAI + '\n\n'
+    + 'TASK:\n'
+    + 'Deliver a full strategic voice breakdown of this section. Structure it exactly like this:\n\n'
+    + 'PART 1 - OPENING (2-3 sentences): Welcome them to this section. Tell them what they are about to understand and why it matters specifically for their business in ' + niche + '.\n\n'
+    + 'PART 2 - SECTION BY SECTION WALKTHROUGH: Go through the content in logical chunks. For each chunk: briefly describe what this part covers, then explain in full detail what it means specifically for them given their niche, offer, and audience. Give them a concrete insight or implication they can act on immediately. Transition naturally to the next section.\n\n'
+    + 'PART 3 - STRATEGIC SUMMARY: Begin this section by saying "Now let me pull this all together for you." Then give: the 2 or 3 most important insights from this entire section, exactly what they should do next based on this information, and one bold strategic observation that most people would miss.\n\n'
+    + 'IMPORTANT RULES:\n'
+    + 'Write entirely in spoken conversational language. No bullet symbols. No markdown. No section headers. No colons before lists.\n'
+    + 'Every paragraph must feel written specifically for this person and their business.\n'
+    + 'Reference their niche, offer name, audience pain, and transformation throughout.\n'
+    + 'Minimum 600 words. This is a thorough coaching session not a summary.\n'
+    + 'End on something that makes them feel clear, capable, and ready to act.\n\n'
+    + 'Write the full narration now. Output only the spoken words, nothing else.';
+
+  vsShowBar('generating');
+  window._vsState.generating = true;
+
+  var abort   = new AbortController();
+  var timeout = setTimeout(function() { abort.abort(); }, 60000);
+  window._vsState._abortCtrl = abort;
+
+  fetch(window.location.origin + '/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    signal: abort.signal,
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6', max_tokens: 2000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: prompt }],
+    }),
+  })
+  .then(function(r) {
+    clearTimeout(timeout);
+    if (!r.ok) throw new Error('API error ' + r.status);
+    return r.json();
+  })
+  .then(function(data) {
+    window._vsState.generating = false;
+    var text = ((data.content||[])[0]||{}).text || '';
+    if (!text) {
+      vsUpdateBar('Could not generate breakdown. Try again.');
+      setTimeout(window.vsStop, 3000);
+      return;
+    }
+    vsSpeak(text, label);
+  })
+  .catch(function(err) {
+    clearTimeout(timeout);
+    window._vsState.generating = false;
+    vsUpdateBar((err.name === 'AbortError' ? 'Request timed out.' : err.message));
+    setTimeout(window.vsStop, 3000);
+  });
+};
+
+function vsSpeak(text, label) {
+  if (!window.speechSynthesis) {
+    vsUpdateBar('Speech not supported in this browser. Transcript shown below.');
+    vsShowTranscript(text);
+    return;
+  }
+
+  vsUpdateBar('\uD83C\uDF99 ' + (label||'Strategic Breakdown') + ' \u2014 Playing\u2026');
+  var pauseBtn = document.getElementById('vs-pause-btn');
+  if (pauseBtn) pauseBtn.style.display = 'inline-block';
+
+  var utter = new SpeechSynthesisUtterance(text);
+  var voices = window.speechSynthesis.getVoices();
+  var pick = voices.find(function(v){
+    return v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Samantha') || v.name.includes('Daniel') || v.name.includes('Alex') || v.name.includes('Karen'));
+  }) || voices.find(function(v){ return v.lang.startsWith('en'); }) || voices[0];
+  if (pick) utter.voice = pick;
+  utter.rate = 0.92; utter.pitch = 1.0; utter.volume = 1.0;
+
+  utter.onstart = function() {
+    window._vsState.speaking = true;
+    window._vsState.paused   = false;
+    vsShowTranscript(text);
+  };
+  utter.onend = function() {
+    window._vsState.speaking = false;
+    vsUpdateBar('\u2705 Breakdown complete \u2014 transcript below');
+    var pb = document.getElementById('vs-pause-btn');
+    if (pb) pb.style.display = 'none';
+  };
+  utter.onerror = function(e) {
+    window._vsState.speaking = false;
+    if (e.error !== 'interrupted') vsUpdateBar('Speech error: ' + e.error);
+  };
+
+  window._vsState.utterance = utter;
+  window.speechSynthesis.speak(utter);
+}
+
+window.vsTogglePause = function() {
+  if (!window._vsState.speaking) return;
+  if (window._vsState.paused) {
+    window.speechSynthesis.resume();
+    window._vsState.paused = false;
+    var pb = document.getElementById('vs-pause-btn');
+    if (pb) pb.textContent = '\u23F8 Pause';
+  } else {
+    window.speechSynthesis.pause();
+    window._vsState.paused = true;
+    var pb = document.getElementById('vs-pause-btn');
+    if (pb) pb.textContent = '\u25B6 Resume';
+  }
+};
+
+window.vsStop = function() {
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  if (window._vsState._abortCtrl) { window._vsState._abortCtrl.abort(); window._vsState._abortCtrl = null; }
+  window._vsState.speaking = window._vsState.paused = window._vsState.generating = false;
+  var bar = document.getElementById('vs-floating-bar');
+  if (bar) bar.remove();
+  window._vsState.barEl = null;
+};
+
+function vsShowBar(state) {
+  if (!document.getElementById('vs-style')) {
+    var s = document.createElement('style');
+    s.id = 'vs-style';
+    s.textContent = '@keyframes vsPulse{0%,100%{opacity:1}50%{opacity:.3}}';
+    document.head.appendChild(s);
+  }
+  var bar = document.getElementById('vs-floating-bar');
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'vs-floating-bar';
+    bar.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;background:#0d0d1f;border:1px solid rgba(108,99,255,.4);border-radius:50px;padding:12px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 40px rgba(0,0,0,.7);font-family:Poppins,sans-serif;min-width:340px;max-width:620px';
+    bar.innerHTML = ''
+      + '<div id="vs-bar-dot" style="width:9px;height:9px;border-radius:50%;background:#f7c948;flex-shrink:0;animation:vsPulse 1.2s ease-in-out infinite"></div>'
+      + '<div id="vs-bar-label" style="flex:1;font-size:11px;font-weight:700;color:rgba(255,255,255,.8)">Generating strategic breakdown\u2026</div>'
+      + '<button id="vs-pause-btn" onclick="window.vsTogglePause()" style="padding:5px 13px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:rgba(255,255,255,.7);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;display:none">\u23F8 Pause</button>'
+      + '<button onclick="window.vsStop()" style="padding:5px 12px;border-radius:20px;border:1px solid rgba(239,68,68,.25);background:rgba(239,68,68,.08);color:#f87171;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">\u2715 Stop</button>';
+    document.body.appendChild(bar);
+    window._vsState.barEl = bar;
+  }
+  if (state === 'generating') {
+    document.getElementById('vs-bar-dot').style.background = '#f7c948';
+  }
+}
+
+function vsUpdateBar(msg) {
+  var label = document.getElementById('vs-bar-label');
+  if (label) label.textContent = msg;
+  var dot = document.getElementById('vs-bar-dot');
+  if (dot) {
+    if (msg.startsWith('\u26A0') || msg.includes('error') || msg.includes('timed')) dot.style.background = '#f87171';
+    else if (msg.startsWith('\u2705')) dot.style.background = '#4ecca3';
+    else if (msg.includes('Playing')) dot.style.background = '#4ecca3';
+    else dot.style.background = '#6c63ff';
+  }
+}
+
+function vsShowTranscript(text) {
+  var ex = document.getElementById('vs-transcript-panel');
+  if (ex) ex.remove();
+
+  var activePanel = null;
+  document.querySelectorAll('.br-tab-panel').forEach(function(p) {
+    if (p.style.display === 'block' || p.style.display === '') {
+      if ((p.innerText||'').trim().length > 50) activePanel = p;
+    }
+  });
+  if (!activePanel) {
+    var affTabs = ['buyer-research','promo-intel','offer-viability','strategy','avatar','content-strategy','dms','dailyplan','tam'];
+    for (var i = 0; i < affTabs.length; i++) {
+      var p = document.getElementById('aff-tab-' + affTabs[i]);
+      if (p && p.style.display !== 'none' && (p.innerText||'').trim().length > 50) { activePanel = p; break; }
+    }
+  }
+  if (!activePanel) return;
+
+  var panel = document.createElement('div');
+  panel.id = 'vs-transcript-panel';
+  panel.style.cssText = 'margin:28px 0 8px;border:1px solid rgba(108,99,255,.2);border-radius:16px;overflow:hidden;background:rgba(108,99,255,.04)';
+  panel.innerHTML = ''
+    + '<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(108,99,255,.15);background:rgba(108,99,255,.08)">'
+    +   '<div style="display:flex;align-items:center;gap:8px"><span style="font-size:14px">\uD83C\uDF99</span><span style="font-size:11px;font-weight:800;color:#a089ff;font-family:Poppins,sans-serif">Strategic Voice Breakdown \u2014 Transcript</span></div>'
+    +   '<div style="display:flex;gap:8px">'
+    +     '<button onclick="window.vsStart(window._vsLastTab,window._vsLastMode)" style="padding:4px 12px;border-radius:20px;border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.1);color:#a089ff;font-size:10px;cursor:pointer;font-family:Poppins,sans-serif">\uD83D\uDD04 Replay</button>'
+    +     '<button onclick="document.getElementById('vs-transcript-panel').remove()" style="padding:4px 10px;border-radius:20px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif">\u2715 Close</button>'
+    +   '</div>'
+    + '</div>'
+    + '<div style="padding:18px 20px;font-size:13px;line-height:1.9;color:rgba(255,255,255,.78);font-family:Poppins,sans-serif;white-space:pre-wrap;max-height:520px;overflow-y:auto">'
+    + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    + '</div>';
+  activePanel.appendChild(panel);
+  panel.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// Store last tab for replay button
+var _origVsStart = window.vsStart;
+window.vsStart = function(tabId, mode) {
+  window._vsLastTab  = tabId;
+  window._vsLastMode = mode;
+  _origVsStart(tabId, mode);
+};
+
+// Patch brShowTab
+var _origBrShow = window.brShowTab;
+window.brShowTab = function(tab, btn) {
+  _origBrShow && _origBrShow(tab, btn);
+  if (window._vsState.speaking || window._vsState.generating) window.vsStop();
+  setTimeout(function() {
+    var panel = document.getElementById('br-tab-' + tab);
+    if (panel && (panel.innerText||'').trim().length > 80) {
+      window.vsInjectButton(panel, tab, 'expert');
+    }
+  }, 500);
+};
+
+// Patch showAffActiveTab
+var _origAffShow = window.showAffActiveTab;
+window.showAffActiveTab = function(tab, btn) {
+  _origAffShow && _origAffShow(tab, btn);
+  if (window._vsState.speaking || window._vsState.generating) window.vsStop();
+  var skip = ['link-analytics','tracker','dailytracker','calendar'];
+  if (skip.includes(tab)) return;
+  setTimeout(function() {
+    var panel = document.getElementById('aff-tab-' + tab);
+    if (panel && (panel.innerText||'').trim().length > 80) {
+      window.vsInjectButton(panel, tab, 'affiliate');
+    }
+  }, 600);
+};
+
+if (window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = function() { window.speechSynthesis.getVoices(); };
+}
+</script>
+
 </body>
 </html>
