@@ -3007,12 +3007,22 @@ button[onclick="generateOffer()"] {
         <div class="ni-dot"></div>
       </button>
 
+      <!-- AFFILIATE: Foundation (shown before Offer Setup) -->
+      <button class="nav-item ripple-container affiliate-only" style="display:none" onclick="showPage('foundation',this)" id="nav-foundation">
+        <div class="ni-icon">🌟</div>
+        <div class="ni-text">
+          <div class="ni-label">FOUNDATION</div>
+          <div class="ni-step">Your foundation · Step 1</div>
+        </div>
+        <div class="ni-dot"></div>
+      </button>
+
       <!-- AFFILIATE: My Affiliate Offer (hidden in expert mode) -->
       <button class="nav-item ripple-container affiliate-only" style="display:none" onclick="showPage('affiliate',this)" id="nav-aff-offer">
         <div class="ni-icon">🔗</div>
         <div class="ni-text">
-          <div class="ni-label">My Affiliate Offer</div>
-          <div class="ni-step">Step 3 · Paste your link</div>
+          <div class="ni-label">OFFER SETUP</div>
+          <div class="ni-step">Step 2 · Paste your link</div>
         </div>
         <div class="ni-dot"></div>
       </button>
@@ -4767,6 +4777,382 @@ button[onclick="generateOffer()"] {
   </div>
 
 
+  <!-- FOUNDATION PAGE (Affiliate Mode — Step 1) -->
+  <div class="page" id="page-foundation" style="display:none">
+
+    <!-- Hero -->
+    <div class="hero-strip" style="background:linear-gradient(145deg,rgba(108,99,255,.1),rgba(78,204,163,.07),var(--card))">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--teal),var(--purple),var(--yellow))"></div>
+      <div class="strip-inner">
+        <div class="strip-left">
+          <div class="tag-pill" style="background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(78,204,163,.1));border:1px solid rgba(108,99,255,.25)"><span style="color:var(--teal)">⚡ Foundation · Start Here</span></div>
+          <div class="h1">Your<br><em>Foundation</em></div>
+          <div class="strip-sub">Answer 5 honest questions. Get your exact monthly freedom number, your personalised sales targets, and a 90-day affiliate roadmap — built specifically for you by E-OS.</div>
+        </div>
+        <div class="strip-right">
+          <div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:1.1rem 1.25rem;min-width:200px">
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;margin-bottom:6px">Your Freedom Number</div>
+            <div id="fb-freedom-num-hero" style="font-size:22px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">$0 / month</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:3px">Complete the blueprint to reveal</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Track -->
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:16px 20px;margin-bottom:1.25rem;overflow-x:auto">
+      <div style="display:flex;align-items:center;gap:0;min-width:500px">
+        <div class="fb-step-node active" id="fb-node-1" onclick="fbGoTo(1)"><span class="fb-step-dot">1</span><span class="fb-step-label">Your Reality</span></div>
+        <div class="fb-step-sep">›</div>
+        <div class="fb-step-node" id="fb-node-2" onclick="fbGoTo(2)"><span class="fb-step-dot">2</span><span class="fb-step-label">Your Fears</span></div>
+        <div class="fb-step-sep">›</div>
+        <div class="fb-step-node" id="fb-node-3" onclick="fbGoTo(3)"><span class="fb-step-dot">3</span><span class="fb-step-label">Dream Life</span></div>
+        <div class="fb-step-sep">›</div>
+        <div class="fb-step-node" id="fb-node-4" onclick="fbGoTo(4)"><span class="fb-step-dot">4</span><span class="fb-step-label">Freedom Number</span></div>
+        <div class="fb-step-sep">›</div>
+        <div class="fb-step-node" id="fb-node-5" onclick="fbGoTo(5)"><span class="fb-step-dot">5</span><span class="fb-step-label">Your Blueprint</span></div>
+      </div>
+    </div>
+
+    <style>
+      .fb-step-node{display:flex;align-items:center;gap:7px;padding:8px 14px;border-radius:50px;cursor:pointer;flex:1;justify-content:center;font-family:Poppins,sans-serif;font-size:11px;font-weight:700;color:rgba(255,255,255,.35);transition:all .2s;border:1px solid transparent}
+      .fb-step-node.active{background:rgba(108,99,255,.12);border-color:rgba(108,99,255,.35);color:var(--purple)}
+      .fb-step-node.done{color:var(--teal)}
+      .fb-step-sep{color:rgba(255,255,255,.15);font-size:18px;padding:0 4px}
+      .fb-step-dot{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.07);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;flex-shrink:0}
+      .fb-step-node.active .fb-step-dot{background:var(--purple);color:#fff}
+      .fb-step-node.done .fb-step-dot{background:var(--teal);color:#000}
+      .fb-sec{display:none}.fb-sec.active{display:block}
+      .fb-card{background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:1.5rem;margin-bottom:1.1rem}
+      .fb-card-hed{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--dimmer);font-weight:900;margin-bottom:1rem}
+      .fb-label{font-size:10px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+      .fb-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 13px;color:var(--white);font-family:Inter,sans-serif;font-size:13px;outline:none;transition:border-color .2s;box-sizing:border-box}
+      .fb-input:focus{border-color:rgba(245,200,66,.4)}
+      .fb-select{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 13px;color:var(--white);font-family:Inter,sans-serif;font-size:12px;outline:none}
+      .fb-grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem}
+      .fb-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:1rem}
+      .fb-pain-item{display:flex;align-items:flex-start;gap:12px;padding:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;cursor:pointer;transition:all .2s;margin-bottom:8px}
+      .fb-pain-item.on{background:rgba(239,68,68,.06);border-color:rgba(239,68,68,.25)}
+      .fb-pain-cb{width:20px;height:20px;border-radius:6px;border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-size:11px;font-weight:900;color:transparent;transition:all .2s}
+      .fb-pain-item.on .fb-pain-cb{background:#ef4444;border-color:#ef4444;color:#fff}
+      .fb-dream-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:1rem}
+      .fb-dream-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s;position:relative;text-align:center}
+      .fb-dream-card.on{background:rgba(108,99,255,.1);border-color:rgba(108,99,255,.35)}
+      .fb-dream-check{position:absolute;top:10px;right:10px;width:20px;height:20px;border-radius:50%;background:var(--yellow);color:#000;font-size:11px;font-weight:900;display:none;align-items:center;justify-content:center}
+      .fb-dream-card.on .fb-dream-check{display:flex}
+      .fb-dream-icon{font-size:28px;margin-bottom:8px}
+      .fb-dream-title{font-size:12px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif}
+      .fb-dream-desc{font-size:10px;color:var(--dim);line-height:1.5;margin-bottom:6px}
+      .fb-dream-cost{font-size:10px;font-weight:700;color:var(--teal)}
+      .fb-metric{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;text-align:center}
+      .fb-metric-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px}
+      .fb-metric-val{font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif}
+      .fb-metric-sub{font-size:9px;color:var(--dim);margin-top:3px}
+      .fb-metric.gold .fb-metric-val{color:var(--purple)}
+      .fb-metric.teal .fb-metric-val{color:var(--teal)}
+      .fb-nav-row{display:flex;gap:10px;justify-content:flex-end;margin-top:1.5rem}
+      .fb-btn{padding:12px 28px;border-radius:50px;border:none;font-family:Poppins,sans-serif;font-weight:800;font-size:12px;cursor:pointer;transition:all .2s}
+      .fb-btn-primary{background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark)}
+      .fb-btn-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5)}
+      .fb-urgency{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:12px 16px;display:flex;align-items:flex-start;gap:10px;margin-bottom:1.1rem}
+      .fb-urgency-dot{width:8px;height:8px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:4px;animation:vsPulse 1.5s infinite}
+    </style>
+
+    <!-- ══ STEP 1: YOUR REALITY ══ -->
+    <div class="fb-sec active" id="fb-sec-1">
+      <div style="margin-bottom:1rem"><span style="font-size:10px;font-weight:800;color:var(--dimmer);text-transform:uppercase;letter-spacing:1.5px">Step 1 of 5 — Your Reality</span></div>
+      <h2 style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin:0 0 6px">Let's Face Your<br><em>Honest Reality</em></h2>
+      <p style="font-size:13px;color:var(--dim);margin:0 0 1.25rem;line-height:1.6">No judgment. This is the foundation everything else is built on. The numbers only work if they're real.</p>
+
+      <div class="fb-urgency">
+        <div class="fb-urgency-dot"></div>
+        <p style="font-size:12px;color:rgba(255,255,255,.6);margin:0;line-height:1.6">The average person spends <strong style="color:var(--white)">90,000 hours</strong> working for someone else's dream. Your affiliate business can permanently change that — starting today.</p>
+      </div>
+
+      <div class="fb-card">
+        <div class="fb-card-hed">About You</div>
+        <div class="fb-grid2">
+          <div><div class="fb-label">Your First Name</div><input class="fb-input" id="fb-fname" placeholder="e.g. James"></div>
+          <div><div class="fb-label">Your Country</div>
+            <select class="fb-select" id="fb-country">
+              <option value="">Select your country</option>
+              <option>Afghanistan</option><option>Albania</option><option>Algeria</option><option>Andorra</option><option>Angola</option><option>Antigua and Barbuda</option><option>Argentina</option><option>Armenia</option><option>Australia</option><option>Austria</option><option>Azerbaijan</option><option>Bahamas</option><option>Bahrain</option><option>Bangladesh</option><option>Barbados</option><option>Belarus</option><option>Belgium</option><option>Belize</option><option>Benin</option><option>Bhutan</option><option>Bolivia</option><option>Bosnia and Herzegovina</option><option>Botswana</option><option>Brazil</option><option>Brunei</option><option>Bulgaria</option><option>Burkina Faso</option><option>Burundi</option><option>Cabo Verde</option><option>Cambodia</option><option>Cameroon</option><option>Canada</option><option>Central African Republic</option><option>Chad</option><option>Chile</option><option>China</option><option>Colombia</option><option>Comoros</option><option>Congo</option><option>Costa Rica</option><option>Croatia</option><option>Cuba</option><option>Cyprus</option><option>Czech Republic</option><option>Denmark</option><option>Djibouti</option><option>Dominica</option><option>Dominican Republic</option><option>DR Congo</option><option>Ecuador</option><option>Egypt</option><option>El Salvador</option><option>Equatorial Guinea</option><option>Eritrea</option><option>Estonia</option><option>Eswatini</option><option>Ethiopia</option><option>Fiji</option><option>Finland</option><option>France</option><option>Gabon</option><option>Gambia</option><option>Georgia</option><option>Germany</option><option>Ghana</option><option>Greece</option><option>Grenada</option><option>Guatemala</option><option>Guinea</option><option>Guinea-Bissau</option><option>Guyana</option><option>Haiti</option><option>Honduras</option><option>Hungary</option><option>Iceland</option><option>India</option><option>Indonesia</option><option>Iran</option><option>Iraq</option><option>Ireland</option><option>Israel</option><option>Italy</option><option>Ivory Coast</option><option>Jamaica</option><option>Japan</option><option>Jordan</option><option>Kazakhstan</option><option>Kenya</option><option>Kiribati</option><option>Kosovo</option><option>Kuwait</option><option>Kyrgyzstan</option><option>Laos</option><option>Latvia</option><option>Lebanon</option><option>Lesotho</option><option>Liberia</option><option>Libya</option><option>Liechtenstein</option><option>Lithuania</option><option>Luxembourg</option><option>Madagascar</option><option>Malawi</option><option>Malaysia</option><option>Maldives</option><option>Mali</option><option>Malta</option><option>Marshall Islands</option><option>Mauritania</option><option>Mauritius</option><option>Mexico</option><option>Micronesia</option><option>Moldova</option><option>Monaco</option><option>Mongolia</option><option>Montenegro</option><option>Morocco</option><option>Mozambique</option><option>Myanmar</option><option>Namibia</option><option>Nauru</option><option>Nepal</option><option>Netherlands</option><option>New Zealand</option><option>Nicaragua</option><option>Niger</option><option>Nigeria</option><option>North Korea</option><option>North Macedonia</option><option>Norway</option><option>Oman</option><option>Pakistan</option><option>Palau</option><option>Palestine</option><option>Panama</option><option>Papua New Guinea</option><option>Paraguay</option><option>Peru</option><option>Philippines</option><option>Poland</option><option>Portugal</option><option>Qatar</option><option>Romania</option><option>Russia</option><option>Rwanda</option><option>Saint Kitts and Nevis</option><option>Saint Lucia</option><option>Saint Vincent and the Grenadines</option><option>Samoa</option><option>San Marino</option><option>Sao Tome and Principe</option><option>Saudi Arabia</option><option>Senegal</option><option>Serbia</option><option>Seychelles</option><option>Sierra Leone</option><option>Singapore</option><option>Slovakia</option><option>Slovenia</option><option>Solomon Islands</option><option>Somalia</option><option>South Africa</option><option>South Korea</option><option>South Sudan</option><option>Spain</option><option>Sri Lanka</option><option>Sudan</option><option>Suriname</option><option>Sweden</option><option>Switzerland</option><option>Syria</option><option>Taiwan</option><option>Tajikistan</option><option>Tanzania</option><option>Thailand</option><option>Timor-Leste</option><option>Togo</option><option>Tonga</option><option>Trinidad and Tobago</option><option>Tunisia</option><option>Turkey</option><option>Turkmenistan</option><option>Tuvalu</option><option>Uganda</option><option>Ukraine</option><option>United Arab Emirates</option><option>United Kingdom</option><option>United States</option><option>Uruguay</option><option>Uzbekistan</option><option>Vanuatu</option><option>Vatican City</option><option>Venezuela</option><option>Vietnam</option><option>Yemen</option><option>Zambia</option><option>Zimbabwe</option>
+            </select>
+          </div>
+        </div>
+        <div class="fb-grid2">
+          <div><div class="fb-label">Monthly Income ($)</div><input class="fb-input" id="fb-income" type="number" placeholder="1500" min="0" oninput="fbUpdateCalc()"></div>
+          <div><div class="fb-label">Monthly Expenses ($)</div><input class="fb-input" id="fb-expenses" type="number" placeholder="1200" min="0" oninput="fbUpdateCalc()"></div>
+        </div>
+        <div style="margin-bottom:1rem">
+          <div class="fb-label">How Much Do You Want to Save Every Month? ($)</div>
+          <input class="fb-input" id="fb-savings-goal" type="number" placeholder="e.g. 1000" min="0" oninput="fbUpdateCalc()" style="max-width:280px">
+          <div style="font-size:10px;color:var(--dim);margin-top:5px;line-height:1.5">This is added on top of your lifestyle cost to give you your real freedom number. Your target needs to cover both your life and your future.</div>
+        </div>
+        <div class="fb-grid2">
+          <div><div class="fb-label">Employment Status</div>
+            <select class="fb-select" id="fb-job-status">
+              <option value="employed">Employed full-time</option>
+              <option value="side">Job + side hustle</option>
+              <option value="self">Fully self-employed</option>
+              <option value="urgent">No income — urgent</option>
+            </select>
+          </div>
+          <div><div class="fb-label">How Soon Do You Want Freedom?</div>
+            <select class="fb-select" id="fb-timeframe" onchange="fbUpdateCalc()">
+              <option value="3">3 months — dead serious</option>
+              <option value="6">6 months — realistic</option>
+              <option value="12">12 months — steady</option>
+              <option value="24">24 months — long game</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="fb-card">
+        <div class="fb-card-hed">Your Work Situation</div>
+        <div style="margin-bottom:1rem"><div class="fb-label">What Do You Currently Do?</div><input class="fb-input" id="fb-job-title" placeholder="e.g. Customer service rep, nurse, student, freelancer…"></div>
+        <div><div class="fb-label">Biggest Problem With Your Income Right Now?</div>
+          <select class="fb-select" id="fb-income-problem">
+            <option>It barely covers my bills — zero savings</option>
+            <option>I trade time for money with no ceiling</option>
+            <option>My boss controls my worth and future</option>
+            <option>One setback destroys everything</option>
+            <option>I work hard but see zero financial progress</option>
+            <option>I have no income at all right now</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fb-nav-row"><button class="fb-btn fb-btn-primary" onclick="fbGoTo(2)">I'm Ready — Let's Go ⚡</button></div>
+    </div>
+
+    <!-- ══ STEP 2: YOUR FEARS ══ -->
+    <div class="fb-sec" id="fb-sec-2">
+      <div style="margin-bottom:1rem"><span style="font-size:10px;font-weight:800;color:var(--dimmer);text-transform:uppercase;letter-spacing:1.5px">Step 2 of 5 — What's Driving You</span></div>
+      <h2 style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin:0 0 6px">Name What's<br><em>Keeping You Stuck</em></h2>
+      <p style="font-size:13px;color:var(--dim);margin:0 0 1.25rem;line-height:1.6">These aren't just fears — they're real forces reshaping the world. Naming them is the first step to outrunning them. Select everything that applies.</p>
+
+      <div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.15);border-radius:12px;padding:14px 18px;margin-bottom:1.25rem">
+        <p style="font-size:13px;font-style:italic;color:rgba(255,255,255,.6);margin:0;line-height:1.6">"The most dangerous place to be in the next decade is dependent on a single employer for your income."</p>
+      </div>
+
+      <div id="fb-pains-list">
+        <div class="fb-pain-item" onclick="fbTogglePain(this)" data-pain="trading-years"><div class="fb-pain-cb">✓</div><div><h4 style="font-size:13px;font-weight:800;color:var(--white);margin:0 0 4px">⏰ I'm trading my best years for someone else's dream</h4><p style="font-size:11px;color:var(--dim);margin:0;line-height:1.5">While you work 9-5, other people are building automated income from a laptop. You feel time slipping away.</p></div></div>
+        <div class="fb-pain-item" onclick="fbTogglePain(this)" data-pain="income-ceiling"><div class="fb-pain-cb">✓</div><div><h4 style="font-size:13px;font-weight:800;color:var(--white);margin:0 0 4px">📊 My income has a ceiling I can't break through</h4><p style="font-size:11px;color:var(--dim);margin:0;line-height:1.5">No matter how hard you work, your salary stays the same. You need an income with no cap.</p></div></div>
+        <div class="fb-pain-item" onclick="fbTogglePain(this)" data-pain="one-paycheck"><div class="fb-pain-cb">✓</div><div><h4 style="font-size:13px;font-weight:800;color:var(--white);margin:0 0 4px">💸 I'm one bad month away from financial disaster</h4><p style="font-size:11px;color:var(--dim);margin:0;line-height:1.5">No savings buffer. If something goes wrong — a job loss, a health issue — everything collapses.</p></div></div>
+        <div class="fb-pain-item" onclick="fbTogglePain(this)" data-pain="family-time"><div class="fb-pain-cb">✓</div><div><h4 style="font-size:13px;font-weight:800;color:var(--white);margin:0 0 4px">👨‍👩‍👧 I'm missing the moments that matter most</h4><p style="font-size:11px;color:var(--dim);margin:0;line-height:1.5">Kids' events, family time, moments you can't get back — all sacrificed for a salary that won't change your life.</p></div></div>
+        <div class="fb-pain-item" onclick="fbTogglePain(this)" data-pain="tried-failed"><div class="fb-pain-cb">✓</div><div><h4 style="font-size:13px;font-weight:800;color:var(--white);margin:0 0 4px">🔄 I've tried other income streams but nothing worked</h4><p style="font-size:11px;color:var(--dim);margin:0;line-height:1.5">Dropshipping, MLM, crypto, courses — you've tried things. They either didn't work or required more than you had.</p></div></div>
+        <div class="fb-pain-item" onclick="fbTogglePain(this)" data-pain="location"><div class="fb-pain-cb">✓</div><div><h4 style="font-size:13px;font-weight:800;color:var(--white);margin:0 0 4px">🌍 My location is limiting my income potential</h4><p style="font-size:11px;color:var(--dim);margin:0;line-height:1.5">Where you were born shouldn't determine what you earn. You need income that works globally, in dollars.</p></div></div>
+        <div class="fb-pain-item" onclick="fbTogglePain(this)" data-pain="no-experience"><div class="fb-pain-cb">✓</div><div><h4 style="font-size:13px;font-weight:800;color:var(--white);margin:0 0 4px">🤷 I don't know where to start — I have no experience</h4><p style="font-size:11px;color:var(--dim);margin:0;line-height:1.5">Everyone selling success online looks like they have something you don't. You need a system that works from zero.</p></div></div>
+      </div>
+
+      <div class="fb-nav-row">
+        <button class="fb-btn fb-btn-ghost" onclick="fbGoTo(1)">← Back</button>
+        <button class="fb-btn fb-btn-primary" onclick="fbGoTo(3)">These Are Real → Name My Dream Life</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 3: DREAM LIFE ══ -->
+    <div class="fb-sec" id="fb-sec-3">
+      <div style="margin-bottom:1rem"><span style="font-size:10px;font-weight:800;color:var(--dimmer);text-transform:uppercase;letter-spacing:1.5px">Step 3 of 5 — Your Dream Life</span></div>
+      <h2 style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin:0 0 6px">What Does<br><em>Freedom Look Like For You?</em></h2>
+      <p style="font-size:13px;color:var(--dim);margin:0 0 1.25rem;line-height:1.6">Select the lifestyle that represents your goal. Be honest — this is what builds your real freedom number.</p>
+
+      <div class="fb-dream-grid">
+        <div class="fb-dream-card" onclick="fbPickDream(this)" data-cost="7000" data-dream="nomad">
+          <div class="fb-dream-check">✓</div>
+          <div class="fb-dream-icon">✈️</div>
+          <div class="fb-dream-title">Laptop Nomad</div>
+          <div class="fb-dream-desc">Rent in Bali, Lisbon or Chiang Mai, flights, food, coworking, health insurance, and comfortable living abroad.</div>
+          <div class="fb-dream-cost">$7,000/month</div>
+        </div>
+        <div class="fb-dream-card" onclick="fbPickDream(this)" data-cost="10000" data-dream="family">
+          <div class="fb-dream-check">✓</div>
+          <div class="fb-dream-icon">🏡</div>
+          <div class="fb-dream-title">Family Freedom</div>
+          <div class="fb-dream-desc">Quality family home, private schooling for children, full health coverage, family holidays, and zero financial stress.</div>
+          <div class="fb-dream-cost">$10,000/month</div>
+        </div>
+        <div class="fb-dream-card" onclick="fbPickDream(this)" data-cost="20000" data-dream="luxury">
+          <div class="fb-dream-check">✓</div>
+          <div class="fb-dream-icon">💎</div>
+          <div class="fb-dream-title">The Luxury Life</div>
+          <div class="fb-dream-desc">Business class travel, luxury apartment or villa, premium car, fine dining, personal staff, and high-end everything.</div>
+          <div class="fb-dream-cost">$20,000/month</div>
+        </div>
+        <div class="fb-dream-card" onclick="fbPickDream(this)" data-cost="7000" data-dream="quiet">
+          <div class="fb-dream-check">✓</div>
+          <div class="fb-dream-icon">🌿</div>
+          <div class="fb-dream-title">Quiet Freedom</div>
+          <div class="fb-dream-desc">A comfortable home in a place you love, no alarm clocks, working only when you want, and complete peace of mind.</div>
+          <div class="fb-dream-cost">$7,000/month</div>
+        </div>
+        <div class="fb-dream-card" onclick="fbPickDream(this)" data-cost="25000" data-dream="investor">
+          <div class="fb-dream-check">✓</div>
+          <div class="fb-dream-icon">📈</div>
+          <div class="fb-dream-title">The Investor Life</div>
+          <div class="fb-dream-desc">Income that funds real estate acquisitions, stock portfolios, and generational wealth. Money working harder than you.</div>
+          <div class="fb-dream-cost">$25,000/month</div>
+        </div>
+        <div class="fb-dream-card" onclick="fbPickDream(this)" data-cost="12000" data-dream="impact">
+          <div class="fb-dream-check">✓</div>
+          <div class="fb-dream-icon">🔥</div>
+          <div class="fb-dream-title">The Impact Maker</div>
+          <div class="fb-dream-desc">Funding causes you believe in, mentoring others, building a legacy, and running a business that outlasts you.</div>
+          <div class="fb-dream-cost">$12,000/month</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:11px;color:var(--dim)">⚡ Your Dream Monthly Total</div>
+        <div style="font-size:20px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif" id="fb-dream-total">$0</div>
+      </div>
+
+      <div class="fb-nav-row">
+        <button class="fb-btn fb-btn-ghost" onclick="fbGoTo(2)">← Back</button>
+        <button class="fb-btn fb-btn-primary" onclick="fbGoTo(4)">Calculate My Freedom Number →</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 4: FREEDOM NUMBER ══ -->
+    <div class="fb-sec" id="fb-sec-4">
+      <div style="margin-bottom:1rem"><span style="font-size:10px;font-weight:800;color:var(--dimmer);text-transform:uppercase;letter-spacing:1.5px">Step 4 of 5 — Your Freedom Number</span></div>
+      <h2 style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin:0 0 6px">Here's<br><em>Your Exact Number</em></h2>
+      <p style="font-size:13px;color:var(--dim);margin:0 0 1.5rem;line-height:1.6">This is the monthly income you need to live the life you just described. Everything you do in this platform is working toward this number.</p>
+
+      <!-- Big freedom number -->
+      <div style="background:linear-gradient(145deg,rgba(108,99,255,.12),rgba(78,204,163,.07));border:1px solid rgba(108,99,255,.25);border-radius:20px;padding:2rem;text-align:center;margin-bottom:1.25rem">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--teal);font-weight:800;margin-bottom:8px">⚡ YOUR MONTHLY FREEDOM NUMBER</div>
+        <div style="font-size:48px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif" id="fb-fn-big">$5,300</div>
+        <div style="font-size:12px;color:var(--dim);margin-top:6px">Reachable in <strong id="fb-fn-timeline" style="color:var(--white)">6 months</strong> with your affiliate commissions</div>
+      </div>
+
+      <!-- Metrics grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:1.25rem">
+        <div class="fb-metric"><div class="fb-metric-label">Current Income</div><div class="fb-metric-val" id="fb-m-income">$0</div><div class="fb-metric-sub">per month</div></div>
+        <div class="fb-metric gold"><div class="fb-metric-label">Gap to Close</div><div class="fb-metric-val" id="fb-m-gap">$5,300</div><div class="fb-metric-sub">above current income</div></div>
+        <div class="fb-metric teal"><div class="fb-metric-label">Sales / Month</div><div class="fb-metric-val" id="fb-m-sales">—</div><div class="fb-metric-sub" id="fb-m-sales-sub">to hit your goal</div></div>
+        <div class="fb-metric"><div class="fb-metric-label">Sales / Week</div><div class="fb-metric-val" id="fb-m-sales-week">—</div><div class="fb-metric-sub">your weekly target</div></div>
+      </div>
+
+      <!-- Tier commission breakdown -->
+      <div class="fb-card">
+        <div class="fb-card-hed">Your Commission Path — Based on Your Alliance Tier</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:10px;color:var(--dim);font-weight:700;margin-bottom:6px">🥉 STARTER</div>
+            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">$1,000</div>
+            <div style="font-size:9px;color:var(--dim);margin-top:4px">per Starter referral</div>
+            <div style="font-size:9px;color:rgba(239,68,68,.7);margin-top:4px">Pro + Elite = lost</div>
+            <div style="font-size:10px;font-weight:800;color:var(--teal);margin-top:8px" id="fb-starter-sales">Need — sales/mo</div>
+          </div>
+          <div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.25);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:10px;color:#a089ff;font-weight:700;margin-bottom:6px">🥈 PRO</div>
+            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">$1k–$2k</div>
+            <div style="font-size:9px;color:var(--dim);margin-top:4px">Starter $1k · Pro $2k</div>
+            <div style="font-size:9px;color:rgba(239,68,68,.7);margin-top:4px">Elite referral = lost</div>
+            <div style="font-size:10px;font-weight:800;color:var(--teal);margin-top:8px" id="fb-pro-sales">Need — sales/mo</div>
+          </div>
+          <div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:10px;color:var(--yellow);font-weight:700;margin-bottom:6px">👑 ELITE</div>
+            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">$1k–$3k</div>
+            <div style="font-size:9px;color:var(--dim);margin-top:4px">All tiers unlocked</div>
+            <div style="font-size:9px;color:var(--teal);margin-top:4px">Maximum earnings ✅</div>
+            <div style="font-size:10px;font-weight:800;color:var(--teal);margin-top:8px" id="fb-elite-sales">Need — sales/mo</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cost of waiting -->
+      <div class="fb-card" style="background:rgba(239,68,68,.04);border-color:rgba(239,68,68,.15)">
+        <div class="fb-card-hed" style="color:rgba(239,68,68,.7)">📉 The Cost of Waiting</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:14px">
+            <div style="font-size:10px;color:rgba(239,68,68,.7);font-weight:700;margin-bottom:8px">😔 If You Stay Where You Are</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.7">
+              Year 1: <strong style="color:var(--white)" id="fb-stuck-yr1">$0</strong><br>
+              5 Years: <strong style="color:#ef4444" id="fb-stuck-5yr">$0</strong><br>
+              <span style="font-size:10px">Capped. Taxed. Traded for time.</span>
+            </div>
+          </div>
+          <div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:10px;padding:14px">
+            <div style="font-size:10px;color:var(--teal);font-weight:700;margin-bottom:8px">🚀 If You Start Today</div>
+            <div style="font-size:11px;color:var(--dim);line-height:1.7">
+              Year 1: <strong style="color:var(--white)" id="fb-free-yr1">$0</strong><br>
+              5 Years: <strong style="color:var(--teal)" id="fb-free-5yr">$0</strong><br>
+              <span style="font-size:10px">Automated. Scalable. Yours.</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align:center;margin-top:12px;padding:12px;background:rgba(255,217,61,.06);border-radius:10px;border:1px solid rgba(255,217,61,.15)">
+          <div style="font-size:10px;color:var(--dimmer);margin-bottom:4px">💸 What Staying Stuck Costs You Over 5 Years</div>
+          <div style="font-size:24px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif" id="fb-cost-gap">$0</div>
+        </div>
+      </div>
+
+      <div class="fb-nav-row">
+        <button class="fb-btn fb-btn-ghost" onclick="fbGoTo(3)">← Back</button>
+        <button class="fb-btn fb-btn-primary" onclick="fbGoTo(5)">Generate My Personal Blueprint ⚡</button>
+      </div>
+    </div>
+
+    <!-- ══ STEP 5: YOUR BLUEPRINT ══ -->
+    <div class="fb-sec" id="fb-sec-5">
+      <div style="margin-bottom:1rem"><span style="font-size:10px;font-weight:800;color:var(--yellow);text-transform:uppercase;letter-spacing:1.5px">⚡ Your Personal Blueprint</span></div>
+      <h2 style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin:0 0 6px">Your Path To<br><em>Complete Freedom</em></h2>
+      <p style="font-size:13px;color:var(--dim);margin:0 0 1.25rem;line-height:1.6">Your complete personalised affiliate roadmap — built by E-OS from everything you just shared.</p>
+
+      <!-- Before / After transformation -->
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:1.25rem">
+        <div style="background:rgba(239,68,68,.05);border:1px solid rgba(239,68,68,.15);border-radius:14px;padding:16px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:rgba(239,68,68,.7);font-weight:800;margin-bottom:10px">Where You Are Now</div>
+          <div id="fb-before-list" style="font-size:11px;color:var(--dim);line-height:2"></div>
+        </div>
+        <div style="font-size:24px;color:var(--teal)">→</div>
+        <div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:14px;padding:16px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:800;margin-bottom:10px">Where You're Going</div>
+          <div id="fb-after-list" style="font-size:11px;color:var(--dim);line-height:2"></div>
+        </div>
+      </div>
+
+      <!-- Freedom number big display -->
+      <div style="background:linear-gradient(145deg,rgba(108,99,255,.12),rgba(78,204,163,.07));border:1px solid rgba(108,99,255,.25);border-radius:20px;padding:1.5rem;text-align:center;margin-bottom:1.25rem">
+        <div style="font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--teal);font-weight:800;margin-bottom:6px">⚡ YOUR FREEDOM NUMBER</div>
+        <div style="font-size:44px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif" id="fb-bp-fn">$5,300/mo</div>
+        <div style="font-size:12px;color:var(--dim);margin-top:6px">Reachable in <strong id="fb-bp-timeline" style="color:var(--white)">6 months</strong> with your affiliate commissions from Execution OS Alliance</div>
+      </div>
+
+      <!-- AI Generated Blueprint -->
+      <div class="fb-card" id="fb-blueprint-card">
+        <div class="fb-card-hed">Your Personal 90-Day Roadmap</div>
+        <div id="fb-blueprint-content" style="font-size:12px;color:var(--dim);line-height:1.8;min-height:120px">
+          <div style="text-align:center;padding:24px;color:var(--dimmer)">
+            <div style="font-size:20px;margin-bottom:8px">⚡</div>
+            Generating your personalised blueprint…
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA to next step -->
+      <div style="background:linear-gradient(145deg,rgba(78,204,163,.08),rgba(108,99,255,.08));border:1px solid rgba(78,204,163,.2);border-radius:20px;padding:1.5rem;text-align:center;margin-bottom:1.25rem">
+        <div style="font-size:12px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🎯 Your Blueprint Is Ready — Here's Step 1</div>
+        <h3 style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin:0 0 8px">Set Up Your Affiliate Offer Now</h3>
+        <p style="font-size:12px;color:var(--dim);margin:0 0 16px;line-height:1.6">Your freedom number is clear. Your roadmap is built. Now Execution OS builds your complete strategy — buyer intelligence, content calendar, DM scripts, and daily action plan — all personalised to your number.</p>
+        <button onclick="fbProceedToOffer()" style="display:inline-flex;align-items:center;gap:8px;padding:14px 32px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:50px;color:var(--text-dark);font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 4px 20px rgba(78,204,163,.35)">
+          🚀 Set Up My Offer → Start Building
+        </button>
+        <div style="font-size:10px;color:var(--dimmer);margin-top:10px">Your blueprint is saved and feeds every section of the platform</div>
+      </div>
+
+      <div style="text-align:center">
+        <button class="fb-btn fb-btn-ghost" onclick="fbGoTo(4)" style="font-size:11px">← Adjust My Numbers</button>
+      </div>
+    </div>
+
+  </div>
+  <!-- END FOUNDATION PAGE -->
+
   <!-- AFFILIATE SETUP PAGE -->
   
 
@@ -4851,7 +5237,11 @@ button[onclick="generateOffer()"] {
               <input id="aff-monthly-target" type="number" placeholder="e.g. 10000" min="1000"
                 style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 13px;color:var(--white);font-family:'Inter',sans-serif;font-size:12px;outline:none;transition:border-color .2s"
                 onfocus="this.style.borderColor='rgba(78,204,163,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'"
-                oninput="window.updateAffTarget()">
+                oninput="window.updateAffTarget(); window.fbEnforceMinTarget(this)"
+                onchange="window.fbEnforceMinTarget(this)">
+              <div id="aff-target-hint" style="font-size:10px;color:var(--teal);margin-top:5px;display:none">
+                ⚡ Pre-filled from your Foundation freedom number. You can increase this but not go below it.
+              </div>
             </div>
           </div>
 
@@ -4861,7 +5251,7 @@ button[onclick="generateOffer()"] {
             <select id="aff-product-niche"
               style="width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 13px;color:var(--white);font-family:'Inter',sans-serif;font-size:13px;outline:none;cursor:pointer;transition:border-color .2s"
               onfocus="this.style.borderColor='rgba(78,204,163,.3)'" onblur="this.style.borderColor='rgba(255,255,255,.08)'">
-              <option value="">— Select niche —</option>
+              <option value="">Select your niche</option>
               <option>Coaching &amp; Consulting</option>
               <option>Digital Products &amp; Info Business</option>
               <option>Health &amp; Fitness</option>
@@ -23040,7 +23430,7 @@ window.renderAffBuyerResearch = function() {
   // ── EXACT LANGUAGE — the most important section ───────────────────
   var phrases = (d.exactLanguage && d.exactLanguage.length) ? d.exactLanguage : kwArr;
   if (phrases.length) {
-    h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.25);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.25rem">'
+    h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.25rem">'
       + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px">💬 EXACT LANGUAGE THEY USE — COPY THIS INTO ALL YOUR CONTENT</div>'
       + '<div style="font-size:10px;color:var(--dimmer);margin-bottom:10px">These are real phrases from forums, reviews, and social media. Use them verbatim in hooks, captions, DM openers, and email subjects.</div>'
       + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
@@ -23664,7 +24054,7 @@ window.renderAffBuyerResearch = function() {
 
   // Exact language — the gold
   if (d.exactLanguage && d.exactLanguage.length) {
-    h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.25);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem">'
+    h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem">'
       + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px">💬 EXACT LANGUAGE YOUR BUYERS USE — COPY THIS INTO YOUR CONTENT</div>'
       + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
       + d.exactLanguage.map(function(p) {
@@ -27288,6 +27678,12 @@ function renderUserUI(user, userDocData, memberData) {
   setTxt('topbar-initials', initials);
   setTxt('user-initials', initials);
   setTxt('plan-badge-txt', '✅ Full Access');
+  // Store tier globally for Foundation commission card
+  if (memberData && memberData.tier) {
+    window._userMemberTier  = memberData.tier;
+    window._currentMemberData = memberData;
+    localStorage.setItem('eos_member_tier', memberData.tier);
+  }
   setTxt('logged-in-as', user.email||'');
   setTxt('profile-initials-big', initials);
 
@@ -28911,7 +29307,7 @@ function fbSaveDomain() {
     if (!rootWarning) {
       var warningDiv = document.createElement('div');
       warningDiv.id = 'fb-root-domain-warning';
-      warningDiv.style.cssText = 'background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.25);border-radius:8px;padding:12px 14px;font-size:11px;color:#c8cde8;line-height:1.7;margin-bottom:10px';
+      warningDiv.style.cssText = 'background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:8px;padding:12px 14px;font-size:11px;color:#c8cde8;line-height:1.7;margin-bottom:10px';
       warningDiv.innerHTML = '<strong style="color:var(--yellow);display:block;margin-bottom:4px">⚠️ Root domain detected — use an A record, not CNAME</strong>'
         + 'Because you entered a root domain (<strong style="color:var(--white)">' + raw + '</strong>), you need to add an <strong style="color:var(--yellow)">A record</strong> pointing to <strong style="color:var(--white)">76.76.21.21</strong> — not a CNAME record. Most registrars require this for root domains. The table above has been updated to show the correct record.';
       var instructions = document.getElementById('fb-dns-instructions');
@@ -33136,7 +33532,7 @@ function _brRenderICPResearch(d, inp) {
 
   // Exact language — the most valuable section
   if (d.exactLanguage && d.exactLanguage.length) {
-    h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.25);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem">';
+    h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem">';
     h += '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px">💬 EXACT LANGUAGE YOUR IDEAL CLIENT USES — USE THIS IN YOUR COPY</div>';
     h += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
     d.exactLanguage.forEach(function(phrase) {
@@ -38675,6 +39071,565 @@ function coachStatus(state, msg) {
     _sp && _sp(page, btn);
     // Close coach when page changes so it reopens fresh on new page
     if (window._eosCoach.open) eosCoachClose();
+  };
+})();
+
+</script>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   FOUNDATION — Affiliate Mode Foundation
+   5-step lifestyle calculator + AI blueprint generator
+   ═══════════════════════════════════════════════════════════════ */
+
+window._fbData = {
+  fname:'', country:'', income:0, expenses:0, savingsGoal:0, jobStatus:'',
+  timeframe:6, jobTitle:'', incomeProblem:'',
+  pains:[], dreams:[], dreamTotal:0, freedomNum:0,
+};
+
+// ── COLLECT DATA FROM CURRENT VISIBLE STEP ───────────────────────
+function fbCollectCurrentStep() {
+  // Always collect Step 1 fields — they are always in the DOM
+  var fname    = document.getElementById('fb-fname');
+  var country  = document.getElementById('fb-country');
+  var income   = document.getElementById('fb-income');
+  var expenses = document.getElementById('fb-expenses');
+  var savings  = document.getElementById('fb-savings-goal');
+  var jobSt    = document.getElementById('fb-job-status');
+  var tf       = document.getElementById('fb-timeframe');
+  var jobTitle = document.getElementById('fb-job-title');
+  var incomePb = document.getElementById('fb-income-problem');
+
+  if (fname)    window._fbData.fname         = fname.value.trim();
+  if (country)  window._fbData.country       = country.value;
+  if (income)   window._fbData.income        = parseFloat(income.value) || 0;
+  if (expenses) window._fbData.expenses      = parseFloat(expenses.value) || 0;
+  if (savings)  window._fbData.savingsGoal   = parseFloat(savings.value) || 0;
+  if (jobSt)    window._fbData.jobStatus     = jobSt.value;
+  if (tf)       window._fbData.timeframe     = parseInt(tf.value) || 6;
+  if (jobTitle) window._fbData.jobTitle      = jobTitle.value.trim();
+  if (incomePb) window._fbData.incomeProblem = incomePb.value;
+
+  // Save to localStorage immediately on every step
+  try { localStorage.setItem('eos_foundation', JSON.stringify(window._fbData)); } catch(e){}
+}
+
+// ── NAV ──────────────────────────────────────────────────────────
+window.fbGoTo = function(step) {
+  if (step > 1 && !fbValidate(step - 1)) return;
+
+  // Collect and save current step data before navigating
+  fbCollectCurrentStep();
+
+  // Update sections
+  document.querySelectorAll('.fb-sec').forEach(function(s, i) {
+    s.classList.toggle('active', i + 1 === step);
+  });
+
+  // Update step nodes
+  for (var i = 1; i <= 5; i++) {
+    var node = document.getElementById('fb-node-' + i);
+    if (!node) continue;
+    node.classList.remove('active', 'done');
+    if (i === step)      node.classList.add('active');
+    else if (i < step)   node.classList.add('done');
+  }
+
+  if (step === 4) fbCalcFreedomNumber();
+  if (step === 5) fbGenerateBlueprint();
+
+  // Scroll to top of page
+  var pg = document.getElementById('page-foundation');
+  if (pg) pg.scrollIntoView({ behavior:'smooth', block:'start' });
+};
+
+// ── VALIDATE ─────────────────────────────────────────────────────
+function fbValidate(step) {
+  if (step === 1) {
+    var fname = document.getElementById('fb-fname');
+    if (!fname || !fname.value.trim()) {
+      if (typeof avsToast === 'function') avsToast('Please enter your first name', true);
+      return false;
+    }
+    var income = document.getElementById('fb-income');
+    if (!income || income.value === '') {
+      if (typeof avsToast === 'function') avsToast('Please enter your monthly income (0 if none)', true);
+      return false;
+    }
+    return true;
+  }
+  if (step === 2) {
+    if (window._fbData.pains.length === 0) {
+      if (typeof avsToast === 'function') avsToast('Select at least one thing that applies to you', true);
+      return false;
+    }
+    return true;
+  }
+  if (step === 3) {
+    if (window._fbData.dreams.length === 0) {
+      if (typeof avsToast === 'function') avsToast('Choose at least one dream lifestyle', true);
+      return false;
+    }
+    return true;
+  }
+  return true;
+}
+
+// ── TOGGLE PAIN ITEMS ─────────────────────────────────────────────
+window.fbTogglePain = function(el) {
+  el.classList.toggle('on');
+  var pain = el.getAttribute('data-pain');
+  var idx  = window._fbData.pains.indexOf(pain);
+  if (idx > -1) window._fbData.pains.splice(idx, 1);
+  else          window._fbData.pains.push(pain);
+  // Save immediately
+  try { localStorage.setItem('eos_foundation', JSON.stringify(window._fbData)); } catch(e){}
+};
+
+// ── PICK DREAM CARD (single selection only) ─────────────────────
+window.fbPickDream = function(el) {
+  document.querySelectorAll('.fb-dream-card').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+  var dream = el.getAttribute('data-dream');
+  var cost  = parseInt(el.getAttribute('data-cost')) || 7000;
+  window._fbData.dreams     = [{ id: dream, cost: cost }];
+  window._fbData.dreamTotal = cost;
+  var totalEl = document.getElementById('fb-dream-total');
+  if (totalEl) totalEl.textContent = '$' + cost.toLocaleString() + '/month';
+  // Save immediately so dream choice persists even if they close before Step 4
+  try { localStorage.setItem('eos_foundation', JSON.stringify(window._fbData)); } catch(e){}
+};
+
+// ── CALCULATE FREEDOM NUMBER ─────────────────────────────────────
+window.fbUpdateCalc = function() {
+  // Live update on step 1 inputs
+};
+
+function fbCalcFreedomNumber() {
+  // Collect step 1 data
+  window._fbData.fname        = (document.getElementById('fb-fname')||{}).value || '';
+  window._fbData.country      = (document.getElementById('fb-country')||{}).value || '';
+  window._fbData.income       = parseFloat((document.getElementById('fb-income')||{}).value) || 0;
+  window._fbData.expenses     = parseFloat((document.getElementById('fb-expenses')||{}).value) || 0;
+  window._fbData.savingsGoal  = parseFloat((document.getElementById('fb-savings-goal')||{}).value) || 0;
+  window._fbData.jobStatus    = (document.getElementById('fb-job-status')||{}).value || '';
+  window._fbData.timeframe    = parseInt((document.getElementById('fb-timeframe')||{}).value) || 6;
+  window._fbData.jobTitle     = (document.getElementById('fb-job-title')||{}).value || '';
+  window._fbData.incomeProblem = (document.getElementById('fb-income-problem')||{}).value || '';
+
+  var dreamTotal  = window._fbData.dreamTotal  || 7000;
+  var savingsGoal = window._fbData.savingsGoal || 0;
+  var expenses    = window._fbData.expenses    || 0;
+  var income      = window._fbData.income      || 0;
+  var timeframe   = window._fbData.timeframe   || 6;
+
+  // Freedom number = dream lifestyle cost + monthly savings goal
+  var freedomNum = Math.max(dreamTotal + savingsGoal, expenses + savingsGoal);
+  window._fbData.freedomNum = freedomNum;
+  var gap = Math.max(0, freedomNum - income);
+
+  // Sales needed per month at each tier
+  var starterSales = Math.ceil(gap / 1000);
+  var proSales     = Math.ceil(gap / 1500); // avg $1k+$2k / 2
+  var eliteSales   = Math.ceil(gap / 2000); // avg of $1k+$2k+$3k / 3
+
+  // Cost of waiting
+  var yearlyIncome    = income * 12;
+  var yearlyFreedom   = freedomNum * 12;
+  var stuck5yr        = yearlyIncome * 5;
+  var free5yr         = yearlyFreedom * 5;
+  var costGap         = Math.max(0, free5yr - stuck5yr);
+
+  // Update UI
+  var fmt = function(n){ return '$' + Math.round(n).toLocaleString(); };
+
+  var fbFnBig = document.getElementById('fb-fn-big');
+  if (fbFnBig) fbFnBig.textContent = fmt(freedomNum);
+
+  var fbFnTimeline = document.getElementById('fb-fn-timeline');
+  if (fbFnTimeline) fbFnTimeline.textContent = timeframe + ' months';
+
+  var fbMIncome = document.getElementById('fb-m-income');
+  if (fbMIncome) fbMIncome.textContent = fmt(income);
+
+  var fbMGap = document.getElementById('fb-m-gap');
+  if (fbMGap) fbMGap.textContent = fmt(gap);
+
+  var fbMSales = document.getElementById('fb-m-sales');
+  if (fbMSales) fbMSales.textContent = eliteSales;
+
+  var fbMSalesSub = document.getElementById('fb-m-sales-sub');
+  if (fbMSalesSub) fbMSalesSub.textContent = 'at Elite tier ($2k avg)';
+
+  var fbMSalesWeek = document.getElementById('fb-m-sales-week');
+  if (fbMSalesWeek) fbMSalesWeek.textContent = Math.ceil(eliteSales / 4.3).toFixed(1);
+
+  fbRenderCommissionCard(gap);
+
+  // Cost of waiting
+  var fbStuckYr1 = document.getElementById('fb-stuck-yr1');
+  if (fbStuckYr1) fbStuckYr1.textContent = fmt(yearlyIncome);
+
+  var fbStuck5yr = document.getElementById('fb-stuck-5yr');
+  if (fbStuck5yr) fbStuck5yr.textContent = fmt(stuck5yr);
+
+  var fbFreeYr1 = document.getElementById('fb-free-yr1');
+  if (fbFreeYr1) fbFreeYr1.textContent = fmt(yearlyFreedom);
+
+  var fbFree5yr = document.getElementById('fb-free-5yr');
+  if (fbFree5yr) fbFree5yr.textContent = fmt(free5yr);
+
+  var fbCostGap = document.getElementById('fb-cost-gap');
+  if (fbCostGap) fbCostGap.textContent = fmt(costGap);
+
+  // Update hero
+  var fbFnHero = document.getElementById('fb-freedom-num-hero');
+  if (fbFnHero) fbFnHero.textContent = fmt(freedomNum) + ' / month';
+
+  // Save to Firestore / localStorage for platform-wide use
+  fbSaveData();
+}
+
+// ── GENERATE BLUEPRINT ───────────────────────────────────────────
+function fbGenerateBlueprint() {
+  var d = window._fbData;
+
+  // Update before/after
+  var beforeList = document.getElementById('fb-before-list');
+  var afterList  = document.getElementById('fb-after-list');
+
+  var income = d.income || 0;
+  var fn     = d.freedomNum || 5000;
+  var tf     = d.timeframe || 6;
+
+  var fmt = function(n){ return '$' + Math.round(n).toLocaleString(); };
+
+  if (beforeList) {
+    beforeList.innerHTML = [
+      '💰 ' + fmt(income) + '/month income',
+      '⏰ Trading time for money',
+      d.jobTitle ? '💼 ' + d.jobTitle : '💼 Current income ceiling',
+      '😔 ' + (d.incomeProblem || 'Income not growing'),
+    ].map(function(t){ return '<div>' + t + '</div>'; }).join('');
+  }
+
+  if (afterList) {
+    var dreamLabels = {nomad:'Laptop Nomad',family:'Family Freedom',luxury:'Luxury Life',quiet:'Quiet Freedom',investor:'Investor Life',impact:'Impact Maker'};
+    var dreamStr   = d.dreams.map(function(dr){ return dreamLabels[dr.id]||dr.id; }).join(' + ') || 'Financial Freedom';
+    afterList.innerHTML = [
+      '💰 ' + fmt(fn) + '/month target',
+      '🚀 Affiliate commissions — no ceiling',
+      '🌟 ' + dreamStr,
+      '⚡ Automated income engine built',
+    ].map(function(t){ return '<div>' + t + '</div>'; }).join('');
+  }
+
+  var fbBpFn = document.getElementById('fb-bp-fn');
+  if (fbBpFn) fbBpFn.textContent = fmt(fn) + '/mo';
+
+  var fbBpTimeline = document.getElementById('fb-bp-timeline');
+  if (fbBpTimeline) fbBpTimeline.textContent = tf + ' months';
+
+  // Generate AI blueprint
+  var blueprintEl = document.getElementById('fb-blueprint-content');
+  if (blueprintEl) {
+    blueprintEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--dimmer)"><div style="font-size:20px;margin-bottom:8px">⚡</div>Building your personalised 90-day roadmap…</div>';
+  }
+
+  var dreamNames = d.dreams.map(function(dr){
+    var labels = {nomad:'Laptop Nomad',family:'Family Freedom',luxury:'Luxury Life',quiet:'Quiet Freedom',investor:'Investor Life',impact:'Impact Maker'};
+    return labels[dr.id] || dr.id;
+  }).join(', ') || 'financial freedom';
+
+  var painLabels = {
+    'trading-years':'trading best years for someone else dream',
+    'income-ceiling':'hitting an income ceiling with no way to break through',
+    'one-paycheck':'living paycheck to paycheck with no financial buffer',
+    'family-time':'missing family moments because of work demands',
+    'tried-failed':'tried other income streams that did not work',
+    'location':'location limiting income potential',
+    'no-experience':'feeling like they lack experience to start'
+  };
+  var painStr = d.pains.slice(0,3).map(function(p){ return painLabels[p]||p; }).join(', ') || 'their income situation';
+
+  var prompt = 'Write a powerful, specific 90-day affiliate business roadmap for this person:\n\n'
+    + 'Name: ' + (d.fname || 'the user') + '\n'
+    + 'Current monthly income: $' + (d.income || 0) + '\n'
+    + 'Monthly expenses: $' + (d.expenses || 0) + '\n'
+    + 'Monthly Freedom Number target: $' + Math.round(d.freedomNum || 5000) + '\n'
+    + 'Timeframe goal: ' + (d.timeframe || 6) + ' months\n'
+    + 'Core pains: ' + painStr + '\n'
+    + 'Dream lifestyle: ' + dreamNames + '\n'
+    + 'Platform: Execution OS Alliance — an affiliate program where they earn $1,000 per Starter referral, $2,000 per Pro referral, $3,000 per Elite referral (no recurring commissions — $197/month is retained by the platform)\n\n'
+    + 'Write a 90-day roadmap broken into 3 phases (Days 1-30, Days 31-60, Days 61-90). For each phase:\n'
+    + '- State the specific focus and goal\n'
+    + '- Give 3-4 concrete daily actions\n'
+    + '- State the expected result by end of phase\n'
+    + '- Reference their specific freedom number and what it means for their lifestyle\n\n'
+    + 'End with a powerful, specific closing statement about what their life looks like when they hit their freedom number of $' + Math.round(d.freedomNum || 5000) + '/month.\n\n'
+    + 'Write in second person (you/your). Be specific, direct, and motivating. No generic advice. Reference their numbers throughout.\n'
+    + 'Format in clean readable paragraphs with phase headers. No bullet points. Spoken like a mentor who knows them personally.\n'
+    + '400-500 words maximum.';
+
+  var abort = new AbortController();
+  var timer = setTimeout(function(){ abort.abort(); }, 90000);
+
+  fetch(window.location.origin + '/api/claude', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    signal: abort.signal,
+    body: JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens: 700,
+      system: "You are an elite affiliate business coach writing a personalised roadmap. Be specific, direct, and reference their exact numbers throughout. Never be generic.",
+      messages:[{ role:'user', content:prompt }]
+    }),
+  })
+  .then(function(r){ clearTimeout(timer); if(!r.ok) throw new Error('API '+r.status); return r.json(); })
+  .then(function(data){
+    var text = ((data.content||[])[0]||{}).text || '';
+    if (!text) throw new Error('No response');
+    if (blueprintEl) {
+      blueprintEl.innerHTML = text.split('\n\n').map(function(para) {
+        if (!para.trim()) return '';
+        if (para.includes('Days ') || para.includes('Phase ') || para.includes('DAY')) {
+          return '<div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:800;margin:16px 0 6px">' + para.replace(/\n/g,'<br>') + '</div>';
+        }
+        return '<p style="margin:0 0 12px;font-size:12px;color:rgba(255,255,255,.7);line-height:1.85">' + para.replace(/\n/g,'<br>') + '</p>';
+      }).join('');
+    }
+    // Save blueprint to data
+    window._fbData.blueprint = text;
+    fbSaveData();
+    // Feed into E-OS Coach context
+    if (window._getFullIntelContext) {
+      window._fbContext = {
+        freedomNum:  d.freedomNum,
+        dreamLife:   dreamNames,
+        timeframe:   d.timeframe,
+        currentIncome: d.income,
+        pains:       d.pains,
+      };
+    }
+  })
+  .catch(function(err){
+    clearTimeout(timer);
+    if (blueprintEl) blueprintEl.innerHTML = '<p style="color:var(--dim);font-size:12px">Could not generate blueprint right now. Your numbers are saved — tap "Generate My Personal Blueprint" again to retry.</p>';
+    console.warn('[FB] Blueprint error:', err.message);
+  });
+}
+
+// ── SAVE DATA ────────────────────────────────────────────────────
+function fbSaveData() {
+  var d = window._fbData;
+  try { localStorage.setItem('eos_foundation', JSON.stringify(d)); } catch(e){}
+
+  // Save to Firestore
+  var uid = window._currentUser && window._currentUser.uid;
+  if (uid && window._db && window._setDoc && window._doc) {
+    window._setDoc(
+      window._doc(window._db, 'users', uid, 'foundation', 'data'),
+      Object.assign({}, d, { savedAt: new Date().toISOString() }),
+      { merge: true }
+    ).catch(function(){});
+  }
+
+  // Feed freedom number into affiliate offer target and enforce as minimum
+  if (d.freedomNum) {
+    var affTarget = document.getElementById('aff-monthly-target');
+    if (affTarget) {
+      var fn = Math.round(d.freedomNum);
+      // Set the value if empty OR if current value is below the freedom number
+      if (!affTarget.value || parseFloat(affTarget.value) < fn) {
+        affTarget.value = fn;
+      }
+      // Set min attribute to freedom number
+      affTarget.min = fn;
+      // Show hint
+      var hint = document.getElementById('aff-target-hint');
+      if (hint) hint.style.display = 'block';
+      // Store freedom number as global min for enforcement
+      window._fbFreedomMin = fn;
+      if (typeof window.updateAffTarget === 'function') window.updateAffTarget();
+    }
+  }
+}
+
+// ── ENFORCE MINIMUM TARGET ────────────────────────────────────────
+window.fbEnforceMinTarget = function(el) {
+  var min = window._fbFreedomMin || 0;
+  if (!min) return;
+  var val = parseFloat(el.value) || 0;
+  if (val < min) {
+    el.value = min;
+    el.style.borderColor = 'rgba(255,217,61,.5)';
+    setTimeout(function() { el.style.borderColor = 'rgba(255,255,255,.08)'; }, 1500);
+    if (typeof avsToast === 'function') {
+      avsToast('Your target cannot go below your freedom number of $' + min.toLocaleString(), true);
+    }
+    if (typeof window.updateAffTarget === 'function') window.updateAffTarget();
+  }
+};
+
+// ── GET USER TIER ─────────────────────────────────────────────────
+function fbGetUserTier() {
+  return window._userMemberTier
+    || (window._currentMemberData && window._currentMemberData.tier)
+    || localStorage.getItem('eos_member_tier')
+    || 'Starter';
+}
+
+// ── RENDER TIER-AWARE COMMISSION CARD ─────────────────────────────
+function fbRenderCommissionCard(gap) {
+  var body  = document.getElementById('fb-commission-body');
+  var title = document.getElementById('fb-commission-title');
+  if (!body) return;
+  var tier = fbGetUserTier();
+  var fmt  = function(n){ return '$' + Math.round(n).toLocaleString(); };
+  if (title) title.textContent = 'Your Commission Path as a ' + tier + ' Member';
+  var fn = (window._fbData.income || 0) + gap;
+
+  if (tier === 'Starter') {
+    var s = Math.ceil(gap / 1000);
+    body.innerHTML = '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px">'
+      + '<div style="font-size:10px;color:var(--dim);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🥉 Starter Member · What You Earn</div>'
+      + '<div style="font-size:13px;color:var(--white);font-weight:800;margin-bottom:6px">$1,000 per Starter referral</div>'
+      + '<div style="font-size:11px;color:var(--dim);line-height:1.7;margin-bottom:12px">When someone you refer joins as a Starter, you earn $1,000. If they join Pro or Elite, that commission does not count toward you. Upgrade to Pro or Elite to unlock higher commissions.</div>'
+      + '<div style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="font-size:11px;color:var(--dim)">To hit ' + fmt(fn) + '/month you need</div>'
+      + '<div style="font-size:20px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">' + s + ' sales/mo</div>'
+      + '</div>'
+      + '<div style="font-size:10px;color:rgba(239,68,68,.7);margin-top:10px">Upgrading to Elite unlocks $1k on Starter, $2k on Pro, and $3k on Elite referrals — cutting your required monthly sales significantly.</div>'
+      + '</div>';
+  } else if (tier === 'Pro') {
+    var sS = Math.ceil(gap / 1000), sP = Math.ceil(gap / 2000);
+    body.innerHTML = '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:16px">'
+      + '<div style="font-size:10px;color:#a089ff;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🥈 Pro Member · What You Earn</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">'
+      + '<div style="background:rgba(255,255,255,.03);border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--dim);margin-bottom:4px">Starter referral</div><div style="font-size:16px;font-weight:900;color:var(--white)">$1,000</div></div>'
+      + '<div style="background:rgba(108,99,255,.1);border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:#a089ff;margin-bottom:4px">Pro referral</div><div style="font-size:16px;font-weight:900;color:var(--white)">$2,000</div></div>'
+      + '</div>'
+      + '<div style="font-size:11px;color:var(--dim);line-height:1.7;margin-bottom:12px">If your referral joins Elite, that commission does not apply to you. Upgrade to Elite to unlock all three tiers.</div>'
+      + '<div style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:12px 14px">'
+      + '<div style="font-size:11px;color:var(--dim);margin-bottom:8px">To hit ' + fmt(fn) + '/month you need</div>'
+      + '<div style="display:flex;gap:16px;flex-wrap:wrap">'
+      + '<div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--teal)">' + sP + '</div><div style="font-size:9px;color:var(--dim)">Pro sales/mo</div></div>'
+      + '<div style="color:var(--dimmer);align-self:center">or</div>'
+      + '<div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--teal)">' + sS + '</div><div style="font-size:9px;color:var(--dim)">Starter sales/mo</div></div>'
+      + '</div></div></div>';
+  } else {
+    var sS2 = Math.ceil(gap/1000), sP2 = Math.ceil(gap/2000), sE2 = Math.ceil(gap/3000);
+    body.innerHTML = '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:16px">'
+      + '<div style="font-size:10px;color:var(--yellow);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">👑 Elite Member · All Commissions Unlocked</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">'
+      + '<div style="background:rgba(255,255,255,.04);border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--dim);margin-bottom:4px">Starter referral</div><div style="font-size:15px;font-weight:900;color:var(--white)">$1,000</div></div>'
+      + '<div style="background:rgba(108,99,255,.1);border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:#a089ff;margin-bottom:4px">Pro referral</div><div style="font-size:15px;font-weight:900;color:var(--white)">$2,000</div></div>'
+      + '<div style="background:rgba(255,217,61,.08);border-radius:8px;padding:10px;text-align:center"><div style="font-size:9px;color:var(--yellow);margin-bottom:4px">Elite referral</div><div style="font-size:15px;font-weight:900;color:var(--white)">$3,000</div></div>'
+      + '</div>'
+      + '<div style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:12px 14px">'
+      + '<div style="font-size:11px;color:var(--dim);margin-bottom:8px">To hit ' + fmt(fn) + '/month you need</div>'
+      + '<div style="display:flex;gap:14px;flex-wrap:wrap">'
+      + '<div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--teal)">' + sE2 + '</div><div style="font-size:9px;color:var(--dim)">Elite sales/mo</div></div>'
+      + '<div style="color:var(--dimmer);align-self:center">or</div>'
+      + '<div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--teal)">' + sP2 + '</div><div style="font-size:9px;color:var(--dim)">Pro sales/mo</div></div>'
+      + '<div style="color:var(--dimmer);align-self:center">or</div>'
+      + '<div style="text-align:center"><div style="font-size:18px;font-weight:900;color:var(--teal)">' + sS2 + '</div><div style="font-size:9px;color:var(--dim)">Starter sales/mo</div></div>'
+      + '</div></div></div>';
+  }
+}
+
+// ── LOAD SAVED DATA ──────────────────────────────────────────────
+window.fbLoadSavedData = function() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('eos_foundation') || 'null');
+    if (!saved) return;
+    window._fbData = Object.assign(window._fbData, saved);
+
+    // Restore Step 1 fields
+    var fields = {fname:'fb-fname',country:'fb-country',income:'fb-income',expenses:'fb-expenses',savingsGoal:'fb-savings-goal',timeframe:'fb-timeframe'};
+    Object.keys(fields).forEach(function(k) {
+      var el = document.getElementById(fields[k]);
+      if (el && saved[k]) el.value = saved[k];
+    });
+
+    // Restore dream cards
+    if (saved.dreams && saved.dreams.length) {
+      saved.dreams.forEach(function(dr) {
+        var card = document.querySelector('[data-dream="' + dr.id + '"]');
+        if (card) card.classList.add('on');
+      });
+      var total = saved.dreamTotal || 0;
+      var dreamTotalEl = document.getElementById('fb-dream-total');
+      if (dreamTotalEl) dreamTotalEl.textContent = '$' + total.toLocaleString();
+    }
+
+    // Restore pain items
+    if (saved.pains && saved.pains.length) {
+      saved.pains.forEach(function(pain) {
+        var el = document.querySelector('[data-pain="' + pain + '"]');
+        if (el) el.classList.add('on');
+      });
+    }
+
+    // Update freedom number hero
+    if (saved.freedomNum) {
+      var fbFnHero = document.getElementById('fb-freedom-num-hero');
+      if (fbFnHero) fbFnHero.textContent = '$' + Math.round(saved.freedomNum).toLocaleString() + ' / month';
+      // Also enforce minimum on offer setup target
+      window._fbFreedomMin = Math.round(saved.freedomNum);
+      var affTarget = document.getElementById('aff-monthly-target');
+      if (affTarget) {
+        var fn = Math.round(saved.freedomNum);
+        affTarget.min = fn;
+        if (!affTarget.value || parseFloat(affTarget.value) < fn) {
+          affTarget.value = fn;
+        }
+        var hint = document.getElementById('aff-target-hint');
+        if (hint) hint.style.display = 'block';
+      }
+    }
+  } catch(e) {}
+};
+
+// ── PROCEED TO OFFER SETUP ───────────────────────────────────────
+window.fbProceedToOffer = function() {
+  var offerNavBtn = document.getElementById('nav-aff-offer') || document.getElementById('nav-affiliate');
+  if (typeof showPage === 'function') showPage('affiliate', offerNavBtn);
+};
+
+// ── SHOW PAGE HOOK ───────────────────────────────────────────────
+// Load saved data when freedom blueprint page opens
+(function() {
+  var _origShowPage = window.showPage;
+  window.showPage = function(page, btn) {
+    _origShowPage && _origShowPage(page, btn);
+    if (page === 'foundation') {
+      setTimeout(window.fbLoadSavedData, 200);
+    }
+  };
+})();
+
+// ── SHOW IN AFFILIATE MODE ───────────────────────────────────────
+// Add foundation to affiliate mode page list
+(function() {
+  var _origSetAppMode = window.setAppMode;
+  window.setAppMode = function(mode) {
+    _origSetAppMode && _origSetAppMode(mode);
+    var fbBtn = document.getElementById('nav-foundation');
+    if (fbBtn) fbBtn.style.display = mode === 'affiliate' ? 'flex' : 'none';
+  };
+})();
+
+// Also register the page in the showPage router
+(function() {
+  // Ensure page-foundation shows/hides correctly
+  var origShowPage2 = window.showPage;
+  window.showPage = function(page, btn) {
+    var fbPage = document.getElementById('page-foundation');
+    if (fbPage) fbPage.style.display = page === 'foundation' ? 'block' : 'none';
+    origShowPage2 && origShowPage2(page, btn);
   };
 })();
 
