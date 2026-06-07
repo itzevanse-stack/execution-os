@@ -38604,6 +38604,18 @@ window._eosCoach = { open:false, generating:false, audioEl:null, abortCtrl:null 
 var EOS_PRODUCT = {
 
   pages: {
+    foundation: {
+      name: 'Foundation',
+      what: 'The starting point for every Affiliate Mode member. A 5-step journey that establishes your financial reality, your deepest motivations, your dream lifestyle, and your exact monthly freedom number. Step 1 captures your current income, expenses, savings goal, employment status, and timeframe. Step 2 selects the fears and pressures driving you. Step 3 picks your dream lifestyle from six options — each with a real monthly cost. Step 4 calculates your exact freedom number by combining your lifestyle cost with your savings goal, then shows exactly how many sales you need per month at your Alliance tier to hit it. Step 5 generates your personal 90-day affiliate roadmap. Everything entered here feeds every other section of the platform.',
+      actions: [
+        'Step 1 — Enter your name, country, current income, monthly expenses, savings goal, employment status, and how soon you want freedom',
+        'Step 2 — Select every fear and pressure that applies to your situation',
+        'Step 3 — Pick your dream lifestyle. Choose one. Each has a real monthly cost.',
+        'Step 4 — Review your freedom number, gap to close, and how many sales you need at your tier',
+        'Step 5 — Read and listen to your personal 90-day roadmap, then click Set Up My Offer to continue'
+      ],
+      next: 'After completing Foundation, go to Offer Setup and paste your affiliate product link'
+    },
     dashboard: {
       name: 'Dashboard',
       what: 'The command centre. Shows your health score, daily missions, revenue progress, and quick-access to everything. The health score tracks how much of the platform you have activated — the more you use, the higher it climbs. Daily missions are your specific to-do list for the day based on where you are in your journey.',
@@ -38748,6 +38760,19 @@ var EOS_PRODUCT = {
   ],
 
   affiliateSequence: [
+    'Foundation — complete your 5-step freedom blueprint first. This sets your freedom number and feeds every other section.',
+    'Offer Setup — paste your affiliate product link and set your commission and monthly target',
+    'Buyer Intelligence tab — study your buyer psychology',
+    'Promo Intel tab — get your content strategy',
+    'Strategy tab — follow your 30-day roadmap',
+    'Content Calendar — generate 30 days of promo content',
+    'Content Studio — build your promo videos',
+    'DM Scripts tab — start conversations with warm leads',
+    'Daily Action Plan tab — execute every single day',
+    'Link Analytics tab — track every click and conversion'
+  ],
+
+  affiliateSequenceLegacy: [
     'Affiliate Hub — analyse your chosen offer with AI',
     'Buyer Intelligence tab — study your buyer psychology',
     'Promo Intel tab — get your content strategy',
@@ -38788,12 +38813,20 @@ function coachGetCtx() {
     csTab = cb ? (cb.getAttribute('onclick') || '').replace(/.*'([^']+)'.*/,'$1') : 'build';
   }
 
-  var hasOffer    = !!(c.offerName && c.offerName !== 'My Offer');
-  var hasAvatar   = !!(av && av.job);
-  var hasBoardroom= !!(bi && (bi.plan || bi.icpResearch || bi.offerStack));
-  var hasCalendar = !!(window._aiCalendar30 && window._aiCalendar30.length);
-  var hasVideo    = !!(window._avs && window._avs.generatedVideoUrl);
-  var hasAffOffer = !!(aff.name || aff.url);
+  // Read Foundation data
+  var fb = window._fbData || {};
+  try {
+    var fbSaved = JSON.parse(localStorage.getItem('eos_foundation') || 'null');
+    if (fbSaved) fb = fbSaved;
+  } catch(e) {}
+
+  var hasFoundation = !!(fb.freedomNum && fb.freedomNum > 0);
+  var hasOffer      = !!(c.offerName && c.offerName !== 'My Offer');
+  var hasAvatar     = !!(av && av.job);
+  var hasBoardroom  = !!(bi && (bi.plan || bi.icpResearch || bi.offerStack));
+  var hasCalendar   = !!(window._aiCalendar30 && window._aiCalendar30.length);
+  var hasVideo      = !!(window._avs && window._avs.generatedVideoUrl);
+  var hasAffOffer   = !!(aff.name || aff.url);
 
   var join = localStorage.getItem('eos_join_date');
   if (!join) { join = new Date().toISOString(); localStorage.setItem('eos_join_date', join); }
@@ -38801,12 +38834,24 @@ function coachGetCtx() {
 
   return {
     mode, isAff, page, brTab, affTab, csTab, days,
-    niche:     c.niche     || ob.niche  || aff.niche  || '',
-    offer:     c.offerName || ob.offer  || aff.name   || '',
-    avatar:    c.avatarName|| av.job    || '',
-    pain:      c.pain      || av.pain   || '',
-    transf:    c.transformation || av.transformation || '',
-    price:     c.price     || ob.price  || '',
+    niche:          c.niche          || ob.niche   || aff.niche  || '',
+    offer:          c.offerName      || ob.offer   || aff.name   || '',
+    avatar:         c.avatarName     || av.job     || '',
+    pain:           c.pain           || av.pain    || '',
+    transf:         c.transformation || av.transformation || '',
+    price:          c.price          || ob.price   || '',
+    // Foundation data
+    hasFoundation,
+    fbName:         fb.fname         || '',
+    fbFreedomNum:   fb.freedomNum    || 0,
+    fbDreamLife:    fb.dreams && fb.dreams[0] ? fb.dreams[0].id : '',
+    fbDreamCost:    fb.dreamTotal    || 0,
+    fbIncome:       fb.income        || 0,
+    fbSavingsGoal:  fb.savingsGoal   || 0,
+    fbTimeframe:    fb.timeframe     || 6,
+    fbGap:          Math.max(0, (fb.freedomNum||0) - (fb.income||0)),
+    fbTier:         fbGetUserTier ? fbGetUserTier() : (localStorage.getItem('eos_member_tier') || 'Starter'),
+    fbBlueprint:    fb.blueprint     || '',
     hasOffer, hasAvatar, hasBoardroom, hasCalendar, hasVideo, hasAffOffer
   };
 }
@@ -38815,6 +38860,7 @@ function coachGetCtx() {
 function coachPageButtons(ctx) {
   var p = ctx.page;
   var map = {
+    foundation: ['What is this section for?', 'How does my freedom number affect my earnings?', 'Which dream lifestyle should I pick?', 'How does Foundation connect to the rest of the platform?', 'I finished Foundation, what is my next step?'],
     dashboard:  ['What should I do today?', 'Explain my health score', 'What is the 60-day roadmap?', 'Where do I start?'],
     plan:       ['How do I set my revenue target?', 'What price should I charge?', 'How many sales do I need per day?'],
     offer:      ['Help me position my offer', 'What makes a great offer?', 'How do I write my transformation?'],
@@ -38852,8 +38898,10 @@ function coachBuildPrompt(ctx, question) {
     if (matchedTab) subTabContext = '\nCurrently on Affiliate tab: ' + matchedTab + '\nWhat this tab does: ' + pageInfo.tabs[matchedTab];
   }
 
+  var dreamLabels = {nomad:'Laptop Nomad',family:'Family Freedom',luxury:'The Luxury Life',quiet:'Quiet Freedom',investor:'The Investor Life',impact:'The Impact Maker'};
   var userState = 'USER CONTEXT:\n'
     + 'Mode: ' + (ctx.isAff ? 'Affiliate Mode' : 'Expert Mode') + '\n'
+    + 'Alliance Tier: ' + ctx.fbTier + '\n'
     + (ctx.niche  ? 'Niche: '  + ctx.niche  + '\n' : '')
     + (ctx.offer  ? 'Offer: '  + ctx.offer  + '\n' : '')
     + (ctx.avatar ? 'Target audience: ' + ctx.avatar + '\n' : '')
@@ -38861,7 +38909,16 @@ function coachBuildPrompt(ctx, question) {
     + (ctx.transf ? 'Transformation: '  + ctx.transf + '\n' : '')
     + (ctx.price  ? 'Price: $'          + ctx.price  + '\n' : '')
     + 'Days on platform: ' + ctx.days + '\n'
-    + 'Setup completed: offer=' + ctx.hasOffer + ' avatar=' + ctx.hasAvatar + ' boardroom=' + ctx.hasBoardroom + ' calendar=' + ctx.hasCalendar + '\n'
+    + 'Foundation completed: ' + ctx.hasFoundation + '\n'
+    + (ctx.hasFoundation ? (
+        'Freedom Number: $' + Math.round(ctx.fbFreedomNum).toLocaleString() + '/month\n'
+      + 'Current income: $' + Math.round(ctx.fbIncome).toLocaleString() + '/month\n'
+      + 'Monthly savings goal: $' + Math.round(ctx.fbSavingsGoal).toLocaleString() + '\n'
+      + 'Income gap to close: $' + Math.round(ctx.fbGap).toLocaleString() + '/month\n'
+      + 'Dream lifestyle: ' + (dreamLabels[ctx.fbDreamLife] || ctx.fbDreamLife) + ' at $' + Math.round(ctx.fbDreamCost).toLocaleString() + '/month\n'
+      + 'Timeframe to reach freedom: ' + ctx.fbTimeframe + ' months\n'
+    ) : '')
+    + 'Setup completed: foundation=' + ctx.hasFoundation + ' offer=' + ctx.hasOffer + ' avatar=' + ctx.hasAvatar + ' boardroom=' + ctx.hasBoardroom + ' calendar=' + ctx.hasCalendar + '\n'
     + 'Current page: ' + pageInfo.name + subTabContext;
 
   var pageContext = '\nCURRENT PAGE — ' + pageInfo.name.toUpperCase() + ':\n'
