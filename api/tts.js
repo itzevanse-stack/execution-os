@@ -1,19 +1,19 @@
 /**
  * POST /api/tts
- * Converts text to speech using ElevenLabs API.
- * Returns audio as base64 so frontend can play it directly.
+ * Text-to-speech via OpenAI TTS API.
+ * Returns audio as base64 MP3.
  * 
- * Body: { text: string, voiceId?: string }
+ * OpenAI TTS: $0.015 per 1,000 characters — no monthly quota.
+ * Voice: onyx — deep, authoritative, strategist feel.
+ * 
+ * Body: { text: string }
  */
 
 'use strict';
 
-const ELEVENLABS_API  = 'https://api.elevenlabs.io/v1';
-const API_KEY         = process.env.ELEVENLABS_API_KEY;
-
-// Default voice: "Adam" — deep, authoritative, strategic advisor feel
-// Full list at elevenlabs.io/app/voice-lab
-const DEFAULT_VOICE   = 'pNInz6obpgDQGcFmaJgB'; // Adam
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const VOICE          = 'onyx';   // deep, authoritative — best for strategic coaching
+const MODEL          = 'tts-1';  // tts-1 = fastest, tts-1-hd = highest quality
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,8 +22,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (!API_KEY) {
-    return res.status(500).json({ error: 'ELEVENLABS_API_KEY not configured in environment variables.' });
+  if (!OPENAI_API_KEY) {
+    return res.status(500).json({ error: 'OPENAI_API_KEY not configured in Vercel environment variables.' });
   }
 
   const { text, voiceId } = req.body || {};
@@ -31,46 +31,42 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'No text provided.' });
   }
 
-  // Cap at 5000 chars to stay within ElevenLabs limits per request
-  const safeText = text.slice(0, 5000);
-  const voice    = voiceId || DEFAULT_VOICE;
+  // Cap at 4096 chars — OpenAI TTS limit per request
+  const safeText = text.slice(0, 4096);
+  const voice    = voiceId || VOICE;
 
   try {
-    const response = await fetch(`${ELEVENLABS_API}/text-to-speech/${voice}`, {
+    const response = await fetch('https://api.openai.com/v1/audio/speech', {
       method: 'POST',
       headers: {
-        'xi-api-key':   API_KEY,
-        'Content-Type': 'application/json',
-        'Accept':       'audio/mpeg',
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Content-Type':  'application/json',
       },
       body: JSON.stringify({
-        text: safeText,
-        model_id: 'eleven_turbo_v2_5', // fastest + best quality balance
-        voice_settings: {
-          stability:        0.45,  // slight variation = more natural
-          similarity_boost: 0.82,  // high similarity to voice profile
-          style:            0.35,  // some expressiveness
-          use_speaker_boost: true, // cleaner audio
-        },
+        model: MODEL,
+        voice: voice,
+        input: safeText,
+        response_format: 'mp3',
+        speed: 0.95, // slightly slower than default — easier to absorb
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[tts] ElevenLabs error:', response.status, errText);
+      console.error('[tts] OpenAI error:', response.status, errText.slice(0, 200));
       return res.status(response.status).json({
-        error: 'ElevenLabs error: ' + response.status + ' — ' + errText.slice(0, 200),
+        error: 'TTS error ' + response.status + ': ' + errText.slice(0, 150),
       });
     }
 
-    // Convert audio buffer to base64 and send to client
+    // Convert audio buffer to base64
     const audioBuffer = await response.arrayBuffer();
-    const base64Audio  = Buffer.from(audioBuffer).toString('base64');
+    const base64Audio = Buffer.from(audioBuffer).toString('base64');
 
     return res.status(200).json({
-      ok:        true,
-      audio:     base64Audio,
-      mimeType:  'audio/mpeg',
+      ok:       true,
+      audio:    base64Audio,
+      mimeType: 'audio/mpeg',
     });
 
   } catch (err) {
