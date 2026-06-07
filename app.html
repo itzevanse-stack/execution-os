@@ -26383,6 +26383,16 @@ onAuthStateChanged(auth, async (user) => {
     if (ap) {
       ap.style.display = 'block';
       window.adminLoadMembers && window.adminLoadMembers();
+    // Auto-repair domain mappings on admin load
+    setTimeout(function() {
+      fetch(window.location.origin + '/api/sync-domain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ repairAll: true })
+      }).then(function(r){ return r.json(); })
+        .then(function(d){ console.log('[admin] Domain sync:', d.message || d); })
+        .catch(function(e){ console.warn('[admin] Domain sync failed:', e.message); });
+    }, 2000);
     }
     // Expose admin flag for training portal
     window._isAdmin = true;
