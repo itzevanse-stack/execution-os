@@ -1,19 +1,19 @@
 /**
  * POST /api/tts
- * Text-to-speech via OpenAI TTS API.
+ * Text-to-speech via ElevenLabs API.
  * Returns audio as base64 MP3.
- * 
- * OpenAI TTS: $0.015 per 1,000 characters — no monthly quota.
- * Voice: onyx — deep, authoritative, strategist feel.
- * 
- * Body: { text: string }
+ *
+ * Voice: Adam (pNInz6obpgDQGcFmaJgB) — deep, authoritative, strategic advisor feel.
+ * Model: eleven_turbo_v2_5 — fastest with best quality balance.
+ *
+ * Body: { text: string, voiceId?: string }
  */
 
 'use strict';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const VOICE          = 'onyx';   // deep, authoritative — best for strategic coaching
-const MODEL          = 'tts-1';  // tts-1 = fastest, tts-1-hd = highest quality
+const ELEVENLABS_API = 'https://api.elevenlabs.io/v1';
+const API_KEY        = process.env.ELEVENLABS_API_KEY;
+const DEFAULT_VOICE  = 'pNInz6obpgDQGcFmaJgB'; // Adam
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -22,8 +22,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  if (!OPENAI_API_KEY) {
-    return res.status(500).json({ error: 'OPENAI_API_KEY not configured in Vercel environment variables.' });
+  if (!API_KEY) {
+    return res.status(500).json({ error: 'ELEVENLABS_API_KEY not configured in Vercel environment variables.' });
   }
 
   const { text, voiceId } = req.body || {};
@@ -31,37 +31,39 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'No text provided.' });
   }
 
-  // Cap at 4096 chars — OpenAI TTS limit per request
-  const safeText = text.slice(0, 4096);
-  const voice    = voiceId || VOICE;
+  const safeText = text.slice(0, 5000);
+  const voice    = voiceId || DEFAULT_VOICE;
 
   try {
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
+    const response = await fetch(`${ELEVENLABS_API}/text-to-speech/${voice}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-        'Content-Type':  'application/json',
+        'xi-api-key':   API_KEY,
+        'Content-Type': 'application/json',
+        'Accept':       'audio/mpeg',
       },
       body: JSON.stringify({
-        model: MODEL,
-        voice: voice,
-        input: safeText,
-        response_format: 'mp3',
-        speed: 0.95, // slightly slower than default — easier to absorb
+        text: safeText,
+        model_id: 'eleven_turbo_v2_5',
+        voice_settings: {
+          stability:        0.45,
+          similarity_boost: 0.82,
+          style:            0.35,
+          use_speaker_boost: true,
+        },
       }),
     });
 
     if (!response.ok) {
       const errText = await response.text();
-      console.error('[tts] OpenAI error:', response.status, errText.slice(0, 200));
+      console.error('[tts] ElevenLabs error:', response.status, errText.slice(0, 200));
       return res.status(response.status).json({
-        error: 'TTS error ' + response.status + ': ' + errText.slice(0, 150),
+        error: 'ElevenLabs error ' + response.status + ': ' + errText.slice(0, 150),
       });
     }
 
-    // Convert audio buffer to base64
     const audioBuffer = await response.arrayBuffer();
-    const base64Audio = Buffer.from(audioBuffer).toString('base64');
+    const base64Audio  = Buffer.from(audioBuffer).toString('base64');
 
     return res.status(200).json({
       ok:       true,
