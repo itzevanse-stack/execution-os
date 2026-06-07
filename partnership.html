@@ -8,57 +8,48 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- CopeCart SDK — cart-based checkout -->
-  <script src="https://cdn.jsdelivr.net/npm/@copecart/sdk@0.1.1/dist/index.global.js"></script>
+  <!-- CopeCart checkout — direct hosted checkout links (most reliable) -->
+  <!-- IMPORTANT: In CopeCart Settings → SDK, set Success URL to https://build.skillslibrary.com/grow?order=success -->
+
+  <!-- Embedded checkout container (hidden until activated) -->
+  <div id="cope-checkout-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:99999;align-items:center;justify-content:center;backdrop-filter:blur(6px)">
+    <div style="background:#fff;border-radius:16px;width:min(480px,95vw);max-height:90vh;overflow:hidden;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.5)">
+      <button onclick="copeCloseModal()" style="position:absolute;top:12px;right:12px;z-index:10;width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,.08);cursor:pointer;font-size:16px;color:#555;display:flex;align-items:center;justify-content:center">&#x2715;</button>
+      <div id="cope-checkout" style="width:100%;min-height:400px"></div>
+    </div>
+  </div>
+
   <script>
-    var PK = 'cope_pk_f45636d676ac09f26d34166ea49d0733c1233abfe682d5fc';
+    // Direct CopeCart hosted checkout — no SDK, no plan confusion
+    // Each product URL goes directly to the correct CopeCart checkout page
+    var COPE_PRODUCTS = {
+      'prod_PVMT5iF8': 'https://app.cope.com/checkout/prod_PVMT5iF8', // Starter
+      'prod_T8CKyv9B': 'https://app.cope.com/checkout/prod_T8CKyv9B', // Pro
+      'prod_tgfaj2Co': 'https://app.cope.com/checkout/prod_tgfaj2Co', // Elite
+    };
 
-    async function copeCheckout(productId) {
-      var btn = document.querySelector('[data-cope-product="' + productId + '"]');
-      if (btn) { btn.disabled = true; btn.textContent = 'Opening checkout…'; }
+    function copeCheckout(productId) {
+      var url = COPE_PRODUCTS[productId];
+      if (!url) { console.error('[CopeCart] Unknown product:', productId); return; }
 
-      try {
-        // CopeCart SDK uses CopeCart.CopeCart as the class (IIFE bundle)
-        var CartClass = (typeof CopeCart !== 'undefined' && CopeCart.CopeCart)
-                      ? CopeCart.CopeCart
-                      : null;
+      // Open in same tab — clean redirect to CopeCart hosted checkout
+      // CopeCart redirects back to success_url after payment
+      window.location.href = url;
+    }
 
-        if (!CartClass) throw new Error('SDK not loaded');
-
-        var client = new CartClass({ publishableKey: PK });
-
-        // 1. Create a cart
-        var cart = await client.createCart({ currency: 'USD' });
-
-        // 2. Add the product as a line item
-        await client.addLine(cart.id, { product_id: productId, quantity: 1 });
-
-        // 3. Get checkout URL — opens on same page (no new tab)
-        var result = await client.checkout(cart.id, {
-          success_url: 'https://build.skillslibrary.com/grow?order=success',
-          cancel_url:  'https://build.skillslibrary.com/grow',
+    // Handle return from CopeCart after successful payment
+    // CopeCart appends ?order_id=ord_... to the success URL
+    (function() {
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('order_id') || params.get('order') === 'success') {
+        window.addEventListener('DOMContentLoaded', function() {
+          var overlay = document.getElementById('cope-success-overlay');
+          if (overlay) overlay.style.display = 'flex';
+          // Report sale via sync
+          fetch('/api/copecart-sync', { method: 'POST' }).catch(function(){});
         });
-
-        // Redirect on same page — user stays in your domain flow
-        window.location.href = result.checkoutUrl;
-
-      } catch(err) {
-        console.error('[CopeCart]', err.message);
-        // Fallback: direct product page
-        window.location.href = 'https://app.cope.com/products/' + productId;
-        if (btn) { btn.disabled = false; btn.textContent = btn.getAttribute('data-original-text') || 'Join Now'; }
       }
-    }
-
-    // Show success overlay if redirected back after payment
-    if (window.location.search.includes('order=success')) {
-      document.addEventListener('DOMContentLoaded', function() {
-        var overlay = document.getElementById('cope-success-overlay');
-        if (overlay) overlay.style.display = 'flex';
-        // Report the sale via sync
-        fetch('/api/copecart-sync', { method: 'POST' }).catch(function(){});
-      });
-    }
+    })();
   </script>
 
   <!-- Success overlay shown after purchase -->
