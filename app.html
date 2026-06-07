@@ -2776,7 +2776,7 @@ button[onclick="generateOffer()"] {
       <div id="ob-step-1">
         <div style="font-size:36px;margin-bottom:14px">👋</div>
         <div style="font-size:22px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px;line-height:1.3">Welcome to Execution OS.</div>
-        <div id="ob-welcome-sub" style="font-size:13px;color:var(--dim);margin-bottom:28px;line-height:1.7">Let's get you set up in 2 minutes so the platform is fully personalised to your business from day one.</div>
+        <div id="ob-welcome-sub" style="font-size:13px;color:var(--dim);margin-bottom:28px;line-height:1.7">Let's get you set up. First we'll collect your quick details, then Foundation will establish your freedom number and build your personalised platform from day one.</div>
 
         <!-- Mode confirmation chip — read-only, set by admin -->
         <div id="ob-mode-chip" style="display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:50px;margin-bottom:24px;font-size:12px;font-weight:700;font-family:Poppins,sans-serif"></div>
@@ -2784,13 +2784,13 @@ button[onclick="generateOffer()"] {
         <!-- What they'll get preview -->
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:28px">
           <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
+            <span style="font-size:16px">🌟</span><span style="font-size:12px;color:var(--muted)">Foundation calculates your exact monthly freedom number</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
             <span style="font-size:16px">🧠</span><span style="font-size:12px;color:var(--muted)">Execution OS builds your complete content intelligence</span>
           </div>
           <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
-            <span style="font-size:16px">💬</span><span style="font-size:12px;color:var(--muted)">5 personalised DM scripts ready to send today</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border-radius:10px">
-            <span style="font-size:16px">📅</span><span style="font-size:12px;color:var(--muted)">7-day content calendar built from your offer</span>
+            <span style="font-size:16px">💬</span><span style="font-size:12px;color:var(--muted)">Personalised DM scripts, daily plan, and content calendar built from your offer</span>
           </div>
         </div>
 
@@ -7725,9 +7725,11 @@ button[onclick="generateOffer()"] {
       </div>
 
       <!-- Publish button -->
-      <button onclick="fbPublishLive()" class="fb-publish-btn" id="fb-go-live-btn">
-        🚀 Go Live — Publish Funnel
-      </button>
+      <div style="display:flex;justify-content:center;padding:8px 0 4px">
+        <button onclick="fbPublishLive()" class="fb-publish-btn" id="fb-go-live-btn" style="width:auto;padding:13px 36px;font-size:13px;text-transform:none;letter-spacing:0;border-radius:50px">
+          🚀 Publish Funnel
+        </button>
+      </div>
 
     </div><!-- /fb-view-publish -->
 
@@ -12722,18 +12724,80 @@ window.generateCustomRoutine = function() {
       });
     }
 
+    // ── Build personalised routine prompt using Foundation data ──────
+    function buildRoutinePrompt(d) {
+      var isAff = d.isAffiliate;
+      var fn    = Math.round(d.freedomNumber || 10000);
+      var comm  = Math.round(d.commPerSale || 1000);
+      var sales = d.salesPerMonth || 5;
+      var dream = d.dreamLifestyle || "financial freedom";
+      var p = "Build a highly personalised daily execution routine. Return ONLY valid JSON with a blocks array.";
+      p += " Each block needs: time, dur, icon, title, why, tag, accent, tagColor, tagText.";
+      p += " SITUATION: Job: " + (d.job || "working toward freedom");
+      p += ". Wake: " + (d.wake || "6am") + ". Sleep: " + (d.sleep || "10pm");
+      p += ". Business time: " + (d.biztime || "3-4 hours/day");
+      p += ". Weakness: " + (d.weakness || "consistency");
+      p += ". Life goal: " + (d.lifegoal || "freedom");
+      p += ". Areas: " + (d.areas || "mindset, skill, business") + ".";
+      p += " FINANCIAL GOAL: Freedom number $" + fn.toLocaleString() + "/month.";
+      p += " Dream lifestyle: " + dream + ". Timeframe: " + (d.timeframe || 6) + " months.";
+      if (isAff) {
+        p += " Needs " + sales + " sales/month at $" + comm.toLocaleString() + "/sale.";
+        p += " Niche: " + (d.niche || "Online Business") + ".";
+      }
+      p += " INSTRUCTIONS: Build complete day wake to sleep. Every block serves hitting $" + fn.toLocaleString() + "/month.";
+      p += " Include morning ritual, content creation, outreach, review, development, wind-down.";
+      if (isAff) p += " Outreach block must specify exact daily DM count needed for " + sales + " sales/month.";
+      p += " Each why field must reference their " + dream + " and $" + fn.toLocaleString() + " goal. Make it specific. Not generic.";
+      p += ' JSON only. No markdown. Format: {"blocks":[{"time":"6:00 AM","dur":"30 min","icon":"sunrise","title":"Block","why":"reason","tag":"mindset","accent":"rgba(108,99,255,.15)","tagColor":"rgba(108,99,255,.7)","tagText":"Mindset"}]}';
+      return p;
+    }
+
     (async () => {
       try {
         const readtime      = (document.getElementById('rq_readtime')       || {}).value || 'Evening';
         const readhours     = (document.getElementById('rq_readhours')      || {}).value || '30 minutes';
         const bedtimeritual = (document.getElementById('rq_bedtimeritual')  || {}).value || 'Prayer and reflection';
+        // Pull Foundation data for personalised routine
+        var fbRoutineData = {};
+        try { fbRoutineData = JSON.parse(localStorage.getItem('eos_foundation') || '{}'); } catch(e) {}
+        var routineMode   = window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+        var routineFn     = fbRoutineData.freedomNum  || window._appliedTarget || 10000;
+        var routineDream  = fbRoutineData.dreams && fbRoutineData.dreams[0] ? fbRoutineData.dreams[0].id : '';
+        var routineTf     = fbRoutineData.timeframe   || 6;
+        var routineComm   = fbRoutineData.commissionPerSale || fbRoutineData.customCommission || 1000;
+        var routineSales  = routineComm > 0 ? Math.ceil(routineFn / routineComm) : 5;
+        var dreamLabels   = {nomad:'Laptop Nomad lifestyle ($7,000/month)',family:'Family Freedom lifestyle ($10,000/month)',luxury:'Luxury Life ($20,000/month)',quiet:'Quiet Freedom ($7,000/month)',investor:'Investor Life ($25,000/month)',impact:'Impact Maker ($12,000/month)'};
+        var routineDreamLabel = dreamLabels[routineDream] || 'financial freedom';
+        var routineTier   = fbRoutineData.allianceTier || 'affiliate';
+
         const aiResult = await callAPI('build-routine', {
           wake, sleep, job, biztime, weakness, addiction,
           belief, exercise, extype, lifegoal, identity,
           areas: Array.from(rqAreas).join(', '),
-          target: window._appliedTarget || 10000,
-          niche:  window._appliedNiche  || 'Online Business',
-          readtime, readhours, bedtimeritual
+          target:      routineFn,
+          niche:       window._appliedNiche || fbRoutineData.jobTitle || 'Online Business',
+          readtime, readhours, bedtimeritual,
+          // Foundation context for personalisation
+          freedomNumber:  routineFn,
+          dreamLifestyle: routineDreamLabel,
+          timeframe:      routineTf,
+          salesPerMonth:  routineSales,
+          commPerSale:    routineComm,
+          allianceTier:   routineTier,
+          isAffiliate:    routineMode === 'affiliate',
+          _rawPrompt: buildRoutinePrompt({
+            wake, sleep, job, biztime, weakness, addiction, belief, exercise,
+            extype, lifegoal, identity, readtime, readhours, bedtimeritual,
+            areas: Array.from(rqAreas).join(', '),
+            freedomNumber:  routineFn,
+            dreamLifestyle: routineDreamLabel,
+            timeframe:      routineTf,
+            salesPerMonth:  routineSales,
+            commPerSale:    routineComm,
+            niche:          window._appliedNiche || fbRoutineData.jobTitle || 'Online Business',
+            isAffiliate:    routineMode === 'affiliate',
+          })
         });
         if (aiResult.blocks && aiResult.blocks.length > 5) {
           customRoutineBlocks = aiResult.blocks;
@@ -19073,7 +19137,13 @@ function renderDashboard() {
     // ══════════════════════════════════════════════════
     const offer      = window._affiliateOffer || {};
     const commission = offer.commission || window._appliedPrice || 0;
-    const target     = window._appliedTarget || 0;
+    // Use Foundation freedom number as the authoritative target if available
+    var fbTarget = 0;
+    try {
+      var fbSaved = JSON.parse(localStorage.getItem('eos_foundation') || 'null');
+      if (fbSaved && fbSaved.freedomNum) fbTarget = Math.round(fbSaved.freedomNum);
+    } catch(e) {}
+    const target = fbTarget || window._appliedTarget || 0;
 
     let trackerData = {};
     try { trackerData = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
@@ -36535,6 +36605,18 @@ window.onboardNext = async function(fromStep) {
         return;
       }
       window._obData = { url, niche: aNiche, commission: comm };
+      // For affiliates: redirect to Foundation first after onboarding
+      setTimeout(function() {
+        var fbSaved = null;
+        try { fbSaved = JSON.parse(localStorage.getItem('eos_foundation') || 'null'); } catch(e) {}
+        if (!fbSaved || !fbSaved.freedomNum) {
+          // Foundation not completed — guide them there after wizard closes
+          var foundationNav = document.getElementById('nav-foundation');
+          if (typeof showPage === 'function' && foundationNav) {
+            showPage('foundation', foundationNav);
+          }
+        }
+      }, 800);
     }
     if (err) err.style.display = 'none';
     onboardGoto(3);
@@ -37380,7 +37462,15 @@ window.setupNudgeCheck = function() {
     var hasAvatar  = !!(window._avatarData && window._avatarData.pain);
     var hasCalendar= !!(window._calEntries && window._calEntries.length > 0);
 
+    // Check Foundation completion
+    var fbDone = false;
+    try {
+      var fbSaved = JSON.parse(localStorage.getItem('eos_foundation') || 'null');
+      fbDone = !!(fbSaved && fbSaved.freedomNum && fbSaved.freedomNum > 0);
+    } catch(e) {}
+
     steps = [
+      { label: 'Foundation',       done: fbDone,      action: "showPage('foundation',document.getElementById('nav-foundation'))" },
       { label: 'Offer Setup',      done: hasOffer,    action: "showPage('affiliate',document.getElementById('nav-aff-offer'))" },
       { label: 'Buyer Profile',    done: hasAvatar,   action: "showPage('affiliate',document.getElementById('nav-aff-offer'))" },
       { label: 'Content Calendar', done: hasCalendar, action: "showPage('ai-video',document.getElementById('nav-ai-video'))" },
@@ -37390,12 +37480,26 @@ window.setupNudgeCheck = function() {
     complete = doneCount === steps.length;
 
     if (!complete) {
-      titleEl.textContent = doneCount === 0
-        ? 'Start with Offer Setup to unlock everything'
-        : doneCount === 1 ? 'Almost there — 2 more steps to full power' : 'One step away from a fully powered platform';
-      subEl.textContent = 'Complete all 3 steps and everything becomes personalised to your exact offer and audience.';
-      ctaBtn.textContent = hasOffer ? 'Continue Setup →' : 'Start Offer Setup →';
-      ctaBtn.setAttribute('data-action', "showPage('affiliate',document.getElementById('nav-aff-offer'))");
+      // Determine next action based on what is missing
+      var nextAction, nextBtnText;
+      if (!fbDone) {
+        titleEl.textContent = 'Start with Foundation — build your freedom blueprint first';
+        subEl.textContent   = 'Foundation establishes your freedom number and personalises everything in the platform to your exact goal and lifestyle.';
+        nextBtnText = 'Start Foundation →';
+        nextAction  = "showPage('foundation',document.getElementById('nav-foundation'))";
+      } else if (!hasOffer) {
+        titleEl.textContent = 'Foundation complete · Now set up your affiliate offer';
+        subEl.textContent   = 'Paste your affiliate link and everything becomes personalised to your offer and audience.';
+        nextBtnText = 'Set Up Offer →';
+        nextAction  = "showPage('affiliate',document.getElementById('nav-aff-offer'))";
+      } else {
+        titleEl.textContent = doneCount === 2 ? 'Almost there — 2 more steps to full power' : 'One step away from a fully powered platform';
+        subEl.textContent   = 'Complete all steps and everything becomes personalised to your exact offer and audience.';
+        nextBtnText = 'Continue Setup →';
+        nextAction  = "showPage('affiliate',document.getElementById('nav-aff-offer'))";
+      }
+      ctaBtn.textContent = nextBtnText;
+      ctaBtn.setAttribute('data-action', nextAction);
     }
   } else {
     // Expert setup steps
