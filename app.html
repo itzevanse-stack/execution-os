@@ -5069,31 +5069,11 @@ button[onclick="generateOffer()"] {
         <div class="fb-metric"><div class="fb-metric-label">Sales / Week</div><div class="fb-metric-val" id="fb-m-sales-week">—</div><div class="fb-metric-sub">your weekly target</div></div>
       </div>
 
-      <!-- Tier commission breakdown -->
-      <div class="fb-card">
-        <div class="fb-card-hed">Your Commission Path — Based on Your Alliance Tier</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;text-align:center">
-            <div style="font-size:10px;color:var(--dim);font-weight:700;margin-bottom:6px">🥉 STARTER</div>
-            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">$1,000</div>
-            <div style="font-size:9px;color:var(--dim);margin-top:4px">per Starter referral</div>
-            <div style="font-size:9px;color:rgba(239,68,68,.7);margin-top:4px">Pro + Elite = lost</div>
-            <div style="font-size:10px;font-weight:800;color:var(--teal);margin-top:8px" id="fb-starter-sales">Need — sales/mo</div>
-          </div>
-          <div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.25);border-radius:12px;padding:14px;text-align:center">
-            <div style="font-size:10px;color:#a089ff;font-weight:700;margin-bottom:6px">🥈 PRO</div>
-            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">$1k–$2k</div>
-            <div style="font-size:9px;color:var(--dim);margin-top:4px">Starter $1k · Pro $2k</div>
-            <div style="font-size:9px;color:rgba(239,68,68,.7);margin-top:4px">Elite referral = lost</div>
-            <div style="font-size:10px;font-weight:800;color:var(--teal);margin-top:8px" id="fb-pro-sales">Need — sales/mo</div>
-          </div>
-          <div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:14px;text-align:center">
-            <div style="font-size:10px;color:var(--yellow);font-weight:700;margin-bottom:6px">👑 ELITE</div>
-            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">$1k–$3k</div>
-            <div style="font-size:9px;color:var(--dim);margin-top:4px">All tiers unlocked</div>
-            <div style="font-size:9px;color:var(--teal);margin-top:4px">Maximum earnings ✅</div>
-            <div style="font-size:10px;font-weight:800;color:var(--teal);margin-top:8px" id="fb-elite-sales">Need — sales/mo</div>
-          </div>
+      <!-- Commission card — populated dynamically by fbRenderCommissionCard() -->
+      <div class="fb-card" id="fb-commission-card">
+        <div class="fb-card-hed" id="fb-commission-title">Your Commission Path</div>
+        <div id="fb-commission-body" style="font-size:12px;color:var(--dim);line-height:1.7">
+          <div style="text-align:center;padding:16px;color:var(--dimmer)">Complete Step 1 and select your Alliance tier or enter your commission to see your personalised path here.</div>
         </div>
       </div>
 
@@ -39423,6 +39403,10 @@ window.fbPickAlliance = function(el, tier) {
 
   // Store in localStorage immediately
   try { localStorage.setItem('eos_foundation', JSON.stringify(window._fbData)); } catch(e){}
+
+  // Update commission card preview immediately — don't wait for Step 4
+  var gap = Math.max(0, (window._fbData.freedomNum || 0) - (window._fbData.income || 0));
+  if (typeof fbRenderCommissionCard === 'function') fbRenderCommissionCard(gap);
 };
 
 window.fbUpdateCustomCalc = function() {
@@ -39739,6 +39723,7 @@ function fbGetUserTier() {
 function fbRenderCommissionCard(gap) {
   var body  = document.getElementById('fb-commission-body');
   var title = document.getElementById('fb-commission-title');
+  var card  = document.getElementById('fb-commission-card');
   if (!body) return;
   var fmt  = function(n){ return '$' + Math.round(n).toLocaleString(); };
   var fn   = (window._fbData.income || 0) + gap;
@@ -39748,11 +39733,13 @@ function fbRenderCommissionCard(gap) {
   var customComm     = window._fbData.customCommission || 0;
   var commPerSale    = window._fbData.commissionPerSale || 0;
 
-  // Non-Alliance: show custom commission card
+  // Non-Alliance: show only their custom commission — no Alliance references
   if (allianceTier === 'none' || (allianceTier === '' && customComm > 0)) {
     var effComm = customComm || commPerSale || 100;
     var salesNeeded = Math.ceil(gap / effComm);
-    if (title) title.textContent = 'Your Commission Path';
+    // Non-Alliance: rename card title so no Alliance reference appears
+    if (title) title.textContent = 'Your Earnings Path';
+    if (card) card.style.borderColor = 'rgba(78,204,163,.2)';
     body.innerHTML = '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:16px">'
       + '<div style="font-size:10px;color:var(--teal);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🔗 Your Affiliate Commission</div>'
       + '<div style="font-size:28px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">' + fmt(effComm) + '</div>'
@@ -39775,9 +39762,10 @@ function fbRenderCommissionCard(gap) {
     return;
   }
 
-  // Alliance tier selected — use tier label from Firestore or selection
+  // Alliance tier selected
   var tier = allianceTier.charAt(0).toUpperCase() + allianceTier.slice(1);
   if (title) title.textContent = 'Your Commission Path as a ' + tier + ' Member';
+  if (card) card.style.borderColor = 'rgba(255,255,255,.07)';
 
   if (tier === 'Starter') {
     var s = Math.ceil(gap / 1000);
