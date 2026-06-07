@@ -4924,6 +4924,39 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
+      <!-- Alliance Partnership Question -->
+      <div class="fb-card" id="fb-alliance-card">
+        <div class="fb-card-hed">Are You an Execution OS Alliance Partner?</div>
+        <p style="font-size:12px;color:var(--dim);line-height:1.7;margin:0 0 14px">This helps us calculate your exact commission earnings. If you are promoting a different product, select No and enter your commission below.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <div class="fb-alliance-opt" onclick="fbPickAlliance(this,'starter')" data-tier="starter" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;text-align:center">
+            <div style="font-size:18px;margin-bottom:6px">🥉</div>
+            <div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">Starter</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:3px">$1,000 per referral</div>
+          </div>
+          <div class="fb-alliance-opt" onclick="fbPickAlliance(this,'pro')" data-tier="pro" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;text-align:center">
+            <div style="font-size:18px;margin-bottom:6px">🥈</div>
+            <div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">Pro</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:3px">$1,000 to $2,000</div>
+          </div>
+          <div class="fb-alliance-opt" onclick="fbPickAlliance(this,'elite')" data-tier="elite" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;text-align:center">
+            <div style="font-size:18px;margin-bottom:6px">👑</div>
+            <div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">Elite</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:3px">$1,000 to $3,000</div>
+          </div>
+          <div class="fb-alliance-opt" onclick="fbPickAlliance(this,'none')" data-tier="none" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;cursor:pointer;transition:all .2s;text-align:center">
+            <div style="font-size:18px;margin-bottom:6px">🔗</div>
+            <div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">Not in Alliance</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:3px">I promote my own offer</div>
+          </div>
+        </div>
+        <div id="fb-custom-commission-wrap" style="display:none;margin-top:4px">
+          <div class="fb-label">Your Commission Per Sale ($)</div>
+          <input class="fb-input" id="fb-custom-commission" type="number" placeholder="e.g. 500" min="1" oninput="fbUpdateCustomCalc()" style="max-width:240px">
+          <div style="font-size:10px;color:var(--dim);margin-top:5px">Enter what you earn per sale from the product you are promoting.</div>
+        </div>
+      </div>
+
       <div class="fb-nav-row"><button class="fb-btn fb-btn-primary" onclick="fbGoTo(2)">I'm Ready — Let's Go ⚡</button></div>
     </div>
 
@@ -39154,6 +39187,7 @@ window._fbData = {
   fname:'', country:'', income:0, expenses:0, savingsGoal:0, jobStatus:'',
   timeframe:6, jobTitle:'', incomeProblem:'',
   pains:[], dreams:[], dreamTotal:0, freedomNum:0,
+  allianceTier:'', commissionPerSale:0, customCommission:0,
 };
 
 // ── COLLECT DATA FROM CURRENT VISIBLE STEP ───────────────────────
@@ -39178,6 +39212,13 @@ function fbCollectCurrentStep() {
   if (tf)       window._fbData.timeframe     = parseInt(tf.value) || 6;
   if (jobTitle) window._fbData.jobTitle      = jobTitle.value.trim();
   if (incomePb) window._fbData.incomeProblem = incomePb.value;
+
+  // Collect custom commission if not in Alliance
+  var customComm = document.getElementById('fb-custom-commission');
+  if (customComm && customComm.value) {
+    window._fbData.customCommission  = parseFloat(customComm.value) || 0;
+    window._fbData.commissionPerSale = window._fbData.customCommission;
+  }
 
   // Save to localStorage immediately on every step
   try { localStorage.setItem('eos_foundation', JSON.stringify(window._fbData)); } catch(e){}
@@ -39252,6 +39293,38 @@ window.fbTogglePain = function(el) {
   if (idx > -1) window._fbData.pains.splice(idx, 1);
   else          window._fbData.pains.push(pain);
   // Save immediately
+  try { localStorage.setItem('eos_foundation', JSON.stringify(window._fbData)); } catch(e){}
+};
+
+// ── PICK ALLIANCE TIER ───────────────────────────────────────────
+window.fbPickAlliance = function(el, tier) {
+  // Deselect all options
+  document.querySelectorAll('.fb-alliance-opt').forEach(function(o) {
+    o.style.background    = 'rgba(255,255,255,.03)';
+    o.style.borderColor   = 'rgba(255,255,255,.07)';
+  });
+  // Highlight selected
+  el.style.background  = 'rgba(108,99,255,.1)';
+  el.style.borderColor = 'rgba(108,99,255,.35)';
+
+  window._fbData.allianceTier = tier;
+
+  // Show custom commission input only for non-Alliance users
+  var wrap = document.getElementById('fb-custom-commission-wrap');
+  if (wrap) wrap.style.display = tier === 'none' ? 'block' : 'none';
+
+  // Map tier to commission for calculations
+  var commMap = { starter: 1000, pro: 1500, elite: 2000, none: 0 };
+  window._fbData.commissionPerSale = commMap[tier] || 0;
+
+  // Store in localStorage immediately
+  try { localStorage.setItem('eos_foundation', JSON.stringify(window._fbData)); } catch(e){}
+};
+
+window.fbUpdateCustomCalc = function() {
+  var val = parseFloat((document.getElementById('fb-custom-commission')||{}).value) || 0;
+  window._fbData.commissionPerSale = val;
+  window._fbData.customCommission  = val;
   try { localStorage.setItem('eos_foundation', JSON.stringify(window._fbData)); } catch(e){}
 };
 
@@ -39503,6 +39576,16 @@ function fbSaveData() {
     ).catch(function(){});
   }
 
+  // Pre-fill offer commission from Foundation selection
+  if (d.commissionPerSale || d.customCommission) {
+    var commVal = d.customCommission || d.commissionPerSale || 0;
+    var affComm = document.getElementById('aff-commission');
+    if (affComm && commVal && !affComm.value) {
+      affComm.value = commVal;
+      if (typeof window.updateAffTarget === 'function') window.updateAffTarget();
+    }
+  }
+
   // Feed freedom number into affiliate offer target and enforce as minimum
   if (d.freedomNum) {
     var affTarget = document.getElementById('aff-monthly-target');
@@ -39553,10 +39636,44 @@ function fbRenderCommissionCard(gap) {
   var body  = document.getElementById('fb-commission-body');
   var title = document.getElementById('fb-commission-title');
   if (!body) return;
-  var tier = fbGetUserTier();
   var fmt  = function(n){ return '$' + Math.round(n).toLocaleString(); };
+  var fn   = (window._fbData.income || 0) + gap;
+
+  // Check if user selected Alliance or custom
+  var allianceTier   = window._fbData.allianceTier || '';
+  var customComm     = window._fbData.customCommission || 0;
+  var commPerSale    = window._fbData.commissionPerSale || 0;
+
+  // Non-Alliance: show custom commission card
+  if (allianceTier === 'none' || (allianceTier === '' && customComm > 0)) {
+    var effComm = customComm || commPerSale || 100;
+    var salesNeeded = Math.ceil(gap / effComm);
+    if (title) title.textContent = 'Your Commission Path';
+    body.innerHTML = '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:16px">'
+      + '<div style="font-size:10px;color:var(--teal);font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">🔗 Your Affiliate Commission</div>'
+      + '<div style="font-size:28px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">' + fmt(effComm) + '</div>'
+      + '<div style="font-size:11px;color:var(--dim);margin-bottom:14px">per sale from your offer</div>'
+      + '<div style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between">'
+      + '<div style="font-size:11px;color:var(--dim)">To hit ' + fmt(fn) + '/month you need</div>'
+      + '<div style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">' + salesNeeded + ' sales/mo</div>'
+      + '</div>'
+      + '<div style="font-size:10px;color:var(--dim);margin-top:10px">You can update your commission amount in Offer Setup at any time.</div>'
+      + '</div>';
+    return;
+  }
+
+  // No tier selected yet — prompt them
+  if (!allianceTier) {
+    if (title) title.textContent = 'Your Commission Path';
+    body.innerHTML = '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:16px;text-align:center">'
+      + '<div style="font-size:12px;color:var(--dim);line-height:1.7">Go back to Step 1 and select your Alliance tier or choose Not in Alliance to see your personalised commission path.</div>'
+      + '</div>';
+    return;
+  }
+
+  // Alliance tier selected — use tier label from Firestore or selection
+  var tier = allianceTier.charAt(0).toUpperCase() + allianceTier.slice(1);
   if (title) title.textContent = 'Your Commission Path as a ' + tier + ' Member';
-  var fn = (window._fbData.income || 0) + gap;
 
   if (tier === 'Starter') {
     var s = Math.ceil(gap / 1000);
@@ -39638,6 +39755,21 @@ window.fbLoadSavedData = function() {
         var el = document.querySelector('[data-pain="' + pain + '"]');
         if (el) el.classList.add('on');
       });
+    }
+
+    // Restore Alliance tier selection
+    if (saved.allianceTier) {
+      var tierEl = document.querySelector('[data-tier="' + saved.allianceTier + '"]');
+      if (tierEl) {
+        tierEl.style.background  = 'rgba(108,99,255,.1)';
+        tierEl.style.borderColor = 'rgba(108,99,255,.35)';
+      }
+      if (saved.allianceTier === 'none') {
+        var wrap = document.getElementById('fb-custom-commission-wrap');
+        if (wrap) wrap.style.display = 'block';
+        var commInput = document.getElementById('fb-custom-commission');
+        if (commInput && saved.customCommission) commInput.value = saved.customCommission;
+      }
     }
 
     // Update freedom number hero
