@@ -19545,10 +19545,13 @@ window.analyseAffiliateProduct = async function() {
     window.renderAffAvatarView    && window.renderAffAvatarView(av);
     window.renderAffDMScripts     && window.renderAffDMScripts(av, offer.name||productName, offer.commission||commission);
     window.renderAffCommTrackerFn && window.renderAffCommTrackerFn(offer.commission||commission);
-    // Restore Promo Intel and Offer Viability to their "generate" button state
-    // (they were cleared with "Analysing new offer…" — now show the proper empty state)
+    // Restore ALL tabs to their proper state after analysis
+    // (they were cleared with "Analysing new offer…" above)
+    window.renderAffBuyerResearch  && window.renderAffBuyerResearch();
     window.renderAffPromoIntel     && window.renderAffPromoIntel();
     window.renderAffOfferViability && window.renderAffOfferViability();
+    window.renderAffContentStrategy && window.renderAffContentStrategy();
+    window.renderAffDailyPlan      && window.renderAffDailyPlan && setTimeout(function(){ window.renderAffDailyPlan(); }, 200);
     // Refresh My Offers library so newly saved offer appears immediately
     window.affRenderOffersLibrary  && window.affRenderOffersLibrary();
     if (window._aiCalendar30 && window._aiCalendar30.length > 0) {
@@ -19637,6 +19640,32 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
   "niche": "${productNiche}",
   "commission": ${commission}
 }`;
+
+    // ── Extract sales page content via Tavily ──────────────────────
+    let _salesPageContent = '';
+    let _salesPageTitle   = '';
+    try {
+      setProgress(12, 'Reading your sales page…', null);
+      var extractResp = await fetch(window.location.origin + '/api/tavily-extract', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url }),
+      });
+      if (extractResp.ok) {
+        var extractData = await extractResp.json();
+        if (extractData.ok && extractData.content) {
+          _salesPageContent = extractData.content;
+          _salesPageTitle   = extractData.title || productName;
+          // Save for intelligence calls
+          window._affSalesPageContent = _salesPageContent;
+          window._affSalesPageTitle   = _salesPageTitle;
+          setProgress(18, 'Sales page extracted — building intelligence…', 'Sales page read via Tavily ✅');
+          console.log('[tavily-extract] ✅ Extracted', _salesPageContent.length, 'chars from', url);
+        }
+      }
+    } catch(extractErr) {
+      console.warn('[tavily-extract] Failed:', extractErr.message, '— continuing without page content');
+    }
 
     let av = {};
     try {
@@ -24056,10 +24085,15 @@ function _affResearchLoading(elId, tab, icon, title, messages) {
 ══════════════════════════════════════════════════════════════════ */
 function affCallAI_BuyerResearch(offer, av) {
   var sys = 'You are an elite affiliate marketing strategist and buyer psychology expert. You use real web research to find what people actually say about products in this niche — their exact language, their frustrations, their buying triggers. You search Reddit, Quora, Facebook groups, Amazon reviews, YouTube comments, and forums to find real conversations. You distinguish between the affiliate marketer (the person promoting) and the buyer (the person buying). Return ONLY valid compact JSON.';
+  // Include extracted sales page content if available
+  var _spContent = window._affSalesPageContent || '';
+  var _spTitle   = window._affSalesPageTitle   || offer.name || '';
+
   var p = [
     'Research the buyer psychology for people purchasing products in this niche.',
-    'This person is an AFFILIATE promoting: ' + (offer.name || 'a digital product') + ' in the ' + (offer.niche || 'online business') + ' niche.',
+    'This person is an AFFILIATE promoting: ' + (offer.name || _spTitle || 'a digital product') + ' in the ' + (offer.niche || 'online business') + ' niche.',
     'Commission per sale: $' + (offer.commission || 1000),
+    _spContent ? '\nHere is the actual sales page content for this product — use this to understand exactly what is being sold, the promises made, and the buyer this targets:\n\n' + _spContent.slice(0, 3000) + '\n' : '',
     '',
     'Search Reddit, Quora, Facebook groups, YouTube comments, and forums to find what BUYERS of products like this actually say.',
     'Find their exact language, real pain points, what pushes them to finally buy, and what stops them.',
@@ -24275,11 +24309,14 @@ window.runAffBuyerResearch = async function() {
    finds the saturated angles and the open positioning gaps
 ══════════════════════════════════════════════════════════════════ */
 function affCallAI_PromoIntel(offer, av) {
+  // Sales page content available from Tavily extract
+  var _spContent = window._affSalesPageContent || '';
   var sys = 'You are a competitive intelligence analyst specialising in affiliate marketing. You research how affiliates are currently promoting products in a given niche, identify what angles are saturated, and find the positioning gaps that a new affiliate can own. You look at social media, review sites, and affiliate content to understand the competitive landscape. Return ONLY valid compact JSON.';
   var p = [
     'Research how affiliates are currently promoting products in this niche.',
     'Product being promoted: ' + (offer.name || 'digital product') + ' in the ' + (offer.niche || 'online business') + ' niche.',
     'Price point: approximately $' + (Math.round((offer.commission || 1000) / 0.4 / 100) * 100) + ' (estimated from $' + (offer.commission || 1000) + ' commission)',
+    (_spContent ? '\nActual sales page content — use this to understand the exact promises, bonuses, and positioning:\n' + _spContent.slice(0, 2000) + '\n' : ''),
     '',
     'Search the internet for how affiliates are currently promoting similar products in this niche.',
     'Look at Instagram, Facebook, YouTube, TikTok, blogs, and review sites.',
