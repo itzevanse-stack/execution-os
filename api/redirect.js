@@ -132,18 +132,40 @@ module.exports = async function handler(req, res) {
   let userId      = null;
 
   // ── 1. Look up slug in Firestore ──────────────────────────────
+  // The platform saves links as doc ID = slug, so try direct doc lookup first
+  // then fall back to where query for backwards compatibility
   try {
     const db = getDb();
-    // Try full slug first (expert source link: baseslug_src stored as uid_src doc)
-    // Then fall back to base slug query
-    let snap = await db.collection('links').where('slug','==',slug).limit(1).get();
-    if (snap.empty && baseSlug !== slug) {
-      snap = await db.collection('links').where('slug','==',baseSlug).limit(1).get();
-    }
-    if (!snap.empty) {
-      const data = snap.docs[0].data();
+
+    // Method 1: Direct document lookup (slug is the doc ID — new format)
+    const directDoc = await db.collection('links').doc(slug).get();
+    if (directDoc.exists) {
+      const data = directDoc.data();
       originalUrl = data.originalUrl || data.url || null;
       userId      = data.userId      || null;
+    }
+
+    // Method 2: Try base slug if source-tagged
+    if (!originalUrl && baseSlug !== slug) {
+      const baseDoc = await db.collection('links').doc(baseSlug).get();
+      if (baseDoc.exists) {
+        const data = baseDoc.data();
+        originalUrl = data.originalUrl || data.url || null;
+        userId      = data.userId      || null;
+      }
+    }
+
+    // Method 3: Fall back to where query (old format)
+    if (!originalUrl) {
+      let snap = await db.collection('links').where('slug','==',slug).limit(1).get();
+      if (snap.empty && baseSlug !== slug) {
+        snap = await db.collection('links').where('slug','==',baseSlug).limit(1).get();
+      }
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        originalUrl = data.originalUrl || data.url || null;
+        userId      = data.userId      || null;
+      }
     }
   } catch(e) {
     console.error('[redirect] Firestore lookup failed:', e.message);
