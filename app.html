@@ -1964,6 +1964,63 @@ button[onclick="generateOffer()"] {
 
 /* ══════════════════════════════════════════════════════════════ */
 
+/* ── Dashboard filter pills ────────────────────────────────── */
+.db-filter-pill {
+  padding: 5px 12px;
+  border-radius: 50px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04);
+  color: var(--dim);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .3px;
+}
+.db-filter-pill:hover {
+  border-color: rgba(78,204,163,.3);
+  color: var(--teal);
+}
+.db-filter-pill.active {
+  background: rgba(78,204,163,.12);
+  border-color: rgba(78,204,163,.35);
+  color: var(--teal);
+}
+/* Graph bar */
+.db-bar {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  min-height: 3px;
+  transition: height .3s cubic-bezier(.4,0,.2,1), background .3s;
+  position: relative;
+  cursor: default;
+}
+.db-bar:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,.85);
+  color: #fff;
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  font-family: 'Inter', sans-serif;
+  pointer-events: none;
+  z-index: 10;
+}
+.db-graph-lbl {
+  flex: 1;
+  text-align: center;
+  font-size: 9px;
+  color: var(--dimmer);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ══════════════════════════════════════════════════════════════ */
 .eos-loader-wrap {
   display: flex;
   flex-direction: column;
@@ -3435,9 +3492,9 @@ button[onclick="generateOffer()"] {
           <div class="db-sub" id="db-gap-sub">deals remaining</div>
         </div>
         <div class="db-metric purple">
-          <div class="db-lbl">Content Days Done</div>
+          <div class="db-lbl">Paid Customers</div>
           <div class="db-val" id="db-cal-done" style="color:var(--purple)">0</div>
-          <div class="db-sub" id="db-cal-sub">of 30 days this month</div>
+          <div class="db-sub" id="db-cal-sub">paying customers</div>
         </div>
       </div>
 
@@ -3451,6 +3508,42 @@ button[onclick="generateOffer()"] {
           <div id="db-rev-bar" style="height:100%;background:linear-gradient(90deg,var(--teal),var(--yellow));border-radius:4px;width:0%;transition:width .8s cubic-bezier(.4,0,.2,1)"></div>
         </div>
         <div id="db-rev-deals" style="font-size:11px;color:var(--dim)">Set your Revenue Plan to see your progress here.</div>
+      </div>
+
+      <!-- ── TIME FILTER PILLS ─────────────────────────────────── -->
+      <div id="db-filter-row" style="display:none;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800">📊 Sales Activity</div>
+        <div style="display:flex;gap:6px">
+          <button class="db-filter-pill active" onclick="dbSetFilter('week',this)">This Week</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('month',this)">This Month</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('last',this)">Last Month</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('all',this)">All Time</button>
+        </div>
+      </div>
+
+      <!-- ── SALES GRAPH ────────────────────────────────────────── -->
+      <div id="db-graph-card" style="display:none;background:linear-gradient(145deg,var(--card),var(--card2));border:1px solid var(--border2);border-radius:16px;padding:1.25rem;margin-bottom:1.5rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div>
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);font-weight:800">Revenue Over Time</div>
+            <div id="db-graph-period" style="font-size:11px;color:var(--dim);margin-top:2px">This week</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:18px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif" id="db-graph-total">$0</div>
+            <div id="db-graph-vs" style="font-size:10px;color:var(--dim);margin-top:2px"></div>
+          </div>
+        </div>
+        <!-- Bar chart -->
+        <div id="db-graph-bars" style="display:flex;align-items:flex-end;gap:6px;height:80px;padding-top:8px">
+          <!-- populated by JS -->
+        </div>
+        <!-- X axis labels -->
+        <div id="db-graph-labels" style="display:flex;gap:6px;margin-top:6px">
+          <!-- populated by JS -->
+        </div>
+        <div id="db-graph-empty" style="display:none;text-align:center;padding:20px 0;color:var(--dimmer);font-size:11px">
+          No sales recorded yet for this period. Sales you log will appear here automatically.
+        </div>
       </div>
 
       <!-- Main grid: Today's Mission + Quick Actions -->
@@ -19299,8 +19392,23 @@ function renderDashboard() {
     if (sub2) sub2.textContent = sales + ' sale' + (sales !== 1 ? 's' : '') + ' · ' + clicks + ' clicks';
     setEl('db-gap', gap > 0 ? fmt(gap) : '✅');
     if (sub3) sub3.textContent = gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Monthly target hit!';
-    setEl('db-cal-done', calDone);
-    setEl('db-cal-sub', 'content days done — ' + (calDone >= 14 ? '🔥 on fire' : calDone >= 7 ? '💪 building' : '🎯 get started'));
+    // Customers = total paying customers (sales)
+    setEl('db-cal-done', sales);
+    setEl('db-cal-sub', sales === 1 ? '1 paid customer' : (sales || 0) + ' paid customers');
+
+    // Show filter + graph — always visible in affiliate mode
+    var _filterRow = document.getElementById('db-filter-row');
+    var _graphCard  = document.getElementById('db-graph-card');
+    if (_filterRow) _filterRow.style.display = 'flex';
+    if (_graphCard)  _graphCard.style.display  = 'block';
+    // Render graph — defer so dbShowGraph is definitely loaded
+    setTimeout(function() {
+      if (typeof window.dbShowGraph === 'function') {
+        window.dbShowGraph(trackerData);
+      } else if (typeof _dbRenderGraph === 'function') {
+        _dbRenderGraph((trackerData && trackerData.salesHistory) || [], window._dbFilter || 'month');
+      }
+    }, 50);
 
     const bar    = document.getElementById('db-rev-bar');
     const pctEl  = document.getElementById('db-rev-pct');
@@ -19485,21 +19593,32 @@ function renderDashboard() {
   }
 
   // ── HEALTH SCORE (shared) ─────────────────────────────────────────────────
-  if (window.renderHealthScore) {
-    try {
-      const score = window.renderHealthScore(true);
-      if (score !== undefined) {
-        setEl('db-score-num', score);
-        setEl('db-score-lbl', score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : score >= 40 ? 'Building' : 'Getting started');
-      }
-    } catch(e) {}
-  }
+  try {
+    // calculateHealthScore works with current window data — call directly
+    var _hs = typeof calculateHealthScore === 'function' ? calculateHealthScore() : null;
+    if (_hs && typeof _hs.total === 'number') {
+      setEl('db-score-num', _hs.total);
+      var _hslbl = _hs.total >= 80 ? 'Excellent' : _hs.total >= 60 ? 'Good' : _hs.total >= 40 ? 'Building' : 'Getting started';
+      setEl('db-score-lbl', _hslbl);
+      // Also update sidebar score
+      var _sideScore = document.getElementById('sidebar-score');
+      if (_sideScore) _sideScore.textContent = _hs.total;
+    }
+  } catch(e) {}
 
   // ── STREAK (shared) ───────────────────────────────────────────────────────
   try {
-    const streakData = JSON.parse(localStorage.getItem('eos_streak') || '{"count":0}');
-    setEl('db-streak-num', streakData.count || 0);
-  } catch(e) {}
+    // eos_streak is the unified streak key
+    // Also check eos_cal_streak and mentor_streak as fallbacks
+    var _streakCount = 0;
+    var _s1 = JSON.parse(localStorage.getItem('eos_streak') || 'null');
+    var _s2 = parseInt(localStorage.getItem('eos_cal_streak') || '0');
+    var _s3 = JSON.parse(localStorage.getItem('mentor_streak') || '[]');
+    if (_s1 && _s1.count)    _streakCount = _s1.count;
+    else if (_s2 > 0)        _streakCount = _s2;
+    else if (_s3 && _s3.length) _streakCount = _s3.length;
+    setEl('db-streak-num', _streakCount);
+  } catch(e) { setEl('db-streak-num', 0); }
 }
 
 
@@ -23634,6 +23753,23 @@ window.affTrack = function(key, delta) {
   let data = {};
   try { data = JSON.parse(localStorage.getItem('eos_aff_tracker') || '{}'); } catch(e) {}
   data[key] = Math.max(0, (data[key] || 0) + delta);
+
+  // ── Log timestamped sale entry for graph/filter ─────────────
+  if (key === 'sales' && delta > 0) {
+    var commission = window._appliedPrice || 0;
+    if (!data.salesHistory) data.salesHistory = [];
+    for (var _si = 0; _si < delta; _si++) {
+      data.salesHistory.push({
+        date:   new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+        amount: commission,
+      });
+    }
+    // Keep last 365 entries
+    if (data.salesHistory.length > 365) {
+      data.salesHistory = data.salesHistory.slice(-365);
+    }
+  }
+
   try { localStorage.setItem('eos_aff_tracker', JSON.stringify(data)); } catch(e) {}
   // Also save to Firestore so it survives refresh
   if (window._db && window._setDoc && window._doc && window._currentUserUid) {
@@ -26868,6 +27004,33 @@ onAuthStateChanged(auth, async (user) => {
 
   // ── Mark Firestore as ready ─────────────────────────────────────────────
   window._firestoreReady = true;
+
+  // ── Auto-update day streak on login ────────────────────────────────────
+  try {
+    var _today    = new Date().toISOString().slice(0, 10);
+    var _streakRaw= localStorage.getItem('eos_streak');
+    var _streakObj= _streakRaw ? JSON.parse(_streakRaw) : { count: 0, lastDate: null };
+    var _lastDate = _streakObj.lastDate || null;
+    var _yesterday= new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+
+    if (_lastDate === _today) {
+      // Already logged today — streak unchanged
+    } else if (_lastDate === _yesterday) {
+      // Consecutive day — increment streak
+      _streakObj.count    = (_streakObj.count || 0) + 1;
+      _streakObj.lastDate = _today;
+      localStorage.setItem('eos_streak', JSON.stringify(_streakObj));
+    } else if (!_lastDate) {
+      // First ever login — start streak at 1
+      _streakObj = { count: 1, lastDate: _today };
+      localStorage.setItem('eos_streak', JSON.stringify(_streakObj));
+    } else {
+      // Missed a day — reset to 1
+      _streakObj = { count: 1, lastDate: _today };
+      localStorage.setItem('eos_streak', JSON.stringify(_streakObj));
+    }
+  } catch(e) {}
+
   // Dashboard render — fires immediately, data is correct now
   window.renderDashboard && window.renderDashboard();
   // Note: eosHideLoader fires AFTER page restore (600ms below) so
@@ -36087,7 +36250,10 @@ window.calMarkPublished = function() {
     var allTodayDone = window._calEntries.filter(function(e){ return e.dayNum === 1; }).every(function(e){ return e.status === 'published'; });
     if (allTodayDone) {
       var streak = parseInt(localStorage.getItem('eos_cal_streak') || '0') || 0;
-      localStorage.setItem('eos_cal_streak', String(streak + 1));
+      var _newStreak = streak + 1;
+      localStorage.setItem('eos_cal_streak', String(_newStreak));
+      // Keep eos_streak in sync — this is the unified source for dashboard
+      localStorage.setItem('eos_streak', JSON.stringify({ count: _newStreak, updatedAt: new Date().toISOString() }));
     }
   } catch(e) {}
   // Write to Firestore if available
@@ -40277,6 +40443,217 @@ window.fbProceedToOffer = function() {
   window.eosLoaderProgress = setProgress;
 
 })();
+</script>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DASHBOARD FILTER + SALES GRAPH
+   Filter pills: This Week / This Month / Last Month / All Time
+   Bar chart: shows real sale data from salesHistory
+═══════════════════════════════════════════════════════════════ */
+
+window._dbFilter = 'month'; // default
+
+// ── Date helpers ─────────────────────────────────────────────────
+function _dbWeekStart() {
+  var d = new Date();
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - d.getDay()); // Sunday
+  return d;
+}
+function _dbMonthStart(offset) {
+  var d = new Date();
+  d.setDate(1);
+  d.setHours(0,0,0,0);
+  if (offset) d.setMonth(d.getMonth() + offset);
+  return d;
+}
+function _dbMonthEnd(offset) {
+  var d = _dbMonthStart((offset||0) + 1);
+  d.setDate(d.getDate() - 1);
+  d.setHours(23,59,59,999);
+  return d;
+}
+
+// ── Get filtered sales from history ──────────────────────────────
+function _dbGetFilteredSales(history, filter) {
+  if (!history || !history.length) return [];
+  var now   = new Date();
+  var start, end;
+
+  if (filter === 'week') {
+    start = _dbWeekStart();
+    end   = new Date();
+  } else if (filter === 'month') {
+    start = _dbMonthStart(0);
+    end   = new Date();
+  } else if (filter === 'last') {
+    start = _dbMonthStart(-1);
+    end   = _dbMonthEnd(-1);
+  } else {
+    return history; // all time
+  }
+
+  var startStr = start.toISOString().slice(0,10);
+  var endStr   = end.toISOString().slice(0,10);
+
+  return history.filter(function(s) {
+    return s.date >= startStr && s.date <= endStr;
+  });
+}
+
+// ── Build bar chart data ──────────────────────────────────────────
+function _dbBuildBars(history, filter) {
+  var bars = [];
+  var now  = new Date();
+
+  if (filter === 'week') {
+    // 7 bars — one per day Sun-Sat
+    var week = _dbWeekStart();
+    var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(week);
+      d.setDate(week.getDate() + i);
+      var ds = d.toISOString().slice(0,10);
+      var daySales = history.filter(function(s){ return s.date === ds; });
+      var total    = daySales.reduce(function(sum,s){ return sum + (s.amount||0); }, 0);
+      bars.push({ label: days[i], value: total, count: daySales.length, date: ds });
+    }
+  } else if (filter === 'month') {
+    // Show last 4 weeks as week groups
+    for (var w = 3; w >= 0; w--) {
+      var wStart = new Date(now);
+      wStart.setDate(now.getDate() - (w+1)*7 + 1);
+      wStart.setHours(0,0,0,0);
+      var wEnd = new Date(wStart);
+      wEnd.setDate(wStart.getDate() + 6);
+      var ws = wStart.toISOString().slice(0,10);
+      var we = wEnd.toISOString().slice(0,10);
+      var wSales = history.filter(function(s){ return s.date >= ws && s.date <= we; });
+      var wTotal = wSales.reduce(function(sum,s){ return sum + (s.amount||0); }, 0);
+      var wk = 4 - w;
+      bars.push({ label: 'Wk ' + wk, value: wTotal, count: wSales.length });
+    }
+  } else if (filter === 'last') {
+    // Last month — show each week
+    var lmStart = _dbMonthStart(-1);
+    var lmEnd   = _dbMonthEnd(-1);
+    var daysInLastMonth = lmEnd.getDate();
+    var weeksInMonth = Math.ceil(daysInLastMonth / 7);
+    for (var lw = 0; lw < weeksInMonth; lw++) {
+      var lwStart = new Date(lmStart);
+      lwStart.setDate(1 + lw * 7);
+      var lwEnd = new Date(lwStart);
+      lwEnd.setDate(lwStart.getDate() + 6);
+      if (lwEnd > lmEnd) lwEnd = lmEnd;
+      var lws = lwStart.toISOString().slice(0,10);
+      var lwe = lwEnd.toISOString().slice(0,10);
+      var lwSales = history.filter(function(s){ return s.date >= lws && s.date <= lwe; });
+      var lwTotal = lwSales.reduce(function(sum,s){ return sum + (s.amount||0); }, 0);
+      bars.push({ label: 'Wk '+(lw+1), value: lwTotal, count: lwSales.length });
+    }
+  } else {
+    // All time — group by month (last 6 months)
+    for (var m = 5; m >= 0; m--) {
+      var ms = _dbMonthStart(-m);
+      var me = _dbMonthEnd(-m);
+      var mss = ms.toISOString().slice(0,10);
+      var mes = me.toISOString().slice(0,10);
+      var mSales = history.filter(function(s){ return s.date >= mss && s.date <= mes; });
+      var mTotal = mSales.reduce(function(sum,s){ return sum + (s.amount||0); }, 0);
+      var mLabel = ms.toLocaleString('en', { month:'short' });
+      bars.push({ label: mLabel, value: mTotal, count: mSales.length });
+    }
+  }
+  return bars;
+}
+
+// ── Render graph ──────────────────────────────────────────────────
+function _dbRenderGraph(history, filter) {
+  var barsEl   = document.getElementById('db-graph-bars');
+  var labelsEl = document.getElementById('db-graph-labels');
+  var emptyEl  = document.getElementById('db-graph-empty');
+  var periodEl = document.getElementById('db-graph-period');
+  var totalEl  = document.getElementById('db-graph-total');
+  var vsEl     = document.getElementById('db-graph-vs');
+  if (!barsEl) return;
+
+  var bars     = _dbBuildBars(history || [], filter);
+  var maxVal   = Math.max.apply(null, bars.map(function(b){ return b.value; })) || 1;
+  var filtered = _dbGetFilteredSales(history || [], filter);
+  var total    = filtered.reduce(function(s,e){ return s + (e.amount||0); }, 0);
+  var fmt      = function(n){ return n >= 1000 ? '$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'k' : '$'+n.toLocaleString(); };
+
+  if (totalEl) totalEl.textContent = fmt(total);
+
+  var periodLabels = { week:'This week', month:'This month', last:'Last month', all:'All time' };
+  if (periodEl) periodEl.textContent = periodLabels[filter] || '';
+
+  // VS comparison
+  if (vsEl && filter === 'month') {
+    var lastSales = _dbGetFilteredSales(history || [], 'last');
+    var lastTotal = lastSales.reduce(function(s,e){ return s + (e.amount||0); }, 0);
+    if (lastTotal > 0) {
+      var diff = total - lastTotal;
+      var pct  = Math.round((diff / lastTotal) * 100);
+      vsEl.textContent = (pct >= 0 ? '+' : '') + pct + '% vs last month';
+      vsEl.style.color = pct >= 0 ? 'var(--teal)' : 'var(--red)';
+    } else {
+      vsEl.textContent = '';
+    }
+  } else if (vsEl) {
+    vsEl.textContent = '';
+  }
+
+  var hasData = bars.some(function(b){ return b.value > 0; });
+
+  if (emptyEl) emptyEl.style.display = hasData ? 'none' : 'block';
+  barsEl.style.display   = hasData ? 'flex' : 'none';
+  labelsEl.style.display = hasData ? 'flex' : 'none';
+
+  if (!hasData) return;
+
+  barsEl.innerHTML = bars.map(function(b) {
+    var h   = Math.max(4, Math.round((b.value / maxVal) * 72));
+    var tip = b.count + ' sale' + (b.count !== 1 ? 's' : '') + (b.value ? ' · ' + fmt(b.value) : '');
+    var isToday = b.date === new Date().toISOString().slice(0,10);
+    var bg  = b.value > 0
+      ? (isToday ? 'linear-gradient(180deg,var(--teal),var(--teal2))' : 'linear-gradient(180deg,rgba(108,99,255,.8),rgba(78,52,200,.6))')
+      : 'rgba(255,255,255,.06)';
+    return '<div class="db-bar" data-tip="' + tip + '" style="height:' + h + 'px;background:' + bg + '"></div>';
+  }).join('');
+
+  labelsEl.innerHTML = bars.map(function(b) {
+    return '<div class="db-graph-lbl">' + b.label + '</div>';
+  }).join('');
+}
+
+// ── Set filter pill ───────────────────────────────────────────────
+window.dbSetFilter = function(filter, btn) {
+  window._dbFilter = filter;
+  document.querySelectorAll('.db-filter-pill').forEach(function(p) {
+    p.classList.remove('active');
+  });
+  if (btn) btn.classList.add('active');
+
+  // Re-render dashboard with new filter
+  window.renderDashboard && window.renderDashboard();
+};
+
+// ── Show/hide graph based on whether salesHistory exists ─────────
+window.dbShowGraph = function(trackerData) {
+  var history  = (trackerData && trackerData.salesHistory) || [];
+  var filterRow = document.getElementById('db-filter-row');
+  var graphCard = document.getElementById('db-graph-card');
+
+  // Show graph section — even if empty, show with empty state
+  if (filterRow) filterRow.style.display = 'flex';
+  if (graphCard) graphCard.style.display = 'block';
+
+  _dbRenderGraph(history, window._dbFilter || 'month');
+};
+
 </script>
 
 </body>
