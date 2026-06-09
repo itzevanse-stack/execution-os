@@ -19095,6 +19095,24 @@ function renderDashboard() {
   const mode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate';
   const isAffiliate = mode === 'affiliate';
 
+  // Ensure affiliate offer is loaded before rendering
+  // This prevents the flash of zero commission on refresh
+  if (isAffiliate && (!window._affiliateOffer || !window._affiliateOffer.commission)) {
+    try {
+      var savedState = JSON.parse(localStorage.getItem('eos_state_affiliate') || 'null');
+      if (savedState && savedState.offer && savedState.offer.commission) {
+        window._affiliateOffer   = window._affiliateOffer || savedState.offer;
+        window._appliedPrice     = window._appliedPrice   || savedState.offer.commission;
+        window._appliedTarget    = window._appliedTarget  || savedState.offer.monthlyTarget;
+        window._appliedNiche     = window._appliedNiche   || savedState.offer.niche;
+      }
+      // Also restore tracker data
+      if (savedState && savedState.trackerData) {
+        try { localStorage.setItem('eos_aff_tracker', JSON.stringify(savedState.trackerData)); } catch(e) {}
+      }
+    } catch(e) {}
+  }
+
   // ── GREETING ──────────────────────────────────────────────────────────────
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -19145,12 +19163,13 @@ function renderDashboard() {
     if (lbl1) lbl1.textContent = 'Monthly Target';
     if (lbl2) lbl2.textContent = 'Commission Earned';
     if (lbl3) lbl3.textContent = 'Gap to Close';
-    setEl('db-target', target ? fmt(target) : '—');
-    setEl('db-earned', commission ? fmt(earned) : '—');
-    // Count-up animations
-    if (target && window.EOSLoader)     { setTimeout(() => window.EOSLoader.countUp('db-target', target, '$', '', 1000), 100); }
-    if (earned && window.EOSLoader)     { setTimeout(() => window.EOSLoader.countUp('db-earned', earned, '$', '', 900), 200); }
-    if (gap > 0 && window.EOSLoader)    { setTimeout(() => window.EOSLoader.countUp('db-gap', gap, '$', '', 800), 300); }
+    // Only show numbers when offer data is actually loaded
+    // This prevents the flash of wrong numbers on refresh
+    var dataReady = !!(commission || (offer && offer.name) || window._affiliateOffer);
+    setEl('db-target', target ? fmt(target) : (dataReady ? '$0' : '—'));
+    setEl('db-earned', dataReady ? fmt(earned) : '—');
+    // No count-up animations on metric cards — they cause the appearance of
+    // wrong numbers on refresh which looks unprofessional, especially during screen shares
     if (sub2) sub2.textContent = sales + ' sale' + (sales !== 1 ? 's' : '') + ' · ' + clicks + ' clicks';
     setEl('db-gap', gap > 0 ? fmt(gap) : '✅');
     if (sub3) sub3.textContent = gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Monthly target hit!';
