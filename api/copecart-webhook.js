@@ -53,13 +53,23 @@ function verifySignature(rawBody, headers) {
   }
 }
 
-function detectTier(productName, amount) {
+const PRODUCT_ID_MAP = {
+  'prod_PVMT5iF8': { tier:'Starter',  commission: 1000, type:'entry' },
+  'prod_T8CKyv9B': { tier:'Pro',      commission: 2000, type:'entry' },
+  'prod_tgfaj2Co': { tier:'Elite',    commission: 3000, type:'entry' },
+  'prod_cyhCmvVh': { tier:'Platform', commission: 0,    type:'subscription' },
+};
+
+function detectTier(productName, amount, productId) {
+  // Check product ID first — most reliable
+  if (productId && PRODUCT_ID_MAP[productId]) return PRODUCT_ID_MAP[productId];
+  // Fall back to name/amount
   const n   = (productName || '').toLowerCase();
   const amt = parseFloat(amount) || 0;
-  if (n.includes('elite')   || amt >= 3000) return { tier:'Elite',   commission: 3000, type:'entry' };
-  if (n.includes('pro')     || amt >= 2000) return { tier:'Pro',     commission: 2000, type:'entry' };
-  if (n.includes('starter') || amt >= 1000) return { tier:'Starter', commission: 1000, type:'entry' };
-  if (amt >= 150)                           return { tier:'Platform', commission: 0,    type:'subscription' };
+  if (n.includes('elite')    || amt >= 3000) return { tier:'Elite',    commission: 3000, type:'entry' };
+  if (n.includes('pro')      || amt >= 2000) return { tier:'Pro',      commission: 2000, type:'entry' };
+  if (n.includes('starter')  || amt >= 1000) return { tier:'Starter',  commission: 1000, type:'entry' };
+  if (n.includes('platform') || amt >= 350)  return { tier:'Platform', commission: 0,    type:'subscription' };
   return { tier:'Unknown', commission: 0, type:'unknown' };
 }
 
@@ -216,7 +226,7 @@ export default async function handler(req, res) {
   const existing = await docRef.get();
   if (existing.exists) return res.status(200).json({ ok: true, duplicate: true });
 
-  const tierInfo = detectTier(productName, amount);
+  const tierInfo = detectTier(productName, amount, String(productId));
 
   // ── Look up referring affiliate from CopeCart affiliate_id or referral data ──
   const affiliateId    = order.affiliate_id || data.affiliate_id || order.referral_id || '';
@@ -272,6 +282,36 @@ export default async function handler(req, res) {
     [`tier_${tierInfo.tier}_rev`]:   FieldValue.increment(amount),
     lastSaleAt:                      FieldValue.serverTimestamp(),
   }, { merge: true });
+
+  // ── Auto-add buyer to alliance_partners (so they appear in admin dashboard) ──
+  if (tierInfo.tier !== 'Unknown' && tierInfo.tier !== 'Platform' && buyerEmail) {
+    const safeEmail = buyerEmail.replace(/[.#$[\]]/g, '_');
+    await db.collection('alliance_partners').doc(safeEmail).set({
+      name:        buyerName,
+      email:       buyerEmail,
+      tier:        tierInfo.tier,
+      status:      'active',
+      amount,
+      productId:   String(productId),
+      transactionId: String(transactionId),
+      source:      'copecart',
+      affiliateId: affiliateId || null,
+      joinedAt:    FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    // Also add to members collection for platform access
+    await db.collection('members').doc(safeEmail).set({
+      name:      buyerName,
+      email:     buyerEmail,
+      tier:      tierInfo.tier,
+      appMode:   'affiliate',
+      status:    'active',
+      source:    'copecart',
+      createdAt: FieldValue.serverTimestamp(),
+    }, { merge: true });
+
+    console.log('[cope-webhook] ✅ Added to alliance_partners + members:', buyerEmail, tierInfo.tier);
+  }
 
   if (!process.env.RESEND_API_KEY) {
     console.log('[cope-webhook] ✅ Sale recorded — no RESEND_API_KEY, emails skipped');
