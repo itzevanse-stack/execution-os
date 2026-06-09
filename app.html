@@ -3474,6 +3474,17 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
+      <!-- ── TIME FILTER PILLS ─────────────────────────────────── -->
+      <div id="db-filter-row" style="display:none;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800">📊 Sales Activity</div>
+        <div style="display:flex;gap:6px">
+          <button class="db-filter-pill active" onclick="dbSetFilter('week',this)">This Week</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('month',this)">This Month</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('last',this)">Last Month</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('all',this)">All Time</button>
+        </div>
+      </div>
+
       <!-- Key Metrics Row -->
       <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.5rem" id="db-metrics-row">
         <div class="db-metric teal">
@@ -3508,17 +3519,6 @@ button[onclick="generateOffer()"] {
           <div id="db-rev-bar" style="height:100%;background:linear-gradient(90deg,var(--teal),var(--yellow));border-radius:4px;width:0%;transition:width .8s cubic-bezier(.4,0,.2,1)"></div>
         </div>
         <div id="db-rev-deals" style="font-size:11px;color:var(--dim)">Set your Revenue Plan to see your progress here.</div>
-      </div>
-
-      <!-- ── TIME FILTER PILLS ─────────────────────────────────── -->
-      <div id="db-filter-row" style="display:none;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800">📊 Sales Activity</div>
-        <div style="display:flex;gap:6px">
-          <button class="db-filter-pill active" onclick="dbSetFilter('week',this)">This Week</button>
-          <button class="db-filter-pill" onclick="dbSetFilter('month',this)">This Month</button>
-          <button class="db-filter-pill" onclick="dbSetFilter('last',this)">Last Month</button>
-          <button class="db-filter-pill" onclick="dbSetFilter('all',this)">All Time</button>
-        </div>
       </div>
 
       <!-- ── SALES GRAPH ────────────────────────────────────────── -->
@@ -19364,6 +19364,26 @@ function renderDashboard() {
 
     let trackerData = {};
     try { trackerData = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
+
+    // ── Backfill salesHistory for existing sales that predate the feature ──
+    // If sales count > salesHistory length, add missing entries dated today
+    var _salesCount   = trackerData.sales || 0;
+    var _salesHistory = trackerData.salesHistory || [];
+    if (_salesCount > 0 && _salesHistory.length < _salesCount) {
+      var _today = new Date().toISOString().slice(0, 10);
+      var _missing = _salesCount - _salesHistory.length;
+      for (var _bi = 0; _bi < _missing; _bi++) {
+        _salesHistory.push({ date: _today, amount: commission || 0 });
+      }
+      trackerData.salesHistory = _salesHistory;
+      // Save backfilled data
+      try { localStorage.setItem('eos_aff_tracker', JSON.stringify(trackerData)); } catch(e) {}
+      if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+        window._setDoc(window._doc(window._db,'users',window._currentUserUid),
+          { affTracker: trackerData }, { merge: true }).catch(function(){});
+      }
+    }
+
     const clicks   = trackerData.clicks || 0;
     const sales    = trackerData.sales  || 0;
     const earned   = sales * commission;
