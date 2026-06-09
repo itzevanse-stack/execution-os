@@ -19095,22 +19095,11 @@ function renderDashboard() {
   const mode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate';
   const isAffiliate = mode === 'affiliate';
 
-  // Ensure affiliate offer is loaded before rendering
-  // This prevents the flash of zero commission on refresh
-  if (isAffiliate && (!window._affiliateOffer || !window._affiliateOffer.commission)) {
-    try {
-      var savedState = JSON.parse(localStorage.getItem('eos_state_affiliate') || 'null');
-      if (savedState && savedState.offer && savedState.offer.commission) {
-        window._affiliateOffer   = window._affiliateOffer || savedState.offer;
-        window._appliedPrice     = window._appliedPrice   || savedState.offer.commission;
-        window._appliedTarget    = window._appliedTarget  || savedState.offer.monthlyTarget;
-        window._appliedNiche     = window._appliedNiche   || savedState.offer.niche;
-      }
-      // Also restore tracker data
-      if (savedState && savedState.trackerData) {
-        try { localStorage.setItem('eos_aff_tracker', JSON.stringify(savedState.trackerData)); } catch(e) {}
-      }
-    } catch(e) {}
+  // ── Gate: don't render real numbers until Firestore has loaded ─────────────
+  // This prevents the flash of stale/wrong numbers on refresh
+  if (!window._firestoreReady) {
+    _dashShowSkeleton();
+    return;
   }
 
   // ── GREETING ──────────────────────────────────────────────────────────────
@@ -19377,6 +19366,34 @@ function renderDashboard() {
 }
 
 
+
+// ── Dashboard skeleton — shown while Firestore loads ─────────────────────
+function _dashShowSkeleton() {
+  var setEl = function(id, val) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = val;
+  };
+
+  // Show clean dashes — never show wrong numbers
+  setEl('db-target',    '—');
+  setEl('db-earned',    '—');
+  setEl('db-gap',       '—');
+  setEl('db-cal-done',  '—');
+
+  var sub2 = document.getElementById('db-earned-sub');
+  var sub3 = document.getElementById('db-gap-sub');
+  if (sub2) sub2.textContent = 'Loading your data…';
+  if (sub3) sub3.textContent = '';
+
+  // Progress bar — empty while loading
+  var bar  = document.getElementById('db-rev-bar');
+  var pct  = document.getElementById('db-rev-pct');
+  if (bar)  { bar.style.width = '0%'; }
+  if (pct)  { pct.textContent = ''; }
+
+  var detail = document.getElementById('db-rev-deals');
+  if (detail) detail.textContent = 'Loading your revenue data…';
+}
 
 window.renderDashboard = renderDashboard;
 
@@ -26704,8 +26721,9 @@ onAuthStateChanged(auth, async (user) => {
     localStorage.setItem('eos_milestones', JSON.stringify(userDocData.milestones));
   }
 
-  // ── Render dashboard ──────────────────────────────────────────────────────
-  setTimeout(() => window.renderDashboard && window.renderDashboard(), 500);
+  // ── Mark Firestore as ready, THEN render dashboard ───────────────────────
+  window._firestoreReady = true;
+  setTimeout(() => window.renderDashboard && window.renderDashboard(), 300);
 
   // ── Save functions wired to Firestore ────────────────────────────────────
   window.saveRevenuePlan = async () => {
