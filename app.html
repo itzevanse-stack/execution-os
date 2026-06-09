@@ -25677,7 +25677,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // ── INSTANT page restore — don't wait for Firebase (eliminates the dashboard flash) ──
   var _allValidPages = ['dashboard','plan','offer','avatar','business-dna','mindset','boardroom',
     'calendar','scripts','tracker','routine','market','growth','advisor','perfhq',
-    'affiliate','aff-offer','funnels','email','scorecard','ai-video'];
+    'affiliate','aff-offer','funnels','email','scorecard','ai-video',
+    'foundation','affiliate-setup','link-analytics','daily-plan'];
   var _earlyLastPage = localStorage.getItem('eos_last_page');
   var _earlyMode     = localStorage.getItem('eos_app_mode') || 'affiliate';
 
@@ -26739,17 +26740,29 @@ onAuthStateChanged(auth, async (user) => {
           } catch(e) {}
 
           var lastPage = localStorage.getItem('eos_last_page');
-          const validPages = ['dashboard','plan','offer','avatar','business-dna','mindset','boardroom','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','affiliate','aff-offer','funnels','email','scorecard','ai-video'];
+          const validPages = ['dashboard','plan','offer','avatar','business-dna','mindset','boardroom','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','affiliate','aff-offer','funnels','email','scorecard','ai-video','foundation','affiliate-setup','link-analytics','daily-plan'];
           if (lastPage === 'profile') { localStorage.removeItem('eos_last_page'); lastPage = null; }
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
-            const navBtn = document.getElementById('nav-' + lastPage);
-            window.showPage(lastPage, navBtn || null);
+            // Only navigate if NOT already on this page (prevents dashboard flash)
+            var _currentActivePage = '';
+            document.querySelectorAll('.page.on').forEach(function(p) {
+              _currentActivePage = (p.id || '').replace('page-', '');
+            });
+            if (_currentActivePage !== lastPage) {
+              const navBtn = document.getElementById('nav-' + lastPage);
+              window.showPage(lastPage, navBtn || null);
+            }
             // Load funnel list if restoring to funnels page
             if (lastPage === 'funnels') { setTimeout(function(){ window.fbLoadList && window.fbLoadList(); }, 300); }
             // Load email if restoring to email page
             if (lastPage === 'email')   { setTimeout(function(){ window.emLoad && window.emLoad(); }, 300); }
           }
         } catch(e) {}
+
+        // ── Hide page loader NOW — correct page is showing, data is ready ──
+        window.eosLoaderProgress && window.eosLoaderProgress(100, 'Ready');
+        window.eosHideLoader && window.eosHideLoader('ready');
+
       }, 600);
     } else if (attempts > 0) {
       setTimeout(() => applyMode(attempts - 1), 150);
@@ -26858,12 +26871,12 @@ onAuthStateChanged(auth, async (user) => {
     localStorage.setItem('eos_milestones', JSON.stringify(userDocData.milestones));
   }
 
-  // ── Mark Firestore as ready, THEN render dashboard ───────────────────────
+  // ── Mark Firestore as ready ─────────────────────────────────────────────
   window._firestoreReady = true;
-  // Hide the page loader — data is ready
-  window.eosLoaderProgress && window.eosLoaderProgress(95, 'Building your dashboard…');
-  window.eosHideLoader && window.eosHideLoader('ready');
-  setTimeout(() => window.renderDashboard && window.renderDashboard(), 300);
+  // Dashboard render — fires immediately, data is correct now
+  window.renderDashboard && window.renderDashboard();
+  // Note: eosHideLoader fires AFTER page restore (600ms below) so
+  // the correct section is already visible when the loader fades out
 
   // ── Save functions wired to Firestore ────────────────────────────────────
   window.saveRevenuePlan = async () => {
