@@ -26743,25 +26743,20 @@ onAuthStateChanged(auth, async (user) => {
           const validPages = ['dashboard','plan','offer','avatar','business-dna','mindset','boardroom','calendar','scripts','tracker','routine','market','growth','advisor','perfhq','affiliate','aff-offer','funnels','email','scorecard','ai-video','foundation','affiliate-setup','link-analytics','daily-plan'];
           if (lastPage === 'profile') { localStorage.removeItem('eos_last_page'); lastPage = null; }
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
-            // Only navigate if NOT already on this page (prevents dashboard flash)
-            var _currentActivePage = '';
-            document.querySelectorAll('.page.on').forEach(function(p) {
-              _currentActivePage = (p.id || '').replace('page-', '');
-            });
-            if (_currentActivePage !== lastPage) {
-              const navBtn = document.getElementById('nav-' + lastPage);
-              window.showPage(lastPage, navBtn || null);
-            }
-            // Load funnel list if restoring to funnels page
+            const navBtn = document.getElementById('nav-' + lastPage);
+            window.showPage(lastPage, navBtn || null);
             if (lastPage === 'funnels') { setTimeout(function(){ window.fbLoadList && window.fbLoadList(); }, 300); }
-            // Load email if restoring to email page
             if (lastPage === 'email')   { setTimeout(function(){ window.emLoad && window.emLoad(); }, 300); }
           }
         } catch(e) {}
 
-        // ── Hide page loader NOW — correct page is showing, data is ready ──
-        window.eosLoaderProgress && window.eosLoaderProgress(100, 'Ready');
-        window.eosHideLoader && window.eosHideLoader('ready');
+        // ── Hide loader AFTER page is restored — correct section shows first ──
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {
+            window.eosLoaderProgress && window.eosLoaderProgress(100, 'Ready');
+            window.eosHideLoader && window.eosHideLoader('ready');
+          });
+        });
 
       }, 600);
     } else if (attempts > 0) {
