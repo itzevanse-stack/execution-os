@@ -1400,9 +1400,12 @@ window.loadCopecartSales = async function() {
       .reduce((s,x) => s + (x.amount||0), 0);
 
     // By tier
+    const PROD_TIER_MAP = { 'prod_PVMT5iF8':'Starter', 'prod_T8CKyv9B':'Pro', 'prod_tgfaj2Co':'Elite', 'prod_cyhCmvVh':'Platform' };
     const byTier = { Starter:{sales:0,rev:0}, Pro:{sales:0,rev:0}, Elite:{sales:0,rev:0} };
     _ccAll.forEach(x => {
-      const t = x.tier || 'Starter';
+      const t = (x.tier && x.tier !== 'Unknown')
+        ? x.tier
+        : (PROD_TIER_MAP[x.productId] || (x.amount >= 3000 ? 'Elite' : x.amount >= 2000 ? 'Pro' : 'Starter'));
       if (byTier[t]) { byTier[t].sales++; byTier[t].rev += (x.amount||0); }
     });
 
@@ -1451,9 +1454,21 @@ function renderCCSales(query) {
   const tierColor = { Starter:'var(--teal)', Pro:'var(--yellow)', Elite:'#ff6b6b' };
   const tierBg    = { Starter:'rgba(78,204,163,.12)', Pro:'rgba(255,217,61,.12)', Elite:'rgba(255,107,107,.12)' };
 
+  // Map new CopeCart product IDs to tiers
+  const PROD_TIER = {
+    'prod_PVMT5iF8': 'Starter',
+    'prod_T8CKyv9B': 'Pro',
+    'prod_tgfaj2Co': 'Elite',
+    'prod_cyhCmvVh': 'Platform',
+  };
+
   tbody.innerHTML = list.map(x => {
-    const col  = tierColor[x.tier] || 'var(--teal)';
-    const bg   = tierBg[x.tier]   || 'rgba(78,204,163,.12)';
+    // Use tier field, fall back to product ID mapping, then amount
+    const tier = x.tier && x.tier !== 'Unknown'
+      ? x.tier
+      : (PROD_TIER[x.productId] || (x.amount >= 3000 ? 'Elite' : x.amount >= 2000 ? 'Pro' : x.amount >= 1000 ? 'Starter' : x.tier || 'Unknown'));
+    const col  = tierColor[tier] || 'var(--teal)';
+    const bg   = tierBg[tier]   || 'rgba(78,204,163,.12)';
     const date = x.createdAt?.toDate ? x.createdAt.toDate().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}) : 'N/A';
     const init = (x.buyerName||'?').split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
 
@@ -1463,7 +1478,7 @@ function renderCCSales(query) {
         <span style="font-weight:600">${x.buyerName||'Unknown'}</span>
       </div></td>
       <td style="color:var(--dim);font-size:12px">${x.buyerEmail||''}</td>
-      <td><span style="background:${bg};color:${col};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${col}">${x.tier||'Unknown'}</span></td>
+      <td><span style="background:${bg};color:${col};font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid ${col}">${tier}</span></td>
       <td style="font-weight:700;color:#4ade80">$${(x.amount||0).toLocaleString()}</td>
       <td style="color:var(--dimmer);font-size:11px;font-family:monospace">${(x.transactionId||'').substring(0,16)}…</td>
       <td style="color:var(--dim);font-size:12px">${date}</td>
