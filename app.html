@@ -19385,49 +19385,72 @@ function renderDashboard() {
     }
 
     const clicks   = trackerData.clicks || 0;
-    const sales    = trackerData.sales  || 0;
-    const earned   = sales * commission;
+    const history  = trackerData.salesHistory || [];
+    var dataReady  = !!(commission || (offer && offer.name) || window._affiliateOffer);
+
+    // ── Filter sales by selected period ──────────────────────────────────────
+    var _filter    = window._dbFilter || 'month';
+    var _now       = new Date();
+    var _todayStr  = _now.toISOString().slice(0,10);
+
+    function _dbGetStart(f) {
+      var d = new Date();
+      if (f === 'week')  { d.setDate(d.getDate() - d.getDay()); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
+      if (f === 'month') { d.setDate(1); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
+      if (f === 'last')  { d.setDate(1); d.setMonth(d.getMonth()-1); d.setHours(0,0,0,0); return d.toISOString().slice(0,10); }
+      return '2000-01-01'; // all time
+    }
+    function _dbGetEnd(f) {
+      if (f === 'last') {
+        var d = new Date(); d.setDate(0); d.setHours(23,59,59,999); return d.toISOString().slice(0,10);
+      }
+      return _todayStr;
+    }
+
+    var _start = _dbGetStart(_filter);
+    var _end   = _dbGetEnd(_filter);
+    var _periodSales = history.filter(function(s){ return s.date >= _start && s.date <= _end; });
+    var _periodCount = _periodSales.length;
+    var _periodEarned= _periodSales.reduce(function(sum,s){ return sum + (s.amount||commission||0); }, 0);
+
+    // Total clicks (no timestamp on clicks yet — show all-time)
+    const sales    = _periodCount;
+    const earned   = _periodEarned;
     const gap      = Math.max(0, target - earned);
     const salesLeft= commission > 0 ? Math.ceil(gap / commission) : 0;
     const revPct   = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
-    const convRate = clicks > 0 ? ((sales / clicks) * 100).toFixed(1) : '0.0';
-    const calDone  = window._calDone ? window._calDone.size : 0;
 
-    // Metric labels
-    const lbl1 = document.querySelector('#db-metrics-row .db-metric:nth-child(1) .db-lbl');
+    // ── Period label for metric subtitles ─────────────────────────────────────
+    var _periodLabels = { week: 'this week', month: 'this month', last: 'last month', all: 'all time' };
+    var _periodLabel  = _periodLabels[_filter] || 'this month';
+
+    // ── Update metric card labels to reflect filter ───────────────────────────
     const lbl2 = document.querySelector('#db-metrics-row .db-metric:nth-child(2) .db-lbl');
     const lbl3 = document.querySelector('#db-metrics-row .db-metric:nth-child(3) .db-lbl');
+    const lbl4 = document.querySelector('#db-metrics-row .db-metric:nth-child(4) .db-lbl');
     const sub2 = document.getElementById('db-earned-sub');
     const sub3 = document.getElementById('db-gap-sub');
-    if (lbl1) lbl1.textContent = 'Monthly Target';
-    if (lbl2) lbl2.textContent = 'Commission Earned';
+
+    if (lbl2) lbl2.textContent = _filter === 'last' ? 'Last Month Earned' : _filter === 'week' ? 'Earned This Week' : 'Earned This Month';
     if (lbl3) lbl3.textContent = 'Gap to Close';
-    // Only show numbers when offer data is actually loaded
-    // This prevents the flash of wrong numbers on refresh
-    var dataReady = !!(commission || (offer && offer.name) || window._affiliateOffer);
+    if (lbl4) lbl4.textContent = 'Paid Customers';
+
     setEl('db-target', target ? fmt(target) : (dataReady ? '$0' : '—'));
     setEl('db-earned', dataReady ? fmt(earned) : '—');
-    // No count-up animations on metric cards — they cause the appearance of
-    // wrong numbers on refresh which looks unprofessional, especially during screen shares
-    if (sub2) sub2.textContent = sales + ' sale' + (sales !== 1 ? 's' : '') + ' · ' + clicks + ' clicks';
+    if (sub2) sub2.textContent = sales + ' sale' + (sales !== 1 ? 's' : '') + ' · ' + _periodLabel;
     setEl('db-gap', gap > 0 ? fmt(gap) : '✅');
-    if (sub3) sub3.textContent = gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Monthly target hit!';
-    // Customers = total paying customers (sales)
+    if (sub3) sub3.textContent = gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Target hit!';
     setEl('db-cal-done', sales);
-    setEl('db-cal-sub', sales === 1 ? '1 paid customer' : (sales || 0) + ' paid customers');
+    setEl('db-cal-sub', _periodLabel);
 
-    // Show filter + graph — always visible in affiliate mode
+    // Show filter + graph
     var _filterRow = document.getElementById('db-filter-row');
     var _graphCard  = document.getElementById('db-graph-card');
     if (_filterRow) _filterRow.style.display = 'flex';
     if (_graphCard)  _graphCard.style.display  = 'block';
-    // Render graph — defer so dbShowGraph is definitely loaded
     setTimeout(function() {
-      if (typeof window.dbShowGraph === 'function') {
-        window.dbShowGraph(trackerData);
-      } else if (typeof _dbRenderGraph === 'function') {
-        _dbRenderGraph((trackerData && trackerData.salesHistory) || [], window._dbFilter || 'month');
-      }
+      if (typeof window.dbShowGraph === 'function') window.dbShowGraph(trackerData);
+      else if (typeof _dbRenderGraph === 'function') _dbRenderGraph(history, _filter);
     }, 50);
 
     const bar    = document.getElementById('db-rev-bar');
@@ -19437,7 +19460,7 @@ function renderDashboard() {
     if (pctEl) { pctEl.textContent = revPct + '%'; pctEl.style.color = revPct >= 100 ? 'var(--teal)' : revPct >= 50 ? 'var(--yellow)' : 'var(--red)'; }
     if (detail) {
       if (!commission) detail.textContent = 'Set up your affiliate offer to track commissions here.';
-      else if (target > 0) detail.textContent = 'Earned $' + earned.toLocaleString() + ' of $' + target.toLocaleString() + ' target' + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + salesLeft + ' more sale' + (salesLeft !== 1 ? 's' : '') + ' at $' + commission.toLocaleString() + ' each');
+      else if (target > 0) detail.textContent = 'Earned ' + fmt(earned) + ' of ' + fmt(target) + ' target · ' + _periodLabel + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + salesLeft + ' more sale' + (salesLeft !== 1 ? 's' : '') + ' at ' + fmt(commission) + ' each');
       else detail.textContent = '$' + earned.toLocaleString() + ' earned · Conv rate: ' + convRate + '%';
     }
 
@@ -40473,7 +40496,7 @@ window.fbProceedToOffer = function() {
    Bar chart: shows real sale data from salesHistory
 ═══════════════════════════════════════════════════════════════ */
 
-window._dbFilter = 'month'; // default
+window._dbFilter = window._dbFilter || 'month'; // default — persists across renders
 
 // ── Date helpers ─────────────────────────────────────────────────
 function _dbWeekStart() {
@@ -40657,7 +40680,7 @@ window.dbSetFilter = function(filter, btn) {
   });
   if (btn) btn.classList.add('active');
 
-  // Re-render dashboard with new filter
+  // Re-render entire dashboard — metrics, graph, progress bar all update
   window.renderDashboard && window.renderDashboard();
 };
 
