@@ -19345,7 +19345,7 @@ function renderDashboard() {
     dateEl.textContent = d.toLocaleDateString('en-GB', opts) + (isAffiliate ? ' · Affiliate Mode' : ' · Expert Mode');
   }
 
-  const fmt   = n => n >= 1000 ? '$' + (n/1000).toFixed(1).replace(/\.0$/,'') + 'k' : '$' + n.toLocaleString();
+  const fmt   = n => '$' + Math.round(n).toLocaleString();  // always full figures
   const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
 
   if (isAffiliate) {
@@ -19435,11 +19435,34 @@ function renderDashboard() {
     if (lbl3) lbl3.textContent = 'Gap to Close';
     if (lbl4) lbl4.textContent = 'Paid Customers';
 
-    setEl('db-target', target ? fmt(target) : (dataReady ? '$0' : '—'));
+    if (_filter === 'last') {
+      // Last month — hide Target and Gap (they're forward-looking, not historical)
+      // Show only what actually happened: earned and customers
+      var _targetEl = document.getElementById('db-target');
+      var _gapEl    = document.getElementById('db-gap');
+      var _targetCard = _targetEl ? _targetEl.closest('.db-metric') : null;
+      var _gapCard    = _gapEl    ? _gapEl.closest('.db-metric')    : null;
+      if (_targetCard) _targetCard.style.opacity = '0.3';
+      if (_gapCard)    _gapCard.style.opacity    = '0.3';
+      setEl('db-target', '—');
+      setEl('db-gap',    '—');
+      var _lbl1 = document.querySelector('#db-metrics-row .db-metric:nth-child(1) .db-lbl');
+      if (_lbl1) _lbl1.textContent = 'Monthly Target';
+      var _sub1 = document.querySelector('#db-metrics-row .db-metric:nth-child(1) .db-sub');
+      if (_sub1) _sub1.textContent = 'not applicable for past periods';
+      if (sub3) sub3.textContent = 'view current month for gap';
+    } else {
+      // Restore card opacity for current periods
+      var _targetCard2 = document.querySelector('#db-metrics-row .db-metric:nth-child(1)');
+      var _gapCard2    = document.querySelector('#db-metrics-row .db-metric:nth-child(3)');
+      if (_targetCard2) _targetCard2.style.opacity = '1';
+      if (_gapCard2)    _gapCard2.style.opacity    = '1';
+      setEl('db-target', target ? fmt(target) : (dataReady ? '$0' : '—'));
+      setEl('db-gap', gap > 0 ? fmt(gap) : '✅');
+      if (sub3) sub3.textContent = gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Target hit!';
+    }
     setEl('db-earned', dataReady ? fmt(earned) : '—');
     if (sub2) sub2.textContent = sales + ' sale' + (sales !== 1 ? 's' : '') + ' · ' + _periodLabel;
-    setEl('db-gap', gap > 0 ? fmt(gap) : '✅');
-    if (sub3) sub3.textContent = gap > 0 ? salesLeft + ' sale' + (salesLeft !== 1 ? 's' : '') + ' to go' : 'Target hit!';
     setEl('db-cal-done', sales);
     setEl('db-cal-sub', _periodLabel);
 
@@ -19456,13 +19479,21 @@ function renderDashboard() {
     const bar    = document.getElementById('db-rev-bar');
     const pctEl  = document.getElementById('db-rev-pct');
     const detail = document.getElementById('db-rev-deals');
-    if (bar)   { bar.style.width = revPct + '%'; bar.style.background = revPct >= 100 ? 'linear-gradient(90deg,var(--teal),#27c840)' : revPct >= 50 ? 'linear-gradient(90deg,var(--yellow),var(--teal))' : 'linear-gradient(90deg,var(--red),var(--orange))'; }
-    if (pctEl) { pctEl.textContent = revPct + '%'; pctEl.style.color = revPct >= 100 ? 'var(--teal)' : revPct >= 50 ? 'var(--yellow)' : 'var(--red)'; }
-    if (detail) {
-      if (!commission) detail.textContent = 'Set up your affiliate offer to track commissions here.';
-      else if (target > 0) detail.textContent = 'Earned ' + fmt(earned) + ' of ' + fmt(target) + ' target · ' + _periodLabel + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + salesLeft + ' more sale' + (salesLeft !== 1 ? 's' : '') + ' at ' + fmt(commission) + ' each');
-      else detail.textContent = '$' + earned.toLocaleString() + ' earned · Conv rate: ' + convRate + '%';
+    var _revBarWrap = bar ? bar.parentElement : null;
+    if (_filter === 'last') {
+      // Last month: show what was earned vs nothing (no target comparison)
+      if (bar)   { bar.style.width = '100%'; bar.style.background = 'linear-gradient(90deg,var(--purple),var(--teal))'; }
+      if (pctEl) { pctEl.textContent = ''; }
+      if (detail) detail.textContent = earned > 0 ? 'Earned ' + fmt(earned) + ' last month across ' + sales + ' sale' + (sales !== 1 ? 's' : '') : 'No sales recorded last month.';
+    } else {
+      if (bar)   { bar.style.width = revPct + '%'; bar.style.background = revPct >= 100 ? 'linear-gradient(90deg,var(--teal),#27c840)' : revPct >= 50 ? 'linear-gradient(90deg,var(--yellow),var(--teal))' : 'linear-gradient(90deg,var(--red),var(--orange))'; }
+      if (pctEl) { pctEl.textContent = revPct + '%'; pctEl.style.color = revPct >= 100 ? 'var(--teal)' : revPct >= 50 ? 'var(--yellow)' : 'var(--red)'; }
+      if (detail) {
+        if (!commission) detail.textContent = 'Set up your affiliate offer to track commissions here.';
+        else if (target > 0) detail.textContent = 'Earned ' + fmt(earned) + ' of ' + fmt(target) + ' target · ' + _periodLabel + (revPct >= 100 ? ' — 🏆 TARGET HIT!' : ' — ' + salesLeft + ' more sale' + (salesLeft !== 1 ? 's' : '') + ' at ' + fmt(commission) + ' each');
+      }
     }
+
 
     // Affiliate missions
     const hasAffOffer = !!(offer && offer.name);
@@ -40502,7 +40533,10 @@ window._dbFilter = window._dbFilter || 'month'; // default — persists across r
 function _dbWeekStart() {
   var d = new Date();
   d.setHours(0,0,0,0);
-  d.setDate(d.getDate() - d.getDay()); // Sunday
+  // Monday as week start
+  var day = d.getDay(); // 0=Sun, 1=Mon...
+  var diff = (day === 0) ? -6 : 1 - day; // go back to Monday
+  d.setDate(d.getDate() + diff);
   return d;
 }
 function _dbMonthStart(offset) {
@@ -40554,7 +40588,7 @@ function _dbBuildBars(history, filter) {
   if (filter === 'week') {
     // 7 bars — one per day Sun-Sat
     var week = _dbWeekStart();
-    var days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    var days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
     for (var i = 0; i < 7; i++) {
       var d = new Date(week);
       d.setDate(week.getDate() + i);
@@ -40564,37 +40598,40 @@ function _dbBuildBars(history, filter) {
       bars.push({ label: days[i], value: total, count: daySales.length, date: ds });
     }
   } else if (filter === 'month') {
-    // Show last 4 weeks as week groups
-    for (var w = 3; w >= 0; w--) {
-      var wStart = new Date(now);
-      wStart.setDate(now.getDate() - (w+1)*7 + 1);
-      wStart.setHours(0,0,0,0);
-      var wEnd = new Date(wStart);
-      wEnd.setDate(wStart.getDate() + 6);
-      var ws = wStart.toISOString().slice(0,10);
-      var we = wEnd.toISOString().slice(0,10);
+    // Show actual weeks of the current month (Mon 1st of month in 7-day blocks)
+    var mStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    var mEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of month
+    var wDay   = new Date(mStart);
+    var wkNum  = 1;
+    while (wDay <= mEnd && wkNum <= 6) {
+      var wkEnd = new Date(wDay);
+      wkEnd.setDate(wDay.getDate() + 6);
+      if (wkEnd > mEnd) wkEnd = new Date(mEnd);
+      var ws = wDay.toISOString().slice(0,10);
+      var we = wkEnd.toISOString().slice(0,10);
       var wSales = history.filter(function(s){ return s.date >= ws && s.date <= we; });
       var wTotal = wSales.reduce(function(sum,s){ return sum + (s.amount||0); }, 0);
-      var wk = 4 - w;
-      bars.push({ label: 'Wk ' + wk, value: wTotal, count: wSales.length });
+      bars.push({ label: 'Wk ' + wkNum, value: wTotal, count: wSales.length });
+      wDay.setDate(wDay.getDate() + 7);
+      wkNum++;
     }
   } else if (filter === 'last') {
-    // Last month — show each week
-    var lmStart = _dbMonthStart(-1);
-    var lmEnd   = _dbMonthEnd(-1);
-    var daysInLastMonth = lmEnd.getDate();
-    var weeksInMonth = Math.ceil(daysInLastMonth / 7);
-    for (var lw = 0; lw < weeksInMonth; lw++) {
-      var lwStart = new Date(lmStart);
-      lwStart.setDate(1 + lw * 7);
-      var lwEnd = new Date(lwStart);
-      lwEnd.setDate(lwStart.getDate() + 6);
-      if (lwEnd > lmEnd) lwEnd = lmEnd;
-      var lws = lwStart.toISOString().slice(0,10);
-      var lwe = lwEnd.toISOString().slice(0,10);
-      var lwSales = history.filter(function(s){ return s.date >= lws && s.date <= lwe; });
+    // Last month — actual weeks from the 1st
+    var lmStart2 = _dbMonthStart(-1);
+    var lmEnd2   = _dbMonthEnd(-1);
+    var lwDay    = new Date(lmStart2);
+    var lwNum    = 1;
+    while (lwDay <= lmEnd2 && lwNum <= 6) {
+      var lwkEnd = new Date(lwDay);
+      lwkEnd.setDate(lwDay.getDate() + 6);
+      if (lwkEnd > lmEnd2) lwkEnd = new Date(lmEnd2);
+      var lws2 = lwDay.toISOString().slice(0,10);
+      var lwe2 = lwkEnd.toISOString().slice(0,10);
+      var lwSales = history.filter(function(s){ return s.date >= lws2 && s.date <= lwe2; });
       var lwTotal = lwSales.reduce(function(sum,s){ return sum + (s.amount||0); }, 0);
-      bars.push({ label: 'Wk '+(lw+1), value: lwTotal, count: lwSales.length });
+      bars.push({ label: 'Wk ' + lwNum, value: lwTotal, count: lwSales.length });
+      lwDay.setDate(lwDay.getDate() + 7);
+      lwNum++;
     }
   } else {
     // All time — group by month (last 6 months)
@@ -40626,7 +40663,7 @@ function _dbRenderGraph(history, filter) {
   var maxVal   = Math.max.apply(null, bars.map(function(b){ return b.value; })) || 1;
   var filtered = _dbGetFilteredSales(history || [], filter);
   var total    = filtered.reduce(function(s,e){ return s + (e.amount||0); }, 0);
-  var fmt      = function(n){ return n >= 1000 ? '$'+(n/1000).toFixed(1).replace(/\.0$/,'')+'k' : '$'+n.toLocaleString(); };
+  var fmt      = function(n){ return '$' + Math.round(n).toLocaleString(); };
 
   if (totalEl) totalEl.textContent = fmt(total);
 
