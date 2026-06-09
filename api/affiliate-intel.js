@@ -111,13 +111,55 @@ async function webSearch(query, maxResults) {
   } catch { return []; }
 }
 
-// ── Product page scraper ──────────────────────────────────────────────────────
+// ── Product page extractor via Tavily (replaces raw HTML scraper) ───────────
 async function scrapeProduct(url) {
   if (!url) return '';
+
+  // Method 1: Tavily extract — handles JS-rendered pages, returns clean markdown
+  if (process.env.TAVILY_API_KEY) {
+    try {
+      const resp = await fetch('https://api.tavily.com/extract', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + process.env.TAVILY_API_KEY },
+        body: JSON.stringify({
+          urls:          [url],
+          extract_depth: 'advanced',
+          format:        'markdown',
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        const result = (data.results || [])[0] || {};
+        const text = result.raw_content || result.content || '';
+        if (text && text.length > 200) {
+          console.log('[affiliate-intel] Tavily extract: ' + text.length + ' chars from ' + url);
+          return text.slice(0, 6000); // more content than raw HTML scrape
+        }
+      }
+    } catch (extractErr) {
+      console.warn('[affiliate-intel] Tavily extract failed:', extractErr.message);
+    }
+  }
+
+  // Method 2: Fallback to raw HTML scrape (Jina reader proxy for JS pages)
+  try {
+    const jinaUrl = 'https://r.jina.ai/' + url;
+    const resp = await fetch(jinaUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      signal: AbortSignal.timeout(10000),
+    });
+    if (resp.ok) {
+      const text = await resp.text();
+      if (text && text.length > 200) return text.slice(0, 5000);
+    }
+  } catch {}
+
+  // Method 3: Direct raw HTML
   try {
     const resp = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0' },
-      signal: AbortSignal.timeout(10000),
+      signal: AbortSignal.timeout(8000),
     });
     if (!resp.ok) return '';
     const html = await resp.text();
@@ -140,13 +182,16 @@ async function node_research_product(state, tracer) {
   const span = tracer.span('research_product');
 
   // Parallel: scrape product page + search for market intel
-  const [pageContent, audienceResults, competitorResults] = await Promise.all([
+  const [pageContent, audienceResults, competitorResults, buyerLanguageResults] = await Promise.all([
     scrapeProduct(state.productUrl),
-    webSearch('"' + (state.niche || 'online business') + '" buyer pain reddit OR forum', 4),
-    webSearch((state.productName || 'affiliate product') + ' review results testimonials', 3),
+    webSearch('"' + (state.niche || 'online business') + '" buyer pain struggles reddit forum', 5),
+    webSearch((state.productName || 'affiliate product') + ' review results testimonials complaints', 4),
+    webSearch('"' + (state.niche || 'online business') + '" reddit "I tried" OR "disappointed" OR "worth it" OR "scam" site:reddit.com', 4),
   ]);
 
-  let marketIntel = [...audienceResults, ...competitorResults].join('\n').slice(0, 2000);
+  let marketIntel = [...audienceResults, ...competitorResults, ...buyerLanguageResults].join('\n').slice(0, 3000);
+
+
 
   // If Tavily not configured, synthesise market intel
   if (!marketIntel || marketIntel.length < 50) {
