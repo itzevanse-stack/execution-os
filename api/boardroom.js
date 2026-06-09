@@ -15,7 +15,8 @@ async function callJSON(prompt, maxTokens) {
   return JSON.parse(raw);
 }
 
-async function tavilySearch(query) {
+// Basic search — fast, good for trends and audience pains
+async function tavilySearch(query, depth) {
   try {
     const res = await fetch('https://api.tavily.com/search', {
       method:  'POST',
@@ -23,26 +24,68 @@ async function tavilySearch(query) {
       body: JSON.stringify({
         api_key:      process.env.TAVILY_API_KEY,
         query,
-        max_results:  5,
-        search_depth: 'basic',
+        max_results:  6,
+        search_depth: depth || 'basic',
       }),
     });
     const data = await res.json();
-    return (data.results || []).slice(0, 4)
-      .map(function(r, i) { return '[' + (i+1) + '] ' + (r.title || '') + ': ' + (r.content || '').slice(0, 280); })
+    return (data.results || []).slice(0, 5)
+      .map(function(r, i) { return '[' + (i+1) + '] ' + (r.title || '') + ': ' + (r.content || '').slice(0, 350); })
       .join('\n\n');
   } catch (e) {
     return '';
   }
 }
 
+// Deep research — uses Tavily research API for comprehensive analysis
+// Only used for Market Viability and Competitor Intel where depth matters
+async function tavilyResearch(query) {
+  if (!process.env.TAVILY_API_KEY) return '';
+  try {
+    const res = await fetch('https://api.tavily.com/research', {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': 'Bearer ' + process.env.TAVILY_API_KEY,
+      },
+      body: JSON.stringify({
+        query,
+        search_depth: 'advanced',
+        max_results:  8,
+      }),
+      signal: AbortSignal.timeout(90000), // research takes up to 90s
+    });
+    if (!res.ok) return '';
+    const data = await res.json();
+    // Research returns answer + sources
+    const answer  = data.answer  || '';
+    const sources = (data.results || []).slice(0, 5)
+      .map(function(r) { return '[' + r.title + ']: ' + (r.content || '').slice(0, 300); })
+      .join('\n');
+    return answer ? answer + '\n\nSources:\n' + sources : sources;
+  } catch (e) {
+    console.warn('[boardroom] tavilyResearch failed:', e.message, '— falling back to basic search');
+    return tavilySearch(query, 'advanced'); // graceful fallback
+  }
+}
+
 async function researchMarket(niche) {
   const results = await Promise.all([
-    tavilySearch(niche + ' online business competitors positioning 2025'),
-    tavilySearch(niche + ' audience pain points struggles objections'),
-    tavilySearch(niche + ' trending content hooks what works 2025'),
+    // Advanced depth for competitor intel — this is where depth pays off most
+    tavilySearch(niche + ' online business competitors pricing positioning differentiation 2025', 'advanced'),
+    // Advanced depth for real audience language from forums
+    tavilySearch(niche + ' audience pain points struggles reddit forum "I wish" OR "I hate" OR "I need" 2025', 'advanced'),
+    // Basic for trends — fast-moving, recency matters more than depth
+    tavilySearch(niche + ' trending content hooks viral what works 2025'),
+    // Additional: market size and viability data
+    tavilySearch(niche + ' market size revenue industry growth 2024 2025'),
   ]);
-  return { competitors: results[0], audiencePains: results[1], trends: results[2] };
+  return {
+    competitors:   results[0],
+    audiencePains: results[1],
+    trends:        results[2],
+    marketSize:    results[3],
+  };
 }
 
 async function positionInMarket(inp, answers, market) {
@@ -55,7 +98,8 @@ async function positionInMarket(inp, answers, market) {
     + 'LIVE MARKET RESEARCH:\n'
     + 'Competitors: ' + (market.competitors || 'N/A') + '\n'
     + 'Audience pains: ' + (market.audiencePains || 'N/A') + '\n'
-    + 'Trends: ' + (market.trends || 'N/A') + '\n\n'
+    + 'Trends: ' + (market.trends || 'N/A') + '\n'
+    + 'Market size/viability: ' + (market.marketSize || 'N/A') + '\n\n'
     + 'Find a real gap in the market and use it to differentiate.\n\n'
     + 'Return JSON:\n'
     + '{\n'
@@ -74,7 +118,8 @@ async function buildWarPlan(inp, answers, positioning, market) {
     'POSITIONING: ' + JSON.stringify(positioning) + '\n'
     + 'Offer: ' + inp.offerName + ' at $' + inp.price + ' | Sales: ' + inp.salesNeeded + ' in 30 days / ' + inp.weeklySales + '/week\n'
     + 'Platform: ' + (answers.q2 || '') + ' | Warm audience: ' + (answers.q1 || '') + ' | Obstacle: ' + (answers.q4 || '') + ' | Hours+budget: ' + (answers.q5 || '') + '\n'
-    + 'Trending content: ' + (market.trends || 'N/A') + '\n\n'
+    + 'Trending content: ' + (market.trends || 'N/A') + '\n'
+    + 'Market data: ' + (market.marketSize || 'N/A') + '\n\n'
     + 'Return JSON:\n'
     + '{\n'
     + '  "week1": { "title": "...", "focus": "1 sentence", "goal": "measurable outcome", "dailyNonNeg": "ONE daily action", "actions": ["specific action with HOW", "2", "3", "4", "5"] },\n'
