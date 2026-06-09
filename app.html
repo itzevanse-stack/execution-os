@@ -32630,18 +32630,74 @@ async function brBuildPlan() {
     _brStage(0, 'running');
     _brProgress(5, 'Building your 30-day revenue plan...');
     var planResult = await _brBuildPlanCall(inp, salesNeeded);
+    if (planResult && planResult._error) {
+      console.error('[Boardroom] War Room plan failed:', planResult._error);
+      planResult = {};
+    } else {
+      console.log('[Boardroom] War Room OK — keys:', Object.keys(planResult||{}).join(', '));
+    }
     _brStage(0, 'done');
     _brProgress(18, 'Analysing your market position...');
 
     // CALL 2: Business Architect
     _brStage(1, 'running');
     var architectResult = await brCallAI_Architect(inp);
+    if (architectResult && architectResult._error) {
+      console.error('[Boardroom] Business Architect failed:', architectResult._error);
+      architectResult = {};
+    } else {
+      // Normalise field names — AI returns different names than renderer expects
+      if (architectResult) {
+        if (architectResult.revenueBreakdown  && !architectResult.targetRevenueBreakdown) {
+          architectResult.targetRevenueBreakdown = {
+            clientsNeeded: architectResult.revenueBreakdown.clientsPerMonth || architectResult.revenueBreakdown.clientsNeeded || '?',
+            closingRate:   architectResult.revenueBreakdown.closingRate || '25%',
+            leadsNeeded:   architectResult.revenueBreakdown.leadsPerMonth || architectResult.revenueBreakdown.leadsNeeded || '?',
+            weeklyActions: architectResult.revenueBreakdown.dailyActions || architectResult.revenueBreakdown.weeklyMilestone || '',
+          };
+        }
+        if (architectResult.top3Mistakes && !architectResult.biggestMistake) {
+          architectResult.biggestMistake = architectResult.top3Mistakes[0] || '';
+        }
+        if (architectResult.dominanceRoadmap && !architectResult.nicheDominanceSteps) {
+          architectResult.nicheDominanceSteps = architectResult.dominanceRoadmap;
+        }
+        // Also handle revenueBreakdown from positionInMarket format
+        if (architectResult.revenueBreakdown && architectResult.revenueBreakdown.clientsPerMonth) {
+          architectResult.targetRevenueBreakdown = architectResult.targetRevenueBreakdown || {
+            clientsNeeded: architectResult.revenueBreakdown.clientsPerMonth,
+            closingRate: '25%',
+            leadsNeeded: Math.ceil(architectResult.revenueBreakdown.clientsPerMonth / 0.25),
+            weeklyActions: architectResult.revenueBreakdown.weeklyMilestone || '',
+          };
+        }
+      }
+      console.log('[Boardroom] Business Architect OK — keys:', Object.keys(architectResult||{}).join(', '));
+    }
     _brStage(1, 'done');
     _brProgress(34, 'Rebuilding your offer for maximum value...');
+
+    // Small delay between calls to avoid rate limiting
+    await new Promise(function(r){ setTimeout(r, 500); });
 
     // CALL 3: Offer Refinement
     _brStage(2, 'running');
     var offerStackResult = await brCallAI_OfferStack(inp);
+    if (offerStackResult && offerStackResult._error) {
+      console.error('[Boardroom] Offer Stack failed:', offerStackResult._error);
+      offerStackResult = {};
+    } else {
+      // Normalise field names — renderer expects different names
+      if (offerStackResult) {
+        if (offerStackResult.rebuiltName && !offerStackResult.rebuiltOfferName) {
+          offerStackResult.rebuiltOfferName = offerStackResult.rebuiltName;
+        }
+        if (offerStackResult.framework && !offerStackResult.signatureFramework) {
+          offerStackResult.signatureFramework = offerStackResult.framework;
+        }
+      }
+      console.log('[Boardroom] Offer Stack OK — keys:', Object.keys(offerStackResult||{}).join(', '));
+    }
     _brStage(2, 'done');
     _brProgress(50, 'Writing your complete copy library...');
 
