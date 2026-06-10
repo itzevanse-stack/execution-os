@@ -21950,14 +21950,13 @@ window.runMindsetReframe = async function() {
           var timeStr = mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
           var statusMsg = (st === 'processing' || st === 'pending' || st === 'waiting') ? 'HeyGen is rendering your video (' + timeStr + ')… this takes 5-15 minutes. Your video will save automatically when done.' : 'Status: ' + st + ' (' + timeStr + ')';
           if (status) status.textContent = statusMsg;
-          var videoUrl = d.video_url || d.url || statusData.video_url || statusData.url || '';
+          var videoUrl = d.video_url || d.videoUrl || d.url || statusData.video_url || statusData.videoUrl || statusData.url || '';
           if (st === 'completed' || st === 'done' || st === 'success' || videoUrl) {
             clearInterval(pollInterval); clearInterval(progInterval);
             var url = videoUrl;
             _avs.generatedVideoUrl = url;
-            // Persist URL so it survives tab navigation or in-memory state loss
             try { localStorage.setItem('eos_last_video_url', url); } catch(e) {}
-            // Re-query live DOM — user may have navigated away and back while video was rendering
+            // Re-query live DOM in case user navigated away during generation
             var liveBar      = document.getElementById('avs-gen-bar');
             var liveResult   = document.getElementById('avs-video-result');
             var liveProgress = document.getElementById('avs-gen-progress');
@@ -22018,7 +22017,7 @@ window.runMindsetReframe = async function() {
       var btn = document.getElementById('avs-copy-btn');
       if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '🔗 Copy Link'; }, 2000); }
     }).catch(function() {
-      avsToast(url, false);
+      avsToast(_avs.generatedVideoUrl, false);
     });
   };
 
@@ -22188,7 +22187,7 @@ window.runMindsetReframe = async function() {
       return heygenCall('status', { videoId: item.videoId }).then(function(data) {
         var d   = (data && data.data) ? data.data : data;
         var st  = d.status || d.video_status || data.status || '';
-        var url = d.video_url || d.url || data.video_url || '';
+        var url = d.video_url || d.videoUrl || d.url || data.video_url || data.videoUrl || '';
         if ((st === 'completed' || st === 'done' || url) && url) {
           resolved.push(item.videoId);
           window.avsSaveToLibrary(url, {
