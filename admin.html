@@ -554,8 +554,8 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
             </div>
           </div>
           <div class="tbl-wrap">
-            <table><thead><tr><th>Buyer</th><th>Email</th><th>Tier</th><th>Amount</th><th>Transaction ID</th><th>Date</th><th>Status</th></tr></thead>
-            <tbody id="cc-tbody"><tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">Loading sales…</td></tr></tbody></table>
+            <table><thead><tr><th>Buyer</th><th>Email</th><th>Tier</th><th>Amount</th><th>Referred By</th><th>Commission</th><th>Transaction ID</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="cc-tbody"><tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem">Loading sales…</td></tr></tbody></table>
           </div>
         </div>
       </div>
@@ -1407,7 +1407,7 @@ window.loadCopecartSales = async function() {
   const tbody  = document.getElementById('cc-tbody');
   const cntLbl = document.getElementById('cc-count-lbl');
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem">Loading…</td></tr>';
   try {
     const snap = await getDocs(collection(db,'copecart_sales'));
     _ccAll = snap.docs.map(d=>({ id:d.id, ...d.data() })).sort((a,b)=>{
@@ -1445,7 +1445,7 @@ window.loadCopecartSales = async function() {
     renderCCSales();
   } catch(e) {
     console.error('loadCopecartSales:',e);
-    if (tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--rose);padding:2rem">Error loading sales — check Firestore.</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--rose);padding:2rem">Error loading sales — check Firestore.</td></tr>';
   }
 };
 
@@ -1455,13 +1455,24 @@ function renderCCSales(query) {
   const tbody = document.getElementById('cc-tbody');
   if (!tbody) return;
   const PROD_TIER = {'prod_PVMT5iF8':'Starter','prod_T8CKyv9B':'Pro','prod_tgfaj2Co':'Elite','prod_cyhCmvVh':'Platform'};
-  let list = query ? _ccAll.filter(x=>(x.buyerName||'').toLowerCase().includes(query)||(x.buyerEmail||'').toLowerCase().includes(query)) : _ccAll;
-  if (!list.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">No transactions found.</td></tr>'; return; }
+  let list = query ? _ccAll.filter(x=>(x.buyerName||'').toLowerCase().includes(query)||(x.buyerEmail||'').toLowerCase().includes(query)||(x.affiliateName||'').toLowerCase().includes(query)||(x.affiliateEmail||'').toLowerCase().includes(query)) : _ccAll;
+  if (!list.length) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem">No transactions found.</td></tr>'; return; }
 
   tbody.innerHTML = list.map(x=>{
     const tier = x.tier&&x.tier!=='Unknown'?x.tier:(PROD_TIER[x.productId]||(x.amount>=3000?'Elite':x.amount>=2000?'Pro':x.amount>=1000?'Starter':x.tier||'Unknown'));
     const date = x.createdAt?.toDate?x.createdAt.toDate().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):'N/A';
     const init = (x.buyerName||'?').split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase();
+    // Affiliate — reads exact Firestore fields written by copecart-webhook.js
+    const hasAffiliate = !!(x.affiliateName || x.affiliateEmail || x.affiliateId);
+    const affCell = hasAffiliate
+      ? `<div style="display:flex;flex-direction:column;gap:2px">
+           <span style="font-weight:600;color:var(--violet)">${x.affiliateName||'—'}</span>
+           <span style="font-size:10px;color:var(--dim)">${x.affiliateEmail||x.affiliateId||''}</span>
+         </div>`
+      : `<span style="color:var(--dim);font-size:11px">Direct</span>`;
+    const commCell = hasAffiliate && x.affiliateComm
+      ? `<span style="font-weight:700;color:var(--gold)">$${Number(x.affiliateComm).toLocaleString()}</span>`
+      : `<span style="color:var(--dimmer);font-size:11px">—</span>`;
     return `<tr>
       <td><div style="display:flex;align-items:center;gap:8px">
         <div style="width:28px;height:28px;border-radius:50%;background:var(--teal-dim);border:1px solid var(--teal-border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:var(--teal);flex-shrink:0">${init}</div>
@@ -1470,6 +1481,8 @@ function renderCCSales(query) {
       <td class="td-email">${x.buyerEmail||''}</td>
       <td>${tierChip(tier)}</td>
       <td style="font-weight:700;color:var(--teal)">$${(x.amount||0).toLocaleString()}</td>
+      <td>${affCell}</td>
+      <td>${commCell}</td>
       <td class="td-mono">${(x.transactionId||'').substring(0,16)}…</td>
       <td class="td-email">${date}</td>
       <td><span class="chip chip-teal">Paid</span></td>
@@ -1478,8 +1491,19 @@ function renderCCSales(query) {
 }
 
 window.exportCCCSV = function() {
-  const rows = [['Buyer Name','Email','Tier','Amount','Transaction ID','Date','Status']];
-  _ccAll.forEach(x=>rows.push([x.buyerName||'',x.buyerEmail||'',x.tier||'','$'+(x.amount||0),x.transactionId||'',x.createdAt?.toDate?x.createdAt.toDate().toLocaleDateString():'N/A','Paid']));
+  const rows = [['Buyer Name','Buyer Email','Tier','Amount','Referred By','Affiliate Email','Commission','Transaction ID','Date','Status']];
+  _ccAll.forEach(x=>rows.push([
+    x.buyerName||'',
+    x.buyerEmail||'',
+    x.tier||'',
+    '$'+(x.amount||0),
+    x.affiliateName||'Direct',
+    x.affiliateEmail||'',
+    x.affiliateComm?'$'+x.affiliateComm:'',
+    x.transactionId||'',
+    x.createdAt?.toDate?x.createdAt.toDate().toLocaleDateString():'N/A',
+    'Paid'
+  ]));
   const csv = rows.map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
   const a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='copecart-sales.csv'; a.click();
 };
