@@ -383,6 +383,31 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ status: r.data?.data?.status || r.data?.data?.train_status || 'processing', name: r.data?.data?.name || '' });
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // PROXY VIDEO  —  streams the HeyGen MP4 through Vercel
+    // Avoids geo-blocking / CDN auth issues on files2.heygen.ai
+    // ══════════════════════════════════════════════════════════════════════
+    if (action === 'proxy-video') {
+      const { videoUrl } = req.body || {};
+      if (!videoUrl) return res.status(400).json({ error: 'Missing videoUrl' });
+      // Only allow HeyGen CDN URLs
+      if (!videoUrl.includes('heygen.ai') && !videoUrl.includes('heygen.com')) {
+        return res.status(400).json({ error: 'Invalid video URL' });
+      }
+      try {
+        const videoResp = await fetch(videoUrl, {
+          headers: { 'X-Api-Key': KEY }
+        });
+        if (!videoResp.ok) return res.status(502).json({ error: 'HeyGen CDN returned ' + videoResp.status });
+        res.setHeader('Content-Type', videoResp.headers.get('content-type') || 'video/mp4');
+        res.setHeader('Cache-Control', 'public, max-age=86400');
+        const buffer = await videoResp.arrayBuffer();
+        return res.status(200).send(Buffer.from(buffer));
+      } catch(e) {
+        return res.status(502).json({ error: 'Failed to proxy video: ' + e.message });
+      }
+    }
+
     return res.status(400).json({ error: 'Unknown action: ' + action });
 
   } catch (e) {
