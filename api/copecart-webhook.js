@@ -75,7 +75,7 @@ function detectTier(productName, amount, productId) {
 
 // ── EMAIL TEMPLATES ────────────────────────────────────────────────────────────
 
-function adminEmail(data) {
+function adminEmailTpl(data) {
   const { buyerName, buyerEmail, tier, amount, transactionId, affiliateName, affiliateEmail, referralSource } = data;
   return {
     subject: `💰 New ${tier} Sale — $${Number(amount).toLocaleString()} — ${buyerName}`,
@@ -128,7 +128,7 @@ function adminEmail(data) {
   };
 }
 
-function affiliateEmail(data) {
+function affiliateEmailTpl(data) {
   const { affiliateName, buyerName, tier, commission, platformFee, transactionId } = data;
   const firstName = (affiliateName || 'Partner').split(' ')[0];
   return {
@@ -319,7 +319,7 @@ export default async function handler(req, res) {
   }
 
   // ── Send admin email ──────────────────────────────────────────────────────
-  const adminTpl = adminEmail({ buyerName, buyerEmail, tier: tierInfo.tier, amount, transactionId, affiliateName, affiliateEmail, referralSource });
+  const adminTpl = adminEmailTpl({ buyerName, buyerEmail, tier: tierInfo.tier, amount, transactionId, affiliateName, affiliateEmail, referralSource });
   await resend.emails.send({
     from: FROM_EMAIL, to: ADMIN_EMAIL,
     subject: adminTpl.subject, html: adminTpl.html,
@@ -327,7 +327,7 @@ export default async function handler(req, res) {
 
   // ── Send affiliate email (if we found a referrer) ─────────────────────────
   if (affiliateEmail && affiliateComm > 0) {
-    const affTpl = affiliateEmail({ affiliateName, buyerName, tier: tierInfo.tier, commission: affiliateComm, transactionId });
+    const affTpl = affiliateEmailTpl({ affiliateName, buyerName, tier: tierInfo.tier, commission: affiliateComm, transactionId });
     await resend.emails.send({
       from: FROM_EMAIL, to: affiliateEmail,
       subject: affTpl.subject, html: affTpl.html,
