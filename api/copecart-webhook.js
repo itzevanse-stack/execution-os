@@ -17,7 +17,9 @@ import { getFirestore, FieldValue }      from 'firebase-admin/firestore';
 import { Resend }                         from 'resend';
 import crypto                             from 'crypto';
 
-const WEBHOOK_SECRET = process.env.COPECART_WEBHOOK_SECRET || 'EOS-Alliance-2026';
+const WEBHOOK_SECRET_RAW = process.env.COPECART_WEBHOOK_SECRET || 'EOS-Alliance-2026';
+// CopeCart secrets are prefixed with whsec_ — strip it before using for HMAC
+const WEBHOOK_SECRET = WEBHOOK_SECRET_RAW.replace(/^whsec_/, '');
 const ADMIN_EMAIL    = 'evan@build.skillslibrary.com';
 const FROM_EMAIL     = 'Execution OS <evan@build.skillslibrary.com>';
 
