@@ -21953,15 +21953,23 @@ window.runMindsetReframe = async function() {
           var videoUrl = d.video_url || d.url || statusData.video_url || statusData.url || '';
           if (st === 'completed' || st === 'done' || st === 'success' || videoUrl) {
             clearInterval(pollInterval); clearInterval(progInterval);
-            if (bar) bar.style.width = '100%';
             var url = videoUrl;
             _avs.generatedVideoUrl = url;
-            var videoEl = document.getElementById('avs-preview-video');
-            if (videoEl && url) videoEl.src = url;
-            if (result) result.style.display = 'block';
-            if (progress) setTimeout(function(){ progress.style.display = 'none'; }, 1000);
-            if (btn) { btn.disabled = false; btn.textContent = '🎬 Generate Video'; }
-            if (status) status.textContent = '✅ Video ready!';
+            // Persist URL so it survives tab navigation or in-memory state loss
+            try { localStorage.setItem('eos_last_video_url', url); } catch(e) {}
+            // Re-query live DOM — user may have navigated away and back while video was rendering
+            var liveBar      = document.getElementById('avs-gen-bar');
+            var liveResult   = document.getElementById('avs-video-result');
+            var liveProgress = document.getElementById('avs-gen-progress');
+            var liveBtn      = document.getElementById('avs-gen-btn');
+            var liveStatus   = document.getElementById('avs-gen-status');
+            var videoEl      = document.getElementById('avs-preview-video');
+            if (liveBar) liveBar.style.width = '100%';
+            if (videoEl && url) { videoEl.src = url; videoEl.load(); }
+            if (liveResult) liveResult.style.display = 'block';
+            if (liveProgress) setTimeout(function(){ liveProgress.style.display = 'none'; }, 1000);
+            if (liveBtn)   { liveBtn.disabled = false; liveBtn.textContent = '🎬 Generate Video'; }
+            if (liveStatus) liveStatus.textContent = '✅ Video ready!';
             avsToast('🎬 Your video is ready!');
             // Auto-save to library immediately
             if (url) {
@@ -21991,25 +21999,32 @@ window.runMindsetReframe = async function() {
 
   // ── Download & copy ───────────────────────────────────────────
   window.avsDownload = function() {
-    if (!_avs.generatedVideoUrl) { avsToast('Generate a video first.', true); return; }
+    var url = _avs.generatedVideoUrl;
+    if (!url) { try { url = localStorage.getItem('eos_last_video_url') || ''; } catch(e) {} }
+    if (!url) { avsToast('Generate a video first.', true); return; }
+    _avs.generatedVideoUrl = url;
     var a = document.createElement('a');
-    a.href = _avs.generatedVideoUrl;
+    a.href = url;
     a.download = 'execution-os-video-' + Date.now() + '.mp4';
     a.click();
   };
 
   window.avsCopyLink = function() {
-    if (!_avs.generatedVideoUrl) { avsToast('No video URL to copy.', true); return; }
-    navigator.clipboard.writeText(_avs.generatedVideoUrl).then(function() {
+    var url = _avs.generatedVideoUrl;
+    if (!url) { try { url = localStorage.getItem('eos_last_video_url') || ''; } catch(e) {} }
+    if (!url) { avsToast('No video URL to copy.', true); return; }
+    _avs.generatedVideoUrl = url;
+    navigator.clipboard.writeText(url).then(function() {
       var btn = document.getElementById('avs-copy-btn');
       if (btn) { btn.textContent = '✅ Copied!'; setTimeout(function(){ btn.textContent = '🔗 Copy Link'; }, 2000); }
     }).catch(function() {
-      avsToast(_avs.generatedVideoUrl, false);
+      avsToast(url, false);
     });
   };
 
   window.avsSaveToLibrary = function(videoUrl, meta) {
     var url = videoUrl || _avs.generatedVideoUrl;
+    if (!url) { try { url = localStorage.getItem('eos_last_video_url') || ''; } catch(e) {} }
     if (!url) { avsToast('No video to save.', true); return; }
     var uid = window._currentUser && window._currentUser.uid;
     if (!uid) { avsToast('Please log in to save videos.', true); return; }
