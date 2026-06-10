@@ -18,7 +18,6 @@ import { Resend }                         from 'resend';
 import crypto                             from 'crypto';
 
 const WEBHOOK_SECRET_RAW = process.env.COPECART_WEBHOOK_SECRET || 'EOS-Alliance-2026';
-// CopeCart secrets are prefixed with whsec_ — strip it before using for HMAC
 const WEBHOOK_SECRET = WEBHOOK_SECRET_RAW.replace(/^whsec_/, '');
 const ADMIN_EMAIL    = 'evan@build.skillslibrary.com';
 const FROM_EMAIL     = 'Execution OS <evan@build.skillslibrary.com>';
@@ -178,23 +177,30 @@ function affiliateEmailTpl(data) {
 }
 
 export default async function handler(req, res) {
+  console.log('[cope-webhook] ① Request received — method:', req.method);
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
+  console.log('[cope-webhook] ② Verifying signature');
   const rawBody = JSON.stringify(req.body);
   if (!verifySignature(rawBody, req.headers)) {
     console.warn('[cope-webhook] Invalid signature');
     return res.status(401).json({ error: 'Invalid signature' });
   }
 
+  console.log('[cope-webhook] ③ Parsing payload');
   const payload   = req.body;
   const eventType = payload.type || '';
   const eventId   = payload.id   || '';
   const data      = payload.data || payload;
+  console.log('[cope-webhook] ④ eventType:', eventType);
 
   const SALE_EVENTS = ['cart.order.completed','payment.sale.succeeded','order.completed','payment.completed'];
   if (!SALE_EVENTS.some(e => eventType.includes(e) || eventType === e)) {
+    console.log('[cope-webhook] ⑤ Skipping non-sale event:', eventType);
     return res.status(200).json({ ok: true, skipped: true, type: eventType });
   }
+
+  console.log('[cope-webhook] ⑥ Processing sale event');
 
   const order  = data.order  || data.sale  || data;
   const buyer  = order.buyer || order.customer || {};
@@ -219,7 +225,14 @@ export default async function handler(req, res) {
 
   if (!transactionId) return res.status(200).json({ ok: true, warning: 'No transaction ID' });
 
-  initFirebase();
+  console.log('[cope-webhook] ⑦ Initialising Firebase');
+  try {
+    initFirebase();
+  } catch(e) {
+    console.error('[cope-webhook] ❌ Firebase init failed:', e.message);
+    return res.status(500).json({ error: 'Firebase init failed: ' + e.message });
+  }
+  console.log('[cope-webhook] ⑧ Firebase ready');
   const db     = getFirestore();
   const resend = new Resend(process.env.RESEND_API_KEY);
 
