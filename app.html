@@ -2843,6 +2843,14 @@ button[onclick="generateOffer()"] {
 .em-seg-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s; }
 .em-seg-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
 .em-seg-active { background:rgba(78,204,163,.1) !important;border-color:rgba(78,204,163,.3) !important;color:var(--teal) !important; }
+.vpe-plat-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s; }
+.vpe-plat-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
+.vpe-plat-active { background:rgba(78,204,163,.1) !important;border-color:rgba(78,204,163,.3) !important;color:var(--teal) !important; }
+.vpe-adapt-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s; }
+.vpe-adapt-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
+.vpe-q-card { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px;cursor:pointer;transition:all .2s; }
+.vpe-q-card:hover { border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.04); }
+.vpe-q-card.selected { border-color:var(--gold);background:rgba(245,200,66,.06); }
 
 /* Contact table */
 .em-table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -6613,6 +6621,11 @@ button[onclick="generateOffer()"] {
           <span style="font-size:14px">⚡</span> Automate
         </button>
 
+        <button class="cs-tab-btn" onclick="csShowTab('vpe',this)"
+          style="display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:50px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);background:transparent;color:rgba(255,255,255,.45);letter-spacing:.2px">
+          <span style="font-size:14px">🔥</span> Value Post Engine
+        </button>
+
       </div>
     </div>
 
@@ -7409,6 +7422,107 @@ button[onclick="generateOffer()"] {
       </div>
 
     </div><!-- /cs-tab-automate -->
+
+    <!-- ══════════════════════════════════════════════════════════
+         VALUE POST ENGINE TAB
+    ══════════════════════════════════════════════════════════ -->
+    <div id="cs-tab-vpe" style="display:none">
+
+      <!-- Header -->
+      <div style="text-align:center;margin-bottom:32px">
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.25);border-radius:100px;padding:6px 18px;font-size:11px;font-weight:700;color:#F5C842;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">
+          <span class="pulse-dot"></span> E-OS Intelligence Active
+        </div>
+        <div style="font-size:24px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:8px">Value Post Engine</div>
+        <div style="font-size:13px;color:var(--dim);max-width:560px;margin:0 auto;line-height:1.7">Find what your audience is already asking. Answer it with your expertise. Drive them into your funnel. Works on Quora, Reddit, LinkedIn, Medium and X.</div>
+      </div>
+
+      <!-- Step 1: Find Questions -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px" id="vpe-step1">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Step 1 — Find What Your Audience Is Asking</div>
+            <div style="font-size:12px;color:var(--dim);margin-top:3px">Real questions from Reddit, Quora and forums in your niche right now</div>
+          </div>
+          <button onclick="vpeFindQuestions()" id="vpe-find-btn" style="background:linear-gradient(135deg,#F5C842,#d4a800);border:none;border-radius:var(--r-md);padding:11px 24px;color:#06060f;font-size:13px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;box-shadow:0 4px 20px rgba(245,200,66,.35)">🔍 Find Questions</button>
+        </div>
+        <div id="vpe-find-status" style="font-size:12px;color:var(--teal);margin-top:12px;display:none"></div>
+        <div id="vpe-questions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px"></div>
+      </div>
+
+      <!-- Step 2: Write Your Post -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px" id="vpe-step2">
+        <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Step 2 — Write Your Post</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Pick a question above — or enter your own topic. E-OS Intelligence writes the full post using your offer, avatar and boardroom strategy.</div>
+
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Topic / Question</div>
+          <input id="vpe-topic" class="fi" placeholder="e.g. How do I make money with affiliate marketing without an audience?" style="font-size:13px">
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          <div>
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Platform</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button onclick="vpeSetPlatform(this,'quora')" class="vpe-plat-btn vpe-plat-active" data-plat="quora">Quora</button>
+              <button onclick="vpeSetPlatform(this,'reddit')" class="vpe-plat-btn" data-plat="reddit">Reddit</button>
+              <button onclick="vpeSetPlatform(this,'linkedin')" class="vpe-plat-btn" data-plat="linkedin">LinkedIn</button>
+              <button onclick="vpeSetPlatform(this,'medium')" class="vpe-plat-btn" data-plat="medium">Medium</button>
+              <button onclick="vpeSetPlatform(this,'x')" class="vpe-plat-btn" data-plat="x">X Thread</button>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="vpeGenerate()" id="vpe-gen-btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:13px 32px;color:var(--text-dark);font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">✍️ Write My Post</button>
+        <div id="vpe-gen-status" style="font-size:12px;color:var(--teal);margin-top:10px;display:none"></div>
+      </div>
+
+      <!-- Step 3: Output -->
+      <div id="vpe-output" style="display:none">
+
+        <!-- Platform rules notice -->
+        <div id="vpe-rules-notice" style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:16px;display:none">
+          <div style="font-size:12px;font-weight:800;color:#F5C842;margin-bottom:6px">⚠️ Platform Guidelines Check</div>
+          <div id="vpe-rules-text" style="font-size:12px;color:var(--muted);line-height:1.8"></div>
+        </div>
+
+        <!-- Post content -->
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif" id="vpe-output-label">Your Post</div>
+              <div style="font-size:11px;color:var(--dim);margin-top:2px" id="vpe-platform-badge"></div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button onclick="vpeCopy()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:8px 16px;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📋 Copy</button>
+              <button onclick="vpeRegenerate()" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">↺ Rewrite</button>
+            </div>
+          </div>
+          <div id="vpe-post-content" style="font-size:13px;color:var(--white);line-height:1.9;white-space:pre-wrap;font-family:'Inter',sans-serif;background:var(--bg3);border-radius:var(--r-md);padding:20px;min-height:200px"></div>
+        </div>
+
+        <!-- Image suggestions -->
+        <div id="vpe-images-section" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px;display:none">
+          <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">🖼 Image Suggestions</div>
+          <div style="font-size:12px;color:var(--dim);margin-bottom:14px">Search these on Unsplash, Canva or Pexels for free images that match your post.</div>
+          <div id="vpe-image-suggestions" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+        <!-- Adapt for other platforms -->
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px">
+          <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">Adapt For Another Platform</div>
+          <div style="font-size:12px;color:var(--dim);margin-bottom:14px">Reformat this post for a different platform in one click.</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="vpeAdapt('quora')"   class="vpe-adapt-btn">Quora</button>
+            <button onclick="vpeAdapt('reddit')"  class="vpe-adapt-btn">Reddit</button>
+            <button onclick="vpeAdapt('linkedin')" class="vpe-adapt-btn">LinkedIn</button>
+            <button onclick="vpeAdapt('medium')"  class="vpe-adapt-btn">Medium</button>
+            <button onclick="vpeAdapt('x')"       class="vpe-adapt-btn">X Thread</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /cs-tab-vpe -->
 
   </div>
 </div>
@@ -22494,7 +22608,7 @@ window.runMindsetReframe = async function() {
 // CONTENT STUDIO — Tab controller + Readiness Banner
 // ══════════════════════════════════════════════════════════════════
 window.csShowTab = function(tab, btn) {
-  ['cs-tab-video','cs-tab-carousel','cs-tab-story','cs-tab-automate'].forEach(function(id) {
+  ['cs-tab-video','cs-tab-carousel','cs-tab-story','cs-tab-automate','cs-tab-vpe'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -32298,6 +32412,303 @@ window.emLoadSettings       = emLoadSettings;
 window.emSaveSender         = emSaveSender;
 window.emConnectResend      = emConnectResend;
 window.emDisconnectResend   = emDisconnectResend;
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   VALUE POST ENGINE
+══════════════════════════════════════════════════════════════════════════════ */
+var _vpeState = { platform: 'quora', topic: '', lastPost: '', questions: [] };
+
+var VPE_PLATFORM_RULES = {
+  quora:    'Quora: Answer as a knowledgeable expert. First-person voice. No spammy CTAs — end with a genuine recommendation. Never post the same answer twice. Links are allowed when genuinely helpful. Do not keyword-stuff.',
+  reddit:   'Reddit: Community-first. Give real value with zero hard-sell energy. Redditors will downvote and report anything promotional. Mention your offer only if directly relevant and frame it as a personal experience, not a pitch. No affiliate links in most subreddits. Be a real contributor.',
+  linkedin: 'LinkedIn: Professional tone. Thought leadership. Data and specifics build credibility. Personal story hooks perform well. One clear CTA at the end is acceptable. Hashtags help discoverability (3-5 max).',
+  medium:   'Medium: Long-form, narrative, SEO-structured. Use clear headers. Cite sources where possible. Medium curators look for original insight — no rehashed generic advice. Soft CTA at the end is fine. Aim for 800-1500 words.',
+  x:        'X (Twitter): Threads of 8-12 tweets. Hook tweet must stop the scroll. Each tweet must be under 280 characters. Thread should stand alone as value — CTA only on the final tweet. No hashtag spam — 1-2 max.'
+};
+
+var VPE_PLATFORM_LABELS = {
+  quora:    'Quora Answer',
+  reddit:   'Reddit Post',
+  linkedin: 'LinkedIn Article',
+  medium:   'Medium Article',
+  x:        'X Thread'
+};
+
+// ── Get intelligence context (reuses emBcGetIntelligence pattern) ────────────
+function vpeGetIntel() {
+  var mode  = window._appMode || 'expert';
+  var av    = window._avatarData || {};
+  var bi    = window._boardroomIntel || {};
+  var biCv  = bi.copyVault  || {};
+  var biOs  = bi.offerStack || {};
+  var lines = [];
+
+  if (mode === 'affiliate') {
+    var ao = window._affiliateOffer || {};
+    if (ao.name||ao.productName) lines.push('Product/offer: ' + (ao.name||ao.productName||''));
+    if (ao.niche||av.niche)      lines.push('Niche: ' + (ao.niche||av.niche||''));
+    if (av.pain||ao.pain)        lines.push('Audience pain: ' + (av.pain||ao.pain||''));
+    if (av.transformation||ao.transformation) lines.push('Desired outcome: ' + (av.transformation||ao.transformation||''));
+    if (av.job||ao.buyer)        lines.push('Audience profile: ' + (av.job||ao.buyer||''));
+    if (biCv.uniqueMechanism||biOs.uniqueMechanism) lines.push('Unique mechanism: ' + (biCv.uniqueMechanism||biOs.uniqueMechanism||''));
+    if (biCv.bigPromise)         lines.push('Big promise: ' + biCv.bigPromise);
+  } else {
+    var draft = {};
+    try { draft = JSON.parse(localStorage.getItem('eos_draft_offer')||'{}'); } catch(e){}
+    var of = draft.offer || {};
+    var avd = draft.avatar || av;
+    if (of.offer_name)        lines.push('Offer: ' + of.offer_name);
+    if (of.offer_promise)     lines.push('Promise: ' + of.offer_promise);
+    if (draft.niche||window._appliedNiche) lines.push('Niche: ' + (draft.niche||window._appliedNiche||''));
+    if (avd.av_current||av.av_igr) lines.push('Audience pain: ' + (avd.av_current||av.av_igr||''));
+    if (avd.av_desired||avd.av_transformation) lines.push('Desired outcome: ' + (avd.av_desired||avd.av_transformation||''));
+    if (avd.av_job)           lines.push('Audience profile: ' + avd.av_job);
+    if (biOs.uniqueMechanism||biCv.uniqueMechanism) lines.push('Unique mechanism: ' + (biOs.uniqueMechanism||biCv.uniqueMechanism||''));
+    if (biCv.bigPromise)      lines.push('Big promise: ' + biCv.bigPromise);
+    if (biCv.objectionHandle) lines.push('Key objection: ' + biCv.objectionHandle);
+  }
+  return lines.length ? lines.join('\n') : '';
+}
+
+// ── Set platform ─────────────────────────────────────────────────────────────
+function vpeSetPlatform(el, plat) {
+  _vpeState.platform = plat;
+  document.querySelectorAll('.vpe-plat-btn').forEach(function(b){ b.classList.remove('vpe-plat-active'); });
+  if (el) el.classList.add('vpe-plat-active');
+}
+
+// ── Step 1: Find questions ────────────────────────────────────────────────────
+async function vpeFindQuestions() {
+  var intel    = vpeGetIntel();
+  var niche    = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).niche || (window._avatarData||{}).av_job || 'online business';
+  var mode     = window._appMode || 'expert';
+  var btn      = document.getElementById('vpe-find-btn');
+  var statusEl = document.getElementById('vpe-find-status');
+  var grid     = document.getElementById('vpe-questions-grid');
+
+  if (btn) { btn.textContent = '🔍 Searching…'; btn.disabled = true; }
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Searching Reddit, Quora and Google for what your audience is asking right now…'; }
+  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">Scanning live sources…</div>';
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/vpe-questions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ niche: niche, intel: intel, mode: mode })
+    });
+    var data      = await resp.json();
+    var questions = data.questions || [];
+    var source    = data.source || 'generated';
+
+    _vpeState.questions = questions;
+
+    var sourceLabel = source === 'live'
+      ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live — pulled from Reddit, Quora & Google</span>'
+      : '<span style="color:#F5C842;font-weight:700;font-size:11px">⚡ Generated from niche knowledge</span>';
+
+    if (statusEl) {
+      statusEl.innerHTML = '✅ Found ' + questions.length + ' questions — pick one to answer &nbsp;·&nbsp; ' + sourceLabel;
+    }
+
+    if (grid && questions.length) {
+      grid.innerHTML = questions.map(function(q, i) {
+        var platformColour = { reddit: '#ff4500', quora: '#b92b27', google: 'var(--teal)' }[q.platform] || 'var(--dim)';
+        return '<div class="vpe-q-card" onclick="vpeSelectQuestion(this,' + i + ')">'
+          + '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:10px">' + q.question + '</div>'
+          + (q.why ? '<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">' + q.why + '</div>' : '')
+          + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
+          + '<span style="font-size:10px;font-weight:700;color:' + platformColour + ';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">📍 ' + (q.platform||'web') + '</span>'
+          + '<span style="font-size:10px;font-weight:700;color:' + (q.volume==='high'?'var(--teal)':'#F5C842') + ';background:var(--card2);border-radius:4px;padding:2px 8px">📊 ' + (q.volume||'medium') + ' volume</span>'
+          + '<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">' + (q.intent==='commercial'?'💰 buyer intent':'ℹ️ informational') + '</span>'
+          + '</div></div>';
+      }).join('');
+    } else if (grid) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">No questions found. Try adding more detail to your Avatar and Offer setup.</div>';
+    }
+
+  } catch(e) {
+    if (statusEl) statusEl.textContent = '⚠️ Could not load questions. Check your setup and try again.';
+    if (grid) grid.innerHTML = '';
+  }
+  if (btn) { btn.textContent = '🔍 Find Questions'; btn.disabled = false; }
+}
+
+function vpeSelectQuestion(el, idx) {
+  document.querySelectorAll('.vpe-q-card').forEach(function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+  var q = _vpeState.questions[idx];
+  if (q) {
+    _vpeState.topic = q.question;
+    var topicEl = document.getElementById('vpe-topic');
+    if (topicEl) topicEl.value = q.question;
+    // Suggest matching platform
+    if (q.platform && VPE_PLATFORM_RULES[q.platform]) {
+      vpeSetPlatform(document.querySelector('.vpe-plat-btn[data-plat="' + q.platform + '"]'), q.platform);
+    }
+  }
+}
+
+// ── Step 2: Generate post ─────────────────────────────────────────────────────
+async function vpeGenerate() {
+  var topicEl  = document.getElementById('vpe-topic');
+  var topic    = topicEl ? topicEl.value.trim() : '';
+  if (!topic) { if (topicEl) topicEl.focus(); return; }
+  _vpeState.topic = topic;
+  await vpeWrite(_vpeState.platform, topic);
+}
+
+async function vpeWrite(platform, topic) {
+  var btn      = document.getElementById('vpe-gen-btn');
+  var statusEl = document.getElementById('vpe-gen-status');
+  var output   = document.getElementById('vpe-output');
+  var contentEl = document.getElementById('vpe-post-content');
+  var labelEl  = document.getElementById('vpe-output-label');
+  var badgeEl  = document.getElementById('vpe-platform-badge');
+
+  if (btn) { btn.disabled = true; btn.textContent = 'Writing…'; }
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'E-OS Intelligence is writing your ' + VPE_PLATFORM_LABELS[platform] + '…'; }
+  if (output) output.style.display = 'none';
+
+  var intel = vpeGetIntel();
+  var rules = VPE_PLATFORM_RULES[platform] || '';
+
+  var platformInstructions = {
+    quora:    'Write a long-form Quora answer (600-900 words). First-person, expert voice. Open with a bold statement or personal hook that stops the reader. Build the answer with real insight — not generic advice. Naturally weave in the offer as a personal recommendation at the end, not a hard sell. No clickbait. No bullet-point walls.',
+    reddit:   'Write a Reddit post (400-700 words). Sound like a real community member sharing genuine experience — not a marketer. Open with a relatable situation. Give real, specific value. Only mention your offer in the context of personal experience. If it fits the question, mention the subreddit context. Zero promotional language.',
+    linkedin: 'Write a LinkedIn article (700-1000 words). Professional, thought-leadership tone. Open with a personal story or bold insight. Use short paragraphs. Build a narrative arc. End with a clear takeaway and soft CTA. Include 3-5 relevant hashtags at the end.',
+    medium:   'Write a Medium article (900-1400 words). Use a compelling headline. Clear H2 subheadings to break sections. Narrative style — tell a story, build the case, deliver the insight. SEO-aware but human-first. End with a CTA that leads to your offer or funnel.',
+    x:        'Write an X thread of 10-12 tweets. Tweet 1 is the hook — it must stop the scroll and make people want to read more. Tweets 2-10 deliver value in a logical sequence. Each tweet under 280 characters. Last tweet is the CTA. Number each tweet (1/, 2/, etc). No hashtag spam — maximum 2 hashtags total in the thread.'
+  };
+
+  var prompt = 'You are a world-class content strategist and copywriter who specialises in writing content that builds audiences and drives them into sales funnels.\n\n'
+    + 'TOPIC / QUESTION TO ANSWER:\n' + topic + '\n\n'
+    + (intel ? 'OFFER AND AUDIENCE INTELLIGENCE (use this to inform the answer and weave the offer naturally):\n' + intel + '\n\n' : '')
+    + 'PLATFORM RULES TO FOLLOW:\n' + rules + '\n\n'
+    + 'WRITING INSTRUCTIONS:\n' + (platformInstructions[platform]||'Write a high-value long-form post.') + '\n\n'
+    + 'CRITICAL: This content must:\n'
+    + '1. Answer the question with genuine, specific insight — not generic advice\n'
+    + '2. Use the audience\'s exact language and speak to their specific pain\n'
+    + '3. Naturally position the offer as the logical solution without being pushy\n'
+    + '4. End with a CTA that leads the reader toward the funnel\n'
+    + '5. Comply fully with the platform rules above — nothing that could get removed or flagged\n\n'
+    + 'Write the full post now. No preamble, no explanation — just the post itself.';
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+
+    _vpeState.lastPost = text;
+
+    if (contentEl) contentEl.textContent = text;
+    if (labelEl)   labelEl.textContent   = VPE_PLATFORM_LABELS[platform];
+    if (badgeEl)   badgeEl.innerHTML     = '<span style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 10px;color:var(--teal);font-weight:700">' + platform.toUpperCase() + '</span>';
+    if (output) output.style.display = 'block';
+
+    // Show rules notice
+    var rulesEl  = document.getElementById('vpe-rules-notice');
+    var rulesText = document.getElementById('vpe-rules-text');
+    if (rulesEl && rulesText) {
+      rulesText.textContent = rules;
+      rulesEl.style.display = 'block';
+    }
+
+    // Generate image suggestions
+    vpeImageSuggestions(topic, platform, intel);
+
+    if (statusEl) { statusEl.textContent = '✅ Your post is ready.'; setTimeout(function(){ statusEl.style.display='none'; }, 3000); }
+    // Scroll to output
+    if (output) output.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '⚠️ Could not generate post. Try again.'; }
+  }
+  if (btn) { btn.disabled = false; btn.textContent = '✍️ Write My Post'; }
+}
+
+// ── Image suggestions ─────────────────────────────────────────────────────────
+async function vpeImageSuggestions(topic, platform, intel) {
+  var section = document.getElementById('vpe-images-section');
+  var el      = document.getElementById('vpe-image-suggestions');
+  if (!section || !el) return;
+  if (platform === 'x') { section.style.display = 'none'; return; }
+
+  try {
+    var prompt = 'Suggest 3 specific image search queries for a "' + platform + '" post about: "' + topic + '".\n'
+      + (intel ? 'Offer context: ' + intel.split('\n')[0] + '\n' : '')
+      + 'Return ONLY JSON: [{"query":"...","why":"one sentence why this image works"},{"query":"...","why":"..."},{"query":"...","why":"..."}]\n'
+      + 'Queries should work on Unsplash, Pexels or Canva. No markdown.';
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, messages: [{ role: 'user', content: prompt }] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    var clean = text.replace(/```json|```/g,'').trim();
+    var match = clean.match(/\[[\s\S]*\]/);
+    var suggestions = match ? JSON.parse(match[0]) : [];
+    if (!suggestions.length) { section.style.display = 'none'; return; }
+    el.innerHTML = suggestions.map(function(s) {
+      return '<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'
+        + '<div><div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:3px">"' + s.query + '"</div><div style="font-size:11px;color:var(--dim)">' + (s.why||'') + '</div></div>'
+        + '<div style="display:flex;gap:6px">'
+        + '<a href="https://unsplash.com/s/photos/' + encodeURIComponent(s.query) + '" target="_blank" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 12px;color:var(--teal);font-size:11px;font-weight:700;text-decoration:none">Unsplash</a>'
+        + '<a href="https://www.pexels.com/search/' + encodeURIComponent(s.query) + '" target="_blank" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 12px;color:var(--teal);font-size:11px;font-weight:700;text-decoration:none">Pexels</a>'
+        + '</div></div>';
+    }).join('');
+    section.style.display = 'block';
+  } catch(e) { section.style.display = 'none'; }
+}
+
+// ── Copy, regenerate, adapt ───────────────────────────────────────────────────
+function vpeCopy() {
+  if (!_vpeState.lastPost) return;
+  navigator.clipboard.writeText(_vpeState.lastPost).then(function(){ emToast('✅ Copied to clipboard'); }).catch(function(){ emToast('⚠️ Could not copy'); });
+}
+
+function vpeRegenerate() { if (_vpeState.topic) vpeWrite(_vpeState.platform, _vpeState.topic); }
+
+async function vpeAdapt(platform) {
+  if (!_vpeState.lastPost) { emToast('⚠️ Generate a post first.', true); return; }
+  var intel = vpeGetIntel();
+  var rules = VPE_PLATFORM_RULES[platform] || '';
+  var statusEl = document.getElementById('vpe-gen-status');
+  var contentEl = document.getElementById('vpe-post-content');
+  var labelEl   = document.getElementById('vpe-output-label');
+  var badgeEl   = document.getElementById('vpe-platform-badge');
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Adapting for ' + VPE_PLATFORM_LABELS[platform] + '…'; }
+  var prompt = 'Reformat and rewrite this content for ' + VPE_PLATFORM_LABELS[platform] + '.\n\nPLATFORM RULES:\n' + rules + '\n\nORIGINAL CONTENT:\n' + _vpeState.lastPost + '\n\nKeep the core message and offer positioning. Adapt the format, tone and length to fit ' + platform + ' perfectly. Return only the adapted post — no explanation.';
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    _vpeState.lastPost  = text;
+    _vpeState.platform  = platform;
+    if (contentEl) contentEl.textContent = text;
+    if (labelEl)   labelEl.textContent   = VPE_PLATFORM_LABELS[platform];
+    if (badgeEl)   badgeEl.innerHTML     = '<span style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 10px;color:var(--teal);font-weight:700">' + platform.toUpperCase() + '</span>';
+    var rulesText = document.getElementById('vpe-rules-text');
+    if (rulesText) rulesText.textContent = rules;
+    vpeImageSuggestions(_vpeState.topic, platform, intel);
+    if (statusEl) { statusEl.textContent = '✅ Adapted for ' + VPE_PLATFORM_LABELS[platform]; setTimeout(function(){ statusEl.style.display='none'; }, 2500); }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '⚠️ Could not adapt post. Try again.'; }
+  }
+}
+
+window.vpeFindQuestions   = vpeFindQuestions;
+window.vpeSelectQuestion  = vpeSelectQuestion;
+window.vpeSetPlatform     = vpeSetPlatform;
+window.vpeGenerate        = vpeGenerate;
+window.vpeCopy            = vpeCopy;
+window.vpeRegenerate      = vpeRegenerate;
+window.vpeAdapt           = vpeAdapt;
 window.emAddDomain          = emAddDomain;
 window.emChangeDomain       = emChangeDomain;
 window.emVerifyDomain       = emVerifyDomain;
