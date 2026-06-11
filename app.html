@@ -2852,6 +2852,20 @@ button[onclick="generateOffer()"] {
 .vpe-q-card:hover { border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.04); }
 .vpe-q-card.selected { border-color:var(--gold);background:rgba(245,200,66,.06); }
 
+/* ── ANALYTICS ───────────────────────────────────────────────── */
+.an-kpi-card { background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 18px;position:relative;overflow:hidden;transition:border-color .2s; }
+.an-kpi-card:hover { border-color:rgba(78,204,163,.25); }
+.an-kpi-icon { font-size:22px;margin-bottom:10px; }
+.an-kpi-val { font-size:28px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px;line-height:1; }
+.an-kpi-lbl { font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px; }
+.an-kpi-sub { font-size:10px;color:var(--teal);font-weight:700;margin-top:4px; }
+.an-bar { border-radius:4px 4px 0 0;background:linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.4));transition:height .4s ease;min-height:4px;flex:1; }
+.an-source-row { display:flex;align-items:center;gap:10px; }
+.an-source-label { font-size:12px;color:var(--muted);font-weight:600;min-width:120px; }
+.an-source-bar-wrap { flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden; }
+.an-source-bar { height:100%;border-radius:4px;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .5s ease; }
+.an-source-count { font-size:12px;font-weight:700;color:var(--teal);min-width:32px;text-align:right; }
+
 /* Contact table */
 .em-table { width:100%; border-collapse:collapse; font-size:13px; }
 .em-table th { text-align:left; padding:10px 14px; background:var(--bg3); color:var(--dim); font-weight:700; text-transform:uppercase; font-size:10px; letter-spacing:.8px; border-bottom:1px solid var(--border2); }
@@ -3657,6 +3671,68 @@ button[onclick="generateOffer()"] {
           <div style="padding:0 .85rem .85rem">
             <button onclick="window.showPage('tracker',document.querySelectorAll('.nav-btn')[7])" style="width:100%;padding:9px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:10px;color:var(--teal);font-family:'Poppins',sans-serif;font-weight:800;font-size:11px;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">+ Log Today's Numbers</button>
           </div>
+        </div>
+      </div>
+
+      <!-- ── LIVE ANALYTICS SECTION ──────────────────────────────── -->
+      <div style="margin-bottom:1.5rem">
+
+        <!-- Section header -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:900">📈 Live Analytics</div>
+          <button onclick="dbAnRefresh()" id="db-an-refresh-btn" style="background:none;border:none;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;padding:4px 8px">↺ Refresh</button>
+        </div>
+
+        <!-- KPI row -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px">
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Total Leads</div>
+            <div id="db-an-leads" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">—</div>
+            <div id="db-an-leads-sub" style="font-size:10px;color:var(--teal);font-weight:700;margin-top:3px"></div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Total Revenue</div>
+            <div id="db-an-revenue" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--yellow)">—</div>
+            <div id="db-an-revenue-sub" style="font-size:10px;color:var(--teal);font-weight:700;margin-top:3px"></div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Emails Sent</div>
+            <div id="db-an-emails" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">—</div>
+            <div id="db-an-emails-sub" style="font-size:10px;color:var(--dim);font-weight:700;margin-top:3px"></div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Conversion Rate</div>
+            <div id="db-an-conv" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal)">—</div>
+            <div id="db-an-conv-sub" style="font-size:10px;color:var(--dim);font-weight:700;margin-top:3px"></div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Funnel Views</div>
+            <div id="db-an-views" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">—</div>
+            <div id="db-an-views-sub" style="font-size:10px;color:var(--dim);font-weight:700;margin-top:3px"></div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
+            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Broadcasts</div>
+            <div id="db-an-broadcasts" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">—</div>
+            <div id="db-an-broadcasts-sub" style="font-size:10px;color:var(--dim);font-weight:700;margin-top:3px"></div>
+          </div>
+        </div>
+
+        <!-- Two col: Leads chart + Recent leads -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+
+          <!-- Leads over 30 days -->
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:3px">Leads — Last 30 Days</div>
+            <div style="font-size:10px;color:var(--dim);margin-bottom:12px" id="db-an-chart-sub">Loading…</div>
+            <div id="db-an-leads-chart" style="height:80px;display:flex;align-items:flex-end;gap:3px"></div>
+          </div>
+
+          <!-- Recent leads feed -->
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:12px">Recent Opt-ins</div>
+            <div id="db-an-recent" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
+
         </div>
       </div>
 
@@ -6011,7 +6087,124 @@ button[onclick="generateOffer()"] {
       <div id="milestones-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:1.5rem"></div>
 
     </div>
-  </div><!-- end page-perfhq -->
+    <!-- ANALYTICS TAB -->
+    <div id="phq-pane-analytics" style="display:none">
+
+      <!-- Top KPI strip -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px" id="analytics-kpi-strip">
+        <div class="an-kpi-card">
+          <div class="an-kpi-icon">👥</div>
+          <div class="an-kpi-val" id="an-total-leads">—</div>
+          <div class="an-kpi-lbl">Total Leads</div>
+          <div class="an-kpi-sub" id="an-leads-sub"></div>
+        </div>
+        <div class="an-kpi-card">
+          <div class="an-kpi-icon">💰</div>
+          <div class="an-kpi-val" id="an-total-revenue">—</div>
+          <div class="an-kpi-lbl">Total Revenue</div>
+          <div class="an-kpi-sub" id="an-revenue-sub"></div>
+        </div>
+        <div class="an-kpi-card">
+          <div class="an-kpi-icon">📣</div>
+          <div class="an-kpi-val" id="an-total-emails">—</div>
+          <div class="an-kpi-lbl">Emails Sent</div>
+          <div class="an-kpi-sub" id="an-emails-sub"></div>
+        </div>
+        <div class="an-kpi-card">
+          <div class="an-kpi-icon">🔁</div>
+          <div class="an-kpi-val" id="an-conversion-rate">—</div>
+          <div class="an-kpi-lbl">Lead → Sale Rate</div>
+          <div class="an-kpi-sub" id="an-conv-sub"></div>
+        </div>
+        <div class="an-kpi-card">
+          <div class="an-kpi-icon">👁</div>
+          <div class="an-kpi-val" id="an-funnel-views">—</div>
+          <div class="an-kpi-lbl">Funnel Views</div>
+          <div class="an-kpi-sub" id="an-views-sub"></div>
+        </div>
+        <div class="an-kpi-card">
+          <div class="an-kpi-icon">📡</div>
+          <div class="an-kpi-val" id="an-broadcasts-sent">—</div>
+          <div class="an-kpi-lbl">Broadcasts Sent</div>
+          <div class="an-kpi-sub" id="an-broadcasts-sub"></div>
+        </div>
+      </div>
+
+      <!-- Two column: Leads chart + Lead sources -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+        <!-- Leads over time -->
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
+          <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Leads Over Time</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Last 30 days</div>
+          <div id="an-leads-chart" style="height:140px;display:flex;align-items:flex-end;gap:4px"></div>
+          <div id="an-leads-chart-labels" style="display:flex;justify-content:space-between;margin-top:6px"></div>
+        </div>
+
+        <!-- Lead sources breakdown -->
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
+          <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Lead Sources</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Where your leads are coming from</div>
+          <div id="an-lead-sources" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+      </div>
+
+      <!-- Revenue + Email performance -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+
+        <!-- Revenue by product -->
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
+          <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Revenue Breakdown</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:16px">By product / tier</div>
+          <div id="an-revenue-breakdown" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+
+        <!-- Email broadcast performance -->
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
+          <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Broadcast Performance</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Last 10 broadcasts</div>
+          <div id="an-broadcast-perf" style="display:flex;flex-direction:column;gap:8px"></div>
+        </div>
+
+      </div>
+
+      <!-- Funnel performance table -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Funnel Performance</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Views, leads and conversion per funnel</div>
+        <div id="an-funnel-table">
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="border-bottom:1px solid var(--border2)">
+                <th style="text-align:left;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Funnel</th>
+                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Views</th>
+                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Leads</th>
+                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Sales</th>
+                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Conv %</th>
+                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Revenue</th>
+              </tr>
+            </thead>
+            <tbody id="an-funnel-tbody">
+              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--dim)">Loading funnels…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Recent leads feed -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif">Recent Leads</div>
+            <div style="font-size:11px;color:var(--dim);margin-top:2px">Latest opt-ins across all funnels</div>
+          </div>
+          <button onclick="anRefresh()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:7px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">↺ Refresh</button>
+        </div>
+        <div id="an-recent-leads" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+    </div>
 
   <!-- PROFILE PAGE -->
   <div class="page" id="page-profile">
@@ -19236,8 +19429,388 @@ window.showPHQTab = function(tab, btn) {
   if(btn) btn.classList.add('on');
   document.getElementById('phq-pane-score').style.display      = (tab === 'score')      ? 'block' : 'none';
   document.getElementById('phq-pane-milestones').style.display = (tab === 'milestones') ? 'block' : 'none';
+  document.getElementById('phq-pane-analytics').style.display  = (tab === 'analytics')  ? 'block' : 'none';
   if (tab === 'milestones') renderMilestoneGrid();
+  if (tab === 'analytics')  anLoadAll();
 };
+
+// ══════════════════════════════════════════════════════════════════════════════
+// ANALYTICS — Performance HQ analytics tab
+// Reads from: leads, users/{uid}/broadcasts, users/{uid}/emailMarketing,
+//             fbState.funnels (local), copecart_sales (Firestore)
+// ══════════════════════════════════════════════════════════════════════════════
+
+var _anLoaded = false;
+
+async function anLoadAll() {
+  if (!window._db || !window._currentUserUid) return;
+  var uid = window._currentUserUid;
+
+  // Show loading state
+  ['an-total-leads','an-total-revenue','an-total-emails','an-conversion-rate','an-funnel-views','an-broadcasts-sent']
+    .forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent='…'; });
+
+  try {
+    // ── Parallel data fetch ────────────────────────────────────────────────
+    var [leadsSnap, broadcastsSnap, salesSnap] = await Promise.all([
+      window._getDocs(window._collection(window._db, 'leads')).catch(function(){return{forEach:function(){}};}),
+      window._getDocs(window._collection(window._db, 'users', uid, 'broadcasts')).catch(function(){return{forEach:function(){}};}),
+      window._getDocs(window._collection(window._db, 'copecart_sales')).catch(function(){return{forEach:function(){}};}),
+    ]);
+
+    // ── Process leads ──────────────────────────────────────────────────────
+    var leads = [];
+    leadsSnap.forEach(function(d){ var data = d.data ? d.data() : d; if (data && data.email) leads.push(data); });
+
+    // ── Process broadcasts ─────────────────────────────────────────────────
+    var broadcasts = [];
+    broadcastsSnap.forEach(function(d){ var data = d.data ? d.data() : d; broadcasts.push(data); });
+    broadcasts.sort(function(a,b){ return (b.sentAt||0) - (a.sentAt||0); });
+
+    // ── Process sales ──────────────────────────────────────────────────────
+    var sales = [];
+    salesSnap.forEach(function(d){ var data = d.data ? d.data() : d; sales.push(data); });
+    var totalRevenue = sales.reduce(function(sum, s){ return sum + (parseFloat(s.amount||s.price||s.commission||0)); }, 0);
+
+    // ── Funnels from local state ───────────────────────────────────────────
+    var funnels = (window.fbState && window.fbState.funnels) ? window.fbState.funnels : [];
+    var totalViews = funnels.reduce(function(s,f){ return s+(f.views||0); }, 0);
+
+    // ── Email stats from emState ───────────────────────────────────────────
+    var emailsSent = 0;
+    broadcasts.forEach(function(b){ emailsSent += (b.sent||0); });
+    if (window.emState && window.emState.campaigns) {
+      window.emState.campaigns.forEach(function(c){ emailsSent += (c.sent||0); });
+    }
+
+    // ── Conversion rate ────────────────────────────────────────────────────
+    var convRate = leads.length > 0 ? ((sales.length / leads.length) * 100).toFixed(1) : '0.0';
+
+    // ── This month comparison ──────────────────────────────────────────────
+    var now = Date.now();
+    var monthAgo = now - 30 * 24 * 60 * 60 * 1000;
+    var leadsThisMonth = leads.filter(function(l){ return anGetTs(l) > monthAgo; }).length;
+    var salesThisMonth = sales.filter(function(s){ return anGetTs(s) > monthAgo; }).length;
+    var revenueThisMonth = sales.filter(function(s){ return anGetTs(s) > monthAgo; })
+      .reduce(function(sum,s){ return sum + parseFloat(s.amount||s.price||s.commission||0); }, 0);
+
+    // ── Render KPIs ────────────────────────────────────────────────────────
+    anSetKpi('an-total-leads',      leads.length.toLocaleString(),       'an-leads-sub',       '+' + leadsThisMonth + ' this month');
+    anSetKpi('an-total-revenue',    '$' + Math.round(totalRevenue).toLocaleString(), 'an-revenue-sub', '$' + Math.round(revenueThisMonth).toLocaleString() + ' this month');
+    anSetKpi('an-total-emails',     emailsSent.toLocaleString(),         'an-emails-sub',      broadcasts.length + ' broadcasts sent');
+    anSetKpi('an-conversion-rate',  convRate + '%',                      'an-conv-sub',        sales.length + ' total sales');
+    anSetKpi('an-funnel-views',     totalViews.toLocaleString(),         'an-views-sub',       funnels.length + ' active funnels');
+    anSetKpi('an-broadcasts-sent',  broadcasts.length.toLocaleString(),  'an-broadcasts-sub',  emailsSent.toLocaleString() + ' emails sent');
+
+    // ── Render charts and tables ───────────────────────────────────────────
+    anRenderLeadsChart(leads);
+    anRenderLeadSources(leads);
+    anRenderRevBreakdown(sales);
+    anRenderBroadcastPerf(broadcasts);
+    anRenderFunnelTable(funnels, leads, sales);
+    anRenderRecentLeads(leads);
+
+    _anLoaded = true;
+
+  } catch(e) {
+    console.error('[Analytics] Error:', e);
+  }
+}
+
+function anGetTs(obj) {
+  if (!obj) return 0;
+  if (obj.createdAt && obj.createdAt.toMillis) return obj.createdAt.toMillis();
+  if (obj.createdAt && typeof obj.createdAt === 'number') return obj.createdAt;
+  if (obj.sentAt)   return obj.sentAt;
+  if (obj.date)     return new Date(obj.date).getTime();
+  return 0;
+}
+
+function anSetKpi(valId, val, subId, sub) {
+  var v = document.getElementById(valId); if (v) v.textContent = val;
+  var s = document.getElementById(subId);  if (s) s.textContent = sub;
+}
+
+// ── Leads over time bar chart (last 30 days) ──────────────────────────────────
+function anRenderLeadsChart(leads) {
+  var chartEl  = document.getElementById('an-leads-chart');
+  var labelEl  = document.getElementById('an-leads-chart-labels');
+  if (!chartEl) return;
+
+  var now = Date.now();
+  var days = [];
+  for (var i = 29; i >= 0; i--) {
+    var dayStart = now - (i+1) * 86400000;
+    var dayEnd   = now - i * 86400000;
+    var count    = leads.filter(function(l){ var t=anGetTs(l); return t>dayStart && t<=dayEnd; }).length;
+    days.push({ count: count, label: i % 5 === 0 ? anDayLabel(dayStart) : '' });
+  }
+
+  var max = Math.max.apply(null, days.map(function(d){ return d.count; })) || 1;
+
+  chartEl.innerHTML = days.map(function(d) {
+    var pct = Math.max(4, Math.round((d.count / max) * 100));
+    var colour = d.count > 0 ? 'linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.35))' : 'rgba(255,255,255,.05)';
+    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px" title="' + d.count + ' leads">'
+      + '<div style="width:100%;height:' + pct + '%;border-radius:3px 3px 0 0;background:' + colour + ';min-height:4px;transition:height .4s"></div>'
+      + '</div>';
+  }).join('');
+
+  if (labelEl) {
+    labelEl.innerHTML = days.filter(function(d){ return d.label; }).map(function(d){
+      return '<div style="font-size:9px;color:var(--dimmer);font-weight:600">' + d.label + '</div>';
+    }).join('');
+  }
+}
+
+function anDayLabel(ts) {
+  var d = new Date(ts);
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+
+// ── Lead sources breakdown ─────────────────────────────────────────────────────
+function anRenderLeadSources(leads) {
+  var el = document.getElementById('an-lead-sources');
+  if (!el) return;
+
+  var sources = {};
+  leads.forEach(function(l){ var s = l.source || l.page || 'direct'; sources[s] = (sources[s]||0)+1; });
+
+  var sorted = Object.keys(sources).sort(function(a,b){ return sources[b]-sources[a]; }).slice(0,6);
+  var max    = sorted.length ? sources[sorted[0]] : 1;
+
+  if (!sorted.length) { el.innerHTML = '<div style="color:var(--dim);font-size:12px">No lead source data yet.</div>'; return; }
+
+  el.innerHTML = sorted.map(function(src) {
+    var count = sources[src];
+    var pct   = Math.round((count / max) * 100);
+    var label = src.replace(/-/g,' ').replace(/optin/,'opt-in').replace(/\w/g,function(c){return c.toUpperCase();});
+    return '<div class="an-source-row">'
+      + '<div class="an-source-label">' + label + '</div>'
+      + '<div class="an-source-bar-wrap"><div class="an-source-bar" style="width:' + pct + '%"></div></div>'
+      + '<div class="an-source-count">' + count + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ── Revenue by product ────────────────────────────────────────────────────────
+function anRenderRevBreakdown(sales) {
+  var el = document.getElementById('an-revenue-breakdown');
+  if (!el) return;
+
+  if (!sales.length) {
+    el.innerHTML = '<div style="color:var(--dim);font-size:12px;padding:12px 0">No sales data yet. Sales from CopeCart will appear here automatically.</div>';
+    return;
+  }
+
+  var products = {};
+  sales.forEach(function(s){
+    var name = s.product_name || s.productName || s.product_id || 'Unknown';
+    if (!products[name]) products[name] = { count: 0, revenue: 0 };
+    products[name].count++;
+    products[name].revenue += parseFloat(s.amount||s.price||s.commission||0);
+  });
+
+  var sorted = Object.keys(products).sort(function(a,b){ return products[b].revenue - products[a].revenue; });
+  var maxRev = products[sorted[0]] ? products[sorted[0]].revenue : 1;
+
+  el.innerHTML = sorted.map(function(name) {
+    var p   = products[name];
+    var pct = Math.round((p.revenue / maxRev) * 100);
+    return '<div>'
+      + '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--white)">' + name + '</div>'
+      + '<div style="font-size:12px;font-weight:700;color:var(--teal)">$' + Math.round(p.revenue).toLocaleString() + ' <span style="color:var(--dim);font-weight:400">(' + p.count + ' sales)</span></div>'
+      + '</div>'
+      + '<div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">'
+      + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--teal),var(--teal2));border-radius:3px;transition:width .5s"></div>'
+      + '</div></div>';
+  }).join('');
+}
+
+// ── Broadcast performance ─────────────────────────────────────────────────────
+function anRenderBroadcastPerf(broadcasts) {
+  var el = document.getElementById('an-broadcast-perf');
+  if (!el) return;
+
+  if (!broadcasts.length) {
+    el.innerHTML = '<div style="color:var(--dim);font-size:12px">No broadcasts sent yet.</div>';
+    return;
+  }
+
+  el.innerHTML = broadcasts.slice(0,8).map(function(b) {
+    var rate = b.total > 0 ? Math.round((b.sent/b.total)*100) : 0;
+    var date = b.sentAt ? new Date(b.sentAt).toLocaleDateString() : '—';
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border3)">'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (b.subject||'—') + '</div>'
+      + '<div style="font-size:10px;color:var(--dim);margin-top:2px">' + date + ' · ' + (b.segment||'all') + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0;margin-left:12px">'
+      + '<div style="font-size:13px;font-weight:800;color:' + (rate>=90?'var(--teal)':rate>=70?'#F5C842':'var(--dim)') + '">' + rate + '%</div>'
+      + '<div style="font-size:10px;color:var(--dim)">' + (b.sent||0) + '/' + (b.total||0) + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+// ── Funnel table ──────────────────────────────────────────────────────────────
+function anRenderFunnelTable(funnels, leads, sales) {
+  var tbody = document.getElementById('an-funnel-tbody');
+  if (!tbody) return;
+
+  if (!funnels.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--dim)">No funnels published yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = funnels.map(function(f) {
+    var views   = f.views   || 0;
+    var fLeads  = f.leads   || leads.filter(function(l){ return (l.funnel||l.page||'') === (f.id||f.name||''); }).length;
+    var fSales  = f.sales   || 0;
+    var rev     = f.revenue || 0;
+    var convPct = fLeads > 0 ? ((fSales / fLeads) * 100).toFixed(1) : '0.0';
+    var viewPct = views > 0  ? ((fLeads / views)  * 100).toFixed(1) : '0.0';
+    return '<tr style="border-bottom:1px solid var(--border3)">'
+      + '<td style="padding:12px;font-weight:700;color:var(--white)">' + (f.name||f.title||'Funnel') + '</td>'
+      + '<td style="padding:12px;text-align:right;color:var(--muted)">' + views.toLocaleString() + '</td>'
+      + '<td style="padding:12px;text-align:right;color:var(--teal);font-weight:700">' + fLeads.toLocaleString() + ' <span style="color:var(--dim);font-weight:400;font-size:10px">(' + viewPct + '%)</span></td>'
+      + '<td style="padding:12px;text-align:right;color:#F5C842;font-weight:700">' + fSales.toLocaleString() + '</td>'
+      + '<td style="padding:12px;text-align:right;color:' + (parseFloat(convPct)>=5?'var(--teal)':'var(--muted)') + ';font-weight:700">' + convPct + '%</td>'
+      + '<td style="padding:12px;text-align:right;font-weight:800;color:var(--white)">$' + Math.round(rev).toLocaleString() + '</td>'
+      + '</tr>';
+  }).join('');
+}
+
+// ── Recent leads feed ─────────────────────────────────────────────────────────
+function anRenderRecentLeads(leads) {
+  var el = document.getElementById('an-recent-leads');
+  if (!el) return;
+
+  var sorted = leads.slice().sort(function(a,b){ return anGetTs(b) - anGetTs(a); }).slice(0,15);
+
+  if (!sorted.length) {
+    el.innerHTML = '<div style="color:var(--dim);font-size:13px;padding:20px 0;text-align:center">No leads yet. Opt-ins from your funnels appear here in real time.</div>';
+    return;
+  }
+
+  el.innerHTML = sorted.map(function(l) {
+    var ts      = anGetTs(l);
+    var timeAgo = ts ? anTimeAgo(ts) : '—';
+    var source  = (l.source||l.page||'direct').replace(/-/g,' ').replace(/\w/g,function(c){return c.toUpperCase();});
+    var initial = (l.name||l.email||'?').charAt(0).toUpperCase();
+    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border3)">'
+      + '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--text-dark);flex-shrink:0">' + initial + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--white)">' + (l.name||'Anonymous') + '</div>'
+      + '<div style="font-size:11px;color:var(--dim)">' + (l.email||'') + '</div>'
+      + '</div>'
+      + '<div style="text-align:right;flex-shrink:0">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--teal);background:rgba(78,204,163,.08);border-radius:4px;padding:2px 8px;margin-bottom:3px">' + source + '</div>'
+      + '<div style="font-size:10px;color:var(--dimmer)">' + timeAgo + '</div>'
+      + '</div></div>';
+  }).join('');
+}
+
+function anTimeAgo(ts) {
+  var diff = Date.now() - ts;
+  var mins = Math.floor(diff / 60000);
+  if (mins < 1)   return 'Just now';
+  if (mins < 60)  return mins + 'm ago';
+  var hrs = Math.floor(mins / 60);
+  if (hrs  < 24)  return hrs  + 'h ago';
+  var days = Math.floor(hrs / 24);
+  if (days < 30)  return days + 'd ago';
+  return Math.floor(days/30) + 'mo ago';
+}
+
+function anRefresh() { _anLoaded = false; anLoadAll(); }
+window.anRefresh = anRefresh;
+
+// ── Dashboard analytics (lightweight, runs on dashboard load) ─────────────────
+async function dbAnLoad() {
+  if (!window._db || !window._currentUserUid) return;
+  var uid = window._currentUserUid;
+
+  try {
+    var [leadsSnap, broadcastsSnap, salesSnap] = await Promise.all([
+      window._getDocs(window._collection(window._db, 'leads')).catch(function(){return{forEach:function(){}};}),
+      window._getDocs(window._collection(window._db, 'users', uid, 'broadcasts')).catch(function(){return{forEach:function(){}};}),
+      window._getDocs(window._collection(window._db, 'copecart_sales')).catch(function(){return{forEach:function(){}};}),
+    ]);
+
+    var leads = []; leadsSnap.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) leads.push(data); });
+    var broadcasts = []; broadcastsSnap.forEach(function(d){ var data=d.data?d.data():d; broadcasts.push(data); });
+    var sales = []; salesSnap.forEach(function(d){ var data=d.data?d.data():d; sales.push(data); });
+
+    var totalRevenue   = sales.reduce(function(s,x){ return s+parseFloat(x.amount||x.price||x.commission||0); }, 0);
+    var funnels        = (window.fbState&&window.fbState.funnels) ? window.fbState.funnels : [];
+    var totalViews     = funnels.reduce(function(s,f){ return s+(f.views||0); }, 0);
+    var emailsSent     = broadcasts.reduce(function(s,b){ return s+(b.sent||0); }, 0);
+    var convRate       = leads.length > 0 ? ((sales.length/leads.length)*100).toFixed(1) : '0.0';
+
+    var now = Date.now(), monthAgo = now - 30*24*60*60*1000;
+    var leadsMonth   = leads.filter(function(l){ return anGetTs(l)>monthAgo; }).length;
+    var revenueMonth = sales.filter(function(s){ return anGetTs(s)>monthAgo; }).reduce(function(s,x){ return s+parseFloat(x.amount||x.price||x.commission||0); }, 0);
+
+    // KPIs
+    function dbSet(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
+    dbSet('db-an-leads',       leads.length.toLocaleString());
+    dbSet('db-an-leads-sub',   '+' + leadsMonth + ' this month');
+    dbSet('db-an-revenue',     '$' + Math.round(totalRevenue).toLocaleString());
+    dbSet('db-an-revenue-sub', '$' + Math.round(revenueMonth).toLocaleString() + ' this month');
+    dbSet('db-an-emails',      emailsSent.toLocaleString());
+    dbSet('db-an-emails-sub',  broadcasts.length + ' broadcasts');
+    dbSet('db-an-conv',        convRate + '%');
+    dbSet('db-an-conv-sub',    sales.length + ' total sales');
+    dbSet('db-an-views',       totalViews.toLocaleString());
+    dbSet('db-an-views-sub',   funnels.length + ' funnels');
+    dbSet('db-an-broadcasts',  broadcasts.length.toLocaleString());
+    dbSet('db-an-broadcasts-sub', emailsSent.toLocaleString() + ' emails sent');
+
+    // Leads chart
+    var chartEl = document.getElementById('db-an-leads-chart');
+    var subEl   = document.getElementById('db-an-chart-sub');
+    if (chartEl) {
+      var days = [];
+      for (var i=29;i>=0;i--) {
+        var ds=now-(i+1)*86400000, de=now-i*86400000;
+        days.push(leads.filter(function(l){ var t=anGetTs(l); return t>ds&&t<=de; }).length);
+      }
+      var max = Math.max.apply(null,days)||1;
+      chartEl.innerHTML = days.map(function(c){
+        var h = Math.max(4, Math.round((c/max)*76));
+        var bg = c>0?'linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.3))':'rgba(255,255,255,.05)';
+        return '<div style="flex:1;height:'+h+'px;border-radius:2px 2px 0 0;background:'+bg+';min-height:4px" title="'+c+' leads"></div>';
+      }).join('');
+      if (subEl) subEl.textContent = leadsMonth + ' leads in the last 30 days';
+    }
+
+    // Recent opt-ins
+    var recentEl = document.getElementById('db-an-recent');
+    if (recentEl) {
+      var sorted = leads.slice().sort(function(a,b){ return anGetTs(b)-anGetTs(a); }).slice(0,5);
+      if (!sorted.length) {
+        recentEl.innerHTML = '<div style="font-size:11px;color:var(--dim)">No leads yet — opt-ins appear here in real time.</div>';
+      } else {
+        recentEl.innerHTML = sorted.map(function(l){
+          var initial = (l.name||l.email||'?').charAt(0).toUpperCase();
+          var source  = (l.source||l.page||'direct').replace(/-/g,' ').slice(0,18);
+          return '<div style="display:flex;align-items:center;gap:8px">'
+            + '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text-dark);flex-shrink:0">'+initial+'</div>'
+            + '<div style="flex:1;min-width:0">'
+            + '<div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(l.name||l.email||'Anonymous')+'</div>'
+            + '<div style="font-size:10px;color:var(--dim)">'+source+' · '+anTimeAgo(anGetTs(l))+'</div>'
+            + '</div></div>';
+        }).join('');
+      }
+    }
+
+  } catch(e) { console.error('[DB Analytics]', e); }
+}
+
+function dbAnRefresh() { dbAnLoad(); }
+window.dbAnRefresh = dbAnRefresh;
+window.dbAnLoad    = dbAnLoad;
 
 // ─── PHQ HERO BADGE (score in the hero strip) ────────────────────────────────
 function renderPHQHero() {
@@ -19993,7 +20566,10 @@ function _dashShowSkeleton() {
   if (detail) detail.textContent = 'Loading your revenue data…';
 }
 
-window.renderDashboard = renderDashboard;
+window.renderDashboard = function() {
+  renderDashboard();
+  if (window.dbAnLoad) setTimeout(window.dbAnLoad, 200);
+};
 
 // Auto-refresh dashboard when it is the active page
 
