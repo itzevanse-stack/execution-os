@@ -2855,6 +2855,9 @@ button[onclick="generateOffer()"] {
 /* ── ANALYTICS ───────────────────────────────────────────────── */
 .an-kpi-card { background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 18px;position:relative;overflow:hidden;transition:border-color .2s; }
 .an-kpi-card:hover { border-color:rgba(78,204,163,.25); }
+.db-an-pill { background:var(--card2);border:1px solid var(--border2);border-radius:50px;padding:5px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;white-space:nowrap; }
+.db-an-pill:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
+.db-an-pill.active { background:rgba(78,204,163,.1);border-color:rgba(78,204,163,.3);color:var(--teal); }
 .an-kpi-icon { font-size:22px;margin-bottom:10px; }
 .an-kpi-val { font-size:28px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px;line-height:1; }
 .an-kpi-lbl { font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px; }
@@ -3499,39 +3502,81 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
-      <!-- ── TIME FILTER PILLS ─────────────────────────────────── -->
-      <div id="db-filter-row" style="display:none;align-items:center;justify-content:space-between;margin-bottom:1rem">
-        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800">📊 Sales Activity</div>
-        <div style="display:flex;gap:6px">
-          <button class="db-filter-pill active" onclick="dbSetFilter('week',this)">This Week</button>
-          <button class="db-filter-pill" onclick="dbSetFilter('month',this)">This Month</button>
-          <button class="db-filter-pill" onclick="dbSetFilter('last',this)">Last Month</button>
-          <button class="db-filter-pill" onclick="dbSetFilter('all',this)">All Time</button>
-        </div>
-      </div>
+      <!-- ── ANALYTICS — filter + KPI row ──────────────────────── -->
+      <div style="margin-bottom:1.5rem" id="db-analytics-section">
 
-      <!-- Key Metrics Row -->
-      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.5rem" id="db-metrics-row">
-        <div class="db-metric teal">
-          <div class="db-lbl">Monthly Target</div>
-          <div class="db-val" id="db-target" style="color:var(--teal)">$0</div>
-          <div class="db-sub">your revenue goal</div>
+        <!-- Filter row -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800">📊 Analytics</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+            <button class="db-an-pill active" onclick="dbAnFilter('today',this)">Today</button>
+            <button class="db-an-pill" onclick="dbAnFilter('week',this)">This Week</button>
+            <button class="db-an-pill" onclick="dbAnFilter('30d',this)">Last 30 Days</button>
+            <button class="db-an-pill" onclick="dbAnFilter('3m',this)">3 Months</button>
+            <button class="db-an-pill" onclick="dbAnFilter('6m',this)">6 Months</button>
+            <button class="db-an-pill" onclick="dbAnFilter('1y',this)">1 Year</button>
+            <button class="db-an-pill" onclick="dbAnFilter('all',this)">All Time</button>
+            <button class="db-an-pill" onclick="dbAnFilter('custom',this)" id="db-an-custom-btn">Custom</button>
+            <button onclick="dbAnRefresh()" style="background:none;border:none;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;padding:4px 8px">↺</button>
+          </div>
         </div>
-        <div class="db-metric yellow">
-          <div class="db-lbl">Earned This Month</div>
-          <div class="db-val" id="db-earned" style="color:var(--yellow)">$0</div>
-          <div class="db-sub" id="db-earned-sub">0 deals closed</div>
+
+        <!-- Custom date range (hidden by default) -->
+        <div id="db-an-custom-range" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 16px;margin-bottom:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:11px;color:var(--dim);font-weight:700">From</div>
+          <input type="date" id="db-an-from" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;color:var(--white);font-family:'Poppins',sans-serif;font-size:12px">
+          <div style="font-size:11px;color:var(--dim);font-weight:700">To</div>
+          <input type="date" id="db-an-to" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;color:var(--white);font-family:'Poppins',sans-serif;font-size:12px">
+          <button onclick="dbAnApplyCustom()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;padding:7px 16px;color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">Apply</button>
         </div>
-        <div class="db-metric red">
-          <div class="db-lbl">Gap to Close</div>
-          <div class="db-val" id="db-gap" style="color:var(--red)">$0</div>
-          <div class="db-sub" id="db-gap-sub">deals remaining</div>
+
+        <!-- KPI cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px">
+          <div class="db-metric teal" style="border-radius:var(--r-lg)">
+            <div class="db-lbl">Total Leads</div>
+            <div class="db-val" id="db-an-leads" style="color:var(--teal)">—</div>
+            <div class="db-sub" id="db-an-leads-sub"></div>
+          </div>
+          <div class="db-metric yellow" style="border-radius:var(--r-lg)">
+            <div class="db-lbl">Revenue</div>
+            <div class="db-val" id="db-an-revenue" style="color:var(--yellow)">—</div>
+            <div class="db-sub" id="db-an-revenue-sub"></div>
+          </div>
+          <div class="db-metric" style="border-radius:var(--r-lg)">
+            <div class="db-lbl">Emails Sent</div>
+            <div class="db-val" id="db-an-emails" style="color:var(--white)">—</div>
+            <div class="db-sub" id="db-an-emails-sub"></div>
+          </div>
+          <div class="db-metric" style="border-radius:var(--r-lg)">
+            <div class="db-lbl">Conversion Rate</div>
+            <div class="db-val" id="db-an-conv" style="color:var(--teal)">—</div>
+            <div class="db-sub" id="db-an-conv-sub"></div>
+          </div>
+          <div class="db-metric" style="border-radius:var(--r-lg)">
+            <div class="db-lbl">Funnel Views</div>
+            <div class="db-val" id="db-an-views" style="color:var(--white)">—</div>
+            <div class="db-sub" id="db-an-views-sub"></div>
+          </div>
+          <div class="db-metric" style="border-radius:var(--r-lg)">
+            <div class="db-lbl">Broadcasts</div>
+            <div class="db-val" id="db-an-broadcasts" style="color:var(--white)">—</div>
+            <div class="db-sub" id="db-an-broadcasts-sub"></div>
+          </div>
         </div>
-        <div class="db-metric purple">
-          <div class="db-lbl">Paid Customers</div>
-          <div class="db-val" id="db-cal-done" style="color:var(--purple)">0</div>
-          <div class="db-sub" id="db-cal-sub">paying customers</div>
+
+        <!-- Two col: chart + recent leads -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:3px">Leads Over Time</div>
+            <div style="font-size:10px;color:var(--dim);margin-bottom:12px" id="db-an-chart-sub">Loading…</div>
+            <div id="db-an-leads-chart" style="height:80px;display:flex;align-items:flex-end;gap:3px"></div>
+          </div>
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
+            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:12px">Recent Opt-ins</div>
+            <div id="db-an-recent" style="display:flex;flex-direction:column;gap:8px"></div>
+          </div>
         </div>
+
       </div>
 
       <!-- Revenue Bar -->
@@ -3674,67 +3719,6 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
-      <!-- ── LIVE ANALYTICS SECTION ──────────────────────────────── -->
-      <div style="margin-bottom:1.5rem">
-
-        <!-- Section header -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-          <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:900">📈 Live Analytics</div>
-          <button onclick="dbAnRefresh()" id="db-an-refresh-btn" style="background:none;border:none;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;padding:4px 8px">↺ Refresh</button>
-        </div>
-
-        <!-- KPI row -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px">
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
-            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Total Leads</div>
-            <div id="db-an-leads" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">—</div>
-            <div id="db-an-leads-sub" style="font-size:10px;color:var(--teal);font-weight:700;margin-top:3px"></div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
-            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Total Revenue</div>
-            <div id="db-an-revenue" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--yellow)">—</div>
-            <div id="db-an-revenue-sub" style="font-size:10px;color:var(--teal);font-weight:700;margin-top:3px"></div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
-            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Emails Sent</div>
-            <div id="db-an-emails" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">—</div>
-            <div id="db-an-emails-sub" style="font-size:10px;color:var(--dim);font-weight:700;margin-top:3px"></div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
-            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Conversion Rate</div>
-            <div id="db-an-conv" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal)">—</div>
-            <div id="db-an-conv-sub" style="font-size:10px;color:var(--dim);font-weight:700;margin-top:3px"></div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
-            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Funnel Views</div>
-            <div id="db-an-views" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">—</div>
-            <div id="db-an-views-sub" style="font-size:10px;color:var(--dim);font-weight:700;margin-top:3px"></div>
-          </div>
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
-            <div style="font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Broadcasts</div>
-            <div id="db-an-broadcasts" style="font-size:24px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">—</div>
-            <div id="db-an-broadcasts-sub" style="font-size:10px;color:var(--dim);font-weight:700;margin-top:3px"></div>
-          </div>
-        </div>
-
-        <!-- Two col: Leads chart + Recent leads -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-
-          <!-- Leads over 30 days -->
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
-            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:3px">Leads — Last 30 Days</div>
-            <div style="font-size:10px;color:var(--dim);margin-bottom:12px" id="db-an-chart-sub">Loading…</div>
-            <div id="db-an-leads-chart" style="height:80px;display:flex;align-items:flex-end;gap:3px"></div>
-          </div>
-
-          <!-- Recent leads feed -->
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
-            <div style="font-size:11px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:12px">Recent Opt-ins</div>
-            <div id="db-an-recent" style="display:flex;flex-direction:column;gap:8px"></div>
-          </div>
-
-        </div>
-      </div>
 
       <!-- Motivational closer — changes based on score -->
       <div id="db-coach-note" style="background:linear-gradient(145deg,rgba(78,204,163,.06),rgba(108,99,255,.04));border:1px solid rgba(78,204,163,.15);border-radius:14px;padding:1rem 1.25rem;margin-bottom:2rem;display:flex;align-items:flex-start;gap:12px">
@@ -6776,7 +6760,7 @@ button[onclick="generateOffer()"] {
 
 <!-- VIDEO STUDIO -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<div class="page" id="page-ai-video" style="display:none">
+<div class="page" id="page-ai-video">
 
   <div class="hero-strip" style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.04));margin:0 1.25rem var(--sp-4)">
     <div class="tag-pill" style="background:linear-gradient(135deg,#6c63ff,#5040cc);margin-bottom:var(--sp-3)"><span style="color:#fff">Content Studio</span></div>
@@ -9192,7 +9176,10 @@ function showPage(n,btn){
   if(n==='growth') initGrowthSupport();
   if(n==='offer') { setTimeout(function(){ calcStackTotal && calcStackTotal(); }, 100); }
   // Dashboard render
-  if(n==='dashboard') setTimeout(function(){ window.renderDashboard && window.renderDashboard(); }, 60);
+  if(n==='dashboard') {
+    setTimeout(function(){ window.renderDashboard && window.renderDashboard(); }, 60);
+    setTimeout(function(){ window.dbAnLoad && window.dbAnLoad(); }, 400);
+  }
   // Affiliate page restore
   if(n==='affiliate') setTimeout(function(){
     window.setAffTraffic && window.setAffTraffic(window._affTrafficMode || 'organic');
@@ -9231,15 +9218,9 @@ function showPage(n,btn){
   if(n==='advisor') setTimeout(function(){ window.initAdvisor && window.initAdvisor(); }, 100);
   // Step progress
   setTimeout(function(){ window.updateStepProgress && window.updateStepProgress(); }, 100);
-  // Animate children
-  setTimeout(function(){
-    const pg=document.getElementById('page-'+n);
-    if(pg){ pg.querySelectorAll('.hero-strip,.m-card,.av-sec,.w-card,.rblock').forEach(function(el,i){
-      el.style.opacity='0'; el.style.transform='translateY(12px)';
-      el.style.transition='opacity .3s ease, transform .3s ease';
-      setTimeout(function(){ el.style.opacity='1'; el.style.transform='translateY(0)'; }, i*40);
-    }); }
-  }, 50);
+  // CSS handles page entrance animation (.page.on .hero-strip etc.)
+  // JS opacity animation removed — it conflicts when showPage is called multiple times
+  // causing hero-strip and cards to stay at opacity:0
   if(n==='affiliate') initAffiliateHub();
 }
 window.showPage=showPage;
@@ -19727,6 +19708,58 @@ function anRefresh() { _anLoaded = false; anLoadAll(); }
 window.anRefresh = anRefresh;
 
 // ── Dashboard analytics (lightweight, runs on dashboard load) ─────────────────
+// ── Analytics state ───────────────────────────────────────────────────────────
+var _dbAnFilter  = '30d';   // active filter
+var _dbAnFrom    = null;    // custom range start (ms)
+var _dbAnTo      = null;    // custom range end (ms)
+var _dbAnLeads   = [];      // cached leads
+var _dbAnSales   = [];      // cached sales
+var _dbAnBcasts  = [];      // cached broadcasts
+
+// ── Filter range helper — returns {start, end, label, buckets} ────────────────
+function dbAnRange(filter, fromTs, toTs) {
+  var now   = Date.now();
+  var start, end = now, label, buckets;
+
+  if (filter === 'today')  { start = new Date(); start.setHours(0,0,0,0); start = start.getTime(); label = 'Today'; buckets = 24; }
+  else if (filter === 'week')   { start = now - 7*86400000;   label = 'Last 7 days';   buckets = 7; }
+  else if (filter === '30d')    { start = now - 30*86400000;  label = 'Last 30 days';  buckets = 30; }
+  else if (filter === '3m')     { start = now - 90*86400000;  label = 'Last 3 months'; buckets = 12; }
+  else if (filter === '6m')     { start = now - 180*86400000; label = 'Last 6 months'; buckets = 24; }
+  else if (filter === '1y')     { start = now - 365*86400000; label = 'Last year';     buckets = 12; }
+  else if (filter === 'all')    { start = 0;                  label = 'All time';      buckets = 12; }
+  else if (filter === 'custom') { start = fromTs||0; end = toTs||now; label = 'Custom range'; buckets = 30; }
+  else                          { start = now - 30*86400000;  label = 'Last 30 days';  buckets = 30; }
+
+  return { start: start, end: end, label: label, buckets: buckets };
+}
+
+// ── Filter button clicked ─────────────────────────────────────────────────────
+function dbAnFilter(filter, btn) {
+  _dbAnFilter = filter;
+  document.querySelectorAll('.db-an-pill').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+
+  var customRange = document.getElementById('db-an-custom-range');
+  if (filter === 'custom') {
+    if (customRange) customRange.style.display = 'flex';
+    return; // wait for Apply
+  }
+  if (customRange) customRange.style.display = 'none';
+  dbAnRender();
+}
+
+// ── Apply custom date range ───────────────────────────────────────────────────
+function dbAnApplyCustom() {
+  var fromEl = document.getElementById('db-an-from');
+  var toEl   = document.getElementById('db-an-to');
+  if (!fromEl || !fromEl.value || !toEl || !toEl.value) return;
+  _dbAnFrom = new Date(fromEl.value).getTime();
+  _dbAnTo   = new Date(toEl.value + 'T23:59:59').getTime();
+  dbAnRender();
+}
+
+// ── Load all data from Firestore (once, then filter client-side) ──────────────
 async function dbAnLoad() {
   if (!window._db || !window._currentUserUid) return;
   var uid = window._currentUserUid;
@@ -19738,79 +19771,94 @@ async function dbAnLoad() {
       window._getDocs(window._collection(window._db, 'copecart_sales')).catch(function(){return{forEach:function(){}};}),
     ]);
 
-    var leads = []; leadsSnap.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) leads.push(data); });
-    var broadcasts = []; broadcastsSnap.forEach(function(d){ var data=d.data?d.data():d; broadcasts.push(data); });
-    var sales = []; salesSnap.forEach(function(d){ var data=d.data?d.data():d; sales.push(data); });
+    _dbAnLeads  = []; leadsSnap.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) _dbAnLeads.push(data); });
+    _dbAnBcasts = []; broadcastsSnap.forEach(function(d){ var data=d.data?d.data():d; _dbAnBcasts.push(data); });
+    _dbAnSales  = []; salesSnap.forEach(function(d){ var data=d.data?d.data():d; _dbAnSales.push(data); });
 
-    var totalRevenue   = sales.reduce(function(s,x){ return s+parseFloat(x.amount||x.price||x.commission||0); }, 0);
-    var funnels        = (window.fbState&&window.fbState.funnels) ? window.fbState.funnels : [];
-    var totalViews     = funnels.reduce(function(s,f){ return s+(f.views||0); }, 0);
-    var emailsSent     = broadcasts.reduce(function(s,b){ return s+(b.sent||0); }, 0);
-    var convRate       = leads.length > 0 ? ((sales.length/leads.length)*100).toFixed(1) : '0.0';
-
-    var now = Date.now(), monthAgo = now - 30*24*60*60*1000;
-    var leadsMonth   = leads.filter(function(l){ return anGetTs(l)>monthAgo; }).length;
-    var revenueMonth = sales.filter(function(s){ return anGetTs(s)>monthAgo; }).reduce(function(s,x){ return s+parseFloat(x.amount||x.price||x.commission||0); }, 0);
-
-    // KPIs
-    function dbSet(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
-    dbSet('db-an-leads',       leads.length.toLocaleString());
-    dbSet('db-an-leads-sub',   '+' + leadsMonth + ' this month');
-    dbSet('db-an-revenue',     '$' + Math.round(totalRevenue).toLocaleString());
-    dbSet('db-an-revenue-sub', '$' + Math.round(revenueMonth).toLocaleString() + ' this month');
-    dbSet('db-an-emails',      emailsSent.toLocaleString());
-    dbSet('db-an-emails-sub',  broadcasts.length + ' broadcasts');
-    dbSet('db-an-conv',        convRate + '%');
-    dbSet('db-an-conv-sub',    sales.length + ' total sales');
-    dbSet('db-an-views',       totalViews.toLocaleString());
-    dbSet('db-an-views-sub',   funnels.length + ' funnels');
-    dbSet('db-an-broadcasts',  broadcasts.length.toLocaleString());
-    dbSet('db-an-broadcasts-sub', emailsSent.toLocaleString() + ' emails sent');
-
-    // Leads chart
-    var chartEl = document.getElementById('db-an-leads-chart');
-    var subEl   = document.getElementById('db-an-chart-sub');
-    if (chartEl) {
-      var days = [];
-      for (var i=29;i>=0;i--) {
-        var ds=now-(i+1)*86400000, de=now-i*86400000;
-        days.push(leads.filter(function(l){ var t=anGetTs(l); return t>ds&&t<=de; }).length);
-      }
-      var max = Math.max.apply(null,days)||1;
-      chartEl.innerHTML = days.map(function(c){
-        var h = Math.max(4, Math.round((c/max)*76));
-        var bg = c>0?'linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.3))':'rgba(255,255,255,.05)';
-        return '<div style="flex:1;height:'+h+'px;border-radius:2px 2px 0 0;background:'+bg+';min-height:4px" title="'+c+' leads"></div>';
-      }).join('');
-      if (subEl) subEl.textContent = leadsMonth + ' leads in the last 30 days';
-    }
-
-    // Recent opt-ins
-    var recentEl = document.getElementById('db-an-recent');
-    if (recentEl) {
-      var sorted = leads.slice().sort(function(a,b){ return anGetTs(b)-anGetTs(a); }).slice(0,5);
-      if (!sorted.length) {
-        recentEl.innerHTML = '<div style="font-size:11px;color:var(--dim)">No leads yet — opt-ins appear here in real time.</div>';
-      } else {
-        recentEl.innerHTML = sorted.map(function(l){
-          var initial = (l.name||l.email||'?').charAt(0).toUpperCase();
-          var source  = (l.source||l.page||'direct').replace(/-/g,' ').slice(0,18);
-          return '<div style="display:flex;align-items:center;gap:8px">'
-            + '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text-dark);flex-shrink:0">'+initial+'</div>'
-            + '<div style="flex:1;min-width:0">'
-            + '<div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(l.name||l.email||'Anonymous')+'</div>'
-            + '<div style="font-size:10px;color:var(--dim)">'+source+' · '+anTimeAgo(anGetTs(l))+'</div>'
-            + '</div></div>';
-        }).join('');
-      }
-    }
-
+    dbAnRender();
   } catch(e) { console.error('[DB Analytics]', e); }
 }
 
-function dbAnRefresh() { dbAnLoad(); }
-window.dbAnRefresh = dbAnRefresh;
-window.dbAnLoad    = dbAnLoad;
+// ── Render with current filter ────────────────────────────────────────────────
+function dbAnRender() {
+  var range     = dbAnRange(_dbAnFilter, _dbAnFrom, _dbAnTo);
+  var start     = range.start;
+  var end       = range.end;
+  var label     = range.label;
+
+  // Filter data to range
+  var leads  = _dbAnLeads.filter(function(l){ var t=anGetTs(l); return t>=start && t<=end; });
+  var sales  = _dbAnSales.filter(function(s){ var t=anGetTs(s); return t>=start && t<=end; });
+  var bcasts = _dbAnBcasts.filter(function(b){ var t=b.sentAt||0; return t>=start && t<=end; });
+
+  var totalRevenue = sales.reduce(function(s,x){ return s+parseFloat(x.amount||x.price||x.commission||0); }, 0);
+  var funnels      = (window.fbState&&window.fbState.funnels) ? window.fbState.funnels : [];
+  var totalViews   = funnels.reduce(function(s,f){ return s+(f.views||0); }, 0);
+  var emailsSent   = bcasts.reduce(function(s,b){ return s+(b.sent||0); }, 0);
+  var convRate     = leads.length > 0 ? ((sales.length/leads.length)*100).toFixed(1) : '0.0';
+
+  function dbSet(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
+
+  dbSet('db-an-leads',          leads.length.toLocaleString());
+  dbSet('db-an-leads-sub',      label);
+  dbSet('db-an-revenue',        '$' + Math.round(totalRevenue).toLocaleString());
+  dbSet('db-an-revenue-sub',    sales.length + ' sales · ' + label);
+  dbSet('db-an-emails',         emailsSent.toLocaleString());
+  dbSet('db-an-emails-sub',     bcasts.length + ' broadcasts · ' + label);
+  dbSet('db-an-conv',           convRate + '%');
+  dbSet('db-an-conv-sub',       leads.length + ' leads → ' + sales.length + ' sales');
+  dbSet('db-an-views',          totalViews.toLocaleString());
+  dbSet('db-an-views-sub',      funnels.length + ' funnels');
+  dbSet('db-an-broadcasts',     bcasts.length.toLocaleString());
+  dbSet('db-an-broadcasts-sub', emailsSent.toLocaleString() + ' emails sent');
+
+  // ── Leads chart — bucket by period ───────────────────────────────────────
+  var chartEl = document.getElementById('db-an-leads-chart');
+  var subEl   = document.getElementById('db-an-chart-sub');
+  if (chartEl) {
+    var buckets = range.buckets;
+    var span    = (end - start) / buckets;
+    var counts  = [];
+    for (var i = 0; i < buckets; i++) {
+      var bs = start + i * span;
+      var be = bs + span;
+      counts.push(_dbAnLeads.filter(function(l){ var t=anGetTs(l); return t>=bs && t<be; }).length);
+    }
+    var max = Math.max.apply(null, counts) || 1;
+    chartEl.innerHTML = counts.map(function(c){
+      var h  = Math.max(4, Math.round((c/max)*76));
+      var bg = c > 0 ? 'linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.3))' : 'rgba(255,255,255,.05)';
+      return '<div style="flex:1;height:'+h+'px;border-radius:2px 2px 0 0;background:'+bg+';min-height:4px;transition:height .3s" title="'+c+' leads"></div>';
+    }).join('');
+    if (subEl) subEl.textContent = leads.length + ' leads · ' + label;
+  }
+
+  // ── Recent opt-ins (always show latest regardless of filter) ─────────────
+  var recentEl = document.getElementById('db-an-recent');
+  if (recentEl) {
+    var sorted = _dbAnLeads.slice().sort(function(a,b){ return anGetTs(b)-anGetTs(a); }).slice(0,5);
+    if (!sorted.length) {
+      recentEl.innerHTML = '<div style="font-size:11px;color:var(--dim)">No leads yet.</div>';
+    } else {
+      recentEl.innerHTML = sorted.map(function(l){
+        var initial = (l.name||l.email||'?').charAt(0).toUpperCase();
+        var source  = (l.source||l.page||'direct').replace(/-/g,' ').slice(0,18);
+        return '<div style="display:flex;align-items:center;gap:8px">'
+          + '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text-dark);flex-shrink:0">'+initial+'</div>'
+          + '<div style="flex:1;min-width:0">'
+          + '<div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(l.name||l.email||'Anonymous')+'</div>'
+          + '<div style="font-size:10px;color:var(--dim)">'+source+' · '+anTimeAgo(anGetTs(l))+'</div>'
+          + '</div></div>';
+      }).join('');
+    }
+  }
+}
+
+function dbAnRefresh() { _dbAnLeads=[]; _dbAnSales=[]; _dbAnBcasts=[]; dbAnLoad(); }
+window.dbAnRefresh   = dbAnRefresh;
+window.dbAnLoad      = dbAnLoad;
+window.dbAnFilter    = dbAnFilter;
+window.dbAnApplyCustom = dbAnApplyCustom;
 
 // ─── PHQ HERO BADGE (score in the hero strip) ────────────────────────────────
 function renderPHQHero() {
@@ -20566,10 +20614,11 @@ function _dashShowSkeleton() {
   if (detail) detail.textContent = 'Loading your revenue data…';
 }
 
-window.renderDashboard = function() {
-  renderDashboard();
-  if (window.dbAnLoad) setTimeout(window.dbAnLoad, 200);
-};
+// Trigger analytics load when dashboard becomes active
+// Done independently — no override of renderDashboard needed
+setTimeout(function() {
+  if (window.dbAnLoad) window.dbAnLoad();
+}, 500);
 
 // Auto-refresh dashboard when it is the active page
 
@@ -26757,12 +26806,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Navigate immediately — no Firebase wait needed
     var _targetPage = document.getElementById('page-' + _earlyLastPage);
     if (_targetPage) {
-      // Hide dashboard, show saved page right away
-      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('on'); });
-      document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('on'); });
-      _targetPage.classList.add('on');
-      var _navBtn = document.getElementById('nav-' + _earlyLastPage);
-      if (_navBtn) _navBtn.classList.add('on');
+      // Use showPage so all section init hooks fire (emLoad, fbLoadList, csShowTab etc.)
+      if (typeof window.showPage === 'function') {
+        var _navBtn = document.getElementById('nav-' + _earlyLastPage);
+        window.showPage(_earlyLastPage, _navBtn || null);
+      } else {
+        // Fallback: manually toggle if showPage not ready yet
+        document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('on'); });
+        document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('on'); });
+        _targetPage.classList.add('on');
+        var _navBtn2 = document.getElementById('nav-' + _earlyLastPage);
+        if (_navBtn2) _navBtn2.classList.add('on');
+      }
     }
   }
 
@@ -27813,8 +27868,13 @@ onAuthStateChanged(auth, async (user) => {
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
             const navBtn = document.getElementById('nav-' + lastPage);
             window.showPage(lastPage, navBtn || null);
-            if (lastPage === 'funnels') { setTimeout(function(){ window.fbLoadList && window.fbLoadList(); }, 300); }
-            if (lastPage === 'email')   { setTimeout(function(){ window.emLoad && window.emLoad(); }, 300); }
+            if (lastPage === 'funnels')  { setTimeout(function(){ window.fbLoadList && window.fbLoadList(); }, 300); }
+            if (lastPage === 'email')    { setTimeout(function(){ window.emLoad && window.emLoad(); }, 300); }
+            if (lastPage === 'ai-video') { setTimeout(function(){
+              window.csRenderReadinessBanner && window.csRenderReadinessBanner();
+              var vBtn = document.querySelector('.cs-tab-btn');
+              window.csShowTab && window.csShowTab('video', vBtn);
+            }, 300); }
           }
         } catch(e) {}
 
@@ -31801,8 +31861,8 @@ async function fbDeleteFunnel(id, event) {
 (function() {
   var _origFB = window.showPage;
   window.showPage = function(n, btn) {
-    if (n === 'funnels') fbLoadList();
     if (_origFB) _origFB(n, btn);
+    if (n === 'funnels') setTimeout(function(){ fbLoadList(); }, 80);
   };
 })();
 
@@ -38715,7 +38775,6 @@ window._getFullIntelContext = function() {
   }
 };
 </script>
-</script>
 
 <script>
 // ══════════════════════════════════════════════════════════════════
@@ -42452,6 +42511,64 @@ window.dbSetFilter = function(filter, btn) {
   // Re-render entire dashboard — metrics, graph, progress bar all update
   window.renderDashboard && window.renderDashboard();
 };
+
+/* ══════════════════════════════════════════════════════════════════
+   SHOWPAGE INIT HOOKS — Email Marketing & Content Studio
+   These ensure the correct init functions fire every time the user
+   navigates to these sections, not just on Firebase auth restore.
+══════════════════════════════════════════════════════════════════ */
+(function() {
+  var _origSP = window.showPage;
+  window.showPage = function(n, btn) {
+    if (typeof _origSP === 'function') _origSP(n, btn);
+
+    // ── Email Marketing — load data every time section opens ──
+    if (n === 'email') {
+      setTimeout(function() {
+        if (typeof window.emLoad === 'function') window.emLoad();
+        // Ensure campaigns tab is active and visible
+        var camTab = document.getElementById('em-tab-campaigns');
+        if (camTab && typeof window.emTab === 'function') window.emTab(camTab, 'campaigns');
+        // Show sender banner only if no sender connected
+        var banner = document.getElementById('em-sender-banner');
+        if (banner && window.emState && window.emState.sender && window.emState.sender.email) {
+          banner.style.display = 'none';
+        }
+      }, 80);
+    }
+
+    // ── Content Studio — render readiness banner + activate Video tab ──
+    if (n === 'ai-video') {
+      setTimeout(function() {
+        // Render the readiness banner (boardroom/offer status)
+        if (typeof window.csRenderReadinessBanner === 'function') window.csRenderReadinessBanner();
+        // Activate Video Studio tab if nothing is active
+        var activeTab = document.querySelector('.cs-tab-btn.on');
+        if (!activeTab) {
+          var videoBtns = document.querySelectorAll('.cs-tab-btn');
+          videoBtns.forEach(function(b) {
+            if (b.textContent.includes('Video Studio') && typeof window.csShowTab === 'function') {
+              window.csShowTab('video', b);
+            }
+          });
+        } else {
+          // Re-fire the active tab so its panels are visible
+          var activeTabName = activeTab.getAttribute('onclick') || '';
+          var match = activeTabName.match(/csShowTab\('([^']+)'/);
+          if (match && typeof window.csShowTab === 'function') {
+            window.csShowTab(match[1], activeTab);
+          }
+        }
+        // Restore AVS library if it was previously loaded
+        if (typeof window.avsLoadVideoLibrary === 'function') {
+          var libPanel = document.getElementById('avs-library-panel');
+          if (libPanel && libPanel.style.display !== 'none') window.avsLoadVideoLibrary();
+        }
+      }, 80);
+    }
+  };
+  window.showPage = window.showPage;
+})();
 
 // ── Show/hide graph based on whether salesHistory exists ─────────
 window.dbShowGraph = function(trackerData) {
