@@ -8164,6 +8164,81 @@ button[onclick="generateOffer()"] {
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px" id="em-templates-grid"></div>
     </div>
 
+
+    <!-- ── BROADCAST TAB ── -->
+    <div id="em-view-broadcast" style="display:none">
+      <div style="margin-bottom:var(--sp-5)">
+        <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">📡 Send Broadcast</div>
+        <div style="font-size:13px;color:var(--dim)">Send a one-time email to your entire list or a specific segment.</div>
+      </div>
+
+      <!-- Audience -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Audience</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="emBroadcastSegment(this,'all')" class="em-seg-btn em-seg-active">All Contacts</button>
+          <button onclick="emBroadcastSegment(this,'partnership-optin')" class="em-seg-btn">Partnership Leads</button>
+          <button onclick="emBroadcastSegment(this,'platform')" class="em-seg-btn">Platform Leads</button>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--teal);font-weight:700" id="em-broadcast-count">Loading contacts…</div>
+      </div>
+
+      <!-- AI Writer -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">✨ AI Email Writer</div>
+          <div id="em-bc-intel-badge" style="font-size:10px;font-weight:700;color:var(--teal);display:none">⚡ Using your offer &amp; audience intel</div>
+        </div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">AI reads your offer, avatar and boardroom strategy before writing every email.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button onclick="emBroadcastAI('watch_video')" class="em-seg-btn">🎬 Watch The Video</button>
+          <button onclick="emBroadcastAI('buy_now')" class="em-seg-btn">🔥 Buy Now</button>
+          <button onclick="emBroadcastAI('re_engage')" class="em-seg-btn">💬 Re-engage</button>
+          <button onclick="emBroadcastAI('value_drop')" class="em-seg-btn">💎 Value Drop</button>
+          <button onclick="emBroadcastAI('story')" class="em-seg-btn">📖 Story Email</button>
+          <button onclick="emBroadcastAI('flash_offer')" class="em-seg-btn">⚡ Flash Offer</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input id="em-broadcast-ai-prompt" class="fi" placeholder="Or describe what you want the email to do…" style="flex:1;font-size:13px">
+          <button onclick="emBroadcastAICustom()" style="background:linear-gradient(135deg,var(--gold),#d4a800);border:none;border-radius:var(--r-md);padding:10px 18px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap">✨ Write It</button>
+        </div>
+        <div id="em-broadcast-ai-status" style="font-size:12px;color:var(--teal);margin-top:8px;display:none">✨ Writing your email…</div>
+      </div>
+
+      <!-- Compose -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Email</div>
+        <div style="font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Subject Line</div>
+        <input id="em-broadcast-subject" class="fi" placeholder="Subject line…" style="margin-bottom:16px;font-size:14px;font-weight:700">
+        <!-- Toolbar -->
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md)">
+          <button onclick="emBcFmt('bold')" title="Bold" style="background:none;border:none;color:var(--muted);font-size:14px;font-weight:900;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif" onmouseover="this.style.background='var(--border2)'" onmouseout="this.style.background='none'"><b>B</b></button>
+          <button onclick="emBcFmt('italic')" title="Italic" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif" onmouseover="this.style.background='var(--border2)'" onmouseout="this.style.background='none'"><i>I</i></button>
+          <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+          <button onclick="emBcInsertTag('{{first_name}}')" style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:6px;padding:4px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">👤 First Name</button>
+          <button onclick="emBcInsertTag('{{name}}')" style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:6px;padding:4px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">👤 Full Name</button>
+          <button onclick="emBcInsertLink()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔗 Link</button>
+          <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+          <button onclick="emBcInsertTag('\n\n')" style="background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif" onmouseover="this.style.background='var(--border2)'" onmouseout="this.style.background='none'">¶ Para</button>
+          <button onclick="emBcClear()" style="background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif;margin-left:auto" onmouseover="this.style.color='#ff5b5b'" onmouseout="this.style.color='var(--dim)'">✕ Clear</button>
+        </div>
+        <textarea id="em-broadcast-body" placeholder="AI will write here. Or type directly. Use {{first_name}} to personalise." style="width:100%;min-height:260px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 16px;font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.9;resize:vertical;outline:none" onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+        <div style="font-size:11px;color:var(--dim);margin-top:6px">Use <span style="color:var(--gold);font-weight:700">{{first_name}}</span> or <span style="color:var(--gold);font-weight:700">{{name}}</span> to personalise each email automatically.</div>
+      </div>
+
+      <!-- Send -->
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button onclick="emSendBroadcast()" id="em-broadcast-send-btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:14px 32px;color:var(--text-dark);font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">📡 Send Broadcast</button>
+        <div id="em-broadcast-status" style="font-size:13px;color:var(--dim)"></div>
+      </div>
+
+      <!-- History -->
+      <div style="margin-top:32px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Sent History</div>
+        <div id="em-broadcast-history"><div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div></div>
+      </div>
+    </div>
+
     <!-- ── SETTINGS TAB ── -->
     <div id="em-view-settings" style="display:none">
 
@@ -8289,44 +8364,6 @@ button[onclick="generateOffer()"] {
         <button onclick="emSaveTrigger()" style="margin-top:14px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 20px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">Save Trigger Settings</button>
       </div>
 
-    </div>
-
-    <!-- ── BROADCAST TAB ── -->
-    <div id="em-view-broadcast" style="display:none">
-      <div style="margin-bottom:var(--sp-5)">
-        <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">📡 Send Broadcast</div>
-        <div style="font-size:13px;color:var(--dim)">Send a one-time email to your entire list or a specific segment.</div>
-      </div>
-
-      <!-- Audience selector -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
-        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Audience</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button onclick="emBroadcastSegment(this,'all')" class="em-seg-btn em-seg-active">All Contacts</button>
-          <button onclick="emBroadcastSegment(this,'partnership-optin')" class="em-seg-btn">Partnership Leads</button>
-          <button onclick="emBroadcastSegment(this,'platform')" class="em-seg-btn">Platform Leads</button>
-        </div>
-        <div style="margin-top:12px;font-size:12px;color:var(--teal);font-weight:700" id="em-broadcast-count">Loading contacts…</div>
-      </div>
-
-      <!-- Compose area -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
-        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Email</div>
-        <input id="em-broadcast-subject" class="fi" placeholder="Subject line…" style="margin-bottom:12px;font-size:14px;font-weight:700">
-        <textarea id="em-broadcast-body" placeholder="Write your email here…" style="width:100%;min-height:220px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 16px;font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.8;resize:vertical;outline:none" onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
-      </div>
-
-      <!-- Send button -->
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button onclick="emSendBroadcast()" id="em-broadcast-send-btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:14px 32px;color:var(--text-dark);font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">📡 Send Broadcast</button>
-        <div id="em-broadcast-status" style="font-size:13px;color:var(--dim)"></div>
-      </div>
-
-      <!-- Sent history -->
-      <div style="margin-top:32px">
-        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Sent History</div>
-        <div id="em-broadcast-history"><div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div></div>
-      </div>
     </div>
 
     <!-- ── COMPOSE VIEW (overlays tabs) ── -->
@@ -31009,8 +31046,117 @@ var emState = {tab:'campaigns',campaigns:[],contacts:[],sequences:[],sender:{nam
 
 function emShowSettings(){var t=document.getElementById('em-tab-settings');if(t)emTab(t,'settings');}
 
-// ── BROADCAST ─────────────────────────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// BROADCAST — state, segment, AI writer, formatting, send, history
+// ══════════════════════════════════════════════════════════════════════════════
 var emBroadcastState = { segment: 'all', contacts: [] };
+
+// ── Collect platform intelligence (offer + avatar + boardroom) ────────────────
+function emBcGetIntelligence() {
+  var mode   = window._appMode || 'expert';
+  var av     = window._avatarData || {};
+  var bi     = window._boardroomIntel || {};
+  var biCv   = bi.copyVault  || {};
+  var biOs   = bi.offerStack || {};
+
+  // Expert mode — read from vault + boardroom
+  var expertOffer = {};
+  try {
+    var draft = JSON.parse(localStorage.getItem('eos_draft_offer') || '{}');
+    expertOffer = draft.offer || {};
+    if (!av.pain && draft.avatar) av = Object.assign({}, draft.avatar, av);
+  } catch(e) {}
+
+  // Affiliate mode — read from _affiliateOffer
+  var affOffer = window._affiliateOffer || {};
+  var affCv    = affOffer.copyVault || {};
+
+  var intel = {};
+
+  if (mode === 'affiliate') {
+    intel.mode           = 'affiliate';
+    intel.productName    = affOffer.name    || affOffer.productName || '';
+    intel.productTagline = affOffer.tagline || '';
+    intel.commission     = affOffer.commission || '';
+    intel.productUrl     = affOffer.url     || affOffer.productUrl || '';
+    intel.niche          = affOffer.niche   || av.niche || '';
+    intel.pain           = av.pain          || affOffer.pain || '';
+    intel.transformation = av.transformation|| affOffer.transformation || '';
+    intel.avatarJob      = av.job           || affOffer.buyer || '';
+    intel.avatarName     = av.name          || '';
+    intel.avatarDesired  = av.desired       || av.av_desired || '';
+    intel.headline       = affCv.headline   || biCv.headline || '';
+    intel.hook           = affCv.hook       || biCv.hook || '';
+    intel.uniqueMechanism= affCv.uniqueMechanism || biCv.uniqueMechanism || biOs.uniqueMechanism || '';
+    intel.bigPromise     = affCv.bigPromise || biCv.bigPromise || '';
+  } else {
+    intel.mode           = 'expert';
+    intel.offerName      = expertOffer.offer_name      || biOs.rebuiltOfferName || '';
+    intel.offerPromise   = expertOffer.offer_promise   || biOs.offerPromise || '';
+    intel.offerResult    = expertOffer.offer_result    || '';
+    intel.offerPrice     = expertOffer.offer_price     || window._appliedPrice || '';
+    intel.transformation = expertOffer.offer_transformation || av.av_transformation || '';
+    intel.niche          = expertOffer.niche           || window._appliedNiche || '';
+    intel.avatarName     = av.av_name                  || '';
+    intel.avatarJob      = av.av_job                   || '';
+    intel.pain           = av.av_current               || av.av_igr || '';
+    intel.avatarDesired  = av.av_desired               || av.av_transformation || '';
+    intel.uniqueMechanism= biOs.uniqueMechanism        || biCv.uniqueMechanism || '';
+    intel.headline       = biCv.headline               || '';
+    intel.hook           = biCv.hook                   || '';
+    intel.bigPromise     = biCv.bigPromise             || '';
+    intel.objectionHandle= biCv.objectionHandle        || '';
+  }
+
+  // Show intel badge if we have meaningful data
+  var hasMeaningful = !!(intel.offerName || intel.productName || intel.pain || intel.uniqueMechanism);
+  var badge = document.getElementById('em-bc-intel-badge');
+  if (badge) badge.style.display = hasMeaningful ? 'block' : 'none';
+
+  return intel;
+}
+
+// ── Build intelligence context string for Claude prompt ──────────────────────
+function emBcBuildContext(intel) {
+  var lines = [];
+  if (intel.mode === 'affiliate') {
+    if (intel.productName)     lines.push('Product: ' + intel.productName);
+    if (intel.productTagline)  lines.push('Tagline: ' + intel.productTagline);
+    if (intel.commission)      lines.push('Commission per sale: $' + intel.commission);
+    if (intel.productUrl)      lines.push('Offer URL: ' + intel.productUrl);
+    if (intel.niche)           lines.push('Niche: ' + intel.niche);
+    if (intel.pain)            lines.push('Audience pain: ' + intel.pain);
+    if (intel.transformation)  lines.push('Desired transformation: ' + intel.transformation);
+    if (intel.avatarJob)       lines.push('Audience profile: ' + intel.avatarJob);
+    if (intel.uniqueMechanism) lines.push('Unique mechanism: ' + intel.uniqueMechanism);
+    if (intel.headline)        lines.push('Proven headline: ' + intel.headline);
+    if (intel.bigPromise)      lines.push('Big promise: ' + intel.bigPromise);
+  } else {
+    if (intel.offerName)       lines.push('Offer name: ' + intel.offerName);
+    if (intel.offerPromise)    lines.push('Offer promise: ' + intel.offerPromise);
+    if (intel.offerResult)     lines.push('Result delivered: ' + intel.offerResult);
+    if (intel.offerPrice)      lines.push('Price: $' + intel.offerPrice);
+    if (intel.niche)           lines.push('Niche: ' + intel.niche);
+    if (intel.pain)            lines.push('Audience pain: ' + intel.pain);
+    if (intel.transformation)  lines.push('Desired outcome: ' + intel.transformation);
+    if (intel.avatarJob)       lines.push('Audience: ' + intel.avatarJob);
+    if (intel.uniqueMechanism) lines.push('Unique mechanism: ' + intel.uniqueMechanism);
+    if (intel.headline)        lines.push('Proven headline: ' + intel.headline);
+    if (intel.bigPromise)      lines.push('Big promise: ' + intel.bigPromise);
+    if (intel.objectionHandle) lines.push('Key objection to handle: ' + intel.objectionHandle);
+  }
+  return lines.length ? '\n\nPLATFORM INTELLIGENCE (use this to write the email — speak to this exact offer and audience):\n' + lines.join('\n') : '';
+}
+
+// ── Email type prompts ────────────────────────────────────────────────────────
+var BC_AI_TYPES = {
+  watch_video: 'Write a short urgent broadcast email that gets people to watch a free video NOW. Make them feel they are missing out on something that is already changing other people\'s lives. Personal, direct, emotional. Use {{first_name}}. Include [VIDEO_LINK]. Max 120 words body.',
+  buy_now:     'Write a high-urgency broadcast email pushing people to take action on this offer today. Limited spots, real result, done-for-you. Use {{first_name}}. Include [OFFER_LINK]. Max 120 words body.',
+  re_engage:   'Write a re-engagement email for cold leads who opted in but never took action. Be honest, create curiosity, make them feel like they almost missed something real. Use {{first_name}}. Include [PAGE_LINK]. Max 100 words body.',
+  value_drop:  'Write a value-drop email that teaches one powerful insight from this offer\'s unique mechanism. Give real value. End with a soft CTA to [PAGE_LINK]. Use {{first_name}}. Max 130 words body.',
+  story:       'Write a story-style email about a real transformation — from stuck and struggling to consistent results — using this exact offer\'s promise. Emotional, specific, relatable. End with CTA [PAGE_LINK]. Use {{first_name}}. Max 150 words body.',
+  flash_offer: 'Write a 24-hour flash offer email. Maximum urgency. Short sentences. Real stakes. Use {{first_name}}. Include [OFFER_LINK]. Max 100 words body.'
+};
 
 function emBroadcastSegment(el, seg) {
   emBroadcastState.segment = seg;
@@ -31021,8 +31167,7 @@ function emBroadcastSegment(el, seg) {
 
 async function emBroadcastLoadCount() {
   var countEl = document.getElementById('em-broadcast-count');
-  if (!countEl) return;
-  countEl.textContent = 'Loading…';
+  if (countEl) countEl.textContent = 'Loading…';
   var uid = window._currentUserUid;
   var contacts = [];
   if (uid && window._db && window._getDocs && window._collection) {
@@ -31036,78 +31181,138 @@ async function emBroadcastLoadCount() {
     } catch(e) {}
   }
   var seg = emBroadcastState.segment;
-  var filtered = seg === 'all' ? contacts : contacts.filter(function(c){ return (c.source || '').includes(seg); });
+  var filtered = seg === 'all' ? contacts : contacts.filter(function(c){ return (c.source||'').includes(seg); });
   emBroadcastState.contacts = filtered;
-  countEl.textContent = filtered.length + ' contact' + (filtered.length !== 1 ? 's' : '') + ' will receive this email';
+  if (countEl) countEl.textContent = filtered.length + ' contact' + (filtered.length !== 1 ? 's' : '') + ' will receive this email';
+  // Load intel badge
+  emBcGetIntelligence();
 }
 
+async function emBroadcastAI(type) {
+  var typePrompt = BC_AI_TYPES[type] || '';
+  if (!typePrompt) return;
+  var intel   = emBcGetIntelligence();
+  var context = emBcBuildContext(intel);
+  var fullPrompt = 'You are an elite email copywriter. Write a broadcast email for the following offer and audience.' + context + '\n\nEmail type instruction: ' + typePrompt + '\n\nFormat your response EXACTLY like this:\nSubject: [subject line here]\n\n[email body here]\n\nRules: Start with Subject: on the first line. Do not use markdown. Write in plain text. Be personal and persuasive. Speak directly to the pain and desire described above.';
+  await emRunBroadcastAI(fullPrompt);
+}
+
+async function emBroadcastAICustom() {
+  var promptEl   = document.getElementById('em-broadcast-ai-prompt');
+  var userPrompt = promptEl ? promptEl.value.trim() : '';
+  if (!userPrompt) { emToast('⚠️ Describe what you want the email to do.', true); return; }
+  var intel   = emBcGetIntelligence();
+  var context = emBcBuildContext(intel);
+  var fullPrompt = 'You are an elite email copywriter. Write a broadcast email for the following offer and audience.' + context + '\n\nInstruction: ' + userPrompt + '\n\nFormat your response EXACTLY like this:\nSubject: [subject line here]\n\n[email body here]\n\nRules: Start with Subject: on the first line. Do not use markdown. Write in plain text. Keep body under 150 words. Use {{first_name}} for personalisation. Include [LINK] placeholder for CTA if relevant.';
+  if (promptEl) promptEl.value = '';
+  await emRunBroadcastAI(fullPrompt);
+}
+
+async function emRunBroadcastAI(prompt) {
+  var statusEl = document.getElementById('em-broadcast-ai-status');
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = '✨ Writing your email…'; }
+  try {
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+    });
+    var data = await resp.json();
+    var text = (data.content || []).map(function(b){ return b.text || ''; }).join('').trim();
+    var subjectMatch = text.match(/^Subject:\s*(.+)/im);
+    var subject = subjectMatch ? subjectMatch[1].trim() : '';
+    var body = text.replace(/^Subject:.+\n?/im, '').trim();
+    var subEl  = document.getElementById('em-broadcast-subject');
+    var bodyEl = document.getElementById('em-broadcast-body');
+    if (subEl  && subject) subEl.value  = subject;
+    if (bodyEl && body)    bodyEl.value = body;
+    if (statusEl) { statusEl.textContent = '✅ Done — review and send when ready.'; }
+    setTimeout(function(){ if (statusEl) statusEl.style.display = 'none'; }, 3000);
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '⚠️ Could not generate email. Try again.'; }
+    setTimeout(function(){ if (statusEl) statusEl.style.display = 'none'; }, 3000);
+  }
+}
+
+// ── Formatting toolbar ────────────────────────────────────────────────────────
+function emBcFmt(type) {
+  var ta = document.getElementById('em-broadcast-body');
+  if (!ta) return;
+  var start = ta.selectionStart, end = ta.selectionEnd;
+  var sel = ta.value.substring(start, end);
+  var wrap = type === 'bold' ? '**' : '_';
+  var replacement = sel ? wrap + sel + wrap : wrap + wrap;
+  ta.value = ta.value.substring(0, start) + replacement + ta.value.substring(end);
+  ta.focus();
+  ta.selectionStart = sel ? start : start + wrap.length;
+  ta.selectionEnd   = sel ? end + wrap.length * 2 : start + wrap.length;
+}
+
+function emBcInsertTag(tag) {
+  var ta = document.getElementById('em-broadcast-body');
+  if (!ta) return;
+  var pos = ta.selectionStart;
+  ta.value = ta.value.substring(0, pos) + tag + ta.value.substring(pos);
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = pos + tag.length;
+}
+
+function emBcInsertLink() {
+  var url   = prompt('Enter the URL:');
+  if (!url) return;
+  var label = prompt('Enter the link text (optional):') || url;
+  emBcInsertTag(label + ' → ' + url);
+}
+
+function emBcClear() {
+  if (!confirm('Clear the email?')) return;
+  var ta  = document.getElementById('em-broadcast-body');
+  var sub = document.getElementById('em-broadcast-subject');
+  if (ta)  ta.value  = '';
+  if (sub) sub.value = '';
+}
+
+// ── Send ─────────────────────────────────────────────────────────────────────
 async function emSendBroadcast() {
-  var subject = (document.getElementById('em-broadcast-subject') || {}).value || '';
-  var body    = (document.getElementById('em-broadcast-body') || {}).value || '';
+  var subject  = (document.getElementById('em-broadcast-subject') || {}).value || '';
+  var body     = (document.getElementById('em-broadcast-body')    || {}).value || '';
   var statusEl = document.getElementById('em-broadcast-status');
   var btn      = document.getElementById('em-broadcast-send-btn');
-
   if (!subject.trim()) { if (statusEl) statusEl.textContent = '⚠️ Please enter a subject line.'; return; }
   if (!body.trim())    { if (statusEl) statusEl.textContent = '⚠️ Please write your email.'; return; }
-
-  var contacts = emBroadcastState.contacts;
+  var contacts  = emBroadcastState.contacts;
   if (!contacts.length) { if (statusEl) statusEl.textContent = '⚠️ No contacts in this segment.'; return; }
-
-  // Get sender info
-  var fromName  = (emState.sender && emState.sender.name)  || 'Execution OS';
-  var fromEmail = (emState.sender && emState.sender.email) || '';
+  var fromName  = (emState.sender && emState.sender.name)         || 'Execution OS';
+  var fromEmail = (emState.sender && emState.sender.email)        || '';
   var apiKey    = (emState.sender && emState.sender.resendApiKey) || '';
-
-  if (!fromEmail || !apiKey) {
-    if (statusEl) statusEl.textContent = '⚠️ Connect your email in Settings first.';
-    emShowSettings();
-    return;
-  }
-
+  if (!fromEmail || !apiKey) { if (statusEl) statusEl.textContent = '⚠️ Connect your email in Settings first.'; emShowSettings(); return; }
   if (!confirm('Send to ' + contacts.length + ' contact(s)? This cannot be undone.')) return;
-
-  btn.disabled = true;
-  btn.textContent = '⏳ Sending…';
+  btn.disabled = true; btn.textContent = '⏳ Sending…';
   if (statusEl) statusEl.textContent = '';
-
-  var sent = 0; var failed = 0;
+  var sent = 0, failed = 0;
   for (var i = 0; i < contacts.length; i++) {
     var c = contacts[i];
-    var personalBody = body.replace(/\{\{name\}\}/gi, c.name || 'there').replace(/\{\{first_name\}\}/gi, (c.name || 'there').split(' ')[0]);
+    var firstName = (c.name || 'there').split(' ')[0];
+    var personalSubject = subject.replace(/\{\{first_name\}\}/gi, firstName).replace(/\{\{name\}\}/gi, c.name || 'there');
+    var personalBody    = body.replace(/\{\{first_name\}\}/gi, firstName).replace(/\{\{name\}\}/gi, c.name || 'there');
     try {
-      var resp = await fetch('/api/email-setup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'send', apiKey: apiKey, from: fromName + ' <' + fromEmail + '>', to: c.email, subject: subject, text: personalBody })
-      });
+      var resp = await fetch('/api/email-setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'send', apiKey: apiKey, from: fromName + ' <' + fromEmail + '>', to: c.email, subject: personalSubject, text: personalBody }) });
       if (resp.ok) sent++; else failed++;
     } catch(e) { failed++; }
     if (statusEl) statusEl.textContent = 'Sending… ' + (i + 1) + ' / ' + contacts.length;
   }
-
-  // Log to Firestore
   var uid = window._currentUserUid;
   if (uid && window._db && window._doc && window._setDoc) {
-    try {
-      var logId = 'broadcast_' + Date.now();
-      await window._setDoc(window._doc(window._db, 'users', uid, 'broadcasts', logId), {
-        subject: subject, segment: emBroadcastState.segment,
-        sent: sent, failed: failed, total: contacts.length, sentAt: Date.now()
-      });
-    } catch(e) {}
+    try { await window._setDoc(window._doc(window._db, 'users', uid, 'broadcasts', 'broadcast_' + Date.now()), { subject: subject, segment: emBroadcastState.segment, sent: sent, failed: failed, total: contacts.length, sentAt: Date.now() }); } catch(e) {}
   }
-
-  btn.disabled = false;
-  btn.textContent = '📡 Send Broadcast';
+  btn.disabled = false; btn.textContent = '📡 Send Broadcast';
   if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✓ Done — ' + sent + ' sent' + (failed ? ', ' + failed + ' failed' : '') + '</span>';
-
-  // Clear fields
   document.getElementById('em-broadcast-subject').value = '';
   document.getElementById('em-broadcast-body').value    = '';
-
   emBroadcastLoadHistory();
 }
 
+// ── History ───────────────────────────────────────────────────────────────────
 async function emBroadcastLoadHistory() {
   var el = document.getElementById('em-broadcast-history');
   if (!el) return;
@@ -31119,13 +31324,7 @@ async function emBroadcastLoadHistory() {
     snap.forEach(function(d){ rows.push(d.data ? d.data() : d); });
     rows.sort(function(a,b){ return b.sentAt - a.sentAt; });
     if (!rows.length) { el.innerHTML = '<div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div>'; return; }
-    el.innerHTML = '<table class="em-table"><thead><tr><th>Subject</th><th>Segment</th><th>Sent</th><th>Date</th></tr></thead><tbody>'
-      + rows.slice(0,20).map(function(r){
-          return '<tr><td style="color:var(--white);font-weight:600">' + (r.subject||'—') + '</td>'
-               + '<td>' + (r.segment||'all') + '</td>'
-               + '<td><span style="color:var(--teal);font-weight:700">' + (r.sent||0) + '</span> / ' + (r.total||0) + '</td>'
-               + '<td>' + (r.sentAt ? new Date(r.sentAt).toLocaleDateString() : '—') + '</td></tr>';
-        }).join('') + '</tbody></table>';
+    el.innerHTML = '<table class="em-table"><thead><tr><th>Subject</th><th>Segment</th><th>Sent</th><th>Date</th></tr></thead><tbody>' + rows.slice(0,20).map(function(r){ return '<tr><td style="color:var(--white);font-weight:600">'+(r.subject||'—')+'</td><td>'+(r.segment||'all')+'</td><td><span style="color:var(--teal);font-weight:700">'+(r.sent||0)+'</span> / '+(r.total||0)+'</td><td>'+(r.sentAt?new Date(r.sentAt).toLocaleDateString():'—')+'</td></tr>'; }).join('') + '</tbody></table>';
   } catch(e) {}
 }
 function emTab(el,tab){document.querySelectorAll('.em-tab').forEach(function(t){t.classList.remove('on');});if(el)el.classList.add('on');emState.tab=tab;['campaigns','contacts','sequences','templates','settings','compose','broadcast'].forEach(function(v){var e=document.getElementById('em-view-'+v);if(e)e.style.display='none';});var a=document.getElementById('em-view-'+tab);if(a)a.style.display='block';if(tab==='contacts')emLoadContacts();if(tab==='templates')emRenderTemplates();if(tab==='settings')emLoadSettings();if(tab==='sequences')emLoadSequences();if(tab==='broadcast'){emBroadcastLoadCount();emBroadcastLoadHistory();}}
@@ -31616,66 +31815,18 @@ function emLoadSettings() {
   var nameEl  = document.getElementById('em-sender-name');
   var emailEl = document.getElementById('em-sender-email');
   var keyEl   = document.getElementById('em-resend-key');
-  var domainInput = document.getElementById('em-domain-input');
-
   if (nameEl  && sender.name)           nameEl.value  = sender.name;
   if (emailEl && sender.email)          emailEl.value = sender.email;
   if (keyEl   && sender.resendApiKey)   keyEl.value   = sender.resendApiKey;
-  if (domainInput && sender.domain)     domainInput.value = sender.domain;
-
-  // Toggle Resend connected/disconnected panels
-  var setupEl     = document.getElementById('em-resend-setup');
-  var connectedEl = document.getElementById('em-resend-connected');
-  var badgeEl     = document.getElementById('em-resend-status-badge');
-  if (sender.resendApiKey) {
-    if (setupEl)     setupEl.style.display     = 'none';
-    if (connectedEl) connectedEl.style.display = 'block';
-    if (badgeEl)     badgeEl.innerHTML = '<span style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:100px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--teal)">✅ Connected</span>';
-  } else {
-    if (setupEl)     setupEl.style.display     = 'block';
-    if (connectedEl) connectedEl.style.display = 'none';
-    if (badgeEl)     badgeEl.innerHTML = '';
-  }
-
-  // Toggle domain verified panel
-  var dnsRecordsEl  = document.getElementById('em-dns-records');
-  var domVerifiedEl = document.getElementById('em-domain-verified');
-  var verifiedNameEl = document.getElementById('em-verified-domain-name');
-  if (sender.domainVerified && sender.domain) {
-    if (dnsRecordsEl)   dnsRecordsEl.style.display   = 'none';
-    if (domVerifiedEl)  domVerifiedEl.style.display  = 'block';
-    if (verifiedNameEl) verifiedNameEl.textContent   = sender.domain;
-  } else if (sender.domain) {
-    if (domainInput) domainInput.value = sender.domain;
-  }
-
-  // Sender status
-  var senderStatusEl = document.getElementById('em-sender-status');
-  if (senderStatusEl) {
-    if (sender.name && sender.email) {
-      senderStatusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Sending as ' + sender.name + ' &lt;' + sender.email + '&gt;</span>';
+  // Show connection status
+  var statusEl = document.getElementById('em-resend-status');
+  if (statusEl) {
+    if (sender.resendApiKey) {
+      statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Resend connected</span>';
     } else {
-      senderStatusEl.innerHTML = '';
+      statusEl.innerHTML = '<span style="color:var(--dim)">Not connected — add your Resend API key below to send emails</span>';
     }
   }
-
-  // Funnel select
-  var funnelEl = document.getElementById('em-funnel-select');
-  if (funnelEl && emState.connectedFunnel) funnelEl.value = emState.connectedFunnel;
-
-  // Trigger select
-  var triggerEl = document.getElementById('em-trigger-select');
-  if (triggerEl && emState.trigger) triggerEl.value = emState.trigger;
-
-  // Sequence live checkbox
-  var seqLiveEl = document.getElementById('em-sequence-live');
-  if (seqLiveEl) seqLiveEl.checked = !!emState.sequenceLive;
-
-  // Update preview footer
-  var fn = document.getElementById('em-footer-name');
-  var fe = document.getElementById('em-footer-email');
-  if (fn) fn.textContent = (emState.sender && emState.sender.name)  || 'Your Name';
-  if (fe) fe.textContent = (emState.sender && emState.sender.email) || 'your@email.com';
 }
 
 function emSaveSender() {
@@ -31711,88 +31862,27 @@ function emDisconnectResend() {
 }
 
 function emAddDomain() {
-  var inputEl = document.getElementById('em-domain-input');
-  var domain = inputEl ? inputEl.value.trim() : '';
-  if (!domain) { emToast('⚠️ Enter your domain first.', true); return; }
+  var domain = prompt('Enter your sending domain (e.g. yourbrand.com):');
+  if (!domain) return;
   if (!emState.sender) emState.sender = {};
   emState.sender.domain = domain.toLowerCase().replace(/^https?:\/\//,'');
   emSave();
-  var apiKey = emState.sender.resendApiKey;
-  if (!apiKey) { emToast('⚠️ Connect your Resend API key first.', true); return; }
-  var addBtn = document.querySelector('button[onclick="emAddDomain()"]');
-  if (addBtn) { addBtn.textContent = 'Adding…'; addBtn.disabled = true; }
-  fetch('/api/email-setup', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'add-domain', apiKey: apiKey, domain: emState.sender.domain })
-  }).then(function(r){ return r.json(); }).then(function(data) {
-    if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
-    if (data.error) { emToast('⚠️ ' + data.error, true); return; }
-    emState.sender.domainId = data.domainId;
-    emSave();
-    var dnsEl = document.getElementById('em-dns-records');
-    var tbody = document.getElementById('em-dns-tbody');
-    if (dnsEl) dnsEl.style.display = 'block';
-    if (tbody && data.records) {
-      tbody.innerHTML = data.records.map(function(r){
-        var safeVal = (r.value||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-        return '<tr><td style="padding:8px 12px;color:var(--muted)">'+(r.type||'')+'</td>'
-             + '<td style="padding:8px 12px;color:var(--white);font-family:monospace;font-size:11px">'+(r.name||'')+'</td>'
-             + '<td style="padding:8px 12px;color:var(--muted);font-family:monospace;font-size:10px;word-break:break-all">'+(r.value||'')+'</td>'
-             + '<td style="padding:8px 12px"><button onclick="navigator.clipboard.writeText(\''+safeVal+'\');emToast(\'Copied\')" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">Copy</button></td></tr>';
-      }).join('');
-    }
-    emToast('✅ Domain added — add the DNS records below to verify');
-  }).catch(function() {
-    if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
-    emToast('⚠️ Could not reach Resend. Check your API key.', true);
-  });
+  emToast('✅ Domain "'+emState.sender.domain+'" added — verify it in Resend dashboard');
 }
 
 function emChangeDomain() {
-  var dnsEl = document.getElementById('em-dns-records');
-  var verEl = document.getElementById('em-domain-verified');
-  if (dnsEl) dnsEl.style.display = 'none';
-  if (verEl) verEl.style.display = 'none';
-  var inputEl = document.getElementById('em-domain-input');
-  if (inputEl && emState.sender && emState.sender.domain) inputEl.value = emState.sender.domain;
+  emAddDomain();
 }
 
 function emVerifyDomain() {
-  var domain   = emState.sender && emState.sender.domain;
-  var domainId = emState.sender && emState.sender.domainId;
-  var apiKey   = emState.sender && emState.sender.resendApiKey;
+  var domain = emState.sender && emState.sender.domain;
   if (!domain) { emToast('Add a domain first.', true); return; }
-  if (!apiKey) { emToast('Connect your Resend API key first.', true); return; }
-  var verBtn = document.querySelector('button[onclick="emVerifyDomain()"]');
-  if (verBtn) { verBtn.textContent = '🔍 Checking…'; verBtn.disabled = true; }
-  fetch('/api/email-setup', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'verify-domain', apiKey: apiKey, domain: domain, domainId: domainId })
-  }).then(function(r){ return r.json(); }).then(function(data) {
-    if (verBtn) { verBtn.textContent = '🔍 Verify Domain'; verBtn.disabled = false; }
-    var statusEl = document.getElementById('em-domain-verify-status');
-    if (data.verified) {
-      emState.sender.domainVerified = true;
-      emSave();
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Verified — emails will land in primary inbox.</span>';
-      var dnsEl2 = document.getElementById('em-dns-records');
-      var verEl2 = document.getElementById('em-domain-verified');
-      var nameEl = document.getElementById('em-verified-domain-name');
-      if (dnsEl2) dnsEl2.style.display = 'none';
-      if (verEl2) verEl2.style.display = 'block';
-      if (nameEl) nameEl.textContent = domain;
-      emToast('✅ Domain verified!');
-    } else {
-      if (statusEl) statusEl.innerHTML = '<span style="color:#f59e0b;font-weight:700">⏳ ' + (data.reason || 'Not verified yet — DNS can take up to 48 hours.') + '</span>';
-    }
-  }).catch(function() {
-    if (verBtn) { verBtn.textContent = '🔍 Verify Domain'; verBtn.disabled = false; }
-    emToast('⚠️ Could not check domain status.', true);
-  });
+  window.open('https://resend.com/domains', '_blank');
+  emToast('Opening Resend dashboard — verify DNS records there');
 }
 
 function emSaveFunnelConnection() {
-  var funnelEl = document.getElementById('em-funnel-select');
+  var funnelEl = document.getElementById('em-funnel-connect');
   if (!emState) return;
   emState.connectedFunnel = funnelEl ? funnelEl.value : '';
   emSave();
@@ -31800,7 +31890,7 @@ function emSaveFunnelConnection() {
 }
 
 function emSaveTrigger() {
-  var triggerEl = document.getElementById('em-trigger-select');
+  var triggerEl = document.getElementById('em-trigger-type');
   if (!emState) return;
   emState.trigger = triggerEl ? triggerEl.value : 'optin';
   emSave();
