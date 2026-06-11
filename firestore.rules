@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ──────────────────────────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // ── User data — each user reads/writes only their own ─────────────────────
+    match /users/{userId} {
+      allow read, write: if isSignedIn() && isOwner(userId);
+
+      match /{subcollection}/{docId} {
+        allow read, write: if isSignedIn() && isOwner(userId);
+      }
+    }
+
+    // ── Leads — authenticated users can read all leads (for analytics) ────────
+    // Write is server-only (via funnel-lead.js with Firebase Admin SDK)
+    match /leads/{leadId} {
+      allow read: if isSignedIn();
+      allow write: if false; // server-only via Admin SDK
+    }
+
+    // ── Fix 6: CopeCart sales — authenticated users can read for analytics ────
+    // Write is server-only (via copecart-webhook.js with Firebase Admin SDK)
+    match /copecart_sales/{saleId} {
+      allow read: if isSignedIn();
+      allow write: if false; // server-only via Admin SDK
+    }
+
+    // ── Admin stats — authenticated users can read ────────────────────────────
+    match /admin_stats/{docId} {
+      allow read: if isSignedIn();
+      allow write: if false; // server-only
+    }
+
+    // ── Members — authenticated users can read ────────────────────────────────
+    match /members/{email} {
+      allow read: if isSignedIn();
+      allow write: if false; // server-only
+    }
+
+    // ── Alliance partners — authenticated users can read ──────────────────────
+    match /alliance_partners/{docId} {
+      allow read: if isSignedIn();
+      allow write: if false; // server-only
+    }
+
+    // ── Sequence queue — server-only ──────────────────────────────────────────
+    match /sequence_queue/{docId} {
+      allow read, write: if false; // server-only via Admin SDK
+    }
+
+    // ── Funnel tracking — public write (views/leads), authenticated read ──────
+    match /funnels/{funnelId} {
+      allow read: if isSignedIn();
+      allow write: if true; // public — funnel visitors log views
+    }
+
+  }
+}
