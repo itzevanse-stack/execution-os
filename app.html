@@ -8205,31 +8205,116 @@ button[onclick="generateOffer()"] {
         <div id="em-broadcast-ai-status" style="font-size:12px;color:var(--teal);margin-top:8px;display:none">✨ Writing your email…</div>
       </div>
 
-      <!-- Compose -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
-        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Email</div>
-        <div style="font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Subject Line</div>
-        <input id="em-broadcast-subject" class="fi" placeholder="Subject line…" style="margin-bottom:16px;font-size:14px;font-weight:700">
-        <!-- Toolbar -->
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md)">
-          <button onclick="emBcFmt('bold')" title="Bold" style="background:none;border:none;color:var(--muted);font-size:14px;font-weight:900;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif" onmouseover="this.style.background='var(--border2)'" onmouseout="this.style.background='none'"><b>B</b></button>
-          <button onclick="emBcFmt('italic')" title="Italic" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif" onmouseover="this.style.background='var(--border2)'" onmouseout="this.style.background='none'"><i>I</i></button>
-          <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
-          <button onclick="emBcInsertTag('{{first_name}}')" style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:6px;padding:4px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">👤 First Name</button>
-          <button onclick="emBcInsertTag('{{name}}')" style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:6px;padding:4px 10px;color:var(--gold);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">👤 Full Name</button>
-          <button onclick="emBcInsertLink()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔗 Link</button>
-          <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
-          <button onclick="emBcInsertTag('\n\n')" style="background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif" onmouseover="this.style.background='var(--border2)'" onmouseout="this.style.background='none'">¶ Para</button>
-          <button onclick="emBcClear()" style="background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif;margin-left:auto" onmouseover="this.style.color='#ff5b5b'" onmouseout="this.style.color='var(--dim)'">✕ Clear</button>
-        </div>
-        <textarea id="em-broadcast-body" placeholder="AI will write here. Or type directly. Use {{first_name}} to personalise." style="width:100%;min-height:260px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 16px;font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.9;resize:vertical;outline:none" onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
-        <div style="font-size:11px;color:var(--dim);margin-top:6px">Use <span style="color:var(--gold);font-weight:700">{{first_name}}</span> or <span style="color:var(--gold);font-weight:700">{{name}}</span> to personalise each email automatically.</div>
-      </div>
+      <!-- Compose — same editor as Campaigns -->
+      <div class="em-compose-wrap">
+        <div>
+          <!-- Subject + Preview -->
+          <div style="margin-bottom:12px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Subject Line</div>
+            <input class="fi" id="em-broadcast-subject" placeholder="e.g. {{first_name}}, this changes everything…" />
+          </div>
+          <div style="margin-bottom:12px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Preview Text</div>
+            <input class="fi" id="em-broadcast-preview" placeholder="The text shown after the subject in inbox…" />
+          </div>
 
-      <!-- Send -->
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button onclick="emSendBroadcast()" id="em-broadcast-send-btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:14px 32px;color:var(--text-dark);font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">📡 Send Broadcast</button>
-        <div id="em-broadcast-status" style="font-size:13px;color:var(--dim)"></div>
+          <!-- Rich editor — reuses all existing em-editor functions -->
+          <div class="em-editor">
+            <!-- Formatting toolbar -->
+            <div class="em-editor-toolbar" id="em-bc-format-toolbar" style="border-bottom:1px solid var(--border2)">
+              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-right:4px">Format</span>
+              <button class="em-toolbar-btn" onclick="emBcExec('bold')" title="Bold"><strong>B</strong></button>
+              <button class="em-toolbar-btn" onclick="emBcExec('italic')" title="Italic"><em>I</em></button>
+              <button class="em-toolbar-btn" onclick="emBcExec('underline')" title="Underline" style="text-decoration:underline">U</button>
+              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+              <select onchange="emBcFmtSize(this.value)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;color:var(--muted);font-family:Poppins,sans-serif;font-size:10px;cursor:pointer">
+                <option value="">Size</option>
+                <option value="12px">Small</option>
+                <option value="14px" selected>Normal</option>
+                <option value="18px">Large</option>
+                <option value="24px">Heading</option>
+                <option value="32px">Title</option>
+              </select>
+              <div style="position:relative;display:inline-block">
+                <button class="em-toolbar-btn" style="padding:4px 8px;display:flex;align-items:center;gap:4px" onclick="document.getElementById('em-bc-color-pick').click()">
+                  <span style="font-weight:800;font-size:12px">A</span>
+                  <div id="em-bc-color-swatch" style="width:12px;height:4px;background:#ffffff;border-radius:2px"></div>
+                </button>
+                <input type="color" id="em-bc-color-pick" value="#ffffff" style="position:absolute;opacity:0;width:0;height:0" onchange="emBcFmtColor(this.value)">
+              </div>
+              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+              <button class="em-toolbar-btn" onclick="emBcAlign('left')"   title="Left" style="font-size:11px">≡</button>
+              <button class="em-toolbar-btn" onclick="emBcAlign('center')" title="Center" style="font-size:11px">≡</button>
+              <button class="em-toolbar-btn" onclick="emBcAlign('right')"  title="Right" style="font-size:11px">≡</button>
+              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+              <button class="em-toolbar-btn" onclick="emBcList('ul')">• List</button>
+              <button class="em-toolbar-btn" onclick="emBcList('ol')">1. List</button>
+              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+              <button class="em-toolbar-btn" onclick="emBcLink()" style="background:rgba(108,99,255,.08);border-color:rgba(108,99,255,.2);color:#a089ff">🔗 Link</button>
+              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+              <button class="em-toolbar-btn" onclick="emBcInsertMerge('first_name')" style="background:rgba(245,200,66,.08);border-color:rgba(245,200,66,.2);color:var(--gold)">👤 Name</button>
+              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+              <button class="em-toolbar-btn" onclick="document.execCommand('undo')">↩</button>
+              <button class="em-toolbar-btn" onclick="document.execCommand('redo')">↪</button>
+            </div>
+            <!-- AI row -->
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(78,204,163,.03);border-bottom:1px solid var(--border2);flex-wrap:wrap">
+              <button onclick="emBcAiWrite()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:6px;padding:5px 14px;color:var(--text-dark);font-family:Poppins,sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">⚡ Write Email</button>
+              <div style="width:1px;height:18px;background:var(--border2)"></div>
+              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer)">Rewrite</span>
+              <button class="em-toolbar-btn" onclick="emBcRewrite('make it shorter and more punchy')">Shorter</button>
+              <button class="em-toolbar-btn" onclick="emBcRewrite('make it more urgent and compelling')">More Urgent</button>
+              <button class="em-toolbar-btn" onclick="emBcRewrite('make it more personal and conversational, as if talking to one person')">More Personal</button>
+              <button class="em-toolbar-btn" onclick="emBcRewrite('add a strong clear call to action at the end')">Add CTA</button>
+            </div>
+            <!-- Rich text area -->
+            <div id="em-bc-quill-editor" contenteditable="true"
+              data-placeholder="Write your email here, or click ⚡ Write Email…"
+              style="min-height:320px;padding:16px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;line-height:1.8;outline:none;background:rgba(255,255,255,.02)"
+              oninput="emBcSyncHidden()"
+              onpaste="emBcHandlePaste(event)">
+            </div>
+            <textarea id="em-broadcast-body" style="display:none"></textarea>
+          </div>
+
+          <!-- Footer preview -->
+          <div style="margin-top:8px;padding:12px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:8px;font-size:11px;color:var(--dim);line-height:1.7">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:6px">Email Footer (auto-added to every send)</div>
+            <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px">
+              You received this email because you signed up at one of our pages.
+              &nbsp;·&nbsp; <span id="em-bc-footer-name" style="color:var(--white)">Your Name</span>
+              &nbsp;·&nbsp; <span id="em-bc-footer-email" style="color:var(--white)">your@email.com</span>
+              &nbsp;·&nbsp; <a style="color:var(--teal);text-decoration:underline">Unsubscribe</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right panel -->
+        <div>
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:18px;margin-bottom:14px">
+            <div style="font-size:12px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:14px">Send Settings</div>
+            <div style="margin-bottom:10px">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Audience</div>
+              <div style="display:flex;gap:8px;flex-direction:column">
+                <button onclick="emBroadcastSegment(this,'all')" class="em-seg-btn em-seg-active" id="em-bc-seg-all">All Contacts</button>
+                <button onclick="emBroadcastSegment(this,'partnership-optin')" class="em-seg-btn" id="em-bc-seg-partner">Partnership Leads</button>
+                <button onclick="emBroadcastSegment(this,'platform')" class="em-seg-btn" id="em-bc-seg-platform">Platform Leads</button>
+              </div>
+              <div style="margin-top:10px;font-size:12px;color:var(--teal);font-weight:700" id="em-broadcast-count">Loading contacts…</div>
+            </div>
+            <div style="border-top:1px solid var(--border2);margin:14px 0"></div>
+            <button onclick="emSendBroadcast()" id="em-broadcast-send-btn" style="width:100%;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:12px;color:var(--text-dark);font-size:13px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;text-transform:uppercase;letter-spacing:.4px">📡 Send Broadcast →</button>
+            <div id="em-broadcast-status" style="font-size:12px;color:var(--dim);margin-top:8px;text-align:center"></div>
+          </div>
+
+          <!-- Inbox score -->
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:18px">
+            <div style="font-size:12px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:10px">📊 Inbox Score</div>
+            <div id="em-bc-inbox-score" style="font-size:32px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal);margin-bottom:6px">—</div>
+            <div id="em-bc-inbox-tips" style="font-size:11px;color:var(--dim);line-height:1.7">Write your subject and body to see your inbox score.</div>
+            <button onclick="emBcAnalyze()" style="margin-top:10px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-sm);padding:6px 12px;color:var(--teal);font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Analyse Email</button>
+          </div>
+        </div>
       </div>
 
       <!-- History -->
@@ -31184,6 +31269,11 @@ async function emBroadcastLoadCount() {
   var filtered = seg === 'all' ? contacts : contacts.filter(function(c){ return (c.source||'').includes(seg); });
   emBroadcastState.contacts = filtered;
   if (countEl) countEl.textContent = filtered.length + ' contact' + (filtered.length !== 1 ? 's' : '') + ' will receive this email';
+  // Refresh footer sender info
+  var fn = document.getElementById('em-bc-footer-name');
+  var fe = document.getElementById('em-bc-footer-email');
+  if (fn) fn.textContent = (emState.sender && emState.sender.name)  || 'Your Name';
+  if (fe) fe.textContent = (emState.sender && emState.sender.email) || 'your@email.com';
   // Load intel badge
   emBcGetIntelligence();
 }
@@ -31223,9 +31313,16 @@ async function emRunBroadcastAI(prompt) {
     var subject = subjectMatch ? subjectMatch[1].trim() : '';
     var body = text.replace(/^Subject:.+\n?/im, '').trim();
     var subEl  = document.getElementById('em-broadcast-subject');
+    var ed     = emBcGetEditor();
     var bodyEl = document.getElementById('em-broadcast-body');
-    if (subEl  && subject) subEl.value  = subject;
-    if (bodyEl && body)    bodyEl.value = body;
+    if (subEl && subject) subEl.value = subject;
+    if (ed && body) { ed.innerText = body; emBcSyncHidden(); }
+    else if (bodyEl && body) bodyEl.value = body;
+    // Update footer sender info
+    var fn = document.getElementById('em-bc-footer-name');
+    var fe = document.getElementById('em-bc-footer-email');
+    if (fn) fn.textContent = (emState.sender && emState.sender.name)  || 'Your Name';
+    if (fe) fe.textContent = (emState.sender && emState.sender.email) || 'your@email.com';
     if (statusEl) { statusEl.textContent = '✅ Done — review and send when ready.'; }
     setTimeout(function(){ if (statusEl) statusEl.style.display = 'none'; }, 3000);
   } catch(e) {
@@ -31234,48 +31331,141 @@ async function emRunBroadcastAI(prompt) {
   }
 }
 
-// ── Formatting toolbar ────────────────────────────────────────────────────────
-function emBcFmt(type) {
-  var ta = document.getElementById('em-broadcast-body');
-  if (!ta) return;
-  var start = ta.selectionStart, end = ta.selectionEnd;
-  var sel = ta.value.substring(start, end);
-  var wrap = type === 'bold' ? '**' : '_';
-  var replacement = sel ? wrap + sel + wrap : wrap + wrap;
-  ta.value = ta.value.substring(0, start) + replacement + ta.value.substring(end);
-  ta.focus();
-  ta.selectionStart = sel ? start : start + wrap.length;
-  ta.selectionEnd   = sel ? end + wrap.length * 2 : start + wrap.length;
+// ── BROADCAST RICH EDITOR — mirrors campaign compose ─────────────────────────
+function emBcGetEditor() { return document.getElementById('em-bc-quill-editor'); }
+
+function emBcSyncHidden() {
+  var ed = emBcGetEditor();
+  var hid = document.getElementById('em-broadcast-body');
+  if (ed && hid) hid.value = ed.innerHTML;
 }
 
-function emBcInsertTag(tag) {
-  var ta = document.getElementById('em-broadcast-body');
-  if (!ta) return;
-  var pos = ta.selectionStart;
-  ta.value = ta.value.substring(0, pos) + tag + ta.value.substring(pos);
-  ta.focus();
-  ta.selectionStart = ta.selectionEnd = pos + tag.length;
+function emBcHandlePaste(e) {
+  e.preventDefault();
+  var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, text);
 }
 
-function emBcInsertLink() {
-  var url   = prompt('Enter the URL:');
-  if (!url) return;
-  var label = prompt('Enter the link text (optional):') || url;
-  emBcInsertTag(label + ' → ' + url);
+function emBcExec(cmd) {
+  var ed = emBcGetEditor(); if (!ed) return;
+  ed.focus(); document.execCommand(cmd, false, null); emBcSyncHidden();
+}
+
+function emBcFmtSize(size) {
+  if (!size) return;
+  var ed = emBcGetEditor(); if (!ed) return;
+  ed.focus();
+  var sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
+    try { var span = document.createElement('span'); span.style.fontSize = size; sel.getRangeAt(0).surroundContents(span); } catch(e) {}
+  }
+  emBcSyncHidden();
+}
+
+function emBcFmtColor(color) {
+  var swatch = document.getElementById('em-bc-color-swatch');
+  if (swatch) swatch.style.background = color;
+  var ed = emBcGetEditor(); if (!ed) return;
+  ed.focus(); document.execCommand('foreColor', false, color); emBcSyncHidden();
+}
+
+function emBcAlign(align) {
+  var ed = emBcGetEditor(); if (!ed) return;
+  ed.focus(); document.execCommand('justify' + align.charAt(0).toUpperCase() + align.slice(1), false, null); emBcSyncHidden();
+}
+
+function emBcList(type) {
+  var ed = emBcGetEditor(); if (!ed) return;
+  ed.focus();
+  document.execCommand(type === 'ul' ? 'insertUnorderedList' : 'insertOrderedList', false, null);
+  emBcSyncHidden();
+}
+
+function emBcLink() {
+  var url = prompt('Enter URL:'); if (!url) return;
+  var label = prompt('Link text (optional):') || url;
+  var ed = emBcGetEditor(); if (!ed) return;
+  ed.focus();
+  document.execCommand('insertHTML', false, '<a href="' + url + '" style="color:var(--teal)">' + label + '</a>');
+  emBcSyncHidden();
+}
+
+function emBcInsertMerge(field) {
+  var ed = emBcGetEditor(); if (!ed) return;
+  ed.focus(); document.execCommand('insertText', false, '{{' + field + '}}'); emBcSyncHidden();
 }
 
 function emBcClear() {
   if (!confirm('Clear the email?')) return;
-  var ta  = document.getElementById('em-broadcast-body');
+  var ed  = emBcGetEditor();
   var sub = document.getElementById('em-broadcast-subject');
-  if (ta)  ta.value  = '';
-  if (sub) sub.value = '';
+  var pre = document.getElementById('em-broadcast-preview');
+  var hid = document.getElementById('em-broadcast-body');
+  if (ed)  ed.innerHTML = '';
+  if (sub) sub.value    = '';
+  if (pre) pre.value    = '';
+  if (hid) hid.value    = '';
+}
+
+async function emBcAiWrite() {
+  var intel   = emBcGetIntelligence();
+  var context = emBcBuildContext(intel);
+  var segment = emBroadcastState.segment;
+  var segNote = segment === 'partnership-optin' ? ' targeting people who opted in to see a partnership video' : segment === 'platform' ? ' targeting platform users' : ' targeting your full list';
+  var prompt  = 'You are an elite email copywriter.' + context + '\n\nWrite a high-converting broadcast email' + segNote + '. Personal, urgent, speaks directly to the pain and desired outcome. Use {{first_name}}. Include [LINK] CTA placeholder.\n\nFormat EXACTLY:\nSubject: [subject here]\n\n[email body here]\n\nPlain text only. No markdown. Under 150 words body.';
+  await emRunBroadcastAI(prompt);
+}
+
+async function emBcRewrite(instruction) {
+  var ed = emBcGetEditor();
+  if (!ed || !ed.innerText.trim()) { emToast('\u26a0\ufe0f Write something first.', true); return; }
+  var current = ed.innerText.trim();
+  var statusEl = document.getElementById('em-broadcast-ai-status');
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = '\u2728 Rewriting\u2026'; }
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, messages: [{ role: 'user', content: 'Rewrite this email to ' + instruction + '. Keep the same core message. Return only the rewritten body — no subject line, no explanation.\n\n' + current }] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    if (ed && text) { ed.innerText = text; emBcSyncHidden(); }
+    if (statusEl) { statusEl.textContent = '\u2705 Done.'; setTimeout(function(){ statusEl.style.display='none'; }, 2500); }
+  } catch(e) {
+    if (statusEl) { statusEl.textContent = '\u26a0\ufe0f Could not rewrite.'; setTimeout(function(){ statusEl.style.display='none'; }, 3000); }
+  }
+}
+
+async function emBcAnalyze() {
+  var subject = (document.getElementById('em-broadcast-subject')||{}).value||'';
+  var ed = emBcGetEditor();
+  var body = ed ? ed.innerText.trim() : '';
+  if (!subject && !body) { emToast('\u26a0\ufe0f Write your email first.', true); return; }
+  var scoreEl = document.getElementById('em-bc-inbox-score');
+  var tipsEl  = document.getElementById('em-bc-inbox-tips');
+  if (scoreEl) scoreEl.textContent = '\u2026';
+  if (tipsEl)  tipsEl.textContent  = 'Analysing\u2026';
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 300, messages: [{ role: 'user', content: 'Score this email 0-100 for inbox placement. Give score + 3 short tips.\n\nSubject: ' + subject + '\n\nBody: ' + body + '\n\nRespond ONLY as JSON: {"score":85,"tips":["tip1","tip2","tip3"]}' }] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    var parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
+    if (scoreEl) { scoreEl.textContent = parsed.score; scoreEl.style.color = parsed.score >= 75 ? 'var(--teal)' : parsed.score >= 50 ? 'var(--gold)' : '#ff6b6b'; }
+    if (tipsEl && parsed.tips) tipsEl.innerHTML = parsed.tips.map(function(t){ return '\u2022 ' + t; }).join('<br>');
+  } catch(e) {
+    if (scoreEl) scoreEl.textContent = '\u2014';
+    if (tipsEl)  tipsEl.textContent  = 'Could not analyse. Try again.';
+  }
 }
 
 // ── Send ─────────────────────────────────────────────────────────────────────
 async function emSendBroadcast() {
   var subject  = (document.getElementById('em-broadcast-subject') || {}).value || '';
-  var body     = (document.getElementById('em-broadcast-body')    || {}).value || '';
+  var ed       = emBcGetEditor ? emBcGetEditor() : null;
+  var body     = ed ? ed.innerText.trim() : ((document.getElementById('em-broadcast-body') || {}).value || '');
   var statusEl = document.getElementById('em-broadcast-status');
   var btn      = document.getElementById('em-broadcast-send-btn');
   if (!subject.trim()) { if (statusEl) statusEl.textContent = '⚠️ Please enter a subject line.'; return; }
