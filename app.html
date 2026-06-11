@@ -8186,10 +8186,10 @@ button[onclick="generateOffer()"] {
       <!-- AI Writer -->
       <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">✨ AI Email Writer</div>
+          <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">✍️ Email Writer</div>
           <div id="em-bc-intel-badge" style="font-size:10px;font-weight:700;color:var(--teal);display:none">⚡ Using your offer &amp; audience intel</div>
         </div>
-        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">AI reads your offer, avatar and boardroom strategy before writing every email.</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">E-OS Intelligence reads your offer, avatar and boardroom strategy before writing every email.</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
           <button onclick="emBroadcastAI('watch_video')" class="em-seg-btn">🎬 Watch The Video</button>
           <button onclick="emBroadcastAI('buy_now')" class="em-seg-btn">🔥 Buy Now</button>
@@ -8198,11 +8198,7 @@ button[onclick="generateOffer()"] {
           <button onclick="emBroadcastAI('story')" class="em-seg-btn">📖 Story Email</button>
           <button onclick="emBroadcastAI('flash_offer')" class="em-seg-btn">⚡ Flash Offer</button>
         </div>
-        <div style="display:flex;gap:8px">
-          <input id="em-broadcast-ai-prompt" class="fi" placeholder="Or describe what you want the email to do…" style="flex:1;font-size:13px">
-          <button onclick="emBroadcastAICustom()" style="background:linear-gradient(135deg,var(--gold),#d4a800);border:none;border-radius:var(--r-md);padding:10px 20px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;letter-spacing:.3px">✨ Write It</button>
-        </div>
-        <div id="em-broadcast-ai-status" style="font-size:12px;color:var(--teal);margin-top:8px;display:none">✨ Writing your email…</div>
+        <div id="em-broadcast-ai-status" style="font-size:12px;color:var(--teal);margin-top:8px;display:none">Writing your email…</div>
       </div>
 
       <!-- Compose — same editor as Campaigns -->
@@ -8307,13 +8303,7 @@ button[onclick="generateOffer()"] {
             <div id="em-broadcast-status" style="font-size:12px;color:var(--dim);margin-top:8px;text-align:center"></div>
           </div>
 
-          <!-- Inbox score -->
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:18px">
-            <div style="font-size:12px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:10px">📊 Inbox Score</div>
-            <div id="em-bc-inbox-score" style="font-size:32px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal);margin-bottom:6px">—</div>
-            <div id="em-bc-inbox-tips" style="font-size:11px;color:var(--dim);line-height:1.7">Write your subject and body to see your inbox score.</div>
-            <button onclick="emBcAnalyze()" style="margin-top:10px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-sm);padding:6px 12px;color:var(--teal);font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">Analyse Email</button>
-          </div>
+
         </div>
       </div>
 
@@ -8524,7 +8514,7 @@ button[onclick="generateOffer()"] {
             </div>
             <!-- Rich text editing area -->
             <div id="em-quill-editor" contenteditable="true"
-              data-placeholder="Write your email here, or click ⚡ AI Write to build it…"
+              data-placeholder="Write your email here, or click ⚡ Write Email to build it…"
               style="min-height:320px;padding:16px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;line-height:1.8;outline:none;background:rgba(255,255,255,.02)"
               oninput="emSyncRichToHidden()"
               onpaste="emHandlePaste(event)">
@@ -31235,12 +31225,89 @@ function emBcBuildContext(intel) {
 
 // ── Email type prompts ────────────────────────────────────────────────────────
 var BC_AI_TYPES = {
-  watch_video: 'Write a short urgent broadcast email that gets people to watch a free video NOW. Make them feel they are missing out on something that is already changing other people\'s lives. Personal, direct, emotional. Use {{first_name}}. Include [VIDEO_LINK]. Max 120 words body.',
-  buy_now:     'Write a high-urgency broadcast email pushing people to take action on this offer today. Limited spots, real result, done-for-you. Use {{first_name}}. Include [OFFER_LINK]. Max 120 words body.',
-  re_engage:   'Write a re-engagement email for cold leads who opted in but never took action. Be honest, create curiosity, make them feel like they almost missed something real. Use {{first_name}}. Include [PAGE_LINK]. Max 100 words body.',
-  value_drop:  'Write a value-drop email that teaches one powerful insight from this offer\'s unique mechanism. Give real value. End with a soft CTA to [PAGE_LINK]. Use {{first_name}}. Max 130 words body.',
-  story:       'Write a story-style email about a real transformation — from stuck and struggling to consistent results — using this exact offer\'s promise. Emotional, specific, relatable. End with CTA [PAGE_LINK]. Use {{first_name}}. Max 150 words body.',
-  flash_offer: 'Write a 24-hour flash offer email. Maximum urgency. Short sentences. Real stakes. Use {{first_name}}. Include [OFFER_LINK]. Max 100 words body.'
+  watch_video: `Write a long-form, high-converting broadcast email that compels the reader to stop everything and watch a free video right now. This is not a casual invite — this is the most important thing they will do today.
+
+Structure the email like this:
+- Open with {{first_name}} and a pattern-interrupt that speaks directly to their current pain or frustration
+- Paint the picture of where they are right now — stuck, grinding, not making the progress they want — make them feel seen and understood
+- Introduce the video as the thing that changed everything for people just like them — be specific, use the offer's real results and transformation
+- Build undeniable desire by describing what they will see in the video — the exact mechanism, the proof, the simplicity of it
+- Handle their scepticism head-on — tell them why this is different from everything they have tried
+- Close with a CTA so compelling they feel it would be a mistake not to click: [VIDEO_LINK]
+- Add a P.S. that creates urgency — this video may not stay up, other people are watching it right now and making decisions
+
+Use {{first_name}} throughout. Write in a personal, direct, conversational tone — as if writing to one person you genuinely want to help. Minimum 300 words. No bullet points. Pure flowing copy.`,
+
+  buy_now: `Write a long-form, high-converting broadcast email that moves a premium buyer from interested to committed. This email needs to close a $1,000 to $10,000 decision.
+
+Structure the email like this:
+- Open with {{first_name}} and a bold statement about where they are right now — be brutally honest about the cost of inaction
+- Tell the story of what happens to people who keep waiting — paint the future they do NOT want
+- Pivot to the opportunity — introduce the offer not as a product but as the vehicle that gets them to the life they actually want
+- Break down exactly what they get, how it works, and why it is different — speak to the mechanism, the result, the transformation
+- Stack the value — show them what this is worth versus what they pay
+- Destroy every objection: too busy, tried things before, not sure it will work for them
+- Create urgency that is real and specific — limited access, price change, or momentum they will miss
+- Close with a CTA that feels inevitable: [OFFER_LINK]
+- P.S. that reframes the decision — what does it cost them NOT to move forward today?
+
+Use {{first_name}} throughout. Write to one person. Confident, warm, urgent. Minimum 350 words. No bullet points. Pure persuasive copy.`,
+
+  re_engage: `Write a long-form re-engagement email for someone who showed up, raised their hand, and then disappeared. They opted in. They expressed interest. And then life got in the way — or doubt crept in.
+
+Structure the email like this:
+- Open with {{first_name}} — acknowledge that some time has passed since they first showed interest, without being passive aggressive
+- Be honest with them — tell them you noticed they never took the next step and you genuinely want to understand why
+- Speak to the internal dialogue they have had since they opted in — the "I'll do it later", the "maybe it's not for me", the quiet doubt
+- Remind them why they raised their hand in the first place — what were they hoping for? What problem were they trying to solve?
+- Show them what has happened for people who did take action — results, transformation, momentum — make them feel the gap between where they are and where they could be
+- Remove every barrier — make it clear that now is the simplest it will ever be to start
+- CTA that feels like a second chance, not a hard sell: [PAGE_LINK]
+- P.S. that lands with honesty — the only thing standing between them and results is a single decision
+
+Use {{first_name}} throughout. Empathetic but direct. Minimum 300 words. No bullet points.`,
+
+  value_drop: `Write a long-form value-drop email that positions the sender as the only person who truly understands this reader's problem — and delivers a genuine insight that shifts their thinking permanently.
+
+Structure the email like this:
+- Open with {{first_name}} and a bold claim or contrarian insight related to the offer's unique mechanism — something that challenges a common belief they hold
+- Build the case for why everything they have been told about solving this problem is either wrong or incomplete
+- Deliver the real insight — the mechanism, the missing piece, the truth — in a way that is specific, clear, and immediately valuable
+- Show them how this insight applies to their exact situation — make it personal and relevant
+- Bridge the insight to the offer — this is not a lecture, it is a revelation that leads somewhere
+- Soft CTA: tell them that if this insight resonated, what is waiting for them at [PAGE_LINK] goes ten times deeper
+- P.S. that teases the next level of what they will discover
+
+Use {{first_name}} throughout. Teach to sell. Minimum 300 words. No bullet points. Authoritative and warm.`,
+
+  story: `Write a long-form story email — one of the most powerful conversion formats that exists. This email uses narrative to bypass resistance and make the reader see themselves in the transformation.
+
+Structure the email like this:
+- Open by introducing a real person — someone ordinary, someone the reader would recognise themselves in — not a guru, not someone special
+- Describe where that person was before: the frustration, the failed attempts, the self-doubt, the exact situation the reader is likely in right now
+- Build the turning point — what they discovered, what changed, the moment it clicked — introduce the mechanism naturally through the story
+- Show the after — specific, tangible, real results — income, freedom, confidence, time — make it vivid and believable
+- Bridge to the reader with {{first_name}} — make them feel that this story could be their story
+- Introduce the offer as the vehicle — not a hard sell, but the natural next step that the person in the story also took
+- CTA that flows from the story: [OFFER_LINK]
+- P.S. that speaks to the reader's doubt — the only difference between them and the person in the story is a single decision
+
+Use {{first_name}} throughout. Write in first or third person — whichever feels more natural. Emotional, specific, real. Minimum 350 words. No bullet points.`,
+
+  flash_offer: `Write a long-form flash offer email that creates genuine urgency around a time-sensitive opportunity. This is not a fake countdown — this is a real window and the reader needs to feel the weight of that.
+
+Structure the email like this:
+- Open with {{first_name}} and get straight to the point — there is a window open right now and it closes soon
+- Explain exactly what the opportunity is and why it exists — be specific about what they get and what makes this moment different
+- Stack the value fast — show them what they are getting access to and what it is worth
+- Create contrast — what does life look like if they act now versus if they miss this?
+- Handle the hesitation — speak to the part of them that wants to think about it, and explain why waiting is the wrong move here
+- Make the decision feel easy and safe — remove risk, add certainty
+- Hard CTA with the link front and centre: [OFFER_LINK]
+- Repeat the deadline — be specific
+- P.S. that is the last chance warning — after this, the window is closed
+
+Use {{first_name}} throughout. Fast-paced but substantial. Minimum 300 words. No bullet points. Every sentence moves them forward.`
 };
 
 function emBroadcastSegment(el, seg) {
@@ -32002,21 +32069,70 @@ async function emGenerateSequence() {
 /* ── Settings ───────────────────────────────────────────────────── */
 function emLoadSettings() {
   var sender = emState.sender || {};
+
+  // Step 1 — Resend key: toggle setup vs connected panels
+  var keyEl       = document.getElementById('em-resend-key');
+  var setupEl     = document.getElementById('em-resend-setup');
+  var connectedEl = document.getElementById('em-resend-connected');
+  var badgeEl     = document.getElementById('em-resend-status-badge');
+  if (keyEl && sender.resendApiKey) keyEl.value = sender.resendApiKey;
+  if (sender.resendApiKey) {
+    if (setupEl)     setupEl.style.display     = 'none';
+    if (connectedEl) connectedEl.style.display = 'block';
+    if (badgeEl)     badgeEl.innerHTML = '<span style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:100px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--teal)">✅ Connected</span>';
+  } else {
+    if (setupEl)     setupEl.style.display     = 'block';
+    if (connectedEl) connectedEl.style.display = 'none';
+    if (badgeEl)     badgeEl.innerHTML = '';
+  }
+
+  // Step 2 — Domain: populate input, toggle DNS/verified panels
+  var domainInput   = document.getElementById('em-domain-input');
+  var dnsRecordsEl  = document.getElementById('em-dns-records');
+  var domVerifiedEl = document.getElementById('em-domain-verified');
+  var verifiedNameEl = document.getElementById('em-verified-domain-name');
+  if (domainInput && sender.domain) domainInput.value = sender.domain;
+  if (sender.domainVerified && sender.domain) {
+    if (dnsRecordsEl)   dnsRecordsEl.style.display   = 'none';
+    if (domVerifiedEl)  domVerifiedEl.style.display  = 'block';
+    if (verifiedNameEl) verifiedNameEl.textContent   = sender.domain;
+  }
+
+  // Step 3 — Sender identity
   var nameEl  = document.getElementById('em-sender-name');
   var emailEl = document.getElementById('em-sender-email');
-  var keyEl   = document.getElementById('em-resend-key');
-  if (nameEl  && sender.name)           nameEl.value  = sender.name;
-  if (emailEl && sender.email)          emailEl.value = sender.email;
-  if (keyEl   && sender.resendApiKey)   keyEl.value   = sender.resendApiKey;
-  // Show connection status
-  var statusEl = document.getElementById('em-resend-status');
-  if (statusEl) {
-    if (sender.resendApiKey) {
-      statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Resend connected</span>';
-    } else {
-      statusEl.innerHTML = '<span style="color:var(--dim)">Not connected — add your Resend API key below to send emails</span>';
-    }
+  if (nameEl  && sender.name)  nameEl.value  = sender.name;
+  if (emailEl && sender.email) emailEl.value = sender.email;
+  var senderStatusEl = document.getElementById('em-sender-status');
+  if (senderStatusEl) {
+    senderStatusEl.innerHTML = (sender.name && sender.email)
+      ? '<span style="color:var(--teal);font-weight:700">✅ Sending as ' + sender.name + ' &lt;' + sender.email + '&gt;</span>'
+      : '';
   }
+
+  // Funnel connection
+  var funnelEl = document.getElementById('em-funnel-select');
+  if (funnelEl && emState.connectedFunnel) funnelEl.value = emState.connectedFunnel;
+
+  // Trigger select
+  var triggerEl = document.getElementById('em-trigger-select');
+  if (triggerEl && emState.trigger) triggerEl.value = emState.trigger;
+
+  // Sequence live checkbox
+  var seqLiveEl = document.getElementById('em-sequence-live');
+  if (seqLiveEl) seqLiveEl.checked = !!emState.sequenceLive;
+
+  // Update email footer previews (campaigns + broadcast)
+  var fn = document.getElementById('em-footer-name');
+  var fe = document.getElementById('em-footer-email');
+  var bcfn = document.getElementById('em-bc-footer-name');
+  var bcfe = document.getElementById('em-bc-footer-email');
+  var displayName  = sender.name  || 'Your Name';
+  var displayEmail = sender.email || 'your@email.com';
+  if (fn)   fn.textContent   = displayName;
+  if (fe)   fe.textContent   = displayEmail;
+  if (bcfn) bcfn.textContent = displayName;
+  if (bcfe) bcfe.textContent = displayEmail;
 }
 
 function emSaveSender() {
@@ -32052,27 +32168,91 @@ function emDisconnectResend() {
 }
 
 function emAddDomain() {
-  var domain = prompt('Enter your sending domain (e.g. yourbrand.com):');
-  if (!domain) return;
+  var inputEl = document.getElementById('em-domain-input');
+  var domain = inputEl ? inputEl.value.trim() : '';
+  if (!domain) { emToast('⚠️ Enter your domain first.', true); return; }
   if (!emState.sender) emState.sender = {};
   emState.sender.domain = domain.toLowerCase().replace(/^https?:\/\//,'');
   emSave();
-  emToast('✅ Domain "'+emState.sender.domain+'" added — verify it in Resend dashboard');
+  var apiKey = emState.sender.resendApiKey;
+  if (!apiKey) { emToast('⚠️ Connect your Resend API key first.', true); return; }
+  var addBtn = document.querySelector('button[onclick="emAddDomain()"]');
+  if (addBtn) { addBtn.textContent = 'Adding…'; addBtn.disabled = true; }
+  fetch('/api/email-setup', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'add-domain', apiKey: apiKey, domain: emState.sender.domain })
+  }).then(function(r){ return r.json(); }).then(function(data) {
+    if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
+    if (data.error) { emToast('⚠️ ' + data.error, true); return; }
+    emState.sender.domainId = data.domainId;
+    emSave();
+    var dnsEl = document.getElementById('em-dns-records');
+    var tbody = document.getElementById('em-dns-tbody');
+    if (dnsEl) dnsEl.style.display = 'block';
+    if (tbody && data.records) {
+      tbody.innerHTML = data.records.map(function(r){
+        var safeVal = (r.value||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return '<tr>'
+          + '<td style="padding:8px 12px;color:var(--muted)">'+(r.type||'')+'</td>'
+          + '<td style="padding:8px 12px;color:var(--white);font-family:monospace;font-size:11px">'+(r.name||'')+'</td>'
+          + '<td style="padding:8px 12px;color:var(--muted);font-family:monospace;font-size:10px;word-break:break-all">'+(r.value||'')+'</td>'
+          + '<td style="padding:8px 12px"><button onclick="navigator.clipboard.writeText(\''+safeVal+'\');emToast(\'Copied\')" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">Copy</button></td>'
+          + '</tr>';
+      }).join('');
+    }
+    emToast('✅ Domain added — add the DNS records below then click Verify');
+  }).catch(function() {
+    if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
+    emToast('⚠️ Could not reach Resend. Check your API key.', true);
+  });
 }
 
 function emChangeDomain() {
-  emAddDomain();
+  var dnsEl = document.getElementById('em-dns-records');
+  var verEl = document.getElementById('em-domain-verified');
+  if (dnsEl) dnsEl.style.display = 'none';
+  if (verEl) verEl.style.display = 'none';
+  if (emState.sender) { emState.sender.domainVerified = false; emSave(); }
+  var inputEl = document.getElementById('em-domain-input');
+  if (inputEl && emState.sender && emState.sender.domain) inputEl.value = emState.sender.domain;
 }
 
 function emVerifyDomain() {
-  var domain = emState.sender && emState.sender.domain;
+  var domain   = emState.sender && emState.sender.domain;
+  var domainId = emState.sender && emState.sender.domainId;
+  var apiKey   = emState.sender && emState.sender.resendApiKey;
   if (!domain) { emToast('Add a domain first.', true); return; }
-  window.open('https://resend.com/domains', '_blank');
-  emToast('Opening Resend dashboard — verify DNS records there');
+  if (!apiKey) { emToast('Connect your Resend API key first.', true); return; }
+  var verBtn = document.querySelector('button[onclick="emVerifyDomain()"]');
+  if (verBtn) { verBtn.textContent = '🔍 Checking…'; verBtn.disabled = true; }
+  fetch('/api/email-setup', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'verify-domain', apiKey: apiKey, domain: domain, domainId: domainId })
+  }).then(function(r){ return r.json(); }).then(function(data) {
+    if (verBtn) { verBtn.textContent = '🔍 Verify Domain'; verBtn.disabled = false; }
+    var statusEl = document.getElementById('em-domain-verify-status');
+    if (data.verified) {
+      emState.sender.domainVerified = true;
+      emSave();
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Verified — emails will land in primary inbox.</span>';
+      var dnsEl = document.getElementById('em-dns-records');
+      var verEl = document.getElementById('em-domain-verified');
+      var nameEl = document.getElementById('em-verified-domain-name');
+      if (dnsEl)  dnsEl.style.display  = 'none';
+      if (verEl)  verEl.style.display  = 'block';
+      if (nameEl) nameEl.textContent   = domain;
+      emToast('✅ Domain verified!');
+    } else {
+      if (statusEl) statusEl.innerHTML = '<span style="color:#f59e0b;font-weight:700">⏳ ' + (data.reason || 'Not verified yet — DNS can take up to 48 hours.') + '</span>';
+    }
+  }).catch(function() {
+    if (verBtn) { verBtn.textContent = '🔍 Verify Domain'; verBtn.disabled = false; }
+    emToast('⚠️ Could not check domain status.', true);
+  });
 }
 
 function emSaveFunnelConnection() {
-  var funnelEl = document.getElementById('em-funnel-connect');
+  var funnelEl = document.getElementById('em-funnel-select');
   if (!emState) return;
   emState.connectedFunnel = funnelEl ? funnelEl.value : '';
   emSave();
@@ -32080,7 +32260,7 @@ function emSaveFunnelConnection() {
 }
 
 function emSaveTrigger() {
-  var triggerEl = document.getElementById('em-trigger-type');
+  var triggerEl = document.getElementById('em-trigger-select');
   if (!emState) return;
   emState.trigger = triggerEl ? triggerEl.value : 'optin';
   emSave();
@@ -40138,7 +40318,7 @@ function coachBuildPrompt(ctx, question) {
 
   var sequenceContext = '\nPLATFORM SEQUENCE:\n' + seq.join('\n');
 
-  var system = 'You are the E-OS Coach — the personal AI advisor built into Execution OS. You know every feature of this platform precisely and accurately. You speak like a world-class business mentor who knows this user\'s exact situation. Be direct, specific, and warm. Always reference their specific niche and offer when relevant. Never speak generically.';
+  var system = 'You are the E-OS Coach — the personal business advisor built into Execution OS. You know every feature of this platform precisely and accurately. You speak like a world-class business mentor who knows this user\'s exact situation. Be direct, specific, and warm. Always reference their specific niche and offer when relevant. Never speak generically. Key platform updates to know: the Email Marketing section now includes a Broadcast tab where users can send one-time emails to their full list or specific segments. The Broadcast tab has an Email Writer powered by E-OS Intelligence — it reads the user\'s offer, avatar and boardroom strategy before writing every email. Email types include Watch The Video, Buy Now, Re-engage, Value Drop, Story Email, and Flash Offer — all written as long-form premium copy designed to convert high-ticket offers. The editor has full formatting, merge tags, and rewrite tools (Shorter, More Urgent, More Personal, Add CTA). The partnership.html page is a live opt-in funnel with a carousel of proof images, a dimming play button, and a two-path overlay for Join Partnership or Platform Only.';
 
   var prompt = userState + pageContext + sequenceContext
     + '\n\nCOACHING REQUEST: ' + (question || 'I just opened this page. Coach me on exactly what to do here, how to do it step by step, and what it will achieve for my business.')
@@ -40149,7 +40329,7 @@ function coachBuildPrompt(ctx, question) {
     + (ctx.niche ? 'Reference their niche (' + ctx.niche + ') and offer (' + ctx.offer + ') throughout.\n' : '')
     + 'Tell them exactly what their next action is after finishing this page.\n'
     + 'Speak in natural conversational language — no bullet points, no headers, no markdown.\n'
-    + 'Maximum 350 words. Make every word count.\n\n'
+    + 'Be thorough — give them enough to actually move forward with confidence, not just a surface overview. Aim for 400 to 500 words.\n\n'
     + 'Coach them now:';
 
   return { system, prompt };
