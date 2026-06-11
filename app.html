@@ -2843,6 +2843,9 @@ button[onclick="generateOffer()"] {
 .em-seg-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s; }
 .em-seg-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
 .em-seg-active { background:rgba(78,204,163,.1) !important;border-color:rgba(78,204,163,.3) !important;color:var(--teal) !important; }
+.db-an-pill { background:var(--card2);border:1px solid var(--border2);border-radius:50px;padding:5px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;white-space:nowrap; }
+.db-an-pill:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
+.db-an-pill.active { background:rgba(78,204,163,.1);border-color:rgba(78,204,163,.3);color:var(--teal); }
 .vpe-plat-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s; }
 .vpe-plat-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
 .vpe-plat-active { background:rgba(78,204,163,.1) !important;border-color:rgba(78,204,163,.3) !important;color:var(--teal) !important; }
@@ -2850,24 +2853,7 @@ button[onclick="generateOffer()"] {
 .vpe-adapt-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
 .vpe-q-card { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px;cursor:pointer;transition:all .2s; }
 .vpe-q-card:hover { border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.04); }
-.vpe-q-card.selected { border-color:var(--gold);background:rgba(245,200,66,.06); }
-
-/* ── ANALYTICS ───────────────────────────────────────────────── */
-.an-kpi-card { background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 18px;position:relative;overflow:hidden;transition:border-color .2s; }
-.an-kpi-card:hover { border-color:rgba(78,204,163,.25); }
-.db-an-pill { background:var(--card2);border:1px solid var(--border2);border-radius:50px;padding:5px 12px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;white-space:nowrap; }
-.db-an-pill:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
-.db-an-pill.active { background:rgba(78,204,163,.1);border-color:rgba(78,204,163,.3);color:var(--teal); }
-.an-kpi-icon { font-size:22px;margin-bottom:10px; }
-.an-kpi-val { font-size:28px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px;line-height:1; }
-.an-kpi-lbl { font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px; }
-.an-kpi-sub { font-size:10px;color:var(--teal);font-weight:700;margin-top:4px; }
-.an-bar { border-radius:4px 4px 0 0;background:linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.4));transition:height .4s ease;min-height:4px;flex:1; }
-.an-source-row { display:flex;align-items:center;gap:10px; }
-.an-source-label { font-size:12px;color:var(--muted);font-weight:600;min-width:120px; }
-.an-source-bar-wrap { flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden; }
-.an-source-bar { height:100%;border-radius:4px;background:linear-gradient(90deg,var(--teal),var(--teal2));transition:width .5s ease; }
-.an-source-count { font-size:12px;font-weight:700;color:var(--teal);min-width:32px;text-align:right; }
+.vpe-q-card.selected { border-color:#F5C842;background:rgba(245,200,66,.06); }
 
 /* Contact table */
 .em-table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -3502,11 +3488,20 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
-      <!-- ── ANALYTICS — filter + KPI row ──────────────────────── -->
-      <div style="margin-bottom:1.5rem" id="db-analytics-section">
+      <!-- ── TIME FILTER PILLS ─────────────────────────────────── -->
+      <div id="db-filter-row" style="display:none;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800">📊 Sales Activity</div>
+        <div style="display:flex;gap:6px">
+          <button class="db-filter-pill active" onclick="dbSetFilter('week',this)">This Week</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('month',this)">This Month</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('last',this)">Last Month</button>
+          <button class="db-filter-pill" onclick="dbSetFilter('all',this)">All Time</button>
+        </div>
+      </div>
 
-        <!-- Filter row -->
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <!-- ── LIVE ANALYTICS ──────────────────────────────────────── -->
+      <div style="margin-bottom:1.5rem" id="db-analytics-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800">📊 Analytics</div>
           <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
             <button class="db-an-pill active" onclick="dbAnFilter('today',this)">Today</button>
@@ -3516,55 +3511,25 @@ button[onclick="generateOffer()"] {
             <button class="db-an-pill" onclick="dbAnFilter('6m',this)">6 Months</button>
             <button class="db-an-pill" onclick="dbAnFilter('1y',this)">1 Year</button>
             <button class="db-an-pill" onclick="dbAnFilter('all',this)">All Time</button>
-            <button class="db-an-pill" onclick="dbAnFilter('custom',this)" id="db-an-custom-btn">Custom</button>
+            <button class="db-an-pill" onclick="dbAnFilter('custom',this)">Custom</button>
             <button onclick="dbAnRefresh()" style="background:none;border:none;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;padding:4px 8px">↺</button>
           </div>
         </div>
-
-        <!-- Custom date range (hidden by default) -->
-        <div id="db-an-custom-range" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 16px;margin-bottom:12px;display:none;align-items:center;gap:12px;flex-wrap:wrap">
+        <div id="db-an-custom-range" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 16px;margin-bottom:10px;align-items:center;gap:12px;flex-wrap:wrap">
           <div style="font-size:11px;color:var(--dim);font-weight:700">From</div>
           <input type="date" id="db-an-from" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;color:var(--white);font-family:'Poppins',sans-serif;font-size:12px">
           <div style="font-size:11px;color:var(--dim);font-weight:700">To</div>
           <input type="date" id="db-an-to" style="background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:6px 10px;color:var(--white);font-family:'Poppins',sans-serif;font-size:12px">
           <button onclick="dbAnApplyCustom()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;padding:7px 16px;color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">Apply</button>
         </div>
-
-        <!-- KPI cards -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px">
-          <div class="db-metric teal" style="border-radius:var(--r-lg)">
-            <div class="db-lbl">Total Leads</div>
-            <div class="db-val" id="db-an-leads" style="color:var(--teal)">—</div>
-            <div class="db-sub" id="db-an-leads-sub"></div>
-          </div>
-          <div class="db-metric yellow" style="border-radius:var(--r-lg)">
-            <div class="db-lbl">Revenue</div>
-            <div class="db-val" id="db-an-revenue" style="color:var(--yellow)">—</div>
-            <div class="db-sub" id="db-an-revenue-sub"></div>
-          </div>
-          <div class="db-metric" style="border-radius:var(--r-lg)">
-            <div class="db-lbl">Emails Sent</div>
-            <div class="db-val" id="db-an-emails" style="color:var(--white)">—</div>
-            <div class="db-sub" id="db-an-emails-sub"></div>
-          </div>
-          <div class="db-metric" style="border-radius:var(--r-lg)">
-            <div class="db-lbl">Conversion Rate</div>
-            <div class="db-val" id="db-an-conv" style="color:var(--teal)">—</div>
-            <div class="db-sub" id="db-an-conv-sub"></div>
-          </div>
-          <div class="db-metric" style="border-radius:var(--r-lg)">
-            <div class="db-lbl">Funnel Views</div>
-            <div class="db-val" id="db-an-views" style="color:var(--white)">—</div>
-            <div class="db-sub" id="db-an-views-sub"></div>
-          </div>
-          <div class="db-metric" style="border-radius:var(--r-lg)">
-            <div class="db-lbl">Broadcasts</div>
-            <div class="db-val" id="db-an-broadcasts" style="color:var(--white)">—</div>
-            <div class="db-sub" id="db-an-broadcasts-sub"></div>
-          </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:12px">
+          <div class="db-metric teal" style="border-radius:var(--r-lg)"><div class="db-lbl">Total Leads</div><div class="db-val" id="db-an-leads" style="color:var(--teal)">—</div><div class="db-sub" id="db-an-leads-sub"></div></div>
+          <div class="db-metric yellow" style="border-radius:var(--r-lg)"><div class="db-lbl">Revenue</div><div class="db-val" id="db-an-revenue" style="color:var(--yellow)">—</div><div class="db-sub" id="db-an-revenue-sub"></div></div>
+          <div class="db-metric" style="border-radius:var(--r-lg)"><div class="db-lbl">Emails Sent</div><div class="db-val" id="db-an-emails" style="color:var(--white)">—</div><div class="db-sub" id="db-an-emails-sub"></div></div>
+          <div class="db-metric" style="border-radius:var(--r-lg)"><div class="db-lbl">Conversion</div><div class="db-val" id="db-an-conv" style="color:var(--teal)">—</div><div class="db-sub" id="db-an-conv-sub"></div></div>
+          <div class="db-metric" style="border-radius:var(--r-lg)"><div class="db-lbl">Funnel Views</div><div class="db-val" id="db-an-views" style="color:var(--white)">—</div><div class="db-sub" id="db-an-views-sub"></div></div>
+          <div class="db-metric" style="border-radius:var(--r-lg)"><div class="db-lbl">Broadcasts</div><div class="db-val" id="db-an-broadcasts" style="color:var(--white)">—</div><div class="db-sub" id="db-an-broadcasts-sub"></div></div>
         </div>
-
-        <!-- Two col: chart + recent leads -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
           <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
             <div style="font-size:11px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:3px">Leads Over Time</div>
@@ -3576,7 +3541,14 @@ button[onclick="generateOffer()"] {
             <div id="db-an-recent" style="display:flex;flex-direction:column;gap:8px"></div>
           </div>
         </div>
+      </div>
 
+      <!-- Key Metrics Row (hidden — kept for JS compatibility) -->
+      <div style="display:none" id="db-metrics-row">
+        <div class="db-metric teal"><div class="db-lbl">Monthly Target</div><div class="db-val" id="db-target">$0</div><div class="db-sub">your revenue goal</div></div>
+        <div class="db-metric yellow"><div class="db-lbl">Earned This Month</div><div class="db-val" id="db-earned">$0</div><div class="db-sub" id="db-earned-sub">0 deals closed</div></div>
+        <div class="db-metric red"><div class="db-lbl">Gap to Close</div><div class="db-val" id="db-gap">$0</div><div class="db-sub" id="db-gap-sub">deals remaining</div></div>
+        <div class="db-metric purple"><div class="db-lbl">Paid Customers</div><div class="db-val" id="db-cal-done">0</div><div class="db-sub" id="db-cal-sub">paying customers</div></div>
       </div>
 
       <!-- Revenue Bar -->
@@ -3718,7 +3690,6 @@ button[onclick="generateOffer()"] {
           </div>
         </div>
       </div>
-
 
       <!-- Motivational closer — changes based on score -->
       <div id="db-coach-note" style="background:linear-gradient(145deg,rgba(78,204,163,.06),rgba(108,99,255,.04));border:1px solid rgba(78,204,163,.15);border-radius:14px;padding:1rem 1.25rem;margin-bottom:2rem;display:flex;align-items:flex-start;gap:12px">
@@ -6071,124 +6042,7 @@ button[onclick="generateOffer()"] {
       <div id="milestones-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:1.5rem"></div>
 
     </div>
-    <!-- ANALYTICS TAB -->
-    <div id="phq-pane-analytics" style="display:none">
-
-      <!-- Top KPI strip -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px" id="analytics-kpi-strip">
-        <div class="an-kpi-card">
-          <div class="an-kpi-icon">👥</div>
-          <div class="an-kpi-val" id="an-total-leads">—</div>
-          <div class="an-kpi-lbl">Total Leads</div>
-          <div class="an-kpi-sub" id="an-leads-sub"></div>
-        </div>
-        <div class="an-kpi-card">
-          <div class="an-kpi-icon">💰</div>
-          <div class="an-kpi-val" id="an-total-revenue">—</div>
-          <div class="an-kpi-lbl">Total Revenue</div>
-          <div class="an-kpi-sub" id="an-revenue-sub"></div>
-        </div>
-        <div class="an-kpi-card">
-          <div class="an-kpi-icon">📣</div>
-          <div class="an-kpi-val" id="an-total-emails">—</div>
-          <div class="an-kpi-lbl">Emails Sent</div>
-          <div class="an-kpi-sub" id="an-emails-sub"></div>
-        </div>
-        <div class="an-kpi-card">
-          <div class="an-kpi-icon">🔁</div>
-          <div class="an-kpi-val" id="an-conversion-rate">—</div>
-          <div class="an-kpi-lbl">Lead → Sale Rate</div>
-          <div class="an-kpi-sub" id="an-conv-sub"></div>
-        </div>
-        <div class="an-kpi-card">
-          <div class="an-kpi-icon">👁</div>
-          <div class="an-kpi-val" id="an-funnel-views">—</div>
-          <div class="an-kpi-lbl">Funnel Views</div>
-          <div class="an-kpi-sub" id="an-views-sub"></div>
-        </div>
-        <div class="an-kpi-card">
-          <div class="an-kpi-icon">📡</div>
-          <div class="an-kpi-val" id="an-broadcasts-sent">—</div>
-          <div class="an-kpi-lbl">Broadcasts Sent</div>
-          <div class="an-kpi-sub" id="an-broadcasts-sub"></div>
-        </div>
-      </div>
-
-      <!-- Two column: Leads chart + Lead sources -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-
-        <!-- Leads over time -->
-        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
-          <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Leads Over Time</div>
-          <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Last 30 days</div>
-          <div id="an-leads-chart" style="height:140px;display:flex;align-items:flex-end;gap:4px"></div>
-          <div id="an-leads-chart-labels" style="display:flex;justify-content:space-between;margin-top:6px"></div>
-        </div>
-
-        <!-- Lead sources breakdown -->
-        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
-          <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Lead Sources</div>
-          <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Where your leads are coming from</div>
-          <div id="an-lead-sources" style="display:flex;flex-direction:column;gap:10px"></div>
-        </div>
-
-      </div>
-
-      <!-- Revenue + Email performance -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-
-        <!-- Revenue by product -->
-        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
-          <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Revenue Breakdown</div>
-          <div style="font-size:11px;color:var(--dim);margin-bottom:16px">By product / tier</div>
-          <div id="an-revenue-breakdown" style="display:flex;flex-direction:column;gap:10px"></div>
-        </div>
-
-        <!-- Email broadcast performance -->
-        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
-          <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Broadcast Performance</div>
-          <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Last 10 broadcasts</div>
-          <div id="an-broadcast-perf" style="display:flex;flex-direction:column;gap:8px"></div>
-        </div>
-
-      </div>
-
-      <!-- Funnel performance table -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
-        <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Funnel Performance</div>
-        <div style="font-size:11px;color:var(--dim);margin-bottom:16px">Views, leads and conversion per funnel</div>
-        <div id="an-funnel-table">
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <thead>
-              <tr style="border-bottom:1px solid var(--border2)">
-                <th style="text-align:left;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Funnel</th>
-                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Views</th>
-                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Leads</th>
-                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Sales</th>
-                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Conv %</th>
-                <th style="text-align:right;padding:8px 12px;color:var(--dim);font-weight:700;text-transform:uppercase;font-size:10px;letter-spacing:.8px">Revenue</th>
-              </tr>
-            </thead>
-            <tbody id="an-funnel-tbody">
-              <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--dim)">Loading funnels…</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Recent leads feed -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <div>
-            <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif">Recent Leads</div>
-            <div style="font-size:11px;color:var(--dim);margin-top:2px">Latest opt-ins across all funnels</div>
-          </div>
-          <button onclick="anRefresh()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:7px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">↺ Refresh</button>
-        </div>
-        <div id="an-recent-leads" style="display:flex;flex-direction:column;gap:8px"></div>
-      </div>
-
-    </div>
+  </div><!-- end page-perfhq -->
 
   <!-- PROFILE PAGE -->
   <div class="page" id="page-profile">
@@ -6760,7 +6614,7 @@ button[onclick="generateOffer()"] {
 
 <!-- VIDEO STUDIO -->
 <!-- ═══════════════════════════════════════════════════════════════════════════ -->
-<div class="page" id="page-ai-video">
+<div class="page" id="page-ai-video" style="display:none">
 
   <div class="hero-strip" style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.04));margin:0 1.25rem var(--sp-4)">
     <div class="tag-pill" style="background:linear-gradient(135deg,#6c63ff,#5040cc);margin-bottom:var(--sp-3)"><span style="color:#fff">Content Studio</span></div>
@@ -7600,22 +7454,18 @@ button[onclick="generateOffer()"] {
 
     </div><!-- /cs-tab-automate -->
 
-    <!-- ══════════════════════════════════════════════════════════
-         VALUE POST ENGINE TAB
-    ══════════════════════════════════════════════════════════ -->
+
+    <!-- ══ VALUE POST ENGINE TAB ══ -->
     <div id="cs-tab-vpe" style="display:none">
 
-      <!-- Header -->
       <div style="text-align:center;margin-bottom:32px">
-        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.25);border-radius:100px;padding:6px 18px;font-size:11px;font-weight:700;color:#F5C842;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">
-          <span class="pulse-dot"></span> E-OS Intelligence Active
-        </div>
+        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.25);border-radius:100px;padding:6px 18px;font-size:11px;font-weight:700;color:#F5C842;letter-spacing:.1em;text-transform:uppercase;margin-bottom:16px">E-OS Intelligence Active</div>
         <div style="font-size:24px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:8px">Value Post Engine</div>
         <div style="font-size:13px;color:var(--dim);max-width:560px;margin:0 auto;line-height:1.7">Find what your audience is already asking. Answer it with your expertise. Drive them into your funnel. Works on Quora, Reddit, LinkedIn, Medium and X.</div>
       </div>
 
-      <!-- Step 1: Find Questions -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px" id="vpe-step1">
+      <!-- Step 1 -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
           <div>
             <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Step 1 — Find What Your Audience Is Asking</div>
@@ -7627,43 +7477,34 @@ button[onclick="generateOffer()"] {
         <div id="vpe-questions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px"></div>
       </div>
 
-      <!-- Step 2: Write Your Post -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px" id="vpe-step2">
+      <!-- Step 2 -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
         <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Step 2 — Write Your Post</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Pick a question above — or enter your own topic. E-OS Intelligence writes the full post using your offer, avatar and boardroom strategy.</div>
-
+        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Pick a question above or enter your own topic. E-OS Intelligence writes using your offer, avatar and boardroom strategy.</div>
         <div style="margin-bottom:12px">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Topic / Question</div>
           <input id="vpe-topic" class="fi" placeholder="e.g. How do I make money with affiliate marketing without an audience?" style="font-size:13px">
         </div>
-
-        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
-          <div>
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Platform</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <button onclick="vpeSetPlatform(this,'quora')" class="vpe-plat-btn vpe-plat-active" data-plat="quora">Quora</button>
-              <button onclick="vpeSetPlatform(this,'reddit')" class="vpe-plat-btn" data-plat="reddit">Reddit</button>
-              <button onclick="vpeSetPlatform(this,'linkedin')" class="vpe-plat-btn" data-plat="linkedin">LinkedIn</button>
-              <button onclick="vpeSetPlatform(this,'medium')" class="vpe-plat-btn" data-plat="medium">Medium</button>
-              <button onclick="vpeSetPlatform(this,'x')" class="vpe-plat-btn" data-plat="x">X Thread</button>
-            </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Platform</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button onclick="vpeSetPlatform(this,'quora')" class="vpe-plat-btn vpe-plat-active" data-plat="quora">Quora</button>
+            <button onclick="vpeSetPlatform(this,'reddit')" class="vpe-plat-btn" data-plat="reddit">Reddit</button>
+            <button onclick="vpeSetPlatform(this,'linkedin')" class="vpe-plat-btn" data-plat="linkedin">LinkedIn</button>
+            <button onclick="vpeSetPlatform(this,'medium')" class="vpe-plat-btn" data-plat="medium">Medium</button>
+            <button onclick="vpeSetPlatform(this,'x')" class="vpe-plat-btn" data-plat="x">X Thread</button>
           </div>
         </div>
-
         <button onclick="vpeGenerate()" id="vpe-gen-btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:13px 32px;color:var(--text-dark);font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">✍️ Write My Post</button>
         <div id="vpe-gen-status" style="font-size:12px;color:var(--teal);margin-top:10px;display:none"></div>
       </div>
 
-      <!-- Step 3: Output -->
+      <!-- Output -->
       <div id="vpe-output" style="display:none">
-
-        <!-- Platform rules notice -->
         <div id="vpe-rules-notice" style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:var(--r-lg);padding:16px 20px;margin-bottom:16px;display:none">
-          <div style="font-size:12px;font-weight:800;color:#F5C842;margin-bottom:6px">⚠️ Platform Guidelines Check</div>
+          <div style="font-size:12px;font-weight:800;color:#F5C842;margin-bottom:6px">⚠️ Platform Guidelines</div>
           <div id="vpe-rules-text" style="font-size:12px;color:var(--muted);line-height:1.8"></div>
         </div>
-
-        <!-- Post content -->
         <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
             <div>
@@ -7677,27 +7518,22 @@ button[onclick="generateOffer()"] {
           </div>
           <div id="vpe-post-content" style="font-size:13px;color:var(--white);line-height:1.9;white-space:pre-wrap;font-family:'Inter',sans-serif;background:var(--bg3);border-radius:var(--r-md);padding:20px;min-height:200px"></div>
         </div>
-
-        <!-- Image suggestions -->
         <div id="vpe-images-section" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px;display:none">
           <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">🖼 Image Suggestions</div>
           <div style="font-size:12px;color:var(--dim);margin-bottom:14px">Search these on Unsplash, Canva or Pexels for free images that match your post.</div>
           <div id="vpe-image-suggestions" style="display:flex;flex-direction:column;gap:10px"></div>
         </div>
-
-        <!-- Adapt for other platforms -->
         <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px">
           <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">Adapt For Another Platform</div>
           <div style="font-size:12px;color:var(--dim);margin-bottom:14px">Reformat this post for a different platform in one click.</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button onclick="vpeAdapt('quora')"   class="vpe-adapt-btn">Quora</button>
-            <button onclick="vpeAdapt('reddit')"  class="vpe-adapt-btn">Reddit</button>
+            <button onclick="vpeAdapt('quora')" class="vpe-adapt-btn">Quora</button>
+            <button onclick="vpeAdapt('reddit')" class="vpe-adapt-btn">Reddit</button>
             <button onclick="vpeAdapt('linkedin')" class="vpe-adapt-btn">LinkedIn</button>
-            <button onclick="vpeAdapt('medium')"  class="vpe-adapt-btn">Medium</button>
-            <button onclick="vpeAdapt('x')"       class="vpe-adapt-btn">X Thread</button>
+            <button onclick="vpeAdapt('medium')" class="vpe-adapt-btn">Medium</button>
+            <button onclick="vpeAdapt('x')" class="vpe-adapt-btn">X Thread</button>
           </div>
         </div>
-
       </div>
     </div><!-- /cs-tab-vpe -->
 
@@ -8455,156 +8291,6 @@ button[onclick="generateOffer()"] {
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px" id="em-templates-grid"></div>
     </div>
 
-
-    <!-- ── BROADCAST TAB ── -->
-    <div id="em-view-broadcast" style="display:none">
-      <div style="margin-bottom:var(--sp-5)">
-        <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">📡 Send Broadcast</div>
-        <div style="font-size:13px;color:var(--dim)">Send a one-time email to your entire list or a specific segment.</div>
-      </div>
-
-      <!-- Audience -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
-        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Audience</div>
-        <div style="display:flex;gap:10px;flex-wrap:wrap">
-          <button onclick="emBroadcastSegment(this,'all')" class="em-seg-btn em-seg-active">All Contacts</button>
-          <button onclick="emBroadcastSegment(this,'partnership-optin')" class="em-seg-btn">Partnership Leads</button>
-          <button onclick="emBroadcastSegment(this,'platform')" class="em-seg-btn">Platform Leads</button>
-        </div>
-        <div style="margin-top:12px;font-size:12px;color:var(--teal);font-weight:700" id="em-broadcast-count">Loading contacts…</div>
-      </div>
-
-      <!-- AI Writer -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-          <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">✍️ Email Writer</div>
-          <div id="em-bc-intel-badge" style="font-size:10px;font-weight:700;color:var(--teal);display:none">⚡ Using your offer &amp; audience intel</div>
-        </div>
-        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">E-OS Intelligence reads your offer, avatar and boardroom strategy before writing every email.</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
-          <button onclick="emBroadcastAI('watch_video')" class="em-seg-btn">🎬 Watch The Video</button>
-          <button onclick="emBroadcastAI('buy_now')" class="em-seg-btn">🔥 Buy Now</button>
-          <button onclick="emBroadcastAI('re_engage')" class="em-seg-btn">💬 Re-engage</button>
-          <button onclick="emBroadcastAI('value_drop')" class="em-seg-btn">💎 Value Drop</button>
-          <button onclick="emBroadcastAI('story')" class="em-seg-btn">📖 Story Email</button>
-          <button onclick="emBroadcastAI('flash_offer')" class="em-seg-btn">⚡ Flash Offer</button>
-        </div>
-        <div id="em-broadcast-ai-status" style="font-size:12px;color:var(--teal);margin-top:8px;display:none">Writing your email…</div>
-      </div>
-
-      <!-- Compose — same editor as Campaigns -->
-      <div class="em-compose-wrap">
-        <div>
-          <!-- Subject + Preview -->
-          <div style="margin-bottom:12px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Subject Line</div>
-            <input class="fi" id="em-broadcast-subject" placeholder="e.g. {{first_name}}, this changes everything…" />
-          </div>
-          <div style="margin-bottom:12px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Preview Text</div>
-            <input class="fi" id="em-broadcast-preview" placeholder="The text shown after the subject in inbox…" />
-          </div>
-
-          <!-- Rich editor — reuses all existing em-editor functions -->
-          <div class="em-editor">
-            <!-- Formatting toolbar -->
-            <div class="em-editor-toolbar" id="em-bc-format-toolbar" style="border-bottom:1px solid var(--border2)">
-              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-right:4px">Format</span>
-              <button class="em-toolbar-btn" onclick="emBcExec('bold')" title="Bold"><strong>B</strong></button>
-              <button class="em-toolbar-btn" onclick="emBcExec('italic')" title="Italic"><em>I</em></button>
-              <button class="em-toolbar-btn" onclick="emBcExec('underline')" title="Underline" style="text-decoration:underline">U</button>
-              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
-              <select onchange="emBcFmtSize(this.value)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;color:var(--muted);font-family:Poppins,sans-serif;font-size:10px;cursor:pointer">
-                <option value="">Size</option>
-                <option value="12px">Small</option>
-                <option value="14px" selected>Normal</option>
-                <option value="18px">Large</option>
-                <option value="24px">Heading</option>
-                <option value="32px">Title</option>
-              </select>
-              <div style="position:relative;display:inline-block">
-                <button class="em-toolbar-btn" style="padding:4px 8px;display:flex;align-items:center;gap:4px" onclick="document.getElementById('em-bc-color-pick').click()">
-                  <span style="font-weight:800;font-size:12px">A</span>
-                  <div id="em-bc-color-swatch" style="width:12px;height:4px;background:#ffffff;border-radius:2px"></div>
-                </button>
-                <input type="color" id="em-bc-color-pick" value="#ffffff" style="position:absolute;opacity:0;width:0;height:0" onchange="emBcFmtColor(this.value)">
-              </div>
-              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
-              <button class="em-toolbar-btn" onclick="emBcAlign('left')"   title="Left" style="font-size:11px">≡</button>
-              <button class="em-toolbar-btn" onclick="emBcAlign('center')" title="Center" style="font-size:11px">≡</button>
-              <button class="em-toolbar-btn" onclick="emBcAlign('right')"  title="Right" style="font-size:11px">≡</button>
-              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
-              <button class="em-toolbar-btn" onclick="emBcList('ul')">• List</button>
-              <button class="em-toolbar-btn" onclick="emBcList('ol')">1. List</button>
-              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
-              <button class="em-toolbar-btn" onclick="emBcLink()" style="background:rgba(108,99,255,.08);border-color:rgba(108,99,255,.2);color:#a089ff">🔗 Link</button>
-              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
-              <button class="em-toolbar-btn" onclick="emBcInsertMerge('first_name')" style="background:rgba(245,200,66,.08);border-color:rgba(245,200,66,.2);color:var(--gold)">👤 Name</button>
-              <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
-              <button class="em-toolbar-btn" onclick="document.execCommand('undo')">↩</button>
-              <button class="em-toolbar-btn" onclick="document.execCommand('redo')">↪</button>
-            </div>
-            <!-- AI row -->
-            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(78,204,163,.03);border-bottom:1px solid var(--border2);flex-wrap:wrap">
-              <button onclick="emBcAiWrite()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:6px;padding:5px 14px;color:var(--text-dark);font-family:Poppins,sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">⚡ Write Email</button>
-              <div style="width:1px;height:18px;background:var(--border2)"></div>
-              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer)">Rewrite</span>
-              <button class="em-toolbar-btn" onclick="emBcRewrite('make it shorter and more punchy')">Shorter</button>
-              <button class="em-toolbar-btn" onclick="emBcRewrite('make it more urgent and compelling')">More Urgent</button>
-              <button class="em-toolbar-btn" onclick="emBcRewrite('make it more personal and conversational, as if talking to one person')">More Personal</button>
-              <button class="em-toolbar-btn" onclick="emBcRewrite('add a strong clear call to action at the end')">Add CTA</button>
-            </div>
-            <!-- Rich text area -->
-            <div id="em-bc-quill-editor" contenteditable="true"
-              data-placeholder="Write your email here, or click ⚡ Write Email…"
-              style="min-height:320px;padding:16px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;line-height:1.8;outline:none;background:rgba(255,255,255,.02)"
-              oninput="emBcSyncHidden()"
-              onpaste="emBcHandlePaste(event)">
-            </div>
-            <textarea id="em-broadcast-body" style="display:none"></textarea>
-          </div>
-
-          <!-- Footer preview -->
-          <div style="margin-top:8px;padding:12px 16px;background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:8px;font-size:11px;color:var(--dim);line-height:1.7">
-            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:6px">Email Footer (auto-added to every send)</div>
-            <div style="border-top:1px solid rgba(255,255,255,.06);padding-top:8px">
-              You received this email because you signed up at one of our pages.
-              &nbsp;·&nbsp; <span id="em-bc-footer-name" style="color:var(--white)">Your Name</span>
-              &nbsp;·&nbsp; <span id="em-bc-footer-email" style="color:var(--white)">your@email.com</span>
-              &nbsp;·&nbsp; <a style="color:var(--teal);text-decoration:underline">Unsubscribe</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Right panel -->
-        <div>
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:18px;margin-bottom:14px">
-            <div style="font-size:12px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:14px">Send Settings</div>
-            <div style="margin-bottom:10px">
-              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Audience</div>
-              <div style="display:flex;gap:8px;flex-direction:column">
-                <button onclick="emBroadcastSegment(this,'all')" class="em-seg-btn em-seg-active" id="em-bc-seg-all">All Contacts</button>
-                <button onclick="emBroadcastSegment(this,'partnership-optin')" class="em-seg-btn" id="em-bc-seg-partner">Partnership Leads</button>
-                <button onclick="emBroadcastSegment(this,'platform')" class="em-seg-btn" id="em-bc-seg-platform">Platform Leads</button>
-              </div>
-              <div style="margin-top:10px;font-size:12px;color:var(--teal);font-weight:700" id="em-broadcast-count">Loading contacts…</div>
-            </div>
-            <div style="border-top:1px solid var(--border2);margin:14px 0"></div>
-            <button onclick="emSendBroadcast()" id="em-broadcast-send-btn" style="width:100%;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:12px;color:var(--text-dark);font-size:13px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;text-transform:uppercase;letter-spacing:.4px">📡 Send Broadcast →</button>
-            <div id="em-broadcast-status" style="font-size:12px;color:var(--dim);margin-top:8px;text-align:center"></div>
-          </div>
-
-
-        </div>
-      </div>
-
-      <!-- History -->
-      <div style="margin-top:32px">
-        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Sent History</div>
-        <div id="em-broadcast-history"><div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div></div>
-      </div>
-    </div>
-
     <!-- ── SETTINGS TAB ── -->
     <div id="em-view-settings" style="display:none">
 
@@ -8732,6 +8418,72 @@ button[onclick="generateOffer()"] {
 
     </div>
 
+
+    <!-- ── BROADCAST TAB ── -->
+    <div id="em-view-broadcast" style="display:none">
+      <div style="margin-bottom:var(--sp-5)">
+        <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">📡 Send Broadcast</div>
+        <div style="font-size:13px;color:var(--dim)">Send a one-time email to your entire list or a specific segment.</div>
+      </div>
+
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Audience</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="emBroadcastSegment(this,'all')" class="em-seg-btn em-seg-active">All Contacts</button>
+          <button onclick="emBroadcastSegment(this,'partnership-optin')" class="em-seg-btn">Partnership Leads</button>
+          <button onclick="emBroadcastSegment(this,'platform')" class="em-seg-btn">Platform Leads</button>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--teal);font-weight:700" id="em-broadcast-count">Loading contacts…</div>
+      </div>
+
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+          <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">✍️ Email Writer</div>
+          <div id="em-bc-intel-badge" style="font-size:10px;font-weight:700;color:var(--teal);display:none">⚡ Using your offer &amp; audience intel</div>
+        </div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">E-OS Intelligence reads your offer, avatar and boardroom strategy before writing every email.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button onclick="emBroadcastAI('watch_video')" class="em-seg-btn">🎬 Watch The Video</button>
+          <button onclick="emBroadcastAI('buy_now')" class="em-seg-btn">🔥 Buy Now</button>
+          <button onclick="emBroadcastAI('re_engage')" class="em-seg-btn">💬 Re-engage</button>
+          <button onclick="emBroadcastAI('value_drop')" class="em-seg-btn">💎 Value Drop</button>
+          <button onclick="emBroadcastAI('story')" class="em-seg-btn">📖 Story Email</button>
+          <button onclick="emBroadcastAI('flash_offer')" class="em-seg-btn">⚡ Flash Offer</button>
+        </div>
+        <div id="em-broadcast-ai-status" style="font-size:12px;color:var(--teal);margin-top:8px;display:none">Writing your email…</div>
+      </div>
+
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Email</div>
+        <div style="font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Subject Line</div>
+        <input id="em-broadcast-subject" class="fi" placeholder="Subject line…" style="margin-bottom:16px;font-size:14px;font-weight:700">
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md)">
+          <button onclick="emBcExec('bold')" style="background:none;border:none;color:var(--muted);font-size:14px;font-weight:900;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif"><b>B</b></button>
+          <button onclick="emBcExec('italic')" style="background:none;border:none;color:var(--muted);font-size:14px;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif"><i>I</i></button>
+          <div style="width:1px;height:18px;background:var(--border2);margin:0 4px"></div>
+          <button onclick="emBcInsertMerge('first_name')" style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:6px;padding:4px 10px;color:#F5C842;font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">👤 First Name</button>
+          <button onclick="emBcInsertMerge('name')" style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:6px;padding:4px 10px;color:#F5C842;font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">👤 Full Name</button>
+          <button onclick="emBcLink()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔗 Link</button>
+          <button onclick="emBcClear()" style="background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:4px 8px;border-radius:6px;font-family:'Poppins',sans-serif;margin-left:auto">✕ Clear</button>
+        </div>
+        <div id="em-bc-editor" contenteditable="true" data-placeholder="E-OS Intelligence will write here. Or type directly. Use {{first_name}} to personalise."
+          style="min-height:240px;padding:14px 16px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.9;outline:none"
+          onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></div>
+        <textarea id="em-broadcast-body" style="display:none"></textarea>
+        <div style="font-size:11px;color:var(--dim);margin-top:6px">Use <span style="color:#F5C842;font-weight:700">{{first_name}}</span> or <span style="color:#F5C842;font-weight:700">{{name}}</span> to personalise each email automatically.</div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button onclick="emSendBroadcast()" id="em-broadcast-send-btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:14px 32px;color:var(--text-dark);font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">📡 Send Broadcast</button>
+        <div id="em-broadcast-status" style="font-size:13px;color:var(--dim)"></div>
+      </div>
+
+      <div style="margin-top:32px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Sent History</div>
+        <div id="em-broadcast-history"><div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div></div>
+      </div>
+    </div>
+
     <!-- ── COMPOSE VIEW (overlays tabs) ── -->
     <div id="em-view-compose" style="display:none">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-5)">
@@ -8805,7 +8557,7 @@ button[onclick="generateOffer()"] {
             </div>
             <!-- Rich text editing area -->
             <div id="em-quill-editor" contenteditable="true"
-              data-placeholder="Write your email here, or click ⚡ Write Email to build it…"
+              data-placeholder="Write your email here, or click ⚡ AI Write to build it…"
               style="min-height:320px;padding:16px;color:var(--white);font-family:'Inter',sans-serif;font-size:14px;line-height:1.8;outline:none;background:rgba(255,255,255,.02)"
               oninput="emSyncRichToHidden()"
               onpaste="emHandlePaste(event)">
@@ -9176,10 +8928,7 @@ function showPage(n,btn){
   if(n==='growth') initGrowthSupport();
   if(n==='offer') { setTimeout(function(){ calcStackTotal && calcStackTotal(); }, 100); }
   // Dashboard render
-  if(n==='dashboard') {
-    setTimeout(function(){ window.renderDashboard && window.renderDashboard(); }, 60);
-    setTimeout(function(){ window.dbAnLoad && window.dbAnLoad(); }, 400);
-  }
+  if(n==='dashboard') { setTimeout(function(){ window.renderDashboard && window.renderDashboard(); }, 60); setTimeout(function(){ window.dbAnLoad && window.dbAnLoad(); }, 500); }
   // Affiliate page restore
   if(n==='affiliate') setTimeout(function(){
     window.setAffTraffic && window.setAffTraffic(window._affTrafficMode || 'organic');
@@ -9218,9 +8967,15 @@ function showPage(n,btn){
   if(n==='advisor') setTimeout(function(){ window.initAdvisor && window.initAdvisor(); }, 100);
   // Step progress
   setTimeout(function(){ window.updateStepProgress && window.updateStepProgress(); }, 100);
-  // CSS handles page entrance animation (.page.on .hero-strip etc.)
-  // JS opacity animation removed — it conflicts when showPage is called multiple times
-  // causing hero-strip and cards to stay at opacity:0
+  // Animate children
+  setTimeout(function(){
+    const pg=document.getElementById('page-'+n);
+    if(pg){ pg.querySelectorAll('.hero-strip,.m-card,.av-sec,.w-card,.rblock').forEach(function(el,i){
+      el.style.opacity='0'; el.style.transform='translateY(12px)';
+      el.style.transition='opacity .3s ease, transform .3s ease';
+      setTimeout(function(){ el.style.opacity='1'; el.style.transform='translateY(0)'; }, i*40);
+    }); }
+  }, 50);
   if(n==='affiliate') initAffiliateHub();
 }
 window.showPage=showPage;
@@ -19410,455 +19165,9 @@ window.showPHQTab = function(tab, btn) {
   if(btn) btn.classList.add('on');
   document.getElementById('phq-pane-score').style.display      = (tab === 'score')      ? 'block' : 'none';
   document.getElementById('phq-pane-milestones').style.display = (tab === 'milestones') ? 'block' : 'none';
-  document.getElementById('phq-pane-analytics').style.display  = (tab === 'analytics')  ? 'block' : 'none';
   if (tab === 'milestones') renderMilestoneGrid();
-  if (tab === 'analytics')  anLoadAll();
+  if (tab === 'vpe') { emBroadcastLoadCount && emBroadcastLoadCount(); }
 };
-
-// ══════════════════════════════════════════════════════════════════════════════
-// ANALYTICS — Performance HQ analytics tab
-// Reads from: leads, users/{uid}/broadcasts, users/{uid}/emailMarketing,
-//             fbState.funnels (local), copecart_sales (Firestore)
-// ══════════════════════════════════════════════════════════════════════════════
-
-var _anLoaded = false;
-
-async function anLoadAll() {
-  if (!window._db || !window._currentUserUid) return;
-  var uid = window._currentUserUid;
-
-  // Show loading state
-  ['an-total-leads','an-total-revenue','an-total-emails','an-conversion-rate','an-funnel-views','an-broadcasts-sent']
-    .forEach(function(id){ var el=document.getElementById(id); if(el) el.textContent='…'; });
-
-  try {
-    // ── Parallel data fetch ────────────────────────────────────────────────
-    var [leadsSnap, broadcastsSnap, salesSnap] = await Promise.all([
-      window._getDocs(window._collection(window._db, 'leads')).catch(function(){return{forEach:function(){}};}),
-      window._getDocs(window._collection(window._db, 'users', uid, 'broadcasts')).catch(function(){return{forEach:function(){}};}),
-      window._getDocs(window._collection(window._db, 'copecart_sales')).catch(function(){return{forEach:function(){}};}),
-    ]);
-
-    // ── Process leads ──────────────────────────────────────────────────────
-    var leads = [];
-    leadsSnap.forEach(function(d){ var data = d.data ? d.data() : d; if (data && data.email) leads.push(data); });
-
-    // ── Process broadcasts ─────────────────────────────────────────────────
-    var broadcasts = [];
-    broadcastsSnap.forEach(function(d){ var data = d.data ? d.data() : d; broadcasts.push(data); });
-    broadcasts.sort(function(a,b){ return (b.sentAt||0) - (a.sentAt||0); });
-
-    // ── Process sales ──────────────────────────────────────────────────────
-    var sales = [];
-    salesSnap.forEach(function(d){ var data = d.data ? d.data() : d; sales.push(data); });
-    var totalRevenue = sales.reduce(function(sum, s){ return sum + (parseFloat(s.amount||s.price||s.commission||0)); }, 0);
-
-    // ── Funnels from local state ───────────────────────────────────────────
-    var funnels = (window.fbState && window.fbState.funnels) ? window.fbState.funnels : [];
-    var totalViews = funnels.reduce(function(s,f){ return s+(f.views||0); }, 0);
-
-    // ── Email stats from emState ───────────────────────────────────────────
-    var emailsSent = 0;
-    broadcasts.forEach(function(b){ emailsSent += (b.sent||0); });
-    if (window.emState && window.emState.campaigns) {
-      window.emState.campaigns.forEach(function(c){ emailsSent += (c.sent||0); });
-    }
-
-    // ── Conversion rate ────────────────────────────────────────────────────
-    var convRate = leads.length > 0 ? ((sales.length / leads.length) * 100).toFixed(1) : '0.0';
-
-    // ── This month comparison ──────────────────────────────────────────────
-    var now = Date.now();
-    var monthAgo = now - 30 * 24 * 60 * 60 * 1000;
-    var leadsThisMonth = leads.filter(function(l){ return anGetTs(l) > monthAgo; }).length;
-    var salesThisMonth = sales.filter(function(s){ return anGetTs(s) > monthAgo; }).length;
-    var revenueThisMonth = sales.filter(function(s){ return anGetTs(s) > monthAgo; })
-      .reduce(function(sum,s){ return sum + parseFloat(s.amount||s.price||s.commission||0); }, 0);
-
-    // ── Render KPIs ────────────────────────────────────────────────────────
-    anSetKpi('an-total-leads',      leads.length.toLocaleString(),       'an-leads-sub',       '+' + leadsThisMonth + ' this month');
-    anSetKpi('an-total-revenue',    '$' + Math.round(totalRevenue).toLocaleString(), 'an-revenue-sub', '$' + Math.round(revenueThisMonth).toLocaleString() + ' this month');
-    anSetKpi('an-total-emails',     emailsSent.toLocaleString(),         'an-emails-sub',      broadcasts.length + ' broadcasts sent');
-    anSetKpi('an-conversion-rate',  convRate + '%',                      'an-conv-sub',        sales.length + ' total sales');
-    anSetKpi('an-funnel-views',     totalViews.toLocaleString(),         'an-views-sub',       funnels.length + ' active funnels');
-    anSetKpi('an-broadcasts-sent',  broadcasts.length.toLocaleString(),  'an-broadcasts-sub',  emailsSent.toLocaleString() + ' emails sent');
-
-    // ── Render charts and tables ───────────────────────────────────────────
-    anRenderLeadsChart(leads);
-    anRenderLeadSources(leads);
-    anRenderRevBreakdown(sales);
-    anRenderBroadcastPerf(broadcasts);
-    anRenderFunnelTable(funnels, leads, sales);
-    anRenderRecentLeads(leads);
-
-    _anLoaded = true;
-
-  } catch(e) {
-    console.error('[Analytics] Error:', e);
-  }
-}
-
-function anGetTs(obj) {
-  if (!obj) return 0;
-  if (obj.createdAt && obj.createdAt.toMillis) return obj.createdAt.toMillis();
-  if (obj.createdAt && typeof obj.createdAt === 'number') return obj.createdAt;
-  if (obj.sentAt)   return obj.sentAt;
-  if (obj.date)     return new Date(obj.date).getTime();
-  return 0;
-}
-
-function anSetKpi(valId, val, subId, sub) {
-  var v = document.getElementById(valId); if (v) v.textContent = val;
-  var s = document.getElementById(subId);  if (s) s.textContent = sub;
-}
-
-// ── Leads over time bar chart (last 30 days) ──────────────────────────────────
-function anRenderLeadsChart(leads) {
-  var chartEl  = document.getElementById('an-leads-chart');
-  var labelEl  = document.getElementById('an-leads-chart-labels');
-  if (!chartEl) return;
-
-  var now = Date.now();
-  var days = [];
-  for (var i = 29; i >= 0; i--) {
-    var dayStart = now - (i+1) * 86400000;
-    var dayEnd   = now - i * 86400000;
-    var count    = leads.filter(function(l){ var t=anGetTs(l); return t>dayStart && t<=dayEnd; }).length;
-    days.push({ count: count, label: i % 5 === 0 ? anDayLabel(dayStart) : '' });
-  }
-
-  var max = Math.max.apply(null, days.map(function(d){ return d.count; })) || 1;
-
-  chartEl.innerHTML = days.map(function(d) {
-    var pct = Math.max(4, Math.round((d.count / max) * 100));
-    var colour = d.count > 0 ? 'linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.35))' : 'rgba(255,255,255,.05)';
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px" title="' + d.count + ' leads">'
-      + '<div style="width:100%;height:' + pct + '%;border-radius:3px 3px 0 0;background:' + colour + ';min-height:4px;transition:height .4s"></div>'
-      + '</div>';
-  }).join('');
-
-  if (labelEl) {
-    labelEl.innerHTML = days.filter(function(d){ return d.label; }).map(function(d){
-      return '<div style="font-size:9px;color:var(--dimmer);font-weight:600">' + d.label + '</div>';
-    }).join('');
-  }
-}
-
-function anDayLabel(ts) {
-  var d = new Date(ts);
-  return (d.getMonth()+1) + '/' + d.getDate();
-}
-
-// ── Lead sources breakdown ─────────────────────────────────────────────────────
-function anRenderLeadSources(leads) {
-  var el = document.getElementById('an-lead-sources');
-  if (!el) return;
-
-  var sources = {};
-  leads.forEach(function(l){ var s = l.source || l.page || 'direct'; sources[s] = (sources[s]||0)+1; });
-
-  var sorted = Object.keys(sources).sort(function(a,b){ return sources[b]-sources[a]; }).slice(0,6);
-  var max    = sorted.length ? sources[sorted[0]] : 1;
-
-  if (!sorted.length) { el.innerHTML = '<div style="color:var(--dim);font-size:12px">No lead source data yet.</div>'; return; }
-
-  el.innerHTML = sorted.map(function(src) {
-    var count = sources[src];
-    var pct   = Math.round((count / max) * 100);
-    var label = src.replace(/-/g,' ').replace(/optin/,'opt-in').replace(/\w/g,function(c){return c.toUpperCase();});
-    return '<div class="an-source-row">'
-      + '<div class="an-source-label">' + label + '</div>'
-      + '<div class="an-source-bar-wrap"><div class="an-source-bar" style="width:' + pct + '%"></div></div>'
-      + '<div class="an-source-count">' + count + '</div>'
-      + '</div>';
-  }).join('');
-}
-
-// ── Revenue by product ────────────────────────────────────────────────────────
-function anRenderRevBreakdown(sales) {
-  var el = document.getElementById('an-revenue-breakdown');
-  if (!el) return;
-
-  if (!sales.length) {
-    el.innerHTML = '<div style="color:var(--dim);font-size:12px;padding:12px 0">No sales data yet. Sales from CopeCart will appear here automatically.</div>';
-    return;
-  }
-
-  var products = {};
-  sales.forEach(function(s){
-    var name = s.product_name || s.productName || s.product_id || 'Unknown';
-    if (!products[name]) products[name] = { count: 0, revenue: 0 };
-    products[name].count++;
-    products[name].revenue += parseFloat(s.amount||s.price||s.commission||0);
-  });
-
-  var sorted = Object.keys(products).sort(function(a,b){ return products[b].revenue - products[a].revenue; });
-  var maxRev = products[sorted[0]] ? products[sorted[0]].revenue : 1;
-
-  el.innerHTML = sorted.map(function(name) {
-    var p   = products[name];
-    var pct = Math.round((p.revenue / maxRev) * 100);
-    return '<div>'
-      + '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
-      + '<div style="font-size:12px;font-weight:700;color:var(--white)">' + name + '</div>'
-      + '<div style="font-size:12px;font-weight:700;color:var(--teal)">$' + Math.round(p.revenue).toLocaleString() + ' <span style="color:var(--dim);font-weight:400">(' + p.count + ' sales)</span></div>'
-      + '</div>'
-      + '<div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">'
-      + '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,var(--teal),var(--teal2));border-radius:3px;transition:width .5s"></div>'
-      + '</div></div>';
-  }).join('');
-}
-
-// ── Broadcast performance ─────────────────────────────────────────────────────
-function anRenderBroadcastPerf(broadcasts) {
-  var el = document.getElementById('an-broadcast-perf');
-  if (!el) return;
-
-  if (!broadcasts.length) {
-    el.innerHTML = '<div style="color:var(--dim);font-size:12px">No broadcasts sent yet.</div>';
-    return;
-  }
-
-  el.innerHTML = broadcasts.slice(0,8).map(function(b) {
-    var rate = b.total > 0 ? Math.round((b.sent/b.total)*100) : 0;
-    var date = b.sentAt ? new Date(b.sentAt).toLocaleDateString() : '—';
-    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border3)">'
-      + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + (b.subject||'—') + '</div>'
-      + '<div style="font-size:10px;color:var(--dim);margin-top:2px">' + date + ' · ' + (b.segment||'all') + '</div>'
-      + '</div>'
-      + '<div style="text-align:right;flex-shrink:0;margin-left:12px">'
-      + '<div style="font-size:13px;font-weight:800;color:' + (rate>=90?'var(--teal)':rate>=70?'#F5C842':'var(--dim)') + '">' + rate + '%</div>'
-      + '<div style="font-size:10px;color:var(--dim)">' + (b.sent||0) + '/' + (b.total||0) + '</div>'
-      + '</div></div>';
-  }).join('');
-}
-
-// ── Funnel table ──────────────────────────────────────────────────────────────
-function anRenderFunnelTable(funnels, leads, sales) {
-  var tbody = document.getElementById('an-funnel-tbody');
-  if (!tbody) return;
-
-  if (!funnels.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--dim)">No funnels published yet.</td></tr>';
-    return;
-  }
-
-  tbody.innerHTML = funnels.map(function(f) {
-    var views   = f.views   || 0;
-    var fLeads  = f.leads   || leads.filter(function(l){ return (l.funnel||l.page||'') === (f.id||f.name||''); }).length;
-    var fSales  = f.sales   || 0;
-    var rev     = f.revenue || 0;
-    var convPct = fLeads > 0 ? ((fSales / fLeads) * 100).toFixed(1) : '0.0';
-    var viewPct = views > 0  ? ((fLeads / views)  * 100).toFixed(1) : '0.0';
-    return '<tr style="border-bottom:1px solid var(--border3)">'
-      + '<td style="padding:12px;font-weight:700;color:var(--white)">' + (f.name||f.title||'Funnel') + '</td>'
-      + '<td style="padding:12px;text-align:right;color:var(--muted)">' + views.toLocaleString() + '</td>'
-      + '<td style="padding:12px;text-align:right;color:var(--teal);font-weight:700">' + fLeads.toLocaleString() + ' <span style="color:var(--dim);font-weight:400;font-size:10px">(' + viewPct + '%)</span></td>'
-      + '<td style="padding:12px;text-align:right;color:#F5C842;font-weight:700">' + fSales.toLocaleString() + '</td>'
-      + '<td style="padding:12px;text-align:right;color:' + (parseFloat(convPct)>=5?'var(--teal)':'var(--muted)') + ';font-weight:700">' + convPct + '%</td>'
-      + '<td style="padding:12px;text-align:right;font-weight:800;color:var(--white)">$' + Math.round(rev).toLocaleString() + '</td>'
-      + '</tr>';
-  }).join('');
-}
-
-// ── Recent leads feed ─────────────────────────────────────────────────────────
-function anRenderRecentLeads(leads) {
-  var el = document.getElementById('an-recent-leads');
-  if (!el) return;
-
-  var sorted = leads.slice().sort(function(a,b){ return anGetTs(b) - anGetTs(a); }).slice(0,15);
-
-  if (!sorted.length) {
-    el.innerHTML = '<div style="color:var(--dim);font-size:13px;padding:20px 0;text-align:center">No leads yet. Opt-ins from your funnels appear here in real time.</div>';
-    return;
-  }
-
-  el.innerHTML = sorted.map(function(l) {
-    var ts      = anGetTs(l);
-    var timeAgo = ts ? anTimeAgo(ts) : '—';
-    var source  = (l.source||l.page||'direct').replace(/-/g,' ').replace(/\w/g,function(c){return c.toUpperCase();});
-    var initial = (l.name||l.email||'?').charAt(0).toUpperCase();
-    return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border3)">'
-      + '<div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:var(--text-dark);flex-shrink:0">' + initial + '</div>'
-      + '<div style="flex:1;min-width:0">'
-      + '<div style="font-size:13px;font-weight:700;color:var(--white)">' + (l.name||'Anonymous') + '</div>'
-      + '<div style="font-size:11px;color:var(--dim)">' + (l.email||'') + '</div>'
-      + '</div>'
-      + '<div style="text-align:right;flex-shrink:0">'
-      + '<div style="font-size:11px;font-weight:700;color:var(--teal);background:rgba(78,204,163,.08);border-radius:4px;padding:2px 8px;margin-bottom:3px">' + source + '</div>'
-      + '<div style="font-size:10px;color:var(--dimmer)">' + timeAgo + '</div>'
-      + '</div></div>';
-  }).join('');
-}
-
-function anTimeAgo(ts) {
-  var diff = Date.now() - ts;
-  var mins = Math.floor(diff / 60000);
-  if (mins < 1)   return 'Just now';
-  if (mins < 60)  return mins + 'm ago';
-  var hrs = Math.floor(mins / 60);
-  if (hrs  < 24)  return hrs  + 'h ago';
-  var days = Math.floor(hrs / 24);
-  if (days < 30)  return days + 'd ago';
-  return Math.floor(days/30) + 'mo ago';
-}
-
-function anRefresh() { _anLoaded = false; anLoadAll(); }
-window.anRefresh = anRefresh;
-
-// ── Dashboard analytics (lightweight, runs on dashboard load) ─────────────────
-// ── Analytics state ───────────────────────────────────────────────────────────
-var _dbAnFilter  = '30d';   // active filter
-var _dbAnFrom    = null;    // custom range start (ms)
-var _dbAnTo      = null;    // custom range end (ms)
-var _dbAnLeads   = [];      // cached leads
-var _dbAnSales   = [];      // cached sales
-var _dbAnBcasts  = [];      // cached broadcasts
-
-// ── Filter range helper — returns {start, end, label, buckets} ────────────────
-function dbAnRange(filter, fromTs, toTs) {
-  var now   = Date.now();
-  var start, end = now, label, buckets;
-
-  if (filter === 'today')  { start = new Date(); start.setHours(0,0,0,0); start = start.getTime(); label = 'Today'; buckets = 24; }
-  else if (filter === 'week')   { start = now - 7*86400000;   label = 'Last 7 days';   buckets = 7; }
-  else if (filter === '30d')    { start = now - 30*86400000;  label = 'Last 30 days';  buckets = 30; }
-  else if (filter === '3m')     { start = now - 90*86400000;  label = 'Last 3 months'; buckets = 12; }
-  else if (filter === '6m')     { start = now - 180*86400000; label = 'Last 6 months'; buckets = 24; }
-  else if (filter === '1y')     { start = now - 365*86400000; label = 'Last year';     buckets = 12; }
-  else if (filter === 'all')    { start = 0;                  label = 'All time';      buckets = 12; }
-  else if (filter === 'custom') { start = fromTs||0; end = toTs||now; label = 'Custom range'; buckets = 30; }
-  else                          { start = now - 30*86400000;  label = 'Last 30 days';  buckets = 30; }
-
-  return { start: start, end: end, label: label, buckets: buckets };
-}
-
-// ── Filter button clicked ─────────────────────────────────────────────────────
-function dbAnFilter(filter, btn) {
-  _dbAnFilter = filter;
-  document.querySelectorAll('.db-an-pill').forEach(function(b){ b.classList.remove('active'); });
-  if (btn) btn.classList.add('active');
-
-  var customRange = document.getElementById('db-an-custom-range');
-  if (filter === 'custom') {
-    if (customRange) customRange.style.display = 'flex';
-    return; // wait for Apply
-  }
-  if (customRange) customRange.style.display = 'none';
-  dbAnRender();
-}
-
-// ── Apply custom date range ───────────────────────────────────────────────────
-function dbAnApplyCustom() {
-  var fromEl = document.getElementById('db-an-from');
-  var toEl   = document.getElementById('db-an-to');
-  if (!fromEl || !fromEl.value || !toEl || !toEl.value) return;
-  _dbAnFrom = new Date(fromEl.value).getTime();
-  _dbAnTo   = new Date(toEl.value + 'T23:59:59').getTime();
-  dbAnRender();
-}
-
-// ── Load all data from Firestore (once, then filter client-side) ──────────────
-async function dbAnLoad() {
-  if (!window._db || !window._currentUserUid) return;
-  var uid = window._currentUserUid;
-
-  try {
-    var [leadsSnap, broadcastsSnap, salesSnap] = await Promise.all([
-      window._getDocs(window._collection(window._db, 'leads')).catch(function(){return{forEach:function(){}};}),
-      window._getDocs(window._collection(window._db, 'users', uid, 'broadcasts')).catch(function(){return{forEach:function(){}};}),
-      window._getDocs(window._collection(window._db, 'copecart_sales')).catch(function(){return{forEach:function(){}};}),
-    ]);
-
-    _dbAnLeads  = []; leadsSnap.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) _dbAnLeads.push(data); });
-    _dbAnBcasts = []; broadcastsSnap.forEach(function(d){ var data=d.data?d.data():d; _dbAnBcasts.push(data); });
-    _dbAnSales  = []; salesSnap.forEach(function(d){ var data=d.data?d.data():d; _dbAnSales.push(data); });
-
-    dbAnRender();
-  } catch(e) { console.error('[DB Analytics]', e); }
-}
-
-// ── Render with current filter ────────────────────────────────────────────────
-function dbAnRender() {
-  var range     = dbAnRange(_dbAnFilter, _dbAnFrom, _dbAnTo);
-  var start     = range.start;
-  var end       = range.end;
-  var label     = range.label;
-
-  // Filter data to range
-  var leads  = _dbAnLeads.filter(function(l){ var t=anGetTs(l); return t>=start && t<=end; });
-  var sales  = _dbAnSales.filter(function(s){ var t=anGetTs(s); return t>=start && t<=end; });
-  var bcasts = _dbAnBcasts.filter(function(b){ var t=b.sentAt||0; return t>=start && t<=end; });
-
-  var totalRevenue = sales.reduce(function(s,x){ return s+parseFloat(x.amount||x.price||x.commission||0); }, 0);
-  var funnels      = (window.fbState&&window.fbState.funnels) ? window.fbState.funnels : [];
-  var totalViews   = funnels.reduce(function(s,f){ return s+(f.views||0); }, 0);
-  var emailsSent   = bcasts.reduce(function(s,b){ return s+(b.sent||0); }, 0);
-  var convRate     = leads.length > 0 ? ((sales.length/leads.length)*100).toFixed(1) : '0.0';
-
-  function dbSet(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
-
-  dbSet('db-an-leads',          leads.length.toLocaleString());
-  dbSet('db-an-leads-sub',      label);
-  dbSet('db-an-revenue',        '$' + Math.round(totalRevenue).toLocaleString());
-  dbSet('db-an-revenue-sub',    sales.length + ' sales · ' + label);
-  dbSet('db-an-emails',         emailsSent.toLocaleString());
-  dbSet('db-an-emails-sub',     bcasts.length + ' broadcasts · ' + label);
-  dbSet('db-an-conv',           convRate + '%');
-  dbSet('db-an-conv-sub',       leads.length + ' leads → ' + sales.length + ' sales');
-  dbSet('db-an-views',          totalViews.toLocaleString());
-  dbSet('db-an-views-sub',      funnels.length + ' funnels');
-  dbSet('db-an-broadcasts',     bcasts.length.toLocaleString());
-  dbSet('db-an-broadcasts-sub', emailsSent.toLocaleString() + ' emails sent');
-
-  // ── Leads chart — bucket by period ───────────────────────────────────────
-  var chartEl = document.getElementById('db-an-leads-chart');
-  var subEl   = document.getElementById('db-an-chart-sub');
-  if (chartEl) {
-    var buckets = range.buckets;
-    var span    = (end - start) / buckets;
-    var counts  = [];
-    for (var i = 0; i < buckets; i++) {
-      var bs = start + i * span;
-      var be = bs + span;
-      counts.push(_dbAnLeads.filter(function(l){ var t=anGetTs(l); return t>=bs && t<be; }).length);
-    }
-    var max = Math.max.apply(null, counts) || 1;
-    chartEl.innerHTML = counts.map(function(c){
-      var h  = Math.max(4, Math.round((c/max)*76));
-      var bg = c > 0 ? 'linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.3))' : 'rgba(255,255,255,.05)';
-      return '<div style="flex:1;height:'+h+'px;border-radius:2px 2px 0 0;background:'+bg+';min-height:4px;transition:height .3s" title="'+c+' leads"></div>';
-    }).join('');
-    if (subEl) subEl.textContent = leads.length + ' leads · ' + label;
-  }
-
-  // ── Recent opt-ins (always show latest regardless of filter) ─────────────
-  var recentEl = document.getElementById('db-an-recent');
-  if (recentEl) {
-    var sorted = _dbAnLeads.slice().sort(function(a,b){ return anGetTs(b)-anGetTs(a); }).slice(0,5);
-    if (!sorted.length) {
-      recentEl.innerHTML = '<div style="font-size:11px;color:var(--dim)">No leads yet.</div>';
-    } else {
-      recentEl.innerHTML = sorted.map(function(l){
-        var initial = (l.name||l.email||'?').charAt(0).toUpperCase();
-        var source  = (l.source||l.page||'direct').replace(/-/g,' ').slice(0,18);
-        return '<div style="display:flex;align-items:center;gap:8px">'
-          + '<div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text-dark);flex-shrink:0">'+initial+'</div>'
-          + '<div style="flex:1;min-width:0">'
-          + '<div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(l.name||l.email||'Anonymous')+'</div>'
-          + '<div style="font-size:10px;color:var(--dim)">'+source+' · '+anTimeAgo(anGetTs(l))+'</div>'
-          + '</div></div>';
-      }).join('');
-    }
-  }
-}
-
-function dbAnRefresh() { _dbAnLeads=[]; _dbAnSales=[]; _dbAnBcasts=[]; dbAnLoad(); }
-window.dbAnRefresh   = dbAnRefresh;
-window.dbAnLoad      = dbAnLoad;
-window.dbAnFilter    = dbAnFilter;
-window.dbAnApplyCustom = dbAnApplyCustom;
 
 // ─── PHQ HERO BADGE (score in the hero strip) ────────────────────────────────
 function renderPHQHero() {
@@ -20614,11 +19923,7 @@ function _dashShowSkeleton() {
   if (detail) detail.textContent = 'Loading your revenue data…';
 }
 
-// Trigger analytics load when dashboard becomes active
-// Done independently — no override of renderDashboard needed
-setTimeout(function() {
-  if (window.dbAnLoad) window.dbAnLoad();
-}, 500);
+window.renderDashboard = renderDashboard;
 
 // Auto-refresh dashboard when it is the active page
 
@@ -26806,18 +26111,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Navigate immediately — no Firebase wait needed
     var _targetPage = document.getElementById('page-' + _earlyLastPage);
     if (_targetPage) {
-      // Use showPage so all section init hooks fire (emLoad, fbLoadList, csShowTab etc.)
-      if (typeof window.showPage === 'function') {
-        var _navBtn = document.getElementById('nav-' + _earlyLastPage);
-        window.showPage(_earlyLastPage, _navBtn || null);
-      } else {
-        // Fallback: manually toggle if showPage not ready yet
-        document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('on'); });
-        document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('on'); });
-        _targetPage.classList.add('on');
-        var _navBtn2 = document.getElementById('nav-' + _earlyLastPage);
-        if (_navBtn2) _navBtn2.classList.add('on');
-      }
+      // Hide dashboard, show saved page right away
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('on'); });
+      document.querySelectorAll('.nav-item').forEach(function(b) { b.classList.remove('on'); });
+      _targetPage.classList.add('on');
+      var _navBtn = document.getElementById('nav-' + _earlyLastPage);
+      if (_navBtn) _navBtn.classList.add('on');
     }
   }
 
@@ -27868,13 +27167,8 @@ onAuthStateChanged(auth, async (user) => {
           if (lastPage && validPages.includes(lastPage) && document.getElementById('page-' + lastPage)) {
             const navBtn = document.getElementById('nav-' + lastPage);
             window.showPage(lastPage, navBtn || null);
-            if (lastPage === 'funnels')  { setTimeout(function(){ window.fbLoadList && window.fbLoadList(); }, 300); }
-            if (lastPage === 'email')    { setTimeout(function(){ window.emLoad && window.emLoad(); }, 300); }
-            if (lastPage === 'ai-video') { setTimeout(function(){
-              window.csRenderReadinessBanner && window.csRenderReadinessBanner();
-              var vBtn = document.querySelector('.cs-tab-btn');
-              window.csShowTab && window.csShowTab('video', vBtn);
-            }, 300); }
+            if (lastPage === 'funnels') { setTimeout(function(){ window.fbLoadList && window.fbLoadList(); }, 300); }
+            if (lastPage === 'email')   { setTimeout(function(){ window.emLoad && window.emLoad(); }, 300); }
           }
         } catch(e) {}
 
@@ -31861,8 +31155,8 @@ async function fbDeleteFunnel(id, event) {
 (function() {
   var _origFB = window.showPage;
   window.showPage = function(n, btn) {
+    if (n === 'funnels') fbLoadList();
     if (_origFB) _origFB(n, btn);
-    if (n === 'funnels') setTimeout(function(){ fbLoadList(); }, 80);
   };
 })();
 
@@ -31872,193 +31166,9 @@ var emState = {tab:'campaigns',campaigns:[],contacts:[],sequences:[],sender:{nam
 function emShowSettings(){var t=document.getElementById('em-tab-settings');if(t)emTab(t,'settings');}
 
 // ══════════════════════════════════════════════════════════════════════════════
-// BROADCAST — state, segment, AI writer, formatting, send, history
+// BROADCAST
 // ══════════════════════════════════════════════════════════════════════════════
 var emBroadcastState = { segment: 'all', contacts: [] };
-
-// ── Collect platform intelligence (offer + avatar + boardroom) ────────────────
-function emBcGetIntelligence() {
-  var mode   = window._appMode || 'expert';
-  var av     = window._avatarData || {};
-  var bi     = window._boardroomIntel || {};
-  var biCv   = bi.copyVault  || {};
-  var biOs   = bi.offerStack || {};
-
-  // Expert mode — read from vault + boardroom
-  var expertOffer = {};
-  try {
-    var draft = JSON.parse(localStorage.getItem('eos_draft_offer') || '{}');
-    expertOffer = draft.offer || {};
-    if (!av.pain && draft.avatar) av = Object.assign({}, draft.avatar, av);
-  } catch(e) {}
-
-  // Affiliate mode — read from _affiliateOffer
-  var affOffer = window._affiliateOffer || {};
-  var affCv    = affOffer.copyVault || {};
-
-  var intel = {};
-
-  if (mode === 'affiliate') {
-    intel.mode           = 'affiliate';
-    intel.productName    = affOffer.name    || affOffer.productName || '';
-    intel.productTagline = affOffer.tagline || '';
-    intel.commission     = affOffer.commission || '';
-    intel.productUrl     = affOffer.url     || affOffer.productUrl || '';
-    intel.niche          = affOffer.niche   || av.niche || '';
-    intel.pain           = av.pain          || affOffer.pain || '';
-    intel.transformation = av.transformation|| affOffer.transformation || '';
-    intel.avatarJob      = av.job           || affOffer.buyer || '';
-    intel.avatarName     = av.name          || '';
-    intel.avatarDesired  = av.desired       || av.av_desired || '';
-    intel.headline       = affCv.headline   || biCv.headline || '';
-    intel.hook           = affCv.hook       || biCv.hook || '';
-    intel.uniqueMechanism= affCv.uniqueMechanism || biCv.uniqueMechanism || biOs.uniqueMechanism || '';
-    intel.bigPromise     = affCv.bigPromise || biCv.bigPromise || '';
-  } else {
-    intel.mode           = 'expert';
-    intel.offerName      = expertOffer.offer_name      || biOs.rebuiltOfferName || '';
-    intel.offerPromise   = expertOffer.offer_promise   || biOs.offerPromise || '';
-    intel.offerResult    = expertOffer.offer_result    || '';
-    intel.offerPrice     = expertOffer.offer_price     || window._appliedPrice || '';
-    intel.transformation = expertOffer.offer_transformation || av.av_transformation || '';
-    intel.niche          = expertOffer.niche           || window._appliedNiche || '';
-    intel.avatarName     = av.av_name                  || '';
-    intel.avatarJob      = av.av_job                   || '';
-    intel.pain           = av.av_current               || av.av_igr || '';
-    intel.avatarDesired  = av.av_desired               || av.av_transformation || '';
-    intel.uniqueMechanism= biOs.uniqueMechanism        || biCv.uniqueMechanism || '';
-    intel.headline       = biCv.headline               || '';
-    intel.hook           = biCv.hook                   || '';
-    intel.bigPromise     = biCv.bigPromise             || '';
-    intel.objectionHandle= biCv.objectionHandle        || '';
-  }
-
-  // Show intel badge if we have meaningful data
-  var hasMeaningful = !!(intel.offerName || intel.productName || intel.pain || intel.uniqueMechanism);
-  var badge = document.getElementById('em-bc-intel-badge');
-  if (badge) badge.style.display = hasMeaningful ? 'block' : 'none';
-
-  return intel;
-}
-
-// ── Build intelligence context string for Claude prompt ──────────────────────
-function emBcBuildContext(intel) {
-  var lines = [];
-  if (intel.mode === 'affiliate') {
-    if (intel.productName)     lines.push('Product: ' + intel.productName);
-    if (intel.productTagline)  lines.push('Tagline: ' + intel.productTagline);
-    if (intel.commission)      lines.push('Commission per sale: $' + intel.commission);
-    if (intel.productUrl)      lines.push('Offer URL: ' + intel.productUrl);
-    if (intel.niche)           lines.push('Niche: ' + intel.niche);
-    if (intel.pain)            lines.push('Audience pain: ' + intel.pain);
-    if (intel.transformation)  lines.push('Desired transformation: ' + intel.transformation);
-    if (intel.avatarJob)       lines.push('Audience profile: ' + intel.avatarJob);
-    if (intel.uniqueMechanism) lines.push('Unique mechanism: ' + intel.uniqueMechanism);
-    if (intel.headline)        lines.push('Proven headline: ' + intel.headline);
-    if (intel.bigPromise)      lines.push('Big promise: ' + intel.bigPromise);
-  } else {
-    if (intel.offerName)       lines.push('Offer name: ' + intel.offerName);
-    if (intel.offerPromise)    lines.push('Offer promise: ' + intel.offerPromise);
-    if (intel.offerResult)     lines.push('Result delivered: ' + intel.offerResult);
-    if (intel.offerPrice)      lines.push('Price: $' + intel.offerPrice);
-    if (intel.niche)           lines.push('Niche: ' + intel.niche);
-    if (intel.pain)            lines.push('Audience pain: ' + intel.pain);
-    if (intel.transformation)  lines.push('Desired outcome: ' + intel.transformation);
-    if (intel.avatarJob)       lines.push('Audience: ' + intel.avatarJob);
-    if (intel.uniqueMechanism) lines.push('Unique mechanism: ' + intel.uniqueMechanism);
-    if (intel.headline)        lines.push('Proven headline: ' + intel.headline);
-    if (intel.bigPromise)      lines.push('Big promise: ' + intel.bigPromise);
-    if (intel.objectionHandle) lines.push('Key objection to handle: ' + intel.objectionHandle);
-  }
-  return lines.length ? '\n\nPLATFORM INTELLIGENCE (use this to write the email — speak to this exact offer and audience):\n' + lines.join('\n') : '';
-}
-
-// ── Email type prompts ────────────────────────────────────────────────────────
-var BC_AI_TYPES = {
-  watch_video: `Write a long-form, high-converting broadcast email that compels the reader to stop everything and watch a free video right now. This is not a casual invite — this is the most important thing they will do today.
-
-Structure the email like this:
-- Open with {{first_name}} and a pattern-interrupt that speaks directly to their current pain or frustration
-- Paint the picture of where they are right now — stuck, grinding, not making the progress they want — make them feel seen and understood
-- Introduce the video as the thing that changed everything for people just like them — be specific, use the offer's real results and transformation
-- Build undeniable desire by describing what they will see in the video — the exact mechanism, the proof, the simplicity of it
-- Handle their scepticism head-on — tell them why this is different from everything they have tried
-- Close with a CTA so compelling they feel it would be a mistake not to click: [VIDEO_LINK]
-- Add a P.S. that creates urgency — this video may not stay up, other people are watching it right now and making decisions
-
-Use {{first_name}} throughout. Write in a personal, direct, conversational tone — as if writing to one person you genuinely want to help. Minimum 300 words. No bullet points. Pure flowing copy.`,
-
-  buy_now: `Write a long-form, high-converting broadcast email that moves a premium buyer from interested to committed. This email needs to close a $1,000 to $10,000 decision.
-
-Structure the email like this:
-- Open with {{first_name}} and a bold statement about where they are right now — be brutally honest about the cost of inaction
-- Tell the story of what happens to people who keep waiting — paint the future they do NOT want
-- Pivot to the opportunity — introduce the offer not as a product but as the vehicle that gets them to the life they actually want
-- Break down exactly what they get, how it works, and why it is different — speak to the mechanism, the result, the transformation
-- Stack the value — show them what this is worth versus what they pay
-- Destroy every objection: too busy, tried things before, not sure it will work for them
-- Create urgency that is real and specific — limited access, price change, or momentum they will miss
-- Close with a CTA that feels inevitable: [OFFER_LINK]
-- P.S. that reframes the decision — what does it cost them NOT to move forward today?
-
-Use {{first_name}} throughout. Write to one person. Confident, warm, urgent. Minimum 350 words. No bullet points. Pure persuasive copy.`,
-
-  re_engage: `Write a long-form re-engagement email for someone who showed up, raised their hand, and then disappeared. They opted in. They expressed interest. And then life got in the way — or doubt crept in.
-
-Structure the email like this:
-- Open with {{first_name}} — acknowledge that some time has passed since they first showed interest, without being passive aggressive
-- Be honest with them — tell them you noticed they never took the next step and you genuinely want to understand why
-- Speak to the internal dialogue they have had since they opted in — the "I'll do it later", the "maybe it's not for me", the quiet doubt
-- Remind them why they raised their hand in the first place — what were they hoping for? What problem were they trying to solve?
-- Show them what has happened for people who did take action — results, transformation, momentum — make them feel the gap between where they are and where they could be
-- Remove every barrier — make it clear that now is the simplest it will ever be to start
-- CTA that feels like a second chance, not a hard sell: [PAGE_LINK]
-- P.S. that lands with honesty — the only thing standing between them and results is a single decision
-
-Use {{first_name}} throughout. Empathetic but direct. Minimum 300 words. No bullet points.`,
-
-  value_drop: `Write a long-form value-drop email that positions the sender as the only person who truly understands this reader's problem — and delivers a genuine insight that shifts their thinking permanently.
-
-Structure the email like this:
-- Open with {{first_name}} and a bold claim or contrarian insight related to the offer's unique mechanism — something that challenges a common belief they hold
-- Build the case for why everything they have been told about solving this problem is either wrong or incomplete
-- Deliver the real insight — the mechanism, the missing piece, the truth — in a way that is specific, clear, and immediately valuable
-- Show them how this insight applies to their exact situation — make it personal and relevant
-- Bridge the insight to the offer — this is not a lecture, it is a revelation that leads somewhere
-- Soft CTA: tell them that if this insight resonated, what is waiting for them at [PAGE_LINK] goes ten times deeper
-- P.S. that teases the next level of what they will discover
-
-Use {{first_name}} throughout. Teach to sell. Minimum 300 words. No bullet points. Authoritative and warm.`,
-
-  story: `Write a long-form story email — one of the most powerful conversion formats that exists. This email uses narrative to bypass resistance and make the reader see themselves in the transformation.
-
-Structure the email like this:
-- Open by introducing a real person — someone ordinary, someone the reader would recognise themselves in — not a guru, not someone special
-- Describe where that person was before: the frustration, the failed attempts, the self-doubt, the exact situation the reader is likely in right now
-- Build the turning point — what they discovered, what changed, the moment it clicked — introduce the mechanism naturally through the story
-- Show the after — specific, tangible, real results — income, freedom, confidence, time — make it vivid and believable
-- Bridge to the reader with {{first_name}} — make them feel that this story could be their story
-- Introduce the offer as the vehicle — not a hard sell, but the natural next step that the person in the story also took
-- CTA that flows from the story: [OFFER_LINK]
-- P.S. that speaks to the reader's doubt — the only difference between them and the person in the story is a single decision
-
-Use {{first_name}} throughout. Write in first or third person — whichever feels more natural. Emotional, specific, real. Minimum 350 words. No bullet points.`,
-
-  flash_offer: `Write a long-form flash offer email that creates genuine urgency around a time-sensitive opportunity. This is not a fake countdown — this is a real window and the reader needs to feel the weight of that.
-
-Structure the email like this:
-- Open with {{first_name}} and get straight to the point — there is a window open right now and it closes soon
-- Explain exactly what the opportunity is and why it exists — be specific about what they get and what makes this moment different
-- Stack the value fast — show them what they are getting access to and what it is worth
-- Create contrast — what does life look like if they act now versus if they miss this?
-- Handle the hesitation — speak to the part of them that wants to think about it, and explain why waiting is the wrong move here
-- Make the decision feel easy and safe — remove risk, add certainty
-- Hard CTA with the link front and centre: [OFFER_LINK]
-- Repeat the deadline — be specific
-- P.S. that is the last chance warning — after this, the window is closed
-
-Use {{first_name}} throughout. Fast-paced but substantial. Minimum 300 words. No bullet points. Every sentence moves them forward.`
-};
 
 function emBroadcastSegment(el, seg) {
   emBroadcastState.segment = seg;
@@ -32073,216 +31183,115 @@ async function emBroadcastLoadCount() {
   var uid = window._currentUserUid;
   var contacts = [];
   if (uid && window._db && window._getDocs && window._collection) {
-    try {
-      var s = await window._getDocs(window._collection(window._db, 'leads'));
-      s.forEach(function(d){ var data = d.data ? d.data() : d; if (data && data.email) contacts.push(data); });
-    } catch(e) {}
-    try {
-      var s2 = await window._getDocs(window._collection(window._db, 'users', uid, 'leads'));
-      s2.forEach(function(d){ var data = d.data ? d.data() : d; if (data && data.email && !contacts.find(function(c){ return c.email === data.email; })) contacts.push(data); });
-    } catch(e) {}
+    try { var s = await window._getDocs(window._collection(window._db, 'leads')); s.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) contacts.push(data); }); } catch(e) {}
+    try { var s2 = await window._getDocs(window._collection(window._db, 'users', uid, 'leads')); s2.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email&&!contacts.find(function(c){return c.email===data.email;})) contacts.push(data); }); } catch(e) {}
   }
   var seg = emBroadcastState.segment;
   var filtered = seg === 'all' ? contacts : contacts.filter(function(c){ return (c.source||'').includes(seg); });
   emBroadcastState.contacts = filtered;
   if (countEl) countEl.textContent = filtered.length + ' contact' + (filtered.length !== 1 ? 's' : '') + ' will receive this email';
-  // Refresh footer sender info
-  var fn = document.getElementById('em-bc-footer-name');
-  var fe = document.getElementById('em-bc-footer-email');
-  if (fn) fn.textContent = (emState.sender && emState.sender.name)  || 'Your Name';
-  if (fe) fe.textContent = (emState.sender && emState.sender.email) || 'your@email.com';
-  // Load intel badge
-  emBcGetIntelligence();
+  var badge = document.getElementById('em-bc-intel-badge');
+  if (badge) badge.style.display = 'block';
 }
 
-async function emBroadcastAI(type) {
-  var typePrompt = BC_AI_TYPES[type] || '';
-  if (!typePrompt) return;
-  var intel   = emBcGetIntelligence();
-  var context = emBcBuildContext(intel);
-  var fullPrompt = 'You are an elite email copywriter. Write a broadcast email for the following offer and audience.' + context + '\n\nEmail type instruction: ' + typePrompt + '\n\nFormat your response EXACTLY like this:\nSubject: [subject line here]\n\n[email body here]\n\nRules: Start with Subject: on the first line. Do not use markdown. Write in plain text. Be personal and persuasive. Speak directly to the pain and desire described above.';
-  await emRunBroadcastAI(fullPrompt);
-}
-
-async function emBroadcastAICustom() {
-  var promptEl   = document.getElementById('em-broadcast-ai-prompt');
-  var userPrompt = promptEl ? promptEl.value.trim() : '';
-  if (!userPrompt) { emToast('⚠️ Describe what you want the email to do.', true); return; }
-  var intel   = emBcGetIntelligence();
-  var context = emBcBuildContext(intel);
-  var fullPrompt = 'You are an elite email copywriter. Write a broadcast email for the following offer and audience.' + context + '\n\nInstruction: ' + userPrompt + '\n\nFormat your response EXACTLY like this:\nSubject: [subject line here]\n\n[email body here]\n\nRules: Start with Subject: on the first line. Do not use markdown. Write in plain text. Keep body under 150 words. Use {{first_name}} for personalisation. Include [LINK] placeholder for CTA if relevant.';
-  if (promptEl) promptEl.value = '';
-  await emRunBroadcastAI(fullPrompt);
-}
-
-async function emRunBroadcastAI(prompt) {
-  var statusEl = document.getElementById('em-broadcast-ai-status');
-  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = '✨ Writing your email…'; }
-  try {
-    var resp = await fetch(window.location.origin + '/api/claude', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
-    });
-    var data = await resp.json();
-    var text = (data.content || []).map(function(b){ return b.text || ''; }).join('').trim();
-    var subjectMatch = text.match(/^Subject:\s*(.+)/im);
-    var subject = subjectMatch ? subjectMatch[1].trim() : '';
-    var body = text.replace(/^Subject:.+\n?/im, '').trim();
-    var subEl  = document.getElementById('em-broadcast-subject');
-    var ed     = emBcGetEditor();
-    var bodyEl = document.getElementById('em-broadcast-body');
-    if (subEl && subject) subEl.value = subject;
-    if (ed && body) { ed.innerText = body; emBcSyncHidden(); }
-    else if (bodyEl && body) bodyEl.value = body;
-    // Update footer sender info
-    var fn = document.getElementById('em-bc-footer-name');
-    var fe = document.getElementById('em-bc-footer-email');
-    if (fn) fn.textContent = (emState.sender && emState.sender.name)  || 'Your Name';
-    if (fe) fe.textContent = (emState.sender && emState.sender.email) || 'your@email.com';
-    if (statusEl) { statusEl.textContent = '✅ Done — review and send when ready.'; }
-    setTimeout(function(){ if (statusEl) statusEl.style.display = 'none'; }, 3000);
-  } catch(e) {
-    if (statusEl) { statusEl.textContent = '⚠️ Could not generate email. Try again.'; }
-    setTimeout(function(){ if (statusEl) statusEl.style.display = 'none'; }, 3000);
-  }
-}
-
-// ── BROADCAST RICH EDITOR — mirrors campaign compose ─────────────────────────
-function emBcGetEditor() { return document.getElementById('em-bc-quill-editor'); }
-
-function emBcSyncHidden() {
-  var ed = emBcGetEditor();
-  var hid = document.getElementById('em-broadcast-body');
-  if (ed && hid) hid.value = ed.innerHTML;
-}
-
-function emBcHandlePaste(e) {
-  e.preventDefault();
-  var text = (e.clipboardData || window.clipboardData).getData('text/plain');
-  document.execCommand('insertText', false, text);
-}
+function emBcGetEditor() { return document.getElementById('em-bc-editor'); }
 
 function emBcExec(cmd) {
   var ed = emBcGetEditor(); if (!ed) return;
-  ed.focus(); document.execCommand(cmd, false, null); emBcSyncHidden();
+  ed.focus(); document.execCommand(cmd, false, null);
 }
 
-function emBcFmtSize(size) {
-  if (!size) return;
+function emBcInsertMerge(field) {
   var ed = emBcGetEditor(); if (!ed) return;
-  ed.focus();
-  var sel = window.getSelection();
-  if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-    try { var span = document.createElement('span'); span.style.fontSize = size; sel.getRangeAt(0).surroundContents(span); } catch(e) {}
-  }
-  emBcSyncHidden();
-}
-
-function emBcFmtColor(color) {
-  var swatch = document.getElementById('em-bc-color-swatch');
-  if (swatch) swatch.style.background = color;
-  var ed = emBcGetEditor(); if (!ed) return;
-  ed.focus(); document.execCommand('foreColor', false, color); emBcSyncHidden();
-}
-
-function emBcAlign(align) {
-  var ed = emBcGetEditor(); if (!ed) return;
-  ed.focus(); document.execCommand('justify' + align.charAt(0).toUpperCase() + align.slice(1), false, null); emBcSyncHidden();
-}
-
-function emBcList(type) {
-  var ed = emBcGetEditor(); if (!ed) return;
-  ed.focus();
-  document.execCommand(type === 'ul' ? 'insertUnorderedList' : 'insertOrderedList', false, null);
-  emBcSyncHidden();
+  ed.focus(); document.execCommand('insertText', false, '{{' + field + '}}');
 }
 
 function emBcLink() {
   var url = prompt('Enter URL:'); if (!url) return;
   var label = prompt('Link text (optional):') || url;
   var ed = emBcGetEditor(); if (!ed) return;
-  ed.focus();
-  document.execCommand('insertHTML', false, '<a href="' + url + '" style="color:var(--teal)">' + label + '</a>');
-  emBcSyncHidden();
-}
-
-function emBcInsertMerge(field) {
-  var ed = emBcGetEditor(); if (!ed) return;
-  ed.focus(); document.execCommand('insertText', false, '{{' + field + '}}'); emBcSyncHidden();
+  ed.focus(); document.execCommand('insertHTML', false, '<a href="' + url + '" style="color:var(--teal)">' + label + '</a>');
 }
 
 function emBcClear() {
   if (!confirm('Clear the email?')) return;
-  var ed  = emBcGetEditor();
-  var sub = document.getElementById('em-broadcast-subject');
-  var pre = document.getElementById('em-broadcast-preview');
-  var hid = document.getElementById('em-broadcast-body');
-  if (ed)  ed.innerHTML = '';
-  if (sub) sub.value    = '';
-  if (pre) pre.value    = '';
-  if (hid) hid.value    = '';
+  var ed = emBcGetEditor(); if (ed) ed.innerHTML = '';
+  var sub = document.getElementById('em-broadcast-subject'); if (sub) sub.value = '';
 }
 
-async function emBcAiWrite() {
-  var intel   = emBcGetIntelligence();
-  var context = emBcBuildContext(intel);
-  var segment = emBroadcastState.segment;
-  var segNote = segment === 'partnership-optin' ? ' targeting people who opted in to see a partnership video' : segment === 'platform' ? ' targeting platform users' : ' targeting your full list';
-  var prompt  = 'You are an elite email copywriter.' + context + '\n\nWrite a high-converting broadcast email' + segNote + '. Personal, urgent, speaks directly to the pain and desired outcome. Use {{first_name}}. Include [LINK] CTA placeholder.\n\nFormat EXACTLY:\nSubject: [subject here]\n\n[email body here]\n\nPlain text only. No markdown. Under 150 words body.';
+function emBcGetBody() {
+  var ed = emBcGetEditor();
+  return ed ? ed.innerText.trim() : ((document.getElementById('em-broadcast-body')||{}).value||'');
+}
+
+function emBcGetIntelligence() {
+  var mode = window._appMode || 'expert';
+  var av   = window._avatarData || {};
+  var bi   = window._boardroomIntel || {};
+  var lines = [];
+  if (mode === 'affiliate') {
+    var ao = window._affiliateOffer || {};
+    if (ao.name||ao.productName) lines.push('Product: '+(ao.name||ao.productName));
+    if (ao.niche||av.niche)      lines.push('Niche: '+(ao.niche||av.niche));
+    if (av.pain||ao.pain)        lines.push('Audience pain: '+(av.pain||ao.pain));
+    if (av.transformation)       lines.push('Desired outcome: '+av.transformation);
+  } else {
+    var draft={}; try{draft=JSON.parse(localStorage.getItem('eos_draft_offer')||'{}');}catch(e){}
+    var of=draft.offer||{};
+    if (of.offer_name)    lines.push('Offer: '+of.offer_name);
+    if (of.offer_promise) lines.push('Promise: '+of.offer_promise);
+    if (av.av_current)    lines.push('Audience pain: '+av.av_current);
+    if (av.av_desired)    lines.push('Desired outcome: '+av.av_desired);
+    if ((bi.offerStack||{}).uniqueMechanism) lines.push('Unique mechanism: '+bi.offerStack.uniqueMechanism);
+  }
+  return lines.length ? lines.join('\n') : '';
+}
+
+var BC_AI_TYPES = {
+  watch_video: 'Write a long-form broadcast email (subject + body, 300+ words) that compels the reader to watch a free video right now. Open with {{first_name}}. Paint their pain vividly. Build urgency around the video. Include [VIDEO_LINK]. P.S. creates urgency. No bullet points. Plain persuasive prose.',
+  buy_now:     'Write a long-form broadcast email (subject + body, 350+ words) that closes a premium $1,000-$10,000 decision. Open with {{first_name}}. Show the cost of inaction. Stack value. Destroy objections. Create real urgency. Include [OFFER_LINK]. P.S. reframes the cost of not acting.',
+  re_engage:   'Write a long-form re-engagement email (subject + body, 300+ words) for someone who opted in but disappeared. Open with {{first_name}}. Be honest and direct. Speak to their internal doubt. Remind them why they showed up. Remove every barrier. Include [PAGE_LINK].',
+  value_drop:  'Write a long-form value email (subject + body, 300+ words) that teaches one powerful insight from the offer unique mechanism. Open with {{first_name}}. Challenge a common belief. Deliver real insight. Bridge to the offer naturally. Include [PAGE_LINK].',
+  story:       'Write a long-form story email (subject + body, 350+ words) about an ordinary person who went from stuck to results using this offer. Open with {{first_name}}. Make it emotional and specific. Bridge to the reader. Include [OFFER_LINK]. P.S. speaks to their doubt.',
+  flash_offer: 'Write a long-form flash offer email (subject + body, 300+ words) with real urgency around a time-limited opportunity. Open with {{first_name}}. Get to the point fast. Stack value. Handle hesitation. Hard deadline. Include [OFFER_LINK]. Repeat deadline in P.S.'
+};
+
+async function emBroadcastAI(type) {
+  var intel = emBcGetIntelligence();
+  var typePrompt = BC_AI_TYPES[type] || '';
+  var prompt = 'You are an elite email copywriter.\n\n'
+    + (intel ? 'OFFER AND AUDIENCE INTELLIGENCE:\n' + intel + '\n\n' : '')
+    + 'EMAIL INSTRUCTION:\n' + typePrompt + '\n\n'
+    + 'Format EXACTLY:\nSubject: [subject line]\n\n[email body]\n\nPlain text only. No markdown.';
   await emRunBroadcastAI(prompt);
 }
 
-async function emBcRewrite(instruction) {
-  var ed = emBcGetEditor();
-  if (!ed || !ed.innerText.trim()) { emToast('\u26a0\ufe0f Write something first.', true); return; }
-  var current = ed.innerText.trim();
+async function emRunBroadcastAI(prompt) {
   var statusEl = document.getElementById('em-broadcast-ai-status');
-  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = '\u2728 Rewriting\u2026'; }
+  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Writing your email…'; }
   try {
     var resp = await fetch(window.location.origin + '/api/claude', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, messages: [{ role: 'user', content: 'Rewrite this email to ' + instruction + '. Keep the same core message. Return only the rewritten body — no subject line, no explanation.\n\n' + current }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
-    if (ed && text) { ed.innerText = text; emBcSyncHidden(); }
-    if (statusEl) { statusEl.textContent = '\u2705 Done.'; setTimeout(function(){ statusEl.style.display='none'; }, 2500); }
+    var subjectMatch = text.match(/^Subject:\s*(.+)/im);
+    var subject = subjectMatch ? subjectMatch[1].trim() : '';
+    var body = text.replace(/^Subject:.+\n?/im, '').trim();
+    var subEl = document.getElementById('em-broadcast-subject');
+    var ed = emBcGetEditor();
+    if (subEl && subject) subEl.value = subject;
+    if (ed && body) ed.innerText = body;
+    if (statusEl) { statusEl.textContent = '✅ Done — review and send when ready.'; setTimeout(function(){ statusEl.style.display='none'; }, 3000); }
   } catch(e) {
-    if (statusEl) { statusEl.textContent = '\u26a0\ufe0f Could not rewrite.'; setTimeout(function(){ statusEl.style.display='none'; }, 3000); }
+    if (statusEl) { statusEl.textContent = '⚠️ Could not write email. Try again.'; setTimeout(function(){ statusEl.style.display='none'; }, 3000); }
   }
 }
 
-async function emBcAnalyze() {
-  var subject = (document.getElementById('em-broadcast-subject')||{}).value||'';
-  var ed = emBcGetEditor();
-  var body = ed ? ed.innerText.trim() : '';
-  if (!subject && !body) { emToast('\u26a0\ufe0f Write your email first.', true); return; }
-  var scoreEl = document.getElementById('em-bc-inbox-score');
-  var tipsEl  = document.getElementById('em-bc-inbox-tips');
-  if (scoreEl) scoreEl.textContent = '\u2026';
-  if (tipsEl)  tipsEl.textContent  = 'Analysing\u2026';
-  try {
-    var resp = await fetch(window.location.origin + '/api/claude', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 300, messages: [{ role: 'user', content: 'Score this email 0-100 for inbox placement. Give score + 3 short tips.\n\nSubject: ' + subject + '\n\nBody: ' + body + '\n\nRespond ONLY as JSON: {"score":85,"tips":["tip1","tip2","tip3"]}' }] })
-    });
-    var data = await resp.json();
-    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
-    var parsed = JSON.parse(text.replace(/```json|```/g,'').trim());
-    if (scoreEl) { scoreEl.textContent = parsed.score; scoreEl.style.color = parsed.score >= 75 ? 'var(--teal)' : parsed.score >= 50 ? 'var(--gold)' : '#ff6b6b'; }
-    if (tipsEl && parsed.tips) tipsEl.innerHTML = parsed.tips.map(function(t){ return '\u2022 ' + t; }).join('<br>');
-  } catch(e) {
-    if (scoreEl) scoreEl.textContent = '\u2014';
-    if (tipsEl)  tipsEl.textContent  = 'Could not analyse. Try again.';
-  }
-}
-
-// ── Send ─────────────────────────────────────────────────────────────────────
 async function emSendBroadcast() {
-  var subject  = (document.getElementById('em-broadcast-subject') || {}).value || '';
-  var ed       = emBcGetEditor ? emBcGetEditor() : null;
-  var body     = ed ? ed.innerText.trim() : ((document.getElementById('em-broadcast-body') || {}).value || '');
+  var subject  = (document.getElementById('em-broadcast-subject')||{}).value || '';
+  var body     = emBcGetBody();
   var statusEl = document.getElementById('em-broadcast-status');
   var btn      = document.getElementById('em-broadcast-send-btn');
   if (!subject.trim()) { if (statusEl) statusEl.textContent = '⚠️ Please enter a subject line.'; return; }
@@ -32299,41 +31308,164 @@ async function emSendBroadcast() {
   var sent = 0, failed = 0;
   for (var i = 0; i < contacts.length; i++) {
     var c = contacts[i];
-    var firstName = (c.name || 'there').split(' ')[0];
-    var personalSubject = subject.replace(/\{\{first_name\}\}/gi, firstName).replace(/\{\{name\}\}/gi, c.name || 'there');
-    var personalBody    = body.replace(/\{\{first_name\}\}/gi, firstName).replace(/\{\{name\}\}/gi, c.name || 'there');
+    var firstName = (c.name||'there').split(' ')[0];
+    var ps = subject.replace(/\{\{first_name\}\}/gi,firstName).replace(/\{\{name\}\}/gi,c.name||'there');
+    var pb = body.replace(/\{\{first_name\}\}/gi,firstName).replace(/\{\{name\}\}/gi,c.name||'there');
     try {
-      var resp = await fetch('/api/email-setup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'send', apiKey: apiKey, from: fromName + ' <' + fromEmail + '>', to: c.email, subject: personalSubject, text: personalBody }) });
-      if (resp.ok) sent++; else failed++;
+      var r = await fetch('/api/email-setup', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'send', apiKey:apiKey, from:fromName+' <'+fromEmail+'>', to:c.email, subject:ps, text:pb }) });
+      if (r.ok) sent++; else failed++;
     } catch(e) { failed++; }
-    if (statusEl) statusEl.textContent = 'Sending… ' + (i + 1) + ' / ' + contacts.length;
+    if (statusEl) statusEl.textContent = 'Sending… ' + (i+1) + ' / ' + contacts.length;
   }
   var uid = window._currentUserUid;
   if (uid && window._db && window._doc && window._setDoc) {
-    try { await window._setDoc(window._doc(window._db, 'users', uid, 'broadcasts', 'broadcast_' + Date.now()), { subject: subject, segment: emBroadcastState.segment, sent: sent, failed: failed, total: contacts.length, sentAt: Date.now() }); } catch(e) {}
+    try { await window._setDoc(window._doc(window._db,'users',uid,'broadcasts','broadcast_'+Date.now()), { subject:subject, segment:emBroadcastState.segment, sent:sent, failed:failed, total:contacts.length, sentAt:Date.now() }); } catch(e) {}
   }
   btn.disabled = false; btn.textContent = '📡 Send Broadcast';
   if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✓ Done — ' + sent + ' sent' + (failed ? ', ' + failed + ' failed' : '') + '</span>';
-  document.getElementById('em-broadcast-subject').value = '';
-  document.getElementById('em-broadcast-body').value    = '';
+  var subEl = document.getElementById('em-broadcast-subject'); if (subEl) subEl.value = '';
+  var ed = emBcGetEditor(); if (ed) ed.innerHTML = '';
   emBroadcastLoadHistory();
 }
 
-// ── History ───────────────────────────────────────────────────────────────────
 async function emBroadcastLoadHistory() {
   var el = document.getElementById('em-broadcast-history');
   if (!el) return;
   var uid = window._currentUserUid;
   if (!uid || !window._db || !window._getDocs || !window._collection) return;
   try {
-    var snap = await window._getDocs(window._collection(window._db, 'users', uid, 'broadcasts'));
+    var snap = await window._getDocs(window._collection(window._db,'users',uid,'broadcasts'));
     var rows = [];
-    snap.forEach(function(d){ rows.push(d.data ? d.data() : d); });
-    rows.sort(function(a,b){ return b.sentAt - a.sentAt; });
+    snap.forEach(function(d){ rows.push(d.data?d.data():d); });
+    rows.sort(function(a,b){ return b.sentAt-a.sentAt; });
     if (!rows.length) { el.innerHTML = '<div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div>'; return; }
-    el.innerHTML = '<table class="em-table"><thead><tr><th>Subject</th><th>Segment</th><th>Sent</th><th>Date</th></tr></thead><tbody>' + rows.slice(0,20).map(function(r){ return '<tr><td style="color:var(--white);font-weight:600">'+(r.subject||'—')+'</td><td>'+(r.segment||'all')+'</td><td><span style="color:var(--teal);font-weight:700">'+(r.sent||0)+'</span> / '+(r.total||0)+'</td><td>'+(r.sentAt?new Date(r.sentAt).toLocaleDateString():'—')+'</td></tr>'; }).join('') + '</tbody></table>';
+    el.innerHTML = '<table class="em-table"><thead><tr><th>Subject</th><th>Segment</th><th>Sent</th><th>Date</th></tr></thead><tbody>'
+      + rows.slice(0,20).map(function(r){ return '<tr><td style="color:var(--white);font-weight:600">'+(r.subject||'—')+'</td><td>'+(r.segment||'all')+'</td><td><span style="color:var(--teal);font-weight:700">'+(r.sent||0)+'</span>/&nbsp;'+(r.total||0)+'</td><td>'+(r.sentAt?new Date(r.sentAt).toLocaleDateString():'—')+'</td></tr>'; }).join('')
+      + '</tbody></table>';
   } catch(e) {}
 }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// DASHBOARD ANALYTICS
+// ══════════════════════════════════════════════════════════════════════════════
+var _dbAnFilter = '30d';
+var _dbAnFrom   = null;
+var _dbAnTo     = null;
+var _dbAnLeads  = [];
+var _dbAnSales  = [];
+var _dbAnBcasts = [];
+
+function dbAnRange(filter, fromTs, toTs) {
+  var now = Date.now(), start, end = now, label, buckets;
+  if      (filter==='today')  { start=new Date(); start.setHours(0,0,0,0); start=start.getTime(); label='Today';          buckets=24; }
+  else if (filter==='week')   { start=now-7*86400000;   label='Last 7 days';   buckets=7; }
+  else if (filter==='30d')    { start=now-30*86400000;  label='Last 30 days';  buckets=30; }
+  else if (filter==='3m')     { start=now-90*86400000;  label='Last 3 months'; buckets=12; }
+  else if (filter==='6m')     { start=now-180*86400000; label='Last 6 months'; buckets=24; }
+  else if (filter==='1y')     { start=now-365*86400000; label='Last year';     buckets=12; }
+  else if (filter==='all')    { start=0;                label='All time';      buckets=12; }
+  else if (filter==='custom') { start=fromTs||0; end=toTs||now; label='Custom'; buckets=30; }
+  else                        { start=now-30*86400000;  label='Last 30 days';  buckets=30; }
+  return { start:start, end:end, label:label, buckets:buckets };
+}
+
+function dbAnFilter(filter, btn) {
+  _dbAnFilter = filter;
+  document.querySelectorAll('.db-an-pill').forEach(function(b){ b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+  var cr = document.getElementById('db-an-custom-range');
+  if (filter === 'custom') { if (cr) cr.style.display='flex'; return; }
+  if (cr) cr.style.display = 'none';
+  dbAnRender();
+}
+
+function dbAnApplyCustom() {
+  var f = document.getElementById('db-an-from');
+  var t = document.getElementById('db-an-to');
+  if (!f||!f.value||!t||!t.value) return;
+  _dbAnFrom = new Date(f.value).getTime();
+  _dbAnTo   = new Date(t.value+'T23:59:59').getTime();
+  dbAnRender();
+}
+
+function anGetTs(obj) {
+  if (!obj) return 0;
+  if (obj.createdAt && obj.createdAt.toMillis) return obj.createdAt.toMillis();
+  if (obj.createdAt && typeof obj.createdAt==='number') return obj.createdAt;
+  if (obj.sentAt)  return obj.sentAt;
+  if (obj.date)    return new Date(obj.date).getTime();
+  return 0;
+}
+
+function anTimeAgo(ts) {
+  var diff=Date.now()-ts, mins=Math.floor(diff/60000);
+  if (mins<1)  return 'Just now';
+  if (mins<60) return mins+'m ago';
+  var h=Math.floor(mins/60); if(h<24) return h+'h ago';
+  var d=Math.floor(h/24); if(d<30) return d+'d ago';
+  return Math.floor(d/30)+'mo ago';
+}
+
+async function dbAnLoad() {
+  if (!window._db || !window._currentUserUid) return;
+  var uid = window._currentUserUid;
+  try {
+    var results = await Promise.all([
+      window._getDocs(window._collection(window._db,'leads')).catch(function(){return{forEach:function(){}};}),
+      window._getDocs(window._collection(window._db,'users',uid,'broadcasts')).catch(function(){return{forEach:function(){}};}),
+      window._getDocs(window._collection(window._db,'copecart_sales')).catch(function(){return{forEach:function(){}};}),
+    ]);
+    _dbAnLeads=[]; results[0].forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) _dbAnLeads.push(data); });
+    _dbAnBcasts=[]; results[1].forEach(function(d){ var data=d.data?d.data():d; _dbAnBcasts.push(data); });
+    _dbAnSales=[]; results[2].forEach(function(d){ var data=d.data?d.data():d; _dbAnSales.push(data); });
+    dbAnRender();
+  } catch(e) { console.error('[DB Analytics]',e); }
+}
+
+function dbAnRender() {
+  var range=dbAnRange(_dbAnFilter,_dbAnFrom,_dbAnTo), start=range.start, end=range.end, label=range.label;
+  var leads  = _dbAnLeads.filter(function(l){ var t=anGetTs(l); return t>=start&&t<=end; });
+  var sales  = _dbAnSales.filter(function(s){ var t=anGetTs(s); return t>=start&&t<=end; });
+  var bcasts = _dbAnBcasts.filter(function(b){ var t=b.sentAt||0; return t>=start&&t<=end; });
+  var totalRevenue = sales.reduce(function(s,x){ return s+parseFloat(x.amount||x.price||x.commission||0); },0);
+  var funnels  = (window.fbState&&window.fbState.funnels)?window.fbState.funnels:[];
+  var totalViews = funnels.reduce(function(s,f){ return s+(f.views||0); },0);
+  var emailsSent = bcasts.reduce(function(s,b){ return s+(b.sent||0); },0);
+  var convRate = leads.length>0?((sales.length/leads.length)*100).toFixed(1):'0.0';
+  function dbSet(id,val){ var el=document.getElementById(id); if(el) el.textContent=val; }
+  dbSet('db-an-leads',      leads.length.toLocaleString());
+  dbSet('db-an-leads-sub',  label);
+  dbSet('db-an-revenue',    '$'+Math.round(totalRevenue).toLocaleString());
+  dbSet('db-an-revenue-sub',sales.length+' sales · '+label);
+  dbSet('db-an-emails',     emailsSent.toLocaleString());
+  dbSet('db-an-emails-sub', bcasts.length+' broadcasts · '+label);
+  dbSet('db-an-conv',       convRate+'%');
+  dbSet('db-an-conv-sub',   leads.length+' leads → '+sales.length+' sales');
+  dbSet('db-an-views',      totalViews.toLocaleString());
+  dbSet('db-an-views-sub',  funnels.length+' funnels');
+  dbSet('db-an-broadcasts', bcasts.length.toLocaleString());
+  dbSet('db-an-broadcasts-sub', emailsSent.toLocaleString()+' emails sent');
+  var chartEl=document.getElementById('db-an-leads-chart'), subEl=document.getElementById('db-an-chart-sub');
+  if (chartEl) {
+    var span=(end-start)/range.buckets, counts=[];
+    for(var i=0;i<range.buckets;i++){ var bs=start+i*span,be=bs+span; counts.push(_dbAnLeads.filter(function(l){ var t=anGetTs(l); return t>=bs&&t<be; }).length); }
+    var max=Math.max.apply(null,counts)||1;
+    chartEl.innerHTML=counts.map(function(c){ var h=Math.max(4,Math.round((c/max)*76)); return '<div style="flex:1;height:'+h+'px;border-radius:2px 2px 0 0;background:'+(c>0?'linear-gradient(180deg,rgba(78,204,163,.9),rgba(78,204,163,.3))':'rgba(255,255,255,.05)')+';min-height:4px" title="'+c+' leads"></div>'; }).join('');
+    if (subEl) subEl.textContent=leads.length+' leads · '+label;
+  }
+  var recentEl=document.getElementById('db-an-recent');
+  if (recentEl) {
+    var sorted=_dbAnLeads.slice().sort(function(a,b){ return anGetTs(b)-anGetTs(a); }).slice(0,5);
+    recentEl.innerHTML=!sorted.length?'<div style="font-size:11px;color:var(--dim)">No leads yet.</div>':sorted.map(function(l){ var init=(l.name||l.email||'?').charAt(0).toUpperCase(); var src=(l.source||l.page||'direct').replace(/-/g,' ').slice(0,18); return '<div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text-dark);flex-shrink:0">'+init+'</div><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+(l.name||l.email||'Anonymous')+'</div><div style="font-size:10px;color:var(--dim)">'+src+' · '+anTimeAgo(anGetTs(l))+'</div></div></div>'; }).join('');
+  }
+}
+
+function dbAnRefresh() { _dbAnLeads=[]; _dbAnSales=[]; _dbAnBcasts=[]; dbAnLoad(); }
+window.dbAnRefresh    = dbAnRefresh;
+window.dbAnLoad       = dbAnLoad;
+window.dbAnFilter     = dbAnFilter;
+window.dbAnApplyCustom = dbAnApplyCustom;
+
 function emTab(el,tab){document.querySelectorAll('.em-tab').forEach(function(t){t.classList.remove('on');});if(el)el.classList.add('on');emState.tab=tab;['campaigns','contacts','sequences','templates','settings','compose','broadcast'].forEach(function(v){var e=document.getElementById('em-view-'+v);if(e)e.style.display='none';});var a=document.getElementById('em-view-'+tab);if(a)a.style.display='block';if(tab==='contacts')emLoadContacts();if(tab==='templates')emRenderTemplates();if(tab==='settings')emLoadSettings();if(tab==='sequences')emLoadSequences();if(tab==='broadcast'){emBroadcastLoadCount();emBroadcastLoadHistory();}}
 function emShowCompose(campaign){
   ['campaigns','contacts','sequences','templates','settings'].forEach(function(v){
@@ -32819,70 +31951,29 @@ async function emGenerateSequence() {
 /* ── Settings ───────────────────────────────────────────────────── */
 function emLoadSettings() {
   var sender = emState.sender || {};
-
-  // Step 1 — Resend key: toggle setup vs connected panels
-  var keyEl       = document.getElementById('em-resend-key');
-  var setupEl     = document.getElementById('em-resend-setup');
+  var keyEl = document.getElementById('em-resend-key');
+  var setupEl = document.getElementById('em-resend-setup');
   var connectedEl = document.getElementById('em-resend-connected');
-  var badgeEl     = document.getElementById('em-resend-status-badge');
   if (keyEl && sender.resendApiKey) keyEl.value = sender.resendApiKey;
   if (sender.resendApiKey) {
-    if (setupEl)     setupEl.style.display     = 'none';
+    if (setupEl) setupEl.style.display = 'none';
     if (connectedEl) connectedEl.style.display = 'block';
-    if (badgeEl)     badgeEl.innerHTML = '<span style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:100px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--teal)">✅ Connected</span>';
   } else {
-    if (setupEl)     setupEl.style.display     = 'block';
+    if (setupEl) setupEl.style.display = 'block';
     if (connectedEl) connectedEl.style.display = 'none';
-    if (badgeEl)     badgeEl.innerHTML = '';
   }
-
-  // Step 2 — Domain: populate input, toggle DNS/verified panels
-  var domainInput   = document.getElementById('em-domain-input');
-  var dnsRecordsEl  = document.getElementById('em-dns-records');
-  var domVerifiedEl = document.getElementById('em-domain-verified');
-  var verifiedNameEl = document.getElementById('em-verified-domain-name');
-  if (domainInput && sender.domain) domainInput.value = sender.domain;
-  if (sender.domainVerified && sender.domain) {
-    if (dnsRecordsEl)   dnsRecordsEl.style.display   = 'none';
-    if (domVerifiedEl)  domVerifiedEl.style.display  = 'block';
-    if (verifiedNameEl) verifiedNameEl.textContent   = sender.domain;
-  }
-
-  // Step 3 — Sender identity
   var nameEl  = document.getElementById('em-sender-name');
   var emailEl = document.getElementById('em-sender-email');
   if (nameEl  && sender.name)  nameEl.value  = sender.name;
   if (emailEl && sender.email) emailEl.value = sender.email;
-  var senderStatusEl = document.getElementById('em-sender-status');
-  if (senderStatusEl) {
-    senderStatusEl.innerHTML = (sender.name && sender.email)
-      ? '<span style="color:var(--teal);font-weight:700">✅ Sending as ' + sender.name + ' &lt;' + sender.email + '&gt;</span>'
-      : '';
-  }
-
-  // Funnel connection
   var funnelEl = document.getElementById('em-funnel-select');
   if (funnelEl && emState.connectedFunnel) funnelEl.value = emState.connectedFunnel;
-
-  // Trigger select
   var triggerEl = document.getElementById('em-trigger-select');
   if (triggerEl && emState.trigger) triggerEl.value = emState.trigger;
-
-  // Sequence live checkbox
-  var seqLiveEl = document.getElementById('em-sequence-live');
-  if (seqLiveEl) seqLiveEl.checked = !!emState.sequenceLive;
-
-  // Update email footer previews (campaigns + broadcast)
   var fn = document.getElementById('em-footer-name');
   var fe = document.getElementById('em-footer-email');
-  var bcfn = document.getElementById('em-bc-footer-name');
-  var bcfe = document.getElementById('em-bc-footer-email');
-  var displayName  = sender.name  || 'Your Name';
-  var displayEmail = sender.email || 'your@email.com';
-  if (fn)   fn.textContent   = displayName;
-  if (fe)   fe.textContent   = displayEmail;
-  if (bcfn) bcfn.textContent = displayName;
-  if (bcfe) bcfe.textContent = displayEmail;
+  if (fn) fn.textContent = sender.name  || 'Your Name';
+  if (fe) fe.textContent = sender.email || 'your@email.com';
 }
 
 function emSaveSender() {
@@ -32936,21 +32027,7 @@ function emAddDomain() {
     if (data.error) { emToast('⚠️ ' + data.error, true); return; }
     emState.sender.domainId = data.domainId;
     emSave();
-    var dnsEl = document.getElementById('em-dns-records');
-    var tbody = document.getElementById('em-dns-tbody');
-    if (dnsEl) dnsEl.style.display = 'block';
-    if (tbody && data.records) {
-      tbody.innerHTML = data.records.map(function(r){
-        var safeVal = (r.value||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-        return '<tr>'
-          + '<td style="padding:8px 12px;color:var(--muted)">'+(r.type||'')+'</td>'
-          + '<td style="padding:8px 12px;color:var(--white);font-family:monospace;font-size:11px">'+(r.name||'')+'</td>'
-          + '<td style="padding:8px 12px;color:var(--muted);font-family:monospace;font-size:10px;word-break:break-all">'+(r.value||'')+'</td>'
-          + '<td style="padding:8px 12px"><button onclick="navigator.clipboard.writeText(\''+safeVal+'\');emToast(\'Copied\')" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">Copy</button></td>'
-          + '</tr>';
-      }).join('');
-    }
-    emToast('✅ Domain added — add the DNS records below then click Verify');
+    emToast('✅ Domain added — add the DNS records then click Verify');
   }).catch(function() {
     if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
     emToast('⚠️ Could not reach Resend. Check your API key.', true);
@@ -32962,43 +32039,24 @@ function emChangeDomain() {
   var verEl = document.getElementById('em-domain-verified');
   if (dnsEl) dnsEl.style.display = 'none';
   if (verEl) verEl.style.display = 'none';
-  if (emState.sender) { emState.sender.domainVerified = false; emSave(); }
-  var inputEl = document.getElementById('em-domain-input');
-  if (inputEl && emState.sender && emState.sender.domain) inputEl.value = emState.sender.domain;
 }
 
 function emVerifyDomain() {
-  var domain   = emState.sender && emState.sender.domain;
-  var domainId = emState.sender && emState.sender.domainId;
-  var apiKey   = emState.sender && emState.sender.resendApiKey;
+  var domain = emState.sender && emState.sender.domain;
+  var apiKey = emState.sender && emState.sender.resendApiKey;
   if (!domain) { emToast('Add a domain first.', true); return; }
   if (!apiKey) { emToast('Connect your Resend API key first.', true); return; }
-  var verBtn = document.querySelector('button[onclick="emVerifyDomain()"]');
-  if (verBtn) { verBtn.textContent = '🔍 Checking…'; verBtn.disabled = true; }
   fetch('/api/email-setup', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'verify-domain', apiKey: apiKey, domain: domain, domainId: domainId })
+    body: JSON.stringify({ action: 'verify-domain', apiKey: apiKey, domain: domain, domainId: emState.sender.domainId })
   }).then(function(r){ return r.json(); }).then(function(data) {
-    if (verBtn) { verBtn.textContent = '🔍 Verify Domain'; verBtn.disabled = false; }
-    var statusEl = document.getElementById('em-domain-verify-status');
     if (data.verified) {
-      emState.sender.domainVerified = true;
-      emSave();
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Verified — emails will land in primary inbox.</span>';
-      var dnsEl = document.getElementById('em-dns-records');
-      var verEl = document.getElementById('em-domain-verified');
-      var nameEl = document.getElementById('em-verified-domain-name');
-      if (dnsEl)  dnsEl.style.display  = 'none';
-      if (verEl)  verEl.style.display  = 'block';
-      if (nameEl) nameEl.textContent   = domain;
+      emState.sender.domainVerified = true; emSave();
       emToast('✅ Domain verified!');
     } else {
-      if (statusEl) statusEl.innerHTML = '<span style="color:#f59e0b;font-weight:700">⏳ ' + (data.reason || 'Not verified yet — DNS can take up to 48 hours.') + '</span>';
+      emToast('⏳ ' + (data.reason || 'Not verified yet — DNS can take up to 48 hours.'), true);
     }
-  }).catch(function() {
-    if (verBtn) { verBtn.textContent = '🔍 Verify Domain'; verBtn.disabled = false; }
-    emToast('⚠️ Could not check domain status.', true);
-  });
+  }).catch(function(){ emToast('⚠️ Could not check domain status.', true); });
 }
 
 function emSaveFunnelConnection() {
@@ -33048,303 +32106,6 @@ window.emLoadSettings       = emLoadSettings;
 window.emSaveSender         = emSaveSender;
 window.emConnectResend      = emConnectResend;
 window.emDisconnectResend   = emDisconnectResend;
-
-/* ══════════════════════════════════════════════════════════════════════════════
-   VALUE POST ENGINE
-══════════════════════════════════════════════════════════════════════════════ */
-var _vpeState = { platform: 'quora', topic: '', lastPost: '', questions: [] };
-
-var VPE_PLATFORM_RULES = {
-  quora:    'Quora: Answer as a knowledgeable expert. First-person voice. No spammy CTAs — end with a genuine recommendation. Never post the same answer twice. Links are allowed when genuinely helpful. Do not keyword-stuff.',
-  reddit:   'Reddit: Community-first. Give real value with zero hard-sell energy. Redditors will downvote and report anything promotional. Mention your offer only if directly relevant and frame it as a personal experience, not a pitch. No affiliate links in most subreddits. Be a real contributor.',
-  linkedin: 'LinkedIn: Professional tone. Thought leadership. Data and specifics build credibility. Personal story hooks perform well. One clear CTA at the end is acceptable. Hashtags help discoverability (3-5 max).',
-  medium:   'Medium: Long-form, narrative, SEO-structured. Use clear headers. Cite sources where possible. Medium curators look for original insight — no rehashed generic advice. Soft CTA at the end is fine. Aim for 800-1500 words.',
-  x:        'X (Twitter): Threads of 8-12 tweets. Hook tweet must stop the scroll. Each tweet must be under 280 characters. Thread should stand alone as value — CTA only on the final tweet. No hashtag spam — 1-2 max.'
-};
-
-var VPE_PLATFORM_LABELS = {
-  quora:    'Quora Answer',
-  reddit:   'Reddit Post',
-  linkedin: 'LinkedIn Article',
-  medium:   'Medium Article',
-  x:        'X Thread'
-};
-
-// ── Get intelligence context (reuses emBcGetIntelligence pattern) ────────────
-function vpeGetIntel() {
-  var mode  = window._appMode || 'expert';
-  var av    = window._avatarData || {};
-  var bi    = window._boardroomIntel || {};
-  var biCv  = bi.copyVault  || {};
-  var biOs  = bi.offerStack || {};
-  var lines = [];
-
-  if (mode === 'affiliate') {
-    var ao = window._affiliateOffer || {};
-    if (ao.name||ao.productName) lines.push('Product/offer: ' + (ao.name||ao.productName||''));
-    if (ao.niche||av.niche)      lines.push('Niche: ' + (ao.niche||av.niche||''));
-    if (av.pain||ao.pain)        lines.push('Audience pain: ' + (av.pain||ao.pain||''));
-    if (av.transformation||ao.transformation) lines.push('Desired outcome: ' + (av.transformation||ao.transformation||''));
-    if (av.job||ao.buyer)        lines.push('Audience profile: ' + (av.job||ao.buyer||''));
-    if (biCv.uniqueMechanism||biOs.uniqueMechanism) lines.push('Unique mechanism: ' + (biCv.uniqueMechanism||biOs.uniqueMechanism||''));
-    if (biCv.bigPromise)         lines.push('Big promise: ' + biCv.bigPromise);
-  } else {
-    var draft = {};
-    try { draft = JSON.parse(localStorage.getItem('eos_draft_offer')||'{}'); } catch(e){}
-    var of = draft.offer || {};
-    var avd = draft.avatar || av;
-    if (of.offer_name)        lines.push('Offer: ' + of.offer_name);
-    if (of.offer_promise)     lines.push('Promise: ' + of.offer_promise);
-    if (draft.niche||window._appliedNiche) lines.push('Niche: ' + (draft.niche||window._appliedNiche||''));
-    if (avd.av_current||av.av_igr) lines.push('Audience pain: ' + (avd.av_current||av.av_igr||''));
-    if (avd.av_desired||avd.av_transformation) lines.push('Desired outcome: ' + (avd.av_desired||avd.av_transformation||''));
-    if (avd.av_job)           lines.push('Audience profile: ' + avd.av_job);
-    if (biOs.uniqueMechanism||biCv.uniqueMechanism) lines.push('Unique mechanism: ' + (biOs.uniqueMechanism||biCv.uniqueMechanism||''));
-    if (biCv.bigPromise)      lines.push('Big promise: ' + biCv.bigPromise);
-    if (biCv.objectionHandle) lines.push('Key objection: ' + biCv.objectionHandle);
-  }
-  return lines.length ? lines.join('\n') : '';
-}
-
-// ── Set platform ─────────────────────────────────────────────────────────────
-function vpeSetPlatform(el, plat) {
-  _vpeState.platform = plat;
-  document.querySelectorAll('.vpe-plat-btn').forEach(function(b){ b.classList.remove('vpe-plat-active'); });
-  if (el) el.classList.add('vpe-plat-active');
-}
-
-// ── Step 1: Find questions ────────────────────────────────────────────────────
-async function vpeFindQuestions() {
-  var intel    = vpeGetIntel();
-  var niche    = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).niche || (window._avatarData||{}).av_job || 'online business';
-  var mode     = window._appMode || 'expert';
-  var btn      = document.getElementById('vpe-find-btn');
-  var statusEl = document.getElementById('vpe-find-status');
-  var grid     = document.getElementById('vpe-questions-grid');
-
-  if (btn) { btn.textContent = '🔍 Searching…'; btn.disabled = true; }
-  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Searching Reddit, Quora and Google for what your audience is asking right now…'; }
-  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">Scanning live sources…</div>';
-
-  try {
-    var resp = await fetch(window.location.origin + '/api/vpe-questions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ niche: niche, intel: intel, mode: mode })
-    });
-    var data      = await resp.json();
-    var questions = data.questions || [];
-    var source    = data.source || 'generated';
-
-    _vpeState.questions = questions;
-
-    var sourceLabel = source === 'live'
-      ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live — pulled from Reddit, Quora & Google</span>'
-      : '<span style="color:#F5C842;font-weight:700;font-size:11px">⚡ Generated from niche knowledge</span>';
-
-    if (statusEl) {
-      statusEl.innerHTML = '✅ Found ' + questions.length + ' questions — pick one to answer &nbsp;·&nbsp; ' + sourceLabel;
-    }
-
-    if (grid && questions.length) {
-      grid.innerHTML = questions.map(function(q, i) {
-        var platformColour = { reddit: '#ff4500', quora: '#b92b27', google: 'var(--teal)' }[q.platform] || 'var(--dim)';
-        return '<div class="vpe-q-card" onclick="vpeSelectQuestion(this,' + i + ')">'
-          + '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:10px">' + q.question + '</div>'
-          + (q.why ? '<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">' + q.why + '</div>' : '')
-          + '<div style="display:flex;gap:6px;flex-wrap:wrap">'
-          + '<span style="font-size:10px;font-weight:700;color:' + platformColour + ';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">📍 ' + (q.platform||'web') + '</span>'
-          + '<span style="font-size:10px;font-weight:700;color:' + (q.volume==='high'?'var(--teal)':'#F5C842') + ';background:var(--card2);border-radius:4px;padding:2px 8px">📊 ' + (q.volume||'medium') + ' volume</span>'
-          + '<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">' + (q.intent==='commercial'?'💰 buyer intent':'ℹ️ informational') + '</span>'
-          + '</div></div>';
-      }).join('');
-    } else if (grid) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">No questions found. Try adding more detail to your Avatar and Offer setup.</div>';
-    }
-
-  } catch(e) {
-    if (statusEl) statusEl.textContent = '⚠️ Could not load questions. Check your setup and try again.';
-    if (grid) grid.innerHTML = '';
-  }
-  if (btn) { btn.textContent = '🔍 Find Questions'; btn.disabled = false; }
-}
-
-function vpeSelectQuestion(el, idx) {
-  document.querySelectorAll('.vpe-q-card').forEach(function(c){ c.classList.remove('selected'); });
-  el.classList.add('selected');
-  var q = _vpeState.questions[idx];
-  if (q) {
-    _vpeState.topic = q.question;
-    var topicEl = document.getElementById('vpe-topic');
-    if (topicEl) topicEl.value = q.question;
-    // Suggest matching platform
-    if (q.platform && VPE_PLATFORM_RULES[q.platform]) {
-      vpeSetPlatform(document.querySelector('.vpe-plat-btn[data-plat="' + q.platform + '"]'), q.platform);
-    }
-  }
-}
-
-// ── Step 2: Generate post ─────────────────────────────────────────────────────
-async function vpeGenerate() {
-  var topicEl  = document.getElementById('vpe-topic');
-  var topic    = topicEl ? topicEl.value.trim() : '';
-  if (!topic) { if (topicEl) topicEl.focus(); return; }
-  _vpeState.topic = topic;
-  await vpeWrite(_vpeState.platform, topic);
-}
-
-async function vpeWrite(platform, topic) {
-  var btn      = document.getElementById('vpe-gen-btn');
-  var statusEl = document.getElementById('vpe-gen-status');
-  var output   = document.getElementById('vpe-output');
-  var contentEl = document.getElementById('vpe-post-content');
-  var labelEl  = document.getElementById('vpe-output-label');
-  var badgeEl  = document.getElementById('vpe-platform-badge');
-
-  if (btn) { btn.disabled = true; btn.textContent = 'Writing…'; }
-  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'E-OS Intelligence is writing your ' + VPE_PLATFORM_LABELS[platform] + '…'; }
-  if (output) output.style.display = 'none';
-
-  var intel = vpeGetIntel();
-  var rules = VPE_PLATFORM_RULES[platform] || '';
-
-  var platformInstructions = {
-    quora:    'Write a long-form Quora answer (600-900 words). First-person, expert voice. Open with a bold statement or personal hook that stops the reader. Build the answer with real insight — not generic advice. Naturally weave in the offer as a personal recommendation at the end, not a hard sell. No clickbait. No bullet-point walls.',
-    reddit:   'Write a Reddit post (400-700 words). Sound like a real community member sharing genuine experience — not a marketer. Open with a relatable situation. Give real, specific value. Only mention your offer in the context of personal experience. If it fits the question, mention the subreddit context. Zero promotional language.',
-    linkedin: 'Write a LinkedIn article (700-1000 words). Professional, thought-leadership tone. Open with a personal story or bold insight. Use short paragraphs. Build a narrative arc. End with a clear takeaway and soft CTA. Include 3-5 relevant hashtags at the end.',
-    medium:   'Write a Medium article (900-1400 words). Use a compelling headline. Clear H2 subheadings to break sections. Narrative style — tell a story, build the case, deliver the insight. SEO-aware but human-first. End with a CTA that leads to your offer or funnel.',
-    x:        'Write an X thread of 10-12 tweets. Tweet 1 is the hook — it must stop the scroll and make people want to read more. Tweets 2-10 deliver value in a logical sequence. Each tweet under 280 characters. Last tweet is the CTA. Number each tweet (1/, 2/, etc). No hashtag spam — maximum 2 hashtags total in the thread.'
-  };
-
-  var prompt = 'You are a world-class content strategist and copywriter who specialises in writing content that builds audiences and drives them into sales funnels.\n\n'
-    + 'TOPIC / QUESTION TO ANSWER:\n' + topic + '\n\n'
-    + (intel ? 'OFFER AND AUDIENCE INTELLIGENCE (use this to inform the answer and weave the offer naturally):\n' + intel + '\n\n' : '')
-    + 'PLATFORM RULES TO FOLLOW:\n' + rules + '\n\n'
-    + 'WRITING INSTRUCTIONS:\n' + (platformInstructions[platform]||'Write a high-value long-form post.') + '\n\n'
-    + 'CRITICAL: This content must:\n'
-    + '1. Answer the question with genuine, specific insight — not generic advice\n'
-    + '2. Use the audience\'s exact language and speak to their specific pain\n'
-    + '3. Naturally position the offer as the logical solution without being pushy\n'
-    + '4. End with a CTA that leads the reader toward the funnel\n'
-    + '5. Comply fully with the platform rules above — nothing that could get removed or flagged\n\n'
-    + 'Write the full post now. No preamble, no explanation — just the post itself.';
-
-  try {
-    var resp = await fetch(window.location.origin + '/api/claude', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
-    });
-    var data = await resp.json();
-    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
-
-    _vpeState.lastPost = text;
-
-    if (contentEl) contentEl.textContent = text;
-    if (labelEl)   labelEl.textContent   = VPE_PLATFORM_LABELS[platform];
-    if (badgeEl)   badgeEl.innerHTML     = '<span style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 10px;color:var(--teal);font-weight:700">' + platform.toUpperCase() + '</span>';
-    if (output) output.style.display = 'block';
-
-    // Show rules notice
-    var rulesEl  = document.getElementById('vpe-rules-notice');
-    var rulesText = document.getElementById('vpe-rules-text');
-    if (rulesEl && rulesText) {
-      rulesText.textContent = rules;
-      rulesEl.style.display = 'block';
-    }
-
-    // Generate image suggestions
-    vpeImageSuggestions(topic, platform, intel);
-
-    if (statusEl) { statusEl.textContent = '✅ Your post is ready.'; setTimeout(function(){ statusEl.style.display='none'; }, 3000); }
-    // Scroll to output
-    if (output) output.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-  } catch(e) {
-    if (statusEl) { statusEl.textContent = '⚠️ Could not generate post. Try again.'; }
-  }
-  if (btn) { btn.disabled = false; btn.textContent = '✍️ Write My Post'; }
-}
-
-// ── Image suggestions ─────────────────────────────────────────────────────────
-async function vpeImageSuggestions(topic, platform, intel) {
-  var section = document.getElementById('vpe-images-section');
-  var el      = document.getElementById('vpe-image-suggestions');
-  if (!section || !el) return;
-  if (platform === 'x') { section.style.display = 'none'; return; }
-
-  try {
-    var prompt = 'Suggest 3 specific image search queries for a "' + platform + '" post about: "' + topic + '".\n'
-      + (intel ? 'Offer context: ' + intel.split('\n')[0] + '\n' : '')
-      + 'Return ONLY JSON: [{"query":"...","why":"one sentence why this image works"},{"query":"...","why":"..."},{"query":"...","why":"..."}]\n'
-      + 'Queries should work on Unsplash, Pexels or Canva. No markdown.';
-    var resp = await fetch(window.location.origin + '/api/claude', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, messages: [{ role: 'user', content: prompt }] })
-    });
-    var data = await resp.json();
-    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
-    var clean = text.replace(/```json|```/g,'').trim();
-    var match = clean.match(/\[[\s\S]*\]/);
-    var suggestions = match ? JSON.parse(match[0]) : [];
-    if (!suggestions.length) { section.style.display = 'none'; return; }
-    el.innerHTML = suggestions.map(function(s) {
-      return '<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'
-        + '<div><div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:3px">"' + s.query + '"</div><div style="font-size:11px;color:var(--dim)">' + (s.why||'') + '</div></div>'
-        + '<div style="display:flex;gap:6px">'
-        + '<a href="https://unsplash.com/s/photos/' + encodeURIComponent(s.query) + '" target="_blank" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 12px;color:var(--teal);font-size:11px;font-weight:700;text-decoration:none">Unsplash</a>'
-        + '<a href="https://www.pexels.com/search/' + encodeURIComponent(s.query) + '" target="_blank" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 12px;color:var(--teal);font-size:11px;font-weight:700;text-decoration:none">Pexels</a>'
-        + '</div></div>';
-    }).join('');
-    section.style.display = 'block';
-  } catch(e) { section.style.display = 'none'; }
-}
-
-// ── Copy, regenerate, adapt ───────────────────────────────────────────────────
-function vpeCopy() {
-  if (!_vpeState.lastPost) return;
-  navigator.clipboard.writeText(_vpeState.lastPost).then(function(){ emToast('✅ Copied to clipboard'); }).catch(function(){ emToast('⚠️ Could not copy'); });
-}
-
-function vpeRegenerate() { if (_vpeState.topic) vpeWrite(_vpeState.platform, _vpeState.topic); }
-
-async function vpeAdapt(platform) {
-  if (!_vpeState.lastPost) { emToast('⚠️ Generate a post first.', true); return; }
-  var intel = vpeGetIntel();
-  var rules = VPE_PLATFORM_RULES[platform] || '';
-  var statusEl = document.getElementById('vpe-gen-status');
-  var contentEl = document.getElementById('vpe-post-content');
-  var labelEl   = document.getElementById('vpe-output-label');
-  var badgeEl   = document.getElementById('vpe-platform-badge');
-  if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = 'Adapting for ' + VPE_PLATFORM_LABELS[platform] + '…'; }
-  var prompt = 'Reformat and rewrite this content for ' + VPE_PLATFORM_LABELS[platform] + '.\n\nPLATFORM RULES:\n' + rules + '\n\nORIGINAL CONTENT:\n' + _vpeState.lastPost + '\n\nKeep the core message and offer positioning. Adapt the format, tone and length to fit ' + platform + ' perfectly. Return only the adapted post — no explanation.';
-  try {
-    var resp = await fetch(window.location.origin + '/api/claude', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 2000, messages: [{ role: 'user', content: prompt }] })
-    });
-    var data = await resp.json();
-    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
-    _vpeState.lastPost  = text;
-    _vpeState.platform  = platform;
-    if (contentEl) contentEl.textContent = text;
-    if (labelEl)   labelEl.textContent   = VPE_PLATFORM_LABELS[platform];
-    if (badgeEl)   badgeEl.innerHTML     = '<span style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 10px;color:var(--teal);font-weight:700">' + platform.toUpperCase() + '</span>';
-    var rulesText = document.getElementById('vpe-rules-text');
-    if (rulesText) rulesText.textContent = rules;
-    vpeImageSuggestions(_vpeState.topic, platform, intel);
-    if (statusEl) { statusEl.textContent = '✅ Adapted for ' + VPE_PLATFORM_LABELS[platform]; setTimeout(function(){ statusEl.style.display='none'; }, 2500); }
-  } catch(e) {
-    if (statusEl) { statusEl.textContent = '⚠️ Could not adapt post. Try again.'; }
-  }
-}
-
-window.vpeFindQuestions   = vpeFindQuestions;
-window.vpeSelectQuestion  = vpeSelectQuestion;
-window.vpeSetPlatform     = vpeSetPlatform;
-window.vpeGenerate        = vpeGenerate;
-window.vpeCopy            = vpeCopy;
-window.vpeRegenerate      = vpeRegenerate;
-window.vpeAdapt           = vpeAdapt;
 window.emAddDomain          = emAddDomain;
 window.emChangeDomain       = emChangeDomain;
 window.emVerifyDomain       = emVerifyDomain;
@@ -38775,6 +37536,7 @@ window._getFullIntelContext = function() {
   }
 };
 </script>
+</script>
 
 <script>
 // ══════════════════════════════════════════════════════════════════
@@ -41364,7 +40126,7 @@ function coachBuildPrompt(ctx, question) {
 
   var sequenceContext = '\nPLATFORM SEQUENCE:\n' + seq.join('\n');
 
-  var system = 'You are the E-OS Coach — the personal business advisor built into Execution OS. You know every feature of this platform precisely and accurately. You speak like a world-class business mentor who knows this user\'s exact situation. Be direct, specific, and warm. Always reference their specific niche and offer when relevant. Never speak generically. Key platform updates to know: the Email Marketing section now includes a Broadcast tab where users can send one-time emails to their full list or specific segments. The Broadcast tab has an Email Writer powered by E-OS Intelligence — it reads the user\'s offer, avatar and boardroom strategy before writing every email. Email types include Watch The Video, Buy Now, Re-engage, Value Drop, Story Email, and Flash Offer — all written as long-form premium copy designed to convert high-ticket offers. The editor has full formatting, merge tags, and rewrite tools (Shorter, More Urgent, More Personal, Add CTA). The partnership.html page is a live opt-in funnel with a carousel of proof images, a dimming play button, and a two-path overlay for Join Partnership or Platform Only.';
+  var system = 'You are the E-OS Coach — the personal AI advisor built into Execution OS. You know every feature of this platform precisely and accurately. You speak like a world-class business mentor who knows this user\'s exact situation. Be direct, specific, and warm. Always reference their specific niche and offer when relevant. Never speak generically.';
 
   var prompt = userState + pageContext + sequenceContext
     + '\n\nCOACHING REQUEST: ' + (question || 'I just opened this page. Coach me on exactly what to do here, how to do it step by step, and what it will achieve for my business.')
@@ -41375,7 +40137,7 @@ function coachBuildPrompt(ctx, question) {
     + (ctx.niche ? 'Reference their niche (' + ctx.niche + ') and offer (' + ctx.offer + ') throughout.\n' : '')
     + 'Tell them exactly what their next action is after finishing this page.\n'
     + 'Speak in natural conversational language — no bullet points, no headers, no markdown.\n'
-    + 'Be thorough — give them enough to actually move forward with confidence, not just a surface overview. Aim for 400 to 500 words.\n\n'
+    + 'Maximum 350 words. Make every word count.\n\n'
     + 'Coach them now:';
 
   return { system, prompt };
@@ -42512,64 +41274,6 @@ window.dbSetFilter = function(filter, btn) {
   window.renderDashboard && window.renderDashboard();
 };
 
-/* ══════════════════════════════════════════════════════════════════
-   SHOWPAGE INIT HOOKS — Email Marketing & Content Studio
-   These ensure the correct init functions fire every time the user
-   navigates to these sections, not just on Firebase auth restore.
-══════════════════════════════════════════════════════════════════ */
-(function() {
-  var _origSP = window.showPage;
-  window.showPage = function(n, btn) {
-    if (typeof _origSP === 'function') _origSP(n, btn);
-
-    // ── Email Marketing — load data every time section opens ──
-    if (n === 'email') {
-      setTimeout(function() {
-        if (typeof window.emLoad === 'function') window.emLoad();
-        // Ensure campaigns tab is active and visible
-        var camTab = document.getElementById('em-tab-campaigns');
-        if (camTab && typeof window.emTab === 'function') window.emTab(camTab, 'campaigns');
-        // Show sender banner only if no sender connected
-        var banner = document.getElementById('em-sender-banner');
-        if (banner && window.emState && window.emState.sender && window.emState.sender.email) {
-          banner.style.display = 'none';
-        }
-      }, 80);
-    }
-
-    // ── Content Studio — render readiness banner + activate Video tab ──
-    if (n === 'ai-video') {
-      setTimeout(function() {
-        // Render the readiness banner (boardroom/offer status)
-        if (typeof window.csRenderReadinessBanner === 'function') window.csRenderReadinessBanner();
-        // Activate Video Studio tab if nothing is active
-        var activeTab = document.querySelector('.cs-tab-btn.on');
-        if (!activeTab) {
-          var videoBtns = document.querySelectorAll('.cs-tab-btn');
-          videoBtns.forEach(function(b) {
-            if (b.textContent.includes('Video Studio') && typeof window.csShowTab === 'function') {
-              window.csShowTab('video', b);
-            }
-          });
-        } else {
-          // Re-fire the active tab so its panels are visible
-          var activeTabName = activeTab.getAttribute('onclick') || '';
-          var match = activeTabName.match(/csShowTab\('([^']+)'/);
-          if (match && typeof window.csShowTab === 'function') {
-            window.csShowTab(match[1], activeTab);
-          }
-        }
-        // Restore AVS library if it was previously loaded
-        if (typeof window.avsLoadVideoLibrary === 'function') {
-          var libPanel = document.getElementById('avs-library-panel');
-          if (libPanel && libPanel.style.display !== 'none') window.avsLoadVideoLibrary();
-        }
-      }, 80);
-    }
-  };
-  window.showPage = window.showPage;
-})();
-
 // ── Show/hide graph based on whether salesHistory exists ─────────
 window.dbShowGraph = function(trackerData) {
   var history  = (trackerData && trackerData.salesHistory) || [];
@@ -42585,5 +41289,240 @@ window.dbShowGraph = function(trackerData) {
 
 </script>
 
+<script>
+/* ══ VALUE POST ENGINE JS ══════════════════════════════════════════════════ */
+var _vpeState = { platform: 'quora', topic: '', lastPost: '', questions: [] };
+
+var VPE_PLATFORM_RULES = {
+  quora:    'Quora: Answer as an expert. First-person. No hard sell — end with a genuine recommendation. No duplicate answers. Links allowed when genuinely helpful.',
+  reddit:   'Reddit: Community-first. Zero hard-sell. Redditors downvote anything promotional. Only mention your offer as personal experience. No affiliate links in most subreddits.',
+  linkedin: 'LinkedIn: Professional, thought leadership. Data and specifics build credibility. One clear CTA at the end. 3-5 hashtags max.',
+  medium:   'Medium: Long-form, narrative, SEO-structured. Clear headers. Original insight only — no generic rehashed advice. Soft CTA at end.',
+  x:        'X (Twitter): 8-12 tweet thread. Hook tweet must stop the scroll. Each tweet under 280 characters. CTA only on final tweet. 1-2 hashtags max.'
+};
+
+var VPE_PLATFORM_LABELS = { quora:'Quora Answer', reddit:'Reddit Post', linkedin:'LinkedIn Article', medium:'Medium Article', x:'X Thread' };
+
+function vpeGetIntel() {
+  var mode = window._appMode || 'expert';
+  var av   = window._avatarData || {};
+  var bi   = window._boardroomIntel || {};
+  var biCv = bi.copyVault || {};
+  var biOs = bi.offerStack || {};
+  var lines = [];
+  if (mode === 'affiliate') {
+    var ao = window._affiliateOffer || {};
+    if (ao.name||ao.productName) lines.push('Product: '+(ao.name||ao.productName||''));
+    if (ao.niche||av.niche)      lines.push('Niche: '+(ao.niche||av.niche||''));
+    if (av.pain||ao.pain)        lines.push('Audience pain: '+(av.pain||ao.pain||''));
+    if (av.transformation)       lines.push('Desired outcome: '+av.transformation);
+    if (biCv.uniqueMechanism||biOs.uniqueMechanism) lines.push('Unique mechanism: '+(biCv.uniqueMechanism||biOs.uniqueMechanism||''));
+  } else {
+    var draft = {}; try { draft = JSON.parse(localStorage.getItem('eos_draft_offer')||'{}'); } catch(e){}
+    var of = draft.offer || {};
+    var avd = draft.avatar || av;
+    if (of.offer_name)    lines.push('Offer: '+of.offer_name);
+    if (of.offer_promise) lines.push('Promise: '+of.offer_promise);
+    if (draft.niche||window._appliedNiche) lines.push('Niche: '+(draft.niche||window._appliedNiche||''));
+    if (avd.av_current||av.av_igr) lines.push('Audience pain: '+(avd.av_current||av.av_igr||''));
+    if (avd.av_desired||avd.av_transformation) lines.push('Desired outcome: '+(avd.av_desired||avd.av_transformation||''));
+    if (biOs.uniqueMechanism||biCv.uniqueMechanism) lines.push('Unique mechanism: '+(biOs.uniqueMechanism||biCv.uniqueMechanism||''));
+    if (biCv.bigPromise) lines.push('Big promise: '+biCv.bigPromise);
+  }
+  return lines.join('\n');
+}
+
+function vpeSetPlatform(el, plat) {
+  _vpeState.platform = plat;
+  document.querySelectorAll('.vpe-plat-btn').forEach(function(b){ b.classList.remove('vpe-plat-active'); });
+  if (el) el.classList.add('vpe-plat-active');
+}
+
+async function vpeFindQuestions() {
+  var intel  = vpeGetIntel();
+  var niche  = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).av_job || 'online business';
+  var btn    = document.getElementById('vpe-find-btn');
+  var status = document.getElementById('vpe-find-status');
+  var grid   = document.getElementById('vpe-questions-grid');
+  if (btn) { btn.textContent = '🔍 Searching…'; btn.disabled = true; }
+  if (status) { status.style.display='block'; status.textContent='Searching Reddit, Quora and Google for what your audience is asking…'; }
+  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">Scanning live sources…</div>';
+  try {
+    var resp = await fetch(window.location.origin + '/api/vpe-questions', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ niche:niche, intel:intel, mode:window._appMode||'expert' })
+    });
+    var data = await resp.json();
+    var questions = data.questions || [];
+    var source = data.source || 'generated';
+    _vpeState.questions = questions;
+    var sourceLabel = source==='live'
+      ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live — pulled from Reddit, Quora & Google</span>'
+      : '<span style="color:#F5C842;font-weight:700;font-size:11px">⚡ Generated from niche knowledge</span>';
+    if (status) status.innerHTML = '✅ Found '+questions.length+' questions — pick one to answer &nbsp;·&nbsp; '+sourceLabel;
+    if (grid && questions.length) {
+      grid.innerHTML = questions.map(function(q,i){
+        var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)'}[q.platform]||'var(--dim)';
+        return '<div class="vpe-q-card" onclick="vpeSelectQuestion(this,'+i+')">'
+          +'<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">'+q.question+'</div>'
+          +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px">'+q.why+'</div>':'')
+          +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+          +'<span style="font-size:10px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">📍 '+(q.platform||'web')+'</span>'
+          +'<span style="font-size:10px;font-weight:700;color:'+(q.volume==='high'?'var(--teal)':'#F5C842')+';background:var(--card2);border-radius:4px;padding:2px 8px">📊 '+(q.volume||'medium')+' volume</span>'
+          +'<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">'+(q.intent==='commercial'?'💰 buyer intent':'ℹ️ informational')+'</span>'
+          +'</div></div>';
+      }).join('');
+    } else if (grid) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">No questions found. Add more detail to your Avatar and Offer setup.</div>';
+    }
+  } catch(e) {
+    if (status) status.textContent = '⚠️ Could not load questions. Try again.';
+    if (grid) grid.innerHTML = '';
+  }
+  if (btn) { btn.textContent = '🔍 Find Questions'; btn.disabled = false; }
+}
+
+function vpeSelectQuestion(el, idx) {
+  document.querySelectorAll('.vpe-q-card').forEach(function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+  var q = _vpeState.questions[idx];
+  if (q) {
+    _vpeState.topic = q.question;
+    var t = document.getElementById('vpe-topic');
+    if (t) t.value = q.question;
+    if (q.platform && VPE_PLATFORM_RULES[q.platform]) {
+      vpeSetPlatform(document.querySelector('.vpe-plat-btn[data-plat="'+q.platform+'"]'), q.platform);
+    }
+  }
+}
+
+async function vpeGenerate() {
+  var t = document.getElementById('vpe-topic');
+  var topic = t ? t.value.trim() : '';
+  if (!topic) { if (t) t.focus(); return; }
+  _vpeState.topic = topic;
+  await vpeWrite(_vpeState.platform, topic);
+}
+
+async function vpeWrite(platform, topic) {
+  var btn    = document.getElementById('vpe-gen-btn');
+  var status = document.getElementById('vpe-gen-status');
+  var output = document.getElementById('vpe-output');
+  var contentEl = document.getElementById('vpe-post-content');
+  var labelEl   = document.getElementById('vpe-output-label');
+  var badgeEl   = document.getElementById('vpe-platform-badge');
+  if (btn) { btn.disabled=true; btn.textContent='Writing…'; }
+  if (status) { status.style.display='block'; status.textContent='E-OS Intelligence is writing your '+VPE_PLATFORM_LABELS[platform]+'…'; }
+  if (output) output.style.display='none';
+  var intel = vpeGetIntel();
+  var rules = VPE_PLATFORM_RULES[platform]||'';
+  var platformInstructions = {
+    quora:    'Write a long-form Quora answer (600-900 words). First-person expert voice. Bold opening. Real insight — not generic advice. Weave offer as natural recommendation at end.',
+    reddit:   'Write a Reddit post (400-700 words). Sound like a real community member. Give genuine value. Only mention offer as personal experience. Zero promotional language.',
+    linkedin: 'Write a LinkedIn article (700-1000 words). Professional thought-leadership. Personal story hook. Short paragraphs. Clear takeaway and soft CTA. 3-5 hashtags.',
+    medium:   'Write a Medium article (900-1400 words). Compelling headline. H2 subheadings. Narrative style. SEO-aware. CTA at end.',
+    x:        'Write an X thread of 10-12 tweets. Tweet 1 is the hook. Each under 280 chars. Last tweet is CTA. Number each tweet (1/, 2/, etc). Max 2 hashtags total.'
+  };
+  var aiPrompt = 'You are a world-class content strategist and copywriter.\n\nTOPIC: '+topic+'\n\n'
+    +(intel?'OFFER AND AUDIENCE INTELLIGENCE:\n'+intel+'\n\n':'')
+    +'PLATFORM RULES:\n'+rules+'\n\n'
+    +'INSTRUCTIONS:\n'+(platformInstructions[platform]||'Write a high-value long-form post.')+'\n\n'
+    +'This content must: answer with genuine specific insight, use the audience\'s exact language, naturally position the offer as the logical solution, end with a CTA, comply fully with platform rules.\n\n'
+    +'Write the full post now. No preamble — just the post.';
+  try {
+    var resp = await fetch(window.location.origin+'/api/claude', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:2000, messages:[{role:'user',content:aiPrompt}] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    _vpeState.lastPost = text;
+    if (contentEl) contentEl.textContent = text;
+    if (labelEl)   labelEl.textContent   = VPE_PLATFORM_LABELS[platform];
+    if (badgeEl)   badgeEl.innerHTML     = '<span style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 10px;color:var(--teal);font-weight:700">'+platform.toUpperCase()+'</span>';
+    if (output) output.style.display='block';
+    var rulesEl = document.getElementById('vpe-rules-notice');
+    var rulesText = document.getElementById('vpe-rules-text');
+    if (rulesEl && rulesText) { rulesText.textContent=rules; rulesEl.style.display='block'; }
+    vpeImageSuggestions(topic, platform);
+    if (status) { status.textContent='✅ Your post is ready.'; setTimeout(function(){ status.style.display='none'; },3000); }
+    if (output) output.scrollIntoView({behavior:'smooth',block:'start'});
+  } catch(e) {
+    if (status) { status.textContent='⚠️ Could not generate post. Try again.'; }
+  }
+  if (btn) { btn.disabled=false; btn.textContent='✍️ Write My Post'; }
+}
+
+async function vpeImageSuggestions(topic, platform) {
+  var section = document.getElementById('vpe-images-section');
+  var el      = document.getElementById('vpe-image-suggestions');
+  if (!section||!el) return;
+  if (platform==='x') { section.style.display='none'; return; }
+  try {
+    var resp = await fetch(window.location.origin+'/api/claude', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:300, messages:[{role:'user',content:'Suggest 3 specific image search queries for a "'+platform+'" post about: "'+topic+'". Return ONLY JSON: [{"query":"...","why":"one sentence"}]. No markdown.'}] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    var match = text.replace(/```json|```/g,'').trim().match(/\[[\s\S]*\]/);
+    var suggestions = match ? JSON.parse(match[0]) : [];
+    if (!suggestions.length) { section.style.display='none'; return; }
+    el.innerHTML = suggestions.map(function(s){
+      return '<div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">'
+        +'<div><div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:3px">"'+s.query+'"</div><div style="font-size:11px;color:var(--dim)">'+(s.why||'')+'</div></div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<a href="https://unsplash.com/s/photos/'+encodeURIComponent(s.query)+'" target="_blank" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 12px;color:var(--teal);font-size:11px;font-weight:700;text-decoration:none">Unsplash</a>'
+        +'<a href="https://www.pexels.com/search/'+encodeURIComponent(s.query)+'" target="_blank" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:5px 12px;color:var(--teal);font-size:11px;font-weight:700;text-decoration:none">Pexels</a>'
+        +'</div></div>';
+    }).join('');
+    section.style.display='block';
+  } catch(e) { section.style.display='none'; }
+}
+
+function vpeCopy() {
+  if (!_vpeState.lastPost) return;
+  navigator.clipboard.writeText(_vpeState.lastPost).then(function(){ emToast('✅ Copied to clipboard'); }).catch(function(){ emToast('⚠️ Could not copy'); });
+}
+
+function vpeRegenerate() { if (_vpeState.topic) vpeWrite(_vpeState.platform, _vpeState.topic); }
+
+async function vpeAdapt(platform) {
+  if (!_vpeState.lastPost) { emToast('⚠️ Generate a post first.', true); return; }
+  var rules = VPE_PLATFORM_RULES[platform]||'';
+  var contentEl = document.getElementById('vpe-post-content');
+  var labelEl   = document.getElementById('vpe-output-label');
+  var badgeEl   = document.getElementById('vpe-platform-badge');
+  var status    = document.getElementById('vpe-gen-status');
+  if (status) { status.style.display='block'; status.textContent='Adapting for '+VPE_PLATFORM_LABELS[platform]+'…'; }
+  try {
+    var resp = await fetch(window.location.origin+'/api/claude', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:2000, messages:[{role:'user',content:'Reformat and rewrite this content for '+VPE_PLATFORM_LABELS[platform]+'.\n\nPLATFORM RULES:\n'+rules+'\n\nORIGINAL:\n'+_vpeState.lastPost+'\n\nKeep the core message. Adapt format, tone and length. Return only the adapted post.'}] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    _vpeState.lastPost = text;
+    _vpeState.platform = platform;
+    if (contentEl) contentEl.textContent = text;
+    if (labelEl)   labelEl.textContent   = VPE_PLATFORM_LABELS[platform];
+    if (badgeEl)   badgeEl.innerHTML     = '<span style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 10px;color:var(--teal);font-weight:700">'+platform.toUpperCase()+'</span>';
+    var rulesText = document.getElementById('vpe-rules-text');
+    if (rulesText) rulesText.textContent = rules;
+    vpeImageSuggestions(_vpeState.topic, platform);
+    if (status) { status.textContent='✅ Adapted for '+VPE_PLATFORM_LABELS[platform]; setTimeout(function(){ status.style.display='none'; },2500); }
+  } catch(e) {
+    if (status) { status.textContent='⚠️ Could not adapt post.'; }
+  }
+}
+
+window.vpeFindQuestions  = vpeFindQuestions;
+window.vpeSelectQuestion = vpeSelectQuestion;
+window.vpeSetPlatform    = vpeSetPlatform;
+window.vpeGenerate       = vpeGenerate;
+window.vpeCopy           = vpeCopy;
+window.vpeRegenerate     = vpeRegenerate;
+window.vpeAdapt          = vpeAdapt;
+</script>
 </body>
 </html>
