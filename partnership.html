@@ -371,15 +371,23 @@ function submitOptin() {
   btn.textContent  = '⏳ Unlocking your video…';
   btn.disabled     = true;
 
-  // Save lead to Firestore via existing API
-  fetch('/api/funnel-lead', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: name, email: email, source: 'partnership-optin', page: 'partnership' })
-  }).catch(function(){});
+  // Save lead — retry up to 3 times silently so no lead is ever lost
+  function saveLead(attempt) {
+    fetch('/api/funnel-lead', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name, email: email, source: 'partnership-optin', page: 'partnership' })
+    }).then(function(r) {
+      if (!r.ok && attempt < 3) setTimeout(function(){ saveLead(attempt + 1); }, 1500);
+    }).catch(function() {
+      if (attempt < 3) setTimeout(function(){ saveLead(attempt + 1); }, 1500);
+      else console.warn('[EOS] Lead save failed after 3 attempts — email:', email);
+    });
+  }
+  saveLead(1);
 
+  // Unlock the page immediately — don't wait for API
   setTimeout(function() {
-    // Hide gate, show hero + video
     document.getElementById('optin-popup').style.display  = 'none';
     document.getElementById('optin-gate').style.display   = 'none';
     document.getElementById('main-content').style.display = 'block';
