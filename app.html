@@ -2840,6 +2840,9 @@ button[onclick="generateOffer()"] {
 }
 .em-tab:hover { border-color:rgba(78,204,163,.3); color:var(--teal); }
 .em-tab.on { background:rgba(78,204,163,.1); border-color:rgba(78,204,163,.3); color:var(--teal); }
+.em-seg-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s; }
+.em-seg-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
+.em-seg-active { background:rgba(78,204,163,.1) !important;border-color:rgba(78,204,163,.3) !important;color:var(--teal) !important; }
 
 /* Contact table */
 .em-table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -8038,6 +8041,7 @@ button[onclick="generateOffer()"] {
       <button class="em-tab" onclick="emTab(this,'sequences')" id="em-tab-sequences">🔄 Sequences</button>
       <button class="em-tab" onclick="emTab(this,'templates')" id="em-tab-templates">📋 Templates</button>
       <button class="em-tab" onclick="emTab(this,'settings')" id="em-tab-settings">⚙️ Settings</button>
+      <button class="em-tab" onclick="emTab(this,'broadcast')" id="em-tab-broadcast">📡 Broadcast</button>
     </div>
 
     <!-- ── CAMPAIGNS TAB ── -->
@@ -8285,6 +8289,44 @@ button[onclick="generateOffer()"] {
         <button onclick="emSaveTrigger()" style="margin-top:14px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 20px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">Save Trigger Settings</button>
       </div>
 
+    </div>
+
+    <!-- ── BROADCAST TAB ── -->
+    <div id="em-view-broadcast" style="display:none">
+      <div style="margin-bottom:var(--sp-5)">
+        <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">📡 Send Broadcast</div>
+        <div style="font-size:13px;color:var(--dim)">Send a one-time email to your entire list or a specific segment.</div>
+      </div>
+
+      <!-- Audience selector -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Audience</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="emBroadcastSegment(this,'all')" class="em-seg-btn em-seg-active">All Contacts</button>
+          <button onclick="emBroadcastSegment(this,'partnership-optin')" class="em-seg-btn">Partnership Leads</button>
+          <button onclick="emBroadcastSegment(this,'platform')" class="em-seg-btn">Platform Leads</button>
+        </div>
+        <div style="margin-top:12px;font-size:12px;color:var(--teal);font-weight:700" id="em-broadcast-count">Loading contacts…</div>
+      </div>
+
+      <!-- Compose area -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Email</div>
+        <input id="em-broadcast-subject" class="fi" placeholder="Subject line…" style="margin-bottom:12px;font-size:14px;font-weight:700">
+        <textarea id="em-broadcast-body" placeholder="Write your email here…" style="width:100%;min-height:220px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 16px;font-size:13px;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.8;resize:vertical;outline:none" onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+      </div>
+
+      <!-- Send button -->
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <button onclick="emSendBroadcast()" id="em-broadcast-send-btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:14px 32px;color:var(--text-dark);font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">📡 Send Broadcast</button>
+        <div id="em-broadcast-status" style="font-size:13px;color:var(--dim)"></div>
+      </div>
+
+      <!-- Sent history -->
+      <div style="margin-top:32px">
+        <div style="font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Sent History</div>
+        <div id="em-broadcast-history"><div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div></div>
+      </div>
     </div>
 
     <!-- ── COMPOSE VIEW (overlays tabs) ── -->
@@ -30966,7 +31008,127 @@ async function fbDeleteFunnel(id, event) {
 var emState = {tab:'campaigns',campaigns:[],contacts:[],sequences:[],sender:{name:'',email:''},composing:null,sequenceLive:false,connectedFunnel:'',trigger:'optin'};
 
 function emShowSettings(){var t=document.getElementById('em-tab-settings');if(t)emTab(t,'settings');}
-function emTab(el,tab){document.querySelectorAll('.em-tab').forEach(function(t){t.classList.remove('on');});if(el)el.classList.add('on');emState.tab=tab;['campaigns','contacts','sequences','templates','settings','compose'].forEach(function(v){var e=document.getElementById('em-view-'+v);if(e)e.style.display='none';});var a=document.getElementById('em-view-'+tab);if(a)a.style.display='block';if(tab==='contacts')emLoadContacts();if(tab==='templates')emRenderTemplates();if(tab==='settings')emLoadSettings();if(tab==='sequences')emLoadSequences();}
+
+// ── BROADCAST ─────────────────────────────────────────────────────────────────
+var emBroadcastState = { segment: 'all', contacts: [] };
+
+function emBroadcastSegment(el, seg) {
+  emBroadcastState.segment = seg;
+  document.querySelectorAll('.em-seg-btn').forEach(function(b){ b.classList.remove('em-seg-active'); });
+  if (el) el.classList.add('em-seg-active');
+  emBroadcastLoadCount();
+}
+
+async function emBroadcastLoadCount() {
+  var countEl = document.getElementById('em-broadcast-count');
+  if (!countEl) return;
+  countEl.textContent = 'Loading…';
+  var uid = window._currentUserUid;
+  var contacts = [];
+  if (uid && window._db && window._getDocs && window._collection) {
+    try {
+      var s = await window._getDocs(window._collection(window._db, 'leads'));
+      s.forEach(function(d){ var data = d.data ? d.data() : d; if (data && data.email) contacts.push(data); });
+    } catch(e) {}
+    try {
+      var s2 = await window._getDocs(window._collection(window._db, 'users', uid, 'leads'));
+      s2.forEach(function(d){ var data = d.data ? d.data() : d; if (data && data.email && !contacts.find(function(c){ return c.email === data.email; })) contacts.push(data); });
+    } catch(e) {}
+  }
+  var seg = emBroadcastState.segment;
+  var filtered = seg === 'all' ? contacts : contacts.filter(function(c){ return (c.source || '').includes(seg); });
+  emBroadcastState.contacts = filtered;
+  countEl.textContent = filtered.length + ' contact' + (filtered.length !== 1 ? 's' : '') + ' will receive this email';
+}
+
+async function emSendBroadcast() {
+  var subject = (document.getElementById('em-broadcast-subject') || {}).value || '';
+  var body    = (document.getElementById('em-broadcast-body') || {}).value || '';
+  var statusEl = document.getElementById('em-broadcast-status');
+  var btn      = document.getElementById('em-broadcast-send-btn');
+
+  if (!subject.trim()) { if (statusEl) statusEl.textContent = '⚠️ Please enter a subject line.'; return; }
+  if (!body.trim())    { if (statusEl) statusEl.textContent = '⚠️ Please write your email.'; return; }
+
+  var contacts = emBroadcastState.contacts;
+  if (!contacts.length) { if (statusEl) statusEl.textContent = '⚠️ No contacts in this segment.'; return; }
+
+  // Get sender info
+  var fromName  = (emState.sender && emState.sender.name)  || 'Execution OS';
+  var fromEmail = (emState.sender && emState.sender.email) || '';
+  var apiKey    = emState.resendKey || '';
+
+  if (!fromEmail || !apiKey) {
+    if (statusEl) statusEl.textContent = '⚠️ Connect your email in Settings first.';
+    emShowSettings();
+    return;
+  }
+
+  if (!confirm('Send to ' + contacts.length + ' contact(s)? This cannot be undone.')) return;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Sending…';
+  if (statusEl) statusEl.textContent = '';
+
+  var sent = 0; var failed = 0;
+  for (var i = 0; i < contacts.length; i++) {
+    var c = contacts[i];
+    var personalBody = body.replace(/\{\{name\}\}/gi, c.name || 'there').replace(/\{\{first_name\}\}/gi, (c.name || 'there').split(' ')[0]);
+    try {
+      var resp = await fetch('/api/email-setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'send', apiKey: apiKey, from: fromName + ' <' + fromEmail + '>', to: c.email, subject: subject, text: personalBody })
+      });
+      if (resp.ok) sent++; else failed++;
+    } catch(e) { failed++; }
+    if (statusEl) statusEl.textContent = 'Sending… ' + (i + 1) + ' / ' + contacts.length;
+  }
+
+  // Log to Firestore
+  var uid = window._currentUserUid;
+  if (uid && window._db && window._doc && window._setDoc) {
+    try {
+      var logId = 'broadcast_' + Date.now();
+      await window._setDoc(window._doc(window._db, 'users', uid, 'broadcasts', logId), {
+        subject: subject, segment: emBroadcastState.segment,
+        sent: sent, failed: failed, total: contacts.length, sentAt: Date.now()
+      });
+    } catch(e) {}
+  }
+
+  btn.disabled = false;
+  btn.textContent = '📡 Send Broadcast';
+  if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✓ Done — ' + sent + ' sent' + (failed ? ', ' + failed + ' failed' : '') + '</span>';
+
+  // Clear fields
+  document.getElementById('em-broadcast-subject').value = '';
+  document.getElementById('em-broadcast-body').value    = '';
+
+  emBroadcastLoadHistory();
+}
+
+async function emBroadcastLoadHistory() {
+  var el = document.getElementById('em-broadcast-history');
+  if (!el) return;
+  var uid = window._currentUserUid;
+  if (!uid || !window._db || !window._getDocs || !window._collection) return;
+  try {
+    var snap = await window._getDocs(window._collection(window._db, 'users', uid, 'broadcasts'));
+    var rows = [];
+    snap.forEach(function(d){ rows.push(d.data ? d.data() : d); });
+    rows.sort(function(a,b){ return b.sentAt - a.sentAt; });
+    if (!rows.length) { el.innerHTML = '<div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div>'; return; }
+    el.innerHTML = '<table class="em-table"><thead><tr><th>Subject</th><th>Segment</th><th>Sent</th><th>Date</th></tr></thead><tbody>'
+      + rows.slice(0,20).map(function(r){
+          return '<tr><td style="color:var(--white);font-weight:600">' + (r.subject||'—') + '</td>'
+               + '<td>' + (r.segment||'all') + '</td>'
+               + '<td><span style="color:var(--teal);font-weight:700">' + (r.sent||0) + '</span> / ' + (r.total||0) + '</td>'
+               + '<td>' + (r.sentAt ? new Date(r.sentAt).toLocaleDateString() : '—') + '</td></tr>';
+        }).join('') + '</tbody></table>';
+  } catch(e) {}
+}
+function emTab(el,tab){document.querySelectorAll('.em-tab').forEach(function(t){t.classList.remove('on');});if(el)el.classList.add('on');emState.tab=tab;['campaigns','contacts','sequences','templates','settings','compose','broadcast'].forEach(function(v){var e=document.getElementById('em-view-'+v);if(e)e.style.display='none';});var a=document.getElementById('em-view-'+tab);if(a)a.style.display='block';if(tab==='contacts')emLoadContacts();if(tab==='templates')emRenderTemplates();if(tab==='settings')emLoadSettings();if(tab==='sequences')emLoadSequences();if(tab==='broadcast'){emBroadcastLoadCount();emBroadcastLoadHistory();}}
 function emShowCompose(campaign){
   ['campaigns','contacts','sequences','templates','settings'].forEach(function(v){
     var e=document.getElementById('em-view-'+v);if(e)e.style.display='none';
