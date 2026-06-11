@@ -8200,7 +8200,7 @@ button[onclick="generateOffer()"] {
         </div>
         <div style="display:flex;gap:8px">
           <input id="em-broadcast-ai-prompt" class="fi" placeholder="Or describe what you want the email to do…" style="flex:1;font-size:13px">
-          <button onclick="emBroadcastAICustom()" style="background:linear-gradient(135deg,var(--gold),#d4a800);border:none;border-radius:var(--r-md);padding:10px 18px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap">✨ Write It</button>
+          <button onclick="emBroadcastAICustom()" style="background:linear-gradient(135deg,var(--gold),#d4a800);border:none;border-radius:var(--r-md);padding:10px 20px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;letter-spacing:.3px">✨ Write It</button>
         </div>
         <div id="em-broadcast-ai-status" style="font-size:12px;color:var(--teal);margin-top:8px;display:none">✨ Writing your email…</div>
       </div>
@@ -31212,10 +31212,10 @@ async function emRunBroadcastAI(prompt) {
   var statusEl = document.getElementById('em-broadcast-ai-status');
   if (statusEl) { statusEl.style.display = 'block'; statusEl.textContent = '✨ Writing your email…'; }
   try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+    var resp = await fetch(window.location.origin + '/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
     });
     var data = await resp.json();
     var text = (data.content || []).map(function(b){ return b.text || ''; }).join('').trim();
