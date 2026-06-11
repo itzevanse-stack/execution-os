@@ -1,8 +1,8 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
-import { Resend } from 'resend';
+import { getFirestore, FieldValue }      from 'firebase-admin/firestore';
+import { Resend }                         from 'resend';
 
-// Firebase init
+// ── Firebase init ─────────────────────────────────────────────────────────────
 if (!getApps().length) {
   initializeApp({
     credential: cert({
@@ -23,126 +23,176 @@ export default async function handler(req, res) {
 
   if (!name || !email) return res.status(400).json({ error: 'Name and email required' });
 
+  // Normalise email
+  const normEmail = email.toLowerCase().trim();
+
   try {
-    // 1. Save lead to Firestore
+    // ── Fix 7: Deduplicate — check if this email already opted in ─────────────
+    const existing = await db.collection('leads')
+      .where('email', '==', normEmail)
+      .limit(1)
+      .get();
+
+    if (!existing.empty) {
+      // Already in system — still unlock the page, just don't re-add or re-email
+      console.log(`[funnel-lead] Duplicate opt-in ignored: ${normEmail}`);
+      return res.status(200).json({ success: true, duplicate: true });
+    }
+
+    // ── 1. Save lead ──────────────────────────────────────────────────────────
     const leadRef = await db.collection('leads').add({
       name,
-      email,
+      email:     normEmail,
       source,
       page,
       createdAt: FieldValue.serverTimestamp(),
     });
 
-    // 2. Send Day 1 welcome email immediately
-    await resend.emails.send({
+    // ── 2. Send Day 1 welcome email immediately ───────────────────────────────
+    const emailResult = await resend.emails.send({
       from:    'Execution OS <hello@executionos.com>',
-      to:      email,
+      to:      normEmail,
       subject: `${name}, your free access is ready — watch this now`,
       html:    buildWelcomeEmail(name),
     });
 
-    // 3. Find any active sequences connected to this funnel/source
-    //    Sequences are stored under each user's emailMarketing data
-    //    We look for sequences where:
-    //    - sequenceLive === true
-    //    - connectedFunnel matches source or page
-    //    - OR connectedFunnel is empty (applies to all opt-ins)
-    await enqueueSequenceSteps({ name, email, source, page, leadId: leadRef.id, userId });
+    if (emailResult.error) {
+      console.error('[funnel-lead] Welcome email failed:', emailResult.error);
+      // Non-fatal — lead is saved, continue
+    }
+
+    // ── 3. Queue sequence follow-up emails ────────────────────────────────────
+    await enqueueSequenceSteps({
+      name,
+      email:  normEmail,
+      source,
+      page,
+      leadId: leadRef.id,
+      userId,
+    });
 
     return res.status(200).json({ success: true });
+
   } catch (err) {
     console.error('[funnel-lead] Error:', err);
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
 
-// ── Find active sequences and queue follow-up emails ─────────────────────────
+// ── Fix 1 + 9: Queue sequence steps — uses collectionGroup with proper error handling
+// Note: requires Firestore composite index on emailMarketing.sequenceLive (collection group)
+// Create at: Firebase Console → Firestore → Indexes → Add index:
+//   Collection ID: emailMarketing | Field: sequenceLive ASC | Scope: Collection group
 async function enqueueSequenceSteps({ name, email, source, page, leadId, userId }) {
   try {
-    // If userId is passed directly, only check that user's sequences
-    // Otherwise scan all users' emailMarketing for live sequences
-    // (platform owner is typically the only one with sequences set up)
-    const usersToCheck = [];
+    let usersToCheck = [];
 
     if (userId) {
       usersToCheck.push(userId);
     } else {
-      // Find users with live sequences — check emailMarketing subcollection
-      const snap = await db.collectionGroup('emailMarketing')
-        .where('sequenceLive', '==', true)
-        .limit(10)
-        .get()
-        .catch(() => null);
+      // ── Fix 1: collectionGroup query — requires Firestore index ──────────
+      // Index: Collection group "emailMarketing", field "sequenceLive" ASC
+      try {
+        const snap = await db.collectionGroup('emailMarketing')
+          .where('sequenceLive', '==', true)
+          .limit(20)
+          .get();
 
-      if (snap) {
         snap.forEach(doc => {
-          // doc.ref.parent.parent.id is the user UID
-          const uid = doc.ref.parent.parent?.id;
+          const uid = doc.ref.parent?.parent?.id;
           if (uid) usersToCheck.push(uid);
         });
+      } catch (indexErr) {
+        // Index not yet created — log clearly so it's easy to diagnose
+        if (indexErr.code === 9 || indexErr.message?.includes('index')) {
+          console.warn('[funnel-lead] Firestore index missing for collectionGroup query.');
+          console.warn('[funnel-lead] Create index: Collection group "emailMarketing", field "sequenceLive" ASC');
+          console.warn('[funnel-lead] Sequence queuing skipped — lead and welcome email saved successfully.');
+        } else {
+          console.error('[funnel-lead] collectionGroup error:', indexErr.message);
+        }
+        return; // Non-fatal
       }
     }
 
+    if (!usersToCheck.length) return;
+
     for (const uid of usersToCheck) {
       const emDoc = await db.doc(`users/${uid}/emailMarketing/data`).get().catch(() => null);
-      if (!emDoc || !emDoc.exists) continue;
+      if (!emDoc?.exists) continue;
 
-      const emData = emDoc.data();
-      if (!emData.sequenceLive) continue;
+      const emData    = emDoc.data();
+      if (!emData?.sequenceLive) continue;
 
-      const sequences = emData.sequences || [];
-      const sender    = emData.sender    || {};
+      const sequences       = emData.sequences || [];
+      const sender          = emData.sender    || {};
+      const connectedFunnel = emData.connectedFunnel || '';
+
+      // Check if this opt-in matches the connected funnel
+      const funnelMatches = !connectedFunnel ||
+        connectedFunnel === source ||
+        connectedFunnel === page   ||
+        source.includes(connectedFunnel) ||
+        page.includes(connectedFunnel);
+
+      if (!funnelMatches) continue;
+
+      // ── Fix 4: Warn clearly if no sender email configured ─────────────────
+      if (!sender.email) {
+        console.warn(`[funnel-lead] User ${uid} has sequenceLive=true but no sender email configured.`);
+        console.warn('[funnel-lead] Sequence emails will fall back to platform Resend key and sender.');
+      }
+
+      // ── Fix 4: Use user's key if available, fall back to platform key ─────
+      const resendKey   = sender.resendApiKey || process.env.RESEND_API_KEY || '';
+      const senderName  = sender.name  || 'Execution OS';
+      const senderEmail = sender.email || 'hello@executionos.com';
+
+      if (!resendKey) {
+        console.error(`[funnel-lead] No Resend key available for user ${uid} — sequence skipped`);
+        continue;
+      }
 
       for (const seq of sequences) {
-        if (!seq.live && !emData.sequenceLive) continue;
-
-        // Check if this sequence applies to this opt-in
-        const connectedFunnel = emData.connectedFunnel || '';
-        const funnelMatches   = !connectedFunnel ||
-                                connectedFunnel === source ||
-                                connectedFunnel === page ||
-                                source.includes(connectedFunnel) ||
-                                page.includes(connectedFunnel);
-
-        if (!funnelMatches) continue;
-
         const emails = seq.emails || [];
         const now    = Date.now();
 
-        // Queue each email step (skip Day 1 / step 0 — already sent as welcome)
         for (let i = 0; i < emails.length; i++) {
-          const step     = emails[i];
-          const delayMs  = parseDayDelay(step.delay || step.day || (i === 0 ? 0 : i * 3)) * 86400000;
+          const step    = emails[i];
+          const delayMs = parseDayDelay(step.delay || step.day || (i === 0 ? 0 : i * 3)) * 86400000;
 
-          // Skip immediate step — welcome email already sent above
+          // Skip step 0 / immediate — welcome email already sent
           if (delayMs === 0) continue;
 
-          const sendAt = now + delayMs;
+          // ── Fix 9: Use sequenceId consistently from seq.id only ──────────
+          const sequenceId = seq.id || seq.name || `seq_${uid}_${i}`;
 
           await db.collection('sequence_queue').add({
             leadId,
             leadName:    name,
             leadEmail:   email,
             userId:      uid,
-            sequenceId:  seq.id || seq.name || 'default',
+            sequenceId,
             stepIndex:   i,
-            stepSubject: step.subject || `Follow-up from Execution OS`,
-            stepBody:    step.body    || step.html || '',
-            senderName:  sender.name  || 'Execution OS',
-            senderEmail: sender.email || 'hello@executionos.com',
-            resendKey:   sender.resendApiKey || process.env.RESEND_API_KEY || '',
-            sendAt,
+            stepSubject: step.subject || `A message from Execution OS`,
+            stepBody:    step.body    || step.html || step.text || '',
+            senderName,
+            senderEmail,
+            resendKey,
+            sendAt:      now + delayMs,
             status:      'pending',
             createdAt:   FieldValue.serverTimestamp(),
             source,
             page,
           });
+
+          console.log(`[funnel-lead] Queued step ${i} for ${email} — sends in ${delayMs/86400000} days`);
         }
       }
     }
   } catch (err) {
-    // Non-fatal — lead and welcome email already saved
-    console.error('[funnel-lead] Sequence queue error:', err.message);
+    // Non-fatal — lead and welcome email already committed
+    console.error('[funnel-lead] Sequence queue error (non-fatal):', err.message);
   }
 }
 
@@ -155,7 +205,7 @@ function parseDayDelay(val) {
   return parseInt(str) || 1;
 }
 
-// ── Welcome email (Day 1) ─────────────────────────────────────────────────────
+// ── Day 1 welcome email ───────────────────────────────────────────────────────
 function buildWelcomeEmail(name) {
   return `<!DOCTYPE html>
 <html>
@@ -174,7 +224,7 @@ function buildWelcomeEmail(name) {
 
     <div style="background:#111111;border:1px solid rgba(245,200,66,.2);border-radius:20px;padding:40px 36px;text-align:center;">
 
-      <div style="width:56px;height:56px;background:rgba(245,200,66,.1);border:2px solid rgba(245,200,66,.3);border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;font-size:24px;line-height:56px;">
+      <div style="width:56px;height:56px;background:rgba(245,200,66,.1);border:2px solid rgba(245,200,66,.3);border-radius:50%;margin:0 auto 20px;line-height:56px;font-size:24px;text-align:center;">
         🎬
       </div>
 
@@ -187,19 +237,25 @@ function buildWelcomeEmail(name) {
       </p>
 
       <p style="font-size:15px;color:rgba(255,255,255,.6);line-height:1.8;margin:0 0 10px;">
-        Right now, while you're reading this, ordinary people — people with no experience, no tech skills, no audience — are waking up to $1,000 days using the exact system in this video.
+        Right now, while you're reading this, ordinary people — people with no experience, no tech skills,
+        no audience — are waking up to $1,000 days using the exact system in this video.
       </p>
 
       <p style="font-size:15px;color:rgba(255,255,255,.6);line-height:1.8;margin:0 0 28px;">
-        Not because they're special. Because they watched the video and <strong style="color:#ffffff;">did something about it.</strong>
+        Not because they're special. Because they watched the video and
+        <strong style="color:#ffffff;">did something about it.</strong>
       </p>
 
-      <a href="https://build.skillslibrary.com/partnership" style="display:inline-block;background:linear-gradient(135deg,#F5C842,#f59e0b);color:#080808;font-size:16px;font-weight:900;padding:18px 48px;border-radius:12px;text-decoration:none;letter-spacing:.02em;margin-bottom:20px;">
+      <a href="https://build.skillslibrary.com/partnership"
+         style="display:inline-block;background:linear-gradient(135deg,#F5C842,#f59e0b);color:#080808;
+                font-size:16px;font-weight:900;padding:18px 48px;border-radius:12px;
+                text-decoration:none;letter-spacing:.02em;margin-bottom:20px;">
         Watch The Free Video Now →
       </a>
 
       <p style="font-size:13px;color:rgba(255,255,255,.3);margin:0 0 28px;line-height:1.6;">
-        The video is free. It's waiting for you.<br>The only question is whether you'll watch it.
+        The video is free. It's waiting for you.<br>
+        The only question is whether you'll watch it.
       </p>
 
       <div style="border-top:1px solid rgba(255,255,255,.07);margin:0 0 24px;"></div>
