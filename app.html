@@ -8039,6 +8039,42 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
+      <!-- ── PAYMENT WEBHOOK SETTINGS — Expert Mode sales tracking ── -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:14px" id="fb-payment-tracking">
+        <div style="font-size:14px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">📊 Sales Tracking</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Connect your payment processor so every sale automatically appears in your analytics dashboard.</div>
+
+        <!-- Stripe webhook secret -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Stripe Webhook Secret</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.6">
+            1. Go to <a href="https://dashboard.stripe.com/webhooks" target="_blank" style="color:var(--teal)">Stripe → Developers → Webhooks</a><br>
+            2. Add endpoint: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:10px">https://build.skillslibry.com/api/stripe-webhook</code><br>
+            3. Select events: <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:10px">payment_intent.succeeded</code> and <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:10px">checkout.session.completed</code><br>
+            4. Copy the signing secret and paste below
+          </div>
+          <div style="display:flex;gap:8px">
+            <input id="fb-stripe-webhook-secret" class="fi" placeholder="whsec_..." type="password" style="flex:1;font-size:13px">
+            <button onclick="fbSaveStripeWebhook()" style="background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);padding:10px 16px;color:#fff;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800;white-space:nowrap">Save →</button>
+          </div>
+          <div id="fb-stripe-webhook-status" style="font-size:11px;color:var(--dim);margin-top:6px"></div>
+        </div>
+
+        <!-- CopeCart webhook for Expert Mode -->
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">CopeCart Webhook (optional)</div>
+          <div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.6">
+            If you sell via CopeCart, add this webhook URL in your CopeCart product settings:<br>
+            <code style="background:var(--bg3);padding:4px 8px;border-radius:4px;font-size:10px;display:inline-block;margin-top:4px">https://build.skillslibry.com/api/copecart-webhook</code>
+          </div>
+          <div style="display:flex;gap:8px">
+            <input id="fb-copecart-secret" class="fi" placeholder="Your CopeCart HMAC secret" type="password" style="flex:1;font-size:13px">
+            <button onclick="fbSaveCopecartSecret()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 16px;color:var(--text-dark);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:800;white-space:nowrap">Save →</button>
+          </div>
+          <div id="fb-copecart-status" style="font-size:11px;color:var(--dim);margin-top:6px"></div>
+        </div>
+      </div>
+
       <!-- Email capture toggle -->
       <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:var(--sp-5)">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
@@ -30234,6 +30270,60 @@ function fbShowStripeManual() {
   }
 }
 
+
+// ── Expert Mode payment webhook settings ──────────────────────────────────────
+async function fbSaveStripeWebhook() {
+  var secret = (document.getElementById('fb-stripe-webhook-secret')||{}).value || '';
+  var statusEl = document.getElementById('fb-stripe-webhook-status');
+  if (!secret.startsWith('whsec_')) { if (statusEl) statusEl.textContent = '⚠️ Must start with whsec_'; return; }
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) { if (statusEl) statusEl.textContent = '⚠️ Not logged in'; return; }
+  try {
+    await window._setDoc(window._doc(window._db,'users',uid,'settings','payments'), { stripeWebhookSecret: secret, stripeConnected: true, updatedAt: Date.now() }, { merge: true });
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Saved — sales will now track automatically</span>';
+    document.getElementById('fb-stripe-webhook-secret').value = '••••••••••••••••••••';
+  } catch(e) { if (statusEl) statusEl.textContent = '⚠️ Could not save: ' + e.message; }
+}
+
+async function fbSaveCopecartSecret() {
+  var secret = (document.getElementById('fb-copecart-secret')||{}).value || '';
+  var statusEl = document.getElementById('fb-copecart-status');
+  if (!secret) { if (statusEl) statusEl.textContent = '⚠️ Enter your CopeCart HMAC secret'; return; }
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) { if (statusEl) statusEl.textContent = '⚠️ Not logged in'; return; }
+  try {
+    await window._setDoc(window._doc(window._db,'users',uid,'settings','payments'), { copecartSecret: secret, copecartConnected: true, updatedAt: Date.now() }, { merge: true });
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Saved — CopeCart sales will now track automatically</span>';
+    document.getElementById('fb-copecart-secret').value = '••••••••••••••••••••';
+  } catch(e) { if (statusEl) statusEl.textContent = '⚠️ Could not save: ' + e.message; }
+}
+
+// Load saved webhook settings on funnel builder init
+async function fbLoadPaymentSettings() {
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) return;
+  try {
+    var snap = await window._getDoc(window._doc(window._db,'users',uid,'settings','payments'));
+    if (!snap || !snap.exists || !snap.exists()) return;
+    var data = snap.data ? snap.data() : {};
+    if (data.stripeConnected) {
+      var stripeStatusEl = document.getElementById('fb-stripe-webhook-status');
+      if (stripeStatusEl) stripeStatusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Stripe webhook connected</span>';
+      var secretEl = document.getElementById('fb-stripe-webhook-secret');
+      if (secretEl) secretEl.value = '••••••••••••••••••••';
+    }
+    if (data.copecartConnected) {
+      var ccStatusEl = document.getElementById('fb-copecart-status');
+      if (ccStatusEl) ccStatusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ CopeCart webhook connected</span>';
+      var ccEl = document.getElementById('fb-copecart-secret');
+      if (ccEl) ccEl.value = '••••••••••••••••••••';
+    }
+  } catch(e) {}
+}
+window.fbSaveStripeWebhook  = fbSaveStripeWebhook;
+window.fbSaveCopecartSecret = fbSaveCopecartSecret;
+window.fbLoadPaymentSettings = fbLoadPaymentSettings;
+
 function fbSaveStripeKey() {
   var key = document.getElementById('fb-stripe-key') && document.getElementById('fb-stripe-key').value.trim();
   if (!key || !key.startsWith('pk_')) { alert('Please enter a valid Stripe Publishable Key starting with pk_'); return; }
@@ -31408,16 +31498,58 @@ function anTimeAgo(ts) {
 
 async function dbAnLoad() {
   if (!window._db || !window._currentUserUid) return;
-  var uid = window._currentUserUid;
+  var uid  = window._currentUserUid;
+  var mode = window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+
   try {
-    var results = await Promise.all([
-      window._getDocs(window._collection(window._db,'leads')).catch(function(){return{forEach:function(){}};}),
-      window._getDocs(window._collection(window._db,'users',uid,'broadcasts')).catch(function(){return{forEach:function(){}};}),
-      window._getDocs(window._collection(window._db,'copecart_sales')).catch(function(){return{forEach:function(){}};}),
-    ]);
-    _dbAnLeads=[]; results[0].forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) _dbAnLeads.push(data); });
-    _dbAnBcasts=[]; results[1].forEach(function(d){ var data=d.data?d.data():d; _dbAnBcasts.push(data); });
-    _dbAnSales=[]; results[2].forEach(function(d){ var data=d.data?d.data():d; _dbAnSales.push(data); });
+    // ── Leads — same for both modes ───────────────────────────────────────
+    var leadsSnap = await window._getDocs(window._collection(window._db,'leads')).catch(function(){return{forEach:function(){}};});
+    _dbAnLeads = [];
+    leadsSnap.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) _dbAnLeads.push(data); });
+
+    // ── Broadcasts — same for both modes ─────────────────────────────────
+    var bcastSnap = await window._getDocs(window._collection(window._db,'users',uid,'broadcasts')).catch(function(){return{forEach:function(){}};});
+    _dbAnBcasts = [];
+    bcastSnap.forEach(function(d){ var data=d.data?d.data():d; _dbAnBcasts.push(data); });
+
+    // ── Sales — mode-specific ─────────────────────────────────────────────
+    _dbAnSales = [];
+    if (mode === 'expert') {
+      // Expert Mode: read from users/{uid}/sales (Stripe + CopeCart expert sales)
+      var expertSalesSnap = await window._getDocs(
+        window._collection(window._db,'users',uid,'sales')
+      ).catch(function(){return{forEach:function(){}};});
+      expertSalesSnap.forEach(function(d){ var data=d.data?d.data():d; _dbAnSales.push(data); });
+
+      // Also check platform_sales filtered by userId
+      var platformSnap = await window._getDocs(
+        window._collection(window._db,'platform_sales')
+      ).catch(function(){return{forEach:function(){}};});
+      platformSnap.forEach(function(d){
+        var data=d.data?d.data():d;
+        if (data && data.userId === uid) {
+          // Avoid duplicates
+          if (!_dbAnSales.find(function(s){ return s.paymentId === data.paymentId; })) {
+            _dbAnSales.push(data);
+          }
+        }
+      });
+    } else {
+      // Affiliate Mode: read from copecart_sales filtered by affiliate
+      var copecartSnap = await window._getDocs(
+        window._collection(window._db,'copecart_sales')
+      ).catch(function(){return{forEach:function(){}};});
+      var userEmail = (window._currentUserEmail || '').toLowerCase();
+      copecartSnap.forEach(function(d){
+        var data=d.data?d.data():d;
+        if (!data) return;
+        // Show all if admin, or filter to affiliate's own sales
+        if (!userEmail || data.affiliateEmail === userEmail || data.buyerEmail === userEmail) {
+          _dbAnSales.push(data);
+        }
+      });
+    }
+
     dbAnRender();
   } catch(e) { console.error('[DB Analytics]',e); }
 }
