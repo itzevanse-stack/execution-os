@@ -8040,8 +8040,8 @@ button[onclick="generateOffer()"] {
       <button class="em-tab" onclick="emTab(this,'contacts')" id="em-tab-contacts">👥 Contacts</button>
       <button class="em-tab" onclick="emTab(this,'sequences')" id="em-tab-sequences">🔄 Sequences</button>
       <button class="em-tab" onclick="emTab(this,'templates')" id="em-tab-templates">📋 Templates</button>
-      <button class="em-tab" onclick="emTab(this,'settings')" id="em-tab-settings">⚙️ Settings</button>
       <button class="em-tab" onclick="emTab(this,'broadcast')" id="em-tab-broadcast">📡 Broadcast</button>
+      <button class="em-tab" onclick="emTab(this,'settings')" id="em-tab-settings">⚙️ Settings</button>
     </div>
 
     <!-- ── CAMPAIGNS TAB ── -->
@@ -31056,7 +31056,7 @@ async function emSendBroadcast() {
   // Get sender info
   var fromName  = (emState.sender && emState.sender.name)  || 'Execution OS';
   var fromEmail = (emState.sender && emState.sender.email) || '';
-  var apiKey    = emState.resendKey || '';
+  var apiKey    = (emState.sender && emState.sender.resendApiKey) || '';
 
   if (!fromEmail || !apiKey) {
     if (statusEl) statusEl.textContent = '⚠️ Connect your email in Settings first.';
@@ -31616,18 +31616,66 @@ function emLoadSettings() {
   var nameEl  = document.getElementById('em-sender-name');
   var emailEl = document.getElementById('em-sender-email');
   var keyEl   = document.getElementById('em-resend-key');
+  var domainInput = document.getElementById('em-domain-input');
+
   if (nameEl  && sender.name)           nameEl.value  = sender.name;
   if (emailEl && sender.email)          emailEl.value = sender.email;
   if (keyEl   && sender.resendApiKey)   keyEl.value   = sender.resendApiKey;
-  // Show connection status
-  var statusEl = document.getElementById('em-resend-status');
-  if (statusEl) {
-    if (sender.resendApiKey) {
-      statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Resend connected</span>';
+  if (domainInput && sender.domain)     domainInput.value = sender.domain;
+
+  // Toggle Resend connected/disconnected panels
+  var setupEl     = document.getElementById('em-resend-setup');
+  var connectedEl = document.getElementById('em-resend-connected');
+  var badgeEl     = document.getElementById('em-resend-status-badge');
+  if (sender.resendApiKey) {
+    if (setupEl)     setupEl.style.display     = 'none';
+    if (connectedEl) connectedEl.style.display = 'block';
+    if (badgeEl)     badgeEl.innerHTML = '<span style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:100px;padding:4px 12px;font-size:11px;font-weight:700;color:var(--teal)">✅ Connected</span>';
+  } else {
+    if (setupEl)     setupEl.style.display     = 'block';
+    if (connectedEl) connectedEl.style.display = 'none';
+    if (badgeEl)     badgeEl.innerHTML = '';
+  }
+
+  // Toggle domain verified panel
+  var dnsRecordsEl  = document.getElementById('em-dns-records');
+  var domVerifiedEl = document.getElementById('em-domain-verified');
+  var verifiedNameEl = document.getElementById('em-verified-domain-name');
+  if (sender.domainVerified && sender.domain) {
+    if (dnsRecordsEl)   dnsRecordsEl.style.display   = 'none';
+    if (domVerifiedEl)  domVerifiedEl.style.display  = 'block';
+    if (verifiedNameEl) verifiedNameEl.textContent   = sender.domain;
+  } else if (sender.domain) {
+    if (domainInput) domainInput.value = sender.domain;
+  }
+
+  // Sender status
+  var senderStatusEl = document.getElementById('em-sender-status');
+  if (senderStatusEl) {
+    if (sender.name && sender.email) {
+      senderStatusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Sending as ' + sender.name + ' &lt;' + sender.email + '&gt;</span>';
     } else {
-      statusEl.innerHTML = '<span style="color:var(--dim)">Not connected — add your Resend API key below to send emails</span>';
+      senderStatusEl.innerHTML = '';
     }
   }
+
+  // Funnel select
+  var funnelEl = document.getElementById('em-funnel-select');
+  if (funnelEl && emState.connectedFunnel) funnelEl.value = emState.connectedFunnel;
+
+  // Trigger select
+  var triggerEl = document.getElementById('em-trigger-select');
+  if (triggerEl && emState.trigger) triggerEl.value = emState.trigger;
+
+  // Sequence live checkbox
+  var seqLiveEl = document.getElementById('em-sequence-live');
+  if (seqLiveEl) seqLiveEl.checked = !!emState.sequenceLive;
+
+  // Update preview footer
+  var fn = document.getElementById('em-footer-name');
+  var fe = document.getElementById('em-footer-email');
+  if (fn) fn.textContent = (emState.sender && emState.sender.name)  || 'Your Name';
+  if (fe) fe.textContent = (emState.sender && emState.sender.email) || 'your@email.com';
 }
 
 function emSaveSender() {
@@ -31663,27 +31711,88 @@ function emDisconnectResend() {
 }
 
 function emAddDomain() {
-  var domain = prompt('Enter your sending domain (e.g. yourbrand.com):');
-  if (!domain) return;
+  var inputEl = document.getElementById('em-domain-input');
+  var domain = inputEl ? inputEl.value.trim() : '';
+  if (!domain) { emToast('⚠️ Enter your domain first.', true); return; }
   if (!emState.sender) emState.sender = {};
   emState.sender.domain = domain.toLowerCase().replace(/^https?:\/\//,'');
   emSave();
-  emToast('✅ Domain "'+emState.sender.domain+'" added — verify it in Resend dashboard');
+  var apiKey = emState.sender.resendApiKey;
+  if (!apiKey) { emToast('⚠️ Connect your Resend API key first.', true); return; }
+  var addBtn = document.querySelector('button[onclick="emAddDomain()"]');
+  if (addBtn) { addBtn.textContent = 'Adding…'; addBtn.disabled = true; }
+  fetch('/api/email-setup', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'add-domain', apiKey: apiKey, domain: emState.sender.domain })
+  }).then(function(r){ return r.json(); }).then(function(data) {
+    if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
+    if (data.error) { emToast('⚠️ ' + data.error, true); return; }
+    emState.sender.domainId = data.domainId;
+    emSave();
+    var dnsEl = document.getElementById('em-dns-records');
+    var tbody = document.getElementById('em-dns-tbody');
+    if (dnsEl) dnsEl.style.display = 'block';
+    if (tbody && data.records) {
+      tbody.innerHTML = data.records.map(function(r){
+        var safeVal = (r.value||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+        return '<tr><td style="padding:8px 12px;color:var(--muted)">'+(r.type||'')+'</td>'
+             + '<td style="padding:8px 12px;color:var(--white);font-family:monospace;font-size:11px">'+(r.name||'')+'</td>'
+             + '<td style="padding:8px 12px;color:var(--muted);font-family:monospace;font-size:10px;word-break:break-all">'+(r.value||'')+'</td>'
+             + '<td style="padding:8px 12px"><button onclick="navigator.clipboard.writeText(\''+safeVal+'\');emToast(\'Copied\')" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:4px 10px;color:var(--teal);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:700">Copy</button></td></tr>';
+      }).join('');
+    }
+    emToast('✅ Domain added — add the DNS records below to verify');
+  }).catch(function() {
+    if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
+    emToast('⚠️ Could not reach Resend. Check your API key.', true);
+  });
 }
 
 function emChangeDomain() {
-  emAddDomain();
+  var dnsEl = document.getElementById('em-dns-records');
+  var verEl = document.getElementById('em-domain-verified');
+  if (dnsEl) dnsEl.style.display = 'none';
+  if (verEl) verEl.style.display = 'none';
+  var inputEl = document.getElementById('em-domain-input');
+  if (inputEl && emState.sender && emState.sender.domain) inputEl.value = emState.sender.domain;
 }
 
 function emVerifyDomain() {
-  var domain = emState.sender && emState.sender.domain;
+  var domain   = emState.sender && emState.sender.domain;
+  var domainId = emState.sender && emState.sender.domainId;
+  var apiKey   = emState.sender && emState.sender.resendApiKey;
   if (!domain) { emToast('Add a domain first.', true); return; }
-  window.open('https://resend.com/domains', '_blank');
-  emToast('Opening Resend dashboard — verify DNS records there');
+  if (!apiKey) { emToast('Connect your Resend API key first.', true); return; }
+  var verBtn = document.querySelector('button[onclick="emVerifyDomain()"]');
+  if (verBtn) { verBtn.textContent = '🔍 Checking…'; verBtn.disabled = true; }
+  fetch('/api/email-setup', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'verify-domain', apiKey: apiKey, domain: domain, domainId: domainId })
+  }).then(function(r){ return r.json(); }).then(function(data) {
+    if (verBtn) { verBtn.textContent = '🔍 Verify Domain'; verBtn.disabled = false; }
+    var statusEl = document.getElementById('em-domain-verify-status');
+    if (data.verified) {
+      emState.sender.domainVerified = true;
+      emSave();
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✅ Verified — emails will land in primary inbox.</span>';
+      var dnsEl2 = document.getElementById('em-dns-records');
+      var verEl2 = document.getElementById('em-domain-verified');
+      var nameEl = document.getElementById('em-verified-domain-name');
+      if (dnsEl2) dnsEl2.style.display = 'none';
+      if (verEl2) verEl2.style.display = 'block';
+      if (nameEl) nameEl.textContent = domain;
+      emToast('✅ Domain verified!');
+    } else {
+      if (statusEl) statusEl.innerHTML = '<span style="color:#f59e0b;font-weight:700">⏳ ' + (data.reason || 'Not verified yet — DNS can take up to 48 hours.') + '</span>';
+    }
+  }).catch(function() {
+    if (verBtn) { verBtn.textContent = '🔍 Verify Domain'; verBtn.disabled = false; }
+    emToast('⚠️ Could not check domain status.', true);
+  });
 }
 
 function emSaveFunnelConnection() {
-  var funnelEl = document.getElementById('em-funnel-connect');
+  var funnelEl = document.getElementById('em-funnel-select');
   if (!emState) return;
   emState.connectedFunnel = funnelEl ? funnelEl.value : '';
   emSave();
@@ -31691,7 +31800,7 @@ function emSaveFunnelConnection() {
 }
 
 function emSaveTrigger() {
-  var triggerEl = document.getElementById('em-trigger-type');
+  var triggerEl = document.getElementById('em-trigger-select');
   if (!emState) return;
   emState.trigger = triggerEl ? triggerEl.value : 'optin';
   emSave();
