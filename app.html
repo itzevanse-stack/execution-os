@@ -2855,6 +2855,13 @@ button[onclick="generateOffer()"] {
 .vpe-q-card:hover { border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.04); }
 .vpe-q-card.selected { border-color:#F5C842;background:rgba(245,200,66,.06); }
 
+/* ── QUOTE CARD ──────────────────────────────────────────────── */
+.qc-type-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:7px 14px;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s; }
+.qc-type-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
+.qc-type-active { background:rgba(78,204,163,.1)!important;border-color:rgba(78,204,163,.3)!important;color:var(--teal)!important; }
+.qc-style-btn { transition:border-color .15s; }
+.qc-style-active { border-color:var(--teal)!important; }
+
 /* Contact table */
 .em-table { width:100%; border-collapse:collapse; font-size:13px; }
 .em-table th { text-align:left; padding:10px 14px; background:var(--bg3); color:var(--dim); font-weight:700; text-transform:uppercase; font-size:10px; letter-spacing:.8px; border-bottom:1px solid var(--border2); }
@@ -6657,6 +6664,11 @@ button[onclick="generateOffer()"] {
           <span style="font-size:14px">🔥</span> Value Post Engine
         </button>
 
+        <button class="cs-tab-btn" onclick="csShowTab('quote',this)"
+          style="display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:50px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);background:transparent;color:rgba(255,255,255,.45);letter-spacing:.2px">
+          <span style="font-size:14px">💬</span> Quote Card
+        </button>
+
       </div>
     </div>
 
@@ -7556,6 +7568,129 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
     </div><!-- /cs-tab-vpe -->
+
+    <!-- ══════════════════════════════════════════════════════════
+         QUOTE CARD TAB
+    ══════════════════════════════════════════════════════════ -->
+    <div id="cs-tab-quote" style="display:none">
+
+      <div style="text-align:center;margin-bottom:28px">
+        <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">💬 Quote Card Generator</div>
+        <div style="font-size:13px;color:var(--dim);max-width:520px;margin:0 auto">Generates viral quote cards tailored to your niche. Download and post to Facebook, Instagram or X.</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+        <!-- LEFT — Controls -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- Quote type -->
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 22px">
+            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Quote Type</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button onclick="qcSetType(this,'truth')"    class="qc-type-btn qc-type-active">💡 Hard Truth</button>
+              <button onclick="qcSetType(this,'motivate')" class="qc-type-btn">🔥 Motivational</button>
+              <button onclick="qcSetType(this,'money')"    class="qc-type-btn">💎 Value Drop</button>
+              <button onclick="qcSetType(this,'action')"   class="qc-type-btn">⚡ Take Action</button>
+              <button onclick="qcSetType(this,'story')"    class="qc-type-btn">📖 Personal Story</button>
+              <button onclick="qcSetType(this,'viral')"    class="qc-type-btn">🚀 Viral Hook</button>
+            </div>
+          </div>
+
+          <!-- Quote text -->
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 22px">
+            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Quote</div>
+            <div id="qc-gen-status" style="font-size:11px;color:var(--teal);margin-bottom:8px;display:none">✨ Writing your quote…</div>
+            <textarea id="qc-quote-text" placeholder="Generating your quote…" style="width:100%;min-height:100px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 14px;font-size:14px;font-weight:700;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.6;resize:none;outline:none" oninput="qcUpdateCard()" onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+            <button onclick="qcGenerate()" id="qc-gen-btn" style="width:100%;margin-top:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:12px;color:var(--text-dark);font-size:13px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif">⚡ Regenerate</button>
+          </div>
+
+          <!-- Profile -->
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 22px">
+            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Your Profile</div>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px">
+              <!-- Profile photo upload -->
+              <div style="position:relative;flex-shrink:0">
+                <div id="qc-avatar-preview" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;overflow:hidden;cursor:pointer;border:2px dashed rgba(78,204,163,.3)" onclick="document.getElementById('qc-photo-input').click()" title="Click to add photo">E</div>
+                <input type="file" id="qc-photo-input" accept="image/*" style="display:none" onchange="qcLoadPhoto(event)">
+                <div style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer" onclick="document.getElementById('qc-photo-input').click()">+</div>
+              </div>
+              <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+                <input id="qc-name"   class="fi" placeholder="Your Name"    style="font-size:13px" oninput="qcUpdateCard()">
+                <input id="qc-handle" class="fi" placeholder="@yourhandle" style="font-size:13px" oninput="qcUpdateCard()">
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--dim)">Click the avatar to upload your photo. Auto-filled from your profile.</div>
+          </div>
+
+          <!-- Background image -->
+          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 22px">
+            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Background</div>
+            <!-- Style buttons -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <button onclick="qcSetStyle(this,'dark')"    class="qc-style-btn qc-style-active" style="background:#000;border:2px solid var(--teal);border-radius:8px;width:36px;height:26px;cursor:pointer" title="Dark"></button>
+              <button onclick="qcSetStyle(this,'white')"   class="qc-style-btn" style="background:#fff;border:2px solid var(--border2);border-radius:8px;width:36px;height:26px;cursor:pointer" title="White"></button>
+              <button onclick="qcSetStyle(this,'teal')"    class="qc-style-btn" style="background:linear-gradient(135deg,#0a2a2a,#0d3d3d);border:2px solid var(--border2);border-radius:8px;width:36px;height:26px;cursor:pointer" title="Teal"></button>
+              <button onclick="qcSetStyle(this,'gold')"    class="qc-style-btn" style="background:linear-gradient(135deg,#1a1500,#2a2000);border:2px solid var(--border2);border-radius:8px;width:36px;height:26px;cursor:pointer" title="Gold"></button>
+              <button onclick="qcSetStyle(this,'purple')"  class="qc-style-btn" style="background:linear-gradient(135deg,#120a2a,#1a0d3d);border:2px solid var(--border2);border-radius:8px;width:36px;height:26px;cursor:pointer" title="Purple"></button>
+            </div>
+            <!-- Image upload -->
+            <div style="border:1px dashed rgba(78,204,163,.25);border-radius:var(--r-md);padding:12px;text-align:center;cursor:pointer;background:rgba(78,204,163,.03)" onclick="document.getElementById('qc-bg-input').click()">
+              <div id="qc-bg-label" style="font-size:12px;color:var(--dim)">🖼 Upload background image (optional)</div>
+              <div style="font-size:10px;color:var(--dimmer);margin-top:4px">JPG, PNG · Image will be darkened automatically</div>
+            </div>
+            <input type="file" id="qc-bg-input" accept="image/*" style="display:none" onchange="qcLoadBg(event)">
+            <button id="qc-remove-bg-btn" onclick="qcRemoveBg()" style="display:none;margin-top:8px;background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">✕ Remove background image</button>
+          </div>
+
+          <!-- Download -->
+          <button onclick="qcDownload()" id="qc-download-btn" style="width:100%;background:linear-gradient(135deg,#F5C842,#d4a800);border:none;border-radius:var(--r-md);padding:14px;color:#06060f;font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">⬇️ Download Card</button>
+          <div style="font-size:11px;color:var(--dim);text-align:center;margin-top:-8px">1080×1080px · Ready for Facebook, Instagram &amp; X</div>
+        </div>
+
+        <!-- RIGHT — Preview -->
+        <div>
+          <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Live Preview</div>
+          <div style="position:relative;width:100%;max-width:400px;margin:0 auto">
+            <div id="qc-card" style="width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:32px;box-sizing:border-box;background:#000;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+              <!-- Background image layer -->
+              <div id="qc-bg-layer" style="position:absolute;inset:0;background-size:cover;background-position:center;display:none"></div>
+              <!-- Vignette overlay — dark edges, clear center so face shows through -->
+              <div id="qc-overlay" style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.1) 65%, rgba(0,0,0,0.65) 100%);display:none"></div>
+              <!-- Content -->
+              <div style="position:relative;z-index:2;display:flex;flex-direction:column;height:100%;justify-content:space-between">
+                <!-- Profile row -->
+                <div style="display:flex;align-items:center;gap:14px">
+                  <div id="qc-avatar" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;font-family:'Poppins',sans-serif;border:2px solid rgba(255,255,255,.15)">E</div>
+                  <div>
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <div id="qc-card-name" style="font-size:15px;font-weight:900;color:#fff;font-family:'Poppins',sans-serif">Your Name</div>
+                      <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M9.5 16.5l-3-3 1.41-1.41L9.5 13.67l6.59-6.58L17.5 8.5z" fill="white"/></svg>
+                    </div>
+                    <div id="qc-card-handle" style="font-size:12px;color:rgba(255,255,255,.45);font-family:'Poppins',sans-serif">@yourhandle</div>
+                  </div>
+                </div>
+                <!-- Quote -->
+                <div id="qc-card-quote" style="font-size:22px;font-weight:800;color:#fff;font-family:'Poppins',sans-serif;line-height:1.4;flex:1;display:flex;align-items:center;padding:24px 0">
+                  Your quote will appear here automatically.
+                </div>
+                <!-- Brand -->
+                <div id="qc-card-brand" style="font-size:10px;color:rgba(255,255,255,.15);font-family:'Poppins',sans-serif;text-align:right">ExecutionOS</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Caption -->
+          <div style="margin-top:16px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
+            <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Post Caption</div>
+            <div id="qc-caption" style="font-size:12px;color:var(--muted);line-height:1.7;min-height:40px">Generating caption…</div>
+            <button onclick="qcCopyCaption()" style="margin-top:10px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:6px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📋 Copy Caption</button>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /cs-tab-quote -->
+
 
   </div>
 </div>
@@ -19223,6 +19358,7 @@ window.showPHQTab = function(tab, btn) {
   document.getElementById('phq-pane-milestones').style.display = (tab === 'milestones') ? 'block' : 'none';
   if (tab === 'milestones') renderMilestoneGrid();
   if (tab === 'vpe') { emBroadcastLoadCount && emBroadcastLoadCount(); }
+  if (tab === 'quote') { qcInit(); }
 };
 
 // ─── PHQ HERO BADGE (score in the hero strip) ────────────────────────────────
@@ -22772,7 +22908,7 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
 // CONTENT STUDIO — Tab controller + Readiness Banner
 // ══════════════════════════════════════════════════════════════════
 window.csShowTab = function(tab, btn) {
-  ['cs-tab-video','cs-tab-carousel','cs-tab-story','cs-tab-automate','cs-tab-vpe'].forEach(function(id) {
+  ['cs-tab-video','cs-tab-carousel','cs-tab-story','cs-tab-automate','cs-tab-vpe','cs-tab-quote'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.style.display = 'none';
   });
@@ -41873,6 +42009,297 @@ async function vpeAdapt(platform) {
 }
 
 window.vpeFindQuestions  = vpeFindQuestions;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// QUOTE CARD GENERATOR
+// ══════════════════════════════════════════════════════════════════════════════
+var _qcState = { type:'truth', style:'dark', quote:'', caption:'' };
+
+var QC_STYLES = {
+  dark:   { bg:'#000000',        text:'#ffffff', sub:'rgba(255,255,255,.45)', brand:'rgba(255,255,255,.12)' },
+  white:  { bg:'#ffffff',        text:'#0a0a0a', sub:'rgba(0,0,0,.45)',       brand:'rgba(0,0,0,.12)' },
+  teal:   { bg:'linear-gradient(135deg,#030d0d,#071a1a)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(78,204,163,.2)' },
+  gold:   { bg:'linear-gradient(135deg,#0d0900,#1a1200)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(245,200,66,.2)' },
+  purple: { bg:'linear-gradient(135deg,#080312,#100520)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(123,94,167,.2)' },
+};
+
+var QC_TYPE_PROMPTS = {
+  truth:    'Write one short hard truth for someone in the "{niche}" space. Something true that most people in this niche know but nobody says out loud. A pattern interrupt specific to this audience — not generic, specific to {niche}. 1-3 sentences max. No hashtags. No emojis.',
+  motivate: 'Write one short motivational quote for someone in the "{niche}" niche who is struggling and feeling like giving up. Speak to THEIR specific frustration in {niche} — not generic hustle language. Feel like someone who has been through it is speaking to them. 1-3 sentences max.',
+  money:    'Write one short value drop quote that teaches a genuine insight about "{niche}". Give the reader something specific they can think about or act on. Challenge a common misconception in the {niche} space. Niche-specific — not generic. 1-3 sentences max.',
+  action:   'Write one short take-action quote for someone in the "{niche}" niche who keeps getting ready but never starting. Reference the specific hesitation this audience has. Create urgency without being preachy. 1-3 sentences max.',
+  story:    'Write one short personal story hook for the "{niche}" niche. Start with "I used to..." or "Nobody told me..." or "The day I realised..." or "I spent years...". About a specific struggle in {niche} that the audience would immediately recognise. 1-3 sentences max.',
+  viral:    'Write one short viral quote for the "{niche}" niche. Counterintuitive, bold, or challenges a popular belief specific to this space. The kind of thing people in {niche} communities screenshot and share. 1-3 sentences max. No hashtags.',
+};
+
+var QC_CAPTION_PROMPTS = {
+  truth:    'Write a short engaging Facebook/Instagram caption (2-3 sentences) for this quote in the "{niche}" niche: "{quote}". Feel like a real person sharing a genuine thought. End with a question that invites the audience to share their experience. Add 2-3 relevant hashtags.',
+  motivate: 'Write a short engaging caption (2-3 sentences) for this motivational quote in the "{niche}" niche: "{quote}". Personal and relatable to someone struggling in this space. End with a call to tag someone who needs this. Add 2-3 hashtags.',
+  money:    'Write a short caption (2-3 sentences) for this value post in the "{niche}" niche: "{quote}". Expand slightly on the insight. End with a question that makes people think. Add 2-3 relevant hashtags.',
+  action:   'Write a short caption (2-3 sentences) for this take-action post in the "{niche}" niche: "{quote}". Create urgency relevant to this audience. End with a direct call to action. Add 2-3 hashtags.',
+  story:    'Write a short caption (2-3 sentences) for this story hook in the "{niche}" niche: "{quote}". Continue the story or ask if the reader has experienced the same. End with a question. Add 2-3 hashtags.',
+  viral:    'Write a short viral caption (2-3 sentences) for this quote in the "{niche}" niche: "{quote}". Add context that makes people want to share or debate it. End with something that makes people tag a friend. Add 2-3 hashtags.',
+};
+
+function qcInit() {
+  var nameEl   = document.getElementById('prof-name');
+  var qcName   = document.getElementById('qc-name');
+  var qcHandle = document.getElementById('qc-handle');
+  // Pre-fill name
+  if (qcName && nameEl && nameEl.value && !qcName.value) {
+    qcName.value = nameEl.value;
+  }
+  // Pre-fill handle
+  if (qcHandle && qcName && qcName.value && !qcHandle.value) {
+    qcHandle.value = '@' + qcName.value.toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9]/g,'');
+  }
+  // Load profile photo
+  var profImg = document.getElementById('profile-photo-img');
+  qcSetAvatarFromImg(profImg);
+  qcUpdateCard();
+  // ── Auto-generate quote on first open ────────────────────────────────────
+  var existing = (document.getElementById('qc-quote-text')||{}).value || '';
+  if (!existing) qcGenerate();
+}
+
+function qcSetAvatarFromImg(imgEl) {
+  var avatar  = document.getElementById('qc-avatar');
+  var preview = document.getElementById('qc-avatar-preview');
+  if (!avatar) return;
+  if (imgEl && imgEl.src && imgEl.style && imgEl.style.display !== 'none' && imgEl.src.length > 10) {
+    var imgHtml = '<img src="'+imgEl.src+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    avatar.innerHTML  = imgHtml;
+    if (preview) preview.innerHTML = imgHtml;
+  } else {
+    var qcName = document.getElementById('qc-name');
+    var initial = qcName && qcName.value ? qcName.value.charAt(0).toUpperCase() : 'E';
+    avatar.textContent  = initial;
+    if (preview) preview.textContent = initial;
+  }
+}
+
+function qcLoadPhoto(e) {
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var src  = ev.target.result;
+    var imgHtml = '<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    var avatar  = document.getElementById('qc-avatar');
+    var preview = document.getElementById('qc-avatar-preview');
+    if (avatar)  avatar.innerHTML  = imgHtml;
+    if (preview) preview.innerHTML = imgHtml;
+  };
+  reader.readAsDataURL(file);
+}
+
+function qcLoadBg(e) {
+  var file = e.target.files && e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var bgLayer  = document.getElementById('qc-bg-layer');
+    var overlay  = document.getElementById('qc-overlay');
+    var labelEl  = document.getElementById('qc-bg-label');
+    var removBtn = document.getElementById('qc-remove-bg-btn');
+    var card     = document.getElementById('qc-card');
+    if (bgLayer) { bgLayer.style.backgroundImage = 'url('+ev.target.result+')'; bgLayer.style.display='block'; }
+    if (overlay) overlay.style.display = 'block';
+    if (card)    card.style.background  = '#000';
+    if (labelEl) labelEl.textContent = '✅ Background image set';
+    if (removBtn) removBtn.style.display = 'inline-block';
+    // Ensure text stays white over image
+    var quoteEl  = document.getElementById('qc-card-quote');
+    var nameEl   = document.getElementById('qc-card-name');
+    var brandEl  = document.getElementById('qc-card-brand');
+    if (quoteEl)  quoteEl.style.color  = '#ffffff';
+    if (nameEl)   nameEl.style.color   = '#ffffff';
+    if (brandEl)  brandEl.style.color  = 'rgba(255,255,255,.15)';
+  };
+  reader.readAsDataURL(file);
+}
+
+function qcRemoveBg() {
+  var bgLayer  = document.getElementById('qc-bg-layer');
+  var overlay  = document.getElementById('qc-overlay');
+  var labelEl  = document.getElementById('qc-bg-label');
+  var removBtn = document.getElementById('qc-remove-bg-btn');
+  var bgInput  = document.getElementById('qc-bg-input');
+  if (bgLayer) { bgLayer.style.backgroundImage=''; bgLayer.style.display='none'; }
+  if (overlay) overlay.style.display = 'none';
+  if (labelEl) labelEl.textContent   = '🖼 Upload background image (optional)';
+  if (removBtn) removBtn.style.display = 'none';
+  if (bgInput)  bgInput.value = '';
+  qcApplyStyle();
+}
+
+function qcSetType(el, type) {
+  _qcState.type = type;
+  document.querySelectorAll('.qc-type-btn').forEach(function(b){ b.classList.remove('qc-type-active'); });
+  if (el) el.classList.add('qc-type-active');
+}
+
+function qcSetStyle(el, style) {
+  _qcState.style = style;
+  document.querySelectorAll('.qc-style-btn').forEach(function(b){ b.classList.remove('qc-style-active'); });
+  if (el) el.classList.add('qc-style-active');
+  qcApplyStyle();
+}
+
+function qcApplyStyle() {
+  var card   = document.getElementById('qc-card');
+  var s      = QC_STYLES[_qcState.style] || QC_STYLES.dark;
+  if (!card) return;
+  card.style.background = s.bg;
+  var nameEl   = document.getElementById('qc-card-name');
+  var handleEl = document.getElementById('qc-card-handle');
+  var quoteEl  = document.getElementById('qc-card-quote');
+  var brandEl  = document.getElementById('qc-card-brand');
+  if (nameEl)   nameEl.style.color   = s.text;
+  if (handleEl) handleEl.style.color = s.sub;
+  if (quoteEl)  quoteEl.style.color  = s.text;
+  if (brandEl)  brandEl.style.color  = s.brand;
+}
+
+function qcUpdateCard() {
+  var nameEl   = document.getElementById('qc-name');
+  var handleEl = document.getElementById('qc-handle');
+  var quoteEl  = document.getElementById('qc-quote-text');
+  var cardName   = document.getElementById('qc-card-name');
+  var cardHandle = document.getElementById('qc-card-handle');
+  var cardQuote  = document.getElementById('qc-card-quote');
+  var avatar     = document.getElementById('qc-avatar');
+
+  var name   = (nameEl   && nameEl.value)   ? nameEl.value   : 'Your Name';
+  var handle = (handleEl && handleEl.value) ? handleEl.value : '@yourhandle';
+  var quote  = (quoteEl  && quoteEl.value)  ? quoteEl.value  : 'Your quote will appear here.';
+
+  if (cardName)   cardName.textContent   = name;
+  if (cardHandle) cardHandle.textContent = handle;
+  if (cardQuote)  {
+    cardQuote.textContent = quote;
+    // Auto-size font based on quote length
+    var fs = quote.length > 120 ? '16px' : quote.length > 80 ? '18px' : quote.length > 50 ? '20px' : '24px';
+    cardQuote.style.fontSize = fs;
+  }
+  // Update avatar initial if no photo
+  var profImg = document.getElementById('profile-photo-img');
+  if (avatar && (!profImg || !profImg.src || profImg.style.display === 'none')) {
+    avatar.textContent = name.charAt(0).toUpperCase();
+  }
+
+  qcApplyStyle();
+}
+
+async function qcGenerate() {
+  var btn     = document.getElementById('qc-gen-btn');
+  var statusEl = document.getElementById('qc-gen-status');
+  var textarea = document.getElementById('qc-quote-text');
+  var captionEl = document.getElementById('qc-caption');
+
+  var niche = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).av_job || 'online business';
+  var typePrompt = (QC_TYPE_PROMPTS[_qcState.type]||QC_TYPE_PROMPTS.truth).replace('{niche}', niche);
+
+  // Read avatar/offer for extra context
+  var av = window._avatarData || {};
+  var pain = av.av_current || av.av_igr || '';
+  var desiredOutcome = av.av_desired || av.av_transformation || '';
+  if (pain)           typePrompt += ' Audience pain: ' + pain + '.';
+  if (desiredOutcome) typePrompt += ' Desired outcome: ' + desiredOutcome + '.';
+  typePrompt += ' Return ONLY the quote text — no quotes, no explanation, no attribution.';
+
+  if (btn)     { btn.disabled=true; btn.textContent='Writing…'; }
+  if (statusEl){ statusEl.style.display='block'; statusEl.textContent='Writing your quote…'; }
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:200, messages:[{role:'user',content:typePrompt}] })
+    });
+    var data  = await resp.json();
+    var quote = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim()
+      .replace(/^["'""]|["'""]$/g,'').trim();
+
+    _qcState.quote = quote;
+    if (textarea) { textarea.value = quote; }
+    qcUpdateCard();
+
+    // Generate caption
+    var captionPrompt = (QC_CAPTION_PROMPTS[_qcState.type]||QC_CAPTION_PROMPTS.truth)
+      .replace('{niche}', niche).replace('{quote}', quote);
+
+    var cResp = await fetch(window.location.origin + '/api/claude', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:200, messages:[{role:'user',content:captionPrompt}] })
+    });
+    var cData    = await cResp.json();
+    var caption  = (cData.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    _qcState.caption = caption;
+    if (captionEl) captionEl.textContent = caption;
+
+    if (statusEl) { statusEl.textContent='✅ Done — customise and download.'; setTimeout(function(){ statusEl.style.display='none'; },3000); }
+
+  } catch(e) {
+    if (statusEl) { statusEl.textContent='⚠️ Could not generate. Try again.'; setTimeout(function(){ statusEl.style.display='none'; },3000); }
+  }
+  if (btn) { btn.disabled=false; btn.textContent='⚡ Generate Quote'; }
+}
+
+function qcCopyCaption() {
+  if (!_qcState.caption) return;
+  navigator.clipboard.writeText(_qcState.caption)
+    .then(function(){ emToast('✅ Caption copied'); })
+    .catch(function(){ emToast('⚠️ Could not copy'); });
+}
+
+async function qcDownload() {
+  var card = document.getElementById('qc-card');
+  if (!card) return;
+
+  // Load html2canvas from CDN
+  if (!window.html2canvas) {
+    var script  = document.createElement('script');
+    script.src  = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload = function(){ qcRenderDownload(card); };
+    document.head.appendChild(script);
+  } else {
+    qcRenderDownload(card);
+  }
+}
+
+async function qcRenderDownload(card) {
+  var btn = document.getElementById('qc-download-btn');
+  if (btn) { btn.textContent='⏳ Preparing…'; btn.disabled=true; }
+  try {
+    var canvas = await window.html2canvas(card, {
+      scale:      2.7,  // renders at ~1080px for a 400px card
+      useCORS:    true,
+      allowTaint: true,
+      logging:    false,
+      backgroundColor: null,
+    });
+    var link      = document.createElement('a');
+    var name      = (document.getElementById('qc-name')||{}).value || 'quote';
+    link.download = 'quote-card-' + name.toLowerCase().replace(/\s+/g,'-') + '.png';
+    link.href     = canvas.toDataURL('image/png');
+    link.click();
+    emToast('✅ Quote card downloaded — ready to post!');
+  } catch(e) {
+    emToast('⚠️ Download failed. Try again.', true);
+  }
+  if (btn) { btn.textContent='⬇️ Download Card'; btn.disabled=false; }
+}
+
+window.qcInit         = qcInit;
+window.qcLoadPhoto     = qcLoadPhoto;
+window.qcLoadBg        = qcLoadBg;
+window.qcRemoveBg      = qcRemoveBg;
+window.qcSetType      = qcSetType;
+window.qcSetStyle     = qcSetStyle;
+window.qcUpdateCard   = qcUpdateCard;
+window.qcGenerate     = qcGenerate;
+window.qcDownload     = qcDownload;
+window.qcCopyCaption  = qcCopyCaption;
 window.vpeSelectQuestion = vpeSelectQuestion;
 window.vpeSetPlatform    = vpeSetPlatform;
 window.vpeGenerate       = vpeGenerate;
