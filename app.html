@@ -6647,8 +6647,8 @@ button[onclick="generateOffer()"] {
 
     <!-- 2C: Content Studio top-level tab navigation (3 tabs) -->
     <!-- Content Studio segmented tab control -->
-    <div style="display:flex;justify-content:center;margin-bottom:24px">
-      <div id="cs-tab-nav" style="display:inline-flex;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:50px;padding:4px;gap:2px;box-shadow:0 2px 12px rgba(0,0,0,.25)">
+    <div style="display:flex;justify-content:center;margin-bottom:24px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch">
+      <div id="cs-tab-nav" style="display:inline-flex;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:50px;padding:4px;gap:2px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:100%;overflow-x:auto;scrollbar-width:none">
 
         <button class="cs-tab-btn on" onclick="csShowTab('video',this)"
           style="display:flex;align-items:center;gap:7px;padding:9px 18px;border-radius:50px;border:none;font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;cursor:pointer;white-space:nowrap;transition:all .2s cubic-bezier(.4,0,.2,1);background:linear-gradient(135deg,#6c63ff,#5040cc);color:#fff;box-shadow:0 4px 14px rgba(108,99,255,.45);letter-spacing:.2px">
@@ -7507,13 +7507,29 @@ button[onclick="generateOffer()"] {
 
       <!-- Step 1 -->
       <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
           <div>
             <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Step 1 — Find What Your Audience Is Asking</div>
-            <div style="font-size:12px;color:var(--dim);margin-top:3px">Real questions from Reddit, Quora and forums in your niche right now</div>
+            <div style="font-size:12px;color:var(--dim);margin-top:3px">Auto-finds questions in your niche, or search any keyword on the planet</div>
           </div>
-          <button onclick="vpeFindQuestions()" id="vpe-find-btn" style="background:linear-gradient(135deg,#F5C842,#d4a800);border:none;border-radius:var(--r-md);padding:11px 24px;color:#06060f;font-size:13px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;box-shadow:0 4px 20px rgba(245,200,66,.35)">🔍 Find Questions</button>
         </div>
+
+        <!-- Keyword search row -->
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <input id="vpe-keyword-input" class="fi" placeholder="Search any keyword — e.g. systeme.io, high ticket affiliate, relationship anxiety…" style="flex:1;font-size:13px">
+          <button onclick="vpeKeywordSearch()" id="vpe-keyword-btn" style="background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);padding:11px 20px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap">🔎 Search</button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="flex:1;height:1px;background:var(--border2)"></div>
+          <div style="font-size:10px;font-weight:700;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px">or</div>
+          <div style="flex:1;height:1px;background:var(--border2)"></div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end">
+          <button onclick="vpeFindQuestions()" id="vpe-find-btn" style="background:linear-gradient(135deg,#F5C842,#d4a800);border:none;border-radius:var(--r-md);padding:11px 24px;color:#06060f;font-size:13px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;box-shadow:0 4px 20px rgba(245,200,66,.35)">🔍 Auto-Find for My Niche</button>
+        </div>
+
         <div id="vpe-find-status" style="font-size:12px;color:var(--teal);margin-top:12px;display:none"></div>
         <div id="vpe-questions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px"></div>
       </div>
@@ -7521,10 +7537,11 @@ button[onclick="generateOffer()"] {
       <!-- Step 2 -->
       <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
         <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Step 2 — Write Your Post</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Pick a question above or enter your own topic. E-OS Intelligence writes using your offer, avatar and boardroom strategy.</div>
-        <div style="margin-bottom:12px">
-          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Topic / Question</div>
-          <input id="vpe-topic" class="fi" placeholder="e.g. How do I make money with affiliate marketing without an audience?" style="font-size:13px">
+        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Select a question above. E-OS Intelligence writes using your offer, avatar and boardroom strategy.</div>
+        <div style="margin-bottom:12px" id="vpe-selected-q-display" style="display:none">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Selected Question</div>
+          <div id="vpe-topic-display" style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:var(--r-md);padding:10px 14px;font-size:13px;font-weight:700;color:var(--white);line-height:1.5">Pick a question from Step 1 above →</div>
+          <input id="vpe-topic" style="display:none">
         </div>
         <div style="margin-bottom:16px">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Platform</div>
@@ -7690,7 +7707,7 @@ button[onclick="generateOffer()"] {
           </div>
 
           <!-- Formatting toolbar — shown when element is selected -->
-          <div id="qc-toolbar" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 12px;margin-bottom:10px;flex-wrap:wrap;gap:6px;align-items:center">
+          <div id="qc-toolbar" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 12px;margin-bottom:10px;flex-wrap:wrap;gap:6px;align-items:center" onmousedown="event.preventDefault()">
             <button onclick="qcFmt('bold')"      class="qc-fmt-btn" title="Bold"><b>B</b></button>
             <button onclick="qcFmt('italic')"    class="qc-fmt-btn" title="Italic"><i>I</i></button>
             <button onclick="qcFmt('underline')" class="qc-fmt-btn" title="Underline" style="text-decoration:underline">U</button>
@@ -23027,6 +23044,8 @@ window.csShowTab = function(tab, btn) {
   if (tab === 'carousel' && typeof window.csInitCarousel === 'function') window.csInitCarousel();
   if (tab === 'automate' && typeof window.csInitAutomate === 'function') window.csInitAutomate();
   if (tab === 'automate') setTimeout(window._tzUpdateAutomateLabels, 120);
+  if (tab === 'quote'    && typeof window.qcInit === 'function') window.qcInit();
+  if (tab === 'vpe'      && typeof window.emBroadcastLoadCount === 'function') window.emBroadcastLoadCount();
 };
 
 window.csRenderReadinessBanner = function() {
@@ -36578,6 +36597,41 @@ window.brActivateGlobalIntelligence = function(intel) {
       if (tabsNav)  { tabsNav.style.display='block'; }
       if (genWrap)  { genWrap.style.display='none'; }
       if (powDesc && intel.inputs){ powDesc.textContent='Boardroom profile active for '+intel.inputs.niche+' · '+(intel.inputs.offerName||'Your Offer')+'. All sections powered.'; }
+
+      // ── Render all tabs from saved intel ─────────────────────────────────
+      setTimeout(function() {
+        var i2  = intel.inputs || {};
+        var sn  = i2.target && i2.price ? Math.ceil(i2.target / i2.price) : 5;
+
+        var panels = {
+          'war-room':         function(){ return typeof _brRenderWarRoom === 'function'          ? _brRenderWarRoom(intel.plan||{}, i2, sn) : ''; },
+          'architect':        function(){ return typeof brRenderArchitect === 'function'         ? brRenderArchitect(intel.architect||{}, i2) : ''; },
+          'offer-stack':      function(){ return typeof brRenderOfferStack === 'function'        ? brRenderOfferStack(intel.offerStack||{}, i2) : ''; },
+          'client-attraction':function(){ return typeof _brRenderClientAttraction === 'function' ? _brRenderClientAttraction(intel.plan||{}, i2) : ''; },
+          'copy-vault':       function(){ return typeof brRenderCopyVault === 'function'         ? brRenderCopyVault(intel.copyVault||{}, i2) : ''; },
+          'war-plan':         function(){ return typeof brRenderWarPlan === 'function'           ? brRenderWarPlan(intel.warPlan||{}, i2) : ''; },
+          'content-engine':   function(){ return typeof brRenderContentEngine === 'function'     ? brRenderContentEngine(intel.contentEngine||{}, i2) : ''; },
+          'funnel-strategy':  function(){ return typeof _brRenderFunnelStrategy === 'function'   ? _brRenderFunnelStrategy(intel.funnelStrategy||{}, i2) : ''; },
+          'icp-research':     function(){ return typeof _brRenderICPResearch === 'function'      ? _brRenderICPResearch(intel.icpResearch||{}, i2) : ''; },
+          'competitor-intel': function(){ return typeof _brRenderCompetitorIntel === 'function'  ? _brRenderCompetitorIntel(intel.competitorIntel||{}, i2) : ''; },
+          'market-viability': function(){ return typeof _brRenderMarketViability === 'function'  ? _brRenderMarketViability(intel.marketViability||{}, i2) : ''; },
+        };
+
+        Object.keys(panels).forEach(function(tab) {
+          var panel = document.getElementById('br-tab-' + tab);
+          if (panel && panel.innerHTML.trim() === '') {
+            try { var html = panels[tab](); if (html) panel.innerHTML = html; } catch(e) {}
+          }
+        });
+
+        // Content strategy needs its own render function
+        if (typeof window.renderBrContentStrategy === 'function') window.renderBrContentStrategy();
+
+        // Show first tab
+        var firstBtn = document.querySelector('.br-tab');
+        if (firstBtn && typeof brShowTab === 'function') brShowTab('architect', firstBtn);
+      }, 800);
+
       console.log('[Boardroom] Saved intel loaded from storage ✅');
     } catch(e) { console.warn('[Boardroom] Boot load failed:', e); }
   }
@@ -41958,9 +42012,17 @@ function vpeSelectQuestion(el, idx) {
     _vpeState.topic = q.question;
     var t = document.getElementById('vpe-topic');
     if (t) t.value = q.question;
+    // Update display
+    var display = document.getElementById('vpe-topic-display');
+    if (display) display.textContent = q.question;
+    var displayWrap = document.getElementById('vpe-selected-q-display');
+    if (displayWrap) displayWrap.style.display = 'block';
     if (q.platform && VPE_PLATFORM_RULES[q.platform]) {
       vpeSetPlatform(document.querySelector('.vpe-plat-btn[data-plat="'+q.platform+'"]'), q.platform);
     }
+    // Scroll to Step 2
+    var step2 = document.getElementById('vpe-selected-q-display');
+    if (step2) setTimeout(function(){ step2.scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 100);
   }
 }
 
@@ -42007,7 +42069,7 @@ async function vpeWrite(platform, topic) {
   try {
     var resp = await fetch(window.location.origin+'/api/claude', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:2500, messages:[{role:'user',content:aiPrompt}] })
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens: platform==='linkedin'||platform==='medium'?4000:2500, messages:[{role:'user',content:aiPrompt}] })
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
@@ -42411,23 +42473,40 @@ async function qcDownload() {
 
 async function qcRenderDownload(card) {
   var btn = document.getElementById('qc-download-btn');
-  if (btn) { btn.textContent='⏳ Rendering 4K…'; btn.disabled=true; }
+  if (btn) { btn.textContent='⏳ Rendering…'; btn.disabled=true; }
   try {
-    var canvas = await window.html2canvas(card, {
-      scale:      10,   // 4K — 400px preview = 4000px output
-      useCORS:    true,
-      allowTaint: true,
-      logging:    false,
-      backgroundColor: null,
+    // ── Clear all selection outlines before capture ──────────────────────
+    ['qc-el-quote','qc-el-profile','qc-el-brand'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) { el.style.outline = 'none'; el.style.boxShadow = 'none'; }
     });
+    var resizeHandle = document.getElementById('qc-resize-handle');
+    if (resizeHandle) resizeHandle.style.display = 'none';
+    _qcSelected = null;
+
+    // ── Short delay so DOM updates before capture ─────────────────────────
+    await new Promise(function(r){ setTimeout(r, 80); });
+
+    // ── Render at scale 10 — 400px card becomes 4000px output ────────────
+    var canvas = await window.html2canvas(card, {
+      scale:           10,
+      useCORS:         true,
+      allowTaint:      true,
+      logging:         false,
+      backgroundColor: null,
+      imageTimeout:    0,
+      removeContainer: true,
+    });
+
     var link      = document.createElement('a');
     var name      = (document.getElementById('qc-name')||{}).value || 'quote';
     link.download = 'quote-card-4K-' + name.toLowerCase().replace(/\s+/g,'-') + '.png';
-    link.href     = canvas.toDataURL('image/png');
+    link.href     = canvas.toDataURL('image/png', 1.0);
     link.click();
-    emToast('✅ 4K quote card downloaded — ready to post!');
+    emToast('✅ Downloaded — ' + canvas.width + '×' + canvas.height + 'px');
   } catch(e) {
-    emToast('⚠️ Download failed. Try again.', true);
+    console.error('[QC Download]', e);
+    emToast('⚠️ Download failed: ' + (e.message||'unknown error'), true);
   }
   if (btn) { btn.textContent='⬇️ Download Card'; btn.disabled=false; }
 }
@@ -42488,8 +42567,11 @@ function qcGetTextEl() {
 // ── Formatting functions ───────────────────────────────────────────────────────
 function qcFmt(type) {
   var el = qcGetTextEl(); if (!el) return;
-  if (type === 'bold')      el.style.fontWeight  = el.style.fontWeight === '400' || el.style.fontWeight === 'normal' ? '900' : '400';
-  if (type === 'italic')    el.style.fontStyle   = el.style.fontStyle  === 'italic' ? 'normal' : 'italic';
+  if (type === 'bold') {
+    var w = el.style.fontWeight || window.getComputedStyle(el).fontWeight;
+    el.style.fontWeight = (w === '900' || w === 'bold' || parseInt(w) >= 700) ? '400' : '900';
+  }
+  if (type === 'italic')    el.style.fontStyle      = el.style.fontStyle  === 'italic' ? 'normal' : 'italic';
   if (type === 'underline') el.style.textDecoration = el.style.textDecoration === 'underline' ? 'none' : 'underline';
 }
 
@@ -42500,7 +42582,7 @@ function qcFmtSize(size) {
 
 function qcFmtFont(font) {
   var el = qcGetTextEl(); if (!el || !font) return;
-  el.style.fontFamily = font + ', sans-serif';
+  el.style.fontFamily = "'" + font + "', sans-serif";
 }
 
 function qcFmtAlign(align) {
@@ -42536,11 +42618,13 @@ function qcResetPos() {
 
 // ── Drag to reposition ─────────────────────────────────────────────────────────
 function qcDragStart(e, elId) {
-  e.preventDefault();
+  // Don't prevent default on touch — allows scrolling
+  if (e.type !== 'touchstart') e.preventDefault();
   var el    = document.getElementById(elId);
   var card  = document.getElementById('qc-card');
   if (!el || !card) return;
 
+  // Always select on mousedown
   qcSelectEl(elId.replace('qc-el-',''));
 
   var cardRect = card.getBoundingClientRect();
@@ -42702,6 +42786,55 @@ window.vpeGenerate       = vpeGenerate;
 window.vpeCopy           = vpeCopy;
 window.vpeRegenerate     = vpeRegenerate;
 window.vpeAdapt          = vpeAdapt;
+
+// ── VPE Keyword Search ────────────────────────────────────────────────────────
+async function vpeKeywordSearch() {
+  var input   = document.getElementById('vpe-keyword-input');
+  var keyword = input ? input.value.trim() : '';
+  if (!keyword) { if (input) input.focus(); return; }
+  var btn    = document.getElementById('vpe-keyword-btn');
+  var status = document.getElementById('vpe-find-status');
+  var grid   = document.getElementById('vpe-questions-grid');
+  if (btn)    { btn.textContent='Searching…'; btn.disabled=true; }
+  if (status) { status.style.display='block'; status.textContent='Searching for "'+keyword+'" across Reddit, Quora, Google, YouTube and X…'; }
+  if (grid)   { grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--dim);font-size:13px">Scanning live sources…</div>'; }
+  try {
+    var resp = await fetch(window.location.origin+'/api/vpe-questions', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ niche:keyword, intel:vpeGetIntel(), mode:window._appMode||'expert', keyword:keyword, isKeyword:true })
+    });
+    var data = await resp.json();
+    var questions = data.questions||[];
+    _vpeState.questions = questions;
+    var src = data.source==='live' ? '🟢 Live results for "'+keyword+'"' : '⚡ Generated for "'+keyword+'"';
+    if (status) status.innerHTML = '✅ Found '+questions.length+' questions &nbsp;·&nbsp; <span style="color:var(--teal);font-weight:700">'+src+'</span>';
+    if (grid && questions.length) {
+      grid.innerHTML = questions.map(function(q,i){
+        var pc={reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
+        var lnk=q.url?'<a href="'+q.url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px">View →</a>':'';
+        return '<div class="vpe-q-card" onclick="vpeSelectQuestion(this,'+i+')">'
+          +'<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">'+q.question+'</div>'
+          +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">'+q.why+'</div>':'')
+          +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+          +'<span style="font-size:10px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">'+( q.platform||'web')+'</span>'
+          +(q.year?'<span style="font-size:10px;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px;font-weight:700">'+q.year+'</span>':'')
+          +'<span style="font-size:10px;font-weight:700;color:'+(q.intent==='commercial'?'var(--teal)':'#F5C842')+';background:var(--card2);border-radius:4px;padding:2px 8px">'+(q.intent==='commercial'?'💰 buyer':'ℹ️ info')+'</span>'
+          +lnk+'</div></div>';
+      }).join('');
+    } else if (grid) {
+      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:24px;color:var(--dim)">No results for "'+keyword+'". Try a different keyword.</div>';
+    }
+  } catch(e) {
+    if (status) status.textContent='⚠️ Search failed. Try again.';
+    if (grid) grid.innerHTML='';
+  }
+  if (btn) { btn.textContent='🔎 Search'; btn.disabled=false; }
+}
+setTimeout(function(){
+  var inp=document.getElementById('vpe-keyword-input');
+  if (inp) inp.addEventListener('keydown',function(e){ if(e.key==='Enter') vpeKeywordSearch(); });
+},1200);
+window.vpeKeywordSearch = vpeKeywordSearch;
 
 </script>
 </body>
