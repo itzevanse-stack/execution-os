@@ -6896,6 +6896,24 @@ button[onclick="generateOffer()"] {
           </div>
         </div>
 
+        <!-- SCRIPT FROM QUESTION — audience-driven script generation -->
+        <div style="padding-top:16px;border-top:1px solid var(--border2);margin-bottom:16px" id="avs-question-section">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:11px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:2px">🔍 Script from What Your Audience Is Asking</div>
+              <div style="font-size:10px;color:var(--dim)">Find real questions your audience is asking right now. Pick one. Build your video around it.</div>
+            </div>
+            <button onclick="avsVpeFindQuestions()" id="avs-vpe-find-btn" style="background:linear-gradient(135deg,#F5C842,#d4a800);border:none;border-radius:var(--r-md);padding:8px 18px;color:#06060f;font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap;box-shadow:0 4px 16px rgba(245,200,66,.3)">🔍 Find Questions</button>
+          </div>
+          <div id="avs-vpe-status" style="font-size:11px;color:var(--teal);margin-bottom:8px;display:none"></div>
+          <div id="avs-vpe-grid" style="display:flex;flex-direction:column;gap:6px"></div>
+          <div id="avs-vpe-selected" style="display:none;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);border-radius:var(--r-md);padding:10px 14px;margin-top:8px">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#F5C842;margin-bottom:4px">Selected Question</div>
+            <div id="avs-vpe-selected-text" style="font-size:12px;font-weight:700;color:var(--white);line-height:1.5"></div>
+            <button onclick="avsVpeWriteScript()" id="avs-vpe-write-btn" style="margin-top:10px;background:linear-gradient(135deg,#6c63ff,#5040cc);border:none;border-radius:var(--r-md);padding:9px 20px;color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;box-shadow:0 4px 14px rgba(108,99,255,.3)">✍️ Write Script Around This Question</button>
+          </div>
+        </div>
+
         <!-- SCRIPT -->
         <div style="padding-top:16px;border-top:1px solid var(--border2)">
 
@@ -7492,6 +7510,7 @@ button[onclick="generateOffer()"] {
             <button onclick="vpeSetPlatform(this,'reddit')" class="vpe-plat-btn" data-plat="reddit">Reddit</button>
             <button onclick="vpeSetPlatform(this,'linkedin')" class="vpe-plat-btn" data-plat="linkedin">LinkedIn</button>
             <button onclick="vpeSetPlatform(this,'medium')" class="vpe-plat-btn" data-plat="medium">Medium</button>
+            <button onclick="vpeSetPlatform(this,'facebook')" class="vpe-plat-btn" data-plat="facebook">Facebook</button>
             <button onclick="vpeSetPlatform(this,'x')" class="vpe-plat-btn" data-plat="x">X Thread</button>
           </div>
         </div>
@@ -7531,6 +7550,7 @@ button[onclick="generateOffer()"] {
             <button onclick="vpeAdapt('reddit')" class="vpe-adapt-btn">Reddit</button>
             <button onclick="vpeAdapt('linkedin')" class="vpe-adapt-btn">LinkedIn</button>
             <button onclick="vpeAdapt('medium')" class="vpe-adapt-btn">Medium</button>
+            <button onclick="vpeAdapt('facebook')" class="vpe-adapt-btn">Facebook</button>
             <button onclick="vpeAdapt('x')" class="vpe-adapt-btn">X Thread</button>
           </div>
         </div>
@@ -21965,6 +21985,184 @@ window.runMindsetReframe = async function() {
   };
 
   // ── AI Script generation ──────────────────────────────────────
+// ══════════════════════════════════════════════════════════════════════════════
+// BUILD VIDEO — Script from Question (audience-driven)
+// ══════════════════════════════════════════════════════════════════════════════
+var _avsVpeState = { questions: [], selectedQ: null };
+
+async function avsVpeFindQuestions() {
+  var btn    = document.getElementById('avs-vpe-find-btn');
+  var status = document.getElementById('avs-vpe-status');
+  var grid   = document.getElementById('avs-vpe-grid');
+  var selEl  = document.getElementById('avs-vpe-selected');
+
+  if (btn)   { btn.textContent='🔍 Searching…'; btn.disabled=true; }
+  if (status){ status.style.display='block'; status.textContent='Scanning Reddit, Quora, Google and YouTube for what your audience is asking right now…'; }
+  if (grid)  { grid.innerHTML='<div style="font-size:11px;color:var(--dim);padding:12px 0">Searching live sources…</div>'; }
+  if (selEl) { selEl.style.display='none'; }
+
+  var ctx   = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
+  var niche = ctx.niche || window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).av_job || 'online business';
+  var intel = '';
+  if (ctx.pain)           intel += 'Audience pain: ' + ctx.pain + '\n';
+  if (ctx.transformation) intel += 'Desired outcome: ' + ctx.transformation + '\n';
+  if (ctx.offerName)      intel += 'Offer: ' + ctx.offerName + '\n';
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/vpe-questions', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ niche: niche, intel: intel, mode: window._appMode || 'expert' })
+    });
+    var data      = await resp.json();
+    var questions = data.questions || [];
+    _avsVpeState.questions = questions;
+
+    if (status) {
+      var src = data.source === 'live'
+        ? '🟢 Live results — last 12 months'
+        : '⚡ Generated from niche knowledge';
+      status.textContent = '✅ Found ' + questions.length + ' questions · ' + src;
+    }
+
+    if (grid) {
+      if (!questions.length) {
+        grid.innerHTML = '<div style="font-size:11px;color:var(--dim);padding:8px 0">No questions found. Set up your Avatar and Offer for better results.</div>';
+      } else {
+        grid.innerHTML = questions.map(function(q, i) {
+          var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
+          var srcLink = q.url ? ' <a href="'+q.url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:3px;padding:1px 6px">View →</a>' : '';
+          return '<div onclick="avsVpeSelectQ(this,'+i+')" style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:10px 12px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor=\'rgba(245,200,66,.4)\'" onmouseout="this.style.borderColor=\'var(--border2)\'">'
+            + '<div style="font-size:12px;font-weight:700;color:var(--white);line-height:1.5;margin-bottom:5px">'+q.question+'</div>'
+            + '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">'
+            + '<span style="font-size:9px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:3px;padding:1px 6px;text-transform:uppercase">'+( q.platform||'web')+'</span>'
+            + (q.year ? '<span style="font-size:9px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:3px;padding:1px 6px">'+q.year+'</span>' : '')
+            + '<span style="font-size:9px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:3px;padding:1px 6px">'+(q.intent==='commercial'?'💰 buyer':'ℹ️ info')+'</span>'
+            + srcLink
+            + '</div></div>';
+        }).join('');
+      }
+    }
+  } catch(e) {
+    if (status) status.textContent = '⚠️ Could not load questions. Try again.';
+    if (grid)   grid.innerHTML = '';
+  }
+  if (btn) { btn.textContent='🔍 Find Questions'; btn.disabled=false; }
+}
+
+function avsVpeSelectQ(el, idx) {
+  // Deselect all
+  document.querySelectorAll('#avs-vpe-grid > div').forEach(function(d){
+    d.style.borderColor = 'var(--border2)';
+    d.style.background  = 'var(--bg3)';
+  });
+  // Highlight selected
+  el.style.borderColor = '#F5C842';
+  el.style.background  = 'rgba(245,200,66,.04)';
+
+  var q = _avsVpeState.questions[idx];
+  if (!q) return;
+  _avsVpeState.selectedQ = q;
+
+  var selEl   = document.getElementById('avs-vpe-selected');
+  var textEl  = document.getElementById('avs-vpe-selected-text');
+  if (selEl)  selEl.style.display  = 'block';
+  if (textEl) textEl.textContent   = q.question;
+}
+
+async function avsVpeWriteScript() {
+  var q = _avsVpeState.selectedQ;
+  if (!q) return;
+
+  var writeBtn   = document.getElementById('avs-vpe-write-btn');
+  var scriptArea = document.getElementById('avs-script-input');
+  var countEl    = document.getElementById('avs-script-count');
+  var genStatus  = document.getElementById('avs-gen-status');
+
+  if (writeBtn) { writeBtn.disabled=true; writeBtn.textContent='Writing…'; }
+  if (genStatus){ genStatus.style.display='block'; genStatus.textContent='E-OS Intelligence is writing your video script…'; }
+
+  var ctx   = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
+  var type  = (document.getElementById('avs-video-type')||{}).value || 'reel';
+  var angle = (document.getElementById('avs-script-angle')||{}).value || 'story';
+
+  var isShort  = ['reel','shorts','story'].includes(type);
+  var wordTarget = isShort ? '150-185' : '165-200';
+
+  var niche      = ctx.niche           || 'Online Business';
+  var offerName  = ctx.offerName       || 'My Offer';
+  var pain       = ctx.pain            || 'their biggest challenge';
+  var transf     = ctx.transformation  || 'their desired outcome';
+  var productUrl = ctx.productUrl      || '';
+
+  // Map platform to video format context
+  var platformContext = {
+    reddit:   'This question came from Reddit — so the answer should feel genuine and community-oriented, not salesy.',
+    quora:    'This question came from Quora — so the answer should feel expert and authoritative.',
+    youtube:  'This question is trending on YouTube — people want a clear, educational answer.',
+    google:   'This is a high-search Google query — people want a direct, useful answer fast.',
+    x:        'This question is trending on X/Twitter — keep the energy punchy and direct.',
+  };
+  var sourceCtx = platformContext[q.platform] || '';
+
+  var prompt = 'You are an elite video script writer. Write a video script that directly answers this real audience question:\n\n'
+    + 'QUESTION: ' + q.question + '\n\n'
+    + 'OFFER AND AUDIENCE CONTEXT:\n'
+    + 'Niche: ' + niche + '\n'
+    + 'Audience pain: ' + pain + '\n'
+    + 'Desired outcome: ' + transf + '\n'
+    + 'Offer: ' + offerName + '\n'
+    + (productUrl ? 'CTA link: ' + productUrl + '\n' : '')
+    + (sourceCtx ? '\nSOURCE CONTEXT: ' + sourceCtx + '\n' : '')
+    + '\nSCRIPT STRUCTURE:\n'
+    + '1. HOOK (first 5 seconds) — start with the question itself or a provocative version of it that stops the scroll\n'
+    + '2. AUTHORITY (5-15 seconds) — one sentence on why you can answer this from real experience\n'
+    + '3. ANSWER (bulk) — the real, specific answer broken into 2-3 clear points. Use the offer\'s unique mechanism naturally\n'
+    + '4. BRIDGE — connect the answer to the offer as the logical next step\n'
+    + '5. CTA — one clear action: check the link in bio / description\n\n'
+    + 'FORMAT:\n'
+    + '- Target: ' + wordTarget + ' words (reads as ' + (isShort ? '60-90 seconds' : '60-90 seconds') + ' at natural speaking pace)\n'
+    + '- Written exactly as spoken — conversational, no formal language\n'
+    + '- No scene directions, no "[HOOK]" labels — just the words to speak\n'
+    + '- No markdown, no bullet points in the script itself\n'
+    + '- End with a CTA that feels natural, not like an ad\n\n'
+    + 'Write the script now. Return ONLY the spoken script — nothing else.';
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 800, messages: [{ role: 'user', content: prompt }] })
+    });
+    var data = await resp.json();
+    var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+
+    if (!text) {
+      if (genStatus) genStatus.textContent = '⚠️ No script returned. Try again.';
+    } else {
+      if (scriptArea) {
+        scriptArea.value = text;
+        if (countEl) countEl.textContent = text.split(/\s+/).filter(Boolean).length;
+        // Scroll to script area
+        scriptArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        scriptArea.style.borderColor = 'rgba(245,200,66,.4)';
+        setTimeout(function(){ scriptArea.style.borderColor = ''; }, 2000);
+      }
+      if (genStatus) { genStatus.textContent = '✅ Script written from real audience question — review and build your video.'; }
+
+      // Auto-select best angle based on question intent
+      var bestAngle = q.intent === 'commercial' ? 'value' : 'education';
+      var angleBtn = document.querySelector('.avs-angle-card[data-angle="'+bestAngle+'"]');
+      if (angleBtn) avsPickAngle(angleBtn);
+    }
+  } catch(e) {
+    if (genStatus) genStatus.textContent = '⚠️ Could not write script. Try again.';
+  }
+  if (writeBtn) { writeBtn.disabled=false; writeBtn.textContent='✍️ Write Script Around This Question'; }
+}
+
+window.avsVpeFindQuestions = avsVpeFindQuestions;
+window.avsVpeSelectQ       = avsVpeSelectQ;
+window.avsVpeWriteScript   = avsVpeWriteScript;
+
   window.avsGenerateScript = function() {
     var btn = document.getElementById('avs-write-btn');
     var scriptArea = document.getElementById('avs-script-input');
@@ -41430,10 +41628,11 @@ var VPE_PLATFORM_RULES = {
   reddit:   'Reddit: Community-first. Zero hard-sell. Redditors downvote anything promotional. Only mention your offer as personal experience. No affiliate links in most subreddits.',
   linkedin: 'LinkedIn: Professional, thought leadership. Data and specifics build credibility. One clear CTA at the end. 3-5 hashtags max.',
   medium:   'Medium: Long-form, narrative, SEO-structured. Clear headers. Original insight only — no generic rehashed advice. Soft CTA at end.',
+  facebook: 'Facebook: Warm, personal, community-first. Open with a relatable story or honest statement. Build emotion and trust before any CTA. 300-500 words. No hard sell. Max 2 hashtags. End with a soft question or CTA.',
   x:        'X (Twitter): 8-12 tweet thread. Hook tweet must stop the scroll. Each tweet under 280 characters. CTA only on final tweet. 1-2 hashtags max.'
 };
 
-var VPE_PLATFORM_LABELS = { quora:'Quora Answer', reddit:'Reddit Post', linkedin:'LinkedIn Article', medium:'Medium Article', x:'X Thread' };
+var VPE_PLATFORM_LABELS = { quora:'Quora Answer', reddit:'Reddit Post', linkedin:'LinkedIn Article', medium:'Medium Article', facebook:'Facebook Post', x:'X Thread' };
 
 function vpeGetIntel() {
   var mode = window._appMode || 'expert';
@@ -41476,42 +41675,45 @@ async function vpeFindQuestions() {
   var btn    = document.getElementById('vpe-find-btn');
   var status = document.getElementById('vpe-find-status');
   var grid   = document.getElementById('vpe-questions-grid');
-  if (btn) { btn.textContent = '🔍 Searching…'; btn.disabled = true; }
-  if (status) { status.style.display='block'; status.textContent='Searching Reddit, Quora and Google for what your audience is asking…'; }
-  if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">Scanning live sources…</div>';
+  if (btn) { btn.textContent='🔍 Searching…'; btn.disabled=true; }
+  if (status) { status.style.display='block'; status.textContent='Scanning Reddit, Quora, Google, YouTube and X for what your audience is asking right now…'; }
+  if (grid) grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">Scanning live sources…</div>';
   try {
-    var resp = await fetch(window.location.origin + '/api/vpe-questions', {
+    var resp = await fetch(window.location.origin+'/api/vpe-questions', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ niche:niche, intel:intel, mode:window._appMode||'expert' })
     });
-    var data = await resp.json();
+    var data      = await resp.json();
     var questions = data.questions || [];
-    var source = data.source || 'generated';
+    var source    = data.source    || 'generated';
     _vpeState.questions = questions;
     var sourceLabel = source==='live'
-      ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live — pulled from Reddit, Quora & Google</span>'
+      ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live results — Reddit, Quora, Google, YouTube &amp; X (last 12 months)</span>'
       : '<span style="color:#F5C842;font-weight:700;font-size:11px">⚡ Generated from niche knowledge</span>';
-    if (status) status.innerHTML = '✅ Found '+questions.length+' questions — pick one to answer &nbsp;·&nbsp; '+sourceLabel;
+    if (status) status.innerHTML = '✅ Found '+questions.length+' questions &nbsp;·&nbsp;'+sourceLabel;
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
-        var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)'}[q.platform]||'var(--dim)';
+        var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
+        var srcLink = q.url ? '<a href="'+q.url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px;white-space:nowrap">View Source →</a>' : '';
         return '<div class="vpe-q-card" onclick="vpeSelectQuestion(this,'+i+')">'
           +'<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">'+q.question+'</div>'
-          +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px">'+q.why+'</div>':'')
-          +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+          +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">'+q.why+'</div>':'')
+          +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
           +'<span style="font-size:10px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">📍 '+(q.platform||'web')+'</span>'
+          +(q.year?'<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">📅 '+q.year+'</span>':'')
           +'<span style="font-size:10px;font-weight:700;color:'+(q.volume==='high'?'var(--teal)':'#F5C842')+';background:var(--card2);border-radius:4px;padding:2px 8px">📊 '+(q.volume||'medium')+' volume</span>'
           +'<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">'+(q.intent==='commercial'?'💰 buyer intent':'ℹ️ informational')+'</span>'
+          +srcLink
           +'</div></div>';
       }).join('');
     } else if (grid) {
-      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">No questions found. Add more detail to your Avatar and Offer setup.</div>';
+      grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--dim);font-size:13px">No questions found. Add more detail to your Avatar and Offer setup.</div>';
     }
   } catch(e) {
-    if (status) status.textContent = '⚠️ Could not load questions. Try again.';
-    if (grid) grid.innerHTML = '';
+    if (status) status.textContent='⚠️ Could not load questions. Try again.';
+    if (grid) grid.innerHTML='';
   }
-  if (btn) { btn.textContent = '🔍 Find Questions'; btn.disabled = false; }
+  if (btn) { btn.textContent='🔍 Find Questions'; btn.disabled=false; }
 }
 
 function vpeSelectQuestion(el, idx) {
@@ -41529,58 +41731,77 @@ function vpeSelectQuestion(el, idx) {
 }
 
 async function vpeGenerate() {
-  var t = document.getElementById('vpe-topic');
-  var topic = t ? t.value.trim() : '';
-  if (!topic) { if (t) t.focus(); return; }
+  var topicEl = document.getElementById('vpe-topic');
+  var topic   = topicEl ? topicEl.value.trim() : '';
+  if (!topic) { if (topicEl) topicEl.focus(); return; }
   _vpeState.topic = topic;
   await vpeWrite(_vpeState.platform, topic);
 }
 
 async function vpeWrite(platform, topic) {
-  var btn    = document.getElementById('vpe-gen-btn');
-  var status = document.getElementById('vpe-gen-status');
-  var output = document.getElementById('vpe-output');
-  var contentEl = document.getElementById('vpe-post-content');
-  var labelEl   = document.getElementById('vpe-output-label');
-  var badgeEl   = document.getElementById('vpe-platform-badge');
-  if (btn) { btn.disabled=true; btn.textContent='Writing…'; }
-  if (status) { status.style.display='block'; status.textContent='E-OS Intelligence is writing your '+VPE_PLATFORM_LABELS[platform]+'…'; }
-  if (output) output.style.display='none';
+  var btn      = document.getElementById('vpe-gen-btn');
+  var status   = document.getElementById('vpe-gen-status');
+  var output   = document.getElementById('vpe-output');
+  var contentEl= document.getElementById('vpe-post-content');
+  var labelEl  = document.getElementById('vpe-output-label');
+  var badgeEl  = document.getElementById('vpe-platform-badge');
+  if (btn)     { btn.disabled=true; btn.textContent='Writing…'; }
+  if (status)  { status.style.display='block'; status.textContent='E-OS Intelligence is writing your '+VPE_PLATFORM_LABELS[platform]+'…'; }
+  if (output)  { output.style.display='none'; }
+  if (contentEl) { contentEl.textContent=''; }
   var intel = vpeGetIntel();
   var rules = VPE_PLATFORM_RULES[platform]||'';
   var platformInstructions = {
-    quora:    'Write a long-form Quora answer (600-900 words). First-person expert voice. Bold opening. Real insight — not generic advice. Weave offer as natural recommendation at end.',
-    reddit:   'Write a Reddit post (400-700 words). Sound like a real community member. Give genuine value. Only mention offer as personal experience. Zero promotional language.',
-    linkedin: 'Write a LinkedIn article (700-1000 words). Professional thought-leadership. Personal story hook. Short paragraphs. Clear takeaway and soft CTA. 3-5 hashtags.',
-    medium:   'Write a Medium article (900-1400 words). Compelling headline. H2 subheadings. Narrative style. SEO-aware. CTA at end.',
-    x:        'Write an X thread of 10-12 tweets. Tweet 1 is the hook. Each under 280 chars. Last tweet is CTA. Number each tweet (1/, 2/, etc). Max 2 hashtags total.'
+    quora:    'Write a long-form Quora answer (600-900 words). First-person expert voice. Open with a bold statement. Real specific insight — not generic advice. Weave the offer as a natural recommendation at the end. No hard sell.',
+    reddit:   'Write a Reddit post (400-700 words). Sound exactly like a genuine community member sharing real experience. Give actual value. Only mention the offer as personal experience. Zero promotional language.',
+    linkedin: 'Write a LinkedIn article (700-1000 words). Professional thought-leadership. Open with a personal story or bold insight. Short paragraphs. Build to a clear takeaway and soft CTA. 3-5 hashtags at end.',
+    medium:   'Write a Medium article (900-1400 words). Compelling headline as first line. Use section breaks marked with ---. Narrative storytelling style. SEO-aware. Soft CTA at end.',
+    facebook: 'Write a Facebook post (300-500 words). Warm, personal, community feel — like a friend sharing something real. Open with a relatable story or honest statement. Build emotion and trust. Soft question or CTA to [PAGE_LINK] at end. Max 2 hashtags.',
+    x:        'Write an X thread of 10-12 tweets. Tweet 1 MUST stop the scroll — make it surprising or provocative. Each tweet under 280 characters. Build logically. Last tweet is the CTA with [PAGE_LINK]. Number each (1/, 2/ etc). Max 2 hashtags total.'
   };
-  var aiPrompt = 'You are a world-class content strategist and copywriter.\n\nTOPIC: '+topic+'\n\n'
-    +(intel?'OFFER AND AUDIENCE INTELLIGENCE:\n'+intel+'\n\n':'')
+  var aiPrompt = 'You are a world-class content strategist and copywriter.\n\n'
+    +'TOPIC / QUESTION TO ANSWER:\n'+topic+'\n\n'
+    +(intel?'OFFER AND AUDIENCE INTELLIGENCE (write to this exact person about this exact offer):\n'+intel+'\n\n':'')
     +'PLATFORM RULES:\n'+rules+'\n\n'
-    +'INSTRUCTIONS:\n'+(platformInstructions[platform]||'Write a high-value long-form post.')+'\n\n'
-    +'This content must: answer with genuine specific insight, use the audience\'s exact language, naturally position the offer as the logical solution, end with a CTA, comply fully with platform rules.\n\n'
-    +'Write the full post now. No preamble — just the post.';
+    +'WRITING INSTRUCTIONS:\n'+(platformInstructions[platform]||'Write a high-value long-form post.')+'\n\n'
+    +'CRITICAL:\n'
+    +'- Answer with genuine specific insight — not generic advice\n'
+    +'- Speak the audience exact language and address their specific pain\n'
+    +'- Naturally position the offer as the logical solution\n'
+    +'- Comply fully with platform rules\n\n'
+    +'Return ONLY the post content — no preamble, no explanation, no "Here is your post" — just the post itself ready to copy and paste.';
   try {
     var resp = await fetch(window.location.origin+'/api/claude', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:2000, messages:[{role:'user',content:aiPrompt}] })
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:2500, messages:[{role:'user',content:aiPrompt}] })
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+    if (!text) {
+      if (status) { status.textContent='⚠️ No content returned. Try again.'; }
+      if (btn) { btn.disabled=false; btn.textContent='✍️ Write My Post'; }
+      return;
+    }
     _vpeState.lastPost = text;
+    _vpeState.platform = platform;
     if (contentEl) contentEl.textContent = text;
     if (labelEl)   labelEl.textContent   = VPE_PLATFORM_LABELS[platform];
     if (badgeEl)   badgeEl.innerHTML     = '<span style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 10px;color:var(--teal);font-weight:700">'+platform.toUpperCase()+'</span>';
-    if (output) output.style.display='block';
+    if (output) output.style.display = 'block';
     var rulesEl = document.getElementById('vpe-rules-notice');
     var rulesText = document.getElementById('vpe-rules-text');
-    if (rulesEl && rulesText) { rulesText.textContent=rules; rulesEl.style.display='block'; }
-    vpeImageSuggestions(topic, platform);
-    if (status) { status.textContent='✅ Your post is ready.'; setTimeout(function(){ status.style.display='none'; },3000); }
-    if (output) output.scrollIntoView({behavior:'smooth',block:'start'});
+    if (rulesEl && rulesText && rules) { rulesText.textContent=rules; rulesEl.style.display='block'; }
+    if (platform!=='x' && platform!=='facebook') {
+      vpeImageSuggestions(topic, platform);
+    } else {
+      var imgSection = document.getElementById('vpe-images-section');
+      if (imgSection) imgSection.style.display='none';
+    }
+    if (status) { status.textContent='✅ Your post is ready — review and copy.'; setTimeout(function(){ status.style.display='none'; },4000); }
+    setTimeout(function(){ if (output) output.scrollIntoView({behavior:'smooth',block:'start'}); },100);
   } catch(e) {
-    if (status) { status.textContent='⚠️ Could not generate post. Try again.'; }
+    console.error('[VPE]',e);
+    if (status) { status.style.display='block'; status.textContent='⚠️ Could not generate. Try again.'; }
   }
   if (btn) { btn.disabled=false; btn.textContent='✍️ Write My Post'; }
 }
@@ -41589,11 +41810,12 @@ async function vpeImageSuggestions(topic, platform) {
   var section = document.getElementById('vpe-images-section');
   var el      = document.getElementById('vpe-image-suggestions');
   if (!section||!el) return;
-  if (platform==='x') { section.style.display='none'; return; }
   try {
     var resp = await fetch(window.location.origin+'/api/claude', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:300, messages:[{role:'user',content:'Suggest 3 specific image search queries for a "'+platform+'" post about: "'+topic+'". Return ONLY JSON: [{"query":"...","why":"one sentence"}]. No markdown.'}] })
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:300,
+        messages:[{role:'user',content:'Suggest 3 specific image search queries for a "'+platform+'" post about: "'+topic+'". Return ONLY JSON: [{"query":"...","why":"one sentence"}]. No markdown.'}]
+      })
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
@@ -41614,14 +41836,16 @@ async function vpeImageSuggestions(topic, platform) {
 
 function vpeCopy() {
   if (!_vpeState.lastPost) return;
-  navigator.clipboard.writeText(_vpeState.lastPost).then(function(){ emToast('✅ Copied to clipboard'); }).catch(function(){ emToast('⚠️ Could not copy'); });
+  navigator.clipboard.writeText(_vpeState.lastPost)
+    .then(function(){ emToast('✅ Copied to clipboard'); })
+    .catch(function(){ emToast('⚠️ Could not copy'); });
 }
 
 function vpeRegenerate() { if (_vpeState.topic) vpeWrite(_vpeState.platform, _vpeState.topic); }
 
 async function vpeAdapt(platform) {
   if (!_vpeState.lastPost) { emToast('⚠️ Generate a post first.', true); return; }
-  var rules = VPE_PLATFORM_RULES[platform]||'';
+  var rules     = VPE_PLATFORM_RULES[platform]||'';
   var contentEl = document.getElementById('vpe-post-content');
   var labelEl   = document.getElementById('vpe-output-label');
   var badgeEl   = document.getElementById('vpe-platform-badge');
@@ -41630,7 +41854,9 @@ async function vpeAdapt(platform) {
   try {
     var resp = await fetch(window.location.origin+'/api/claude', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:2000, messages:[{role:'user',content:'Reformat and rewrite this content for '+VPE_PLATFORM_LABELS[platform]+'.\n\nPLATFORM RULES:\n'+rules+'\n\nORIGINAL:\n'+_vpeState.lastPost+'\n\nKeep the core message. Adapt format, tone and length. Return only the adapted post.'}] })
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:2500,
+        messages:[{role:'user',content:'Reformat and rewrite this content for '+VPE_PLATFORM_LABELS[platform]+'.\n\nPLATFORM RULES:\n'+rules+'\n\nORIGINAL CONTENT:\n'+_vpeState.lastPost+'\n\nKeep the core message. Adapt format, tone and length to fit '+platform+' perfectly. Return ONLY the adapted post — no preamble.'}]
+      })
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
@@ -41639,12 +41865,10 @@ async function vpeAdapt(platform) {
     if (contentEl) contentEl.textContent = text;
     if (labelEl)   labelEl.textContent   = VPE_PLATFORM_LABELS[platform];
     if (badgeEl)   badgeEl.innerHTML     = '<span style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 10px;color:var(--teal);font-weight:700">'+platform.toUpperCase()+'</span>';
-    var rulesText = document.getElementById('vpe-rules-text');
-    if (rulesText) rulesText.textContent = rules;
     vpeImageSuggestions(_vpeState.topic, platform);
     if (status) { status.textContent='✅ Adapted for '+VPE_PLATFORM_LABELS[platform]; setTimeout(function(){ status.style.display='none'; },2500); }
   } catch(e) {
-    if (status) { status.textContent='⚠️ Could not adapt post.'; }
+    if (status) status.textContent='⚠️ Could not adapt. Try again.';
   }
 }
 
@@ -41655,6 +41879,7 @@ window.vpeGenerate       = vpeGenerate;
 window.vpeCopy           = vpeCopy;
 window.vpeRegenerate     = vpeRegenerate;
 window.vpeAdapt          = vpeAdapt;
+
 </script>
 </body>
 </html>
