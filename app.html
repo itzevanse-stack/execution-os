@@ -2855,12 +2855,23 @@ button[onclick="generateOffer()"] {
 .vpe-q-card:hover { border-color:rgba(245,200,66,.4);background:rgba(245,200,66,.04); }
 .vpe-q-card.selected { border-color:#F5C842;background:rgba(245,200,66,.06); }
 
-/* ── QUOTE CARD ──────────────────────────────────────────────── */
+/* ── QUOTE CARD EDITOR ───────────────────────────────────────── */
+.qc-fmt-btn { background:none;border:1px solid var(--border2);border-radius:5px;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;padding:3px 8px;font-family:'Poppins',sans-serif;transition:all .15s; }
+.qc-fmt-btn:hover { border-color:rgba(78,204,163,.4);color:var(--teal); }
+.qc-fmt-active { border-color:rgba(78,204,163,.4)!important;color:var(--teal)!important;background:rgba(78,204,163,.08)!important; }
+.qc-draggable { transition:box-shadow .15s; }
+.qc-draggable:hover { box-shadow:0 0 0 1px rgba(78,204,163,.3); }
+.qc-selected { box-shadow:0 0 0 2px rgba(78,204,163,.6)!important; }
+.qc-dragging { cursor:grabbing!important;box-shadow:0 4px 20px rgba(0,0,0,.4)!important;opacity:.9; }
 .qc-type-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:7px 14px;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s; }
 .qc-type-btn:hover { border-color:rgba(78,204,163,.3);color:var(--teal); }
 .qc-type-active { background:rgba(78,204,163,.1)!important;border-color:rgba(78,204,163,.3)!important;color:var(--teal)!important; }
+.qc-len-active  { background:rgba(245,200,66,.1)!important;border-color:rgba(245,200,66,.3)!important;color:#F5C842!important; }
 .qc-style-btn { transition:border-color .15s; }
 .qc-style-active { border-color:var(--teal)!important; }
+.qc-fmt-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 9px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;line-height:1; }
+.qc-fmt-btn:hover { background:rgba(78,204,163,.08);border-color:rgba(78,204,163,.3);color:var(--teal); }
+.qc-draggable:hover { outline:1px dashed rgba(78,204,163,.3); }
 
 /* Contact table */
 .em-table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -7594,6 +7605,10 @@ button[onclick="generateOffer()"] {
               <button onclick="qcSetType(this,'action')"   class="qc-type-btn">⚡ Take Action</button>
               <button onclick="qcSetType(this,'story')"    class="qc-type-btn">📖 Personal Story</button>
               <button onclick="qcSetType(this,'viral')"    class="qc-type-btn">🚀 Viral Hook</button>
+              <button onclick="qcSetType(this,'devt')"     class="qc-type-btn">🌱 Personal Dev</button>
+              <button onclick="qcSetType(this,'psych')"    class="qc-type-btn">🧠 Psychology</button>
+              <button onclick="qcSetType(this,'philo')"    class="qc-type-btn">💭 Philosophy</button>
+              <button onclick="qcSetType(this,'bible')"    class="qc-type-btn">✝️ Bible Verse</button>
             </div>
           </div>
 
@@ -7602,7 +7617,12 @@ button[onclick="generateOffer()"] {
             <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Quote</div>
             <div id="qc-gen-status" style="font-size:11px;color:var(--teal);margin-bottom:8px;display:none">✨ Writing your quote…</div>
             <textarea id="qc-quote-text" placeholder="Generating your quote…" style="width:100%;min-height:100px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 14px;font-size:14px;font-weight:700;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.6;resize:none;outline:none" oninput="qcUpdateCard()" onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
-            <button onclick="qcGenerate()" id="qc-gen-btn" style="width:100%;margin-top:10px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:12px;color:var(--text-dark);font-size:13px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif">⚡ Regenerate</button>
+            <div style="display:flex;gap:6px;margin-top:10px;margin-bottom:10px">
+              <button onclick="qcSetLength(this,'short')"  class="qc-type-btn qc-len-btn qc-len-active" style="flex:1;font-size:11px">Short</button>
+              <button onclick="qcSetLength(this,'medium')" class="qc-type-btn qc-len-btn"               style="flex:1;font-size:11px">Medium</button>
+              <button onclick="qcSetLength(this,'long')"   class="qc-type-btn qc-len-btn"               style="flex:1;font-size:11px">Long</button>
+            </div>
+            <button onclick="qcGenerate()" id="qc-gen-btn" style="width:100%;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:12px;color:var(--text-dark);font-size:13px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif">⚡ Regenerate</button>
           </div>
 
           <!-- Profile -->
@@ -7626,13 +7646,21 @@ button[onclick="generateOffer()"] {
           <!-- Background image -->
           <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 22px">
             <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Background</div>
-            <!-- Style buttons -->
-            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+            <!-- Style presets + custom colour picker -->
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
               <button onclick="qcSetStyle(this,'dark')"    class="qc-style-btn qc-style-active" style="background:#000;border:2px solid var(--teal);border-radius:8px;width:36px;height:26px;cursor:pointer" title="Dark"></button>
               <button onclick="qcSetStyle(this,'white')"   class="qc-style-btn" style="background:#fff;border:2px solid var(--border2);border-radius:8px;width:36px;height:26px;cursor:pointer" title="White"></button>
               <button onclick="qcSetStyle(this,'teal')"    class="qc-style-btn" style="background:linear-gradient(135deg,#0a2a2a,#0d3d3d);border:2px solid var(--border2);border-radius:8px;width:36px;height:26px;cursor:pointer" title="Teal"></button>
               <button onclick="qcSetStyle(this,'gold')"    class="qc-style-btn" style="background:linear-gradient(135deg,#1a1500,#2a2000);border:2px solid var(--border2);border-radius:8px;width:36px;height:26px;cursor:pointer" title="Gold"></button>
               <button onclick="qcSetStyle(this,'purple')"  class="qc-style-btn" style="background:linear-gradient(135deg,#120a2a,#1a0d3d);border:2px solid var(--border2);border-radius:8px;width:36px;height:26px;cursor:pointer" title="Purple"></button>
+              <!-- Custom bg colour -->
+              <div style="position:relative;display:flex;align-items:center;gap:4px;margin-left:4px">
+                <div style="font-size:9px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px">Custom</div>
+                <div style="position:relative">
+                  <input type="color" id="qc-bg-color-pick" value="#000000" onchange="qcSetBgColor(this.value)"
+                    style="width:36px;height:26px;border:2px solid var(--border2);border-radius:8px;cursor:pointer;padding:1px;background:none">
+                </div>
+              </div>
             </div>
             <!-- Image upload -->
             <div style="border:1px dashed rgba(78,204,163,.25);border-radius:var(--r-md);padding:12px;text-align:center;cursor:pointer;background:rgba(78,204,163,.03)" onclick="document.getElementById('qc-bg-input').click()">
@@ -7644,47 +7672,117 @@ button[onclick="generateOffer()"] {
           </div>
 
           <!-- Download -->
-          <button onclick="qcDownload()" id="qc-download-btn" style="width:100%;background:linear-gradient(135deg,#F5C842,#d4a800);border:none;border-radius:var(--r-md);padding:14px;color:#06060f;font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">⬇️ Download Card</button>
-          <div style="font-size:11px;color:var(--dim);text-align:center;margin-top:-8px">1080×1080px · Ready for Facebook, Instagram &amp; X</div>
+          <button onclick="qcDownload()" id="qc-download-btn" style="width:100%;background:linear-gradient(135deg,#F5C842,#d4a800);border:none;border-radius:var(--r-md);padding:14px;color:#06060f;font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">⬇️ Download 4K Card</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+            <div style="font-size:11px;color:var(--dim)">4000×4000px · Facebook, Instagram &amp; X</div>
+            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--dim);font-weight:600">
+              <input type="checkbox" id="qc-watermark-toggle" checked onchange="qcToggleWatermark(this.checked)" style="cursor:pointer">
+              Watermark
+            </label>
+          </div>
         </div>
 
-        <!-- RIGHT — Preview -->
+        <!-- RIGHT — Interactive Editor + Preview -->
         <div>
-          <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Live Preview</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Live Editor</div>
+            <div style="font-size:10px;color:var(--dim)">Click any element to format · Drag to reposition</div>
+          </div>
+
+          <!-- Formatting toolbar — shown when element is selected -->
+          <div id="qc-toolbar" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 12px;margin-bottom:10px;flex-wrap:wrap;gap:6px;align-items:center">
+            <button onclick="qcFmt('bold')"      class="qc-fmt-btn" title="Bold"><b>B</b></button>
+            <button onclick="qcFmt('italic')"    class="qc-fmt-btn" title="Italic"><i>I</i></button>
+            <button onclick="qcFmt('underline')" class="qc-fmt-btn" title="Underline" style="text-decoration:underline">U</button>
+            <div style="width:1px;height:18px;background:var(--border2)"></div>
+            <select onchange="qcFmtSize(this.value)" id="qc-size-sel" style="background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;color:var(--muted);font-family:Poppins,sans-serif;font-size:10px;cursor:pointer">
+              <option value="12px">XS</option>
+              <option value="15px">S</option>
+              <option value="18px">M</option>
+              <option value="22px" selected>L</option>
+              <option value="28px">XL</option>
+              <option value="36px">XXL</option>
+              <option value="44px">Title</option>
+            </select>
+            <select onchange="qcFmtFont(this.value)" style="background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;color:var(--muted);font-family:Poppins,sans-serif;font-size:10px;cursor:pointer">
+              <option value="Poppins">Poppins</option>
+              <option value="Georgia">Georgia</option>
+              <option value="Impact">Impact</option>
+              <option value="monospace">Mono</option>
+            </select>
+            <div style="width:1px;height:18px;background:var(--border2)"></div>
+            <button onclick="qcFmtAlign('left')"   class="qc-fmt-btn" title="Left">≡</button>
+            <button onclick="qcFmtAlign('center')" class="qc-fmt-btn" title="Centre">≡</button>
+            <button onclick="qcFmtAlign('right')"  class="qc-fmt-btn" title="Right">≡</button>
+            <div style="width:1px;height:18px;background:var(--border2)"></div>
+            <!-- Colour picker -->
+            <div style="display:flex;align-items:center;gap:4px">
+              <div style="font-size:9px;color:var(--dim);font-weight:700">Color</div>
+              <input type="color" id="qc-color-pick" value="#ffffff" onchange="qcFmtColor(this.value)" style="width:28px;height:22px;border:none;border-radius:4px;cursor:pointer;padding:0;background:none">
+            </div>
+            <div style="width:1px;height:18px;background:var(--border2)"></div>
+            <button onclick="qcResetPos()" class="qc-fmt-btn" title="Reset position" style="font-size:9px;color:var(--dim);font-weight:700">⊞ Reset</button>
+          </div>
+
+          <!-- Card canvas -->
           <div style="position:relative;width:100%;max-width:400px;margin:0 auto">
-            <div id="qc-card" style="width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:32px;box-sizing:border-box;background:#000;box-shadow:0 20px 60px rgba(0,0,0,.6)">
+            <div id="qc-card" style="width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;position:relative;background:#000;box-shadow:0 20px 60px rgba(0,0,0,.6);user-select:none">
               <!-- Background image layer -->
               <div id="qc-bg-layer" style="position:absolute;inset:0;background-size:cover;background-position:center;display:none"></div>
-              <!-- Vignette overlay — dark edges, clear center so face shows through -->
-              <div id="qc-overlay" style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.1) 35%, rgba(0,0,0,0.1) 65%, rgba(0,0,0,0.65) 100%);display:none"></div>
-              <!-- Content -->
-              <div style="position:relative;z-index:2;display:flex;flex-direction:column;height:100%;justify-content:space-between">
-                <!-- Profile row -->
-                <div style="display:flex;align-items:center;gap:14px">
-                  <div id="qc-avatar" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;font-family:'Poppins',sans-serif;border:2px solid rgba(255,255,255,.15)">E</div>
-                  <div>
-                    <div style="display:flex;align-items:center;gap:6px">
-                      <div id="qc-card-name" style="font-size:15px;font-weight:900;color:#fff;font-family:'Poppins',sans-serif">Your Name</div>
-                      <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M9.5 16.5l-3-3 1.41-1.41L9.5 13.67l6.59-6.58L17.5 8.5z" fill="white"/></svg>
-                    </div>
-                    <div id="qc-card-handle" style="font-size:12px;color:rgba(255,255,255,.45);font-family:'Poppins',sans-serif">@yourhandle</div>
+              <!-- Vignette -->
+              <div id="qc-overlay" style="position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.92) 0%,rgba(0,0,0,.6) 35%,rgba(0,0,0,.15) 65%,rgba(0,0,0,0) 100%);display:none;pointer-events:none"></div>
+
+              <!-- DRAGGABLE: Profile row -->
+              <div id="qc-el-profile" class="qc-draggable" style="position:absolute;top:32px;left:32px;display:flex;align-items:center;gap:12px;cursor:grab;z-index:10;padding:6px;border-radius:8px" onclick="qcSelectEl('profile')" onmousedown="qcDragStart(event,'qc-el-profile')">
+                <div id="qc-avatar" style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--purple));display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden;font-family:'Poppins',sans-serif;border:2px solid rgba(255,255,255,.15);pointer-events:none">E</div>
+                <div style="pointer-events:none">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <div id="qc-card-name" style="font-size:15px;font-weight:900;color:#fff;font-family:'Poppins',sans-serif">Your Name</div>
+                    <svg width="15" height="15" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="#1d9bf0"/><path d="M9.5 16.5l-3-3 1.41-1.41L9.5 13.67l6.59-6.58L17.5 8.5z" fill="white"/></svg>
                   </div>
+                  <div id="qc-card-handle" style="font-size:11px;color:rgba(255,255,255,.45);font-family:'Poppins',sans-serif">@yourhandle</div>
                 </div>
-                <!-- Quote -->
-                <div id="qc-card-quote" style="font-size:22px;font-weight:800;color:#fff;font-family:'Poppins',sans-serif;line-height:1.4;flex:1;display:flex;align-items:center;padding:24px 0">
+              </div>
+
+              <!-- DRAGGABLE: Quote text -->
+              <div id="qc-el-quote" class="qc-draggable" style="position:absolute;top:120px;left:32px;right:32px;cursor:grab;z-index:10;padding:6px;border-radius:8px" onclick="qcSelectEl('quote')" onmousedown="qcDragStart(event,'qc-el-quote')">
+                <div id="qc-card-quote" style="font-size:22px;font-weight:800;color:#fff;font-family:'Poppins',sans-serif;line-height:1.4;pointer-events:none">
                   Your quote will appear here automatically.
                 </div>
-                <!-- Brand -->
-                <div id="qc-card-brand" style="font-size:10px;color:rgba(255,255,255,.15);font-family:'Poppins',sans-serif;text-align:right">ExecutionOS</div>
+                <!-- Resize handle — bottom-right corner -->
+                <div id="qc-resize-handle" onmousedown="qcResizeStart(event)" ontouchstart="qcResizeStart(event)"
+                  style="position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;cursor:se-resize;z-index:20;display:none"
+                  title="Drag to resize">
+                  <svg width="16" height="16" viewBox="0 0 16 16" style="display:block"><path d="M12 4l-8 8M16 8l-8 8M16 12l-4 4" stroke="rgba(78,204,163,.8)" stroke-width="2" stroke-linecap="round"/></svg>
+                </div>
+              </div>
+
+              <!-- DRAGGABLE: Brand -->
+              <div id="qc-el-brand" class="qc-draggable" style="position:absolute;bottom:20px;right:28px;cursor:grab;z-index:10;padding:4px;border-radius:6px" onclick="qcSelectEl('brand')" onmousedown="qcDragStart(event,'qc-el-brand')">
+                <div id="qc-card-brand" style="font-size:10px;color:rgba(255,255,255,.2);font-family:'Poppins',sans-serif;pointer-events:none">ExecutionOS</div>
               </div>
             </div>
+
+            <!-- Selection hint -->
+            <div style="font-size:10px;color:var(--dimmer);text-align:center;margin-top:8px">Click any text to edit format · Drag to move</div>
           </div>
 
           <!-- Caption -->
-          <div style="margin-top:16px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
+          <div style="margin-top:14px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
             <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Post Caption</div>
             <div id="qc-caption" style="font-size:12px;color:var(--muted);line-height:1.7;min-height:40px">Generating caption…</div>
             <button onclick="qcCopyCaption()" style="margin-top:10px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;padding:6px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📋 Copy Caption</button>
+          </div>
+
+          <!-- Fade slider — shown when background image is loaded -->
+          <div id="qc-fade-row" style="display:none;margin-top:14px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">🌫 Image Fade</div>
+              <div id="qc-fade-val" style="font-size:11px;color:var(--teal);font-weight:800">40%</div>
+            </div>
+            <input type="range" id="qc-fade-slider" min="0" max="95" value="40" oninput="qcSetFade(this.value)"
+              style="width:100%;accent-color:var(--teal);cursor:pointer;height:4px">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dimmer);margin-top:6px"><span>Vivid — image shows clearly</span><span>Faded</span></div>
           </div>
         </div>
 
@@ -42013,7 +42111,13 @@ window.vpeFindQuestions  = vpeFindQuestions;
 // ══════════════════════════════════════════════════════════════════════════════
 // QUOTE CARD GENERATOR
 // ══════════════════════════════════════════════════════════════════════════════
-var _qcState = { type:'truth', style:'dark', quote:'', caption:'' };
+var _qcState = { type:'truth', style:'dark', quote:'', caption:'', length:'short' };
+
+var QC_LENGTH = {
+  short:  'One sentence only. Maximum 12 words. Sharp and punchy.',
+  medium: '2-3 sentences. Maximum 40 words. Clear and impactful.',
+  long:   '4-6 sentences. Maximum 80 words. Developed thought with depth.',
+};
 
 var QC_STYLES = {
   dark:   { bg:'#000000',        text:'#ffffff', sub:'rgba(255,255,255,.45)', brand:'rgba(255,255,255,.12)' },
@@ -42030,6 +42134,10 @@ var QC_TYPE_PROMPTS = {
   action:   'Write one short take-action quote for someone in the "{niche}" niche who keeps getting ready but never starting. Reference the specific hesitation this audience has. Create urgency without being preachy. 1-3 sentences max.',
   story:    'Write one short personal story hook for the "{niche}" niche. Start with "I used to..." or "Nobody told me..." or "The day I realised..." or "I spent years...". About a specific struggle in {niche} that the audience would immediately recognise. 1-3 sentences max.',
   viral:    'Write one short viral quote for the "{niche}" niche. Counterintuitive, bold, or challenges a popular belief specific to this space. The kind of thing people in {niche} communities screenshot and share. 1-3 sentences max. No hashtags.',
+  devt:     'Write one short personal development quote that applies deeply to someone in the "{niche}" niche. Draw from growth mindset, identity, self-discipline, or transformation principles — but connect it specifically to the journey someone in {niche} is on. Timeless but relevant. 1-3 sentences max.',
+  psych:    'Write one short quote grounded in human psychology that is deeply relevant to the "{niche}" audience. Reference a real psychological principle, bias, or behaviour pattern — fear of failure, social proof, identity, loss aversion, or cognitive dissonance — and connect it to something this audience experiences. Make it feel insightful and shareable. 1-3 sentences max.',
+  philo:    'Write one short philosophical quote or idea — original or inspired by Stoic, Existentialist, or Eastern philosophy — that speaks directly to someone in the "{niche}" space. Connect the wisdom to the specific challenge or desire of this audience. Sound timeless, not academic. 1-3 sentences max.',
+  bible:    'Write one short Bible verse or biblically-inspired quote that is deeply relevant and encouraging for someone in the "{niche}" niche. If using an actual verse, format it as: "[verse text]" — Book Chapter:Verse. If inspired by scripture, make it feel grounded in biblical wisdom about perseverance, purpose, identity, or calling. Connect to the specific journey of someone in {niche}. No generic prosperity gospel tone.',
 };
 
 var QC_CAPTION_PROMPTS = {
@@ -42039,6 +42147,10 @@ var QC_CAPTION_PROMPTS = {
   action:   'Write a short caption (2-3 sentences) for this take-action post in the "{niche}" niche: "{quote}". Create urgency relevant to this audience. End with a direct call to action. Add 2-3 hashtags.',
   story:    'Write a short caption (2-3 sentences) for this story hook in the "{niche}" niche: "{quote}". Continue the story or ask if the reader has experienced the same. End with a question. Add 2-3 hashtags.',
   viral:    'Write a short viral caption (2-3 sentences) for this quote in the "{niche}" niche: "{quote}". Add context that makes people want to share or debate it. End with something that makes people tag a friend. Add 2-3 hashtags.',
+  devt:     'Write a short caption (2-3 sentences) for this personal development quote in the "{niche}" niche: "{quote}". Connect it to the real growth journey of this audience. End with a question about their own experience. Add 2-3 relevant hashtags.',
+  psych:    'Write a short caption (2-3 sentences) for this psychology-based quote for the "{niche}" audience: "{quote}". Briefly explain the psychological insight in plain language. End with a question that makes people reflect on themselves. Add 2-3 hashtags.',
+  philo:    'Write a short caption (2-3 sentences) for this philosophical quote relevant to the "{niche}" niche: "{quote}". Translate the wisdom into something actionable for this specific audience. End with a reflective question. Add 2-3 hashtags.',
+  bible:    'Write a short caption (2-3 sentences) for this Bible verse or scriptural quote for the "{niche}" niche: "{quote}". Apply the spiritual message to the real journey of this audience. Warm, sincere, and faith-grounded. End with an encouraging question or blessing. Add 2-3 relevant hashtags.',
 };
 
 function qcInit() {
@@ -42102,22 +42214,42 @@ function qcLoadBg(e) {
     var overlay  = document.getElementById('qc-overlay');
     var labelEl  = document.getElementById('qc-bg-label');
     var removBtn = document.getElementById('qc-remove-bg-btn');
+    var fadeRow  = document.getElementById('qc-fade-row');
     var card     = document.getElementById('qc-card');
     if (bgLayer) { bgLayer.style.backgroundImage = 'url('+ev.target.result+')'; bgLayer.style.display='block'; }
     if (overlay) overlay.style.display = 'block';
     if (card)    card.style.background  = '#000';
     if (labelEl) labelEl.textContent = '✅ Background image set';
     if (removBtn) removBtn.style.display = 'inline-block';
-    // Ensure text stays white over image
-    var quoteEl  = document.getElementById('qc-card-quote');
-    var nameEl   = document.getElementById('qc-card-name');
-    var brandEl  = document.getElementById('qc-card-brand');
+    if (fadeRow)  fadeRow.style.display  = 'block';
+    // Apply default fade
+    qcSetFade(document.getElementById('qc-fade-slider') ? document.getElementById('qc-fade-slider').value : 40);
+    // Ensure text stays white
+    var quoteEl = document.getElementById('qc-card-quote');
+    var nameEl2 = document.getElementById('qc-card-name');
+    var brandEl = document.getElementById('qc-card-brand');
     if (quoteEl)  quoteEl.style.color  = '#ffffff';
-    if (nameEl)   nameEl.style.color   = '#ffffff';
+    if (nameEl2)  nameEl2.style.color  = '#ffffff';
     if (brandEl)  brandEl.style.color  = 'rgba(255,255,255,.15)';
   };
   reader.readAsDataURL(file);
 }
+
+function qcSetFade(val) {
+  val = parseInt(val);
+  var overlay = document.getElementById('qc-overlay');
+  var valEl   = document.getElementById('qc-fade-val');
+  if (overlay) {
+    var op = val / 100;
+    overlay.style.background = 'linear-gradient(to top,'
+      + 'rgba(0,0,0,' + Math.min(op + 0.5, 1)    + ') 0%,'
+      + 'rgba(0,0,0,' + Math.min(op + 0.15, 0.9)  + ') 35%,'
+      + 'rgba(0,0,0,' + Math.max(op - 0.2, 0)     + ') 65%,'
+      + 'rgba(0,0,0,' + Math.max(op - 0.4, 0)     + ') 100%)';
+  }
+  if (valEl) valEl.textContent = val + '%';
+}
+window.qcSetFade = qcSetFade;
 
 function qcRemoveBg() {
   var bgLayer  = document.getElementById('qc-bg-layer');
@@ -42125,11 +42257,13 @@ function qcRemoveBg() {
   var labelEl  = document.getElementById('qc-bg-label');
   var removBtn = document.getElementById('qc-remove-bg-btn');
   var bgInput  = document.getElementById('qc-bg-input');
+  var fadeRow  = document.getElementById('qc-fade-row');
   if (bgLayer) { bgLayer.style.backgroundImage=''; bgLayer.style.display='none'; }
   if (overlay) overlay.style.display = 'none';
   if (labelEl) labelEl.textContent   = '🖼 Upload background image (optional)';
   if (removBtn) removBtn.style.display = 'none';
   if (bgInput)  bgInput.value = '';
+  if (fadeRow)  fadeRow.style.display = 'none';
   qcApplyStyle();
 }
 
@@ -42137,6 +42271,12 @@ function qcSetType(el, type) {
   _qcState.type = type;
   document.querySelectorAll('.qc-type-btn').forEach(function(b){ b.classList.remove('qc-type-active'); });
   if (el) el.classList.add('qc-type-active');
+}
+
+function qcSetLength(el, length) {
+  _qcState.length = length;
+  document.querySelectorAll('.qc-len-btn').forEach(function(b){ b.classList.remove('qc-len-active'); });
+  if (el) el.classList.add('qc-len-active');
 }
 
 function qcSetStyle(el, style) {
@@ -42198,15 +42338,17 @@ async function qcGenerate() {
   var captionEl = document.getElementById('qc-caption');
 
   var niche = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).av_job || 'online business';
-  var typePrompt = (QC_TYPE_PROMPTS[_qcState.type]||QC_TYPE_PROMPTS.truth).replace('{niche}', niche);
+  var typePrompt = (QC_TYPE_PROMPTS[_qcState.type]||QC_TYPE_PROMPTS.truth).replace(/\{niche\}/g, niche);
+  var lengthInstr = QC_LENGTH[_qcState.length] || QC_LENGTH.short;
+  typePrompt = typePrompt.replace(/1-3 sentences max\./g, lengthInstr);
 
-  // Read avatar/offer for extra context
+  // Add avatar context
   var av = window._avatarData || {};
   var pain = av.av_current || av.av_igr || '';
-  var desiredOutcome = av.av_desired || av.av_transformation || '';
-  if (pain)           typePrompt += ' Audience pain: ' + pain + '.';
-  if (desiredOutcome) typePrompt += ' Desired outcome: ' + desiredOutcome + '.';
-  typePrompt += ' Return ONLY the quote text — no quotes, no explanation, no attribution.';
+  var desired = av.av_desired || av.av_transformation || '';
+  if (pain)    typePrompt += ' Audience pain: ' + pain + '.';
+  if (desired) typePrompt += ' Desired outcome: ' + desired + '.';
+  typePrompt += ' LENGTH: ' + lengthInstr + ' Return ONLY the quote text — no quotes, no explanation, no attribution.';
 
   if (btn)     { btn.disabled=true; btn.textContent='Writing…'; }
   if (statusEl){ statusEl.style.display='block'; statusEl.textContent='Writing your quote…'; }
@@ -42269,10 +42411,10 @@ async function qcDownload() {
 
 async function qcRenderDownload(card) {
   var btn = document.getElementById('qc-download-btn');
-  if (btn) { btn.textContent='⏳ Preparing…'; btn.disabled=true; }
+  if (btn) { btn.textContent='⏳ Rendering 4K…'; btn.disabled=true; }
   try {
     var canvas = await window.html2canvas(card, {
-      scale:      2.7,  // renders at ~1080px for a 400px card
+      scale:      10,   // 4K — 400px preview = 4000px output
       useCORS:    true,
       allowTaint: true,
       logging:    false,
@@ -42280,10 +42422,10 @@ async function qcRenderDownload(card) {
     });
     var link      = document.createElement('a');
     var name      = (document.getElementById('qc-name')||{}).value || 'quote';
-    link.download = 'quote-card-' + name.toLowerCase().replace(/\s+/g,'-') + '.png';
+    link.download = 'quote-card-4K-' + name.toLowerCase().replace(/\s+/g,'-') + '.png';
     link.href     = canvas.toDataURL('image/png');
     link.click();
-    emToast('✅ Quote card downloaded — ready to post!');
+    emToast('✅ 4K quote card downloaded — ready to post!');
   } catch(e) {
     emToast('⚠️ Download failed. Try again.', true);
   }
@@ -42294,7 +42436,261 @@ window.qcInit         = qcInit;
 window.qcLoadPhoto     = qcLoadPhoto;
 window.qcLoadBg        = qcLoadBg;
 window.qcRemoveBg      = qcRemoveBg;
+
+// ── QUOTE CARD — Formatting + Drag ────────────────────────────────────────────
+var _qcSelected = null; // currently selected element id
+var _qcDrag     = null; // drag state
+
+// ── Select element — show toolbar ─────────────────────────────────────────────
+function qcSelectEl(name) {
+  _qcSelected = name;
+  var idMap = { quote:'qc-el-quote', profile:'qc-el-profile', brand:'qc-el-brand' };
+  // Highlight selected
+  ['qc-el-quote','qc-el-profile','qc-el-brand'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.outline = '';
+  });
+  var sel = document.getElementById(idMap[name]);
+  if (sel) sel.style.outline = '2px dashed rgba(78,204,163,.6)';
+  // Show toolbar
+  var toolbar = document.getElementById('qc-toolbar');
+  if (toolbar) toolbar.style.display = 'flex';
+  // Sync size selector to current font size
+  var textEl = name === 'quote' ? document.getElementById('qc-card-quote')
+             : name === 'profile' ? document.getElementById('qc-card-name')
+             : document.getElementById('qc-card-brand');
+  if (textEl) {
+    var sel2 = document.getElementById('qc-size-sel');
+    if (sel2) sel2.value = textEl.style.fontSize || (name === 'quote' ? '22px' : name === 'profile' ? '15px' : '10px');
+    var pick = document.getElementById('qc-color-pick');
+    if (pick) {
+      var col = textEl.style.color || '#ffffff';
+      // Convert rgb to hex if needed
+      if (col.startsWith('rgb')) {
+        var parts = col.match(/\d+/g);
+        if (parts && parts.length >= 3) {
+          col = '#' + parts.slice(0,3).map(function(n){ return parseInt(n).toString(16).padStart(2,'0'); }).join('');
+        }
+      }
+      try { pick.value = col; } catch(e) {}
+    }
+  }
+}
+
+function qcGetTextEl() {
+  if (!_qcSelected) return null;
+  if (_qcSelected === 'quote')   return document.getElementById('qc-card-quote');
+  if (_qcSelected === 'profile') return document.getElementById('qc-card-name');
+  if (_qcSelected === 'brand')   return document.getElementById('qc-card-brand');
+  return null;
+}
+
+// ── Formatting functions ───────────────────────────────────────────────────────
+function qcFmt(type) {
+  var el = qcGetTextEl(); if (!el) return;
+  if (type === 'bold')      el.style.fontWeight  = el.style.fontWeight === '400' || el.style.fontWeight === 'normal' ? '900' : '400';
+  if (type === 'italic')    el.style.fontStyle   = el.style.fontStyle  === 'italic' ? 'normal' : 'italic';
+  if (type === 'underline') el.style.textDecoration = el.style.textDecoration === 'underline' ? 'none' : 'underline';
+}
+
+function qcFmtSize(size) {
+  var el = qcGetTextEl(); if (!el || !size) return;
+  el.style.fontSize = size;
+}
+
+function qcFmtFont(font) {
+  var el = qcGetTextEl(); if (!el || !font) return;
+  el.style.fontFamily = font + ', sans-serif';
+}
+
+function qcFmtAlign(align) {
+  var el = qcGetTextEl(); if (!el) return;
+  el.style.textAlign = align;
+  // Also align the parent draggable for profile/brand
+  if (_qcSelected === 'brand') {
+    var brand = document.getElementById('qc-el-brand');
+    if (brand) brand.style.textAlign = align;
+  }
+}
+
+function qcFmtColor(color) {
+  var el = qcGetTextEl(); if (!el) return;
+  el.style.color = color;
+  // If profile selected, also update handle
+  if (_qcSelected === 'profile') {
+    var handle = document.getElementById('qc-card-handle');
+    if (handle) handle.style.color = color + '88'; // slightly transparent
+  }
+}
+
+function qcResetPos() {
+  // Reset all draggable elements to default positions
+  var profile = document.getElementById('qc-el-profile');
+  var quote   = document.getElementById('qc-el-quote');
+  var brand   = document.getElementById('qc-el-brand');
+  if (profile) { profile.style.top='32px'; profile.style.left='32px'; profile.style.right='auto'; profile.style.bottom='auto'; }
+  if (quote)   { quote.style.top='120px'; quote.style.left='32px'; quote.style.right='32px'; quote.style.bottom='auto'; quote.style.width=''; }
+  if (brand)   { brand.style.bottom='20px'; brand.style.right='28px'; brand.style.top='auto'; brand.style.left='auto'; }
+  emToast('✅ Positions reset');
+}
+
+// ── Drag to reposition ─────────────────────────────────────────────────────────
+function qcDragStart(e, elId) {
+  e.preventDefault();
+  var el    = document.getElementById(elId);
+  var card  = document.getElementById('qc-card');
+  if (!el || !card) return;
+
+  qcSelectEl(elId.replace('qc-el-',''));
+
+  var cardRect = card.getBoundingClientRect();
+  var elRect   = el.getBoundingClientRect();
+  var startX   = e.clientX || (e.touches && e.touches[0].clientX);
+  var startY   = e.clientY || (e.touches && e.touches[0].clientY);
+  var startL   = elRect.left   - cardRect.left;
+  var startT   = elRect.top    - cardRect.top;
+
+  // Switch to absolute positioning
+  el.style.position = 'absolute';
+  el.style.left     = startL + 'px';
+  el.style.top      = startT + 'px';
+  el.style.right    = 'auto';
+  el.style.bottom   = 'auto';
+  el.style.cursor   = 'grabbing';
+
+  var cardW = cardRect.width;
+  var cardH = cardRect.height;
+  var elW   = elRect.width;
+  var elH   = elRect.height;
+
+  function onMove(e2) {
+    var cx = e2.clientX || (e2.touches && e2.touches[0].clientX);
+    var cy = e2.clientY || (e2.touches && e2.touches[0].clientY);
+    var nx = Math.max(0, Math.min(cardW - elW, startL + (cx - startX)));
+    var ny = Math.max(0, Math.min(cardH - elH, startT + (cy - startY)));
+    el.style.left = nx + 'px';
+    el.style.top  = ny + 'px';
+  }
+
+  function onEnd() {
+    el.style.cursor = 'grab';
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup',   onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend',  onEnd);
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup',   onEnd);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend',  onEnd);
+}
+
+// Click outside card deselects
+document.addEventListener('click', function(e) {
+  var card = document.getElementById('qc-card');
+  if (card && !card.contains(e.target)) {
+    ['qc-el-quote','qc-el-profile','qc-el-brand'].forEach(function(id) {
+      var el = document.getElementById(id); if (el) el.style.outline = '';
+    });
+    _qcSelected = null;
+  }
+});
+
+window.qcSelectEl  = qcSelectEl;
+window.qcFmt       = qcFmt;
+window.qcFmtSize   = qcFmtSize;
+window.qcFmtFont   = qcFmtFont;
+window.qcFmtAlign  = qcFmtAlign;
+window.qcFmtColor  = qcFmtColor;
+window.qcResetPos  = qcResetPos;
+window.qcDragStart = qcDragStart;
+
+function qcToggleWatermark(show) {
+  var brand = document.getElementById('qc-el-brand');
+  if (brand) brand.style.display = show ? 'block' : 'none';
+}
+window.qcToggleWatermark = qcToggleWatermark;
+
+function qcSetBgColor(color) {
+  var card = document.getElementById('qc-card');
+  if (!card) return;
+  card.style.background = color;
+  // Deselect style preset buttons
+  document.querySelectorAll('.qc-style-btn').forEach(function(b){ b.classList.remove('qc-style-active'); });
+  // Auto-set text colour for contrast — light bg = dark text, dark bg = white text
+  var r = parseInt(color.slice(1,3),16);
+  var g = parseInt(color.slice(3,5),16);
+  var b2 = parseInt(color.slice(5,7),16);
+  var luminance = (0.299*r + 0.587*g + 0.114*b2) / 255;
+  var textColor = luminance > 0.5 ? '#111111' : '#ffffff';
+  var subColor  = luminance > 0.5 ? 'rgba(0,0,0,.45)' : 'rgba(255,255,255,.45)';
+  var nameEl    = document.getElementById('qc-card-name');
+  var handleEl  = document.getElementById('qc-card-handle');
+  var quoteEl   = document.getElementById('qc-card-quote');
+  var brandEl   = document.getElementById('qc-card-brand');
+  if (nameEl)   nameEl.style.color   = textColor;
+  if (handleEl) handleEl.style.color = subColor;
+  if (quoteEl)  quoteEl.style.color  = textColor;
+  if (brandEl)  brandEl.style.color  = luminance > 0.5 ? 'rgba(0,0,0,.15)' : 'rgba(255,255,255,.15)';
+  // Update colour picker swatch
+  var pick = document.getElementById('qc-color-pick');
+  if (pick) pick.value = textColor;
+}
+window.qcSetBgColor = qcSetBgColor;
+
+// ── Resize handle — shown when quote is selected ──────────────────────────────
+var _origQcSelectEl = window.qcSelectEl;
+window.qcSelectEl = function(name) {
+  _origQcSelectEl(name);
+  var handle = document.getElementById('qc-resize-handle');
+  if (handle) handle.style.display = name === 'quote' ? 'block' : 'none';
+};
+
+function qcResizeStart(e) {
+  e.stopPropagation(); // don't trigger drag
+  e.preventDefault();
+  var el   = document.getElementById('qc-el-quote');
+  var card = document.getElementById('qc-card');
+  if (!el || !card) return;
+
+  var cardRect = card.getBoundingClientRect();
+  var elRect   = el.getBoundingClientRect();
+  var startX   = e.clientX || (e.touches && e.touches[0].clientX);
+  var startY   = e.clientY || (e.touches && e.touches[0].clientY);
+  var startW   = elRect.width;
+  var startH   = elRect.height || 80;
+  var elLeft   = elRect.left - cardRect.left;
+  var maxW     = cardRect.width  - elLeft - 12;
+  var maxH     = cardRect.height - (elRect.top - cardRect.top) - 12;
+
+  // Switch from right:auto to explicit width
+  el.style.right  = 'auto';
+  el.style.width  = startW + 'px';
+  el.style.height = 'auto';
+
+  function onMove(e2) {
+    var cx = e2.clientX || (e2.touches && e2.touches[0].clientX);
+    var cy = e2.clientY || (e2.touches && e2.touches[0].clientY);
+    var nw = Math.max(80, Math.min(maxW, startW + (cx - startX)));
+    el.style.width = nw + 'px';
+  }
+
+  function onEnd() {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup',   onEnd);
+    document.removeEventListener('touchmove', onMove);
+    document.removeEventListener('touchend',  onEnd);
+  }
+
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup',   onEnd);
+  document.addEventListener('touchmove', onMove, { passive: false });
+  document.addEventListener('touchend',  onEnd);
+}
+window.qcResizeStart = qcResizeStart;
 window.qcSetType      = qcSetType;
+window.qcSetLength    = qcSetLength;
 window.qcSetStyle     = qcSetStyle;
 window.qcUpdateCard   = qcUpdateCard;
 window.qcGenerate     = qcGenerate;
