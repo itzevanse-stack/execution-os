@@ -145,6 +145,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-
         <div class="auth-error" id="auth-error"></div>
         <button class="auth-btn" id="signin-btn">Sign In to Execution OS</button>
         <div class="auth-divider">or</div>
+        <button class="auth-btn" id="signup-btn" style="background:linear-gradient(135deg,var(--teal),#0d9488);box-shadow:0 8px 28px rgba(78,204,163,.35)">Create My Account →</button>
+        <div class="auth-divider">or</div>
         <button class="auth-link" id="forgot-btn">Forgot password? Reset it</button>
         <div id="forgot-section" style="display:none;margin-top:4px">
           <div class="form-group">
@@ -153,16 +155,35 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-
           </div>
           <button class="auth-btn" id="reset-btn" style="margin-top:8px;background:rgba(255,255,255,.08);box-shadow:none;border:1px solid rgba(255,255,255,.1)">Send Reset Email</button>
         </div>
+
+        <!-- Signup form — hidden by default -->
+        <div id="signup-section" style="display:none;margin-top:4px;border-top:1px solid rgba(255,255,255,.08);padding-top:16px">
+          <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:12px;text-align:center">Create your account — use the same email from checkout</div>
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="signup-name" class="form-input" placeholder="Your full name">
+          </div>
+          <div class="form-group" style="margin-top:8px">
+            <label class="form-label">Email address</label>
+            <input type="email" id="signup-email" class="form-input" placeholder="Same email you used at checkout">
+          </div>
+          <div class="form-group" style="margin-top:8px">
+            <label class="form-label">Create Password</label>
+            <input type="password" id="signup-password" class="form-input" placeholder="Min 6 characters">
+          </div>
+          <div class="auth-error" id="signup-error" style="margin-top:8px"></div>
+          <button class="auth-btn" id="signup-confirm-btn" style="margin-top:12px;background:linear-gradient(135deg,var(--teal),#0d9488);box-shadow:0 8px 28px rgba(78,204,163,.35)">Create Account & Enter Platform →</button>
+        </div>
       </div>
     </div>
 
   </div>
-  <div class="auth-footer">By signing in you agree to our Terms of Service.<br>Not a member? Contact your coach to get access.</div>
+  <div class="auth-footer">Just purchased? Create your account with the same email you used at checkout.</div>
 </div>
 
 <script type="module">
 import { initializeApp }                              from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword,
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
          sendPasswordResetEmail, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, doc, setDoc }                  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
@@ -190,6 +211,67 @@ onAuthStateChanged(auth, user => {
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let selectedMode = null;
+
+// ── Toggle signup section ─────────────────────────────────────────────────────
+const signupBtn     = document.getElementById('signup-btn');
+const signupSection = document.getElementById('signup-section');
+const signupConfirm = document.getElementById('signup-confirm-btn');
+const signupError   = document.getElementById('signup-error');
+
+if (signupBtn) {
+  signupBtn.addEventListener('click', () => {
+    const showing = signupSection.style.display !== 'none';
+    signupSection.style.display = showing ? 'none' : 'block';
+    signupBtn.textContent = showing ? 'Create My Account →' : 'Already have an account? Sign in';
+    // Pre-fill email from sign-in field
+    const email = document.getElementById('auth-email').value;
+    if (email && document.getElementById('signup-email')) {
+      document.getElementById('signup-email').value = email;
+    }
+  });
+}
+
+// ── Create account ────────────────────────────────────────────────────────────
+if (signupConfirm) {
+  signupConfirm.addEventListener('click', async () => {
+    const name     = document.getElementById('signup-name').value.trim();
+    const email    = document.getElementById('signup-email').value.trim();
+    const password = document.getElementById('signup-password').value;
+
+    if (!name)     { signupError.textContent = 'Please enter your full name.'; return; }
+    if (!email)    { signupError.textContent = 'Please enter your email address.'; return; }
+    if (password.length < 6) { signupError.textContent = 'Password must be at least 6 characters.'; return; }
+
+    signupConfirm.disabled = true;
+    signupConfirm.textContent = 'Creating your account…';
+    signupError.textContent = '';
+
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid  = cred.user.uid;
+
+      // Save name and mode to Firestore
+      await setDoc(doc(db, 'users', uid), {
+        name:      name,
+        email:     email,
+        mode:      selectedMode || 'affiliate',
+        createdAt: new Date().toISOString(),
+      }, { merge: true });
+
+      // Save mode to localStorage
+      localStorage.setItem('eos_mode', selectedMode || 'affiliate');
+      localStorage.setItem('eos_user_name', name);
+
+      window.location.href = 'app.html';
+    } catch(e) {
+      signupError.textContent = e.code === 'auth/email-already-in-use'
+        ? 'This email already has an account. Please sign in instead.'
+        : e.message;
+      signupConfirm.disabled = false;
+      signupConfirm.textContent = 'Create Account & Enter Platform →';
+    }
+  });
+}
 
 // ── DOM refs ──────────────────────────────────────────────────────────────────
 const cardExpert    = document.getElementById('card-expert');
