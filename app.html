@@ -3442,7 +3442,12 @@ button[onclick="generateOffer()"] {
         <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
         <div class="content-topbar-title" id="topbar-page-title">Dashboard</div>
       </div>
-      <!-- Mode indicator — locked to login choice, not clickable -->
+      <!-- Credit balance pill -->
+      <div id="credit-balance-pill" onclick="creditShowModal()" style="display:flex;align-items:center;gap:6px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:20px;padding:5px 14px;cursor:pointer;transition:all .15s" title="AI Credits — click to top up" onmouseover="this.style.borderColor='rgba(245,200,66,.4)'" onmouseout="this.style.borderColor='rgba(245,200,66,.2)'">
+        <span style="font-size:13px">⚡</span>
+        <span id="credit-balance-display" style="font-size:11px;font-weight:800;color:#F5C842;font-family:'Poppins',sans-serif">— credits</span>
+      </div>
+      <!-- Mode indicator -->
       <div id="mode-badge" style="display:flex;align-items:center;gap:6px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);border-radius:20px;padding:5px 14px;cursor:default;user-select:none">
         <span id="mode-badge-icon">🔗</span>
         <span id="mode-badge-text" style="font-size:11px;font-weight:700;color:rgba(255,255,255,.8);font-family:'Poppins',sans-serif">Affiliate Mode</span>
@@ -3456,6 +3461,54 @@ button[onclick="generateOffer()"] {
       <div id="topbar-mode-pill" style="display:none"></div>
       <span id="topbar-breadcrumb" style="display:none"></span>
     </div><!-- end .content-topbar -->
+
+    <!-- ── CREDIT TOP-UP MODAL ── -->
+    <div id="credit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)" onclick="if(event.target===this)creditHideModal()">
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:24px;padding:36px;max-width:480px;width:90%;position:relative;max-height:90vh;overflow-y:auto">
+        <button onclick="creditHideModal()" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--dim);font-size:18px;cursor:pointer;font-family:'Poppins',sans-serif">✕</button>
+        <div style="text-align:center;margin-bottom:24px">
+          <div style="font-size:32px;margin-bottom:8px">⚡</div>
+          <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">AI Credits</div>
+          <div style="font-size:13px;color:var(--dim)">Every AI action uses credits. Your plan includes a monthly allowance.</div>
+        </div>
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:20px;text-align:center;margin-bottom:20px">
+          <div style="font-size:11px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Current Balance</div>
+          <div id="credit-modal-balance" style="font-size:36px;font-weight:900;color:#F5C842;font-family:'Poppins',sans-serif">—</div>
+          <div id="credit-plan-label" style="font-size:11px;color:var(--dim);margin-top:4px">Loading plan...</div>
+        </div>
+        <div style="margin-bottom:20px">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:10px">What uses credits</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+            <div style="display:flex;justify-content:space-between;background:var(--card2);border-radius:8px;padding:8px 12px"><span style="font-size:11px;color:var(--muted)">Boardroom build</span><span style="font-size:11px;font-weight:700;color:var(--white)">50</span></div>
+            <div style="display:flex;justify-content:space-between;background:var(--card2);border-radius:8px;padding:8px 12px"><span style="font-size:11px;color:var(--muted)">Write a post</span><span style="font-size:11px;font-weight:700;color:var(--white)">10</span></div>
+            <div style="display:flex;justify-content:space-between;background:var(--card2);border-radius:8px;padding:8px 12px"><span style="font-size:11px;color:var(--muted)">Video script</span><span style="font-size:11px;font-weight:700;color:var(--white)">10</span></div>
+            <div style="display:flex;justify-content:space-between;background:var(--card2);border-radius:8px;padding:8px 12px"><span style="font-size:11px;color:var(--muted)">Quote Card</span><span style="font-size:11px;font-weight:700;color:var(--white)">3</span></div>
+            <div style="display:flex;justify-content:space-between;background:var(--card2);border-radius:8px;padding:8px 12px"><span style="font-size:11px;color:var(--muted)">Email broadcast</span><span style="font-size:11px;font-weight:700;color:var(--white)">8</span></div>
+            <div style="display:flex;justify-content:space-between;background:var(--card2);border-radius:8px;padding:8px 12px"><span style="font-size:11px;color:var(--muted)">HeyGen video</span><span style="font-size:11px;font-weight:700;color:var(--white)">100</span></div>
+          </div>
+        </div>
+        <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:10px">Top-Up Packs — never expire</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <a href="https://app.cope.com/products/prod_ZY97XhYW" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor='rgba(78,204,163,.3)'" onmouseout="this.style.borderColor='var(--border2)'">
+            <div><div style="font-size:13px;font-weight:800;color:var(--white)">Starter — 200 credits</div><div style="font-size:11px;color:var(--dim)">Great for casual usage</div></div>
+            <div style="font-size:16px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif">$19</div>
+          </a>
+          <a href="https://app.cope.com/products/prod_81bN8WP9" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor='rgba(78,204,163,.3)'" onmouseout="this.style.borderColor='var(--border2)'">
+            <div><div style="font-size:13px;font-weight:800;color:var(--white)">Growth — 500 credits</div><div style="font-size:11px;color:var(--dim)">For active daily users</div></div>
+            <div style="font-size:16px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif">$39</div>
+          </a>
+          <a href="https://app.cope.com/products/prod_G3vkIWul" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(145deg,rgba(78,204,163,.06),rgba(78,204,163,.02));border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:14px 16px;text-decoration:none" onmouseover="this.style.borderColor='rgba(78,204,163,.4)'" onmouseout="this.style.borderColor='rgba(78,204,163,.2)'">
+            <div><div style="font-size:13px;font-weight:800;color:var(--white)">Scale — 1,000 credits</div><div style="font-size:11px;color:var(--teal)">Most popular</div></div>
+            <div style="font-size:16px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif">$69</div>
+          </a>
+          <a href="https://app.cope.com/products/prod_PKq6nBLG" target="_blank" style="display:flex;align-items:center;justify-content:space-between;background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:14px 16px;text-decoration:none;transition:border-color .15s" onmouseover="this.style.borderColor='rgba(108,99,255,.3)'" onmouseout="this.style.borderColor='var(--border2)'">
+            <div><div style="font-size:13px;font-weight:800;color:var(--white)">Agency — 3,000 credits</div><div style="font-size:11px;color:var(--dim)">For heavy power users</div></div>
+            <div style="font-size:16px;font-weight:900;color:#a089ff;font-family:'Poppins',sans-serif">$149</div>
+          </a>
+        </div>
+        <div style="font-size:10px;color:var(--dimmer);text-align:center;margin-top:16px">Purchased credits never expire · Monthly credits reset each billing cycle</div>
+      </div>
+    </div>
 
     <!-- Pages render here -->
     <div class="page-wrap">
@@ -22321,6 +22374,10 @@ function avsVpeSelectQ(el, idx) {
 }
 
 async function avsVpeWriteScript() {
+  if (typeof window.creditDeduct === 'function') {
+    var ok = await window.creditDeduct('video_script');
+    if (!ok) return;
+  }
   var q = _avsVpeState.selectedQ;
   if (!q) return;
 
@@ -27534,6 +27591,13 @@ onAuthStateChanged(auth, async (user) => {
 
   window._currentUserUid = user.uid;
 
+  // ── Load credit balance on login ──────────────────────────────────────────
+  setTimeout(function() {
+    if (typeof window.creditLoad === 'function') window.creditLoad();
+    if (typeof window.creditCheckMonthlyReset === 'function') window.creditCheckMonthlyReset();
+    if (typeof window.planLoad === 'function') window.planLoad();
+  }, 1500);
+
   // Start Calendar Firestore listener as soon as auth is confirmed
   setTimeout(function() {
     if (typeof window.calInitFirestoreListener === 'function') window.calInitFirestoreListener();
@@ -31798,6 +31862,10 @@ var BC_AI_TYPES = {
 };
 
 async function emBroadcastAI(type) {
+  if (typeof window.creditDeduct === 'function') {
+    var ok = await window.creditDeduct('email_write');
+    if (!ok) return;
+  }
   var intel = emBcGetIntelligence();
   var typePrompt = BC_AI_TYPES[type] || '';
   var prompt = 'You are an elite email copywriter.\n\n'
@@ -32046,6 +32114,279 @@ function dbAnRender() {
 function dbAnRefresh() { _dbAnLeads=[]; _dbAnSales=[]; _dbAnBcasts=[]; dbAnLoad(); }
 window.dbAnRefresh    = dbAnRefresh;
 window.dbAnLoad       = dbAnLoad;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// CREDITS SYSTEM
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Credit costs per action ───────────────────────────────────────────────────
+var CREDIT_COSTS = {
+  boardroom:   50,
+  vpe_search:  5,
+  vpe_write:   10,
+  video_script:10,
+  quote_card:  3,
+  email_write: 8,
+  heygen:      100,
+  adapt_post:  5,
+  avs_script:  10,
+};
+
+// ── Monthly credits included per plan ────────────────────────────────────────
+var PLAN_CREDITS = {
+  'affiliate_monthly': 200,
+  'affiliate_annual':  200,
+  'expert_monthly':    500,
+  'expert_annual':     500,
+};
+
+// ── Load credit balance from Firestore ────────────────────────────────────────
+async function creditLoad() {
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) return;
+  try {
+    // Initial load
+    var snap = await window._getDoc(window._doc(window._db, 'users', uid, 'credits', 'balance'));
+    var data = snap && snap.exists && snap.exists() ? (snap.data ? snap.data() : {}) : {};
+    var balance = data.balance || 0;
+    window._creditBalance = balance;
+    creditUpdateDisplay(balance);
+
+    // ── Real-time listener — balance updates instantly when CopeCart webhook fires
+    if (window._onSnapshot && !window._creditListener) {
+      window._creditListener = window._onSnapshot(
+        window._doc(window._db, 'users', uid, 'credits', 'balance'),
+        function(docSnap) {
+          if (!docSnap || !docSnap.exists || !docSnap.exists()) return;
+          var d = docSnap.data ? docSnap.data() : {};
+          var newBalance = d.balance || 0;
+          if (newBalance !== window._creditBalance) {
+            var diff = newBalance - (window._creditBalance || 0);
+            window._creditBalance = newBalance;
+            creditUpdateDisplay(newBalance);
+            // Toast only when credits are added
+            if (diff > 0) emToast('⚡ ' + diff + ' credits added — balance: ' + newBalance);
+          }
+        },
+        function(err) { console.warn('[Credits] Listener error:', err.message); }
+      );
+      console.log('[Credits] Real-time listener active');
+    }
+  } catch(e) {
+    console.warn('[Credits] Load failed:', e.message);
+  }
+}
+
+function creditUpdateDisplay(balance) {
+  var pill = document.getElementById('credit-balance-display');
+  var modal = document.getElementById('credit-modal-balance');
+  var planLabel = document.getElementById('credit-plan-label');
+  if (pill)  pill.textContent = balance.toLocaleString() + ' credits';
+  if (modal) modal.textContent = balance.toLocaleString();
+  // Warn if low
+  if (pill) {
+    var pillEl = document.getElementById('credit-balance-pill');
+    if (pillEl) {
+      if (balance < 20) {
+        pillEl.style.background = 'rgba(240,80,60,.1)';
+        pillEl.style.borderColor = 'rgba(240,80,60,.3)';
+        pill.style.color = '#f05a40';
+        pill.textContent = balance + ' credits — top up';
+      } else if (balance < 50) {
+        pillEl.style.background = 'rgba(245,200,66,.1)';
+        pillEl.style.borderColor = 'rgba(245,200,66,.3)';
+        pill.style.color = '#F5C842';
+      }
+    }
+  }
+  // Plan label
+  var plan = window._userPlan || localStorage.getItem('eos_user_plan') || 'affiliate_monthly';
+  var included = PLAN_CREDITS[plan] || 200;
+  if (planLabel) planLabel.textContent = planLabel_text(plan) + ' · ' + included + ' credits/month included';
+}
+
+function planLabel_text(plan) {
+  var labels = {
+    'affiliate_monthly': 'Affiliate Mode · Monthly',
+    'affiliate_annual':  'Affiliate Mode · Real Builder 🏆',
+    'expert_monthly':    'Expert Mode · Monthly',
+    'expert_annual':     'Expert Mode · Real Builder 🏆',
+  };
+  return labels[plan] || 'Affiliate Mode';
+}
+
+// ── Deduct credits ────────────────────────────────────────────────────────────
+async function creditDeduct(action) {
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) return true; // allow if not logged in (dev mode)
+  var cost = CREDIT_COSTS[action] || 5;
+  var balance = window._creditBalance || 0;
+  if (balance < cost) {
+    creditShowModal();
+    emToast('⚡ Not enough credits. Top up to continue.', true);
+    return false;
+  }
+  try {
+    var newBalance = balance - cost;
+    await window._setDoc(
+      window._doc(window._db, 'users', uid, 'credits', 'balance'),
+      { balance: newBalance, lastUsed: Date.now(), lastAction: action },
+      { merge: true }
+    );
+    window._creditBalance = newBalance;
+    creditUpdateDisplay(newBalance);
+    // Log usage
+    var logRef = window._doc(window._collection(window._db, 'users', uid, 'credits_log'), 'log_' + Date.now());
+    window._setDoc(logRef, { action, cost, balance: newBalance, at: Date.now() }).catch(function(){});
+    return true;
+  } catch(e) {
+    console.warn('[Credits] Deduct failed:', e.message);
+    return true; // fail open so users aren't blocked
+  }
+}
+
+// ── Add credits (called by CopeCart webhook) ──────────────────────────────────
+async function creditAdd(amount) {
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) return;
+  try {
+    var snap = await window._getDoc(window._doc(window._db, 'users', uid, 'credits', 'balance'));
+    var data = snap && snap.exists && snap.exists() ? (snap.data ? snap.data() : {}) : {};
+    var current = data.balance || 0;
+    var newBalance = current + amount;
+    await window._setDoc(
+      window._doc(window._db, 'users', uid, 'credits', 'balance'),
+      { balance: newBalance, lastTopUp: Date.now(), lastTopUpAmount: amount },
+      { merge: true }
+    );
+    window._creditBalance = newBalance;
+    creditUpdateDisplay(newBalance);
+    emToast('⚡ ' + amount + ' credits added to your account!');
+  } catch(e) {
+    console.warn('[Credits] Add failed:', e.message);
+  }
+}
+
+// ── Monthly credit reset (called on login if new month) ───────────────────────
+async function creditCheckMonthlyReset() {
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) return;
+  try {
+    var snap = await window._getDoc(window._doc(window._db, 'users', uid, 'credits', 'balance'));
+    var data = snap && snap.exists && snap.exists() ? (snap.data ? snap.data() : {}) : {};
+    var lastReset = data.lastReset || 0;
+    var now = Date.now();
+    var oneMonth = 30 * 24 * 60 * 60 * 1000;
+    if (now - lastReset > oneMonth) {
+      var plan = window._userPlan || localStorage.getItem('eos_user_plan') || 'affiliate_monthly';
+      var monthlyCredits = PLAN_CREDITS[plan] || 200;
+      var purchased = data.purchasedCredits || 0; // purchased credits never expire
+      var newBalance = monthlyCredits + purchased;
+      await window._setDoc(
+        window._doc(window._db, 'users', uid, 'credits', 'balance'),
+        { balance: newBalance, lastReset: now, purchasedCredits: purchased },
+        { merge: true }
+      );
+      window._creditBalance = newBalance;
+      creditUpdateDisplay(newBalance);
+      console.log('[Credits] Monthly reset — ' + newBalance + ' credits');
+    }
+  } catch(e) {
+    console.warn('[Credits] Monthly reset failed:', e.message);
+  }
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function creditShowModal() {
+  var modal = document.getElementById('credit-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    // Refresh balance in modal
+    var balance = window._creditBalance || 0;
+    creditUpdateDisplay(balance);
+  }
+}
+function creditHideModal() {
+  var modal = document.getElementById('credit-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+// ── Provision credits on new signup (called by CopeCart webhook server-side) ─
+// This function is called client-side when Firestore notifies of a credit update
+function creditInitForPlan(plan) {
+  var amount = PLAN_CREDITS[plan] || 200;
+  window._userPlan = plan;
+  localStorage.setItem('eos_user_plan', plan);
+  creditAdd(amount);
+}
+
+window.creditLoad            = creditLoad;
+window.creditDeduct          = creditDeduct;
+window.creditAdd             = creditAdd;
+window.creditShowModal       = creditShowModal;
+window.creditHideModal       = creditHideModal;
+window.creditInitForPlan     = creditInitForPlan;
+window.creditCheckMonthlyReset = creditCheckMonthlyReset;
+window.CREDIT_COSTS          = CREDIT_COSTS;
+
+// ── Plan loader — reads plan from Firestore and updates mode badge ─────────────
+async function planLoad() {
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) return;
+  try {
+    var snap = await window._getDoc(window._doc(window._db, 'users', uid, 'settings', 'plan'));
+    if (!snap || !snap.exists || !snap.exists()) return;
+    var data = snap.data ? snap.data() : {};
+    if (!data.plan) return;
+
+    window._userPlan = data.plan;
+    localStorage.setItem('eos_user_plan', data.plan);
+
+    // Update mode badge
+    var badgeText = document.getElementById('mode-badge-text');
+    var badgeIcon = document.getElementById('mode-badge-icon');
+    var badge     = document.getElementById('mode-badge');
+
+    var isAffiliate = data.plan.includes('affiliate');
+    var isAnnual    = data.plan.includes('annual');
+
+    if (badgeText) {
+      var label = isAffiliate ? 'Affiliate Mode' : 'Expert Mode';
+      if (isAnnual) label += ' 🏆';
+      badgeText.textContent = label;
+    }
+    if (badgeIcon) badgeIcon.textContent = isAffiliate ? '🔗' : '⚡';
+    if (badge) {
+      badge.style.background = isAffiliate
+        ? 'rgba(108,99,255,.12)'
+        : 'rgba(78,204,163,.1)';
+      badge.style.borderColor = isAffiliate
+        ? 'rgba(108,99,255,.3)'
+        : 'rgba(78,204,163,.3)';
+    }
+
+    // Also check for pending credits to claim
+    var pendingSnap = await window._getDoc(
+      window._doc(window._db, 'pending_credits', uid)
+    ).catch(function(){ return null; });
+
+    if (pendingSnap && pendingSnap.exists && pendingSnap.exists()) {
+      var pending = pendingSnap.data ? pendingSnap.data() : {};
+      if (pending.credits && pending.credits > 0) {
+        await window.creditAdd(pending.credits);
+        // Delete pending record
+        await window._deleteDoc(
+          window._doc(window._db, 'pending_credits', uid)
+        ).catch(function(){});
+        console.log('[Plan] Claimed pending credits:', pending.credits);
+      }
+    }
+
+  } catch(e) {
+    console.warn('[Plan] Load failed:', e.message);
+  }
+}
+window.planLoad = planLoad;
 window.dbAnFilter     = dbAnFilter;
 window.dbAnApplyCustom = dbAnApplyCustom;
 
@@ -41958,6 +42299,10 @@ function vpeSetPlatform(el, plat) {
 }
 
 async function vpeFindQuestions() {
+  if (typeof window.creditDeduct === 'function') {
+    var ok = await window.creditDeduct('vpe_search');
+    if (!ok) return;
+  }
   var intel  = vpeGetIntel();
   var niche  = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).av_job || 'online business';
   var btn    = document.getElementById('vpe-find-btn');
@@ -42035,6 +42380,11 @@ async function vpeGenerate() {
 }
 
 async function vpeWrite(platform, topic) {
+  // Deduct credits
+  if (typeof window.creditDeduct === 'function') {
+    var ok = await window.creditDeduct('vpe_write');
+    if (!ok) return;
+  }
   var btn      = document.getElementById('vpe-gen-btn');
   var status   = document.getElementById('vpe-gen-status');
   var output   = document.getElementById('vpe-output');
@@ -42394,6 +42744,10 @@ function qcUpdateCard() {
 }
 
 async function qcGenerate() {
+  if (typeof window.creditDeduct === 'function') {
+    var ok = await window.creditDeduct('quote_card');
+    if (!ok) return;
+  }
   var btn     = document.getElementById('qc-gen-btn');
   var statusEl = document.getElementById('qc-gen-status');
   var textarea = document.getElementById('qc-quote-text');
