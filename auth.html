@@ -131,50 +131,60 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-
         <span id="badge-label">Expert Mode selected</span>
         <span class="change-link" id="change-btn">Change</span>
       </div>
-      <div class="auth-panel-title">Welcome back</div>
-      <div class="auth-panel-sub" id="step-2-sub">Sign in to access your Expert Mode dashboard</div>
-      <div class="auth-form">
-        <div class="form-group">
-          <label class="form-label">Email address</label>
-          <input type="email" id="auth-email" class="form-input" placeholder="you@example.com">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Password</label>
-          <input type="password" id="auth-password" class="form-input" placeholder="Your password">
-        </div>
-        <div class="auth-error" id="auth-error"></div>
-        <button class="auth-btn" id="signin-btn">Sign In to Execution OS</button>
-        <div class="auth-divider">or</div>
-        <button class="auth-btn" id="signup-btn" style="background:linear-gradient(135deg,var(--teal),#0d9488);box-shadow:0 8px 28px rgba(78,204,163,.35)">Create My Account →</button>
-        <div class="auth-divider">or</div>
-        <button class="auth-link" id="forgot-btn">Forgot password? Reset it</button>
-        <div id="forgot-section" style="display:none;margin-top:4px">
-          <div class="form-group">
-            <label class="form-label">Email for reset</label>
-            <input type="email" id="reset-email" class="form-input" placeholder="Enter your email">
-          </div>
-          <button class="auth-btn" id="reset-btn" style="margin-top:8px;background:rgba(255,255,255,.08);box-shadow:none;border:1px solid rgba(255,255,255,.1)">Send Reset Email</button>
-        </div>
 
-        <!-- Signup form — hidden by default -->
-        <div id="signup-section" style="display:none;margin-top:4px;border-top:1px solid rgba(255,255,255,.08);padding-top:16px">
-          <div style="font-size:12px;font-weight:700;color:var(--teal);margin-bottom:12px;text-align:center">Create your account — use the same email from checkout</div>
+      <!-- ── SIGN IN FORM ── -->
+      <div id="signin-view">
+        <div class="auth-panel-title">Welcome back</div>
+        <div class="auth-panel-sub" id="step-2-sub">Sign in to access your dashboard</div>
+        <div class="auth-form">
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input type="email" id="auth-email" class="form-input" placeholder="you@example.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" id="auth-password" class="form-input" placeholder="Your password">
+          </div>
+          <div class="auth-error" id="auth-error"></div>
+          <button class="auth-btn" id="signin-btn">Sign In to Execution OS</button>
+          <div class="auth-divider">or</div>
+          <button class="auth-btn" id="signup-btn" style="background:linear-gradient(135deg,var(--teal),#0d9488);box-shadow:0 8px 28px rgba(78,204,163,.35)">New here? Create Account →</button>
+          <div class="auth-divider">or</div>
+          <button class="auth-link" id="forgot-btn">Forgot password? Reset it</button>
+          <div id="forgot-section" style="display:none;margin-top:4px">
+            <div class="form-group">
+              <label class="form-label">Email for reset</label>
+              <input type="email" id="reset-email" class="form-input" placeholder="Enter your email">
+            </div>
+            <button class="auth-btn" id="reset-btn" style="margin-top:8px;background:rgba(255,255,255,.08);box-shadow:none;border:1px solid rgba(255,255,255,.1)">Send Reset Email</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CREATE ACCOUNT FORM ── -->
+      <div id="signup-view" style="display:none">
+        <div class="auth-panel-title" style="color:var(--teal)">Create Your Account</div>
+        <div class="auth-panel-sub">Just purchased? Use the same email from checkout.</div>
+        <div class="auth-form" style="margin-top:16px">
           <div class="form-group">
             <label class="form-label">Full Name</label>
             <input type="text" id="signup-name" class="form-input" placeholder="Your full name">
           </div>
-          <div class="form-group" style="margin-top:8px">
+          <div class="form-group">
             <label class="form-label">Email address</label>
             <input type="email" id="signup-email" class="form-input" placeholder="Same email you used at checkout">
           </div>
-          <div class="form-group" style="margin-top:8px">
+          <div class="form-group">
             <label class="form-label">Create Password</label>
             <input type="password" id="signup-password" class="form-input" placeholder="Min 6 characters">
           </div>
-          <div class="auth-error" id="signup-error" style="margin-top:8px"></div>
-          <button class="auth-btn" id="signup-confirm-btn" style="margin-top:12px;background:linear-gradient(135deg,var(--teal),#0d9488);box-shadow:0 8px 28px rgba(78,204,163,.35)">Create Account & Enter Platform →</button>
+          <div class="auth-error" id="signup-error"></div>
+          <button class="auth-btn" id="signup-confirm-btn" style="background:linear-gradient(135deg,var(--teal),#0d9488);box-shadow:0 8px 28px rgba(78,204,163,.35)">Create Account & Enter Platform →</button>
+          <div class="auth-divider">or</div>
+          <button class="auth-link" id="back-to-signin-btn">Already have an account? Sign in</button>
         </div>
       </div>
+
     </div>
 
   </div>
@@ -212,24 +222,29 @@ onAuthStateChanged(auth, user => {
 // ── State ─────────────────────────────────────────────────────────────────────
 let selectedMode = null;
 
-// ── Toggle signup section ─────────────────────────────────────────────────────
-const signupBtn     = document.getElementById('signup-btn');
-const signupSection = document.getElementById('signup-section');
-const signupConfirm = document.getElementById('signup-confirm-btn');
-const signupError   = document.getElementById('signup-error');
+// ── Switch between sign in and create account views ──────────────────────────
+const signupBtn       = document.getElementById('signup-btn');
+const backToSigninBtn = document.getElementById('back-to-signin-btn');
+const signinView      = document.getElementById('signin-view');
+const signupView      = document.getElementById('signup-view');
+const signupConfirm   = document.getElementById('signup-confirm-btn');
+const signupError     = document.getElementById('signup-error');
 
-if (signupBtn) {
-  signupBtn.addEventListener('click', () => {
-    const showing = signupSection.style.display !== 'none';
-    signupSection.style.display = showing ? 'none' : 'block';
-    signupBtn.textContent = showing ? 'Create My Account →' : 'Already have an account? Sign in';
-    // Pre-fill email from sign-in field
-    const email = document.getElementById('auth-email').value;
-    if (email && document.getElementById('signup-email')) {
-      document.getElementById('signup-email').value = email;
-    }
-  });
+function showSignup() {
+  signinView.style.display = 'none';
+  signupView.style.display = 'block';
+  // Pre-fill email from sign-in field
+  const email = document.getElementById('auth-email').value;
+  if (email) document.getElementById('signup-email').value = email;
 }
+
+function showSignin() {
+  signupView.style.display = 'none';
+  signinView.style.display = 'block';
+}
+
+if (signupBtn)       signupBtn.addEventListener('click', showSignup);
+if (backToSigninBtn) backToSigninBtn.addEventListener('click', showSignin);
 
 // ── Create account ────────────────────────────────────────────────────────────
 if (signupConfirm) {
@@ -261,6 +276,13 @@ if (signupConfirm) {
       // Save mode to localStorage
       localStorage.setItem('eos_mode', selectedMode || 'affiliate');
       localStorage.setItem('eos_user_name', name);
+
+      // Send welcome email
+      fetch('/api/welcome-email', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ name, email, mode: selectedMode || 'affiliate' }),
+      }).catch(function(){});
 
       window.location.href = 'app.html';
     } catch(e) {
