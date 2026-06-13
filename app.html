@@ -43114,7 +43114,10 @@ async function qcRenderDownload(card) {
     var name      = (document.getElementById('qc-name')||{}).value || 'quote';
     link.download = 'quote-card-4K-' + name.toLowerCase().replace(/\s+/g,'-') + '.png';
     link.href     = canvas.toDataURL('image/png', 1.0);
+    link.style.display = 'none';
+    document.body.appendChild(link);
     link.click();
+    setTimeout(function(){ document.body.removeChild(link); }, 100);
     emToast('✅ Downloaded — ' + canvas.width + '×' + canvas.height + 'px');
   } catch(e) {
     console.error('[QC Download]', e);
@@ -43396,6 +43399,42 @@ window.vpeSelectQuestion = vpeSelectQuestion;
 window.vpeSetPlatform    = vpeSetPlatform;
 window.vpeGenerate       = vpeGenerate;
 window.vpeCopy           = vpeCopy;
+
+function vpeCopy() {
+  var contentEl = document.getElementById('vpe-post-content');
+  if (!contentEl || !contentEl.textContent.trim()) {
+    emToast('⚠️ No post to copy. Generate a post first.', true);
+    return;
+  }
+  var text = contentEl.textContent.trim();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(function(){ emToast('✅ Post copied to clipboard — ready to paste.'); })
+      .catch(function(){
+        // Fallback
+        vpeTextAreaCopy(text);
+      });
+  } else {
+    vpeTextAreaCopy(text);
+  }
+}
+
+function vpeTextAreaCopy(text) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity  = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    emToast('✅ Post copied to clipboard — ready to paste.');
+  } catch(e) {
+    emToast('⚠️ Could not copy. Select and copy manually.', true);
+  }
+  document.body.removeChild(ta);
+}
+window.vpeTextAreaCopy = vpeTextAreaCopy;
 window.vpeRegenerate     = vpeRegenerate;
 window.vpeAdapt          = vpeAdapt;
 
