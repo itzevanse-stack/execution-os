@@ -1,10 +1,14 @@
 // api/vpe-questions.js
 // Real-time question discovery for the Value Post Engine
 // Two modes:
-//   - Niche mode (isKeyword: false): broad audience question discovery for their niche
-//   - Keyword mode (isKeyword: true): specific questions about an exact keyword/product/topic
+//   - Niche mode: broad audience question discovery for their niche
+//   - Keyword mode: specific questions about an exact keyword/product/topic
+//
+// Quality standard: questions must be specific enough to write a sharp,
+// position-taking post with real proof — not generic enough to produce
+// vague content that could apply to anyone.
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -29,49 +33,23 @@ module.exports = async function handler(req, res) {
 
     if (isKeyword) {
       // ── KEYWORD MODE — surgical search for questions about a specific term ──
-      // These queries are designed to surface actual questions people ask, not
-      // generic content about the topic
       searches = [
-        // Reddit threads where people ask questions about this keyword
-        {
-          query: `site:reddit.com "${searchTerm}" review OR problem OR help OR how OR question OR issue`,
-          tag:   'reddit',
-        },
-        // Quora questions specifically about this keyword
-        {
-          query: `site:quora.com "${searchTerm}"`,
-          tag:   'quora',
-        },
-        // Google "People Also Ask" style — questions people type
-        {
-          query: `"${searchTerm}" how to OR "is it worth" OR "does it work" OR "vs" OR "alternatives" ${currentYear}`,
-          tag:   'google',
-        },
-        // Beginner and getting-started questions
-        {
-          query: `"${searchTerm}" beginners guide tutorial getting started problems ${currentYear}`,
-          tag:   'google',
-        },
-        // YouTube — what videos people watch about this keyword
-        {
-          query: `site:youtube.com "${searchTerm}" review tutorial how to ${currentYear}`,
-          tag:   'youtube',
-        },
-        // X/Twitter — real-time discussions and complaints
-        {
-          query: `"${searchTerm}" site:twitter.com OR site:x.com (${previousYear} OR ${currentYear})`,
-          tag:   'x',
-        },
+        { query: `site:reddit.com "${searchTerm}" review OR problem OR help OR how OR question OR issue`, tag: 'reddit' },
+        { query: `site:quora.com "${searchTerm}"`, tag: 'quora' },
+        { query: `"${searchTerm}" how to OR "is it worth" OR "does it work" OR "vs" OR "alternatives" ${currentYear}`, tag: 'google' },
+        { query: `"${searchTerm}" beginners guide tutorial getting started problems ${currentYear}`, tag: 'google' },
+        { query: `site:youtube.com "${searchTerm}" review tutorial how to ${currentYear}`, tag: 'youtube' },
+        { query: `"${searchTerm}" site:twitter.com OR site:x.com (${previousYear} OR ${currentYear})`, tag: 'x' },
       ];
     } else {
       // ── NICHE MODE — broad audience question discovery ────────────────────
       searches = [
-        { query: `site:reddit.com "${searchTerm}" (${previousYear} OR ${currentYear})`, tag: 'reddit' },
-        { query: `site:quora.com "${searchTerm}" (${previousYear} OR ${currentYear})`,  tag: 'quora' },
-        { query: `"${searchTerm}" how to questions beginners ${currentYear}`,            tag: 'google' },
-        { query: `"${searchTerm}" best worth it results proof ${currentYear}`,           tag: 'google' },
-        { query: `site:youtube.com "${searchTerm}" ${currentYear} beginners guide how to`, tag: 'youtube' },
-        { query: `site:twitter.com OR site:x.com "${searchTerm}" ${currentYear} how question`, tag: 'x' },
+        { query: `site:reddit.com "${searchTerm}" question help struggling (${previousYear} OR ${currentYear})`, tag: 'reddit' },
+        { query: `site:quora.com "${searchTerm}" how why what (${previousYear} OR ${currentYear})`, tag: 'quora' },
+        { query: `"${searchTerm}" how to start results proof stuck ${currentYear}`, tag: 'google' },
+        { query: `"${searchTerm}" is it worth it saturated too late compete ${currentYear}`, tag: 'google' },
+        { query: `site:youtube.com "${searchTerm}" ${currentYear} how to beginners mistakes`, tag: 'youtube' },
+        { query: `"${searchTerm}" site:x.com OR site:twitter.com question struggle ${currentYear}`, tag: 'x' },
       ];
     }
 
@@ -115,68 +93,47 @@ module.exports = async function handler(req, res) {
     }
 
     if (rawResults.length === 0) {
-      return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword);
+      return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche);
     }
 
-    // ── Claude extracts and ranks real questions ──────────────────────────────
+    // ── Claude extracts and ranks questions by post-worthiness ────────────────
     const rawText = rawResults
       .slice(0, 30)
       .map(r => `[${r.tag.toUpperCase()}] ${r.title}\nURL: ${r.url}\n${r.snippet}`)
       .join('\n\n');
 
-    const rankPrompt = isKeyword
-      ? `You are a content researcher. Below are real search results about "${searchTerm}" from Reddit, Quora, Google, YouTube and X.
+    const rankPrompt = `You are a content strategist who helps experts in the "${niche}" space create high-performing social media posts.
 
-SEARCH RESULTS:
-${rawText}
-
-${intel ? `CONTEXT:\n${intel}\n\n` : ''}
-
-Extract the 8 best SPECIFIC QUESTIONS that real people are asking about "${searchTerm}" from these results.
-
-Requirements:
-1. Questions must be SPECIFICALLY about "${searchTerm}" — not generic
-2. Must be real questions people genuinely ask — complaints, how-tos, comparisons, "is it worth it", pricing, problems
-3. Include the source URL from the results above
-4. VARIED — mix of beginner, comparison, troubleshooting, results-focused questions
-5. Each question should be something someone could write a helpful post answering
-
-Examples of good questions for "systeme.io":
-- "Is systeme.io actually free or are there hidden costs?"
-- "Can systeme.io replace ClickFunnels for my coaching business?"
-- "Why are my systeme.io emails going to spam?"
-
-Return ONLY valid JSON. No markdown:
-[
-  {
-    "question": "...",
-    "platform": "reddit|quora|google|youtube|x",
-    "url": "https://...",
-    "year": "${currentYear}",
-    "volume": "high|medium",
-    "intent": "informational|commercial",
-    "why": "one sentence on why answering this drives traffic"
-  }
-]`
-      : `You are a content strategist. Below are real search results about "${searchTerm}" from the last 12 months.
+Below are real search results. Your job is to extract the 8 BEST questions for writing sharp, authoritative posts.
 
 SEARCH RESULTS:
 ${rawText}
 
 ${intel ? `OFFER AND AUDIENCE CONTEXT:\n${intel}\n\n` : ''}
 
-Extract the 8 best questions real people are asking about "${searchTerm}" right now.
+SELECTION CRITERIA — only pick questions that meet ALL of these:
 
-Requirements:
-1. SPECIFIC — not vague
-2. RECENT — from the results above, not old evergreen content
-3. ANSWERABLE — someone with expertise in this niche can answer authoritatively
-4. FUNNEL-ALIGNED — the answer naturally leads toward an offer
-5. VARIED — mix of beginner, how-to, and "is it worth it" questions
+1. SPECIFIC ENOUGH TO TAKE A POSITION — the question must be debatable or have a non-obvious answer. Good: "Is the digital product space too saturated in 2026?" Bad: "How do I grow online?"
 
-Return the most relevant source URL for each question.
+2. COMMON ENOUGH TO MATTER — real people are actually asking this, not just one person. It should resonate with a large segment of the target audience.
 
-Return ONLY valid JSON. No markdown:
+3. HAS A WRONG POPULAR ANSWER — most people believe the wrong thing about this. The expert can write a post that names the wrong belief and corrects it with real experience.
+
+4. LEADS NATURALLY TO THE OFFER — answering this question positions the expert as the solution. The answer should naturally create demand for what they sell.
+
+5. NOT TOO BROAD — reject questions like "How do I make money online?" or "What is digital marketing?" Too vague to write a sharp post about.
+
+6. NOT TOO NARROW — reject questions that only 5 people would ask. Needs mass appeal.
+
+EXAMPLES OF GOOD QUESTIONS for digital product / coaching space:
+- "Isn't the digital product space completely saturated now?" (debatable, common belief, wrong answer most people give)
+- "How do I scale past $20K/month without working more hours?" (specific problem, large audience, leads to systems/offer)
+- "Why do most people fail at [specific thing] even when they work hard?" (names the enemy, strong position available)
+- "Is [specific method/tool] actually worth it or just hype?" (commercial intent, comparison opportunity)
+
+Return the source URL from the results above for each question.
+
+Return ONLY valid JSON. No markdown. No explanation:
 [
   {
     "question": "...",
@@ -185,7 +142,8 @@ Return ONLY valid JSON. No markdown:
     "year": "${currentYear}",
     "volume": "high|medium",
     "intent": "informational|commercial",
-    "why": "one sentence on why this fits their offer"
+    "why": "one sentence: what position can the expert take and why does answering this build their authority",
+    "wrong_belief": "one sentence: what does most people wrongly believe about this that the expert can correct"
   }
 ]`;
 
@@ -198,7 +156,7 @@ Return ONLY valid JSON. No markdown:
       },
       body: JSON.stringify({
         model:      'claude-sonnet-4-6',
-        max_tokens: 1500,
+        max_tokens: 1800,
         messages:   [{ role: 'user', content: rankPrompt }],
       }),
     });
@@ -208,56 +166,45 @@ Return ONLY valid JSON. No markdown:
     const clean      = rawOutput.replace(/```json|```/g, '').trim();
     const match      = clean.match(/\[[\s\S]*\]/);
 
-    if (!match) return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword);
+    if (!match) return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche);
 
     const questions = JSON.parse(match[0]);
     return res.status(200).json({ questions, source: 'live', total: questions.length });
 
   } catch (err) {
     console.error('[vpe-questions] Error:', err.message);
-    return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword);
+    return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche);
   }
-};
+}
 
 // ── Fallback: Claude generates from training knowledge ────────────────────────
-async function fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword) {
+async function fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche) {
   const currentYear = new Date().getFullYear();
   try {
-    const prompt = isKeyword
-      ? `Generate the 8 most specific and commonly asked questions that people ask about "${searchTerm}" in ${currentYear}.
+    const prompt = `Generate the 8 best questions someone could write a sharp, authoritative social media post about in the "${niche}" space.
 
-These should be questions real people genuinely type into Google, Reddit, Quora or YouTube about "${searchTerm}" specifically.
-
-Include a mix of:
-- "Is ${searchTerm} worth it?" style questions
-- "How do I [specific task] with ${searchTerm}?" questions
-- Comparison questions: "${searchTerm} vs [alternative]?"
-- Problem/troubleshooting questions
-- Beginner questions
-- Results/proof questions
-
-${intel ? `Context:\n${intel}\n\n` : ''}
-
-Return ONLY valid JSON. No markdown:
-[
-  {
-    "question": "...",
-    "platform": "reddit|quora|google|youtube|x",
-    "url": "",
-    "year": "${currentYear}",
-    "volume": "high|medium",
-    "intent": "informational|commercial",
-    "why": "one sentence on why answering this drives traffic and leads"
-  }
-]`
-      : `Generate the 8 most commonly asked, highest-intent questions about "${searchTerm}" that people are asking in ${currentYear}.
+${isKeyword ? `The questions must be specifically about: "${searchTerm}"` : `The questions must be relevant to: "${searchTerm}"`}
 
 ${intel ? `Offer and audience context:\n${intel}\n\n` : ''}
 
-Rules:
-- Specific, not vague
-- Current — the kind of question being asked in ${currentYear}
-- Mix informational and commercial intent
+QUALITY STANDARD — every question must meet all of these:
+1. Specific enough that an expert can take a clear position — not vague
+2. Has a common WRONG belief most people hold — the expert can correct it
+3. Large enough audience — many people in this niche are asking this
+4. Leads naturally toward the expert's offer as the solution
+5. Has non-obvious insight available — not something Google already answers perfectly
+
+EXAMPLES OF GOOD QUESTIONS:
+- "Isn't [niche] completely saturated now — am I too late?"
+- "Why do most people in [niche] fail even when they work really hard?"
+- "How do I scale past [specific milestone] without working more hours?"
+- "Is [common approach/tool] actually worth it or just hype?"
+- "What's the real reason [specific common problem] keeps happening?"
+
+BAD QUESTIONS (reject these):
+- "How do I grow my business?" (too vague)
+- "What is [basic concept]?" (too educational, no position available)
+- "Should I start a business?" (wrong audience)
 
 Return ONLY valid JSON. No markdown:
 [
@@ -268,7 +215,8 @@ Return ONLY valid JSON. No markdown:
     "year": "${currentYear}",
     "volume": "high|medium",
     "intent": "informational|commercial",
-    "why": "one sentence on why this fits their offer"
+    "why": "one sentence: what position can the expert take and why does answering this build authority",
+    "wrong_belief": "one sentence: what does most people wrongly believe about this"
   }
 ]`;
 
@@ -281,7 +229,7 @@ Return ONLY valid JSON. No markdown:
       },
       body: JSON.stringify({
         model:      'claude-sonnet-4-6',
-        max_tokens: 1200,
+        max_tokens: 1400,
         messages:   [{ role: 'user', content: prompt }],
       }),
     });
