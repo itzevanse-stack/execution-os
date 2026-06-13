@@ -2872,6 +2872,8 @@ button[onclick="generateOffer()"] {
 .qc-fmt-btn { background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:4px 9px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .15s;line-height:1; }
 .qc-fmt-btn:hover { background:rgba(78,204,163,.08);border-color:rgba(78,204,163,.3);color:var(--teal); }
 .qc-draggable:hover { outline:1px dashed rgba(78,204,163,.3); }
+.prof-tab-btn:hover { background:rgba(255,255,255,.04)!important;color:var(--white)!important; }
+.prof-credit-pack:hover { border-color:rgba(78,204,163,.3)!important;background:rgba(78,204,163,.03)!important; }
 
 /* Contact table */
 .em-table { width:100%; border-collapse:collapse; font-size:13px; }
@@ -3442,11 +3444,8 @@ button[onclick="generateOffer()"] {
         <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
         <div class="content-topbar-title" id="topbar-page-title">Dashboard</div>
       </div>
-      <!-- Credit balance pill -->
-      <div id="credit-balance-pill" onclick="creditShowModal()" style="display:flex;align-items:center;gap:6px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:20px;padding:5px 14px;cursor:pointer;transition:all .15s" title="AI Credits — click to top up" onmouseover="this.style.borderColor='rgba(245,200,66,.4)'" onmouseout="this.style.borderColor='rgba(245,200,66,.2)'">
-        <span style="font-size:13px">⚡</span>
-        <span id="credit-balance-display" style="font-size:11px;font-weight:800;color:#F5C842;font-family:'Poppins',sans-serif">— credits</span>
-      </div>
+      <!-- Credit balance — hidden from topbar, shown in My Credits tab -->
+      <span id="credit-balance-display" style="display:none">— credits</span>
       <!-- Mode indicator -->
       <div id="mode-badge" style="display:flex;align-items:center;gap:6px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);border-radius:20px;padding:5px 14px;cursor:default;user-select:none">
         <span id="mode-badge-icon">🔗</span>
@@ -3454,7 +3453,7 @@ button[onclick="generateOffer()"] {
       </div>
       <!-- Hidden for JS compatibility -->
       <div id="plan-badge" style="display:none"><p id="plan-badge-txt-top">✅ Full Access</p></div>
-      <span id="topbar-initials" style="display:none">?</span>
+      <span id="topbar-initials" style="display:none!important">?</span>
       <img id="topbar-avatar-img" src="" style="display:none">
       <span id="topbar-mode-icon" style="display:none">⚡</span>
       <span id="topbar-mode-label" style="display:none">Affiliate Mode</span>
@@ -6150,13 +6149,21 @@ button[onclick="generateOffer()"] {
         <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Full Access — No Restrictions</div>
         <div style="font-size:12px;color:var(--dim);margin-top:4px;line-height:1.55">You have complete access to every tool, every feature, every section. Revenue Plan, Ideal Customer, Offer Creation, Content Calendar, DM Scripts, Daily Tracker, Daily Routine — all yours.</div>
       </div>
-      <div style="background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.3);border-radius:12px;padding:10px 18px;text-align:center;flex-shrink:0">
+      <div id="prof-plan-badge" style="background:rgba(78,204,163,.12);border:1px solid rgba(78,204,163,.3);border-radius:12px;padding:10px 18px;text-align:center;flex-shrink:0">
         <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Access Level</div>
-        <div style="font-size:16px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal)">Premium Member</div>
+        <div id="prof-plan-label" style="font-size:16px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--teal)">Premium Member</div>
       </div>
     </div>
 
-    <!-- PROFILE FORM -->
+    <!-- PROFILE TABS -->
+    <div style="display:flex;gap:4px;margin-bottom:24px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:14px;padding:4px">
+      <button onclick="profShowTab('settings',this)" id="prof-tab-settings" class="prof-tab-btn prof-tab-active" style="flex:1;padding:10px;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:var(--card2);color:var(--white)">⚙️ Account Settings</button>
+      <button onclick="profShowTab('voice',this)"    id="prof-tab-voice"    class="prof-tab-btn" style="flex:1;padding:10px;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:var(--dim)">🎙️ Voice Profile</button>
+      <button onclick="profShowTab('credits',this)"  id="prof-tab-credits"  class="prof-tab-btn" style="flex:1;padding:10px;border:none;border-radius:10px;font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;background:transparent;color:var(--dim)">⚡ My Credits</button>
+    </div>
+
+    <!-- TAB: Account Settings -->
+    <div id="prof-panel-settings">
     <div class="profile-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:2rem">
       <div class="av-sec">
         <div class="av-sec-head">
@@ -6307,6 +6314,158 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
     </div>
+    </div><!-- end prof-panel-settings -->
+
+    <!-- TAB: My Credits -->
+    <div id="prof-panel-credits" style="display:none">
+
+      <!-- Plan card -->
+      <div id="prof-plan-card" style="background:linear-gradient(135deg,rgba(245,200,66,.08),rgba(240,112,48,.04));border:1px solid rgba(245,200,66,.2);border-radius:20px;padding:28px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:6px">Your Plan</div>
+            <div id="prof-plan-name" style="font-size:20px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Loading…</div>
+            <div id="prof-plan-sub" style="font-size:12px;color:var(--dim);margin-top:4px"></div>
+          </div>
+          <div style="text-align:center;background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:14px;padding:16px 24px">
+            <div style="font-size:10px;font-weight:700;color:var(--dimmer);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Current Balance</div>
+            <div id="prof-credit-balance" style="font-size:36px;font-weight:900;color:#F5C842;font-family:'Poppins',sans-serif;line-height:1">—</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:4px">credits remaining</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage breakdown -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:20px">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:14px">Credit Costs</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--muted)">🏛 Boardroom build</span><span style="font-size:12px;font-weight:800;color:var(--white)">50 credits</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--muted)">✍️ Write a post</span><span style="font-size:12px;font-weight:800;color:var(--white)">10 credits</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--muted)">🎬 Video script</span><span style="font-size:12px;font-weight:800;color:var(--white)">10 credits</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--muted)">💬 Quote Card</span><span style="font-size:12px;font-weight:800;color:var(--white)">3 credits</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--muted)">📧 Email broadcast</span><span style="font-size:12px;font-weight:800;color:var(--white)">8 credits</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0"><span style="font-size:12px;color:var(--muted)">🎥 HeyGen video</span><span style="font-size:12px;font-weight:800;color:var(--white)">100 credits</span></div>
+          </div>
+        </div>
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:20px">
+          <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:14px">Your Allowance</div>
+          <div id="prof-credit-details" style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--muted)">Monthly included</span><span id="prof-monthly-allowance" style="font-size:12px;font-weight:800;color:var(--white)">—</span></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--muted)">Purchased (never expire)</span><span id="prof-purchased-credits" style="font-size:12px;font-weight:800;color:var(--teal)">—</span></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="font-size:12px;color:var(--muted)">Last top-up</span><span id="prof-last-topup" style="font-size:12px;font-weight:800;color:var(--white)">—</span></div>
+            <div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:12px;color:var(--muted)">Next monthly reset</span><span id="prof-next-reset" style="font-size:12px;font-weight:800;color:var(--white)">—</span></div>
+          </div>
+          <div style="margin-top:16px;font-size:10px;color:var(--dimmer);line-height:1.6">Monthly credits reset each billing cycle. Purchased credits never expire and carry forward.</div>
+        </div>
+      </div>
+
+      <!-- Top up section -->
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:28px">
+        <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Top Up Credits</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:20px">Purchased credits never expire. Choose a pack and you'll be taken to secure checkout.</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px" id="prof-topup-grid">
+          <div class="prof-credit-pack" onclick="profSelectPack(this,'prod_ZY97XhYW',19)" style="border:2px solid var(--border2);border-radius:16px;padding:20px;cursor:pointer;transition:all .15s">
+            <div style="font-size:16px;margin-bottom:6px">⚡</div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Starter</div>
+            <div style="font-size:24px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif;margin:6px 0">200 <span style="font-size:13px;font-weight:600;color:var(--dim)">credits</span></div>
+            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">$19</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:4px">Great for casual usage</div>
+          </div>
+          <div class="prof-credit-pack" onclick="profSelectPack(this,'prod_81bN8WP9',39)" style="border:2px solid var(--border2);border-radius:16px;padding:20px;cursor:pointer;transition:all .15s">
+            <div style="font-size:16px;margin-bottom:6px">🔥</div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Growth</div>
+            <div style="font-size:24px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif;margin:6px 0">500 <span style="font-size:13px;font-weight:600;color:var(--dim)">credits</span></div>
+            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">$39</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:4px">For active daily users</div>
+          </div>
+          <div class="prof-credit-pack" onclick="profSelectPack(this,'prod_G3vkIWul',69)" style="border:2px solid rgba(78,204,163,.3);border-radius:16px;padding:20px;cursor:pointer;transition:all .15s;background:rgba(78,204,163,.03);position:relative">
+            <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--teal),var(--teal2));border-radius:50px;padding:3px 12px;font-size:9px;font-weight:800;color:var(--text-dark);white-space:nowrap">MOST POPULAR</div>
+            <div style="font-size:16px;margin-bottom:6px">🚀</div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Scale</div>
+            <div style="font-size:24px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif;margin:6px 0">1,000 <span style="font-size:13px;font-weight:600;color:var(--dim)">credits</span></div>
+            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">$69</div>
+            <div style="font-size:10px;color:var(--teal);margin-top:4px">Best value per credit</div>
+          </div>
+          <div class="prof-credit-pack" onclick="profSelectPack(this,'prod_PKq6nBLG',149)" style="border:2px solid var(--border2);border-radius:16px;padding:20px;cursor:pointer;transition:all .15s">
+            <div style="font-size:16px;margin-bottom:6px">💎</div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Agency</div>
+            <div style="font-size:24px;font-weight:900;color:#a089ff;font-family:'Poppins',sans-serif;margin:6px 0">3,000 <span style="font-size:13px;font-weight:600;color:var(--dim)">credits</span></div>
+            <div style="font-size:18px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">$149</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:4px">For heavy power users</div>
+          </div>
+        </div>
+
+        <!-- Top Up Now button — shows after selection -->
+        <div id="prof-topup-cta" style="display:none;margin-top:20px">
+          <a id="prof-topup-link" href="#" target="_blank" style="display:flex;align-items:center;justify-content:center;gap:10px;background:linear-gradient(135deg,#F5C842,#d4a800);border-radius:14px;padding:16px;color:#06060f;font-size:15px;font-weight:900;font-family:'Poppins',sans-serif;text-decoration:none">⚡ Top Up Now — Secure Checkout →</a>
+          <div style="text-align:center;font-size:11px;color:var(--dim);margin-top:8px">You'll be taken to secure CopeCart checkout. Credits added to your account instantly after payment.</div>
+        </div>
+      </div>
+    </div><!-- end prof-panel-credits -->
+
+    <!-- TAB: Voice Profile -->
+    <div id="prof-panel-voice" style="display:none">
+      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:20px;padding:28px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+          <div style="width:40px;height:40px;border-radius:12px;background:rgba(78,204,163,.1);display:flex;align-items:center;justify-content:center;font-size:18px">🎙️</div>
+          <div>
+            <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Your Voice and Style Profile</div>
+            <div style="font-size:12px;color:var(--dim);margin-top:2px">This tells Execution OS exactly how you communicate — so every output sounds like YOU, not a generic template.</div>
+          </div>
+        </div>
+        <div style="display:grid;gap:12px">
+          <div class="fr">
+            <div class="fl">Your Content Tone <span style="color:var(--teal);font-size:9px;margin-left:6px">HOW YOU SOUND</span></div>
+            <select class="fi" id="voice_tone" oninput="markVoiceDirty()">
+              <option value="">— Select your primary tone —</option>
+              <option value="Direct and no-nonsense">Direct and no-nonsense — I get to the point fast</option>
+              <option value="Warm and conversational">Warm and conversational — I talk like a friend</option>
+              <option value="Authoritative and expert">Authoritative and expert — I speak from experience</option>
+              <option value="Motivational and energetic">Motivational and energetic — I hype people up</option>
+              <option value="Analytical and data-driven">Analytical and data-driven — I back everything with logic</option>
+              <option value="Storytelling and personal">Storytelling and personal — I use my own journey</option>
+              <option value="Humorous and relatable">Humorous and relatable — I use humour to connect</option>
+            </select>
+          </div>
+          <div class="fr">
+            <div class="fl">Writing Style <span style="color:var(--teal);font-size:9px;margin-left:6px">HOW YOU WRITE</span></div>
+            <select class="fi" id="voice_style2" oninput="markVoiceDirty()">
+              <option value="">— Select your writing style —</option>
+              <option value="Short punchy sentences. No fluff.">Short punchy sentences. No fluff.</option>
+              <option value="Longer paragraphs with full context and detail">Longer paragraphs with full context and detail</option>
+              <option value="Bullet points and structured lists">Bullet points and structured lists</option>
+              <option value="Conversational flow — like I'm talking to one person">Conversational flow — like I'm talking to one person</option>
+              <option value="Story-driven with a clear arc and lesson">Story-driven with a clear arc and lesson</option>
+              <option value="Question-driven — I ask questions to engage">Question-driven — I ask questions to engage</option>
+            </select>
+          </div>
+          <div class="fr">
+            <div class="fl">Words / phrases you ALWAYS use <span style="color:var(--dim);font-size:9px;margin-left:4px">(your signature language)</span></div>
+            <input class="fi" id="voice_words2" placeholder='e.g. "Let's be real", "No BS", "Here's the truth"' oninput="markVoiceDirty()">
+          </div>
+          <div class="fr">
+            <div class="fl">Words / phrases you NEVER use <span style="color:var(--dim);font-size:9px;margin-left:4px">(things that don't sound like you)</span></div>
+            <input class="fi" id="voice_avoid2" placeholder='e.g. "game-changer", "hustle", "synergy", "leverage"' oninput="markVoiceDirty()">
+          </div>
+          <div class="fr">
+            <div class="fl">Your story in one sentence <span style="color:var(--dim);font-size:9px;margin-left:4px">(your authority foundation)</span></div>
+            <input class="fi" id="voice_story2" placeholder='e.g. "I went from 9-5 to $15K/month in 8 months"' oninput="markVoiceDirty()">
+          </div>
+          <div class="fr">
+            <div class="fl">Your unique method or framework name <span style="color:var(--dim);font-size:9px;margin-left:4px">(if you have one)</span></div>
+            <input class="fi" id="voice_method2" placeholder='e.g. "The 3-Step Clarity System"' oninput="markVoiceDirty()">
+          </div>
+          <div class="fr">
+            <div class="fl">Example of content you love <span style="color:var(--teal);font-size:9px;margin-left:6px">MOST POWERFUL — paste a real post you wrote</span></div>
+            <textarea class="fi" id="voice_example2" rows="4" placeholder="Paste a real piece of content that sounds most like you. Execution OS will match this voice exactly." style="min-height:90px" oninput="markVoiceDirty()"></textarea>
+          </div>
+          <button onclick="saveVoiceProfile()" style="width:100%;padding:11px;background:linear-gradient(135deg,var(--purple),var(--purple2));color:#fff;border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer">💾 Save My Voice Profile</button>
+          <div id="save-voice-msg2" style="font-size:11px;text-align:center;color:var(--teal);display:none">✅ Voice profile saved — all outputs will now match your style</div>
+        </div>
+      </div>
+    </div><!-- end prof-panel-voice -->
 
   </div><!-- end page-profile -->
 
@@ -27099,13 +27258,61 @@ if (document.readyState !== 'loading') {
       ? '== IDEAL CUSTOMER AVATAR ==\n' + audienceLines + '\n'
       : '== IDEAL CUSTOMER AVATAR ==\nNOT BUILT — member needs to complete the Customer Avatar step\n';
 
-    // Execution context
+    // Execution context — deep read of user's actual situation
+    const trackerToday  = window._trackerState || {};
+    const dmsSent       = trackerToday.dmsSent       || trackerToday.counts && trackerToday.counts.dms    || 0;
+    const contentPosted = trackerToday.contentPosted || trackerToday.counts && trackerToday.counts.content || 0;
+    const streak        = trackerToday.streak        || window._dayStreak   || 0;
+    const currentPage   = window._currentPage || localStorage.getItem('eos_last_page') || 'dashboard';
+    const trafficSrc    = aff.platform || aff.trafficStrategy || window._affTrafficMode || 'organic';
+    const setupComplete = !!(niche && (offerName || aff.name) && av.job);
+
     const executionContext = '== CURRENT EXECUTION STATUS ==\n'
-      + 'Content calendar: ' + (calReady ? ctx.calDays + ' days of content ready' : 'NOT generated yet') + '\n'
+      + 'Setup complete: '    + (setupComplete ? 'YES — niche, offer and avatar all set' : 'PARTIAL — some setup steps still missing') + '\n'
+      + 'Content calendar: '  + (calReady ? ctx.calDays + ' days of content ready and scheduled' : 'NOT generated yet') + '\n'
       + 'Deals closed this month: ' + closedDeals + '\n'
-      + 'Live funnels: ' + liveFunnels + '\n'
-      + (window.emState && window.emState.campaigns.length ? 'Email campaigns: ' + window.emState.campaigns.length + ' campaigns\n' : '')
-      + (window.emState && window.emState.contacts.length ? 'Email contacts: ' + window.emState.contacts.length + '\n' : '');
+      + 'Live funnels: '      + liveFunnels + '\n'
+      + 'Daily streak: '      + (streak > 0 ? streak + ' days' : 'not tracked yet') + '\n'
+      + 'DMs sent today: '    + dmsSent + '\n'
+      + 'Content posted today: ' + contentPosted + '\n'
+      + 'Traffic source: '    + trafficSrc + '\n'
+      + 'Current focus area: ' + currentPage + '\n'
+      + (window.emState && window.emState.campaigns && window.emState.campaigns.length ? 'Email campaigns active: ' + window.emState.campaigns.length + '\n' : 'Email campaigns: none yet\n')
+      + (window.emState && window.emState.contacts  && window.emState.contacts.length  ? 'Email list size: '        + window.emState.contacts.length  + ' contacts\n' : '');
+
+    // Full Execution OS capabilities — so advisor can suggest platform features as solutions
+    const platformCapabilities = `== EXECUTION OS PLATFORM CAPABILITIES ==
+The advisor MUST suggest these specific platform features as solutions when relevant. Never give generic advice when a specific platform tool exists.
+
+CONTENT CREATION (Content Studio):
+- Quote Card Generator — creates viral quote cards for Facebook, Instagram, X. 4K download. User uploads their photo as background. Niche-specific quotes generated automatically. If they have no audience yet, posting 1-3 quote cards per day builds one fast.
+- Value Post Engine (VPE) — finds real questions people are asking about any keyword or niche on Reddit, Quora, Google, YouTube and X. Writes a full answer post for LinkedIn, Facebook, Medium, Quora or X. Posting these answers on Quora and Reddit drives organic traffic passively.
+- Video Script Generator — writes scroll-stopping YouTube Shorts and Reels scripts built around real audience questions. If Facebook/Instagram are locked, YouTube Shorts is a direct replacement — same short-form format, no account restrictions.
+- Carousel Builder — creates multi-slide carousel posts for LinkedIn and Instagram.
+- Story Builder — creates story sequences for Instagram and Facebook.
+- Content Calendar — 30 days of niche-specific content planned and ready to post.
+
+TRAFFIC ALTERNATIVES (if primary platform is locked or restricted):
+- YouTube Shorts: Use Video Script Generator → record 60 seconds → upload. No follower minimum for reach. Algorithm pushes content to new accounts immediately.
+- Quora: Use VPE → search keyword → write answer post → post directly on Quora. Answers rank on Google. Passive traffic for months.
+- Reddit: Use VPE → find subreddit questions → write genuine helpful answers with subtle link placement. High buyer intent traffic.
+- LinkedIn: Use VPE → write long-form post → massive organic reach even at 0 followers. Best for B2B, coaching, digital products.
+- Pinterest: Quote Cards work perfectly here. High traffic, long content lifespan.
+- X (Twitter/Threads): Quote Cards + VPE posts. Thread format drives engagement.
+- TikTok: Video Script Generator → record → post. Algorithm rewards new accounts.
+- Medium: VPE long-form posts → published on Medium → Google ranks them.
+
+LEAD CAPTURE:
+- Funnel Builder — builds landing page + sales page. Even with no social presence, sharing the funnel link in DMs, Quora answers or YouTube descriptions captures leads.
+- Email Marketing — automated welcome sequence nurtures every lead automatically.
+
+DM AND SALES:
+- DM Scripts — pre-written conversation starters for any platform.
+- Lead Pipeline — tracks every conversation and follow-up.
+
+STRATEGY:
+- Boardroom — full business strategy built around their offer. War Room, Copy Vault, Client Attraction.
+- E-OS Intelligent Advisor — that's you. You know all of the above and you suggest the right tool for the right problem.`;
 
     // Voice profile
     const voiceContext = (voiceTone || voiceAvoid)
@@ -27114,35 +27321,30 @@ if (document.readyState !== 'loading') {
         + (voiceAvoid ? 'Words/phrases they never use: ' + voiceAvoid + '\n' : '')
       : '';
 
-    return `You are E-OS Intelligent — the AI business advisor built into Execution OS.
+    return `You are E-OS Intelligent — the personal business advisor built into Execution OS. You know this user's exact situation, their current progress, and every tool available inside the platform.
 
-Your personality and style:
-- You are direct, specific, and strategically sharp — like having a senior business advisor who has read every file about this person
-- You respond the way a brilliant friend with deep expertise would — honest, grounded, no corporate filler
-- You are warm but you do not waste words. You get to the point fast.
-- You notice patterns. If they are stuck, you name it. If they are winning, you acknowledge it and push harder.
-- You think in systems. Every answer connects to their bigger goal.
+YOUR PERSONALITY:
+- Direct, specific, strategically sharp. Like a senior advisor who has read every file about this person.
+- Warm but you do not waste words. You get to the point fast.
 - You never flatter. You never say "great question." You just answer.
-- When someone is frustrated, you acknowledge it in one sentence and move to solutions.
-- When someone asks something vague, you reframe it into the real question and answer that.
-- You are encouraging without being hollow. Your belief in them is earned through specificity, not cheerleading.
+- When someone is frustrated, you acknowledge it in ONE sentence — then move immediately to solutions.
+- You think in systems. Every answer connects to their bigger goal and uses the platform to get there.
+
+CRITICAL BEHAVIOUR RULES:
+1. READ WHAT THEY ACTUALLY SAID. If they mention a specific problem — Facebook locked, Instagram restricted, no traffic, feeling stuck — address THAT specific problem directly. Do not give a generic response.
+2. SUGGEST PLATFORM FEATURES AS SOLUTIONS. When they have a problem, find which Execution OS tool solves it. The platform capabilities section below tells you every tool and what it does. Always recommend the specific feature by name and tell them exactly where to find it in the platform.
+3. If their traffic platform is locked or restricted — immediately list the alternatives they can do RIGHT NOW using the platform: YouTube Shorts via Video Script Generator, Quora and Reddit via Value Post Engine, Quote Cards for Pinterest and X, LinkedIn posts via VPE, TikTok via Video Scripts. These are all inside Execution OS. Name them.
+4. Every answer must reference their actual data above. Never give generic advice when specific data exists.
+5. End every response with ONE clear next action — name the exact platform feature, the exact step, and what they should do in the next 30 minutes.
+6. Short paragraphs. Bold what matters most. Never write a wall of text.
+7. If they seem discouraged or upset, validate in one sentence then redirect to what IS in their control using platform tools.
+8. Never invent data. If something shows NOT SET, tell them exactly which step in the platform fixes it.
 
 ` + bizContext + '\n'
     + audienceContext + '\n'
     + executionContext + '\n'
-    + voiceContext
-    + `
-== BEHAVIOUR RULES ==
-1. Every answer must reference their actual data above. Never give generic advice.
-2. If a field shows NOT SET, tell them exactly where to fix it — then offer what you CAN help with right now.
-3. Never invent numbers. If price or target is NOT SET, do not calculate anything.
-4. When they share a problem, diagnose the ROOT CAUSE before recommending an action.
-5. End every response with one clear next action — specific, time-bound, and tied to their data.
-6. Short paragraphs. Breathing room. Bold what matters most. Never write a wall of text.
-7. If they seem discouraged, validate the feeling briefly, then redirect to what IS in their control.
-8. When you recommend content, DMs, or copy — make it for their specific niche and audience, not a template.
-9. You have access to their funnel data, email campaigns, tracker stats, and avatar — use them.
-10. Respond as if you genuinely know this person and care about their success. Because in this context, you do.`;
+    + platformCapabilities + '\n'
+    + voiceContext;
   }
 
     function buildStarters(ctx) {
@@ -28960,7 +29162,7 @@ window.showGrowthTab = function(tab, btn) {
       const topImg = document.getElementById('topbar-avatar-img');
       if (topImg) { topImg.src = ''; topImg.style.display = 'none'; }
       const topInitials = document.getElementById('topbar-initials');
-      if (topInitials) topInitials.style.display = '';
+      // topbar-initials hidden by design
 
       // Hide delete button
       if (delBtn) delBtn.style.display = 'none';
@@ -32185,7 +32387,7 @@ function creditUpdateDisplay(balance) {
   if (modal) modal.textContent = balance.toLocaleString();
   // Warn if low
   if (pill) {
-    var pillEl = document.getElementById('credit-balance-pill');
+    var pillEl = null; // credit pill removed from topbar
     if (pillEl) {
       if (balance < 20) {
         pillEl.style.background = 'rgba(240,80,60,.1)';
@@ -32200,7 +32402,7 @@ function creditUpdateDisplay(balance) {
     }
   }
   // Plan label
-  var plan = window._userPlan || localStorage.getItem('eos_user_plan') || 'affiliate_monthly';
+  var plan = window._userPlan || localStorage.getItem('eos_user_plan') || ((window._appMode||'affiliate')==='expert' ? 'expert_monthly' : 'affiliate_monthly');
   var included = PLAN_CREDITS[plan] || 200;
   if (planLabel) planLabel.textContent = planLabel_text(plan) + ' · ' + included + ' credits/month included';
 }
@@ -32278,7 +32480,7 @@ async function creditCheckMonthlyReset() {
     var now = Date.now();
     var oneMonth = 30 * 24 * 60 * 60 * 1000;
     if (now - lastReset > oneMonth) {
-      var plan = window._userPlan || localStorage.getItem('eos_user_plan') || 'affiliate_monthly';
+      var plan = window._userPlan || localStorage.getItem('eos_user_plan') || ((window._appMode||'affiliate')==='expert' ? 'expert_monthly' : 'affiliate_monthly');
       var monthlyCredits = PLAN_CREDITS[plan] || 200;
       var purchased = data.purchasedCredits || 0; // purchased credits never expire
       var newBalance = monthlyCredits + purchased;
@@ -32387,6 +32589,156 @@ async function planLoad() {
   }
 }
 window.planLoad = planLoad;
+
+// ── Profile tabs ──────────────────────────────────────────────────────────────
+window.profShowTab = function(tab, btn) {
+  ['settings','credits','voice'].forEach(function(t) {
+    var panel = document.getElementById('prof-panel-' + t);
+    var b     = document.getElementById('prof-tab-' + t);
+    if (panel) panel.style.display = 'none';
+    if (b) {
+      b.style.background = 'transparent';
+      b.style.color      = 'var(--dim)';
+    }
+  });
+  var active = document.getElementById('prof-panel-' + tab);
+  if (active) active.style.display = 'block';
+  if (btn) { btn.style.background = 'var(--card2)'; btn.style.color = 'var(--white)'; }
+  if (tab === 'credits') profLoadCredits();
+  if (tab === 'voice')   profSyncVoiceTab();
+};
+
+// ── Sync voice tab fields from main voice fields ──────────────────────────────
+function profSyncVoiceTab() {
+  var pairs = [
+    ['voice_tone',    'voice_tone'],
+    ['voice_style2',  'voice_style'],
+    ['voice_words2',  'voice_words'],
+    ['voice_avoid2',  'voice_avoid'],
+    ['voice_story2',  'voice_story'],
+    ['voice_method2', 'voice_method'],
+    ['voice_example2','voice_example'],
+  ];
+  pairs.forEach(function(p) {
+    var src  = document.getElementById(p[1]);
+    var dest = document.getElementById(p[0]);
+    if (src && dest) {
+      if (dest.tagName === 'SELECT' || src.tagName === 'SELECT') {
+        // For selects, sync value
+        if (src.tagName === 'SELECT') dest.value = src.value;
+        else dest.value = src.value;
+      } else {
+        dest.value = src.value;
+      }
+    }
+  });
+  // Also sync on change — voice tab fields write back to main fields
+  pairs.forEach(function(p) {
+    var dest = document.getElementById(p[0]);
+    var src  = document.getElementById(p[1]);
+    if (dest && src) {
+      dest.oninput = function() { src.value = dest.value; markVoiceDirty && markVoiceDirty(); };
+    }
+  });
+}
+window.profSyncVoiceTab = profSyncVoiceTab;
+
+// ── Load credit data into profile credits tab ─────────────────────────────────
+async function profLoadCredits() {
+  var uid = window._currentUserUid;
+  if (!uid || !window._db) return;
+  try {
+    var snap = await window._getDoc(window._doc(window._db, 'users', uid, 'credits', 'balance'));
+    var data = snap && snap.exists && snap.exists() ? (snap.data ? snap.data() : {}) : {};
+
+    var balance    = data.balance         || 0;
+    var purchased  = data.purchasedCredits || 0;
+    var lastReset  = data.lastReset        || 0;
+    var lastTopUp  = data.lastTopUp        || 0;
+    var lastAmt    = data.lastTopUpAmount  || 0;
+
+    var plan       = window._userPlan || localStorage.getItem('eos_user_plan') || ((window._appMode||'affiliate')==='expert' ? 'expert_monthly' : 'affiliate_monthly');
+    var monthly    = window.PLAN_CREDITS ? (window.PLAN_CREDITS[plan] || 200) : 200;
+
+    // Plan names
+    var planNames  = {
+      'affiliate_monthly': 'Affiliate Mode — Monthly',
+      'affiliate_annual':  'Affiliate Mode — Real Builder 🏆',
+      'expert_monthly':    'Expert Mode — Monthly',
+      'expert_annual':     'Expert Mode — Real Builder 🏆',
+    };
+    var planSubs = {
+      'affiliate_monthly': '$297/month · 200 credits included monthly',
+      'affiliate_annual':  '$2,597/year · 200 credits included monthly · Price locked forever',
+      'expert_monthly':    '$497/month · 500 credits included monthly',
+      'expert_annual':     '$4,597/year · 500 credits included monthly · Price locked forever',
+    };
+
+    var setEl = function(id, val) { var el = document.getElementById(id); if (el) el.textContent = val; };
+
+    setEl('prof-credit-balance',   balance.toLocaleString());
+    setEl('prof-plan-name',        planNames[plan] || 'Premium Member');
+    setEl('prof-plan-sub',         planSubs[plan]  || '');
+    setEl('prof-monthly-allowance', monthly + ' credits/month');
+    setEl('prof-purchased-credits', purchased > 0 ? purchased.toLocaleString() + ' credits' : 'None yet');
+    setEl('prof-last-topup',       lastTopUp ? new Date(lastTopUp).toLocaleDateString() + ' (+' + lastAmt + ')' : 'No top-ups yet');
+
+    // Next reset date
+    if (lastReset) {
+      var nextReset = new Date(lastReset + 30 * 24 * 60 * 60 * 1000);
+      setEl('prof-next-reset', nextReset.toLocaleDateString());
+    }
+
+    // Also update plan badge in header
+    var profPlanLabel = document.getElementById('prof-plan-label');
+    if (profPlanLabel) {
+      var short = { 'affiliate_monthly':'Affiliate Member', 'affiliate_annual':'Real Builder 🏆', 'expert_monthly':'Expert Member', 'expert_annual':'Real Builder 🏆' };
+      profPlanLabel.textContent = short[plan] || 'Premium Member';
+    }
+
+  } catch(e) { console.warn('[profLoadCredits]', e.message); }
+}
+
+// ── Pack selection ────────────────────────────────────────────────────────────
+var _selectedPack = null;
+window.profSelectPack = function(el, productId, price) {
+  document.querySelectorAll('.prof-credit-pack').forEach(function(c) {
+    c.style.borderColor = 'var(--border2)';
+    c.style.background  = '';
+  });
+  el.style.borderColor = 'rgba(245,200,66,.5)';
+  el.style.background  = 'rgba(245,200,66,.06)';
+  _selectedPack = { productId, price };
+
+  var cta  = document.getElementById('prof-topup-cta');
+  var link = document.getElementById('prof-topup-link');
+  if (cta)  cta.style.display = 'block';
+  if (link) {
+    link.href        = 'https://app.cope.com/products/' + productId;
+    link.textContent = '⚡ Top Up Now — $' + price + ' Secure Checkout →';
+  }
+};
+
+// ── Low credit warning toast ─────────────────────────────────────────────────
+function creditLowWarning(balance) {
+  if (balance <= 0) {
+    emToast('⚠️ You have no credits left. Go to My Profile → My Credits to top up.', true);
+  } else if (balance < 20) {
+    emToast('⚡ Low credits — ' + balance + ' remaining. Top up in My Profile → My Credits.', true);
+  }
+}
+window.creditLowWarning = creditLowWarning;
+
+// ── Fire low credit check after every deduction ───────────────────────────────
+var _origCreditDeduct = window.creditDeduct;
+window.creditDeduct = async function(action) {
+  var result = await _origCreditDeduct(action);
+  var balance = window._creditBalance || 0;
+  if (result && balance < 20) {
+    setTimeout(function(){ creditLowWarning(balance); }, 800);
+  }
+  return result;
+};
 window.dbAnFilter     = dbAnFilter;
 window.dbAnApplyCustom = dbAnApplyCustom;
 
