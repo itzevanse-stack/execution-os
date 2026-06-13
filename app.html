@@ -27790,8 +27790,8 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
   window._authDone = true;
-
-  window._currentUserUid = user.uid;
+  window._currentUserUid   = user.uid;
+  window._currentUserEmail = user.email || '';
 
   // ── Load credit balance on login ──────────────────────────────────────────
   setTimeout(function() {
@@ -32567,20 +32567,35 @@ async function planLoad() {
         : 'rgba(78,204,163,.3)';
     }
 
-    // Also check for pending credits to claim
-    var pendingSnap = await window._getDoc(
-      window._doc(window._db, 'pending_credits', uid)
-    ).catch(function(){ return null; });
+    // Check for pending credits — stored by email key (set by CopeCart webhook)
+    var userEmail = window._currentUserEmail || (window._auth && window._auth.currentUser && window._auth.currentUser.email) || '';
+    if (userEmail) {
+      var emailKey = userEmail.replace(/[.#$[\]]/g, '_');
+      var pendingSnap = await window._getDoc(
+        window._doc(window._db, 'pending_credits', emailKey)
+      ).catch(function(){ return null; });
 
-    if (pendingSnap && pendingSnap.exists && pendingSnap.exists()) {
-      var pending = pendingSnap.data ? pendingSnap.data() : {};
-      if (pending.credits && pending.credits > 0) {
-        await window.creditAdd(pending.credits);
-        // Delete pending record
+      if (pendingSnap && pendingSnap.exists && pendingSnap.exists()) {
+        var pending = pendingSnap.data ? pendingSnap.data() : {};
+        // Claim plan
+        if (pending.plan) {
+          window._userPlan = pending.plan;
+          localStorage.setItem('eos_user_plan', pending.plan);
+          await window._setDoc(
+            window._doc(window._db, 'users', uid, 'settings', 'plan'),
+            { plan: pending.plan, tier: pending.tier || '', activatedAt: Date.now() },
+            { merge: true }
+          ).catch(function(){});
+        }
+        // Claim credits
+        if (pending.credits && pending.credits > 0) {
+          await window.creditAdd(pending.credits);
+          console.log('[Plan] Claimed pending credits:', pending.credits, 'plan:', pending.plan);
+        }
+        // Delete pending record now that it's claimed
         await window._deleteDoc(
-          window._doc(window._db, 'pending_credits', uid)
+          window._doc(window._db, 'pending_credits', emailKey)
         ).catch(function(){});
-        console.log('[Plan] Claimed pending credits:', pending.credits);
       }
     }
 
