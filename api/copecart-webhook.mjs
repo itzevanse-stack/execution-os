@@ -55,10 +55,21 @@ function verifySignature(rawBody, headers) {
 }
 
 const PRODUCT_ID_MAP = {
+  // ── Alliance Partnership tiers ────────────────────────────────────────────
   'prod_PVMT5iF8': { tier:'Starter',  commission: 1000, type:'entry' },
   'prod_T8CKyv9B': { tier:'Pro',      commission: 2000, type:'entry' },
   'prod_tgfaj2Co': { tier:'Elite',    commission: 3000, type:'entry' },
   'prod_cyhCmvVh': { tier:'Platform', commission: 0,    type:'subscription' },
+  // ── Execution OS subscription plans ──────────────────────────────────────
+  'prod_4WzCUKlS': { tier:'Affiliate Monthly', commission: 0, type:'subscription', plan:'affiliate_monthly', credits: 200 },
+  'prod_TKlvYQnd': { tier:'Affiliate Annual',  commission: 0, type:'subscription', plan:'affiliate_annual',  credits: 200 },
+  'prod_DZ4goKeu': { tier:'Expert Monthly',    commission: 0, type:'subscription', plan:'expert_monthly',    credits: 500 },
+  'prod_A8QPRtbn': { tier:'Expert Annual',     commission: 0, type:'subscription', plan:'expert_annual',     credits: 500 },
+  // ── Credit top-up packs ───────────────────────────────────────────────────
+  'prod_ZY97XhYW': { tier:'Credits Starter', commission: 0, type:'credits', credits: 200  },
+  'prod_81bN8WP9': { tier:'Credits Growth',  commission: 0, type:'credits', credits: 500  },
+  'prod_G3vkIWul': { tier:'Credits Scale',   commission: 0, type:'credits', credits: 1000 },
+  'prod_PKq6nBLG': { tier:'Credits Agency',  commission: 0, type:'credits', credits: 3000 },
 };
 
 function detectTier(productName, amount, productId) {
@@ -76,7 +87,7 @@ function detectTier(productName, amount, productId) {
 
 // ── EMAIL TEMPLATES ────────────────────────────────────────────────────────────
 
-function adminEmailTpl(data) {
+function adminEmail(data) {
   const { buyerName, buyerEmail, tier, amount, transactionId, affiliateName, affiliateEmail, referralSource } = data;
   return {
     subject: `💰 New ${tier} Sale — $${Number(amount).toLocaleString()} — ${buyerName}`,
@@ -129,7 +140,7 @@ function adminEmailTpl(data) {
   };
 }
 
-function affiliateEmailTpl(data) {
+function affiliateEmail(data) {
   const { affiliateName, buyerName, tier, commission, platformFee, transactionId } = data;
   const firstName = (affiliateName || 'Partner').split(' ')[0];
   return {
@@ -180,27 +191,22 @@ export default async function handler(req, res) {
   console.log('[cope-webhook] ① Request received — method:', req.method);
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  console.log('[cope-webhook] ② Verifying signature');
   const rawBody = JSON.stringify(req.body);
+  console.log('[cope-webhook] ② Verifying signature');
   if (!verifySignature(rawBody, req.headers)) {
     console.warn('[cope-webhook] Invalid signature');
     return res.status(401).json({ error: 'Invalid signature' });
   }
 
-  console.log('[cope-webhook] ③ Parsing payload');
   const payload   = req.body;
   const eventType = payload.type || '';
   const eventId   = payload.id   || '';
   const data      = payload.data || payload;
-  console.log('[cope-webhook] ④ eventType:', eventType);
 
   const SALE_EVENTS = ['cart.order.completed','payment.sale.succeeded','order.completed','payment.completed'];
   if (!SALE_EVENTS.some(e => eventType.includes(e) || eventType === e)) {
-    console.log('[cope-webhook] ⑤ Skipping non-sale event:', eventType);
     return res.status(200).json({ ok: true, skipped: true, type: eventType });
   }
-
-  console.log('[cope-webhook] ⑥ Processing sale event');
 
   const order  = data.order  || data.sale  || data;
   const buyer  = order.buyer || order.customer || {};
@@ -225,14 +231,12 @@ export default async function handler(req, res) {
 
   if (!transactionId) return res.status(200).json({ ok: true, warning: 'No transaction ID' });
 
-  console.log('[cope-webhook] ⑦ Initialising Firebase');
-  try {
-    initFirebase();
-  } catch(e) {
+  console.log('[cope-webhook] ③ Firebase init');
+  try { initFirebase(); } catch(e) {
     console.error('[cope-webhook] ❌ Firebase init failed:', e.message);
-    return res.status(500).json({ error: 'Firebase init failed: ' + e.message });
+    return res.status(500).json({ error: 'Firebase init failed' });
   }
-  console.log('[cope-webhook] ⑧ Firebase ready');
+  console.log('[cope-webhook] ④ Firebase ready');
   const db     = getFirestore();
   const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -328,13 +332,83 @@ export default async function handler(req, res) {
     console.log('[cope-webhook] ✅ Added to alliance_partners + members:', buyerEmail, tierInfo.tier);
   }
 
+  // ── Provision credits and plan for EOS subscription purchases ─────────────
+  if ((tierInfo.type === 'subscription' || tierInfo.type === 'credits') && buyerEmail) {
+    try {
+      // Find user by email in Firebase Auth users collection
+      const userSnap = await db.collection('users')
+        .where('email', '==', buyerEmail)
+        .limit(1).get();
+
+      if (!userSnap.empty) {
+        const userId = userSnap.docs[0].id;
+
+        if (tierInfo.type === 'subscription' && tierInfo.plan) {
+          // ── Set plan and provision monthly credits ──────────────────────
+          const creditSnap = await db.doc(`users/${userId}/credits/balance`).get();
+          const currentData = creditSnap.exists ? creditSnap.data() : {};
+          const currentCredits = currentData.balance || 0;
+          const newCredits = currentCredits + (tierInfo.credits || 200);
+
+          await db.doc(`users/${userId}/credits/balance`).set({
+            balance:          newCredits,
+            plan:             tierInfo.plan,
+            monthlyAllowance: tierInfo.credits || 200,
+            lastReset:        Date.now(),
+            purchasedCredits: currentData.purchasedCredits || 0,
+          }, { merge: true });
+
+          // Set user plan
+          await db.doc(`users/${userId}/settings/plan`).set({
+            plan:      tierInfo.plan,
+            tier:      tierInfo.tier,
+            productId: String(productId),
+            activatedAt: FieldValue.serverTimestamp(),
+          }, { merge: true });
+
+          console.log(`[cope-webhook] ✅ Plan set: ${tierInfo.plan} + ${tierInfo.credits} credits for ${buyerEmail}`);
+        }
+
+        if (tierInfo.type === 'credits' && tierInfo.credits) {
+          // ── Add purchased credits — never expire ───────────────────────
+          const creditSnap2 = await db.doc(`users/${userId}/credits/balance`).get();
+          const currentData2 = creditSnap2.exists ? creditSnap2.data() : {};
+          const newBalance = (currentData2.balance || 0) + tierInfo.credits;
+          const newPurchased = (currentData2.purchasedCredits || 0) + tierInfo.credits;
+
+          await db.doc(`users/${userId}/credits/balance`).set({
+            balance:          newBalance,
+            purchasedCredits: newPurchased,
+            lastTopUp:        Date.now(),
+            lastTopUpAmount:  tierInfo.credits,
+          }, { merge: true });
+
+          console.log(`[cope-webhook] ✅ Credits added: ${tierInfo.credits} for ${buyerEmail} — new balance: ${newBalance}`);
+        }
+      } else {
+        // User not found — store pending credits to be claimed on first login
+        await db.collection('pending_credits').doc(buyerEmail.replace(/[.#$[\]]/g, '_')).set({
+          email:       buyerEmail,
+          plan:        tierInfo.plan || null,
+          credits:     tierInfo.credits || 0,
+          type:        tierInfo.type,
+          productId:   String(productId),
+          createdAt:   FieldValue.serverTimestamp(),
+        }, { merge: true });
+        console.log(`[cope-webhook] ⏳ Pending credits stored for ${buyerEmail} — will apply on first login`);
+      }
+    } catch(e) {
+      console.error('[cope-webhook] Credit/plan provisioning failed:', e.message);
+    }
+  }
+
   if (!process.env.RESEND_API_KEY) {
     console.log('[cope-webhook] ✅ Sale recorded — no RESEND_API_KEY, emails skipped');
     return res.status(200).json({ ok: true });
   }
 
   // ── Send admin email ──────────────────────────────────────────────────────
-  const adminTpl = adminEmailTpl({ buyerName, buyerEmail, tier: tierInfo.tier, amount, transactionId, affiliateName, affiliateEmail, referralSource });
+  const adminTpl = adminEmail({ buyerName, buyerEmail, tier: tierInfo.tier, amount, transactionId, affiliateName, affiliateEmail, referralSource });
   await resend.emails.send({
     from: FROM_EMAIL, to: ADMIN_EMAIL,
     subject: adminTpl.subject, html: adminTpl.html,
@@ -342,7 +416,7 @@ export default async function handler(req, res) {
 
   // ── Send affiliate email (if we found a referrer) ─────────────────────────
   if (affiliateEmail && affiliateComm > 0) {
-    const affTpl = affiliateEmailTpl({ affiliateName, buyerName, tier: tierInfo.tier, commission: affiliateComm, transactionId });
+    const affTpl = affiliateEmail({ affiliateName, buyerName, tier: tierInfo.tier, commission: affiliateComm, transactionId });
     await resend.emails.send({
       from: FROM_EMAIL, to: affiliateEmail,
       subject: affTpl.subject, html: affTpl.html,
