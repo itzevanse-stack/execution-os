@@ -7996,10 +7996,10 @@ button[onclick="generateOffer()"] {
           <button onclick="maToggleAngleType(this,'pain')"          class="ma-atype-btn ma-atype-on" style="padding:7px 14px;border:1px solid rgba(78,204,163,.3);border-radius:50px;background:rgba(78,204,163,.08);color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">😤 Pain</button>
           <button onclick="maToggleAngleType(this,'curiosity')"     class="ma-atype-btn ma-atype-on" style="padding:7px 14px;border:1px solid rgba(78,204,163,.3);border-radius:50px;background:rgba(78,204,163,.08);color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🤔 Curiosity</button>
           <button onclick="maToggleAngleType(this,'proof')"         class="ma-atype-btn ma-atype-on" style="padding:7px 14px;border:1px solid rgba(78,204,163,.3);border-radius:50px;background:rgba(78,204,163,.08);color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">✅ Proof</button>
-          <button onclick="maToggleAngleType(this,'transformation')" class="ma-atype-btn ma-atype-on" style="padding:7px 14px;border:1px solid rgba(78,204,163,.3);border-radius:50px;background:rgba(78,204,163,.08);color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🚀 Transformation</button>
-          <button onclick="maToggleAngleType(this,'controversy')"   class="ma-atype-btn ma-atype-on" style="padding:7px 14px;border:1px solid rgba(78,204,163,.3);border-radius:50px;background:rgba(78,204,163,.08);color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔥 Controversy</button>
-          <button onclick="maToggleAngleType(this,'question')"      class="ma-atype-btn ma-atype-on" style="padding:7px 14px;border:1px solid rgba(78,204,163,.3);border-radius:50px;background:rgba(78,204,163,.08);color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">❓ Question</button>
-          <button onclick="maToggleAngleType(this,'story')"         class="ma-atype-btn ma-atype-on" style="padding:7px 14px;border:1px solid rgba(78,204,163,.3);border-radius:50px;background:rgba(78,204,163,.08);color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📖 Story</button>
+          <button onclick="maToggleAngleType(this,'transformation')" class="ma-atype-btn" style="padding:7px 14px;border:1px solid var(--border2);border-radius:50px;background:transparent;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🚀 Transformation</button>
+          <button onclick="maToggleAngleType(this,'controversy')"   class="ma-atype-btn" style="padding:7px 14px;border:1px solid var(--border2);border-radius:50px;background:transparent;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔥 Controversy</button>
+          <button onclick="maToggleAngleType(this,'question')"      class="ma-atype-btn" style="padding:7px 14px;border:1px solid var(--border2);border-radius:50px;background:transparent;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">❓ Question</button>
+          <button onclick="maToggleAngleType(this,'story')"         class="ma-atype-btn" style="padding:7px 14px;border:1px solid var(--border2);border-radius:50px;background:transparent;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📖 Story</button>
         </div>
       </div>
 
@@ -43843,7 +43843,7 @@ window.vpeLoadMore = vpeLoadMore;
 var _maObjective  = 'leads';
 var _maPlatform   = 'both';
 var _maAngles     = 3;
-var _maAngleTypes = ['pain','curiosity','proof','transformation','controversy','question','story'];
+var _maAngleTypes = ['pain','curiosity','proof'];
 
 window.maSetObjective = function(btn, obj) {
   _maObjective = obj;
@@ -43948,7 +43948,8 @@ async function maGenerate() {
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
-    if (!text) throw new Error('No response');
+    if (!text) { console.error('[MetaAds] Empty response from Claude'); throw new Error('No response'); }
+    console.log('[MetaAds] Got response, length:', text.length, 'preview:', text.slice(0,100));
 
     function extract(label) {
       var re = new RegExp('##\\s*' + label + '[^\\n]*\\n([\\s\\S]*?)(?=\\n##|$)', 'i');
@@ -43962,7 +43963,15 @@ async function maGenerate() {
     var anglesHtml = '';
     var selectedAngles2 = (_maAngleTypes.length ? _maAngleTypes : ['pain','curiosity','proof','transformation','controversy']).slice(0, _maAngles||3);
     selectedAngles2.forEach(function(type, i) {
-      var angleContent = extract('ANGLE ' + (i+1) + '.*' + type.toUpperCase() + '|ANGLE ' + (i+1));
+      // Simple extraction — find ## ANGLE N and grab until next ##
+      var anglePattern = new RegExp('##\\s*ANGLE\\s*' + (i+1) + '[^\\n]*\\n([\\s\\S]*?)(?=\\n##|$)', 'i');
+      var angleMatch = text.match(anglePattern);
+      var angleContent = angleMatch ? angleMatch[1].trim() : '';
+      if (!angleContent) {
+        // Fallback — split text by angle number
+        var parts = text.split(/##\s*ANGLE\s*\d+/i);
+        angleContent = parts[i+1] ? parts[i+1].split('##')[0].trim() : '';
+      }
       if (!angleContent) return;
       var colors = { pain:'#f05a40', curiosity:'#F5C842', proof:'#4ecca3', transformation:'#a089ff', controversy:'#ff6b6b', question:'#1877F2', story:'#4ecca3' };
       var color = colors[type] || 'var(--teal)';
@@ -43983,7 +43992,12 @@ async function maGenerate() {
     // Render
     var hooksEl = document.getElementById('ma-hooks');
     if (hooksEl) {
-      hooksEl.innerHTML = anglesHtml || '<div style="color:var(--dim);font-size:12px">No angles generated. Try again.</div>';
+      if (anglesHtml) {
+        hooksEl.innerHTML = anglesHtml;
+      } else {
+        // Parsing failed — show raw output so user still gets value
+        hooksEl.innerHTML = '<div style="font-size:13px;color:var(--white);line-height:1.9;white-space:pre-wrap">' + text + '</div>';
+      }
     }
     setEl('ma-primary',   '');
     setEl('ma-headlines', '');
@@ -44111,7 +44125,8 @@ async function maGenerateVideoScript() {
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
-    if (!text) throw new Error('No response');
+    if (!text) { console.error('[MetaAds] Empty response from Claude'); throw new Error('No response'); }
+    console.log('[MetaAds] Got response, length:', text.length, 'preview:', text.slice(0,100));
 
     function extract(label) {
       var re = new RegExp('##\\s*' + label + '[^\\n]*\\n([\\s\\S]*?)(?=\\n##|$)', 'i');
