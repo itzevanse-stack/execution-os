@@ -42828,6 +42828,8 @@ function vpeSetPlatform(el, plat) {
   document.querySelectorAll('.vpe-plat-btn').forEach(function(b){ b.classList.remove('vpe-plat-active'); });
   if (el) el.classList.add('vpe-plat-active');
 }
+window.vpeGetIntel = vpeGetIntel;
+window._vpeState   = _vpeState;
 
 async function vpeFindQuestions() {
   // ── Check Foundation is complete before searching ─────────────────────────
@@ -43840,13 +43842,13 @@ window.vpeLoadMore = vpeLoadMore;
 // META ADS GENERATOR
 // ══════════════════════════════════════════════════════════════════════════════
 
-var _maObjective  = 'leads';
-var _maPlatform   = 'both';
-var _maAngles     = 3;
-var _maAngleTypes = ['pain','curiosity','proof'];
+window._maObjective  = 'leads';
+window._maPlatform   = 'both';
+window._maAngles     = 3;
+window._maAngleTypes = ['pain','curiosity','proof'];
 
 window.maSetObjective = function(btn, obj) {
-  _maObjective = obj;
+  window._maObjective = obj;
   document.querySelectorAll('.ma-obj-btn').forEach(function(b) {
     b.style.background = 'transparent'; b.style.color = 'var(--dim)'; b.style.borderColor = 'var(--border2)';
   });
@@ -43854,7 +43856,7 @@ window.maSetObjective = function(btn, obj) {
 };
 
 window.maSetPlatform = function(btn, plat) {
-  _maPlatform = plat;
+  window._maPlatform = plat;
   document.querySelectorAll('.ma-plat-btn').forEach(function(b) {
     b.style.background = 'transparent'; b.style.color = 'var(--dim)'; b.style.borderColor = 'var(--border2)';
   });
@@ -43862,7 +43864,7 @@ window.maSetPlatform = function(btn, plat) {
 };
 
 window.maSetAngles = function(btn, n) {
-  _maAngles = n;
+  window._maAngles = n;
   document.querySelectorAll('.ma-angle-btn').forEach(function(b) {
     b.style.background = 'transparent'; b.style.color = 'var(--dim)'; b.style.borderColor = 'var(--border2)';
   });
@@ -43874,11 +43876,11 @@ window.maToggleAngleType = function(btn, type) {
   if (on) {
     btn.classList.remove('ma-atype-on');
     btn.style.background = 'transparent'; btn.style.color = 'var(--dim)'; btn.style.borderColor = 'var(--border2)';
-    _maAngleTypes = _maAngleTypes.filter(function(t){ return t !== type; });
+    window._maAngleTypes = window._maAngleTypes.filter(function(t){ return t !== type; });
   } else {
     btn.classList.add('ma-atype-on');
     btn.style.background = 'rgba(78,204,163,.08)'; btn.style.color = 'var(--teal)'; btn.style.borderColor = 'rgba(78,204,163,.3)';
-    if (!_maAngleTypes.includes(type)) _maAngleTypes.push(type);
+    if (!window._maAngleTypes.includes(type)) window._maAngleTypes.push(type);
   }
 };
 
@@ -43894,14 +43896,15 @@ async function maGenerate() {
   if (status) { status.style.display = 'block'; }
   if (output) { output.style.display = 'none'; }
 
-  var intel     = vpeGetIntel ? vpeGetIntel() : '';
+  var intel     = (typeof vpeGetIntel === 'function') ? vpeGetIntel() : ((typeof window.vpeGetIntel === 'function') ? window.vpeGetIntel() : '');
   var painInput = (document.getElementById('ma-pain-input')||{}).value || '';
-  var vpeQs     = (_vpeState && _vpeState.questions || []).slice(0,5).map(function(q){ return q.question; }).join('\n');
+  var vpeState  = window._vpeState || _vpeState || { questions: [] };
+  var vpeQs     = (vpeState.questions || []).slice(0,5).map(function(q){ return q.question || ''; }).filter(Boolean).join('\n');
 
   var objectiveLabels = { leads:'Lead Generation — collect name and email', traffic:'Traffic — send to landing page or funnel', sales:'Sales / Conversions — direct purchase', awareness:'Brand Awareness — reach and recognition' };
-  var platformLabel   = { both:'Facebook and Instagram', facebook:'Facebook only', instagram:'Instagram only' }[_maPlatform] || 'Facebook and Instagram';
-  var angleTypes      = _maAngleTypes.length ? _maAngleTypes : ['pain','curiosity','proof','transformation','controversy'];
-  var numAngles       = _maAngles || 3;
+  var platformLabel   = { both:'Facebook and Instagram', facebook:'Facebook only', instagram:'Instagram only' }[window._maPlatform || 'both'] || 'Facebook and Instagram';
+  var angleTypes      = (window._maAngleTypes && window._maAngleTypes.length) ? window._maAngleTypes : ['pain','curiosity','proof'];
+  var numAngles       = window._maAngles || 3;
 
   var angleDescriptions = {
     pain:           'PAIN ANGLE — opens with the exact frustration the audience feels. Makes them feel deeply understood before offering the solution.',
@@ -43961,7 +43964,7 @@ async function maGenerate() {
 
     // Extract all angles
     var anglesHtml = '';
-    var selectedAngles2 = (_maAngleTypes.length ? _maAngleTypes : ['pain','curiosity','proof','transformation','controversy']).slice(0, _maAngles||3);
+    var selectedAngles2 = ((window._maAngleTypes && window._maAngleTypes.length) ? window._maAngleTypes : ['pain','curiosity','proof']).slice(0, window._maAngles||3);
     selectedAngles2.forEach(function(type, i) {
       // Simple extraction — find ## ANGLE N and grab until next ##
       var anglePattern = new RegExp('##\\s*ANGLE\\s*' + (i+1) + '[^\\n]*\\n([\\s\\S]*?)(?=\\n##|$)', 'i');
@@ -44008,7 +44011,10 @@ async function maGenerate() {
     var primaryCard = document.getElementById('ma-primary') && document.getElementById('ma-primary').closest('.ma-section');
 
     if (output) output.style.display = 'block';
-  } catch(e) { emToast('⚠️ Ad generation failed. Try again.', true); }
+  } catch(e) {
+    console.error('[MetaAds] Generation error:', e.message, e.stack);
+    emToast('⚠️ Ad generation failed: ' + e.message, true);
+  }
 
   if (btn)    { btn.disabled = false; btn.textContent = '🎯 Generate Complete Meta Ad Package'; }
   if (status) { status.style.display = 'none'; }
