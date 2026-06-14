@@ -391,12 +391,30 @@ function submitOptin() {
     document.getElementById('optin-popup').style.display  = 'none';
     document.getElementById('optin-gate').style.display   = 'none';
     document.getElementById('main-content').style.display = 'block';
+    // Save flag so returning visitors skip the gate
+    try { localStorage.setItem('eos_partnership_optin', '1'); } catch(e){}
     setTimeout(function() {
       document.getElementById('main-content').style.opacity = '1';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }, 50);
   }, 800);
 }
+
+// ── Check on page load — skip gate for returning visitors ──────────────────
+(function() {
+  try {
+    if (localStorage.getItem('eos_partnership_optin') === '1') {
+      document.addEventListener('DOMContentLoaded', function() {
+        var gate    = document.getElementById('optin-gate');
+        var popup   = document.getElementById('optin-popup');
+        var content = document.getElementById('main-content');
+        if (gate)    gate.style.display    = 'none';
+        if (popup)   popup.style.display   = 'none';
+        if (content) { content.style.display = 'block'; content.style.opacity = '1'; }
+      });
+    }
+  } catch(e) {}
+})();
 </script>
 
 <!-- HERO + VIDEO (hidden until opt-in submitted) -->
