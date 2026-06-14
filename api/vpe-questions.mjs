@@ -153,7 +153,7 @@ export default async function handler(req, res) {
         )
       ),
       // ── SerpApi Google Trends — related + rising queries ─────────────────
-      SERPAPI_KEY ? fetchGoogleTrends(searchTerm, countryCode, SERPAPI_KEY) : Promise.resolve(null),
+      SERPAPI_KEY ? fetchGoogleTrends(searchTerm, countryCode, SERPAPI_KEY, CLAUDE_KEY, niche, intel) : Promise.resolve(null),
     ]);
 
     // ── Extract results with URLs ─────────────────────────────────────────────
@@ -178,17 +178,14 @@ export default async function handler(req, res) {
       return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche, country);
     }
 
-    // ── Format trends data for Claude ────────────────────────────────────────
+    // ── Format trends data for Claude ranking ────────────────────────────────
     let trendsContext = '';
-    if (trendsData) {
-      const rising  = trendsData.rising  || [];
-      const related = trendsData.related || [];
-      if (rising.length || related.length) {
-        trendsContext = `\n\nGOOGLE TRENDS DATA for "${searchTerm}"${country ? ` in ${country}` : ''} (REAL search demand):\n`;
-        if (rising.length)  trendsContext += `RISING SEARCHES (growing fast right now): ${rising.slice(0,8).map(q => `"${q.query}"${q.value ? ` (+${q.value}%)` : ''}`).join(', ')}\n`;
-        if (related.length) trendsContext += `TOP RELATED SEARCHES: ${related.slice(0,8).map(q => `"${q.query}"`).join(', ')}\n`;
-        trendsContext += `\nIMPORTANT: Questions that map to RISING SEARCHES should be ranked higher — they reflect what people are actively searching for RIGHT NOW. Mention "trending search" in the why field for these.\n`;
-      }
+    if (trendsData && trendsData.questions && trendsData.questions.length) {
+      trendsContext = `\n\nGOOGLE TRENDS DATA — Real rising searches${trendsData.country ? ' in ' + trendsData.country : ''} converted to questions:\n`;
+      trendsData.questions.forEach((q, i) => {
+        trendsContext += `${i+1}. "${q.question}"${q.growth ? ' (trending ' + q.growth + ')' : ''}\n`;
+      });
+      trendsContext += `\nThese are based on REAL rising Google searches. Questions that match these trends should be ranked higher.\n`;
     }
 
     // ── Claude extracts and ranks questions by post-worthiness ────────────────
@@ -278,9 +275,9 @@ Return ONLY valid JSON. No markdown. No explanation:
       questions,
       source: 'live',
       total:  questions.length,
-      trends: trendsData ? {
-        rising:  (trendsData.rising  || []).slice(0, 5),
-        related: (trendsData.related || []).slice(0, 5),
+      trends: trendsData && trendsData.questions ? {
+        questions: trendsData.questions,
+        country:   trendsData.country || '',
       } : null,
     });
 
@@ -364,11 +361,17 @@ Return ONLY valid JSON. No markdown:
 }
 
 // ── Google Trends via SerpApi ─────────────────────────────────────────────────
-async function fetchGoogleTrends(keyword, countryCode, serpApiKey) {
+async function fetchGoogleTrends(keyword, countryCode, serpApiKey, claudeKey, niche, intel) {
   try {
     const geo = countryCode ? countryCode.toUpperCase() : '';
+    const country = countryCode ? Object.entries({
+      'ng':'Nigeria','za':'South Africa','ke':'Kenya','gh':'Ghana','eg':'Egypt',
+      'us':'United States','ca':'Canada','gb':'United Kingdom','au':'Australia',
+      'in':'India','ph':'Philippines','sg':'Singapore','my':'Malaysia','ae':'UAE',
+      'br':'Brazil','za':'South Africa','ng':'Nigeria',
+    }).find(([k]) => k === countryCode.toLowerCase())?.[1] || '' : '';
 
-    // Build URL manually to ensure correct parameter encoding
+    // Build URL manually
     const baseUrl = 'https://serpapi.com/search.json';
     const params = {
       engine:    'google_trends',
@@ -384,65 +387,93 @@ async function fetchGoogleTrends(keyword, countryCode, serpApiKey) {
       .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
       .join('&');
 
-    console.log(`[SerpApi] Fetching trends: q="${keyword}" geo="${geo}"`);
+    console.log(`[SerpApi] Fetching: q="${keyword}" geo="${geo}"`);
 
     const resp = await fetch(`${baseUrl}?${queryString}`);
     if (!resp.ok) {
-      const errText = await resp.text();
-      console.warn('[SerpApi] Trends fetch failed:', resp.status, errText.slice(0, 200));
+      console.warn('[SerpApi] Failed:', resp.status);
       return null;
     }
 
     const data = await resp.json();
-
-    // Log what came back for debugging
-    console.log('[SerpApi] Raw response keys:', Object.keys(data).join(', '));
-
-    if (data.error) {
-      console.warn('[SerpApi] API error:', data.error);
-      return null;
-    }
+    if (data.error) { console.warn('[SerpApi] Error:', data.error); return null; }
 
     const relatedQueries = data.related_queries || {};
     const allRising = (relatedQueries.rising || []).map(q => ({
       query: q.query,
       value: q.extracted_value || q.value || '',
-      link:  q.link || '',
-    }));
-    const allTop = (relatedQueries.top || []).map(q => ({
-      query: q.query,
-      value: '',
-      link:  q.link || '',
     }));
 
-    // Filter to keep only queries relevant to the keyword
-    const keywordWords = keyword.toLowerCase().split(/\s+/).filter(w => w.length > 2);
-    const isRelevant = (q) => {
-      const ql = q.query.toLowerCase();
-      return keywordWords.some(w => ql.includes(w));
-    };
-
-    const rising  = allRising.filter(isRelevant);
-    const related = allTop.filter(isRelevant);
-
-    // If filtering removes everything, return unfiltered with a warning
-    if (rising.length === 0 && related.length === 0) {
-      console.warn('[SerpApi] Relevance filter removed all results for', keyword, '— using unfiltered');
-      console.warn('[SerpApi] Raw rising queries:', allRising.slice(0,3).map(q => q.query).join(', '));
-      return {
-        rising:   allRising.slice(0, 6),
-        related:  allTop.slice(0, 6),
-        keyword,
-        geo,
-        filtered: false,
-      };
+    if (!allRising.length) {
+      console.warn('[SerpApi] No rising queries returned');
+      return null;
     }
 
-    console.log(`[SerpApi] ✅ ${rising.length} rising, ${related.length} top for "${keyword}" in ${geo||'global'}`);
-    return { rising: rising.slice(0, 6), related: related.slice(0, 6), keyword, geo, filtered: true };
+    console.log(`[SerpApi] Got ${allRising.length} rising terms — converting to questions via Claude`);
+
+    // ── Convert trending search terms into sharp questions via Claude ─────────
+    const conversionPrompt = `You are converting Google Trends rising search terms into sharp, specific social media post questions.
+
+CONTEXT:
+- Niche: ${niche}
+- ${country ? 'Target country: ' + country : 'Global audience'}
+- ${intel ? 'Offer/audience intel:\n' + intel.slice(0, 500) : ''}
+
+RISING SEARCH TERMS from Google Trends${country ? ' in ' + country : ''}:
+${allRising.slice(0, 8).map((q, i) => `${i+1}. "${q.query}"${q.value ? ' (+' + q.value + '%)' : ''}`).join('\n')}
+
+For each search term, create a sharp question that:
+1. Is specific enough that an expert can take a clear position
+2. Has a wrong popular belief behind it that can be corrected
+3. Would resonate with someone searching that exact term
+4. Leads naturally to the expert's offer as the solution
+
+Return ONLY valid JSON array. No markdown:
+[
+  {
+    "term": "original search term",
+    "question": "the sharp question",
+    "why": "one sentence: what position the expert can take",
+    "wrong_belief": "what most people wrongly believe about this",
+    "growth": "+340%"
+  }
+]`;
+
+    const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': claudeKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1200,
+        messages: [{ role: 'user', content: conversionPrompt }],
+      }),
+    });
+
+    const claudeData = await claudeResp.json();
+    const raw = (claudeData.content || []).map(b => b.text || '').join('').trim();
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const match = clean.match(/\[[\s\S]*\]/);
+
+    if (!match) {
+      console.warn('[SerpApi] Claude conversion failed');
+      return null;
+    }
+
+    const converted = JSON.parse(match[0]);
+    console.log(`[SerpApi] ✅ Converted ${converted.length} trending terms to questions`);
+
+    return {
+      questions: converted,
+      country,
+      geo,
+    };
 
   } catch(e) {
-    console.warn('[SerpApi] Trends error:', e.message);
+    console.warn('[SerpApi] Error:', e.message);
     return null;
   }
 }
