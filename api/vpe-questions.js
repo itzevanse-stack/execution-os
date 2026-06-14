@@ -15,11 +15,12 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
-  const { niche, intel, mode, keyword, isKeyword, exclude = [], page = 1 } = req.body || {};
+  const { niche, intel, mode, keyword, isKeyword, exclude = [], page = 1, country = '' } = req.body || {};
   if (!niche) return res.status(400).json({ error: 'niche is required' });
 
-  const TAVILY_KEY = process.env.TAVILY_API_KEY;
-  const CLAUDE_KEY = process.env.ANTHROPIC_API_KEY;
+  const TAVILY_KEY  = process.env.TAVILY_API_KEY;
+  const CLAUDE_KEY  = process.env.ANTHROPIC_API_KEY;
+  const SERPAPI_KEY = process.env.SERPAPI_KEY;
 
   if (!TAVILY_KEY) return res.status(500).json({ error: 'TAVILY_API_KEY not configured' });
   if (!CLAUDE_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
@@ -28,51 +29,132 @@ export default async function handler(req, res) {
   const previousYear = currentYear - 1;
   const searchTerm   = keyword || niche;
 
+  // ── Country-specific search modifiers ────────────────────────────────────
+  const countryModifiers = {
+    'Nigeria':              { terms: 'Nigeria Nigerian naira NGN', reddit: 'r/Nigeria r/nairaland', forums: 'nairaland.com' },
+    'South Africa':         { terms: 'South Africa South African ZAR rand', reddit: 'r/southafrica r/ZAspending', forums: 'mybroadband.co.za' },
+    'Kenya':                { terms: 'Kenya Kenyan KES shilling Mpesa', reddit: 'r/Kenya', forums: '' },
+    'Ghana':                { terms: 'Ghana Ghanaian GHS cedi', reddit: 'r/ghana', forums: '' },
+    'Egypt':                { terms: 'Egypt Egyptian EGP pound', reddit: 'r/egypt', forums: '' },
+    'Ethiopia':             { terms: 'Ethiopia Ethiopian ETB birr', reddit: 'r/Ethiopia', forums: '' },
+    'Tanzania':             { terms: 'Tanzania Tanzanian TZS', reddit: 'r/Tanzania', forums: '' },
+    'Uganda':               { terms: 'Uganda Ugandan UGX', reddit: 'r/Uganda', forums: '' },
+    'Rwanda':               { terms: 'Rwanda Rwandan RWF', reddit: 'r/Rwanda', forums: '' },
+    'Cameroon':             { terms: 'Cameroon Cameroonian FCFA', reddit: 'r/cameroon', forums: '' },
+    'United States':        { terms: 'USA American USD dollars', reddit: 'r/personalfinance r/entrepreneur r/smallbusiness', forums: '' },
+    'Canada':               { terms: 'Canada Canadian CAD', reddit: 'r/PersonalFinanceCanada r/canada r/canadiansmallbusiness', forums: '' },
+    'Mexico':               { terms: 'Mexico Mexican MXN pesos', reddit: 'r/mexico', forums: '' },
+    'United Kingdom':       { terms: 'UK British GBP pounds sterling', reddit: 'r/UKPersonalFinance r/unitedkingdom r/AskUK', forums: '' },
+    'Germany':              { terms: 'Germany German EUR euro', reddit: 'r/germany r/finanzen', forums: '' },
+    'France':               { terms: 'France French EUR euro', reddit: 'r/france r/vosfinances', forums: '' },
+    'Netherlands':          { terms: 'Netherlands Dutch EUR euro', reddit: 'r/Netherlands r/thenetherlands', forums: '' },
+    'Spain':                { terms: 'Spain Spanish EUR euro', reddit: 'r/spain', forums: '' },
+    'Italy':                { terms: 'Italy Italian EUR euro', reddit: 'r/italy', forums: '' },
+    'Sweden':               { terms: 'Sweden Swedish SEK krona', reddit: 'r/sweden r/privatekonomi', forums: '' },
+    'Norway':               { terms: 'Norway Norwegian NOK krone', reddit: 'r/norway r/norge', forums: '' },
+    'Denmark':              { terms: 'Denmark Danish DKK krone', reddit: 'r/Denmark', forums: '' },
+    'Poland':               { terms: 'Poland Polish PLN zloty', reddit: 'r/poland r/Polska', forums: '' },
+    'Portugal':             { terms: 'Portugal Portuguese EUR euro', reddit: 'r/portugal', forums: '' },
+    'Ireland':              { terms: 'Ireland Irish EUR euro', reddit: 'r/ireland r/irishpersonalfinance', forums: '' },
+    'India':                { terms: 'India Indian INR rupees', reddit: 'r/india r/IndiaInvestments r/indiabusiness', forums: '' },
+    'Australia':            { terms: 'Australia Australian AUD dollars', reddit: 'r/australia r/AusFinance r/AusEntrepreneur', forums: '' },
+    'Philippines':          { terms: 'Philippines Filipino PHP peso', reddit: 'r/Philippines r/phclassifieds', forums: '' },
+    'Singapore':            { terms: 'Singapore Singaporean SGD', reddit: 'r/singapore r/singaporefi', forums: '' },
+    'Malaysia':             { terms: 'Malaysia Malaysian MYR ringgit', reddit: 'r/malaysia r/MalaysianPF', forums: '' },
+    'Indonesia':            { terms: 'Indonesia Indonesian IDR rupiah', reddit: 'r/indonesia', forums: '' },
+    'Pakistan':             { terms: 'Pakistan Pakistani PKR rupee', reddit: 'r/pakistan', forums: '' },
+    'Bangladesh':           { terms: 'Bangladesh Bangladeshi BDT taka', reddit: 'r/bangladesh', forums: '' },
+    'Sri Lanka':            { terms: 'Sri Lanka LKR rupee', reddit: 'r/srilanka', forums: '' },
+    'New Zealand':          { terms: 'New Zealand NZD dollars', reddit: 'r/newzealand r/PersonalFinanceNZ', forums: '' },
+    'Japan':                { terms: 'Japan Japanese JPY yen', reddit: 'r/japan r/japanfinance', forums: '' },
+    'South Korea':          { terms: 'South Korea Korean KRW won', reddit: 'r/korea', forums: '' },
+    'UAE':                  { terms: 'UAE Dubai Abu Dhabi AED dirham', reddit: 'r/dubai r/UAE', forums: '' },
+    'Saudi Arabia':         { terms: 'Saudi Arabia SAR riyal', reddit: 'r/saudiarabia', forums: '' },
+    'Qatar':                { terms: 'Qatar QAR riyal', reddit: 'r/qatar', forums: '' },
+    'Kuwait':               { terms: 'Kuwait KWD dinar', reddit: 'r/kuwait', forums: '' },
+    'Jordan':               { terms: 'Jordan JOD dinar', reddit: 'r/jordan', forums: '' },
+    'Brazil':               { terms: 'Brazil Brazilian BRL real', reddit: 'r/brasil r/investimentos', forums: '' },
+    'Colombia':             { terms: 'Colombia Colombian COP peso', reddit: 'r/colombia', forums: '' },
+    'Argentina':            { terms: 'Argentina Argentine ARS peso', reddit: 'r/argentina', forums: '' },
+    'Chile':                { terms: 'Chile Chilean CLP peso', reddit: 'r/chile', forums: '' },
+    'Peru':                 { terms: 'Peru Peruvian PEN sol', reddit: 'r/peru', forums: '' },
+    'Jamaica':              { terms: 'Jamaica Jamaican JMD dollar', reddit: 'r/jamaica', forums: '' },
+    'Trinidad and Tobago':  { terms: 'Trinidad Tobago TTD dollar', reddit: 'r/trinidadandtobago', forums: '' },
+    'Barbados':             { terms: 'Barbados Barbadian BBD dollar', reddit: 'r/barbados', forums: '' },
+  };
+
+  const countryMod   = country ? (countryModifiers[country] || { terms: country, reddit: '', forums: '' }) : null;
+  const countryTerms = countryMod ? countryMod.terms : '';
+  const countryLabel = country || 'Global';
+
+  // ── ISO country codes for Tavily native country parameter ────────────────
+  const COUNTRY_CODES = {
+    'Nigeria':'ng','South Africa':'za','Kenya':'ke','Ghana':'gh','Egypt':'eg',
+    'Ethiopia':'et','Tanzania':'tz','Uganda':'ug','Rwanda':'rw','Cameroon':'cm',
+    'Senegal':'sn','Zimbabwe':'zw','United States':'us','Canada':'ca','Mexico':'mx',
+    'United Kingdom':'gb','Germany':'de','France':'fr','Netherlands':'nl','Spain':'es',
+    'Italy':'it','Sweden':'se','Norway':'no','Denmark':'dk','Poland':'pl',
+    'Portugal':'pt','Ireland':'ie','India':'in','Australia':'au','Philippines':'ph',
+    'Singapore':'sg','Malaysia':'my','Indonesia':'id','Pakistan':'pk','Bangladesh':'bd',
+    'Sri Lanka':'lk','New Zealand':'nz','Japan':'jp','South Korea':'kr','UAE':'ae',
+    'Saudi Arabia':'sa','Qatar':'qa','Kuwait':'kw','Jordan':'jo','Brazil':'br',
+    'Colombia':'co','Argentina':'ar','Chile':'cl','Peru':'pe','Jamaica':'jm',
+    'Trinidad and Tobago':'tt','Barbados':'bb',
+  };
+  const countryCode = country ? (COUNTRY_CODES[country] || null) : null;
+
   try {
     let searches;
 
     if (isKeyword) {
-      // ── KEYWORD MODE — surgical search for questions about a specific term ──
+      // ── KEYWORD MODE ──────────────────────────────────────────────────────
       searches = [
-        { query: `site:reddit.com "${searchTerm}" review OR problem OR help OR how OR question OR issue`, tag: 'reddit' },
-        { query: `site:quora.com "${searchTerm}"`, tag: 'quora' },
-        { query: `"${searchTerm}" how to OR "is it worth" OR "does it work" OR "vs" OR "alternatives" ${currentYear}`, tag: 'google' },
-        { query: `"${searchTerm}" beginners guide tutorial getting started problems ${currentYear}`, tag: 'google' },
-        { query: `site:youtube.com "${searchTerm}" review tutorial how to ${currentYear}`, tag: 'youtube' },
-        { query: `"${searchTerm}" site:twitter.com OR site:x.com (${previousYear} OR ${currentYear})`, tag: 'x' },
+        { query: `site:reddit.com "${searchTerm}" ${countryTerms} review OR problem OR help OR how OR question`, tag: 'reddit' },
+        { query: `site:quora.com "${searchTerm}" ${countryTerms}`, tag: 'quora' },
+        { query: `"${searchTerm}" ${countryTerms} how to OR "is it worth" OR "does it work" OR "vs" ${currentYear}`, tag: 'google' },
+        { query: `"${searchTerm}" ${countryTerms} beginners guide problems getting started ${currentYear}`, tag: 'google' },
+        { query: `site:youtube.com "${searchTerm}" ${countryTerms} review tutorial ${currentYear}`, tag: 'youtube' },
+        { query: `"${searchTerm}" ${countryTerms} site:x.com OR site:twitter.com ${currentYear}`, tag: 'x' },
       ];
     } else {
-      // ── NICHE MODE — broad audience question discovery ────────────────────
+      // ── NICHE MODE ─────────────────────────────────────────────────────────
       searches = [
-        { query: `site:reddit.com "${searchTerm}" question help struggling (${previousYear} OR ${currentYear})`, tag: 'reddit' },
-        { query: `site:quora.com "${searchTerm}" how why what (${previousYear} OR ${currentYear})`, tag: 'quora' },
-        { query: `"${searchTerm}" how to start results proof stuck ${currentYear}`, tag: 'google' },
-        { query: `"${searchTerm}" is it worth it saturated too late compete ${currentYear}`, tag: 'google' },
-        { query: `site:youtube.com "${searchTerm}" ${currentYear} how to beginners mistakes`, tag: 'youtube' },
-        { query: `"${searchTerm}" site:x.com OR site:twitter.com question struggle ${currentYear}`, tag: 'x' },
+        { query: `site:reddit.com "${searchTerm}" ${countryTerms} question help struggling ${currentYear}`, tag: 'reddit' },
+        { query: `site:quora.com "${searchTerm}" ${countryTerms} how why what ${currentYear}`, tag: 'quora' },
+        { query: `"${searchTerm}" ${countryTerms} how to start results proof stuck ${currentYear}`, tag: 'google' },
+        { query: `"${searchTerm}" ${countryTerms} is it worth it saturated too late ${currentYear}`, tag: 'google' },
+        { query: `site:youtube.com "${searchTerm}" ${countryTerms} ${currentYear} how to mistakes`, tag: 'youtube' },
+        { query: `"${searchTerm}" ${countryTerms} site:x.com question struggle ${currentYear}`, tag: 'x' },
+        ...(countryMod && countryMod.forums ? [{ query: `site:${countryMod.forums} "${searchTerm}"`, tag: 'forum' }] : []),
       ];
     }
 
-    // ── Run all searches in parallel ──────────────────────────────────────────
-    const tavilyResults = await Promise.allSettled(
-      searches.map(s =>
-        fetch('https://api.tavily.com/search', {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            api_key:             TAVILY_KEY,
-            query:               s.query,
-            search_depth:        'advanced',
-            max_results:         5,
-            include_answer:      false,
-            include_raw_content: false,
-          }),
-        })
-        .then(r => r.json())
-        .then(d => ({ ...d, _tag: s.tag }))
-        .catch(() => ({ _tag: s.tag, results: [] }))
-      )
-    );
+    // ── Run Tavily searches + SerpApi Trends simultaneously ──────────────────
+    const [tavilyResults, trendsData] = await Promise.all([
+      Promise.allSettled(
+        searches.map(s =>
+          fetch('https://api.tavily.com/search', {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              api_key:             TAVILY_KEY,
+              query:               s.query,
+              search_depth:        'advanced',
+              topic:               'general',
+              max_results:         5,
+              include_answer:      false,
+              include_raw_content: false,
+              ...(countryCode ? { country: countryCode } : {}),
+            }),
+          })
+          .then(r => r.json())
+          .then(d => ({ ...d, _tag: s.tag }))
+          .catch(() => ({ _tag: s.tag, results: [] }))
+        )
+      ),
+      // ── SerpApi Google Trends — related + rising queries ─────────────────
+      SERPAPI_KEY ? fetchGoogleTrends(searchTerm, countryCode, SERPAPI_KEY) : Promise.resolve(null),
+    ]);
 
     // ── Extract results with URLs ─────────────────────────────────────────────
     const rawResults = [];
@@ -93,7 +175,20 @@ export default async function handler(req, res) {
     }
 
     if (rawResults.length === 0) {
-      return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche);
+      return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche, country);
+    }
+
+    // ── Format trends data for Claude ────────────────────────────────────────
+    let trendsContext = '';
+    if (trendsData) {
+      const rising  = trendsData.rising  || [];
+      const related = trendsData.related || [];
+      if (rising.length || related.length) {
+        trendsContext = `\n\nGOOGLE TRENDS DATA for "${searchTerm}"${country ? ` in ${country}` : ''} (REAL search demand):\n`;
+        if (rising.length)  trendsContext += `RISING SEARCHES (growing fast right now): ${rising.slice(0,8).map(q => `"${q.query}"${q.value ? ` (+${q.value}%)` : ''}`).join(', ')}\n`;
+        if (related.length) trendsContext += `TOP RELATED SEARCHES: ${related.slice(0,8).map(q => `"${q.query}"`).join(', ')}\n`;
+        trendsContext += `\nIMPORTANT: Questions that map to RISING SEARCHES should be ranked higher — they reflect what people are actively searching for RIGHT NOW. Mention "trending search" in the why field for these.\n`;
+      }
     }
 
     // ── Claude extracts and ranks questions by post-worthiness ────────────────
@@ -104,8 +199,16 @@ export default async function handler(req, res) {
 
     const rankPrompt = `You are a content strategist who helps experts in the "${niche}" space create high-performing social media posts.
 
-Below are real search results. Your job is to extract the 8 BEST questions for writing sharp, authoritative posts.
+${country ? `TARGET COUNTRY: ${country}
+The questions must be specifically relevant to people in ${country}. Consider their:
+- Local economic context, currency, and income levels
+- Platforms popular in ${country}
+- Cultural attitudes toward digital business, money, and online income
+- Language patterns and terminology used locally
+- Local regulations, payment methods, and market conditions
 
+` : ''}Below are real search results. Your job is to extract the 8 BEST questions for writing sharp, authoritative posts targeted at ${countryLabel} audiences.
+${trendsContext}
 SEARCH RESULTS:
 ${rawText}
 
@@ -168,10 +271,18 @@ Return ONLY valid JSON. No markdown. No explanation:
     const clean      = rawOutput.replace(/```json|```/g, '').trim();
     const match      = clean.match(/\[[\s\S]*\]/);
 
-    if (!match) return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche);
+    if (!match) return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche, country);
 
     const questions = JSON.parse(match[0]);
-    return res.status(200).json({ questions, source: 'live', total: questions.length });
+    return res.status(200).json({
+      questions,
+      source: 'live',
+      total:  questions.length,
+      trends: trendsData ? {
+        rising:  (trendsData.rising  || []).slice(0, 5),
+        related: (trendsData.related || []).slice(0, 5),
+      } : null,
+    });
 
   } catch (err) {
     console.error('[vpe-questions] Error:', err.message);
@@ -180,12 +291,14 @@ Return ONLY valid JSON. No markdown. No explanation:
 }
 
 // ── Fallback: Claude generates from training knowledge ────────────────────────
-async function fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche) {
+async function fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche, country = '') {
   const currentYear = new Date().getFullYear();
+  const countryCtx  = country ? `\nTARGET COUNTRY: ${country}\nGenerate questions specifically relevant to people in ${country}. Consider their local context, platforms, currency, income levels, and cultural attitudes toward digital business.` : '';
   try {
     const prompt = `Generate the 8 best questions someone could write a sharp, authoritative social media post about in the "${niche}" space.
 
 ${isKeyword ? `The questions must be specifically about: "${searchTerm}"` : `The questions must be relevant to: "${searchTerm}"`}
+${countryCtx}
 
 ${intel ? `Offer and audience context:\n${intel}\n\n` : ''}
 
@@ -247,5 +360,41 @@ Return ONLY valid JSON. No markdown:
     return res.status(200).json({ questions, source: 'generated', total: questions.length });
   } catch (e) {
     return res.status(500).json({ error: 'Could not generate questions', questions: [] });
+  }
+}
+
+// ── Google Trends via SerpApi ─────────────────────────────────────────────────
+async function fetchGoogleTrends(keyword, countryCode, serpApiKey) {
+  try {
+    const geo = countryCode ? countryCode.toUpperCase() : '';
+
+    // Fetch related queries (includes rising + top)
+    const params = new URLSearchParams({
+      engine:    'google_trends',
+      q:         keyword,
+      data_type: 'RELATED_QUERIES',
+      date:      'today 3-m',
+      api_key:   serpApiKey,
+      ...(geo ? { geo } : {}),
+    });
+
+    const resp = await fetch(`https://serpapi.com/search?${params.toString()}`);
+    if (!resp.ok) {
+      console.warn('[SerpApi] Trends fetch failed:', resp.status);
+      return null;
+    }
+
+    const data = await resp.json();
+    const relatedQueries = data.related_queries || {};
+
+    const rising  = (relatedQueries.rising  || []).map(q => ({ query: q.query, value: q.extracted_value || q.value || '' }));
+    const related = (relatedQueries.top      || []).map(q => ({ query: q.query, value: '' }));
+
+    console.log(`[SerpApi] Trends for "${keyword}" (${geo || 'global'}): ${rising.length} rising, ${related.length} top`);
+    return { rising, related, keyword, geo };
+
+  } catch(e) {
+    console.warn('[SerpApi] Trends error:', e.message);
+    return null;
   }
 }
