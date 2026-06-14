@@ -1,12 +1,7 @@
 // api/vpe-questions.js
 // Real-time question discovery for the Value Post Engine
-// Two modes:
-//   - Niche mode: broad audience question discovery for their niche
-//   - Keyword mode: specific questions about an exact keyword/product/topic
-//
-// Quality standard: questions must be specific enough to write a sharp,
-// position-taking post with real proof — not generic enough to produce
-// vague content that could apply to anyone.
+// Pulls from Reddit, Quora, Google, YouTube and X via Tavily
+// Questions are ranked by Claude for post-worthiness
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
@@ -15,93 +10,17 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
-  const { niche, intel, mode, keyword, isKeyword, exclude = [], page = 1, country = '' } = req.body || {};
+  const { niche, intel, mode, keyword, isKeyword, exclude = [], page = 1 } = req.body || {};
   if (!niche) return res.status(400).json({ error: 'niche is required' });
 
-  const TAVILY_KEY  = process.env.TAVILY_API_KEY;
-  const CLAUDE_KEY  = process.env.ANTHROPIC_API_KEY;
-  const SERPAPI_KEY = process.env.SERPAPI_KEY;
+  const TAVILY_KEY = process.env.TAVILY_API_KEY;
+  const CLAUDE_KEY = process.env.ANTHROPIC_API_KEY;
 
   if (!TAVILY_KEY) return res.status(500).json({ error: 'TAVILY_API_KEY not configured' });
   if (!CLAUDE_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
 
-  const currentYear  = new Date().getFullYear();
-  const previousYear = currentYear - 1;
-  const searchTerm   = keyword || niche;
-
-  // ── Country-specific search modifiers ────────────────────────────────────
-  const countryModifiers = {
-    'Nigeria':              { terms: 'Nigeria Nigerian naira NGN', reddit: 'r/Nigeria r/nairaland', forums: 'nairaland.com' },
-    'South Africa':         { terms: 'South Africa South African ZAR rand', reddit: 'r/southafrica r/ZAspending', forums: 'mybroadband.co.za' },
-    'Kenya':                { terms: 'Kenya Kenyan KES shilling Mpesa', reddit: 'r/Kenya', forums: '' },
-    'Ghana':                { terms: 'Ghana Ghanaian GHS cedi', reddit: 'r/ghana', forums: '' },
-    'Egypt':                { terms: 'Egypt Egyptian EGP pound', reddit: 'r/egypt', forums: '' },
-    'Ethiopia':             { terms: 'Ethiopia Ethiopian ETB birr', reddit: 'r/Ethiopia', forums: '' },
-    'Tanzania':             { terms: 'Tanzania Tanzanian TZS', reddit: 'r/Tanzania', forums: '' },
-    'Uganda':               { terms: 'Uganda Ugandan UGX', reddit: 'r/Uganda', forums: '' },
-    'Rwanda':               { terms: 'Rwanda Rwandan RWF', reddit: 'r/Rwanda', forums: '' },
-    'Cameroon':             { terms: 'Cameroon Cameroonian FCFA', reddit: 'r/cameroon', forums: '' },
-    'United States':        { terms: 'USA American USD dollars', reddit: 'r/personalfinance r/entrepreneur r/smallbusiness', forums: '' },
-    'Canada':               { terms: 'Canada Canadian CAD', reddit: 'r/PersonalFinanceCanada r/canada r/canadiansmallbusiness', forums: '' },
-    'Mexico':               { terms: 'Mexico Mexican MXN pesos', reddit: 'r/mexico', forums: '' },
-    'United Kingdom':       { terms: 'UK British GBP pounds sterling', reddit: 'r/UKPersonalFinance r/unitedkingdom r/AskUK', forums: '' },
-    'Germany':              { terms: 'Germany German EUR euro', reddit: 'r/germany r/finanzen', forums: '' },
-    'France':               { terms: 'France French EUR euro', reddit: 'r/france r/vosfinances', forums: '' },
-    'Netherlands':          { terms: 'Netherlands Dutch EUR euro', reddit: 'r/Netherlands r/thenetherlands', forums: '' },
-    'Spain':                { terms: 'Spain Spanish EUR euro', reddit: 'r/spain', forums: '' },
-    'Italy':                { terms: 'Italy Italian EUR euro', reddit: 'r/italy', forums: '' },
-    'Sweden':               { terms: 'Sweden Swedish SEK krona', reddit: 'r/sweden r/privatekonomi', forums: '' },
-    'Norway':               { terms: 'Norway Norwegian NOK krone', reddit: 'r/norway r/norge', forums: '' },
-    'Denmark':              { terms: 'Denmark Danish DKK krone', reddit: 'r/Denmark', forums: '' },
-    'Poland':               { terms: 'Poland Polish PLN zloty', reddit: 'r/poland r/Polska', forums: '' },
-    'Portugal':             { terms: 'Portugal Portuguese EUR euro', reddit: 'r/portugal', forums: '' },
-    'Ireland':              { terms: 'Ireland Irish EUR euro', reddit: 'r/ireland r/irishpersonalfinance', forums: '' },
-    'India':                { terms: 'India Indian INR rupees', reddit: 'r/india r/IndiaInvestments r/indiabusiness', forums: '' },
-    'Australia':            { terms: 'Australia Australian AUD dollars', reddit: 'r/australia r/AusFinance r/AusEntrepreneur', forums: '' },
-    'Philippines':          { terms: 'Philippines Filipino PHP peso', reddit: 'r/Philippines r/phclassifieds', forums: '' },
-    'Singapore':            { terms: 'Singapore Singaporean SGD', reddit: 'r/singapore r/singaporefi', forums: '' },
-    'Malaysia':             { terms: 'Malaysia Malaysian MYR ringgit', reddit: 'r/malaysia r/MalaysianPF', forums: '' },
-    'Indonesia':            { terms: 'Indonesia Indonesian IDR rupiah', reddit: 'r/indonesia', forums: '' },
-    'Pakistan':             { terms: 'Pakistan Pakistani PKR rupee', reddit: 'r/pakistan', forums: '' },
-    'Bangladesh':           { terms: 'Bangladesh Bangladeshi BDT taka', reddit: 'r/bangladesh', forums: '' },
-    'Sri Lanka':            { terms: 'Sri Lanka LKR rupee', reddit: 'r/srilanka', forums: '' },
-    'New Zealand':          { terms: 'New Zealand NZD dollars', reddit: 'r/newzealand r/PersonalFinanceNZ', forums: '' },
-    'Japan':                { terms: 'Japan Japanese JPY yen', reddit: 'r/japan r/japanfinance', forums: '' },
-    'South Korea':          { terms: 'South Korea Korean KRW won', reddit: 'r/korea', forums: '' },
-    'UAE':                  { terms: 'UAE Dubai Abu Dhabi AED dirham', reddit: 'r/dubai r/UAE', forums: '' },
-    'Saudi Arabia':         { terms: 'Saudi Arabia SAR riyal', reddit: 'r/saudiarabia', forums: '' },
-    'Qatar':                { terms: 'Qatar QAR riyal', reddit: 'r/qatar', forums: '' },
-    'Kuwait':               { terms: 'Kuwait KWD dinar', reddit: 'r/kuwait', forums: '' },
-    'Jordan':               { terms: 'Jordan JOD dinar', reddit: 'r/jordan', forums: '' },
-    'Brazil':               { terms: 'Brazil Brazilian BRL real', reddit: 'r/brasil r/investimentos', forums: '' },
-    'Colombia':             { terms: 'Colombia Colombian COP peso', reddit: 'r/colombia', forums: '' },
-    'Argentina':            { terms: 'Argentina Argentine ARS peso', reddit: 'r/argentina', forums: '' },
-    'Chile':                { terms: 'Chile Chilean CLP peso', reddit: 'r/chile', forums: '' },
-    'Peru':                 { terms: 'Peru Peruvian PEN sol', reddit: 'r/peru', forums: '' },
-    'Jamaica':              { terms: 'Jamaica Jamaican JMD dollar', reddit: 'r/jamaica', forums: '' },
-    'Trinidad and Tobago':  { terms: 'Trinidad Tobago TTD dollar', reddit: 'r/trinidadandtobago', forums: '' },
-    'Barbados':             { terms: 'Barbados Barbadian BBD dollar', reddit: 'r/barbados', forums: '' },
-  };
-
-  const countryMod   = country ? (countryModifiers[country] || { terms: country, reddit: '', forums: '' }) : null;
-  const countryTerms = countryMod ? countryMod.terms : '';
-  const countryLabel = country || 'Global';
-
-  // ── ISO country codes for Tavily native country parameter ────────────────
-  const COUNTRY_CODES = {
-    'Nigeria':'ng','South Africa':'za','Kenya':'ke','Ghana':'gh','Egypt':'eg',
-    'Ethiopia':'et','Tanzania':'tz','Uganda':'ug','Rwanda':'rw','Cameroon':'cm',
-    'Senegal':'sn','Zimbabwe':'zw','United States':'us','Canada':'ca','Mexico':'mx',
-    'United Kingdom':'gb','Germany':'de','France':'fr','Netherlands':'nl','Spain':'es',
-    'Italy':'it','Sweden':'se','Norway':'no','Denmark':'dk','Poland':'pl',
-    'Portugal':'pt','Ireland':'ie','India':'in','Australia':'au','Philippines':'ph',
-    'Singapore':'sg','Malaysia':'my','Indonesia':'id','Pakistan':'pk','Bangladesh':'bd',
-    'Sri Lanka':'lk','New Zealand':'nz','Japan':'jp','South Korea':'kr','UAE':'ae',
-    'Saudi Arabia':'sa','Qatar':'qa','Kuwait':'kw','Jordan':'jo','Brazil':'br',
-    'Colombia':'co','Argentina':'ar','Chile':'cl','Peru':'pe','Jamaica':'jm',
-    'Trinidad and Tobago':'tt','Barbados':'bb',
-  };
-  const countryCode = country ? (COUNTRY_CODES[country] || null) : null;
+  const currentYear = new Date().getFullYear();
+  const searchTerm  = keyword || niche;
 
   try {
     let searches;
@@ -109,54 +28,48 @@ export default async function handler(req, res) {
     if (isKeyword) {
       // ── KEYWORD MODE ──────────────────────────────────────────────────────
       searches = [
-        { query: `site:reddit.com "${searchTerm}" ${countryTerms} review OR problem OR help OR how OR question`, tag: 'reddit' },
-        { query: `site:quora.com "${searchTerm}" ${countryTerms}`, tag: 'quora' },
-        { query: `"${searchTerm}" ${countryTerms} how to OR "is it worth" OR "does it work" OR "vs" ${currentYear}`, tag: 'google' },
-        { query: `"${searchTerm}" ${countryTerms} beginners guide problems getting started ${currentYear}`, tag: 'google' },
-        { query: `site:youtube.com "${searchTerm}" ${countryTerms} review tutorial ${currentYear}`, tag: 'youtube' },
-        { query: `"${searchTerm}" ${countryTerms} site:x.com OR site:twitter.com ${currentYear}`, tag: 'x' },
+        { query: `site:reddit.com "${searchTerm}" review OR problem OR help OR how OR question OR issue`, tag: 'reddit' },
+        { query: `site:quora.com "${searchTerm}"`, tag: 'quora' },
+        { query: `"${searchTerm}" how to OR "is it worth" OR "does it work" OR "vs" OR alternatives ${currentYear}`, tag: 'google' },
+        { query: `"${searchTerm}" beginners guide getting started problems mistakes ${currentYear}`, tag: 'google' },
+        { query: `site:youtube.com "${searchTerm}" review tutorial how to ${currentYear}`, tag: 'youtube' },
+        { query: `"${searchTerm}" site:x.com OR site:twitter.com ${currentYear}`, tag: 'x' },
       ];
     } else {
-      // ── NICHE MODE ─────────────────────────────────────────────────────────
+      // ── NICHE MODE ────────────────────────────────────────────────────────
       searches = [
-        { query: `site:reddit.com "${searchTerm}" ${countryTerms} question help struggling ${currentYear}`, tag: 'reddit' },
-        { query: `site:quora.com "${searchTerm}" ${countryTerms} how why what ${currentYear}`, tag: 'quora' },
-        { query: `"${searchTerm}" ${countryTerms} how to start results proof stuck ${currentYear}`, tag: 'google' },
-        { query: `"${searchTerm}" ${countryTerms} is it worth it saturated too late ${currentYear}`, tag: 'google' },
-        { query: `site:youtube.com "${searchTerm}" ${countryTerms} ${currentYear} how to mistakes`, tag: 'youtube' },
-        { query: `"${searchTerm}" ${countryTerms} site:x.com question struggle ${currentYear}`, tag: 'x' },
-        ...(countryMod && countryMod.forums ? [{ query: `site:${countryMod.forums} "${searchTerm}"`, tag: 'forum' }] : []),
+        { query: `site:reddit.com "${searchTerm}" question help struggling ${currentYear}`, tag: 'reddit' },
+        { query: `site:quora.com "${searchTerm}" how why what ${currentYear}`, tag: 'quora' },
+        { query: `"${searchTerm}" how to start results proof stuck ${currentYear}`, tag: 'google' },
+        { query: `"${searchTerm}" is it worth it saturated too late compete ${currentYear}`, tag: 'google' },
+        { query: `site:youtube.com "${searchTerm}" ${currentYear} how to beginners mistakes`, tag: 'youtube' },
+        { query: `"${searchTerm}" site:x.com OR site:twitter.com question struggle ${currentYear}`, tag: 'x' },
       ];
     }
 
-    // ── Run Tavily searches + SerpApi Trends simultaneously ──────────────────
-    const [tavilyResults, trendsData] = await Promise.all([
-      Promise.allSettled(
-        searches.map(s =>
-          fetch('https://api.tavily.com/search', {
-            method:  'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              api_key:             TAVILY_KEY,
-              query:               s.query,
-              search_depth:        'advanced',
-              topic:               'general',
-              max_results:         5,
-              include_answer:      false,
-              include_raw_content: false,
-              ...(countryCode ? { country: countryCode } : {}),
-            }),
-          })
-          .then(r => r.json())
-          .then(d => ({ ...d, _tag: s.tag }))
-          .catch(() => ({ _tag: s.tag, results: [] }))
-        )
-      ),
-      // ── SerpApi Google Trends — related + rising queries ─────────────────
-      SERPAPI_KEY ? fetchGoogleTrends(searchTerm, countryCode, SERPAPI_KEY, CLAUDE_KEY, niche, intel) : Promise.resolve(null),
-    ]);
+    // ── Run all Tavily searches in parallel ───────────────────────────────────
+    const tavilyResults = await Promise.allSettled(
+      searches.map(s =>
+        fetch('https://api.tavily.com/search', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            api_key:             TAVILY_KEY,
+            query:               s.query,
+            search_depth:        'advanced',
+            topic:               'general',
+            max_results:         5,
+            include_answer:      false,
+            include_raw_content: false,
+          }),
+        })
+        .then(r => r.json())
+        .then(d => ({ ...d, _tag: s.tag }))
+        .catch(() => ({ _tag: s.tag, results: [] }))
+      )
+    );
 
-    // ── Extract results with URLs ─────────────────────────────────────────────
+    // ── Extract results ───────────────────────────────────────────────────────
     const rawResults = [];
     for (const result of tavilyResults) {
       if (result.status !== 'fulfilled') continue;
@@ -175,67 +88,46 @@ export default async function handler(req, res) {
     }
 
     if (rawResults.length === 0) {
-      return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche, country);
+      return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche);
     }
 
-    // ── Format trends data for Claude ranking ────────────────────────────────
-    let trendsContext = '';
-    if (trendsData && trendsData.questions && trendsData.questions.length) {
-      trendsContext = `\n\nGOOGLE TRENDS DATA — Real rising searches${trendsData.country ? ' in ' + trendsData.country : ''} converted to questions:\n`;
-      trendsData.questions.forEach((q, i) => {
-        trendsContext += `${i+1}. "${q.question}"${q.growth ? ' (trending ' + q.growth + ')' : ''}\n`;
-      });
-      trendsContext += `\nThese are based on REAL rising Google searches. Questions that match these trends should be ranked higher.\n`;
-    }
-
-    // ── Claude extracts and ranks questions by post-worthiness ────────────────
+    // ── Claude ranks and extracts the best questions ──────────────────────────
     const rawText = rawResults
       .slice(0, 30)
       .map(r => `[${r.tag.toUpperCase()}] ${r.title}\nURL: ${r.url}\n${r.snippet}`)
       .join('\n\n');
 
-    const rankPrompt = `You are a content strategist who helps experts in the "${niche}" space create high-performing social media posts.
+    const excludeText = exclude.length > 0
+      ? `\n\nDO NOT return questions similar to these already shown:\n${exclude.slice(0, 10).map((q, i) => `${i+1}. ${q}`).join('\n')}`
+      : '';
 
-${country ? `TARGET COUNTRY: ${country}
-The questions must be specifically relevant to people in ${country}. Consider their:
-- Local economic context, currency, and income levels
-- Platforms popular in ${country}
-- Cultural attitudes toward digital business, money, and online income
-- Language patterns and terminology used locally
-- Local regulations, payment methods, and market conditions
+    const rankPrompt = `You are a content strategist helping experts create high-performing social media posts.
 
-` : ''}Below are real search results. Your job is to extract the 8 BEST questions for writing sharp, authoritative posts targeted at ${countryLabel} audiences.
-${trendsContext}
+NICHE: "${niche}"
+${intel ? `OFFER AND AUDIENCE:\n${intel}\n` : ''}
 SEARCH RESULTS:
 ${rawText}
+${excludeText}
 
-${intel ? `OFFER AND AUDIENCE CONTEXT:\n${intel}\n\n` : ''}
+Extract the 8 BEST questions for writing sharp, authoritative posts. Each question must:
 
-SELECTION CRITERIA — only pick questions that meet ALL of these:
+1. Be specific enough to take a clear position — not vague
+2. Have a wrong popular belief most people hold that the expert can correct
+3. Resonate with a large segment of the target audience
+4. Lead naturally toward the expert's offer as the solution
+5. Have a non-obvious insight available
 
-1. SPECIFIC ENOUGH TO TAKE A POSITION — the question must be debatable or have a non-obvious answer. Good: "Is the digital product space too saturated in 2026?" Bad: "How do I grow online?"
+GOOD questions:
+- "Isn't [niche] completely saturated now — am I too late?"
+- "Why do most people fail at [specific thing] even when they work hard?"
+- "How do I scale past [milestone] without working more hours?"
+- "Is [common approach] actually worth it or just hype?"
 
-2. COMMON ENOUGH TO MATTER — real people are actually asking this, not just one person. It should resonate with a large segment of the target audience.
+BAD questions (reject):
+- "How do I grow my business?" (too vague)
+- "What is [basic concept]?" (no position available)
 
-3. HAS A WRONG POPULAR ANSWER — most people believe the wrong thing about this. The expert can write a post that names the wrong belief and corrects it with real experience.
-
-4. LEADS NATURALLY TO THE OFFER — answering this question positions the expert as the solution. The answer should naturally create demand for what they sell.
-
-5. NOT TOO BROAD — reject questions like "How do I make money online?" or "What is digital marketing?" Too vague to write a sharp post about.
-
-6. NOT TOO NARROW — reject questions that only 5 people would ask. Needs mass appeal.
-
-EXAMPLES OF GOOD QUESTIONS for digital product / coaching space:
-- "Isn't the digital product space completely saturated now?" (debatable, common belief, wrong answer most people give)
-- "How do I scale past $20K/month without working more hours?" (specific problem, large audience, leads to systems/offer)
-- "Why do most people fail at [specific thing] even when they work hard?" (names the enemy, strong position available)
-- "Is [specific method/tool] actually worth it or just hype?" (commercial intent, comparison opportunity)
-
-Return the source URL from the results above for each question.
-
-${exclude.length > 0 ? `\n\nEXCLUDE — do NOT return questions similar to these already shown:\n${exclude.slice(0,10).map((q,i) => `${i+1}. ${q}`).join('\n')}` : ''}
-
-Return ONLY valid JSON. No markdown. No explanation:
+Return ONLY valid JSON. No markdown:
 [
   {
     "question": "...",
@@ -244,8 +136,8 @@ Return ONLY valid JSON. No markdown. No explanation:
     "year": "${currentYear}",
     "volume": "high|medium",
     "intent": "informational|commercial",
-    "why": "one sentence: what position can the expert take and why does answering this build their authority",
-    "wrong_belief": "one sentence: what does most people wrongly believe about this that the expert can correct"
+    "why": "one sentence: what position the expert can take and why this builds authority",
+    "wrong_belief": "one sentence: what most people wrongly believe about this"
   }
 ]`;
 
@@ -268,18 +160,10 @@ Return ONLY valid JSON. No markdown. No explanation:
     const clean      = rawOutput.replace(/```json|```/g, '').trim();
     const match      = clean.match(/\[[\s\S]*\]/);
 
-    if (!match) return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche, country);
+    if (!match) return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche);
 
     const questions = JSON.parse(match[0]);
-    return res.status(200).json({
-      questions,
-      source: 'live',
-      total:  questions.length,
-      trends: trendsData && trendsData.questions ? {
-        questions: trendsData.questions,
-        country:   trendsData.country || '',
-      } : null,
-    });
+    return res.status(200).json({ questions, source: 'live', total: questions.length });
 
   } catch (err) {
     console.error('[vpe-questions] Error:', err.message);
@@ -288,37 +172,21 @@ Return ONLY valid JSON. No markdown. No explanation:
 }
 
 // ── Fallback: Claude generates from training knowledge ────────────────────────
-async function fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche, country = '') {
+async function fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche) {
   const currentYear = new Date().getFullYear();
-  const countryCtx  = country ? `\nTARGET COUNTRY: ${country}\nGenerate questions specifically relevant to people in ${country}. Consider their local context, platforms, currency, income levels, and cultural attitudes toward digital business.` : '';
   try {
     const prompt = `Generate the 8 best questions someone could write a sharp, authoritative social media post about in the "${niche}" space.
 
-${isKeyword ? `The questions must be specifically about: "${searchTerm}"` : `The questions must be relevant to: "${searchTerm}"`}
-${countryCtx}
+${isKeyword ? `Questions must be specifically about: "${searchTerm}"` : `Questions must be relevant to: "${searchTerm}"`}
 
-${intel ? `Offer and audience context:\n${intel}\n\n` : ''}
+${intel ? `Offer and audience context:\n${intel}\n` : ''}
 
-QUALITY STANDARD — every question must meet all of these:
-1. Specific enough that an expert can take a clear position — not vague
-2. Has a common WRONG belief most people hold — the expert can correct it
-3. Large enough audience — many people in this niche are asking this
-4. Leads naturally toward the expert's offer as the solution
-5. Has non-obvious insight available — not something Google already answers perfectly
-
-EXAMPLES OF GOOD QUESTIONS:
-- "Isn't [niche] completely saturated now — am I too late?"
-- "Why do most people in [niche] fail even when they work really hard?"
-- "How do I scale past [specific milestone] without working more hours?"
-- "Is [common approach/tool] actually worth it or just hype?"
-- "What's the real reason [specific common problem] keeps happening?"
-
-BAD QUESTIONS (reject these):
-- "How do I grow my business?" (too vague)
-- "What is [basic concept]?" (too educational, no position available)
-- "Should I start a business?" (wrong audience)
-
-${exclude.length > 0 ? `\n\nDo NOT return questions similar to:\n${exclude.slice(0,8).map((q,i) => `${i+1}. ${q}`).join('\n')}` : ''}
+Each question must:
+1. Be specific enough to take a clear position
+2. Have a wrong popular belief most people hold
+3. Have mass appeal in this niche
+4. Lead naturally toward the expert's offer
+5. Have a non-obvious insight available
 
 Return ONLY valid JSON. No markdown:
 [
@@ -329,8 +197,8 @@ Return ONLY valid JSON. No markdown:
     "year": "${currentYear}",
     "volume": "high|medium",
     "intent": "informational|commercial",
-    "why": "one sentence: what position can the expert take and why does answering this build authority",
-    "wrong_belief": "one sentence: what does most people wrongly believe about this"
+    "why": "one sentence: what position the expert can take",
+    "wrong_belief": "one sentence: what most people wrongly believe"
   }
 ]`;
 
@@ -357,123 +225,5 @@ Return ONLY valid JSON. No markdown:
     return res.status(200).json({ questions, source: 'generated', total: questions.length });
   } catch (e) {
     return res.status(500).json({ error: 'Could not generate questions', questions: [] });
-  }
-}
-
-// ── Google Trends via SerpApi ─────────────────────────────────────────────────
-async function fetchGoogleTrends(keyword, countryCode, serpApiKey, claudeKey, niche, intel) {
-  try {
-    const geo = countryCode ? countryCode.toUpperCase() : '';
-    const country = countryCode ? Object.entries({
-      'ng':'Nigeria','za':'South Africa','ke':'Kenya','gh':'Ghana','eg':'Egypt',
-      'us':'United States','ca':'Canada','gb':'United Kingdom','au':'Australia',
-      'in':'India','ph':'Philippines','sg':'Singapore','my':'Malaysia','ae':'UAE',
-      'br':'Brazil','za':'South Africa','ng':'Nigeria',
-    }).find(([k]) => k === countryCode.toLowerCase())?.[1] || '' : '';
-
-    // Build URL manually
-    const baseUrl = 'https://serpapi.com/search.json';
-    const params = {
-      engine:    'google_trends',
-      q:         keyword,
-      data_type: 'RELATED_QUERIES',
-      date:      'today 12-m',
-      hl:        'en',
-      api_key:   serpApiKey,
-    };
-    if (geo) params.geo = geo;
-
-    const queryString = Object.entries(params)
-      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
-      .join('&');
-
-    console.log(`[SerpApi] Fetching: q="${keyword}" geo="${geo}"`);
-
-    const resp = await fetch(`${baseUrl}?${queryString}`);
-    if (!resp.ok) {
-      console.warn('[SerpApi] Failed:', resp.status);
-      return null;
-    }
-
-    const data = await resp.json();
-    if (data.error) { console.warn('[SerpApi] Error:', data.error); return null; }
-
-    const relatedQueries = data.related_queries || {};
-    const allRising = (relatedQueries.rising || []).map(q => ({
-      query: q.query,
-      value: q.extracted_value || q.value || '',
-    }));
-
-    if (!allRising.length) {
-      console.warn('[SerpApi] No rising queries returned');
-      return null;
-    }
-
-    console.log(`[SerpApi] Got ${allRising.length} rising terms — converting to questions via Claude`);
-
-    // ── Convert trending search terms into sharp questions via Claude ─────────
-    const conversionPrompt = `You are converting Google Trends rising search terms into sharp, specific social media post questions.
-
-CONTEXT:
-- Niche: ${niche}
-- ${country ? 'Target country: ' + country : 'Global audience'}
-- ${intel ? 'Offer/audience intel:\n' + intel.slice(0, 500) : ''}
-
-RISING SEARCH TERMS from Google Trends${country ? ' in ' + country : ''}:
-${allRising.slice(0, 8).map((q, i) => `${i+1}. "${q.query}"${q.value ? ' (+' + q.value + '%)' : ''}`).join('\n')}
-
-For each search term, create a sharp question that:
-1. Is specific enough that an expert can take a clear position
-2. Has a wrong popular belief behind it that can be corrected
-3. Would resonate with someone searching that exact term
-4. Leads naturally to the expert's offer as the solution
-
-Return ONLY valid JSON array. No markdown:
-[
-  {
-    "term": "original search term",
-    "question": "the sharp question",
-    "why": "one sentence: what position the expert can take",
-    "wrong_belief": "what most people wrongly believe about this",
-    "growth": "+340%"
-  }
-]`;
-
-    const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': claudeKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1200,
-        messages: [{ role: 'user', content: conversionPrompt }],
-      }),
-    });
-
-    const claudeData = await claudeResp.json();
-    const raw = (claudeData.content || []).map(b => b.text || '').join('').trim();
-    const clean = raw.replace(/```json|```/g, '').trim();
-    const match = clean.match(/\[[\s\S]*\]/);
-
-    if (!match) {
-      console.warn('[SerpApi] Claude conversion failed');
-      return null;
-    }
-
-    const converted = JSON.parse(match[0]);
-    console.log(`[SerpApi] ✅ Converted ${converted.length} trending terms to questions`);
-
-    return {
-      questions: converted,
-      country,
-      geo,
-    };
-
-  } catch(e) {
-    console.warn('[SerpApi] Error:', e.message);
-    return null;
   }
 }
