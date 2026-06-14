@@ -368,30 +368,78 @@ async function fetchGoogleTrends(keyword, countryCode, serpApiKey) {
   try {
     const geo = countryCode ? countryCode.toUpperCase() : '';
 
-    // Fetch related queries (includes rising + top)
-    const params = new URLSearchParams({
+    // Build URL manually to ensure correct parameter encoding
+    const baseUrl = 'https://serpapi.com/search.json';
+    const params = {
       engine:    'google_trends',
       q:         keyword,
       data_type: 'RELATED_QUERIES',
-      date:      'today 3-m',
+      date:      'today 12-m',
+      hl:        'en',
       api_key:   serpApiKey,
-      ...(geo ? { geo } : {}),
-    });
+    };
+    if (geo) params.geo = geo;
 
-    const resp = await fetch(`https://serpapi.com/search?${params.toString()}`);
+    const queryString = Object.entries(params)
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&');
+
+    console.log(`[SerpApi] Fetching trends: q="${keyword}" geo="${geo}"`);
+
+    const resp = await fetch(`${baseUrl}?${queryString}`);
     if (!resp.ok) {
-      console.warn('[SerpApi] Trends fetch failed:', resp.status);
+      const errText = await resp.text();
+      console.warn('[SerpApi] Trends fetch failed:', resp.status, errText.slice(0, 200));
       return null;
     }
 
     const data = await resp.json();
+
+    // Log what came back for debugging
+    console.log('[SerpApi] Raw response keys:', Object.keys(data).join(', '));
+
+    if (data.error) {
+      console.warn('[SerpApi] API error:', data.error);
+      return null;
+    }
+
     const relatedQueries = data.related_queries || {};
+    const allRising = (relatedQueries.rising || []).map(q => ({
+      query: q.query,
+      value: q.extracted_value || q.value || '',
+      link:  q.link || '',
+    }));
+    const allTop = (relatedQueries.top || []).map(q => ({
+      query: q.query,
+      value: '',
+      link:  q.link || '',
+    }));
 
-    const rising  = (relatedQueries.rising  || []).map(q => ({ query: q.query, value: q.extracted_value || q.value || '' }));
-    const related = (relatedQueries.top      || []).map(q => ({ query: q.query, value: '' }));
+    // Filter to keep only queries relevant to the keyword
+    const keywordWords = keyword.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+    const isRelevant = (q) => {
+      const ql = q.query.toLowerCase();
+      return keywordWords.some(w => ql.includes(w));
+    };
 
-    console.log(`[SerpApi] Trends for "${keyword}" (${geo || 'global'}): ${rising.length} rising, ${related.length} top`);
-    return { rising, related, keyword, geo };
+    const rising  = allRising.filter(isRelevant);
+    const related = allTop.filter(isRelevant);
+
+    // If filtering removes everything, return unfiltered with a warning
+    if (rising.length === 0 && related.length === 0) {
+      console.warn('[SerpApi] Relevance filter removed all results for', keyword, '— using unfiltered');
+      console.warn('[SerpApi] Raw rising queries:', allRising.slice(0,3).map(q => q.query).join(', '));
+      return {
+        rising:   allRising.slice(0, 6),
+        related:  allTop.slice(0, 6),
+        keyword,
+        geo,
+        filtered: false,
+      };
+    }
+
+    console.log(`[SerpApi] ✅ ${rising.length} rising, ${related.length} top for "${keyword}" in ${geo||'global'}`);
+    return { rising: rising.slice(0, 6), related: related.slice(0, 6), keyword, geo, filtered: true };
 
   } catch(e) {
     console.warn('[SerpApi] Trends error:', e.message);
