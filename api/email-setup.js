@@ -123,20 +123,106 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // ── SEND EMAIL (uses member's own key) ─────────────────────────────────────
+  // ── SEND EMAIL with HTML template + tracking ──────────────────────────────
   if (action === 'send') {
-    const { from, to, subject, text } = req.body;
-    if (!apiKey || !from || !to || !subject || !text) {
+    const { from, to, subject, text, html, userId, broadcastId, contactName } = req.body;
+    if (!apiKey || !from || !to || !subject) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+
+    const recipientEmail = Array.isArray(to) ? to[0] : to;
+    const firstName = (contactName || recipientEmail.split('@')[0]).split(' ')[0];
+
+    // ── Personalise text ─────────────────────────────────────────────────────
+    const personalised = (text || '').replace(/{{first_name}}/gi, firstName).replace(/{{name}}/gi, contactName || firstName);
+
+    // ── Build unsubscribe URL ─────────────────────────────────────────────────
+    const baseUrl    = 'https://build.skillslibry.com';
+    const unsubUrl   = userId
+      ? `${baseUrl}/api/unsubscribe?uid=${userId}&email=${encodeURIComponent(recipientEmail)}&bid=${broadcastId||''}`
+      : `${baseUrl}/api/unsubscribe?email=${encodeURIComponent(recipientEmail)}`;
+
+    // ── Track links in the text ───────────────────────────────────────────────
+    // Wrap all https:// links for click tracking (Resend does this natively when configured)
+    // We also inject broadcastId and userId as tags for the webhook
+
+    // ── Build responsive HTML email ───────────────────────────────────────────
+    const bodyLines = personalised.split('\n').map(line => {
+      if (!line.trim()) return '<br>';
+      // Convert plain URLs to links
+      return '<p style="margin:0 0 14px;font-size:15px;line-height:1.7;color:#1a1a1a">' +
+        line.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" style="color:#0066cc;text-decoration:underline">$1</a>') +
+        '</p>';
+    }).join('');
+
+    const htmlBody = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>${subject}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f4;font-family:'Helvetica Neue',Arial,sans-serif;-webkit-text-size-adjust:100%">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f4;padding:20px 0">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.06)">
+
+        <!-- Header -->
+        <tr><td style="padding:24px 40px 20px;border-bottom:1px solid #f0f0f0">
+          <p style="margin:0;font-size:13px;color:#888;font-weight:600">From Evan SE · Execution OS</p>
+        </td></tr>
+
+        <!-- Body -->
+        <tr><td style="padding:32px 40px 24px">
+          ${bodyLines}
+        </td></tr>
+
+        <!-- Signature -->
+        <tr><td style="padding:0 40px 24px;border-top:1px solid #f0f0f0">
+          <p style="margin:16px 0 4px;font-size:14px;color:#1a1a1a"><strong>Evan SE</strong></p>
+          <p style="margin:0;font-size:13px;color:#888">Founder, Execution OS</p>
+        </td></tr>
+
+        <!-- Footer -->
+        <tr><td style="padding:16px 40px 24px;background:#fafafa;border-top:1px solid #eeeeee">
+          <p style="margin:0;font-size:11px;color:#aaa;line-height:1.6;text-align:center">
+            You received this because you joined Execution OS.<br>
+            <a href="${unsubUrl}" style="color:#888;text-decoration:underline">Unsubscribe</a> · 
+            <a href="https://build.skillslibry.com" style="color:#888;text-decoration:underline">Execution OS</a>
+          </p>
+        </td></tr>
+
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
     try {
+      const payload = {
+        from,
+        to:      Array.isArray(to) ? to : [to],
+        subject,
+        text:    personalised + `\n\n---\nUnsubscribe: ${unsubUrl}`,
+        html:    htmlBody,
+      };
+
+      // Add tags for webhook tracking
+      if (userId || broadcastId) {
+        payload.tags = [
+          ...(userId      ? [{ name: 'userId',      value: userId }]      : []),
+          ...(broadcastId ? [{ name: 'broadcastId', value: broadcastId }] : []),
+        ];
+      }
+
       const resp = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
+          'Content-Type':  'application/json',
         },
-        body: JSON.stringify({ from, to: Array.isArray(to) ? to : [to], subject, text }),
+        body: JSON.stringify(payload),
       });
       const data = await resp.json();
       if (!resp.ok) return res.status(resp.status).json({ error: data.message || 'Send failed' });
