@@ -7644,80 +7644,6 @@ button[onclick="generateOffer()"] {
           </div>
         </div>
 
-        <!-- Country filter -->
-        <div style="margin-bottom:12px">
-          <div style="font-size:10px;font-weight:700;color:var(--dimmer);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">🌍 Target Country / Audience</div>
-          <select id="vpe-country" class="fi" style="font-size:12px;padding:9px 12px" onchange="window._vpeCountry=this.value">
-            <option value="">🌍 Global (All Countries)</option>
-            <optgroup label="── Africa ──">
-              <option value="Nigeria">🇳🇬 Nigeria</option>
-              <option value="South Africa">🇿🇦 South Africa</option>
-              <option value="Kenya">🇰🇪 Kenya</option>
-              <option value="Ghana">🇬🇭 Ghana</option>
-              <option value="Egypt">🇪🇬 Egypt</option>
-              <option value="Ethiopia">🇪🇹 Ethiopia</option>
-              <option value="Tanzania">🇹🇿 Tanzania</option>
-              <option value="Uganda">🇺🇬 Uganda</option>
-              <option value="Rwanda">🇷🇼 Rwanda</option>
-              <option value="Cameroon">🇨🇲 Cameroon</option>
-              <option value="Senegal">🇸🇳 Senegal</option>
-              <option value="Zimbabwe">🇿🇼 Zimbabwe</option>
-            </optgroup>
-            <optgroup label="── North America ──">
-              <option value="United States">🇺🇸 United States</option>
-              <option value="Canada">🇨🇦 Canada</option>
-              <option value="Mexico">🇲🇽 Mexico</option>
-            </optgroup>
-            <optgroup label="── Europe ──">
-              <option value="United Kingdom">🇬🇧 United Kingdom</option>
-              <option value="Germany">🇩🇪 Germany</option>
-              <option value="France">🇫🇷 France</option>
-              <option value="Netherlands">🇳🇱 Netherlands</option>
-              <option value="Spain">🇪🇸 Spain</option>
-              <option value="Italy">🇮🇹 Italy</option>
-              <option value="Sweden">🇸🇪 Sweden</option>
-              <option value="Norway">🇳🇴 Norway</option>
-              <option value="Denmark">🇩🇰 Denmark</option>
-              <option value="Poland">🇵🇱 Poland</option>
-              <option value="Portugal">🇵🇹 Portugal</option>
-              <option value="Ireland">🇮🇪 Ireland</option>
-            </optgroup>
-            <optgroup label="── Asia Pacific ──">
-              <option value="India">🇮🇳 India</option>
-              <option value="Australia">🇦🇺 Australia</option>
-              <option value="Philippines">🇵🇭 Philippines</option>
-              <option value="Singapore">🇸🇬 Singapore</option>
-              <option value="Malaysia">🇲🇾 Malaysia</option>
-              <option value="Indonesia">🇮🇩 Indonesia</option>
-              <option value="Pakistan">🇵🇰 Pakistan</option>
-              <option value="Bangladesh">🇧🇩 Bangladesh</option>
-              <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
-              <option value="New Zealand">🇳🇿 New Zealand</option>
-              <option value="Japan">🇯🇵 Japan</option>
-              <option value="South Korea">🇰🇷 South Korea</option>
-            </optgroup>
-            <optgroup label="── Middle East ──">
-              <option value="UAE">🇦🇪 UAE</option>
-              <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
-              <option value="Qatar">🇶🇦 Qatar</option>
-              <option value="Kuwait">🇰🇼 Kuwait</option>
-              <option value="Jordan">🇯🇴 Jordan</option>
-            </optgroup>
-            <optgroup label="── Latin America ──">
-              <option value="Brazil">🇧🇷 Brazil</option>
-              <option value="Colombia">🇨🇴 Colombia</option>
-              <option value="Argentina">🇦🇷 Argentina</option>
-              <option value="Chile">🇨🇱 Chile</option>
-              <option value="Peru">🇵🇪 Peru</option>
-            </optgroup>
-            <optgroup label="── Caribbean ──">
-              <option value="Jamaica">🇯🇲 Jamaica</option>
-              <option value="Trinidad and Tobago">🇹🇹 Trinidad and Tobago</option>
-              <option value="Barbados">🇧🇧 Barbados</option>
-            </optgroup>
-          </select>
-        </div>
-
         <!-- Keyword search row -->
         <div style="display:flex;gap:8px;margin-bottom:12px">
           <input id="vpe-keyword-input" class="fi" placeholder="Search any keyword — e.g. systeme.io, high ticket affiliate, relationship anxiety…" style="flex:1;font-size:13px">
@@ -42715,7 +42641,7 @@ async function vpeFindQuestions() {
   try {
     var resp = await fetch(window.location.origin+'/api/vpe-questions', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ niche:niche, intel:intel, mode:window._appMode||'expert', country:window._vpeCountry||'' })
+      body: JSON.stringify({ niche:niche, intel:intel, mode:window._appMode||'expert' })
     });
     var data      = await resp.json();
     var questions = data.questions || [];
@@ -42728,10 +42654,7 @@ async function vpeFindQuestions() {
     var lmRow = document.getElementById('vpe-load-more-row');
     if (lmRow) { lmRow.style.display='block'; }
     _vpeLoadMorePage = 1;
-    // Add Google Trends converted questions as clickable cards
-    if (data.trends && data.trends.questions && data.trends.questions.length) {
-      vpeRenderTrendCards(data.trends.questions, data.trends.country);
-    }
+
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
         var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
@@ -43580,7 +43503,7 @@ async function vpeKeywordSearch() {
   try {
     var resp = await fetch(window.location.origin+'/api/vpe-questions', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ niche:keyword, intel:vpeGetIntel(), mode:window._appMode||'expert', keyword:keyword, isKeyword:true, country:window._vpeCountry||'' })
+      body: JSON.stringify({ niche:keyword, intel:vpeGetIntel(), mode:window._appMode||'expert', keyword:keyword, isKeyword:true })
     });
     var data = await resp.json();
     var questions = data.questions||[];
@@ -43589,10 +43512,7 @@ async function vpeKeywordSearch() {
     var lmRow2 = document.getElementById('vpe-load-more-row'); if (lmRow2) lmRow2.style.display='block';
     _vpeLoadMorePage = 1;
     if (status) status.innerHTML = '✅ Found '+questions.length+' questions &nbsp;·&nbsp; <span style="color:var(--teal);font-weight:700">'+src+'</span>';
-    // Add Google Trends converted questions as clickable cards
-    if (data.trends && data.trends.questions && data.trends.questions.length) {
-      vpeRenderTrendCards(data.trends.questions, data.trends.country);
-    }
+
 
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
@@ -43649,8 +43569,7 @@ async function vpeLoadMore() {
         keyword:   isKeyword ? searchTerm : '',
         isKeyword: isKeyword,
         page:      _vpeLoadMorePage,
-        exclude:   existingQuestions,
-        country:   window._vpeCountry || '',
+        exclude:   existingQuestions
       })
     });
     var data      = await resp.json();
@@ -43680,8 +43599,7 @@ async function vpeLoadMore() {
       card.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">'+q.question+'</div>'
         +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">'+q.why+'</div>':'')
         +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
-        +(window._vpeCountry ? '<span style="font-size:10px;font-weight:700;color:#F5C842;background:rgba(245,200,66,.08);border-radius:4px;padding:2px 8px">🌍 '+window._vpeCountry+'</span>' : '')
-        +'<span style="font-size:10px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">'+(q.platform||'web')+'</span>'
+                +'<span style="font-size:10px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">'+(q.platform||'web')+'</span>'
         +(q.year?'<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">'+q.year+'</span>':'')
         +'<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">'+(q.intent==='commercial'?'💰 buyer':'ℹ️ info')+'</span>'
         +lnk+'</div>';
@@ -43696,42 +43614,7 @@ async function vpeLoadMore() {
 }
 window.vpeLoadMore = vpeLoadMore;
 
-// ── Render Google Trends converted questions as clickable cards ───────────────
-function vpeRenderTrendCards(trendQuestions, country) {
-  var grid = document.getElementById('vpe-questions-grid');
-  if (!grid || !trendQuestions || !trendQuestions.length) return;
-  trendQuestions.forEach(function(t) {
-    var idx = _vpeState.questions.length;
-    var qObj = {
-      question:    t.question,
-      platform:    'google',
-      url:         'https://trends.google.com/trends/explore?q=' + encodeURIComponent(t.term || t.question) + (window._vpeCountry ? '&geo=' + window._vpeCountry.toUpperCase() : ''),
-      year:        new Date().getFullYear().toString(),
-      intent:      'commercial',
-      why:         t.why || ('Rising Google search' + (t.growth ? ' ' + t.growth : '') + (country ? ' in ' + country : '') + ' — high demand right now'),
-      wrong_belief: t.wrong_belief || '',
-      _isTrend:    true,
-      _growth:     t.growth || '',
-    };
-    _vpeState.questions.push(qObj);
-    var card = document.createElement('div');
-    card.className = 'vpe-q-card';
-    card.onclick = function(){ vpeSelectQuestion(card, idx); };
-    card.innerHTML =
-      '<div style="font-size:10px;font-weight:800;color:#F5C842;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">📈 Google Trends' + (t.growth ? ' ' + t.growth : '') + '</div>'
-      + '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">' + t.question + '</div>'
-      + (t.why ? '<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">' + t.why + '</div>' : '')
-      + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
-      + '<span style="font-size:10px;font-weight:700;color:#F5C842;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.15);border-radius:4px;padding:2px 8px">📈 trends</span>'
-      + '<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">' + new Date().getFullYear() + '</span>'
-      + (country ? '<span style="font-size:10px;font-weight:700;color:#F5C842;background:rgba(245,200,66,.06);border-radius:4px;padding:2px 8px">🌍 ' + country + '</span>' : '')
-      + '<span style="font-size:10px;font-weight:700;color:#a089ff;background:var(--card2);border-radius:4px;padding:2px 8px">💰 buyer</span>'
-      + '<a href="' + qObj.url + '" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px">View →</a>'
-      + '</div>';
-    grid.appendChild(card);
-  });
-}
-window.vpeRenderTrendCards = vpeRenderTrendCards;
+
 
 </script>
 </body>
