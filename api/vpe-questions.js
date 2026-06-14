@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
-  const { niche, intel, mode, keyword, isKeyword } = req.body || {};
+  const { niche, intel, mode, keyword, isKeyword, exclude = [], page = 1 } = req.body || {};
   if (!niche) return res.status(400).json({ error: 'niche is required' });
 
   const TAVILY_KEY = process.env.TAVILY_API_KEY;
@@ -133,6 +133,8 @@ EXAMPLES OF GOOD QUESTIONS for digital product / coaching space:
 
 Return the source URL from the results above for each question.
 
+${exclude.length > 0 ? `\n\nEXCLUDE — do NOT return questions similar to these already shown:\n${exclude.slice(0,10).map((q,i) => `${i+1}. ${q}`).join('\n')}` : ''}
+
 Return ONLY valid JSON. No markdown. No explanation:
 [
   {
@@ -205,6 +207,8 @@ BAD QUESTIONS (reject these):
 - "How do I grow my business?" (too vague)
 - "What is [basic concept]?" (too educational, no position available)
 - "Should I start a business?" (wrong audience)
+
+${exclude.length > 0 ? `\n\nDo NOT return questions similar to:\n${exclude.slice(0,8).map((q,i) => `${i+1}. ${q}`).join('\n')}` : ''}
 
 Return ONLY valid JSON. No markdown:
 [
