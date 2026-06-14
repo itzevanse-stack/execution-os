@@ -7644,6 +7644,80 @@ button[onclick="generateOffer()"] {
           </div>
         </div>
 
+        <!-- Country filter -->
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;font-weight:700;color:var(--dimmer);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">🌍 Target Country / Audience</div>
+          <select id="vpe-country" class="fi" style="font-size:12px;padding:9px 12px" onchange="window._vpeCountry=this.value">
+            <option value="">🌍 Global (All Countries)</option>
+            <optgroup label="── Africa ──">
+              <option value="Nigeria">🇳🇬 Nigeria</option>
+              <option value="South Africa">🇿🇦 South Africa</option>
+              <option value="Kenya">🇰🇪 Kenya</option>
+              <option value="Ghana">🇬🇭 Ghana</option>
+              <option value="Egypt">🇪🇬 Egypt</option>
+              <option value="Ethiopia">🇪🇹 Ethiopia</option>
+              <option value="Tanzania">🇹🇿 Tanzania</option>
+              <option value="Uganda">🇺🇬 Uganda</option>
+              <option value="Rwanda">🇷🇼 Rwanda</option>
+              <option value="Cameroon">🇨🇲 Cameroon</option>
+              <option value="Senegal">🇸🇳 Senegal</option>
+              <option value="Zimbabwe">🇿🇼 Zimbabwe</option>
+            </optgroup>
+            <optgroup label="── North America ──">
+              <option value="United States">🇺🇸 United States</option>
+              <option value="Canada">🇨🇦 Canada</option>
+              <option value="Mexico">🇲🇽 Mexico</option>
+            </optgroup>
+            <optgroup label="── Europe ──">
+              <option value="United Kingdom">🇬🇧 United Kingdom</option>
+              <option value="Germany">🇩🇪 Germany</option>
+              <option value="France">🇫🇷 France</option>
+              <option value="Netherlands">🇳🇱 Netherlands</option>
+              <option value="Spain">🇪🇸 Spain</option>
+              <option value="Italy">🇮🇹 Italy</option>
+              <option value="Sweden">🇸🇪 Sweden</option>
+              <option value="Norway">🇳🇴 Norway</option>
+              <option value="Denmark">🇩🇰 Denmark</option>
+              <option value="Poland">🇵🇱 Poland</option>
+              <option value="Portugal">🇵🇹 Portugal</option>
+              <option value="Ireland">🇮🇪 Ireland</option>
+            </optgroup>
+            <optgroup label="── Asia Pacific ──">
+              <option value="India">🇮🇳 India</option>
+              <option value="Australia">🇦🇺 Australia</option>
+              <option value="Philippines">🇵🇭 Philippines</option>
+              <option value="Singapore">🇸🇬 Singapore</option>
+              <option value="Malaysia">🇲🇾 Malaysia</option>
+              <option value="Indonesia">🇮🇩 Indonesia</option>
+              <option value="Pakistan">🇵🇰 Pakistan</option>
+              <option value="Bangladesh">🇧🇩 Bangladesh</option>
+              <option value="Sri Lanka">🇱🇰 Sri Lanka</option>
+              <option value="New Zealand">🇳🇿 New Zealand</option>
+              <option value="Japan">🇯🇵 Japan</option>
+              <option value="South Korea">🇰🇷 South Korea</option>
+            </optgroup>
+            <optgroup label="── Middle East ──">
+              <option value="UAE">🇦🇪 UAE</option>
+              <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+              <option value="Qatar">🇶🇦 Qatar</option>
+              <option value="Kuwait">🇰🇼 Kuwait</option>
+              <option value="Jordan">🇯🇴 Jordan</option>
+            </optgroup>
+            <optgroup label="── Latin America ──">
+              <option value="Brazil">🇧🇷 Brazil</option>
+              <option value="Colombia">🇨🇴 Colombia</option>
+              <option value="Argentina">🇦🇷 Argentina</option>
+              <option value="Chile">🇨🇱 Chile</option>
+              <option value="Peru">🇵🇪 Peru</option>
+            </optgroup>
+            <optgroup label="── Caribbean ──">
+              <option value="Jamaica">🇯🇲 Jamaica</option>
+              <option value="Trinidad and Tobago">🇹🇹 Trinidad and Tobago</option>
+              <option value="Barbados">🇧🇧 Barbados</option>
+            </optgroup>
+          </select>
+        </div>
+
         <!-- Keyword search row -->
         <div style="display:flex;gap:8px;margin-bottom:12px">
           <input id="vpe-keyword-input" class="fi" placeholder="Search any keyword — e.g. systeme.io, high ticket affiliate, relationship anxiety…" style="flex:1;font-size:13px">
@@ -42654,6 +42728,15 @@ async function vpeFindQuestions() {
     var lmRow = document.getElementById('vpe-load-more-row');
     if (lmRow) { lmRow.style.display='block'; }
     _vpeLoadMorePage = 1;
+    // Show Google Trends rising searches
+    if (data.trends && (data.trends.rising||[]).length) {
+      var trendsHtml = '<div style="margin-top:10px;padding:10px 14px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:10px">'
+        + '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#F5C842;margin-bottom:6px">📈 Google Trends — Rising Searches Right Now'+(window._vpeCountry?' in '+window._vpeCountry:'')+'</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+        + data.trends.rising.map(function(t){ return '<span style="font-size:11px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:6px;padding:3px 10px;color:#F5C842;font-weight:600">'+t.query+(t.value?' +'+t.value+'%':'')+'</span>'; }).join('')
+        + '</div></div>';
+      if (status) status.innerHTML += trendsHtml;
+    }
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
         var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
@@ -43511,6 +43594,14 @@ async function vpeKeywordSearch() {
     var lmRow2 = document.getElementById('vpe-load-more-row'); if (lmRow2) lmRow2.style.display='block';
     _vpeLoadMorePage = 1;
     if (status) status.innerHTML = '✅ Found '+questions.length+' questions &nbsp;·&nbsp; <span style="color:var(--teal);font-weight:700">'+src+'</span>';
+    if (data.trends && (data.trends.rising||[]).length) {
+      var trendsHtml2 = '<div style="margin-top:10px;padding:10px 14px;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.15);border-radius:10px">'
+        + '<div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#F5C842;margin-bottom:6px">📈 Google Trends — Rising Searches'+(window._vpeCountry?' in '+window._vpeCountry:'')+'</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
+        + data.trends.rising.map(function(t){ return '<span style="font-size:11px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:6px;padding:3px 10px;color:#F5C842;font-weight:600">'+t.query+(t.value?' +'+t.value+'%':'')+'</span>'; }).join('')
+        + '</div></div>';
+      status.innerHTML += trendsHtml2;
+    }
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
         var pc={reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
@@ -43566,7 +43657,8 @@ async function vpeLoadMore() {
         keyword:   isKeyword ? searchTerm : '',
         isKeyword: isKeyword,
         page:      _vpeLoadMorePage,
-        exclude:   existingQuestions, // tell backend what's already shown
+        exclude:   existingQuestions,
+        country:   window._vpeCountry || '',
       })
     });
     var data      = await resp.json();
@@ -43596,6 +43688,7 @@ async function vpeLoadMore() {
       card.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">'+q.question+'</div>'
         +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">'+q.why+'</div>':'')
         +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+        +(window._vpeCountry ? '<span style="font-size:10px;font-weight:700;color:#F5C842;background:rgba(245,200,66,.08);border-radius:4px;padding:2px 8px">🌍 '+window._vpeCountry+'</span>' : '')
         +'<span style="font-size:10px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">'+(q.platform||'web')+'</span>'
         +(q.year?'<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">'+q.year+'</span>':'')
         +'<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">'+(q.intent==='commercial'?'💰 buyer':'ℹ️ info')+'</span>'
