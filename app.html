@@ -42715,7 +42715,7 @@ async function vpeFindQuestions() {
   try {
     var resp = await fetch(window.location.origin+'/api/vpe-questions', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ niche:niche, intel:intel, mode:window._appMode||'expert' })
+      body: JSON.stringify({ niche:niche, intel:intel, mode:window._appMode||'expert', country:window._vpeCountry||'' })
     });
     var data      = await resp.json();
     var questions = data.questions || [];
@@ -42728,37 +42728,9 @@ async function vpeFindQuestions() {
     var lmRow = document.getElementById('vpe-load-more-row');
     if (lmRow) { lmRow.style.display='block'; }
     _vpeLoadMorePage = 1;
-    // Add Google Trends rising searches as clickable question cards
-    if (data.trends && (data.trends.rising||[]).length) {
-      var grid2 = document.getElementById('vpe-questions-grid');
-      data.trends.rising.forEach(function(t) {
-        var trendQ = t.query;
-        var trendIdx = _vpeState.questions.length;
-        var trendObj = {
-          question: trendQ,
-          platform: 'google',
-          url: 'https://trends.google.com/trends/explore?q=' + encodeURIComponent(trendQ) + (window._vpeCountry ? '&geo=' + (window._vpeCountry||'') : ''),
-          year: new Date().getFullYear().toString(),
-          intent: 'commercial',
-          why: 'Rising search on Google Trends' + (t.value ? ' (+' + t.value + '%)' : '') + (window._vpeCountry ? ' in ' + window._vpeCountry : '') + ' — high demand topic right now.',
-          wrong_belief: '',
-          _isTrend: true,
-        };
-        _vpeState.questions.push(trendObj);
-        var card = document.createElement('div');
-        card.className = 'vpe-q-card';
-        card.onclick = function(){ vpeSelectQuestion(card, trendIdx); };
-        card.innerHTML = '<div style="font-size:10px;font-weight:800;color:#F5C842;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">📈 Google Trends' + (t.value ? ' +' + t.value + '%' : '') + '</div>'
-          + '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">' + trendQ + '</div>'
-          + '<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">Rising search in ' + (window._vpeCountry||'your market') + ' — write a post targeting this exact demand</div>'
-          + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
-          + '<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">google trends</span>'
-          + '<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">' + new Date().getFullYear() + '</span>'
-          + '<span style="font-size:10px;font-weight:700;color:#F5C842;background:rgba(245,200,66,.08);border-radius:4px;padding:2px 8px">🌍 ' + (window._vpeCountry||'Global') + '</span>'
-          + '<a href="' + trendObj.url + '" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px">View Trend →</a>'
-          + '</div>';
-        if (grid2) grid2.appendChild(card);
-      });
+    // Add Google Trends converted questions as clickable cards
+    if (data.trends && data.trends.questions && data.trends.questions.length) {
+      vpeRenderTrendCards(data.trends.questions, data.trends.country);
     }
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
@@ -43608,7 +43580,7 @@ async function vpeKeywordSearch() {
   try {
     var resp = await fetch(window.location.origin+'/api/vpe-questions', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ niche:keyword, intel:vpeGetIntel(), mode:window._appMode||'expert', keyword:keyword, isKeyword:true })
+      body: JSON.stringify({ niche:keyword, intel:vpeGetIntel(), mode:window._appMode||'expert', keyword:keyword, isKeyword:true, country:window._vpeCountry||'' })
     });
     var data = await resp.json();
     var questions = data.questions||[];
@@ -43617,37 +43589,11 @@ async function vpeKeywordSearch() {
     var lmRow2 = document.getElementById('vpe-load-more-row'); if (lmRow2) lmRow2.style.display='block';
     _vpeLoadMorePage = 1;
     if (status) status.innerHTML = '✅ Found '+questions.length+' questions &nbsp;·&nbsp; <span style="color:var(--teal);font-weight:700">'+src+'</span>';
-    if (data.trends && (data.trends.rising||[]).length) {
-      var grid3 = document.getElementById('vpe-questions-grid');
-      data.trends.rising.forEach(function(t) {
-        var trendQ2 = t.query;
-        var trendIdx2 = _vpeState.questions.length;
-        var trendObj2 = {
-          question: trendQ2,
-          platform: 'google',
-          url: 'https://trends.google.com/trends/explore?q=' + encodeURIComponent(trendQ2) + (window._vpeCountry ? '&geo=' + (window._vpeCountry||'') : ''),
-          year: new Date().getFullYear().toString(),
-          intent: 'commercial',
-          why: 'Rising search on Google Trends' + (t.value ? ' (+' + t.value + '%)' : '') + (window._vpeCountry ? ' in ' + window._vpeCountry : '') + ' — high demand right now.',
-          wrong_belief: '',
-          _isTrend: true,
-        };
-        _vpeState.questions.push(trendObj2);
-        var card2 = document.createElement('div');
-        card2.className = 'vpe-q-card';
-        card2.onclick = function(){ vpeSelectQuestion(card2, trendIdx2); };
-        card2.innerHTML = '<div style="font-size:10px;font-weight:800;color:#F5C842;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">📈 Google Trends' + (t.value ? ' +' + t.value + '%' : '') + '</div>'
-          + '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">' + trendQ2 + '</div>'
-          + '<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">Rising search in ' + (window._vpeCountry||'your market') + ' — write a post targeting this exact demand</div>'
-          + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
-          + '<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">google trends</span>'
-          + '<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">' + new Date().getFullYear() + '</span>'
-          + '<span style="font-size:10px;font-weight:700;color:#F5C842;background:rgba(245,200,66,.08);border-radius:4px;padding:2px 8px">🌍 ' + (window._vpeCountry||'Global') + '</span>'
-          + '<a href="' + trendObj2.url + '" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px">View Trend →</a>'
-          + '</div>';
-        if (grid3) grid3.appendChild(card2);
-      });
+    // Add Google Trends converted questions as clickable cards
+    if (data.trends && data.trends.questions && data.trends.questions.length) {
+      vpeRenderTrendCards(data.trends.questions, data.trends.country);
     }
+
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
         var pc={reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
@@ -43749,6 +43695,43 @@ async function vpeLoadMore() {
   if (btn) { btn.textContent='+ Load More Questions'; btn.disabled=false; }
 }
 window.vpeLoadMore = vpeLoadMore;
+
+// ── Render Google Trends converted questions as clickable cards ───────────────
+function vpeRenderTrendCards(trendQuestions, country) {
+  var grid = document.getElementById('vpe-questions-grid');
+  if (!grid || !trendQuestions || !trendQuestions.length) return;
+  trendQuestions.forEach(function(t) {
+    var idx = _vpeState.questions.length;
+    var qObj = {
+      question:    t.question,
+      platform:    'google',
+      url:         'https://trends.google.com/trends/explore?q=' + encodeURIComponent(t.term || t.question) + (window._vpeCountry ? '&geo=' + window._vpeCountry.toUpperCase() : ''),
+      year:        new Date().getFullYear().toString(),
+      intent:      'commercial',
+      why:         t.why || ('Rising Google search' + (t.growth ? ' ' + t.growth : '') + (country ? ' in ' + country : '') + ' — high demand right now'),
+      wrong_belief: t.wrong_belief || '',
+      _isTrend:    true,
+      _growth:     t.growth || '',
+    };
+    _vpeState.questions.push(qObj);
+    var card = document.createElement('div');
+    card.className = 'vpe-q-card';
+    card.onclick = function(){ vpeSelectQuestion(card, idx); };
+    card.innerHTML =
+      '<div style="font-size:10px;font-weight:800;color:#F5C842;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">📈 Google Trends' + (t.growth ? ' ' + t.growth : '') + '</div>'
+      + '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">' + t.question + '</div>'
+      + (t.why ? '<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">' + t.why + '</div>' : '')
+      + '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+      + '<span style="font-size:10px;font-weight:700;color:#F5C842;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.15);border-radius:4px;padding:2px 8px">📈 trends</span>'
+      + '<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">' + new Date().getFullYear() + '</span>'
+      + (country ? '<span style="font-size:10px;font-weight:700;color:#F5C842;background:rgba(245,200,66,.06);border-radius:4px;padding:2px 8px">🌍 ' + country + '</span>' : '')
+      + '<span style="font-size:10px;font-weight:700;color:#a089ff;background:var(--card2);border-radius:4px;padding:2px 8px">💰 buyer</span>'
+      + '<a href="' + qObj.url + '" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px">View →</a>'
+      + '</div>';
+    grid.appendChild(card);
+  });
+}
+window.vpeRenderTrendCards = vpeRenderTrendCards;
 
 </script>
 </body>
