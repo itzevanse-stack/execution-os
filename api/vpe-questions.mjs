@@ -28,22 +28,26 @@ export default async function handler(req, res) {
     if (isKeyword) {
       // ── KEYWORD MODE ──────────────────────────────────────────────────────
       searches = [
-        { query: `site:reddit.com "${searchTerm}" review OR problem OR help OR how OR question OR issue`, tag: 'reddit' },
-        { query: `site:quora.com "${searchTerm}"`, tag: 'quora' },
-        { query: `"${searchTerm}" how to OR "is it worth" OR "does it work" OR "vs" OR alternatives ${currentYear}`, tag: 'google' },
-        { query: `"${searchTerm}" beginners guide getting started problems mistakes ${currentYear}`, tag: 'google' },
-        { query: `site:youtube.com "${searchTerm}" review tutorial how to ${currentYear}`, tag: 'youtube' },
-        { query: `"${searchTerm}" site:x.com OR site:twitter.com ${currentYear}`, tag: 'x' },
+        { query: `"${searchTerm}" is it worth it how does it work results ${currentYear}`, tag: 'google' },
+        { query: `"${searchTerm}" mistakes beginners make truth nobody tells you ${currentYear}`, tag: 'google' },
+        { query: `site:quora.com "${searchTerm}" how why what should I`, tag: 'quora' },
+        { query: `site:youtube.com "${searchTerm}" honest review worth it ${currentYear}`, tag: 'youtube' },
+        { query: `site:reddit.com/r/entrepreneur OR site:reddit.com/r/digitalmarketing OR site:reddit.com/r/passive_income "${searchTerm}"`, tag: 'reddit' },
+        { query: `site:reddit.com/r/affiliatemarketing OR site:reddit.com/r/Entrepreneur OR site:reddit.com/r/sidehustle "${searchTerm}" how OR why OR worth OR should`, tag: 'reddit' },
+        { query: `"${searchTerm}" site:x.com (is it worth OR does it work OR how do I OR why does) ${currentYear}`, tag: 'x' },
+        { query: `"${searchTerm}" site:medium.com OR site:linkedin.com ${currentYear}`, tag: 'web' },
       ];
     } else {
       // ── NICHE MODE ────────────────────────────────────────────────────────
       searches = [
-        { query: `site:reddit.com "${searchTerm}" question help struggling ${currentYear}`, tag: 'reddit' },
-        { query: `site:quora.com "${searchTerm}" how why what ${currentYear}`, tag: 'quora' },
-        { query: `"${searchTerm}" how to start results proof stuck ${currentYear}`, tag: 'google' },
-        { query: `"${searchTerm}" is it worth it saturated too late compete ${currentYear}`, tag: 'google' },
-        { query: `site:youtube.com "${searchTerm}" ${currentYear} how to beginners mistakes`, tag: 'youtube' },
-        { query: `"${searchTerm}" site:x.com OR site:twitter.com question struggle ${currentYear}`, tag: 'x' },
+        { query: `"${searchTerm}" is it saturated worth starting why people fail ${currentYear}`, tag: 'google' },
+        { query: `"${searchTerm}" honest truth what nobody tells you how to scale ${currentYear}`, tag: 'google' },
+        { query: `site:quora.com "${searchTerm}" how why what should I ${currentYear}`, tag: 'quora' },
+        { query: `site:youtube.com "${searchTerm}" mistakes beginners make ${currentYear}`, tag: 'youtube' },
+        { query: `site:reddit.com/r/entrepreneur OR site:reddit.com/r/digitalmarketing OR site:reddit.com/r/passive_income "${searchTerm}" how OR why OR worth OR should`, tag: 'reddit' },
+        { query: `site:reddit.com/r/affiliatemarketing OR site:reddit.com/r/sidehustle OR site:reddit.com/r/personalfinance "${searchTerm}"`, tag: 'reddit' },
+        { query: `"${searchTerm}" site:x.com (is it worth OR does it work OR how do I OR why) ${currentYear}`, tag: 'x' },
+        { query: `"${searchTerm}" site:medium.com OR site:linkedin.com OR site:forbes.com ${currentYear}`, tag: 'web' },
       ];
     }
 
@@ -117,15 +121,26 @@ Extract the 8 BEST questions for writing sharp, authoritative posts. Each questi
 4. Lead naturally toward the expert's offer as the solution
 5. Have a non-obvious insight available
 
-GOOD questions:
-- "Isn't [niche] completely saturated now — am I too late?"
-- "Why do most people fail at [specific thing] even when they work hard?"
-- "How do I scale past [milestone] without working more hours?"
-- "Is [common approach] actually worth it or just hype?"
+GOOD questions (sharp, specific, position-taking):
+- "Isn't the digital product space completely saturated in 2026?"
+- "Why do most people fail at affiliate marketing even when they follow all the steps?"
+- "How do I scale past $20K/month without working more hours?"
+- "Is buying a digital product course actually worth it or just a waste of money?"
+- "Do you actually need a big audience to make $10K/month selling digital products?"
 
-BAD questions (reject):
-- "How do I grow my business?" (too vague)
-- "What is [basic concept]?" (no position available)
+BAD questions (reject these completely):
+- "How do I grow my business?" — too vague, no position
+- "What is affiliate marketing?" — basic definition, no insight
+- "How do I make money online?" — too broad
+- Any question that reads like a Reddit thread title
+- Any question with casual or slang language
+- Any question that can't be answered with a sharp contrarian take
+
+STRICT RULES:
+- Questions must sound like something a serious buyer would Google
+- Every question must have an obvious wrong belief most people hold
+- Rewrite vague titles into sharp questions if needed
+- Do not use the source title verbatim — extract the real question behind it
 
 Return ONLY valid JSON. No markdown:
 [
