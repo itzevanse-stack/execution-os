@@ -42626,12 +42626,30 @@ function vpeSetPlatform(el, plat) {
 }
 
 async function vpeFindQuestions() {
+  // ── Check Foundation is complete before searching ─────────────────────────
+  var intel = vpeGetIntel();
+  var niche = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).av_job || '';
+  if (!niche || !intel || intel.trim().length < 20) {
+    var status = document.getElementById('vpe-find-status');
+    var grid   = document.getElementById('vpe-questions-grid');
+    if (status) {
+      status.style.display = 'block';
+      status.innerHTML = '<div style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:16px 20px">'
+        + '<div style="font-size:13px;font-weight:800;color:#F5C842;margin-bottom:6px">⚠️ Complete your Foundation first</div>'
+        + '<div style="font-size:12px;color:var(--dim);line-height:1.7">The Value Post Engine needs to know your niche, offer and ideal customer before it can find the right questions for you.</div>'
+        + '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">'
+        + '<button onclick="showPage(\'page-avatar\')" style="background:linear-gradient(135deg,var(--teal),#0d9488);border:none;border-radius:8px;padding:8px 16px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:\'Poppins\',sans-serif">→ Set Up Ideal Customer</button>'
+        + '<button onclick="showPage(\'page-offer\')" style="background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:8px;padding:8px 16px;color:var(--white);font-size:12px;font-weight:700;cursor:pointer;font-family:\'Poppins\',sans-serif">→ Set Up Your Offer</button>'
+        + '</div></div>';
+    }
+    if (grid) grid.innerHTML = '';
+    return;
+  }
+
   if (typeof window.creditDeduct === 'function') {
     var ok = await window.creditDeduct('vpe_search');
     if (!ok) return;
   }
-  var intel  = vpeGetIntel();
-  var niche  = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).av_job || 'online business';
   var btn    = document.getElementById('vpe-find-btn');
   var status = document.getElementById('vpe-find-status');
   var grid   = document.getElementById('vpe-questions-grid');
