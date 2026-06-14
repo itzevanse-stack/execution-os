@@ -32029,31 +32029,54 @@ async function emSendBroadcast() {
   var btn      = document.getElementById('em-broadcast-send-btn');
   if (!subject.trim()) { if (statusEl) statusEl.textContent = '⚠️ Please enter a subject line.'; return; }
   if (!body.trim())    { if (statusEl) statusEl.textContent = '⚠️ Please write your email.'; return; }
-  var contacts  = emBroadcastState.contacts;
+  var contacts = emBroadcastState.contacts;
   if (!contacts.length) { if (statusEl) statusEl.textContent = '⚠️ No contacts in this segment.'; return; }
   var fromName  = (emState.sender && emState.sender.name)         || 'Execution OS';
   var fromEmail = (emState.sender && emState.sender.email)        || '';
   var apiKey    = (emState.sender && emState.sender.resendApiKey) || '';
   if (!fromEmail || !apiKey) { if (statusEl) statusEl.textContent = '⚠️ Connect your email in Settings first.'; emShowSettings(); return; }
   if (!confirm('Send to ' + contacts.length + ' contact(s)? This cannot be undone.')) return;
+
   btn.disabled = true; btn.textContent = '⏳ Sending…';
   if (statusEl) statusEl.textContent = '';
+
+  var uid         = window._currentUserUid || '';
+  var broadcastId = 'bc_' + Date.now();
   var sent = 0, failed = 0;
+
+  // Save broadcast record first
+  if (uid && window._db && window._doc && window._setDoc) {
+    try {
+      await window._setDoc(window._doc(window._db,'users',uid,'broadcasts',broadcastId), {
+        id: broadcastId, subject: subject, segment: emBroadcastState.segment||'all',
+        total: contacts.length, sent: 0, failed: 0, sentAt: Date.now(),
+        stats: { opens:0, clicks:0, bounces:0, unsubscribes:0, complaints:0 }
+      });
+    } catch(e) {}
+  }
+
   for (var i = 0; i < contacts.length; i++) {
     var c = contacts[i];
-    var firstName = (c.name||'there').split(' ')[0];
-    var ps = subject.replace(/\{\{first_name\}\}/gi,firstName).replace(/\{\{name\}\}/gi,c.name||'there');
-    var pb = body.replace(/\{\{first_name\}\}/gi,firstName).replace(/\{\{name\}\}/gi,c.name||'there');
+    if (c.unsubscribed) { failed++; continue; }
     try {
-      var r = await fetch('/api/email-setup', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ action:'send', apiKey:apiKey, from:fromName+' <'+fromEmail+'>', to:c.email, subject:ps, text:pb }) });
+      var r = await fetch('/api/email-setup', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          action: 'send', apiKey: apiKey,
+          from: fromName + ' <' + fromEmail + '>',
+          to: c.email, subject: subject, text: body,
+          userId: uid, broadcastId: broadcastId, contactName: c.name || ''
+        })
+      });
       if (r.ok) sent++; else failed++;
     } catch(e) { failed++; }
     if (statusEl) statusEl.textContent = 'Sending… ' + (i+1) + ' / ' + contacts.length;
   }
-  var uid = window._currentUserUid;
+
   if (uid && window._db && window._doc && window._setDoc) {
-    try { await window._setDoc(window._doc(window._db,'users',uid,'broadcasts','broadcast_'+Date.now()), { subject:subject, segment:emBroadcastState.segment, sent:sent, failed:failed, total:contacts.length, sentAt:Date.now() }); } catch(e) {}
+    try { await window._setDoc(window._doc(window._db,'users',uid,'broadcasts',broadcastId), { sent: sent, failed: failed }, { merge: true }); } catch(e) {}
   }
+
   btn.disabled = false; btn.textContent = '📡 Send Broadcast';
   if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal);font-weight:700">✓ Done — ' + sent + ' sent' + (failed ? ', ' + failed + ' failed' : '') + '</span>';
   var subEl = document.getElementById('em-broadcast-subject'); if (subEl) subEl.value = '';
@@ -32069,13 +32092,26 @@ async function emBroadcastLoadHistory() {
   try {
     var snap = await window._getDocs(window._collection(window._db,'users',uid,'broadcasts'));
     var rows = [];
-    snap.forEach(function(d){ rows.push(d.data?d.data():d); });
-    rows.sort(function(a,b){ return b.sentAt-a.sentAt; });
+    snap.forEach(function(d){ var data = d.data ? d.data() : d; data._id = d.id; rows.push(data); });
+    rows.sort(function(a,b){ return (b.sentAt||0)-(a.sentAt||0); });
     if (!rows.length) { el.innerHTML = '<div style="font-size:13px;color:var(--dim);padding:20px 0">No broadcasts sent yet.</div>'; return; }
-    el.innerHTML = '<table class="em-table"><thead><tr><th>Subject</th><th>Segment</th><th>Sent</th><th>Date</th></tr></thead><tbody>'
-      + rows.slice(0,20).map(function(r){ return '<tr><td style="color:var(--white);font-weight:600">'+(r.subject||'—')+'</td><td>'+(r.segment||'all')+'</td><td><span style="color:var(--teal);font-weight:700">'+(r.sent||0)+'</span>/&nbsp;'+(r.total||0)+'</td><td>'+(r.sentAt?new Date(r.sentAt).toLocaleDateString():'—')+'</td></tr>'; }).join('')
+    el.innerHTML = '<table class="em-table"><thead><tr><th>Subject</th><th>Sent</th><th>Open Rate</th><th>Clicks</th><th>Bounces</th><th>Unsubs</th><th>Date</th></tr></thead><tbody>'
+      + rows.slice(0,20).map(function(r) {
+          var s = r.stats || {};
+          var openRate  = r.sent > 0 ? Math.round((s.opens||0)/r.sent*100)  + '%' : '—';
+          var clickRate = r.sent > 0 ? Math.round((s.clicks||0)/r.sent*100) + '%' : '—';
+          return '<tr>'
+            + '<td style="color:var(--white);font-weight:600">' + (r.subject||'—') + '</td>'
+            + '<td><span style="color:var(--teal);font-weight:700">' + (r.sent||0) + '</span>&nbsp;/&nbsp;' + (r.total||0) + '</td>'
+            + '<td style="color:#4ecca3;font-weight:700">' + openRate + ' <span style="color:var(--dim);font-weight:400;font-size:11px">(' + (s.opens||0) + ')</span></td>'
+            + '<td style="color:#a089ff;font-weight:700">' + clickRate + ' <span style="color:var(--dim);font-weight:400;font-size:11px">(' + (s.clicks||0) + ')</span></td>'
+            + '<td style="color:#f05a40;font-weight:700">' + (s.bounces||0) + '</td>'
+            + '<td style="color:var(--dim)">' + (s.unsubscribes||0) + '</td>'
+            + '<td>' + (r.sentAt ? new Date(r.sentAt).toLocaleDateString() : '—') + '</td>'
+            + '</tr>';
+        }).join('')
       + '</tbody></table>';
-  } catch(e) {}
+  } catch(e) { console.warn('[emBroadcastLoadHistory]', e.message); }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
