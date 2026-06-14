@@ -7662,6 +7662,9 @@ button[onclick="generateOffer()"] {
 
         <div id="vpe-find-status" style="font-size:12px;color:var(--teal);margin-top:12px;display:none"></div>
         <div id="vpe-questions-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px"></div>
+        <div id="vpe-load-more-row" style="display:none;text-align:center;margin-top:12px">
+          <button onclick="vpeLoadMore()" id="vpe-load-more-btn" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--r-md);padding:9px 24px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">+ Load More Questions</button>
+        </div>
       </div>
 
       <!-- Step 2 -->
@@ -7682,6 +7685,8 @@ button[onclick="generateOffer()"] {
             <button onclick="vpeSetPlatform(this,'medium')" class="vpe-plat-btn" data-plat="medium">Medium</button>
             <button onclick="vpeSetPlatform(this,'facebook')" class="vpe-plat-btn" data-plat="facebook">Facebook</button>
             <button onclick="vpeSetPlatform(this,'x')" class="vpe-plat-btn" data-plat="x">X Thread</button>
+            <button onclick="vpeSetPlatform(this,'email')" class="vpe-plat-btn" data-plat="email">📧 Email</button>
+            <button onclick="vpeSetPlatform(this,'instagram')" class="vpe-plat-btn" data-plat="instagram">📸 Instagram</button>
           </div>
         </div>
         <button onclick="vpeGenerate()" id="vpe-gen-btn" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:13px 32px;color:var(--text-dark);font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">✍️ Write My Post</button>
@@ -7722,6 +7727,8 @@ button[onclick="generateOffer()"] {
             <button onclick="vpeAdapt('medium')" class="vpe-adapt-btn">Medium</button>
             <button onclick="vpeAdapt('facebook')" class="vpe-adapt-btn">Facebook</button>
             <button onclick="vpeAdapt('x')" class="vpe-adapt-btn">X Thread</button>
+            <button onclick="vpeAdapt('email')" class="vpe-adapt-btn">📧 Email</button>
+            <button onclick="vpeAdapt('instagram')" class="vpe-adapt-btn">📸 Instagram</button>
           </div>
         </div>
       </div>
@@ -42540,10 +42547,12 @@ var VPE_PLATFORM_RULES = {
   linkedin: 'LinkedIn: Professional, thought leadership. Data and specifics build credibility. One clear CTA at the end. 3-5 hashtags max.',
   medium:   'Medium: Long-form, narrative, SEO-structured. Clear headers. Original insight only — no generic rehashed advice. Soft CTA at end.',
   facebook: 'Facebook: Warm, personal, community-first. Open with a relatable story or honest statement. Build emotion and trust before any CTA. 300-500 words. No hard sell. Max 2 hashtags. End with a soft question or CTA.',
-  x:        'X (Twitter): 8-12 tweet thread. Hook tweet must stop the scroll. Each tweet under 280 characters. CTA only on final tweet. 1-2 hashtags max.'
+  x:        'X (Twitter): 8-12 tweet thread. Hook tweet must stop the scroll. Each tweet under 280 characters. CTA only on final tweet. 1-2 hashtags max.',
+  instagram: 'Instagram Caption: 150-300 words max. First line MUST hook before the fold — make it impossible not to tap More. Core insight in 3-4 short punchy paragraphs. Direct CTA at the end — follow, comment, DM, click link in bio. 5-8 relevant hashtags on a new line at the end. No bullet points. No em dashes. Write like a real person, not a brand.',
+  email:    'Email Newsletter/Broadcast: Subject line as first line (make it impossible to ignore — curiosity, specificity or bold claim). 300-600 words max. One topic only — do not cover multiple things. Short paragraphs, 2-3 lines max. One clear CTA link at the end. No hashtags. Write like you are talking to one person. PS line at the end — always. Sign off with a real name.'
 };
 
-var VPE_PLATFORM_LABELS = { quora:'Quora Answer', reddit:'Reddit Post', linkedin:'LinkedIn Article', medium:'Medium Article', facebook:'Facebook Post', x:'X Thread' };
+var VPE_PLATFORM_LABELS = { quora:'Quora Answer', reddit:'Reddit Post', linkedin:'LinkedIn Article', medium:'Medium Article', facebook:'Facebook Post', x:'X Thread', email:'Email Broadcast', instagram:'Instagram Caption' };
 
 function vpeGetIntel() {
   var mode = window._appMode || 'expert';
@@ -42606,6 +42615,9 @@ async function vpeFindQuestions() {
       ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live results — Reddit, Quora, Google, YouTube &amp; X (last 12 months)</span>'
       : '<span style="color:#F5C842;font-weight:700;font-size:11px">⚡ Generated from niche knowledge</span>';
     if (status) status.innerHTML = '✅ Found '+questions.length+' questions &nbsp;·&nbsp;'+sourceLabel;
+    var lmRow = document.getElementById('vpe-load-more-row');
+    if (lmRow) { lmRow.style.display='block'; }
+    _vpeLoadMorePage = 1;
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
         var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
@@ -42684,7 +42696,9 @@ async function vpeWrite(platform, topic) {
     linkedin: 'Write a LinkedIn post (400-700 words) — NOT an article, a status post. Short punchy paragraphs, 2 lines max each. Open with ONE line that stops the scroll — a bold claim, a real number, or a contrarian truth. Build the argument point by point. End with a direct specific CTA. 2-3 hashtags only.',
     medium:   'Write a Medium article (900-1400 words). Compelling headline as first line. Clear section breaks with ---. Narrative storytelling mixed with tactical specifics. Soft CTA at end.',
     facebook: 'Write a Facebook post (300-500 words). Personal and warm — like a trusted friend sharing something real. Open with a relatable situation or honest confession. Build genuine insight. End with a soft question that invites comments. Max 2 hashtags.',
-    x:        'Write an X thread of 8-10 tweets. Tweet 1 must stop the scroll — bold claim, surprising stat, or provocative question. Each tweet under 280 characters, each earns the next. Last tweet is the CTA. Number each (1/ 2/ etc). Max 2 hashtags total.'
+    x:        'Write an X thread of 8-10 tweets. Tweet 1 must stop the scroll — bold claim, surprising stat, or provocative question. Each tweet under 280 characters, each earns the next. Last tweet is the CTA. Number each (1/ 2/ etc). Max 2 hashtags total.',
+    instagram: 'Write an Instagram caption (150-300 words). Line 1 is the hook — one sentence that makes someone stop scrolling and tap More. It must be bold, specific, or slightly provocative. Do NOT start with your name or a generic greeting. Lines 2-5 are the core insight — short paragraphs, 1-2 sentences each. Make them feel something or learn something real. Last paragraph is a direct CTA — tell them exactly what to do: comment a word, DM you, click the link in bio. Then a blank line, then 5-8 hashtags on their own line. No hashtag spam — only relevant ones. Write like a real person sharing a genuine insight, not a brand posting content.',
+    email:    'Write an email broadcast (300-600 words). First line is the subject line formatted as: SUBJECT: [subject here]. Then a blank line. Then the email body. Open with one line that makes them want to keep reading — a bold claim, a surprising result, or a story hook. Short paragraphs. One topic only. One CTA link at the end — clear and direct. Close with your name. Add a PS line that reinforces the CTA or adds one more hook. No hashtags. No HTML — plain text only. Write like you are talking to one person.'
   };
 
   var aiPrompt = [
@@ -42724,7 +42738,7 @@ async function vpeWrite(platform, topic) {
   try {
     var resp = await fetch(window.location.origin+'/api/claude', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens: platform==='linkedin'||platform==='medium'?4000:2500, messages:[{role:'user',content:aiPrompt}] })
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens: platform==='linkedin'||platform==='medium'||platform==='email'?4000:2500, messages:[{role:'user',content:aiPrompt}] })
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
@@ -43458,6 +43472,8 @@ async function vpeKeywordSearch() {
     var questions = data.questions||[];
     _vpeState.questions = questions;
     var src = data.source==='live' ? '🟢 Live results for "'+keyword+'"' : '⚡ Generated for "'+keyword+'"';
+    var lmRow2 = document.getElementById('vpe-load-more-row'); if (lmRow2) lmRow2.style.display='block';
+    _vpeLoadMorePage = 1;
     if (status) status.innerHTML = '✅ Found '+questions.length+' questions &nbsp;·&nbsp; <span style="color:var(--teal);font-weight:700">'+src+'</span>';
     if (grid && questions.length) {
       grid.innerHTML = questions.map(function(q,i){
@@ -43486,6 +43502,78 @@ setTimeout(function(){
   if (inp) inp.addEventListener('keydown',function(e){ if(e.key==='Enter') vpeKeywordSearch(); });
 },1200);
 window.vpeKeywordSearch = vpeKeywordSearch;
+
+// ── Load More Questions ───────────────────────────────────────────────────────
+var _vpeLoadMorePage = 1;
+
+async function vpeLoadMore() {
+  var btn    = document.getElementById('vpe-load-more-btn');
+  var grid   = document.getElementById('vpe-questions-grid');
+  var status = document.getElementById('vpe-find-status');
+  if (btn) { btn.textContent='Loading…'; btn.disabled=true; }
+
+  var existingQuestions = _vpeState.questions.map(function(q){ return q.question; });
+  var isKeyword   = !!document.getElementById('vpe-keyword-input').value.trim();
+  var searchTerm  = isKeyword
+    ? document.getElementById('vpe-keyword-input').value.trim()
+    : (_vpeState.niche || vpeGetIntel());
+
+  _vpeLoadMorePage++;
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/vpe-questions', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        niche:     searchTerm,
+        intel:     vpeGetIntel(),
+        mode:      window._appMode || 'expert',
+        keyword:   isKeyword ? searchTerm : '',
+        isKeyword: isKeyword,
+        page:      _vpeLoadMorePage,
+        exclude:   existingQuestions, // tell backend what's already shown
+      })
+    });
+    var data      = await resp.json();
+    var newQs     = (data.questions || []).filter(function(q) {
+      // Filter out any that are too similar to existing ones
+      return !existingQuestions.some(function(existing) {
+        return existing.toLowerCase().includes(q.question.toLowerCase().substring(0, 30))
+          || q.question.toLowerCase().includes(existing.toLowerCase().substring(0, 30));
+      });
+    });
+
+    if (newQs.length === 0) {
+      if (btn) { btn.textContent='No more questions found'; btn.disabled=true; }
+      return;
+    }
+
+    var startIdx = _vpeState.questions.length;
+    _vpeState.questions = _vpeState.questions.concat(newQs);
+
+    newQs.forEach(function(q, i) {
+      var idx = startIdx + i;
+      var pc  = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform]||'var(--dim)';
+      var lnk = q.url ? '<a href="'+q.url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px">View →</a>' : '';
+      var card = document.createElement('div');
+      card.className = 'vpe-q-card';
+      card.onclick   = function(){ vpeSelectQuestion(card, idx); };
+      card.innerHTML = '<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">'+q.question+'</div>'
+        +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">'+q.why+'</div>':'')
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
+        +'<span style="font-size:10px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">'+(q.platform||'web')+'</span>'
+        +(q.year?'<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">'+q.year+'</span>':'')
+        +'<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">'+(q.intent==='commercial'?'💰 buyer':'ℹ️ info')+'</span>'
+        +lnk+'</div>';
+      if (grid) grid.appendChild(card);
+    });
+
+    if (status) status.innerHTML = '✅ ' + _vpeState.questions.length + ' questions total';
+  } catch(e) {
+    if (btn) { btn.textContent='Failed. Try again.'; }
+  }
+  if (btn) { btn.textContent='+ Load More Questions'; btn.disabled=false; }
+}
+window.vpeLoadMore = vpeLoadMore;
 
 </script>
 </body>
