@@ -350,7 +350,8 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
           <div class="kpi rose"><div class="kpi-accent"></div><div class="kpi-val" id="m-trial">—</div><div class="kpi-label">On Trial</div><div class="kpi-sub" id="m-trial-sub">7-day trial</div></div>
         </div>
 
-        <div class="kpi-grid kpi-grid-3" style="margin-bottom:12px">
+        <div class="kpi-grid kpi-grid-4" style="margin-bottom:12px">
+          <div class="kpi sky"><div class="kpi-accent"></div><div class="kpi-val" id="m-leads">—</div><div class="kpi-label">New Leads</div><div class="kpi-sub" id="m-leads-sub">Loading…</div></div>
           <div class="kpi sky"><div class="kpi-accent"></div><div class="kpi-val" id="m-visitors">—</div><div class="kpi-label">Estimated Visits</div><div class="kpi-sub">Page sessions tracked</div></div>
           <div class="kpi teal"><div class="kpi-accent"></div><div class="kpi-val" id="m-deals">—</div><div class="kpi-label">Deals Closed</div><div class="kpi-sub">Via daily tracker</div></div>
           <div class="kpi violet"><div class="kpi-accent"></div><div class="kpi-val" id="m-cancelled">—</div><div class="kpi-label">Cancelled</div><div class="kpi-sub">Churn tracked</div></div>
@@ -421,8 +422,8 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
             <button class="btn btn-primary" onclick="exportAllLeads()">⬇ Export CSV</button>
           </div>
           <div class="tbl-wrap">
-            <table><thead><tr><th>Email</th><th>Name</th><th>Source</th><th>Funnel / Page</th><th>Member</th><th>Date</th><th>Status</th></tr></thead>
-            <tbody id="fn-leads-tbody"><tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">Loading leads…</td></tr></tbody></table>
+            <table><thead><tr><th>Email</th><th>Name</th><th>Source</th><th>Funnel / Page</th><th>Country</th><th>Member</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="fn-leads-tbody"><tr><td colspan="8" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">Loading leads…</td></tr></tbody></table>
           </div>
         </div>
       </div>
@@ -714,6 +715,37 @@ function fmtDate(ts) {
 function fmtMoney(n) { return n>=1000 ? '$'+(n/1000).toFixed(1)+'k' : '$'+n; }
 function planPrice(plan) { return {starter:17,pro:29,elite:59,trial:0,cancelled:0}[plan]||0; }
 
+// ── Period filtering — converts a Firestore timestamp/doc into a JS Date,
+// then checks if it falls within the currently selected period (today/week/month/year=all time) ──
+function getDateMs(ts) {
+  if (!ts) return null;
+  if (ts.seconds) return ts.seconds * 1000;
+  if (typeof ts === 'number') return ts;
+  const d = new Date(ts);
+  return isNaN(d.getTime()) ? null : d.getTime();
+}
+function isInPeriod(ts, period) {
+  const ms = getDateMs(ts);
+  if (ms === null) return false;
+  if (period === 'year') return true; // "All Time" tab
+  const now = new Date();
+  const itemDate = new Date(ms);
+  if (period === 'today') {
+    return itemDate.toDateString() === now.toDateString();
+  }
+  if (period === 'week') {
+    const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7);
+    return ms >= weekAgo.getTime();
+  }
+  if (period === 'month') {
+    return itemDate.getMonth() === now.getMonth() && itemDate.getFullYear() === now.getFullYear();
+  }
+  return true;
+}
+function periodLabel(period) {
+  return {today:'today', week:'this week', month:'this month', year:'all time'}[period] || 'today';
+}
+
 function planChip(plan) {
   const c = plan||'trial';
   const map = {starter:'chip-teal',pro:'chip-violet',elite:'chip-gold',trial:'chip-dim',cancelled:'chip-rose'};
@@ -757,6 +789,7 @@ function watchLeadsLive() {
       snap.forEach(d => allLeads.push({ id: d.id, ...d.data() }));
       renderLeadsTable();
       renderTraffic();
+      renderOverview();
       const sub = document.getElementById('fn-leads-sub');
       if (sub) sub.textContent = `${allLeads.length} total leads captured — live`;
     }, (err) => {
@@ -799,16 +832,22 @@ function renderAllSections() {
 
 // ── OVERVIEW ──
 function renderOverview() {
-  const total    = allUsers.length;
-  const paid     = allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).length;
-  const trial    = allUsers.filter(u=>!u.plan||u.plan==='trial').length;
-  const cancelled= allUsers.filter(u=>u.plan==='cancelled').length;
-  const revenue  = allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).reduce((s,u)=>s+planPrice(u.plan),0);
-  const deals    = allUsers.reduce((s,u)=>s+(u.trackerDeals||0),0);
+  const periodUsers = allUsers.filter(u => isInPeriod(u.createdAt, currentPeriod));
+  const periodLeads = allLeads.filter(l => isInPeriod(l.createdAt, currentPeriod));
+
+  const total      = allUsers.length;
+  const newUsers    = periodUsers.length;
+  const paid       = allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).length;
+  const trial      = allUsers.filter(u=>!u.plan||u.plan==='trial').length;
+  const cancelled  = allUsers.filter(u=>u.plan==='cancelled').length;
+  const cancelledInPeriod = periodUsers.filter(u=>u.plan==='cancelled').length;
+  const revenue    = allUsers.filter(u=>['starter','pro','elite'].includes(u.plan)).reduce((s,u)=>s+planPrice(u.plan),0);
+  const deals      = allUsers.reduce((s,u)=>s+(u.trackerDeals||0),0);
+  const newLeads    = periodLeads.length;
 
   document.getElementById('m-total-users').textContent = total;
   document.getElementById('m-users-sub').textContent   = `${paid} paid · ${trial} trial`;
-  document.getElementById('m-users-trend').textContent = `+${total}`;
+  document.getElementById('m-users-trend').textContent = `+${newUsers} ${periodLabel(currentPeriod)}`;
   document.getElementById('m-revenue').textContent     = fmtMoney(revenue);
   document.getElementById('m-revenue-sub').textContent = 'Monthly recurring';
   document.getElementById('m-revenue-trend').textContent = 'MRR';
@@ -816,9 +855,11 @@ function renderOverview() {
   document.getElementById('m-paid-sub').textContent    = `${Math.round(paid/Math.max(total,1)*100)}% of total`;
   document.getElementById('m-trial').textContent       = trial;
   document.getElementById('m-trial-sub').textContent   = 'In 7-day trial';
+  document.getElementById('m-leads').textContent       = newLeads;
+  document.getElementById('m-leads-sub').textContent   = `New leads ${periodLabel(currentPeriod)}`;
   document.getElementById('m-visitors').textContent    = Math.max(total*8,10)+'+';
   document.getElementById('m-deals').textContent       = deals;
-  document.getElementById('m-cancelled').textContent   = cancelled;
+  document.getElementById('m-cancelled').textContent   = currentPeriod==='year' ? cancelled : cancelledInPeriod;
 
   document.getElementById('recent-tbody').innerHTML = allUsers.length
     ? allUsers.slice(0,8).map(u=>`<tr><td class="td-name">${u.name||'—'}</td><td class="td-email">${u.email||'—'}</td><td>${modeChip(u.appMode)}</td><td>${planChip(u.plan)}</td><td>${u.country||'—'}</td><td>${fmtDate(u.createdAt)}</td><td>${statusDot(u.plan)}</td></tr>`).join('')
@@ -1126,7 +1167,7 @@ function renderLeadsTable() {
   if (!tbody) return;
   if (sub) sub.textContent = `${allLeads.length} total leads captured`;
   if (!allLeads.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem">No leads yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--dim);padding:2rem">No leads yet.</td></tr>';
     return;
   }
   tbody.innerHTML = allLeads.map(l=>{
@@ -1140,6 +1181,7 @@ function renderLeadsTable() {
       <td>${l.name||'—'}</td>
       <td><span class="chip ${source==='grow.html'?'chip-teal':'chip-violet'}">${source}</span></td>
       <td class="td-email">${page}</td>
+      <td class="td-email">${l.country||'—'}</td>
       <td class="td-email">${member}</td>
       <td class="td-email">${date}</td>
       <td>${isMember?'<span class="chip chip-teal">✅ Member</span>':'<span class="chip chip-dim">⏳ Lead</span>'}</td>
@@ -1148,8 +1190,8 @@ function renderLeadsTable() {
 }
 window.exportAllLeads = function() {
   if (!allLeads.length) { alert('No leads to export.'); return; }
-  const rows = [['Email','Name','Source','Funnel/Page','Date']];
-  allLeads.forEach(l=>rows.push([l.email||'',l.name||'',l.funnelId?'Member Funnel':(l.page||l.source||'grow.html'),l.funnelId?(l.pageId||'landing'):(l.page||l.source||'landing'),l.createdAt?.seconds?new Date(l.createdAt.seconds*1000).toLocaleDateString():(l.date||'')]));
+  const rows = [['Email','Name','Source','Funnel/Page','Country','Date']];
+  allLeads.forEach(l=>rows.push([l.email||'',l.name||'',l.funnelId?'Member Funnel':(l.page||l.source||'grow.html'),l.funnelId?(l.pageId||'landing'):(l.page||l.source||'landing'),l.country||'',l.createdAt?.seconds?new Date(l.createdAt.seconds*1000).toLocaleDateString():(l.date||'')]));
   const csv = rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
   const a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='eos-all-leads.csv'; a.click();
 };
