@@ -368,36 +368,58 @@ function submitOptin() {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.style.display='block'; err.textContent='Please enter a valid email address.'; return; }
   err.style.display = 'none';
 
-  btn.textContent  = '⏳ Unlocking your video…';
+  btn.textContent  = '⏳ Verifying your email…';
   btn.disabled     = true;
 
-  // Save lead — retry up to 3 times silently so no lead is ever lost
+  function unlockPage() {
+    document.getElementById('optin-popup').style.display  = 'none';
+    document.getElementById('optin-gate').style.display   = 'none';
+    document.getElementById('main-content').style.display = 'block';
+    try { localStorage.setItem('eos_partnership_optin', '1'); } catch(e){}
+    setTimeout(function() {
+      document.getElementById('main-content').style.opacity = '1';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  }
+
+  function resetButton() {
+    btn.textContent = '🔓 Unlock My Free Training';
+    btn.disabled     = false;
+  }
+
+  // Save lead — server verifies the email is real before saving; retry on network failure only
   function saveLead(attempt) {
     fetch('/api/funnel-lead', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name, email: email, source: 'partnership-optin', page: 'partnership' })
     }).then(function(r) {
-      if (!r.ok && attempt < 3) setTimeout(function(){ saveLead(attempt + 1); }, 1500);
+      if (r.status === 400) {
+        // Email rejected as invalid/undeliverable — show the message and let them fix it
+        return r.json().then(function(data) {
+          err.style.display = 'block';
+          err.textContent   = data.error || 'That email looks invalid. Please double-check it.';
+          resetButton();
+        });
+      }
+      if (!r.ok) {
+        if (attempt < 3) return setTimeout(function(){ saveLead(attempt + 1); }, 1500);
+        err.style.display = 'block';
+        err.textContent   = "Something went wrong. Please try again.";
+        resetButton();
+        return;
+      }
+      // Success — unlock the page
+      btn.textContent = '✅ Unlocking your video…';
+      setTimeout(unlockPage, 500);
     }).catch(function() {
-      if (attempt < 3) setTimeout(function(){ saveLead(attempt + 1); }, 1500);
-      else console.warn('[EOS] Lead save failed after 3 attempts — email:', email);
+      if (attempt < 3) return setTimeout(function(){ saveLead(attempt + 1); }, 1500);
+      err.style.display = 'block';
+      err.textContent   = "Connection issue. Please check your internet and try again.";
+      resetButton();
     });
   }
   saveLead(1);
-
-  // Unlock the page immediately — don't wait for API
-  setTimeout(function() {
-    document.getElementById('optin-popup').style.display  = 'none';
-    document.getElementById('optin-gate').style.display   = 'none';
-    document.getElementById('main-content').style.display = 'block';
-    // Save flag so returning visitors skip the gate
-    try { localStorage.setItem('eos_partnership_optin', '1'); } catch(e){}
-    setTimeout(function() {
-      document.getElementById('main-content').style.opacity = '1';
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, 50);
-  }, 800);
 }
 
 // ── Check on page load — skip gate for returning visitors ──────────────────
