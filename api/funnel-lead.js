@@ -276,7 +276,7 @@ function buildWelcomeEmail(name) {
         <strong style="color:#ffffff;">did something about it.</strong>
       </p>
 
-      <a href="https://build.skillslibrary.com/partnership"
+      <a href="https://build.skillslibry.com/partnership"
          style="display:inline-block;background:linear-gradient(135deg,#F5C842,#f59e0b);color:#080808;
                 font-size:16px;font-weight:900;padding:18px 48px;border-radius:12px;
                 text-decoration:none;letter-spacing:.02em;margin-bottom:20px;">
