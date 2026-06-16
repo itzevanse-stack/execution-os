@@ -37,17 +37,18 @@ export default async function handler(req, res) {
       );
       const verifyData = await verifyRes.json();
 
-      const deliverable = verifyData?.deliverability === 'DELIVERABLE';
-      const isDisposable = verifyData?.is_disposable_email?.value === true;
-      const validFormat  = verifyData?.is_valid_format?.value !== false;
+      const deliverability = verifyData?.deliverability; // 'DELIVERABLE' | 'UNDELIVERABLE' | 'RISKY' | 'UNKNOWN'
+      const isDisposable   = verifyData?.is_disposable_email?.value === true;
+      const validFormat    = verifyData?.is_valid_format?.value !== false;
 
-      if (!validFormat || isDisposable || deliverable === false) {
-        console.log(`[funnel-lead] Rejected email ${normEmail} — deliverability: ${verifyData?.deliverability}, disposable: ${isDisposable}`);
+      if (!validFormat || isDisposable || deliverability === 'UNDELIVERABLE') {
+        console.log(`[funnel-lead] Rejected email ${normEmail} — deliverability: ${deliverability}, disposable: ${isDisposable}`);
         return res.status(400).json({
           error: 'This email address looks invalid or undeliverable. Please double-check and try again.',
         });
       }
-      // 'UNKNOWN' deliverability (e.g. catch-all domains) is allowed through — only hard-block confirmed bad emails
+      // 'DELIVERABLE', 'RISKY', and 'UNKNOWN' (e.g. catch-all domains like Gmail/Outlook) are all allowed through —
+      // only hard-block confirmed bad format, disposable addresses, or explicitly UNDELIVERABLE emails
     } catch (verifyErr) {
       // Verification service failure is non-fatal — don't block real leads over an API outage
       console.warn('[funnel-lead] Email verification check failed (non-fatal):', verifyErr.message);
