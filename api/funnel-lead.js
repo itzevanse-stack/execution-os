@@ -50,7 +50,7 @@ export default async function handler(req, res) {
 
     // ── 2. Send Day 1 welcome email immediately ───────────────────────────────
     const emailResult = await resend.emails.send({
-      from:    'Execution OS <hello@executionos.com>',
+      from:    'Execution OS <hello@build.skillslibry.com>',
       to:      normEmail,
       subject: `${name}, your free access is ready — watch this now`,
       html:    buildWelcomeEmail(name),
@@ -146,7 +146,7 @@ async function enqueueSequenceSteps({ name, email, source, page, leadId, userId 
       // ── Fix 4: Use user's key if available, fall back to platform key ─────
       const resendKey   = sender.resendApiKey || process.env.RESEND_API_KEY || '';
       const senderName  = sender.name  || 'Execution OS';
-      const senderEmail = sender.email || 'hello@executionos.com';
+      const senderEmail = sender.email || 'hello@build.skillslibry.com';
 
       if (!resendKey) {
         console.error(`[funnel-lead] No Resend key available for user ${uid} — sequence skipped`);
