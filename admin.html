@@ -683,7 +683,7 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
@@ -746,7 +746,27 @@ onAuthStateChanged(auth, async (user) => {
   document.getElementById('admin-name').textContent = user.displayName || user.email.split('@')[0];
   document.getElementById('admin-av').textContent = (user.displayName || user.email)[0].toUpperCase();
   await loadAllData();
+  watchLeadsLive();
 });
+
+// ── Live leads listener — new opt-ins appear instantly, no refresh needed ──
+function watchLeadsLive() {
+  try {
+    const leadsQuery = query(collection(db, 'leads'), orderBy('createdAt', 'desc'));
+    onSnapshot(leadsQuery, (snap) => {
+      allLeads = [];
+      snap.forEach(d => allLeads.push({ id: d.id, ...d.data() }));
+      renderLeadsTable();
+      renderTraffic();
+      const sub = document.getElementById('fn-leads-sub');
+      if (sub) sub.textContent = `${allLeads.length} total leads captured — live`;
+    }, (err) => {
+      console.error('[admin] Live leads listener error:', err.message);
+    });
+  } catch(e) {
+    console.error('[admin] Failed to start leads listener:', e.message);
+  }
+}
 
 async function loadAllData() {
   try {
@@ -759,6 +779,7 @@ async function loadAllData() {
     allUsers.sort((a, b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
     allLeads = [];
     leadsSnap.docs.forEach(d => allLeads.push({ id: d.id, ...d.data() }));
+    allLeads.sort((a, b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
     renderAllSections();
   } catch(e) { console.error('Error loading data:', e); }
 }
@@ -774,6 +795,7 @@ function renderAllSections() {
   renderOverview(); renderRevenue(); renderUsers();
   renderEmails(); renderTracker(); renderActivity();
   renderGeo(); renderTraffic(); renderFunnelsOverview();
+  renderLeadsTable();
 }
 
 // ── OVERVIEW ──
@@ -1110,7 +1132,7 @@ function renderLeadsTable() {
   }
   tbody.innerHTML = allLeads.map(l=>{
     const isMember = allMembers.some(m=>(m.email||'').toLowerCase()===(l.email||'').toLowerCase());
-    const date     = l.createdAt?new Date(l.createdAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}):(l.date||'—');
+    const date     = l.createdAt?.seconds ? new Date(l.createdAt.seconds*1000).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : (l.date||'—');
     const source   = l.funnelId?'Member Funnel':'grow.html';
     const page     = l.funnelId?(l.pageId||'landing'):'grow.html';
     const member   = l.uid?(allMembers.find(m=>m.id===l.uid||m.email===l.uid)?.name||l.uid.substring(0,8)+'…'):'Your page';
