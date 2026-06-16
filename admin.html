@@ -303,7 +303,7 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
       <div class="sb-item" onclick="showSection('partners',this)"><div class="sb-icon">⊞</div>Partners</div>
 
       <div class="sb-section">Content</div>
-      <div class="sb-item" onclick="showSection('funnels',this)"><div class="sb-icon">⬟</div>Funnels &amp; Analytics</div>
+      <div class="sb-item" onclick="showSection('funnels',this)"><div class="sb-icon">⬟</div>Funnel Performance</div>
       <div class="sb-item" onclick="showSection('tracker',this)"><div class="sb-icon">▣</div>Tracker Data</div>
     </nav>
 
@@ -410,9 +410,20 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
           <div class="kpi gold"><div class="kpi-accent"></div><div class="kpi-val" id="tr-conversion">—</div><div class="kpi-label">Conversion Rate</div></div>
           <div class="kpi rose"><div class="kpi-accent"></div><div class="kpi-val" id="tr-paid-conversion">—</div><div class="kpi-label">Trial → Paid</div></div>
         </div>
-        <div class="card">
+        <div class="card" style="margin-bottom:12px">
           <div class="card-head"><div><div class="card-title">Signup Sources</div><div class="card-sub">Where users are coming from</div></div></div>
           <div class="card-body"><div id="source-bars" style="display:flex;flex-direction:column;gap:12px"></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div><div class="card-title">📧 All Captured Leads</div><div class="card-sub" id="fn-leads-sub">From grow.html, partnership.html, and all member funnels</div></div>
+            <button class="btn btn-primary" onclick="exportAllLeads()">⬇ Export CSV</button>
+          </div>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>Email</th><th>Name</th><th>Source</th><th>Funnel / Page</th><th>Member</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody id="fn-leads-tbody"><tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">Loading leads…</td></tr></tbody></table>
+          </div>
         </div>
       </div>
 
@@ -663,18 +674,6 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
             <tbody id="fn-funnels-tbody"><tr><td colspan="9" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">Click "Load Funnels" to fetch data</td></tr></tbody></table>
           </div>
         </div>
-
-        <div class="card">
-          <div class="card-head">
-            <div><div class="card-title">📧 All Captured Leads</div><div class="card-sub" id="fn-leads-sub">From grow.html and all member funnels</div></div>
-            <button class="btn btn-primary" onclick="exportAllLeads()">⬇ Export CSV</button>
-          </div>
-          <div class="tbl-wrap">
-            <table><thead><tr><th>Email</th><th>Name</th><th>Source</th><th>Funnel / Page</th><th>Member</th><th>Date</th><th>Status</th></tr></thead>
-            <tbody id="fn-leads-tbody"><tr><td colspan="7" style="text-align:center;color:var(--dim);padding:2rem;font-size:12px">Loading leads…</td></tr></tbody></table>
-          </div>
-        </div>
-      </div>
 
     </div><!-- /content -->
   </main>
@@ -1133,8 +1132,8 @@ function renderLeadsTable() {
   tbody.innerHTML = allLeads.map(l=>{
     const isMember = allMembers.some(m=>(m.email||'').toLowerCase()===(l.email||'').toLowerCase());
     const date     = l.createdAt?.seconds ? new Date(l.createdAt.seconds*1000).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : (l.date||'—');
-    const source   = l.funnelId?'Member Funnel':'grow.html';
-    const page     = l.funnelId?(l.pageId||'landing'):'grow.html';
+    const source   = l.funnelId ? 'Member Funnel' : (l.page || l.source || 'grow.html');
+    const page     = l.funnelId ? (l.pageId||'landing') : (l.page || l.source || 'grow.html');
     const member   = l.uid?(allMembers.find(m=>m.id===l.uid||m.email===l.uid)?.name||l.uid.substring(0,8)+'…'):'Your page';
     return `<tr>
       <td style="color:var(--white);font-weight:600">${l.email||'—'}</td>
@@ -1150,7 +1149,7 @@ function renderLeadsTable() {
 window.exportAllLeads = function() {
   if (!allLeads.length) { alert('No leads to export.'); return; }
   const rows = [['Email','Name','Source','Funnel/Page','Date']];
-  allLeads.forEach(l=>rows.push([l.email||'',l.name||'',l.funnelId?'Member Funnel':'grow.html',l.pageId||'landing',l.createdAt?new Date(l.createdAt).toLocaleDateString():(l.date||'')]));
+  allLeads.forEach(l=>rows.push([l.email||'',l.name||'',l.funnelId?'Member Funnel':(l.page||l.source||'grow.html'),l.funnelId?(l.pageId||'landing'):(l.page||l.source||'landing'),l.createdAt?.seconds?new Date(l.createdAt.seconds*1000).toLocaleDateString():(l.date||'')]));
   const csv = rows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
   const a = document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download='eos-all-leads.csv'; a.click();
 };
@@ -1160,12 +1159,12 @@ const sectionMeta = {
   overview: {title:'Dashboard',sub:'Real-time data from your Execution OS platform'},
   access:   {title:'Access Management',sub:'Activate users and manage member access'},
   revenue:  {title:'Revenue Analytics',sub:'Subscription revenue, MRR, ARR and deal tracking'},
-  traffic:  {title:'Traffic & Leads',sub:'Visitors, signups, and conversion rates'},
+  traffic:  {title:'Traffic & Leads',sub:'Visitors, signups, conversion rates, and every captured lead'},
   users:    {title:'All Users',sub:'Manage and view all your platform users'},
   activity: {title:'Live Activity',sub:'Real-time user actions and events'},
   geo:      {title:'Geography',sub:'Where your users are in the world'},
   emails:   {title:'Email Contacts',sub:'All captured emails for outreach and marketing'},
-  funnels:  {title:'Funnels & Analytics',sub:'Published funnels, leads captured, and conversion rates'},
+  funnels:  {title:'Funnel Performance',sub:'Published funnels, views, and conversion rates per funnel'},
   tracker:  {title:'Tracker Data',sub:'Daily tracker activity and revenue generated by users'},
   partners: {title:'Alliance Partners',sub:'Everyone who joined through the partnership page'},
   copecart: {title:'CopeCart Sales',sub:'Every sale reported in real time via webhook'},
@@ -1183,7 +1182,8 @@ window.showSection = function(name, el) {
   if (name==='access')   loadMembers();
   if (name==='partners') loadAlliancePartners();
   if (name==='copecart') loadCopecartSales();
-  if (name==='funnels')  { renderFunnelsOverview(); renderLeadsTable(); loadAllFunnels(); }
+  if (name==='traffic')  renderLeadsTable();
+  if (name==='funnels')  { renderFunnelsOverview(); loadAllFunnels(); }
 };
 
 window.setPeriod = function(period, el) {
