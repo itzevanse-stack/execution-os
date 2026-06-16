@@ -8941,39 +8941,10 @@ button[onclick="generateOffer()"] {
     <!-- ── SETTINGS TAB ── -->
     <div id="em-view-settings" style="display:none">
 
-      <!-- Step 1: Resend API Key -->
-      <div class="em-sender-card" id="em-resend-card">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px">
-          <div>
-            <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🔑 Step 1 — Connect Resend</div>
-            <div style="font-size:12px;color:var(--dim)">Resend sends your campaigns. Free plan = 3,000 emails/month.</div>
-          </div>
-          <div id="em-resend-status-badge"></div>
-        </div>
-        <div id="em-resend-setup" style="margin-top:14px">
-          <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px;margin-bottom:12px;font-size:11px;color:var(--muted);line-height:1.9">
-            1. Go to <a href="https://resend.com" target="_blank" style="color:var(--teal);font-weight:700">resend.com</a> → create a free account<br>
-            2. Click <strong style="color:var(--white)">API Keys</strong> → <strong style="color:var(--white)">Create API Key</strong><br>
-            3. Copy the key and paste it below
-          </div>
-          <div style="display:flex;gap:8px">
-            <input class="fi" id="em-resend-key" type="password" placeholder="re_xxxxxxxxxxxxxxxxxxxxxxxx" style="flex:1;font-family:monospace" />
-            <button onclick="emConnectResend()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);padding:10px 18px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap">Connect →</button>
-          </div>
-          <div id="em-resend-connect-status" style="font-size:11px;margin-top:6px"></div>
-        </div>
-        <div id="em-resend-connected" style="display:none;margin-top:12px">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
-            <div style="font-size:12px;color:var(--teal);font-weight:700">✅ Resend connected</div>
-            <button onclick="emDisconnectResend()" style="background:rgba(255,91,91,.08);border:1px solid rgba(255,91,91,.2);border-radius:6px;padding:5px 12px;color:#ff5b5b;font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">Disconnect</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 2: Verify sending domain -->
+      <!-- Step 1: Verify sending domain -->
       <div class="em-sender-card" id="em-domain-card">
-        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🌐 Step 2 — Verify Sending Domain</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:14px">Authenticating your domain gets you into the primary inbox.</div>
+        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">🌐 Step 1 — Verify Sending Domain</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:14px">Authenticating your domain gets you into the primary inbox. Add the domain you (or your team) own — add the DNS records at your registrar (e.g. Namecheap, GoDaddy), then verify.</div>
         <div style="margin-bottom:12px">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Your Domain</div>
           <div style="display:flex;gap:8px">
@@ -9008,10 +8979,10 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
-      <!-- Step 3: Sender identity -->
+      <!-- Step 2: Sender identity -->
       <div class="em-sender-card">
-        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">✍️ Step 3 — Sender Identity</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:14px">This is what subscribers see. Use your first name only for best open rates.</div>
+        <div style="font-size:14px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--white);margin-bottom:4px">✍️ Step 2 — Sender Identity</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:14px">This is what subscribers see. Use your first name only for best open rates. Your From Email must use the domain you verified in Step 1.</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
           <div>
             <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">From Name</div>
@@ -32237,8 +32208,8 @@ async function emSendBroadcast() {
   if (!contacts.length) { if (statusEl) statusEl.textContent = '⚠️ No contacts in this segment.'; return; }
   var fromName  = (emState.sender && emState.sender.name)         || 'Execution OS';
   var fromEmail = (emState.sender && emState.sender.email)        || '';
-  var apiKey    = (emState.sender && emState.sender.resendApiKey) || '';
-  if (!fromEmail || !apiKey) { if (statusEl) statusEl.textContent = '⚠️ Connect your email in Settings first.'; emShowSettings(); return; }
+  var domainVerified = !!(emState.sender && emState.sender.domainVerified);
+  if (!fromEmail || !domainVerified) { if (statusEl) statusEl.textContent = '⚠️ Verify your sending domain in Settings first.'; emShowSettings(); return; }
   if (!confirm('Send to ' + contacts.length + ' contact(s)? This cannot be undone.')) return;
 
   btn.disabled = true; btn.textContent = '⏳ Sending…';
@@ -32266,7 +32237,7 @@ async function emSendBroadcast() {
       var r = await fetch('/api/email-setup', {
         method: 'POST', headers: {'Content-Type':'application/json'},
         body: JSON.stringify({
-          action: 'send', apiKey: apiKey,
+          action: 'send',
           from: fromName + ' <' + fromEmail + '>',
           to: c.email, subject: subject, text: body,
           userId: uid, broadcastId: broadcastId, contactName: c.name || ''
@@ -33101,13 +33072,13 @@ async function emSendCampaign() {
   if (!body || body.replace(/<[^>]*>/g,'').trim().length < 10) { emToast('⚠️ Write your email content before sending.', true); return; }
 
   var sender = emState.sender || {};
-  if (!sender.resendApiKey) {
-    if (!confirm('You haven\'t connected an email sending service yet.\n\nClick OK to go to Email Settings and connect Resend, or Cancel to save as draft.')) {
+  if (!sender.domain || !sender.domainVerified) {
+    if (!confirm('You haven\'t verified a sending domain yet.\n\nClick OK to go to Email Settings and verify your domain, or Cancel to save as draft.')) {
       emSaveDraftCampaign();
       return;
     }
     emTab(document.getElementById('em-tab-settings'), 'settings');
-    emToast('Connect your Resend API key in Settings, then come back to send.', true);
+    emToast('Verify your sending domain in Settings, then come back to send.', true);
     return;
   }
   if (!sender.email) { emToast('⚠️ Set your sender email in Settings first.', true); return; }
@@ -33159,15 +33130,17 @@ async function emSendCampaign() {
           var personalised = htmlBody
             .replace(/\[FIRST_NAME\]/gi, contact.name ? contact.name.split(' ')[0] : 'there')
             .replace(/\[NAME\]/gi, contact.name || 'there');
-          var resp = await fetch('https://api.resend.com/emails', {
+          var resp = await fetch('/api/email-setup', {
             method: 'POST',
-            headers: { 'Authorization':'Bearer '+sender.resendApiKey, 'Content-Type':'application/json' },
+            headers: { 'Content-Type':'application/json' },
             body: JSON.stringify({
+              action: 'send',
+              userId: window._currentUserUid || '',
               from: fromName + ' <' + fromEmail + '>',
-              to: [contact.email],
+              to: contact.email,
               subject: subject,
               html: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#1a1a2e">'+personalised+'</div>',
-              headers: { 'X-Preview-Text': preview || '' }
+              previewText: preview || ''
             })
           });
           if (resp.ok) sent++;
@@ -33404,17 +33377,6 @@ async function emGenerateSequence() {
 /* ── Settings ───────────────────────────────────────────────────── */
 function emLoadSettings() {
   var sender = emState.sender || {};
-  var keyEl = document.getElementById('em-resend-key');
-  var setupEl = document.getElementById('em-resend-setup');
-  var connectedEl = document.getElementById('em-resend-connected');
-  if (keyEl && sender.resendApiKey) keyEl.value = sender.resendApiKey;
-  if (sender.resendApiKey) {
-    if (setupEl) setupEl.style.display = 'none';
-    if (connectedEl) connectedEl.style.display = 'block';
-  } else {
-    if (setupEl) setupEl.style.display = 'block';
-    if (connectedEl) connectedEl.style.display = 'none';
-  }
   var nameEl  = document.getElementById('em-sender-name');
   var emailEl = document.getElementById('em-sender-email');
   if (nameEl  && sender.name)  nameEl.value  = sender.name;
@@ -33432,32 +33394,17 @@ function emLoadSettings() {
 function emSaveSender() {
   var nameEl  = document.getElementById('em-sender-name');
   var emailEl = document.getElementById('em-sender-email');
-  var keyEl   = document.getElementById('em-resend-key');
   if (!emState.sender) emState.sender = {};
-  if (nameEl)  emState.sender.name  = nameEl.value.trim();
-  if (emailEl) emState.sender.email = emailEl.value.trim();
-  if (keyEl)   emState.sender.resendApiKey = keyEl.value.trim();
-  if (!emState.sender.email) { emToast('⚠️ Enter your sender email address.', true); return; }
+  var email = emailEl ? emailEl.value.trim() : '';
+  if (!email) { emToast('⚠️ Enter your sender email address.', true); return; }
+  var domain = emState.sender.domain;
+  if (!domain || !emState.sender.domainVerified) { emToast('⚠️ Verify your sending domain in Step 1 first.', true); return; }
+  var emailDomain = email.split('@')[1] || '';
+  if (emailDomain.toLowerCase() !== domain.toLowerCase()) { emToast('⚠️ From Email must use your verified domain (' + domain + ').', true); return; }
+  if (nameEl) emState.sender.name = nameEl.value.trim();
+  emState.sender.email = email;
   emSave();
   emToast('✅ Sender details saved');
-  emLoadSettings();
-}
-
-function emConnectResend() {
-  var keyEl = document.getElementById('em-resend-key');
-  if (!keyEl || !keyEl.value.trim()) { emToast('⚠️ Enter your Resend API key first.', true); return; }
-  if (!emState.sender) emState.sender = {};
-  emState.sender.resendApiKey = keyEl.value.trim();
-  emSave();
-  emToast('✅ Resend API key saved');
-  emLoadSettings();
-}
-
-function emDisconnectResend() {
-  if (!confirm('Disconnect Resend? You won\'t be able to send emails until you reconnect.')) return;
-  if (emState.sender) delete emState.sender.resendApiKey;
-  emSave();
-  emToast('Resend disconnected');
   emLoadSettings();
 }
 
@@ -33468,23 +33415,37 @@ function emAddDomain() {
   if (!emState.sender) emState.sender = {};
   emState.sender.domain = domain.toLowerCase().replace(/^https?:\/\//,'');
   emSave();
-  var apiKey = emState.sender.resendApiKey;
-  if (!apiKey) { emToast('⚠️ Connect your Resend API key first.', true); return; }
   var addBtn = document.querySelector('button[onclick="emAddDomain()"]');
   if (addBtn) { addBtn.textContent = 'Adding…'; addBtn.disabled = true; }
   fetch('/api/email-setup', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'add-domain', apiKey: apiKey, domain: emState.sender.domain })
+    body: JSON.stringify({ action: 'add-domain', domain: emState.sender.domain, userId: window._currentUserUid || '' })
   }).then(function(r){ return r.json(); }).then(function(data) {
     if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
     if (data.error) { emToast('⚠️ ' + data.error, true); return; }
     emState.sender.domainId = data.domainId;
     emSave();
+    emRenderDnsRecords(data.dnsRecords || []);
     emToast('✅ Domain added — add the DNS records then click Verify');
   }).catch(function() {
     if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
-    emToast('⚠️ Could not reach Resend. Check your API key.', true);
+    emToast('⚠️ Could not reach the email service. Try again shortly.', true);
   });
+}
+
+function emRenderDnsRecords(records) {
+  var dnsEl = document.getElementById('em-dns-records');
+  var tbody = document.getElementById('em-dns-tbody');
+  if (!dnsEl || !tbody) return;
+  if (!records.length) { dnsEl.style.display = 'none'; return; }
+  dnsEl.style.display = 'block';
+  tbody.innerHTML = records.map(function(r) {
+    return '<tr style="border-bottom:1px solid var(--border2)">' +
+      '<td style="padding:8px 12px;color:var(--white)">' + (r.type||'') + '</td>' +
+      '<td style="padding:8px 12px;color:var(--dim);font-family:monospace;word-break:break-all">' + (r.name||'') + '</td>' +
+      '<td style="padding:8px 12px;color:var(--dim);font-family:monospace;word-break:break-all">' + (r.value||'') + '</td>' +
+      '<td></td></tr>';
+  }).join('');
 }
 
 function emChangeDomain() {
@@ -33496,16 +33457,15 @@ function emChangeDomain() {
 
 function emVerifyDomain() {
   var domain = emState.sender && emState.sender.domain;
-  var apiKey = emState.sender && emState.sender.resendApiKey;
   if (!domain) { emToast('Add a domain first.', true); return; }
-  if (!apiKey) { emToast('Connect your Resend API key first.', true); return; }
   fetch('/api/email-setup', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'verify-domain', apiKey: apiKey, domain: domain, domainId: emState.sender.domainId })
+    body: JSON.stringify({ action: 'verify-domain', domain: domain, domainId: emState.sender.domainId, userId: window._currentUserUid || '' })
   }).then(function(r){ return r.json(); }).then(function(data) {
     if (data.verified) {
       emState.sender.domainVerified = true; emSave();
       emToast('✅ Domain verified!');
+      emLoadSettings();
     } else {
       emToast('⏳ ' + (data.reason || 'Not verified yet — DNS can take up to 48 hours.'), true);
     }
@@ -33557,8 +33517,6 @@ window.emToggleSequence     = emToggleSequence;
 window.emGenerateSequence   = emGenerateSequence;
 window.emLoadSettings       = emLoadSettings;
 window.emSaveSender         = emSaveSender;
-window.emConnectResend      = emConnectResend;
-window.emDisconnectResend   = emDisconnectResend;
 window.emAddDomain          = emAddDomain;
 window.emChangeDomain       = emChangeDomain;
 window.emVerifyDomain       = emVerifyDomain;
@@ -33627,7 +33585,7 @@ function emSendFromList(id) {
   id = String(id);
   var c = emState.campaigns.find(function(x){ return String(x.id) === id; });
   if (!c) return;
-  if (!emState.sender || !emState.sender.resendApiKey) { alert('Connect your Resend API key in Email Settings first.'); return; }
+  if (!emState.sender || !emState.sender.domain || !emState.sender.domainVerified) { alert('Verify your sending domain in Email Settings first.'); return; }
   if (!emState.sender.email) { alert('Set your sender email in Email Settings first.'); return; }
   if (!confirm('Send "' + (c.subject||'this campaign') + '" to ' + (emState.contacts.length || 0) + ' contacts now?')) return;
   emState.composing = c;
