@@ -32643,6 +32643,12 @@ function creditUpdateDisplay(balance) {
   var pill = document.getElementById('credit-balance-display');
   var modal = document.getElementById('credit-modal-balance');
   var planLabel = document.getElementById('credit-plan-label');
+  if (window._isAdmin) {
+    if (pill)  pill.textContent = 'Unlimited';
+    if (modal) modal.textContent = '∞';
+    if (planLabel) planLabel.textContent = 'Platform Admin · Unlimited';
+    return;
+  }
   if (pill)  pill.textContent = balance.toLocaleString() + ' credits';
   if (modal) modal.textContent = balance.toLocaleString();
   // Warn if low
@@ -32681,6 +32687,7 @@ function planLabel_text(plan) {
 async function creditDeduct(action) {
   var uid = window._currentUserUid;
   if (!uid || !window._db) return true; // allow if not logged in (dev mode)
+  if (window._isAdmin) return true; // platform admin — unlimited, never gated by credits
   var cost = CREDIT_COSTS[action] || 5;
   var balance = window._creditBalance || 0;
   if (balance < cost) {
@@ -33008,6 +33015,7 @@ window.creditLowWarning = creditLowWarning;
 var _origCreditDeduct = window.creditDeduct;
 window.creditDeduct = async function(action) {
   var result = await _origCreditDeduct(action);
+  if (window._isAdmin) return result; // admin — never warn about credits
   var balance = window._creditBalance || 0;
   if (result && balance < 20) {
     setTimeout(function(){ creditLowWarning(balance); }, 800);
