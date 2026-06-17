@@ -44104,12 +44104,42 @@ async function maGenerate() {
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
     if (!text) { console.error('[MetaAds] Empty response from Claude'); throw new Error('No response'); }
     console.log('[MetaAds] Got response, length:', text.length, 'preview:', text.slice(0,100));
-    console.log('[MetaAds] FULL RAW TEXT:', JSON.stringify(text));
 
+    // ── Robust section split ──────────────────────────────────────────────
+    // Instead of one fragile regex per section (brittle against real-world
+    // heading variation), split the WHOLE text once on any heading line
+    // (## or ### or # ANYTHING), building a name → content map. Then look
+    // each section up by keyword. Far more tolerant of format drift.
+    var sectionMap = {};
+    var headingSplit = text.split(/\n(?=#{1,4}\s)/);
+    headingSplit.forEach(function(chunk) {
+      var hm = chunk.match(/^#{1,4}\s*\**([^\n*]+)\**[^\n]*\n([\s\S]*)$/);
+      if (hm) {
+        var key = hm[1].trim().toUpperCase();
+        sectionMap[key] = (hm[2] || '').trim();
+      }
+    });
+    function findSection(keywords) {
+      var keys = Object.keys(sectionMap);
+      for (var i = 0; i < keywords.length; i++) {
+        var kw = keywords[i].toUpperCase();
+        // Check ALL keys containing this keyword, not just the first — a title
+        // or earlier heading can accidentally contain the same word with no
+        // real content (e.g. a doc titled "...LAUNCH PACKAGE" matching before
+        // the real "LAUNCH ORDER" section). Prefer the first one with content.
+        var candidates = keys.filter(function(k) { return k.indexOf(kw) !== -1; });
+        for (var j = 0; j < candidates.length; j++) {
+          var val = sectionMap[candidates[j]];
+          if (val && val.trim()) {
+            // Strip stray leading/trailing markdown dividers left over from splitting
+            return val.trim().replace(/^-{3,}\s*/,'').replace(/\s*-{3,}$/,'').trim();
+          }
+        }
+      }
+      return '';
+    }
     function extract(label) {
-      // Tolerant of: ## or ### headings, optional bold (**), optional leading
-      // emoji/symbols before the label text — real generations vary slightly
-      // even with explicit formatting instructions in the prompt.
+      // Legacy single-pattern fallback, kept for the angle-content extraction below
       var re = new RegExp('#{1,4}\\s*\\**[^\\n]{0,6}?(?:' + label + ')[^\\n]*\\n([\\s\\S]*?)(?=\\n#{1,4}\\s|$)', 'i');
       var m  = text.match(re);
       return (m && m[1]) ? m[1].trim() : '';
@@ -44142,10 +44172,26 @@ async function maGenerate() {
         + '</div>';
     });
 
-    // Targeting and budget
-    var targeting = extract('TARGETING STRATEGY|TARGETING');
-    var budget    = extract('BUDGET.*TESTING|BUDGET');
-    var launch    = extract('LAUNCH ORDER|LAUNCH');
+    // Targeting, budget, launch — keyword lookup against the section map built above
+    var targeting = findSection(['TARGETING']);
+    var budget    = findSection(['BUDGET']);
+    var launch    = findSection(['LAUNCH']);
+
+    // Last-resort fallback: if structured lookup still found nothing for ANY
+    // of these three, grab everything after the last angle ends and show it
+    // raw rather than a dead-end message with no actual content.
+    if (!targeting && !budget && !launch) {
+      var lastAngleEnd = text.search(/\n#{1,4}\s*\**\s*(?:TARGETING|BUDGET|LAUNCH)/i);
+      if (lastAngleEnd === -1) {
+        // No matching heading found at all — fall back to splitting after the angles block
+        var angleBlocks = text.split(/#{1,4}\s*ANGLE\s*\d+/i);
+        lastAngleEnd = angleBlocks.length > 1 ? text.length - angleBlocks[angleBlocks.length - 1].length : -1;
+      }
+      if (lastAngleEnd !== -1) {
+        var remainder = text.slice(lastAngleEnd).trim();
+        if (remainder) { targeting = remainder; budget = ''; launch = ''; }
+      }
+    }
 
     // Render
     var hooksEl = document.getElementById('ma-hooks');
