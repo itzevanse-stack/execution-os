@@ -43986,8 +43986,58 @@ async function maGenerate() {
   var status = document.getElementById('ma-gen-status');
   var output = document.getElementById('ma-output');
   if (btn)    { btn.disabled = true; btn.textContent = '⏳ Building your ad package…'; }
-  if (status) { status.style.display = 'block'; }
   if (output) { output.style.display = 'none'; }
+
+  // ── Animated loading state — spinner + cycling messages + progress bar ──
+  var maMsgs = [
+    'Reading your offer and audience intelligence…',
+    'Studying what converts in your niche right now…',
+    'Writing your first ad angle…',
+    'Building hooks that stop the scroll…',
+    'Drafting targeting and budget strategy…',
+    'Finalising your launch order…'
+  ];
+  var maLoadId = '_maload_' + Date.now();
+  if (status) {
+    status.style.display = 'block';
+    status.innerHTML = '<div style="padding:1.5rem 0;text-align:center">'
+      + '<div style="position:relative;width:48px;height:48px;margin:0 auto 14px">'
+      + '<div style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(78,204,163,.12)"></div>'
+      + '<div id="' + maLoadId + '_spin" style="position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:#4ecca3;border-right-color:rgba(78,204,163,.4)"></div>'
+      + '<div style="position:absolute;inset:7px;border-radius:50%;background:rgba(78,204,163,.08);display:flex;align-items:center;justify-content:center;font-size:16px">🎯</div>'
+      + '</div>'
+      + '<div id="' + maLoadId + '_msg" style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:8px;min-height:18px;transition:opacity .3s">' + maMsgs[0] + '</div>'
+      + '<div style="width:220px;height:3px;background:rgba(255,255,255,.06);border-radius:3px;margin:0 auto;overflow:hidden">'
+      + '<div id="' + maLoadId + '_bar" style="height:100%;width:4%;background:linear-gradient(90deg,#4ecca3,#0d9488);border-radius:3px;transition:width .8s ease"></div>'
+      + '</div>'
+      + '</div>';
+  }
+  var maSpinDeg = 0, maMsgIdx = 0, maBarPct = 4;
+  var maBarStep = Math.floor(88 / maMsgs.length);
+  var maSpinEl  = document.getElementById(maLoadId + '_spin');
+  var maMsgEl   = document.getElementById(maLoadId + '_msg');
+  var maBarEl   = document.getElementById(maLoadId + '_bar');
+  var maSpinIv = setInterval(function() {
+    maSpinDeg = (maSpinDeg + 4) % 360;
+    if (maSpinEl) maSpinEl.style.transform = 'rotate(' + maSpinDeg + 'deg)';
+  }, 16);
+  var maMsgIv = setInterval(function() {
+    maMsgIdx++;
+    if (maMsgIdx >= maMsgs.length) { clearInterval(maMsgIv); return; }
+    if (maMsgEl) {
+      maMsgEl.style.opacity = '0';
+      setTimeout(function() {
+        if (maMsgEl) { maMsgEl.textContent = maMsgs[maMsgIdx]; maMsgEl.style.opacity = '1'; }
+      }, 300);
+    }
+    maBarPct = Math.min(maBarPct + maBarStep, 88);
+    if (maBarEl) maBarEl.style.width = maBarPct + '%';
+  }, 3000);
+  function maStopLoading() {
+    clearInterval(maSpinIv);
+    clearInterval(maMsgIv);
+    if (maBarEl) maBarEl.style.width = '100%';
+  }
 
   var intel     = (typeof vpeGetIntel === 'function') ? vpeGetIntel() : ((typeof window.vpeGetIntel === 'function') ? window.vpeGetIntel() : '');
   var painInput = (document.getElementById('ma-pain-input')||{}).value || '';
@@ -44109,6 +44159,7 @@ async function maGenerate() {
     emToast('⚠️ Ad generation failed: ' + e.message, true);
   }
 
+  maStopLoading();
   if (btn)    { btn.disabled = false; btn.textContent = '🎯 Generate Complete Meta Ad Package'; }
   if (status) { status.style.display = 'none'; }
 }
