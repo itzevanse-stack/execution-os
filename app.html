@@ -8054,6 +8054,7 @@ button[onclick="generateOffer()"] {
           <button class="ma-tab"    data-tab="targeting" onclick="maShowTab(this,'targeting')" style="padding:8px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">📊 Targeting</button>
           <button class="ma-tab"    data-tab="budget"    onclick="maShowTab(this,'budget')"    style="padding:8px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">💰 Budget</button>
           <button class="ma-tab"    data-tab="launch"    onclick="maShowTab(this,'launch')"    style="padding:8px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">🚀 Launch</button>
+          <button class="ma-tab"    data-tab="video"     onclick="maShowTab(this,'video')"     style="padding:8px 16px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">🎬 Video Script</button>
         </div>
 
         <!-- ANGLES tab — hook/primary text/headline are already inline per-angle card -->
@@ -8110,8 +8111,9 @@ button[onclick="generateOffer()"] {
           <button onclick="maCopyAll()" style="flex:1;padding:11px;background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:10px;color:var(--white);font-size:12px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif">📋 Copy Full Package</button>
         </div>
 
-        <!-- Video Ad Script section -->
-        <div style="margin-top:20px;background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(108,99,255,.02));border:1px solid rgba(108,99,255,.2);border-radius:16px;padding:20px">
+        <!-- VIDEO SCRIPT tab -->
+        <div id="ma-tab-video" class="ma-tab-panel" style="display:none">
+        <div style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(108,99,255,.02));border:1px solid rgba(108,99,255,.2);border-radius:16px;padding:20px">
           <div style="font-size:13px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">🎬 Video Ad Script & Creative Brief</div>
           <div style="font-size:11px;color:var(--dim);margin-bottom:16px;line-height:1.6">Generate a complete video script + creator brief for whichever angle you want to film. Works for Reels, Stories and Feed video.</div>
 
@@ -8174,6 +8176,7 @@ button[onclick="generateOffer()"] {
             </div>
 
           </div>
+        </div>
         </div>
 
       </div>
@@ -44101,6 +44104,7 @@ async function maGenerate() {
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
     if (!text) { console.error('[MetaAds] Empty response from Claude'); throw new Error('No response'); }
     console.log('[MetaAds] Got response, length:', text.length, 'preview:', text.slice(0,100));
+    console.log('[MetaAds] FULL RAW TEXT:', JSON.stringify(text));
 
     function extract(label) {
       // Tolerant of: ## or ### headings, optional bold (**), optional leading
