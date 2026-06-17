@@ -15,7 +15,7 @@ if (process.env.LANGCHAIN_API_KEY) {
 }
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const MODEL  = 'claude-sonnet-4-20250514';
+const MODEL  = 'claude-sonnet-4-6'; // was 'claude-sonnet-4-20250514' — retired, caused 404s on every call
 const FAST   = 'claude-haiku-4-5-20251001';
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
