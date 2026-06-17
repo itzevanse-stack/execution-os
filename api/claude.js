@@ -2,8 +2,11 @@ const Anthropic = require('@anthropic-ai/sdk');
 
 const anthropic = new Anthropic({
   apiKey:     process.env.ANTHROPIC_API_KEY,
-  timeout:    30000, // 30s — default is 600s which causes silent 30-min hangs
-  maxRetries: 1,     // default is 2; with 30s timeout = max 60s before error surfaces
+  maxRetries: 1,
+  // No explicit timeout here on purpose. The SDK automatically computes a
+  // dynamic timeout based on each request's max_tokens when none is set —
+  // a fixed 30s override (the previous setup) was cutting off longer
+  // generations like the Meta Ad Package before they could finish.
 });
 
 /**
@@ -264,7 +267,7 @@ module.exports = async function handler(req, res) {
     return res.status(200).json(response);
 
   } catch (err) {
-    console.error('[api/claude]', err.message);
+    console.error('[api/claude]', err.message, '— maxTok:', maxTok);
     return res.status(500).json({ ok: false, error: err.message });
   }
 };
