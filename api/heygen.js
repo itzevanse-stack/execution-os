@@ -77,7 +77,50 @@ module.exports = async function handler(req, res) {
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // LIST PHOTO AVATAR GROUPS  —  GET /v2/photo_avatar_group/list
+    // CLONE VOICE  —  POST /v3/voices/clone
+    // Instant voice clone from a short audio sample (30s+ recommended).
+    // Returns a voice_id usable anywhere voiceId is accepted in `generate`.
+    // ══════════════════════════════════════════════════════════════════════
+    if (action === 'clone-voice') {
+      const { audioData, mimeType, voiceName } = req.body || {};
+      if (!audioData) return res.status(400).json({ error: 'Missing audioData' });
+      if (!voiceName || !voiceName.trim()) return res.status(400).json({ error: 'Missing voiceName' });
+
+      const buffer = Buffer.from(audioData, 'base64');
+      // Roughly 25MB safety cap — base64 inflates size ~33%, so check the decoded buffer
+      if (buffer.length > 25 * 1024 * 1024) {
+        return res.status(400).json({ error: 'Audio file too large. Please use a clip under 25MB (a minute or two of clear speech is plenty).' });
+      }
+
+      console.log(`[HeyGen] Cloning voice "${voiceName}" — ${buffer.length} bytes, ${mimeType || 'unknown type'}`);
+
+      // v3/voices/clone expects multipart/form-data with the audio file + name
+      const form = new FormData();
+      const ext  = (mimeType && mimeType.includes('wav')) ? 'wav' : 'mp3';
+      form.append('name', voiceName.trim());
+      form.append('file', new Blob([buffer], { type: mimeType || 'audio/mpeg' }), `voice-sample.${ext}`);
+
+      const uploadResp = await fetch(`${API}/v3/voices/clone`, {
+        method:  'POST',
+        headers: { 'X-Api-Key': KEY, 'Accept': 'application/json' },
+        body:    form,
+      });
+      const { ok, data, status } = await safeJson(uploadResp);
+      console.log(`[HeyGen] Voice clone [${status}]:`, JSON.stringify(data).substring(0, 200));
+
+      if (!ok) {
+        return res.status(500).json({ error: data?.message || data?.error || `Voice cloning failed (${status}). Try a clearer, shorter audio sample.` });
+      }
+
+      const voiceId = data?.data?.voice_id || data?.voice_id;
+      if (!voiceId) {
+        return res.status(500).json({ error: 'No voice_id returned: ' + JSON.stringify(data).substring(0, 200) });
+      }
+      return res.status(200).json({ success: true, voiceId, status: 'ready' });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // LIST AVATAR GROUPS  —  GET /v2/photo_avatar_group/list
     // Shows user's saved photo avatars — used to reuse without re-uploading
     // Each group has looks; each look has a talking_photo_id for video generation
     // ══════════════════════════════════════════════════════════════════════
@@ -231,10 +274,13 @@ module.exports = async function handler(req, res) {
     // Avatar IV supported via use_avatar_iv_model flag
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'generate') {
-      const { script, avatarId, talkingPhotoId, voiceId, type, title, useAvatarIV } = req.body || {};
-      if (!script) return res.status(400).json({ error: 'Missing script' });
+      const { script, scenes, avatarId, talkingPhotoId, voiceId, type, title, useAvatarIV } = req.body || {};
+      // Accept either a single `script` string (existing behavior) or a `scenes`
+      // array for multi-scene videos: [{ script, background }, { script, background }, ...]
+      const sceneList = Array.isArray(scenes) && scenes.length ? scenes : (script ? [{ script }] : null);
+      if (!sceneList) return res.status(400).json({ error: 'Missing script or scenes' });
 
-      // Resolve voice
+      // Resolve voice once, reused across all scenes for a consistent narrator
       let finalVoiceId = voiceId || null;
       if (!finalVoiceId) {
         const vR = await safeJson(await GET('/v2/voices'));
@@ -246,7 +292,7 @@ module.exports = async function handler(req, res) {
       }
       if (!finalVoiceId) return res.status(400).json({ error: 'No voice available. Check your HeyGen account has voices.' });
 
-      // Build character
+      // Build character once, reused across all scenes
       let character;
       if (talkingPhotoId) {
         character = { type: 'talking_photo', talking_photo_id: talkingPhotoId };
@@ -262,32 +308,42 @@ module.exports = async function handler(req, res) {
         }
         character = { type: 'avatar', avatar_id: finalAvatarId, avatar_style: 'normal' };
       }
+      if (useAvatarIV && talkingPhotoId) character.use_avatar_iv_model = true;
 
       const vertical  = ['reel', 'shorts', 'story'].includes(type);
       const dimension = vertical ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 };
 
+      // Default backgrounds rotate through a small palette so multi-scene videos
+      // get visual variety instead of one flat color start to finish
+      const defaultBgPalette = ['#1a1a2e', '#16213e', '#0f3460', '#1a1a2e'];
+
+      const video_inputs = sceneList.slice(0, 10).map((scene, i) => ({
+        character,
+        voice: {
+          type:       'text',
+          input_text: String(scene.script || '').trim().substring(0, 1500),
+          voice_id:   finalVoiceId,
+          speed:      1.0,
+        },
+        background: scene.background
+          ? (typeof scene.background === 'string'
+              ? { type: 'color', value: scene.background }
+              : scene.background) // allow passing a full { type:'image'|'video', url } object
+          : { type: 'color', value: defaultBgPalette[i % defaultBgPalette.length] },
+      }));
+
       const payload = {
-        video_inputs: [{
-          character,
-          voice: {
-            type:       'text',
-            input_text: script.trim().substring(0, 1500),
-            voice_id:   finalVoiceId,
-            speed:      1.0,
-          },
-          background: { type: 'color', value: '#1a1a2e' },
-        }],
+        video_inputs,
         dimension,
-        caption: false,
-        title:   title || ('EOS-' + new Date().toISOString().split('T')[0] + '-' + Date.now().toString().slice(-4)),
+        // Real captions on — previously hardcoded to `false`. Note: /v2/video/generate
+        // takes a plain boolean here (the object-with-style shape is for the newer
+        // /v3/videos endpoint). Some accounts have reported inconsistent caption
+        // rendering with this flag — worth a live test video to confirm it burns in.
+        caption: true,
+        title: title || ('EOS-' + new Date().toISOString().split('T')[0] + '-' + Date.now().toString().slice(-4)),
       };
 
-      // Use Avatar IV for better quality if requested
-      if (useAvatarIV && talkingPhotoId) {
-        payload.video_inputs[0].character.use_avatar_iv_model = true;
-      }
-
-      console.log('[HeyGen] Generate:', type, character.type, talkingPhotoId || avatarId || 'auto');
+      console.log('[HeyGen] Generate:', type, character.type, talkingPhotoId || avatarId || 'auto', '—', video_inputs.length, 'scene(s)');
 
       const r = await safeJson(await POST('/v2/video/generate', payload));
       if (!r.ok) {
