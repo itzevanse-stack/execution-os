@@ -6882,6 +6882,28 @@ button[onclick="generateOffer()"] {
         </div>
       </div>
 
+      <!-- VOICE CLONE -->
+      <div id="avs-mode-voice" class="card-dark" style="margin-bottom:12px">
+        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🎤 Clone Your Voice</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">Upload 30 seconds to 2 minutes of clear speech, no background noise. MP3 or WAV under 25MB.</div>
+
+        <div id="avs-voice-upload-area" onclick="document.getElementById('avs-voice-file').click()" style="border:1px dashed rgba(78,204,163,.3);border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;background:rgba(78,204,163,.02)" onmouseover="this.style.borderColor='rgba(78,204,163,.55)'" onmouseout="this.style.borderColor='rgba(78,204,163,.3)'">
+          <div id="avs-voice-upload-icon" style="font-size:28px;margin-bottom:6px">🎙️</div>
+          <div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:2px" id="avs-voice-upload-label">Click to select your audio file</div>
+          <div style="font-size:10px;color:var(--dim)">MP3 or WAV</div>
+          <input type="file" id="avs-voice-file" accept="audio/*" style="display:none" onchange="avsHandleVoiceFile(this)" />
+        </div>
+
+        <input class="fi" id="avs-voice-name" type="text" placeholder="Name your voice (e.g. Evan's Voice)" style="margin-bottom:12px" />
+
+        <div id="avs-voice-status" style="font-size:11px;text-align:center;margin-bottom:10px;color:var(--dim)"></div>
+        <button onclick="avsSubmitVoiceClone()" id="avs-voice-btn" style="display:block;margin:0 auto;background:linear-gradient(135deg,#4ecca3,#0d9488);border:none;border-radius:8px;padding:10px 36px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Clone My Voice</button>
+        <div id="avs-voice-upload-progress" style="display:none;margin-top:12px">
+          <div style="height:3px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden;margin-bottom:5px"><div id="avs-voice-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#4ecca3,#0d9488);border-radius:2px;transition:width .3s"></div></div>
+          <div id="avs-voice-progress-label" style="font-size:10px;color:var(--dim);text-align:center">Uploading…</div>
+        </div>
+      </div>
+
       <!-- VIDEO MODE -->
       <div id="avs-mode-video" class="card-dark" style="margin-bottom:12px;display:none">
         <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🎥 Video Avatar</div>
@@ -7031,6 +7053,14 @@ button[onclick="generateOffer()"] {
               <button onclick="avsLoadAvatars()" style="background:none;border:none;color:var(--dimmer);font-size:9px;cursor:pointer;font-family:Poppins,sans-serif;padding:2px 0;margin-top:4px">↻ Refresh avatars</button>
             </div>
             <div id="avs-photo-section" style="display:none">
+              <!-- Shown automatically when a clone already exists from Clone Yourself -->
+              <div id="avs-clone-detected-wrap" style="display:none;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:8px;padding:8px 10px;margin-bottom:8px">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+                  <span style="font-size:14px">✅</span>
+                  <div style="font-size:11px;font-weight:700;color:var(--teal);line-height:1.3">Using your cloned avatar from Clone Yourself</div>
+                </div>
+                <button onclick="avsToggleClonePhotoUpload()" id="avs-clone-upload-toggle" style="background:none;border:none;color:var(--dimmer);font-size:9px;cursor:pointer;font-family:Poppins,sans-serif;padding:0;text-decoration:underline">Upload a different photo instead</button>
+              </div>
               <div id="avs-gen-photo-area" onclick="document.getElementById('avs-gen-photo-file').click()" style="border:1px dashed rgba(108,99,255,.25);border-radius:8px;padding:14px;text-align:center;cursor:pointer;background:rgba(108,99,255,.02)" onmouseover="this.style.borderColor='rgba(108,99,255,.5)'" onmouseout="this.style.borderColor='rgba(108,99,255,.25)'">
                 <div id="avs-gen-photo-preview-wrap" style="display:none;margin-bottom:5px"><img id="avs-gen-photo-preview" src="" style="height:48px;border-radius:6px" /></div>
                 <div id="avs-gen-photo-icon" style="font-size:20px;margin-bottom:3px">📸</div>
@@ -22123,6 +22153,75 @@ window.runMindsetReframe = async function() {
     photoReader.readAsDataURL(fileInput.files[0]);
   };
 
+  // ── Handle voice audio file input ──────────────────────────────
+  window.avsHandleVoiceFile = function(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    var icon  = document.getElementById('avs-voice-upload-icon');
+    var label = document.getElementById('avs-voice-upload-label');
+    if (label) label.textContent = file.name;
+    if (icon) icon.textContent = '✅';
+    avsSetStatus('avs-voice-status', 'Audio ready — name your voice and click Clone My Voice', 'var(--teal)');
+  };
+
+  // ── Submit audio sample to clone a voice ───────────────────────
+  window.avsSubmitVoiceClone = function() {
+    var fileInput = document.getElementById('avs-voice-file');
+    var nameInput = document.getElementById('avs-voice-name');
+    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+      avsToast('Please select an audio file first.', true); return;
+    }
+    var voiceName = nameInput ? nameInput.value.trim() : '';
+    if (!voiceName) { avsToast('Please name your voice first.', true); return; }
+
+    var btn      = document.getElementById('avs-voice-btn');
+    var progress = document.getElementById('avs-voice-upload-progress');
+    var bar      = document.getElementById('avs-voice-progress-bar');
+    if (btn) { btn.disabled = true; btn.textContent = 'Cloning…'; }
+    if (progress) progress.style.display = 'block';
+
+    // Animate progress bar — voice cloning can take 10-30s
+    var prog = 0;
+    var progInterval = setInterval(function() {
+      prog = Math.min(prog + 2, 85);
+      if (bar) bar.style.width = prog + '%';
+    }, 400);
+
+    var voiceReader = new FileReader();
+    voiceReader.onload = function(e) {
+      var base64Data = e.target.result.split(',')[1];
+      fetch(window.location.origin + '/api/heygen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'clone-voice',
+          audioData: base64Data,
+          mimeType: fileInput.files[0].type || 'audio/mpeg',
+          voiceName: voiceName
+        })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        clearInterval(progInterval);
+        if (bar) bar.style.width = '100%';
+        if (data.error) throw new Error(data.error);
+        _avs.clonedVoiceId = data.voiceId;
+        avsSetStatus('avs-voice-status', '✅ Voice cloned! Select "My Cloned Voice" when generating a video.', 'var(--teal)');
+        if (btn) { btn.disabled = false; btn.textContent = 'Clone My Voice'; }
+        setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
+        avsToast('✅ Voice cloned successfully!');
+      })
+      .catch(function(err) {
+        clearInterval(progInterval);
+        if (btn) { btn.disabled = false; btn.textContent = 'Clone My Voice'; }
+        if (progress) progress.style.display = 'none';
+        avsSetStatus('avs-voice-status', '⚠️ ' + err.message, 'var(--orange)');
+        avsToast('Voice cloning failed: ' + err.message, true);
+      });
+    };
+    voiceReader.readAsDataURL(fileInput.files[0]);
+  };
+
   // ── Camera ────────────────────────────────────────────────────
   window.avsStartCamera = function() {
     var preview = document.getElementById('avs-camera-preview');
@@ -22489,6 +22588,34 @@ window.runMindsetReframe = async function() {
     if (photoSection) photoSection.style.display = source==='photo' ? 'block' : 'none';
     if (stockBtn) { stockBtn.style.background = source==='stock' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.04)'; stockBtn.style.color = source==='stock' ? '#a089ff' : 'var(--dim)'; }
     if (photoBtn) { photoBtn.style.background = source==='photo' ? 'rgba(108,99,255,.1)' : 'rgba(255,255,255,.04)'; photoBtn.style.color = source==='photo' ? '#a089ff' : 'var(--dim)'; }
+
+    // If switching to Photo and a clone already exists from Clone Yourself,
+    // show it by default instead of forcing a fresh upload every time.
+    if (source === 'photo') {
+      var detectedWrap = document.getElementById('avs-clone-detected-wrap');
+      var uploadArea    = document.getElementById('avs-gen-photo-area');
+      var hasClone      = !!(_avs.photoAvatarId);
+      if (detectedWrap) detectedWrap.style.display = hasClone ? 'block' : 'none';
+      if (uploadArea)   uploadArea.style.display   = hasClone ? 'none'  : 'block';
+    }
+  };
+
+  // ── Toggle between using the existing clone vs uploading a one-off photo ──
+  window.avsToggleClonePhotoUpload = function() {
+    var detectedWrap = document.getElementById('avs-clone-detected-wrap');
+    var uploadArea    = document.getElementById('avs-gen-photo-area');
+    var toggleBtn     = document.getElementById('avs-clone-upload-toggle');
+    var showingUpload = uploadArea && uploadArea.style.display !== 'none';
+    if (showingUpload) {
+      // Switch back to using the saved clone
+      if (uploadArea) uploadArea.style.display = 'none';
+      if (detectedWrap) detectedWrap.style.display = 'block';
+    } else {
+      // Show the upload box for a one-off photo, keep the clone notice visible
+      // above it so the user can switch back without losing their place
+      if (uploadArea) uploadArea.style.display = 'block';
+      if (toggleBtn) toggleBtn.textContent = 'Use my cloned avatar instead';
+    }
   };
 
   // ── Type + Angle + Quality pickers ───────────────────────────
