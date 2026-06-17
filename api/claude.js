@@ -179,17 +179,15 @@ module.exports = async function handler(req, res) {
   const messages = body.messages;
   const system   = body.system;
 
-  // Normalise model string — the app sends shorthand aliases like 'claude-sonnet-4-6'
-  // which are not valid Anthropic API model IDs. Map them to the correct versioned ID.
+  // Normalise model string — pass valid model IDs through unchanged.
+  // Only haiku requires mapping, since it needs a dated suffix the app doesn't send.
   const MODEL_MAP = {
-    'claude-sonnet-4-6':        'claude-sonnet-4-5',
-    'claude-sonnet-4-5':        'claude-sonnet-4-5',
-    'claude-opus-4-6':          'claude-opus-4-5',
-    'claude-opus-4-5':          'claude-opus-4-5',
+    'claude-sonnet-4-6':        'claude-sonnet-4-6',
+    'claude-opus-4-6':          'claude-opus-4-6',
     'claude-haiku-4-6':         'claude-haiku-4-5-20251001',
     'claude-haiku-4-5':         'claude-haiku-4-5-20251001',
   };
-  const rawModel = body.model || 'claude-sonnet-4-5';
+  const rawModel = body.model || 'claude-sonnet-4-6';
   const model    = MODEL_MAP[rawModel] || rawModel;
 
   if (!messages || !messages.length) {
