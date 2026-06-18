@@ -7803,7 +7803,8 @@ button[onclick="generateOffer()"] {
 
           <!-- Quote text -->
           <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 22px">
-            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">Quote</div>
+            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Quote</div>
+            <div style="font-size:10px;color:var(--dimmer);margin-bottom:10px">Wrap any word in **double asterisks** to highlight it in colour on the card — AI does this automatically, but you can adjust it too</div>
             <div id="qc-gen-status" style="font-size:11px;color:var(--teal);margin-bottom:8px;display:none">✨ Writing your quote…</div>
             <textarea id="qc-quote-text" placeholder="Generating your quote…" style="width:100%;min-height:100px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 14px;font-size:14px;font-weight:700;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.6;resize:none;outline:none" oninput="qcUpdateCard()" onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
             <div style="display:flex;gap:6px;margin-top:10px;margin-bottom:10px">
@@ -43164,11 +43165,11 @@ var QC_LENGTH = {
 };
 
 var QC_STYLES = {
-  dark:   { bg:'#000000',        text:'#ffffff', sub:'rgba(255,255,255,.45)', brand:'rgba(255,255,255,.12)' },
-  white:  { bg:'#ffffff',        text:'#0a0a0a', sub:'rgba(0,0,0,.45)',       brand:'rgba(0,0,0,.12)' },
-  teal:   { bg:'linear-gradient(135deg,#030d0d,#071a1a)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(78,204,163,.2)' },
-  gold:   { bg:'linear-gradient(135deg,#0d0900,#1a1200)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(245,200,66,.2)' },
-  purple: { bg:'linear-gradient(135deg,#080312,#100520)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(123,94,167,.2)' },
+  dark:   { bg:'#000000',        text:'#ffffff', sub:'rgba(255,255,255,.45)', brand:'rgba(255,255,255,.12)', highlight:'#ff3b3b' },
+  white:  { bg:'#ffffff',        text:'#0a0a0a', sub:'rgba(0,0,0,.45)',       brand:'rgba(0,0,0,.12)',       highlight:'#e30000' },
+  teal:   { bg:'linear-gradient(135deg,#030d0d,#071a1a)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(78,204,163,.2)', highlight:'#4ecca3' },
+  gold:   { bg:'linear-gradient(135deg,#0d0900,#1a1200)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(245,200,66,.2)', highlight:'#F5C842' },
+  purple: { bg:'linear-gradient(135deg,#080312,#100520)', text:'#ffffff', sub:'rgba(255,255,255,.4)', brand:'rgba(123,94,167,.2)', highlight:'#a089ff' },
 };
 
 var QC_TYPE_PROMPTS = {
@@ -43245,6 +43246,16 @@ function qcLoadPhoto(e) {
     var preview = document.getElementById('qc-avatar-preview');
     if (avatar)  avatar.innerHTML  = imgHtml;
     if (preview) preview.innerHTML = imgHtml;
+
+    // Warn if the source photo is too small to stay sharp once the card is
+    // exported at 10x scale (avatar renders ~520px wide in the final 4K PNG)
+    var checkImg = new Image();
+    checkImg.onload = function() {
+      if (checkImg.width < 400 || checkImg.height < 400) {
+        emToast('⚠️ This photo is ' + checkImg.width + '×' + checkImg.height + 'px — it may look blurry when downloaded at 4K. Use a photo at least 400×400px for a sharp result.', true);
+      }
+    };
+    checkImg.src = src;
   };
   reader.readAsDataURL(file);
 }
@@ -43268,6 +43279,16 @@ function qcLoadBg(e) {
     if (fadeRow)  fadeRow.style.display  = 'block';
     // Apply default fade
     qcSetFade(document.getElementById('qc-fade-slider') ? document.getElementById('qc-fade-slider').value : 40);
+
+    // This image fills the WHOLE card, which gets exported at 10x scale —
+    // a low-res background will look far blurrier than a low-res avatar would.
+    var checkImg = new Image();
+    checkImg.onload = function() {
+      if (checkImg.width < 1200 || checkImg.height < 1500) {
+        emToast('⚠️ This background is ' + checkImg.width + '×' + checkImg.height + 'px — it will look soft/blurry in the 4K download. For a sharp result use a photo at least 1200×1500px.', true);
+      }
+    };
+    checkImg.src = ev.target.result;
     // Ensure text stays white
     var quoteEl = document.getElementById('qc-card-quote');
     var nameEl2 = document.getElementById('qc-card-name');
@@ -43361,9 +43382,18 @@ function qcUpdateCard() {
   if (cardName)   cardName.textContent   = name;
   if (cardHandle) cardHandle.textContent = handle;
   if (cardQuote)  {
-    cardQuote.textContent = quote;
-    // Auto-size font based on quote length
-    var fs = quote.length > 120 ? '16px' : quote.length > 80 ? '18px' : quote.length > 50 ? '20px' : '24px';
+    var s2 = QC_STYLES[_qcState.style] || QC_STYLES.dark;
+    // Escape HTML first so quote text can never inject markup, THEN convert
+    // **word** markers into colored spans for automatic highlighting.
+    var escaped = quote.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var highlighted = escaped.replace(/\*\*(.+?)\*\*/g, function(_, word) {
+      return '<span style="color:' + s2.highlight + '">' + word + '</span>';
+    });
+    cardQuote.innerHTML = highlighted;
+    // Auto-size font based on VISIBLE quote length (strip ** markers first, since
+    // they're not rendered and shouldn't count toward the sizing decision)
+    var visibleLen = quote.replace(/\*\*/g, '').length;
+    var fs = visibleLen > 120 ? '16px' : visibleLen > 80 ? '18px' : visibleLen > 50 ? '20px' : '24px';
     cardQuote.style.fontSize = fs;
   }
   // Update avatar initial if no photo
@@ -43396,7 +43426,9 @@ async function qcGenerate() {
   var desired = av.av_desired || av.av_transformation || '';
   if (pain)    typePrompt += ' Audience pain: ' + pain + '.';
   if (desired) typePrompt += ' Desired outcome: ' + desired + '.';
-  typePrompt += ' LENGTH: ' + lengthInstr + ' Return ONLY the quote text — no quotes, no explanation, no attribution.';
+  typePrompt += ' LENGTH: ' + lengthInstr
+    + ' Wrap the 1-3 MOST impactful words or short phrases in double asterisks so they stand out visually, e.g. "You can **never** give up on **your dream**." Pick words that carry the emotional punch — not random words, not every sentence, just the words that would make someone stop scrolling.'
+    + ' Return ONLY the quote text — no quotes, no explanation, no attribution.';
 
   if (btn)     { btn.disabled=true; btn.textContent='Writing…'; }
   if (statusEl){ statusEl.style.display='block'; statusEl.textContent='Writing your quote…'; }
