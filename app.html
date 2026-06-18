@@ -7221,6 +7221,18 @@ button[onclick="generateOffer()"] {
     <!-- 2E: Tab 2 — Carousel (populated in Task 3) -->
     <div id="cs-tab-carousel" style="display:none">
 
+      <!-- Saved Carousels Library -->
+      <div class="card-dark" style="margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="carToggleSavedLibrary()">
+          <div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;display:flex;align-items:center;gap:8px">📁 Saved Carousels <span id="car-saved-count" style="font-size:9px;color:var(--dimmer);font-weight:600"></span></div>
+          <span id="car-saved-chevron" style="font-size:11px;color:var(--dim);transition:transform .2s">▾</span>
+        </div>
+        <div id="car-saved-body" style="display:none;margin-top:14px">
+          <div id="car-saved-empty" style="text-align:center;padding:1.5rem 1rem;color:var(--dimmer);font-size:11px">No saved carousels yet — generate one below, then click "Save This Carousel" to keep it here.</div>
+          <div id="car-saved-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
+        </div>
+      </div>
+
       <!-- 3A: Generator controls -->
       <div class="card-dark" style="margin-bottom:16px">
         <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🖼 Carousel Generator</div>
@@ -7323,6 +7335,11 @@ button[onclick="generateOffer()"] {
             <span style="font-size:15px">✨</span> Generate Carousel
           </button>
         </div>
+        <div id="car-progress-wrap" style="display:none;margin-top:14px;max-width:380px;margin-left:auto;margin-right:auto">
+          <div style="height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
+            <div id="car-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--teal));border-radius:3px;transition:width .4s ease"></div>
+          </div>
+        </div>
         <div id="car-status" style="text-align:center;margin-top:10px;font-size:11px;color:var(--dim);min-height:16px"></div>
       </div>
 
@@ -7336,8 +7353,8 @@ button[onclick="generateOffer()"] {
             <div style="font-size:10px;color:var(--dimmer)">Click headline or body text below to edit · drag to reposition</div>
           </div>
           <div id="car-thumbnails" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin"></div>
-          <div id="car-preview-wrap" style="margin-top:14px;border-radius:var(--r-md);overflow:hidden;background:var(--bg2);position:relative;width:100%;max-width:540px;margin-left:auto;margin-right:auto">
-            <canvas id="car-preview-canvas" width="540" height="540" style="display:block;width:100%;border-radius:var(--r-md)"></canvas>
+          <div id="car-preview-wrap" style="margin-top:14px;border-radius:var(--r-md);overflow:hidden;background:var(--bg2);position:relative;width:100%;max-width:540px;aspect-ratio:1/1;margin-left:auto;margin-right:auto">
+            <canvas id="car-preview-canvas" width="540" height="540" style="position:absolute;top:0;left:0;display:block;width:100%;height:100%;border-radius:var(--r-md)"></canvas>
             <div id="car-edit-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"></div>
           </div>
           <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap">
@@ -7346,6 +7363,7 @@ button[onclick="generateOffer()"] {
               <input type="checkbox" id="car-watermark-toggle" checked onchange="carToggleWatermark(this.checked)" style="cursor:pointer">
               Watermark
             </label>
+            <button onclick="carSaveCurrent()" id="car-save-btn" style="padding:9px 18px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:8px;color:#a089ff;font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">💾 Save This Carousel</button>
             <button onclick="carDownloadAll()" id="car-download-all-btn" style="padding:9px 22px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 4px 16px rgba(78,204,163,.3)">⬇️ Download All Slides (4K ZIP)</button>
           </div>
         </div>
@@ -23683,6 +23701,27 @@ window._carCanvases  = [];     // array of HTMLCanvasElement at 2160x2160 (4K)
 window._carUseAudienceQ = true; // pull real audience questions from ICP research into the prompt
 window._carShowWatermark = true; // subtle "ExecutionOS" mark, bottom-left — matches the Quote Card Generator's existing watermark toggle
 
+// Referenced elsewhere via typeof window.csInitCarousel === 'function'
+// when the carousel tab opens, but never actually defined — meaning
+// that hook silently no-op'd every time. Now it populates the saved-
+// carousels library so a returning user sees their saved work right
+// away without needing to expand the section first.
+window.csInitCarousel = function() {
+  var all = window.carGetSavedCarousels ? window.carGetSavedCarousels() : [];
+  var countEl = document.getElementById('car-saved-count');
+  if (countEl) countEl.textContent = all.length ? ('(' + all.length + ')') : '';
+  if (window.carRenderSavedLibrary) window.carRenderSavedLibrary();
+};
+
+window.carToggleSavedLibrary = function() {
+  var body = document.getElementById('car-saved-body');
+  var chevron = document.getElementById('car-saved-chevron');
+  if (!body) return;
+  var isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+};
+
 window.carToggleAudienceQ = function(on) {
   window._carUseAudienceQ = !!on;
   var onBtn  = document.getElementById('car-audience-q-on');
@@ -23788,19 +23827,112 @@ function _carBestTime(niche) {
   return '📅 Best time: Tuesday–Thursday, 12–2pm';
 }
 
-window.carGenerate = async function() {
-  var btn    = document.getElementById('car-generate-btn');
+function _carStartProgress() {
+  var wrap = document.getElementById('car-progress-wrap');
+  var bar  = document.getElementById('car-progress-bar');
+  if (wrap) wrap.style.display = 'block';
+  if (bar)  bar.style.width = '0%';
+}
+
+function _carSetProgress(pct, label) {
+  var bar    = document.getElementById('car-progress-bar');
   var status = document.getElementById('car-status');
-  var output = document.getElementById('car-output');
+  if (bar)    bar.style.width = pct + '%';
+  if (status) status.textContent = label || '';
+}
+
+function _carStopProgress() {
+  var wrap = document.getElementById('car-progress-wrap');
+  var status = document.getElementById('car-status');
+  if (wrap) wrap.style.display = 'none';
+  if (status) status.textContent = '';
+}
+
+window.carGenerate = async function() {
   var topic  = (document.getElementById('car-topic') || {}).value || '';
   var angle  = (document.getElementById('car-angle') || {}).value || '';
   var ctx    = _carGetContext();
+
+  // Real questions/language the audience is asking, from Boardroom ICP
+  // research — fires unless the user turned the toggle off. If there's
+  // genuinely nothing pulled (no research has run yet), there's nothing
+  // to approve, so generation proceeds straight through with no extra
+  // step — approval is only ever shown when there's real content behind it.
+  var useAudienceQ = window._carUseAudienceQ !== false;
+  var icpQ    = (useAudienceQ && window._boardroomIntel && window._boardroomIntel.icpResearch && window._boardroomIntel.icpResearch.commonQuestions) || [];
+  var icpLang = (useAudienceQ && window._boardroomIntel && window._boardroomIntel.icpResearch && window._boardroomIntel.icpResearch.exactLanguage) || [];
+
+  if ((icpQ.length || icpLang.length) && !window._carAudienceApproved) {
+    _carShowAudienceApproval(icpQ, icpLang, topic, angle, ctx);
+    return;
+  }
+  window._carAudienceApproved = false; // reset for next generation
+  await _carRunGeneration(topic, angle, ctx, icpQ, icpLang);
+};
+
+// Shows exactly what real audience data is about to be used, before any
+// AI call fires, with a clear Approve / Skip This Time choice — so the
+// user can see and trust what's shaping their content rather than
+// having it pulled in invisibly.
+function _carShowAudienceApproval(icpQ, icpLang, topic, angle, ctx) {
+  var output = document.getElementById('car-output');
+  var status = document.getElementById('car-status');
+  if (output) output.style.display = 'none';
+  if (status) status.textContent = '';
+
+  var box = document.getElementById('car-audience-approval');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'car-audience-approval';
+    var genCard = document.getElementById('car-generate-btn').closest('.card-dark');
+    genCard.parentNode.insertBefore(box, genCard.nextSibling);
+  }
+  box.style.cssText = 'background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.25);border-radius:var(--r-md);padding:1.25rem;margin-bottom:16px;animation:pageIn .25s ease';
+  box.innerHTML = '<div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:4px">📋 This is what your audience is actually asking</div>'
+    + '<div style="font-size:10px;color:var(--dim);margin-bottom:14px;line-height:1.6">Pulled from your Boardroom research. The carousel will be built using this real audience data — take a look before it generates.</div>'
+    + (icpQ.length ? ('<div style="margin-bottom:12px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Real questions they\'re asking</div>'
+        + icpQ.map(function(q){ return '<div style="font-size:11px;color:var(--muted);padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)">❓ ' + q + '</div>'; }).join('') + '</div>') : '')
+    + (icpLang.length ? ('<div style="margin-bottom:14px"><div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:6px">Exact phrases they use</div>'
+        + '<div style="display:flex;flex-wrap:wrap;gap:6px">' + icpLang.slice(0,4).map(function(p){ return '<span style="background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.25);border-radius:6px;padding:4px 10px;font-size:11px;color:var(--white)">&ldquo;' + p + '&rdquo;</span>'; }).join('') + '</div></div>') : '')
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<button onclick="carApproveAudienceData()" style="padding:10px 24px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:8px;color:var(--text-dark);font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">✅ Use This — Generate</button>'
+    + '<button onclick="carSkipAudienceData()" style="padding:10px 18px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Skip This Time</button>'
+    + '</div>';
+
+  window._carPendingGen = { topic: topic, angle: angle, ctx: ctx, icpQ: icpQ, icpLang: icpLang };
+  box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+window.carApproveAudienceData = async function() {
+  var box = document.getElementById('car-audience-approval');
+  var pending = window._carPendingGen;
+  if (box) box.remove();
+  if (!pending) return;
+  window._carAudienceApproved = true;
+  await _carRunGeneration(pending.topic, pending.angle, pending.ctx, pending.icpQ, pending.icpLang);
+};
+
+window.carSkipAudienceData = async function() {
+  var box = document.getElementById('car-audience-approval');
+  var pending = window._carPendingGen;
+  if (box) box.remove();
+  if (!pending) return;
+  // Proceeds without the audience data this one time, without changing
+  // the user's saved toggle preference for next time.
+  await _carRunGeneration(pending.topic, pending.angle, pending.ctx, [], []);
+};
+
+async function _carRunGeneration(topic, angle, ctx, icpQ, icpLang) {
+  var btn    = document.getElementById('car-generate-btn');
+  var status = document.getElementById('car-status');
+  var output = document.getElementById('car-output');
   var userPhotoCount = (window._carUserPhotos || []).length;
 
   btn.textContent = '⏳ Generating…';
   btn.disabled    = true;
-  if (status)  status.textContent = 'Reading your content intelligence…';
   if (output)  output.style.display = 'none';
+  _carStartProgress();
+  _carSetProgress(8, 'Reading your content intelligence…');
 
   var styleDescriptions = {
     educational: 'Educational — teach one concept step by step. Each slide builds on the last.',
@@ -23808,13 +23940,6 @@ window.carGenerate = async function() {
     list:        'List format — numbered tips or mistakes. Each slide is one item.',
     controversy: 'Controversial take — challenge a widely-held belief. Provocative but backed up.'
   };
-
-  // Real questions the audience is asking, from Boardroom ICP research —
-  // off by default toggle is "On", so this fires unless the user turned
-  // it off. Falls through silently if no research has run yet.
-  var useAudienceQ = window._carUseAudienceQ !== false;
-  var icpQ = (useAudienceQ && window._boardroomIntel && window._boardroomIntel.icpResearch && window._boardroomIntel.icpResearch.commonQuestions) || [];
-  var icpLang = (useAudienceQ && window._boardroomIntel && window._boardroomIntel.icpResearch && window._boardroomIntel.icpResearch.exactLanguage) || [];
 
   var sys = 'You are an elite Instagram carousel copywriter for ' + ctx.niche + '. You write carousels that stop the scroll, build authority, and convert followers into buyers. You NEVER use generic language. Every word is specific to this niche and this audience. Return ONLY valid JSON — no markdown, no code fences, no explanation.';
 
@@ -23869,22 +23994,24 @@ window.carGenerate = async function() {
     + (angle ? ' The carousel must clearly deliver on the custom angle above — every slide should build toward it, and the hook should echo its core promise.' : '');
 
   try {
-    if (status) status.textContent = 'Generating carousel copy…';
+    _carSetProgress(20, 'Writing your carousel copy…');
     var result = await brCallAI(sys, prompt, 1200);
     if (!result || result._error) throw new Error(result ? result._error : 'No response');
 
     window._carData = result;
-    if (status) status.textContent = userPhotoCount > 0
+    _carSetProgress(48, userPhotoCount > 0
       ? 'Composing your ' + userPhotoCount + ' photo(s)…'
-      : 'Fetching niche images…';
+      : 'Fetching niche images…');
 
     // ── Fetch Pexels background images for each slide ──────────────────
     var bgImages = await carFetchNicheImages(result, ctx.niche);
 
-    if (status) status.textContent = 'Rendering slides…';
+    _carSetProgress(72, 'Rendering slides at 4K…');
 
     // Render canvases with photographic backgrounds
     await carRenderSlides(result, ctx, bgImages);
+
+    _carSetProgress(96, 'Finishing up…');
 
     // Populate output fields
     var captionFull = [result.caption_hook, result.caption_body, result.caption_cta].filter(Boolean).join('\n\n');
@@ -23905,9 +24032,11 @@ window.carGenerate = async function() {
     if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '✅ Confirm & Send to Calendar'; }
     if (sendConf) sendConf.style.display = 'none';
 
+    _carSetProgress(100, 'Done ✅');
     if (output) output.style.display = 'block';
-    if (status) status.textContent = '';
+    setTimeout(_carStopProgress, 500);
   } catch(err) {
+    _carStopProgress();
     if (status) status.textContent = '⚠️ ' + (err.message || 'Generation failed. Try again.');
   }
 
@@ -24146,13 +24275,17 @@ var _CAR_SCALE = _CAR_SIZE / 1080;
 var _carThemeCycle = ['navy','teal','purple','yellow','green','crimson'];
 
 // ── Draw text with accent word highlighted ───────────────────────────
-function _carDrawAccentText(gc, text, accentWord, x, y, maxW, lineH, mainColor, accentColor, font, accentFont) {
+function _carDrawAccentText(gc, text, accentWord, x, y, maxW, lineH, mainColor, accentColor, font, accentFont, align) {
   if (!text) return;
+  align = align || 'left';
   // Split text into words, find accent word position
   var words = text.split(' ');
   var lines = [];
   var line  = '';
-  // First pass — wrap into lines
+  // First pass — wrap into lines. Uses the (possibly accent) font for
+  // measurement consistency since headline text is usually all-caps and
+  // bold either way; close enough for wrapping purposes.
+  gc.font = font;
   words.forEach(function(word) {
     var test = line ? line + ' ' + word : word;
     if (gc.measureText(test).width > maxW && line) {
@@ -24167,8 +24300,21 @@ function _carDrawAccentText(gc, text, accentWord, x, y, maxW, lineH, mainColor, 
   var cy = y;
   lines.forEach(function(ln) {
     var lnWords = ln.split(' ');
-    var cx = x;
-    lnWords.forEach(function(w, wi) {
+    // Measure this line's full rendered width (each word + its accent
+    // font if applicable) so the starting x can be shifted for center
+    // or right alignment — left alignment always starts at x.
+    var lineWidth = 0;
+    lnWords.forEach(function(w) {
+      var isAccent = accentWord && w.replace(/[^a-zA-Z]/g,'').toLowerCase() === accentWord.replace(/[^a-zA-Z]/g,'').toLowerCase();
+      gc.font = isAccent ? (accentFont || font) : font;
+      lineWidth += gc.measureText(w + ' ').width;
+    });
+    var startX = x;
+    if (align === 'center') startX = x + Math.max(0, (maxW - lineWidth) / 2);
+    else if (align === 'right') startX = x + Math.max(0, maxW - lineWidth);
+
+    var cx = startX;
+    lnWords.forEach(function(w) {
       var isAccent = accentWord && w.replace(/[^a-zA-Z]/g,'').toLowerCase() === accentWord.replace(/[^a-zA-Z]/g,'').toLowerCase();
       gc.font      = isAccent ? (accentFont || font) : font;
       gc.fillStyle = isAccent ? accentColor : mainColor;
@@ -24181,8 +24327,9 @@ function _carDrawAccentText(gc, text, accentWord, x, y, maxW, lineH, mainColor, 
 }
 
 // ── Draw body text with accent phrase highlighted ────────────────────
-function _carDrawBodyWithAccent(gc, text, accentPhrase, x, y, maxW, lineH, mainColor, accentColor, font) {
+function _carDrawBodyWithAccent(gc, text, accentPhrase, x, y, maxW, lineH, mainColor, accentColor, font, align) {
   if (!text) return y;
+  align = align || 'left';
   gc.font = font;
   // Simple approach: find the accent phrase and split around it
   var parts = [{ text: text, accent: false }];
@@ -24205,13 +24352,15 @@ function _carDrawBodyWithAccent(gc, text, accentPhrase, x, y, maxW, lineH, mainC
     });
   });
 
+  // Wrap into lines, tracking each line's final rendered width so the
+  // starting x can be shifted for center/right alignment afterward.
   var lines  = [];
   var curLine= [];
   var curW   = 0;
   words.forEach(function(item) {
     var ww = gc.measureText(item.w + ' ').width;
     if (curW + ww > maxW && curLine.length) {
-      lines.push(curLine);
+      lines.push({ words: curLine, width: curW });
       curLine = [item];
       curW    = ww;
     } else {
@@ -24219,12 +24368,15 @@ function _carDrawBodyWithAccent(gc, text, accentPhrase, x, y, maxW, lineH, mainC
       curW += ww;
     }
   });
-  if (curLine.length) lines.push(curLine);
+  if (curLine.length) lines.push({ words: curLine, width: curW });
 
   var cy = y;
-  lines.forEach(function(ln) {
-    var cx = x;
-    ln.forEach(function(item) {
+  lines.forEach(function(line) {
+    var startX = x;
+    if (align === 'center') startX = x + Math.max(0, (maxW - line.width) / 2);
+    else if (align === 'right') startX = x + Math.max(0, maxW - line.width);
+    var cx = startX;
+    line.words.forEach(function(item) {
       gc.fillStyle = item.accent ? accentColor : mainColor;
       gc.fillText(item.w, cx, cy);
       cx += gc.measureText(item.w + ' ').width;
@@ -24329,9 +24481,18 @@ async function _carRenderOneSlide(slide, bgImageObj, theme, slideNum, totalSlide
 
   // ── 6. Headline with accent word ──────────────────────────────────
   // headlineText/headlineOffset let a user override the AI copy and/or
-  // nudge its position without re-generating the whole slide.
+  // nudge its position without re-generating the whole slide. Color,
+  // alignment, font size, and width are all independently editable too,
+  // each falling back to the original hardcoded values when unset so an
+  // un-edited slide renders pixel-identical to before this was added.
   gc.textAlign = 'left';
   var headlineOffset = es.headlineOffset || { x: 0, y: 0 };
+  var headlineColor  = es.headlineColor  || '#ffffff';
+  var headlineAlign  = es.headlineAlign  || 'left';
+  var headlineSizeMul= es.headlineSize   || 1;
+  var headlineWidth  = es.headlineWidth  || 940;
+  var headlineFontPx = 72 * headlineSizeMul;
+  var headlineLineH  = 88 * headlineSizeMul;
   var headlineX = (68  + headlineOffset.x) * S;
   var headlineY = (slide.icon ? 340 : 280) * S + headlineOffset.y * S;
   var headlineText = (es.headlineText != null ? es.headlineText : (slide.headline || '')).toUpperCase();
@@ -24339,14 +24500,15 @@ async function _carRenderOneSlide(slide, bgImageObj, theme, slideNum, totalSlide
     gc,
     headlineText,
     (slide.accentWord || slide.hookAccentWord || '').toUpperCase(),
-    headlineX, headlineY, 940 * S, 88 * S,
-    '#ffffff', T.accent,
-    'bold ' + (72 * S) + 'px Poppins, Arial Black, sans-serif',
-    'bold ' + (72 * S) + 'px Poppins, Arial Black, sans-serif'
+    headlineX, headlineY, headlineWidth * S, headlineLineH * S,
+    headlineColor, T.accent,
+    'bold ' + (headlineFontPx * S) + 'px Poppins, Arial Black, sans-serif',
+    'bold ' + (headlineFontPx * S) + 'px Poppins, Arial Black, sans-serif',
+    headlineAlign
   );
   boxes.headline = {
-    x: headlineX / S, y: (headlineY - 70) / S,
-    w: 940, h: ((headlineEndY || headlineY) - headlineY + 88) / S
+    x: headlineX / S, y: (headlineY - 70 * headlineSizeMul) / S,
+    w: headlineWidth, h: ((headlineEndY || headlineY) - headlineY + 88 * S * headlineSizeMul) / S
   };
 
   // ── 7. Divider line ───────────────────────────────────────────────
@@ -24354,26 +24516,33 @@ async function _carRenderOneSlide(slide, bgImageObj, theme, slideNum, totalSlide
   // line (since the draw loop always advances after each line, including
   // the final one) — subtracting most of that back out keeps the gap
   // visually consistent with the original hand-tuned spacing.
-  var divY = (headlineEndY != null ? headlineEndY - 88 * S * 0.45 : (headlineOffset.y + (slide.icon ? 340 : 280) + 100) * S);
+  var divY = (headlineEndY != null ? headlineEndY - headlineLineH * S * 0.45 : (headlineOffset.y + (slide.icon ? 340 : 280) + 100) * S);
   gc.fillStyle = T.accent;
   gc.fillRect(68 * S, divY, 80 * S, 4 * S);
 
   // ── 8. Body text with accent phrase ──────────────────────────────
-  var bodyOffset = es.bodyOffset || { x: 0, y: 0 };
+  var bodyOffset  = es.bodyOffset  || { x: 0, y: 0 };
+  var bodyColor   = es.bodyColor   || 'rgba(255,255,255,.88)';
+  var bodyAlign   = es.bodyAlign   || 'left';
+  var bodySizeMul = es.bodySize    || 1;
+  var bodyWidth   = es.bodyWidth   || 940;
+  var bodyFontPx  = 36 * bodySizeMul;
+  var bodyLineH   = 50 * bodySizeMul;
   var bodyText = es.bodyText != null ? es.bodyText : (slide.body || '');
   if (bodyText) {
-    gc.font = (36 * S) + 'px Inter, Arial, sans-serif';
+    gc.font = (bodyFontPx * S) + 'px Inter, Arial, sans-serif';
     var bodyX = 68 * S + bodyOffset.x * S;
     var bodyStartY = divY + 50 * S + bodyOffset.y * S;
     var bodyEndY = _carDrawBodyWithAccent(
       gc, bodyText, slide.accentPhrase,
-      bodyX, bodyStartY, 940 * S, 50 * S,
-      'rgba(255,255,255,.88)', T.accent,
-      (36 * S) + 'px Inter, Arial, sans-serif'
+      bodyX, bodyStartY, bodyWidth * S, bodyLineH * S,
+      bodyColor, T.accent,
+      (bodyFontPx * S) + 'px Inter, Arial, sans-serif',
+      bodyAlign
     );
     boxes.body = {
-      x: bodyX / S, y: (bodyStartY - 40) / S,
-      w: 940, h: ((bodyEndY || bodyStartY) - bodyStartY + 50) / S
+      x: bodyX / S, y: (bodyStartY - 40 * bodySizeMul) / S,
+      w: bodyWidth, h: ((bodyEndY || bodyStartY) - bodyStartY + 50 * S * bodySizeMul) / S
     };
   }
 
@@ -24489,7 +24658,7 @@ window.carRenderSlides = async function(data, ctx, bgImages) {
       bgObj = await _carLoadImage(bgImages[i].url);
     }
 
-    window._carSlideMeta[i] = { slide: slide, theme: theme, bgObj: bgObj, userPhoto: userPhoto };
+    window._carSlideMeta[i] = { slide: slide, theme: theme, bgObj: bgObj, bgUrl: (bgImages[i] && bgImages[i].url) || null, userPhoto: userPhoto };
     if (!window._carEditState[i]) window._carEditState[i] = {};
 
     var rendered = await _carRenderOneSlide(
@@ -24509,6 +24678,7 @@ window.carRenderSlides = async function(data, ctx, bgImages) {
     (function(idx, th) {
       th.onclick = function() {
         window._carActiveIdx = idx;
+        _carSelectedField = null;
         carShowSlideInEditor(idx);
         document.querySelectorAll('#car-thumbnails canvas').forEach(function(t){
           t.style.borderColor = 'transparent';
@@ -24541,8 +24711,13 @@ window.carShowSlideInEditor = function(idx) {
   if (!previewCanvas || !window._carCanvases[idx]) return;
   window._carActiveIdx = idx;
 
-  previewCanvas.width  = 540;
-  previewCanvas.height = 540;
+  // Only touch width/height when they actually need to change — setting
+  // a canvas's width/height attribute, even to its current value, forces
+  // the browser to fully clear and reset its internal pixel buffer. Doing
+  // this on every single slide switch and every drag re-render was a real
+  // source of visible flicker.
+  if (previewCanvas.width !== 540)  previewCanvas.width  = 540;
+  if (previewCanvas.height !== 540) previewCanvas.height = 540;
   previewCanvas.getContext('2d').drawImage(window._carCanvases[idx], 0, 0, 540, 540);
 
   _carBuildOverlay(idx);
@@ -24552,6 +24727,8 @@ window.carShowSlideInEditor = function(idx) {
 // Boxes are stored in 1080-space; the preview canvas displays at
 // 540×540 (CSS), so everything is divided by 2 to position correctly
 // regardless of the underlying 2160px render resolution.
+var _carSelectedField = null; // 'headline' | 'body' | null — which region currently shows its toolbar
+
 function _carBuildOverlay(idx) {
   var overlay = document.getElementById('car-edit-overlay');
   if (!overlay) return;
@@ -24562,19 +24739,110 @@ function _carBuildOverlay(idx) {
   ['headline', 'body'].forEach(function(field) {
     var box = boxes[field];
     if (!box) return;
+    var isSelected = _carSelectedField === field;
     var region = document.createElement('div');
     region.className = 'car-edit-region';
     region.dataset.field = field;
-    region.style.cssText = 'position:absolute;cursor:grab;pointer-events:auto;border:1.5px dashed rgba(255,255,255,0);border-radius:6px;transition:border-color .15s,background .15s;'
+    region.style.cssText = 'position:absolute;cursor:grab;pointer-events:auto;border:1.5px dashed ' + (isSelected ? 'rgba(78,204,163,.85)' : 'rgba(255,255,255,0)') + ';border-radius:6px;transition:border-color .15s,background .15s;'
       + 'left:' + (box.x * DISPLAY_SCALE) + 'px;top:' + (box.y * DISPLAY_SCALE) + 'px;'
       + 'width:' + (box.w * DISPLAY_SCALE) + 'px;height:' + (box.h * DISPLAY_SCALE) + 'px;';
-    region.onmouseenter = function(){ region.style.borderColor = 'rgba(78,204,163,.6)'; region.style.background = 'rgba(78,204,163,.06)'; };
-    region.onmouseleave = function(){ if (!region._dragging) { region.style.borderColor = 'rgba(255,255,255,0)'; region.style.background = 'transparent'; } };
+    region.onmouseenter = function(){ if (!isSelected) { region.style.borderColor = 'rgba(78,204,163,.6)'; region.style.background = 'rgba(78,204,163,.06)'; } };
+    region.onmouseleave = function(){ if (!region._dragging && !isSelected) { region.style.borderColor = 'rgba(255,255,255,0)'; region.style.background = 'transparent'; } };
     region.onmousedown  = function(e){ _carDragStart(e, idx, field, region); };
     region.ontouchstart = function(e){ _carDragStart(e, idx, field, region); };
-    region.ondblclick   = function(e){ e.stopPropagation(); _carEditText(idx, field); };
+    region.onclick      = function(e){ e.stopPropagation(); _carSelectedField = field; _carBuildOverlay(idx); };
+    region.ondblclick    = function(e){ e.stopPropagation(); _carEditText(idx, field); };
     overlay.appendChild(region);
+
+    if (isSelected) {
+      // Resize handle — bottom-right corner, drag to change the text
+      // box's width (which re-wraps the text). Live drag scales a cheap
+      // CSS preview; the real canvas re-render happens once on release.
+      var handle = document.createElement('div');
+      handle.style.cssText = 'position:absolute;width:14px;height:14px;border-radius:50%;background:var(--teal);border:2px solid #0a0f28;cursor:nwse-resize;pointer-events:auto;'
+        + 'left:' + (box.x * DISPLAY_SCALE + box.w * DISPLAY_SCALE - 7) + 'px;top:' + (box.y * DISPLAY_SCALE + box.h * DISPLAY_SCALE - 7) + 'px;z-index:5';
+      handle.onmousedown  = function(e){ _carResizeStart(e, idx, field, region, handle); };
+      handle.ontouchstart = function(e){ _carResizeStart(e, idx, field, region, handle); };
+      overlay.appendChild(handle);
+
+      _carBuildToolbar(overlay, idx, field, box, DISPLAY_SCALE);
+    }
   });
+
+  // Clicking empty canvas space (not a region) deselects.
+  overlay.onclick = function(){ if (_carSelectedField) { _carSelectedField = null; _carBuildOverlay(idx); } };
+}
+
+// Floating toolbar shown above the selected region: alignment, font
+// size, and color. Positioned above the box when there's room, below it
+// otherwise, so it never gets clipped off the top of the preview.
+function _carBuildToolbar(overlay, idx, field, box, DISPLAY_SCALE) {
+  var es = window._carEditState[idx] || (window._carEditState[idx] = {});
+  var boxTopCss = box.y * DISPLAY_SCALE;
+  var toolbar = document.createElement('div');
+  var aboveSpace = boxTopCss > 46;
+  toolbar.style.cssText = 'position:absolute;display:flex;gap:4px;align-items:center;background:rgba(10,15,40,.95);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 6px;pointer-events:auto;z-index:6;box-shadow:0 4px 14px rgba(0,0,0,.4);'
+    + 'left:' + (box.x * DISPLAY_SCALE) + 'px;' + (aboveSpace ? ('top:' + (boxTopCss - 40) + 'px') : ('top:' + (boxTopCss + box.h * DISPLAY_SCALE + 6) + 'px'));
+
+  function mkBtn(label, title, onClick, active) {
+    var b = document.createElement('button');
+    b.textContent = label;
+    b.title = title;
+    b.style.cssText = 'width:24px;height:24px;border-radius:5px;border:1px solid ' + (active ? 'var(--teal)' : 'rgba(255,255,255,.15)') + ';background:' + (active ? 'rgba(78,204,163,.18)' : 'rgba(255,255,255,.06)') + ';color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0';
+    b.onclick = function(e){ e.stopPropagation(); onClick(); };
+    return b;
+  }
+
+  var curAlign = es[field + 'Align'] || 'left';
+  toolbar.appendChild(mkBtn('⟸', 'Align left',   function(){ es[field+'Align']='left';   _carRerenderSlide(idx); }, curAlign==='left'));
+  toolbar.appendChild(mkBtn('⟺', 'Align center', function(){ es[field+'Align']='center'; _carRerenderSlide(idx); }, curAlign==='center'));
+  toolbar.appendChild(mkBtn('⟹', 'Align right',  function(){ es[field+'Align']='right';  _carRerenderSlide(idx); }, curAlign==='right'));
+
+  var sizeDivider = document.createElement('div');
+  sizeDivider.style.cssText = 'width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 2px';
+  toolbar.appendChild(sizeDivider);
+
+  toolbar.appendChild(mkBtn('A−', 'Smaller text', function(){
+    var cur = es[field+'Size'] || 1;
+    es[field+'Size'] = Math.max(0.5, +(cur - 0.1).toFixed(2));
+    _carRerenderSlide(idx);
+  }, false));
+  toolbar.appendChild(mkBtn('A+', 'Bigger text', function(){
+    var cur = es[field+'Size'] || 1;
+    es[field+'Size'] = Math.min(2, +(cur + 0.1).toFixed(2));
+    _carRerenderSlide(idx);
+  }, false));
+
+  var colorDivider = document.createElement('div');
+  colorDivider.style.cssText = 'width:1px;height:18px;background:rgba(255,255,255,.15);margin:0 2px';
+  toolbar.appendChild(colorDivider);
+
+  var colorInput = document.createElement('input');
+  colorInput.type = 'color';
+  colorInput.value = _carColorToHex(es[field + 'Color'] || (field === 'headline' ? '#ffffff' : '#e0e0e0'));
+  colorInput.title = 'Text color';
+  colorInput.style.cssText = 'width:24px;height:24px;border:1px solid rgba(255,255,255,.15);border-radius:5px;padding:0;cursor:pointer;background:transparent';
+  colorInput.onclick = function(e){ e.stopPropagation(); };
+  colorInput.oninput = function(){
+    es[field + 'Color'] = colorInput.value;
+    _carRerenderSlide(idx);
+  };
+  toolbar.appendChild(colorInput);
+
+  overlay.appendChild(toolbar);
+}
+
+// Native <input type=color> only accepts hex — convert an rgba() string
+// (the default body color) to its nearest hex equivalent so the picker
+// always has a valid starting value instead of throwing or defaulting
+// to black.
+function _carColorToHex(c) {
+  if (!c) return '#ffffff';
+  if (c[0] === '#') return c;
+  var m = c.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (!m) return '#ffffff';
+  var toHex = function(n){ return ('0' + parseInt(n,10).toString(16)).slice(-2); };
+  return '#' + toHex(m[1]) + toHex(m[2]) + toHex(m[3]);
 }
 
 var _carDrag = null; // { idx, field, startX, startY, startOffset }
@@ -24622,14 +24890,73 @@ function _carDragEnd() {
   document.removeEventListener('touchend',  _carDragEnd);
   d.region._dragging = false;
   d.region.style.cursor = 'grab';
-  d.region.style.transform = '';
+  // Deliberately NOT clearing region.style.transform here. The dragged
+  // element stays exactly where the user left it (via the live transform)
+  // until the re-render below actually finishes and rebuilds the overlay
+  // from the new, correct canvas — at which point the transform is
+  // implicitly replaced since _carBuildOverlay recreates the element
+  // fresh. Clearing it early caused a visible snap-back-then-forward
+  // jump while the re-render was still in flight.
 
   if (d._pendingOffset) {
     var es = window._carEditState[d.idx] || (window._carEditState[d.idx] = {});
     es[d.field + 'Offset'] = d._pendingOffset;
     _carRerenderSlide(d.idx);
+  } else {
+    // No actual movement happened — safe to clear immediately since
+    // there's no re-render coming to replace this element.
+    d.region.style.transform = '';
   }
   _carDrag = null;
+}
+
+var _carResize = null; // { idx, field, region, startX, startWidth }
+
+function _carResizeStart(e, idx, field, region, handle) {
+  e.preventDefault();
+  e.stopPropagation(); // don't also trigger the region's own drag-start
+  var point = e.touches ? e.touches[0] : e;
+  var es = window._carEditState[idx] || (window._carEditState[idx] = {});
+  var startWidth = es[field + 'Width'] || 940;
+  _carResize = { idx: idx, field: field, region: region, handle: handle, startX: point.clientX, startWidth: startWidth };
+  document.addEventListener('mousemove', _carResizeMove);
+  document.addEventListener('mouseup',   _carResizeEnd);
+  document.addEventListener('touchmove', _carResizeMove, { passive: false });
+  document.addEventListener('touchend',  _carResizeEnd);
+}
+
+function _carResizeMove(e) {
+  if (!_carResize) return;
+  e.preventDefault();
+  var point = e.touches ? e.touches[0] : e;
+  var DISPLAY_SCALE = 540 / 1080;
+  var dxCss = point.clientX - _carResize.startX;
+  var dx1080 = dxCss / DISPLAY_SCALE;
+  var newWidth = Math.max(200, Math.min(944, _carResize.startWidth + dx1080));
+  // Live-preview by scaling the region/handle visually — the real
+  // re-wrap-and-redraw happens once on release, same reasoning as drag.
+  var widthRatio = newWidth / _carResize.startWidth;
+  _carResize.region.style.transform = 'scaleX(' + widthRatio + ')';
+  _carResize.region.style.transformOrigin = 'left center';
+  _carResize._pendingWidth = newWidth;
+}
+
+function _carResizeEnd() {
+  if (!_carResize) return;
+  var r = _carResize;
+  document.removeEventListener('mousemove', _carResizeMove);
+  document.removeEventListener('mouseup',   _carResizeEnd);
+  document.removeEventListener('touchmove', _carResizeMove);
+  document.removeEventListener('touchend',  _carResizeEnd);
+
+  if (r._pendingWidth) {
+    var es = window._carEditState[r.idx] || (window._carEditState[r.idx] = {});
+    es[r.field + 'Width'] = r._pendingWidth;
+    _carRerenderSlide(r.idx);
+  } else {
+    r.region.style.transform = '';
+  }
+  _carResize = null;
 }
 
 // Opens an inline textarea over the clicked region so the user can
@@ -24697,6 +25024,7 @@ function _carRerenderSlide(idx) { return window._carRerenderSlide(idx); }
 window.carResetSlideEdits = function() {
   var idx = window._carActiveIdx || 0;
   window._carEditState[idx] = {};
+  _carSelectedField = null;
   _carRerenderSlide(idx);
 };
 
@@ -24718,6 +25046,149 @@ function _carWrapText(gc, text, x, y, maxW, lineH) {
   }
   if (line) gc.fillText(line, x, cy);
 }
+
+// ═══════════════════════════════════════════════════════════════════
+// SAVED CAROUSELS LIBRARY — save, load, delete
+// ═══════════════════════════════════════════════════════════════════
+// Design note: this saves the RECIPE to recreate a carousel — the AI's
+// generated copy (window._carData), every slide's edit state (color,
+// alignment, size, position, text overrides), and the small Pexels
+// image URLs used as backgrounds — not the rendered bitmaps themselves.
+// A 7-slide carousel at full 4K (2160×2160) would be 10MB+ as PNGs,
+// comfortably over what localStorage can hold for even one or two
+// saved carousels. Re-rendering from the recipe on load takes a moment
+// but reproduces the carousel exactly, including every edit, without
+// ever storing megabytes of image data. User-uploaded photos are the
+// one exception — those are real base64 data and genuinely large, so
+// they're checked and flagged before saving rather than included
+// silently (which risked quietly corrupting storage for the whole app).
+var CAR_SAVED_KEY = 'eos_saved_carousels';
+
+window.carGetSavedCarousels = function() {
+  try { return JSON.parse(localStorage.getItem(CAR_SAVED_KEY) || '[]'); }
+  catch(e) { return []; }
+};
+
+window.carSaveCurrent = function() {
+  if (!window._carData) { return; }
+  var hasUserPhotos = (window._carUserPhotos || []).length > 0;
+
+  if (hasUserPhotos) {
+    var proceed = confirm(
+      'This carousel uses your uploaded photos. Saved carousels store text and styling, not the photos themselves (they\'re too large to keep many of) — reloading it will use stock background images instead of your photos. Save anyway?'
+    );
+    if (!proceed) return;
+  }
+  _carDoSave();
+};
+
+function _carDoSave() {
+  var name = ((document.getElementById('car-topic')||{}).value
+    || (document.getElementById('car-angle')||{}).value
+    || (window._carData && window._carData.hook)
+    || 'Untitled Carousel').toString().slice(0, 60);
+
+  var entry = {
+    id:        'car_' + Date.now(),
+    name:      name,
+    savedAt:   new Date().toISOString(),
+    niche:     window._carNiche || '',
+    style:     window._carStyle,
+    count:     window._carCount,
+    data:      window._carData,                 // AI-generated copy
+    editState: window._carEditState || [],        // per-slide edits
+    bgUrls:    (window._carSlideMeta || []).map(function(m){ return (m && m.bgUrl) || null; }),
+    thumbnail: window._carCanvases && window._carCanvases[0]
+      ? window._carCanvases[0].toDataURL('image/jpeg', 0.5) // one small low-quality thumbnail only, for the library grid — not a full-resolution save
+      : null,
+  };
+
+  var all = carGetSavedCarousels();
+  all.unshift(entry);
+  if (all.length > 20) all = all.slice(0, 20);
+
+  try {
+    localStorage.setItem(CAR_SAVED_KEY, JSON.stringify(all));
+    carRenderSavedLibrary();
+    var status = document.getElementById('car-status');
+    if (status) { status.textContent = '✅ Saved "' + name + '"'; setTimeout(function(){ if (status.textContent.indexOf('Saved') === 0) status.textContent = ''; }, 2500); }
+  } catch(e) {
+    // Quota exceeded or similar — tell the user plainly rather than fail silently
+    alert('Could not save — your browser storage is full. Try deleting an older saved carousel first.');
+  }
+}
+
+window.carDeleteSaved = function(id) {
+  if (!confirm('Delete this saved carousel? This cannot be undone.')) return;
+  var all = carGetSavedCarousels().filter(function(c){ return c.id !== id; });
+  localStorage.setItem(CAR_SAVED_KEY, JSON.stringify(all));
+  carRenderSavedLibrary();
+};
+
+window.carLoadSaved = async function(id) {
+  var all = carGetSavedCarousels();
+  var entry = all.find(function(c){ return c.id === id; });
+  if (!entry) return;
+
+  var status = document.getElementById('car-status');
+  var output = document.getElementById('car-output');
+  var btn    = document.getElementById('car-generate-btn');
+  if (btn) { btn.textContent = '⏳ Loading…'; btn.disabled = true; }
+  if (status) status.textContent = 'Rebuilding your saved carousel…';
+  if (output) output.style.display = 'none';
+
+  window._carData  = entry.data;
+  window._carStyle = entry.style || 'educational';
+  window._carCount = entry.count || (entry.data.slides ? entry.data.slides.length + 2 : 6);
+  window._carEditState = entry.editState || [];
+  window._carUserPhotos = []; // saved carousels never restore user photos — see save-time warning
+
+  var topicEl = document.getElementById('car-topic');
+  if (topicEl) topicEl.value = entry.name || '';
+
+  // Re-fetch background images from the saved URLs (small strings,
+  // not stored as binary) — falls back to the gradient theme if a
+  // particular URL no longer resolves.
+  var bgImages = (entry.bgUrls || []).map(function(url){ return url ? { url: url } : null; });
+
+  try {
+    await carRenderSlides(window._carData, { niche: entry.niche, offerName: '' }, bgImages);
+    if (output) output.style.display = 'block';
+    if (status) status.textContent = '✅ Loaded "' + entry.name + '"';
+  } catch(e) {
+    if (status) status.textContent = '⚠️ Could not rebuild this carousel: ' + (e.message || 'unknown error');
+  }
+  if (btn) { btn.textContent = '✨ Generate Carousel'; btn.disabled = false; }
+};
+
+window.carRenderSavedLibrary = function() {
+  var grid = document.getElementById('car-saved-grid');
+  var empty = document.getElementById('car-saved-empty');
+  if (!grid) return;
+  var all = carGetSavedCarousels();
+
+  if (!all.length) {
+    grid.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  grid.innerHTML = all.map(function(c) {
+    var dateLabel = '';
+    try { dateLabel = new Date(c.savedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); } catch(e) {}
+    return '<div style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:10px;overflow:hidden;cursor:pointer" onclick="carLoadSaved(\'' + c.id + '\')">'
+      + (c.thumbnail
+          ? '<img src="' + c.thumbnail + '" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block" />'
+          : '<div style="width:100%;aspect-ratio:1/1;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:24px">🖼</div>')
+      + '<div style="padding:8px 10px">'
+      + '<div style="font-size:11px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + c.name + '</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">'
+      + '<div style="font-size:9px;color:var(--dimmer)">' + dateLabel + '</div>'
+      + '<button onclick="event.stopPropagation();carDeleteSaved(\'' + c.id + '\')" style="background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;padding:2px 4px">🗑</button>'
+      + '</div></div></div>';
+  }).join('');
+};
 
 // Downloads every slide as a single zip at full 4K (2160×2160) resolution
 // — each canvas is already rendered at that size, so this is a direct
