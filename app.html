@@ -4125,7 +4125,7 @@ button[onclick="generateOffer()"] {
         🔬 Save My Business DNA → Build My Ideal Customer
       </button>
       <div style="margin-top:12px">
-        <button onclick="showPage('avatar',document.getElementById('nav-avatar'))" style="background:none;border:none;color:var(--dimmer);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;text-decoration:underline">Skip for now — I will come back to this</button>
+        <button onclick="confirmSkipBizIntel()" style="background:none;border:none;color:var(--dimmer);font-size:11px;cursor:pointer;font-family:Inter,sans-serif;text-decoration:underline">Skip for now — I will come back to this</button>
       </div>
     </div>
 
@@ -4221,8 +4221,12 @@ button[onclick="generateOffer()"] {
             <input class="fi" id="av_tried" placeholder="e.g. Bought 2 Udemy courses (never finished), tried dropshipping for 3 months (lost $800), followed YouTube gurus for a year with no result" oninput="markFilled()">
           </div>
           <div class="fr">
+            <div class="fl">What industry or sector do they operate in? Be specific — not "business", but "e-commerce" or "real estate" or "healthcare"</div>
+            <input class="fi" id="av_industry" placeholder="e.g. The industry or sector your ideal client operates in" oninput="markFilled()">
+          </div>
+          <div class="fr">
             <div class="fl">What is the painful cost of inaction? What happens to their life in 12 months if nothing changes?</div>
-            <input class="fi" id="av_industry" placeholder="e.g. Still trading hours for dollars at 40, watching others build the life she wants, too exhausted to try again" oninput="markFilled()">
+            <input class="fi" id="av_cost" placeholder="e.g. Still trading hours for dollars at 40, watching others build the life she wants, too exhausted to try again" oninput="markFilled()">
           </div>
         </div>
       </div>
@@ -10898,9 +10902,35 @@ window.setAffDMTab = function(mode, btn) {
 function renderAffDMTab(mode) {
   const grid = document.getElementById('aff-dm-scripts-grid');
   if (!grid) return;
-  const scripts = buildAffiliateScriptSet(mode);
   const offer = window._affiliateOffer || {};
   const av    = window._avatarData || {};
+
+  // ── AI Personalized mode — uses the AI-generated scripts built during
+  // analysis (5 angles seeded with the dominance angle when available),
+  // not the template-based set used by the other tabs. These used to be
+  // generated and stored on every analysis but never actually displayed.
+  if (mode === 'ai') {
+    const aiScripts = (av && av.dmScripts) || offer.dmScripts || [];
+    if (!aiScripts.length) {
+      grid.innerHTML = '<div style="text-align:center;padding:2.5rem 1.5rem">'
+        + '<div style="font-size:32px;margin-bottom:12px">✨</div>'
+        + '<div style="font-size:13px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">No AI Scripts Yet</div>'
+        + '<div style="font-size:11px;color:var(--dim);max-width:340px;margin:0 auto;line-height:1.7">These are generated automatically the next time you run Analyse &amp; Build Everything — each one written specifically for your avatar and angle, not a template.</div>'
+        + '</div>';
+      return;
+    }
+    grid.innerHTML = '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:12px;padding:12px 16px;margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:10px"><span style="font-size:18px;flex-shrink:0">✨</span><div style="font-size:11px;color:var(--dim);line-height:1.65">Written specifically for this avatar — 5 different angles, each with an opener, a follow-up, and a close for when they respond positively.</div></div>'
+      + aiScripts.map(function(s, i) {
+          return '<div class="sc-card" style="border-color:rgba(108,99,255,.25)"><div class="sc-head"><div style="flex:1;min-width:0"><div class="sc-title" style="color:var(--purple)">' + (s.label || s.type || ('Script ' + (i+1))) + '</div></div><button class="copy-btn" onclick="copyAffAiScript(' + i + ',this)" style="flex-shrink:0">Copy</button></div><div class="sc-body">'
+            + '<p style="border-left:2px solid rgba(108,99,255,.25);padding-left:10px;margin-bottom:10px;color:var(--muted)"><strong style="color:var(--dimmer);font-size:9px;text-transform:uppercase">Opener — </strong>' + (s.opener||'') + '</p>'
+            + (s.followUp ? '<p style="border-left:2px solid rgba(108,99,255,.25);padding-left:10px;margin-bottom:10px;color:var(--muted)"><strong style="color:var(--dimmer);font-size:9px;text-transform:uppercase">Follow-up — </strong>' + s.followUp + '</p>' : '')
+            + (s.close ? '<p style="border-left:2px solid rgba(108,99,255,.25);padding-left:10px;margin-bottom:0;color:var(--muted)"><strong style="color:var(--dimmer);font-size:9px;text-transform:uppercase">Close — </strong>' + s.close + '</p>' : '')
+            + '</div></div>';
+        }).join('');
+    return;
+  }
+
+  const scripts = buildAffiliateScriptSet(mode);
   const modeColors = {
     dm:        {color:'var(--teal)',   bg:'rgba(78,204,163,.07)',  border:'rgba(78,204,163,.25)',  icon:'💬'},
     warm:      {color:'var(--orange)', bg:'rgba(255,140,66,.07)', border:'rgba(255,140,66,.25)', icon:'🔥'},
@@ -10967,6 +10997,19 @@ function renderAffDMTab(mode) {
       return `<div class="sc-card" style="border-color:${mc.border}"><div class="sc-head"><div style="flex:1;min-width:0"><div class="sc-title" style="color:${mc.color}">${s.title}</div><div class="sc-use" style="margin-top:2px">${s.tag}</div>${whenBadge}</div><button class="copy-btn" onclick="copyAffScript(${i},'${mode}',this)" style="flex-shrink:0">Copy</button></div><div class="sc-body">${s.lines.map(l=>`<p style="border-left:2px solid ${mc.border};padding-left:10px;margin-bottom:10px;color:var(--muted)">${l}</p>`).join('')}</div></div>`;
     }).join('');
 }
+
+window.copyAffAiScript = function(i, btn) {
+  const av = window._avatarData || {};
+  const offer = window._affiliateOffer || {};
+  const aiScripts = av.dmScripts || offer.dmScripts || [];
+  if (!aiScripts[i]) return;
+  const s = aiScripts[i];
+  const text = [s.opener, s.followUp, s.close].filter(Boolean).join('\n\n');
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!'; btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('ok'); }, 2000);
+  }).catch(() => { btn.textContent = 'Done'; setTimeout(() => { btn.textContent = 'Copy'; }, 1500); });
+};
 
 window.copyAffScript = function(i, mode, btn) {
   const scripts = buildAffiliateScriptSet(mode);
@@ -12544,6 +12587,45 @@ function generateOffer(){
     return;
   }
 
+  // ── Build and persist the raw offer data, mirroring generateAvatar() ──
+  // Previously this function only validated 4 fields and showed a success
+  // card — every other field (value stack, guarantee, scarcity, bonus, etc.)
+  // was never saved anywhere and only ever read live from the DOM by
+  // brCollectInputs() at Boardroom generation time. That worked as long as
+  // the user never navigated away, but gave none of the safety net the
+  // avatar page has (no localStorage snapshot, nothing restored on reload).
+  var stackItems = Array.from(document.querySelectorAll('#offer-stack-items .offer-stack-row')).map(function(row){
+    var inputs = row.querySelectorAll('input');
+    return { item: inputs[0] ? inputs[0].value.trim() : '', value: inputs[1] ? inputs[1].value.trim() : '' };
+  }).filter(function(s){ return s.item || s.value; });
+
+  window._offerData = {
+    name:            gv('offer_name'),
+    price:           gv('offer_price'),
+    promise:         gv('offer_promise'),
+    result:          gv('offer_result'),
+    noEffort:        gv('offer_no_effort'),
+    transformation:  gv('offer_transformation'),
+    system:          gv('offer_system'),
+    format:          gv('offer_format'),
+    duration:        gv('offer_duration'),
+    difference:      gv('offer_difference'),
+    valueStack:      stackItems,
+    payment:         gv('offer_payment'),
+    guarantee:       gv('offer_guarantee'),
+    guaranteeCond:   gv('offer_guarantee_cond'),
+    scarcity:        gv('offer_scarcity'),
+    bonus:           gv('offer_bonus'),
+    savedAt:         Date.now()
+  };
+  try {
+    localStorage.setItem('eos_offer_data', JSON.stringify(window._offerData));
+    var _expState = JSON.parse(localStorage.getItem('eos_state_expert')||'{}');
+    _expState.offerData = window._offerData;
+    localStorage.setItem('eos_state_expert', JSON.stringify(_expState));
+  } catch(e) {}
+  window.saveOfferData && window.saveOfferData();
+
   var navOffer = document.getElementById('nav-offer');
   if (navOffer) { navOffer.classList.add('done'); navOffer.classList.remove('next-up'); }
 
@@ -13222,6 +13304,7 @@ function _showAvatarAnalysisUI(outputEl, av) {
       av_location:       av.location,
       av_job:            av.job,
       av_industry:       av.industry,
+      av_cost:           av.costOfInaction,
       av_employ:         av.employ,
       av_hrs:            av.hrs,
       av_current:        av.current || av.pain,
@@ -13339,6 +13422,7 @@ function generateAvatar(){
     income:         gv('av_income'),
     job:            gv('av_job'),
     industry:       gv('av_industry'),
+    costOfInaction: gv('av_cost'),
     employ:         gv('av_employ'),
     hours:          gv('av_hrs'),
     pain:           gv('av_current'),
@@ -14849,7 +14933,7 @@ window._updateAllNichePlaceholders = function(niche) {
 
 var VAULT_FIELDS = {
   revenue: ['niche','price','target'],
-  avatar:  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry',
+  avatar:  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_cost',
             'av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear',
             'av_tried','av_personality','av_motivation','av_influences','av_objections'],
   offer:   ['offer_promise','offer_result','offer_no_effort','offer_transformation','offer_system',
@@ -21087,8 +21171,11 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
     }
 
     // ── Run Affiliate Intelligence Agent (Tavily + LangSmith powered) ──
-    // Runs in background while calendar generates — populates full intel tabs
-    (async function() {
+    // Starts immediately and runs in parallel with calendar generation —
+    // its promise is captured (not discarded) so the calendar step below
+    // can await it at the exact point it needs window._boardroomIntel,
+    // rather than reading it synchronously before it could ever resolve.
+    var _affIntelPromise = (async function() {
       try {
         var affIntelResp = await fetch(window.location.origin + '/api/affiliate-intel', {
           method: 'POST',
@@ -21145,6 +21232,7 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
         }
 
         console.log('[Affiliate Intel] Full intelligence loaded and activated across all sections ✅', affIntelData.tracer);
+        window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
 
         // ── DEPTH CALL: Content pillars + email sequence + 30-day roadmap ──
         // Runs after the main intel agent to add the Boardroom-equivalent depth
@@ -21215,6 +21303,7 @@ Return ONLY valid JSON:
               }
               try { localStorage.setItem('eos_aff_depth_intel', JSON.stringify(depthData)); } catch(e3) {}
               console.log('[Affiliate Intel] Depth intelligence loaded — content pillars, email sequence, 30-day roadmap ✅');
+              window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
             }
           }
         } catch(depthErr) {
@@ -21229,7 +21318,13 @@ Return ONLY valid JSON:
     // Finds saturated angles + open positioning gaps automatically.
     // Stores dominance angle on _affiliateOffer so calendar and DM prompts
     // can use it — user doesn't need to find the tab manually.
-    (async function() {
+    // Promise captured (not discarded) so DM script generation below can
+    // actually await it before reading window._affiliateOffer.dominanceAngle —
+    // previously this call ran web-search-backed research (45-60s) in the
+    // background while DM scripts were generated immediately after, so the
+    // dominance angle was almost never ready in time despite the code being
+    // written to use it when available.
+    var _promoIntelPromise = (async function() {
       try {
         var offer = window._affiliateOffer || {};
         var promoResult = await affCallAI_PromoIntel(offer, av);
@@ -21247,9 +21342,81 @@ Return ONLY valid JSON:
           if (typeof window.renderAffPromoIntel === 'function') window.renderAffPromoIntel();
           try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e2) {}
           console.log('[Affiliate] Promotion intelligence loaded — dominance angle:', promoResult.yourDominanceAngle);
+          window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
         }
       } catch(e) {
         console.warn('[Affiliate] Promotion intel background run failed:', e.message);
+      }
+    })();
+
+    // ── Auto-run Buyer Research in background ─────────────────────────
+    // Previously this tab required the user to find it and click "Research
+    // My Buyers" manually — unlike Promotion Intelligence above, which has
+    // always auto-fired. There was no visible difference between these
+    // tabs to explain why one needed an extra click and the other didn't.
+    // Runs in parallel with Promotion Intelligence above, so this adds no
+    // extra wall-clock wait — both are web-search-backed calls that were
+    // already going to take 45-60s either way.
+    var _buyerResearchPromise = (async function() {
+      try {
+        var offerBr = window._affiliateOffer || {};
+        var brResult = await affCallAI_BuyerResearch(offerBr, av);
+        if (brResult && brResult.corePain) {
+          if (!window._affiliateResearchIntel) window._affiliateResearchIntel = {};
+          window._affiliateResearchIntel.buyerResearch = brResult;
+          if (typeof window.renderAffBuyerResearch === 'function') window.renderAffBuyerResearch();
+          try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e2) {}
+          console.log('[Affiliate] Buyer research loaded automatically ✅');
+          window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
+        }
+      } catch(e) {
+        console.warn('[Affiliate] Buyer research background run failed:', e.message);
+      }
+    })();
+
+    // ── Auto-run Offer Viability in background ─────────────────────────
+    // Same fix as Buyer Research above — previously manual-only with no
+    // indication to the user that it required an extra step.
+    (async function() {
+      try {
+        var offerOv = window._affiliateOffer || {};
+        if (!offerOv.commission) return;
+        var ovResult = await affCallAI_OfferViability(offerOv);
+        if (ovResult && ovResult.verdict) {
+          if (!window._affiliateResearchIntel) window._affiliateResearchIntel = {};
+          window._affiliateResearchIntel.offerViability = ovResult;
+          if (typeof window.renderAffOfferViability === 'function') window.renderAffOfferViability();
+          try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e2) {}
+          console.log('[Affiliate] Offer viability loaded automatically ✅');
+          window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
+        }
+      } catch(e) {
+        console.warn('[Affiliate] Offer viability background run failed:', e.message);
+      }
+    })();
+
+    // ── Auto-run Content Strategy in background ────────────────────────
+    // Previously manual-only. Chained after buyer research (rather than
+    // running fully in parallel like the others) because this tab's own
+    // empty-state copy says it benefits from buyer research running first
+    // — so this preserves that ordering while still removing the manual
+    // click for the user.
+    (async function() {
+      try {
+        await _buyerResearchPromise;
+        var offerCs = window._affiliateOffer || {};
+        if (!offerCs.niche && !offerCs.name) return;
+        var csResult = await affCallAI_ContentStrategy(offerCs, av, window._affiliateResearchIntel || {});
+        if (csResult && csResult.platformStack) {
+          if (!window._affiliateResearchIntel) window._affiliateResearchIntel = {};
+          window._affiliateResearchIntel.contentStrategy = csResult;
+          if (typeof window.renderAffContentStrategy === 'function') window.renderAffContentStrategy();
+          try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e2) {}
+          console.log('[Affiliate] Content strategy loaded automatically ✅');
+          window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
+        }
+      } catch(e) {
+        console.warn('[Affiliate] Content strategy background run failed:', e.message);
       }
     })();
 
@@ -21293,6 +21460,19 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
     ]));
 
     setProgress(55, 'Writing your 7-day content plan…', 'Buyer profile locked ✅');
+
+    // Give the affiliate-intel call a chance to finish so the calendar gets
+    // real boardroom context — previously this read window._boardroomIntel
+    // synchronously right after launching that background call, so it was
+    // always still null. Capped at 12s so a slow web-search-backed intel
+    // call can never stall calendar generation — the calendar still works
+    // fine without this context, it's an enhancement, not a dependency.
+    try {
+      await Promise.race([
+        _affIntelPromise,
+        new Promise(function(resolve){ setTimeout(resolve, 12000); })
+      ]);
+    } catch(e) {}
 
     // Build full content via API — routed through /api/generate-affiliate
     // so Boardroom hooks, DM openers and email subjects seed the content
@@ -21361,6 +21541,20 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
     // ═══════════════════════════════════════════════════════════════════
     setProgress(85, 'Writing your DM scripts…', 'Calendar ready ✅');
 
+    // Give promotion intelligence a short window to finish so DM scripts
+    // can actually use the dominance angle — previously this read
+    // window._affiliateOffer.dominanceAngle synchronously right after
+    // launching that background call (a 45-60s web-search-backed research
+    // task), so it almost never had time to populate before this ran.
+    // Capped at 8s — DM scripts are valuable without the dominance angle,
+    // so this is a brief allowance, not a hard wait for the full research.
+    try {
+      await Promise.race([
+        _promoIntelPromise,
+        new Promise(function(resolve){ setTimeout(resolve, 8000); })
+      ]);
+    } catch(e) {}
+
     try {
       // Include dominance angle if promotion intelligence has already run
       var _dominanceCtx = (window._affiliateOffer && window._affiliateOffer.dominanceAngle)
@@ -21424,6 +21618,7 @@ Return ONLY valid JSON — no markdown, no backticks:
     // STEP 4 — Save everything to Firestore
     // ═══════════════════════════════════════════════════════════════════
     setProgress(95, 'Saving to your account…', null);
+    window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
 
     try {
       const uid = window._currentUserUid;
@@ -21557,53 +21752,6 @@ window.showAffPostDetail = function(dayIdx, slotIdx) {
   </div>`;
   document.body.appendChild(modal);
 };
-
-// ─── Affiliate Strategy ────────────────────────────────────────────────────────
-window.renderAffStrategy = function renderAffStrategy(av) {
-  const el = document.getElementById('aff-strategy-body');
-  if (!el) return;
-  // Use offer data as fallback if avatar is empty
-  if (!av || Object.keys(av).length === 0) {
-    const offer = window._affiliateOffer || {};
-    av = {
-      job: 'online entrepreneur', pain: 'struggling to grow their income online',
-      transformation: 'financial freedom and a scalable online income',
-      commission: offer.commission || 1000, niche: offer.niche || 'Online Business'
-    };
-  }
-  const commission  = av.commission || window._appliedPrice || 1000;
-  const target      = window._appliedTarget || commission * 5;
-  const salesNeeded = Math.ceil(target / commission);
-  const leadsNeeded = Math.ceil(salesNeeded / 0.03 / 0.08);
-  const clicksNeeded= Math.ceil(salesNeeded / 0.03);
-  const viewsNeeded = Math.ceil(clicksNeeded / 0.08);
-  const dmsDay      = Math.max(10, Math.ceil(salesNeeded * 8));
-  const js = (av.job || 'professional').split('/')[0].split(',')[0].trim();
-
-  el.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem">
-      <div style="background:linear-gradient(145deg,rgba(78,204,163,.08),var(--card));border:1px solid rgba(78,204,163,.2);border-radius:14px;padding:1.1rem">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:900;margin-bottom:10px">💰 Commission Math</div>
-        ${[['Commission per sale','$'+commission.toLocaleString()],['Sales for $'+target.toLocaleString()+'/mo',salesNeeded+' sales'],['Leads needed',leadsNeeded+'/month'],['Daily DMs minimum',dmsDay+'/day']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:var(--dim)">${l}</span><span style="color:var(--white);font-weight:700">${v}</span></div>`).join('')}
-      </div>
-      <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.1rem">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--purple);font-weight:900;margin-bottom:10px">🎯 Buyer Quick Brief</div>
-        ${[['Target buyer',js+'s'],['Core pain',av.pain||'-'],['Goal',av.transformation||'-'],['Platform','Social media + email']].map(([l,v])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)"><span style="color:var(--dim)">${l}</span><span style="color:var(--white);font-weight:700;text-align:right;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${v}</span></div>`).join('')}
-      </div>
-    </div>
-
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:1.1rem;margin-bottom:1rem">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--yellow);font-weight:900;margin-bottom:12px">⚡ 4-Week Promotion Strategy</div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        ${[
-          {phase:'Week 1 — Build Trust',col:'var(--teal)',steps:['Post daily about the PROBLEM — never mention the product','Share your personal story of discovering a solution','Build audience in Facebook groups where '+js+'s hang out','Goal: 50+ new followers who match your buyer profile','DMs: introduce yourself, ask about their situation']},
-          {phase:'Week 2 — Educate & Warm Up',col:'var(--purple)',steps:['Teach the root cause of '+av.pain+' (3 posts)','Introduce the concept of the solution naturally','First soft mention: "I found something that changed this for me"','DMs: share value content, build rapport, gauge interest','Goal: identify your 10 warmest leads from DM conversations']},
-          {phase:'Week 3 — Social Proof',col:'var(--yellow)',steps:['Share results content — screenshots, testimonials, reviews','Post your honest review of the product','Address the top objection: "'+av.fear+'"','DMs: share your review link with warm leads, ask for feedback','Goal: 2-3 people saying "I\'m interested, tell me more"']},
-          {phase:'Week 4 — Close & Convert',col:'var(--orange)',steps:['Post urgency content — why waiting costs more','Share the specific transformation promise of the product','Direct CTA: "I have my affiliate link if you want to check it out"','DMs: follow up with everyone who showed interest in weeks 2-3','Goal: '+salesNeeded+' sales minimum to hit your $'+target.toLocaleString()+'/month target']}
-        ].map(p=>`<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:10px;overflow:hidden"><div style="padding:8px 13px;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px;font-weight:800;color:${p.col}">${p.phase}</div><div style="padding:8px 13px;display:flex;flex-direction:column;gap:4px">${p.steps.map(s=>`<div style="font-size:11px;color:var(--dim);display:flex;gap:7px;align-items:flex-start"><span style="color:${p.col};flex-shrink:0">→</span>${s}</div>`).join('')}</div></div>`).join('')}
-      </div>
-    </div>`;
-}
 
 // ─── Render Buyer Avatar View ─────────────────────────────────────────────
 window.renderAffAvatarView = function renderAffAvatarView(av) {
@@ -21756,6 +21904,7 @@ window.renderAffDMScripts = function renderAffDMScripts(av, productName, commiss
       <button class="tab" onclick="setAffDMTab('warm',this)" style="flex:1;min-width:90px;font-size:10px">🔥 Warm Close</button>
       <button class="tab" onclick="setAffDMTab('objection',this)" style="flex:1;min-width:90px;font-size:10px">🛡 Objections</button>
       <button class="tab" onclick="setAffDMTab('follow',this)" style="flex:1;min-width:90px;font-size:10px">↩️ Follow-Up</button>
+      <button class="tab" onclick="setAffDMTab('ai',this)" style="flex:1;min-width:90px;font-size:10px">✨ AI Personalized</button>
       <button class="tab" onclick="setAffDMTab('queue',this)" style="flex:1;min-width:90px;font-size:10px">⚡ DM Queue</button>
       <button class="tab" onclick="setAffDMTab('manychat',this)" style="flex:1;min-width:90px;font-size:10px">🔗 ManyChat</button>
     </div>
@@ -21768,62 +21917,6 @@ window.renderAffDMScripts = function renderAffDMScripts(av, productName, commiss
   renderAffDMTab('dm');
 };
 
-// ─── Commission Tracker ───────────────────────────────────────────────────
-window.renderAffCommTrackerFn = function renderAffCommTrackerFn(commission) {
-  const el = document.getElementById('aff-tracker-body');
-  if (!el) return;
-  // Sanitize commission — strip any $ signs and parse as integer
-  commission = parseInt(String(commission || (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 0).replace(/[^0-9.]/g, '')) || 0;
-  const target   = parseInt(String(window._appliedTarget || (window._affiliateOffer && window._affiliateOffer.monthlyTarget) || commission * 5).replace(/[^0-9.]/g, '')) || 0;
-  let data = {};
-  try { data = JSON.parse(localStorage.getItem('eos_aff_tracker')||'{}'); } catch(e) {}
-  const clicks   = data.clicks  || 0;
-  const sales    = data.sales   || 0;
-  const earned   = sales * commission;
-  const convRate = clicks > 0 ? ((sales / clicks) * 100).toFixed(1) : '0.0';
-  const pct      = target > 0 ? Math.min(100, Math.round((earned / target) * 100)) : 0;
-  const remaining= Math.max(0, target - earned);
-  const salesLeft= commission > 0 ? Math.ceil(remaining / commission) : 0;
-  // Keep commission in sync
-  window._currentCommission = commission;
-
-  el.innerHTML = `
-    <div style="background:linear-gradient(145deg,rgba(78,204,163,.08),var(--card));border:1px solid rgba(78,204,163,.2);border-radius:14px;padding:1rem 1.25rem;margin-bottom:1rem">
-      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:900;margin-bottom:8px">💰 Monthly Progress</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:11px;color:var(--dim)">Earned: <strong style="color:var(--teal)">\$${earned.toLocaleString()}</strong> of <strong style="color:var(--white)">\$${target.toLocaleString()}</strong></span>
-        <span style="font-size:12px;font-weight:900;color:${pct>=100?'var(--teal)':'var(--yellow)'}">${pct}%</span>
-      </div>
-      <div style="height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-bottom:6px">
-        <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,var(--teal),var(--yellow));border-radius:3px;transition:width .5s"></div>
-      </div>
-      <div style="font-size:11px;color:var(--dim)">${pct>=100?'🏆 Target hit! Raise it for next month.':salesLeft+' more sale'+(salesLeft!==1?'s':'')+' needed at \$'+commission.toLocaleString()+' each'}</div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:1rem">
-      ${[
-        ['🖱 Link Clicks', clicks, 'var(--purple)'],
-        ['💳 Sales Made', sales, 'var(--yellow)'],
-        ['💰 Total Earned', '\$'+earned.toLocaleString(), 'var(--teal)'],
-        ['📊 Conv. Rate', convRate+'%', convRate>=2?'var(--teal)':'var(--orange)']
-      ].map(([l,v,c])=>`<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px">${l}</div><div style="font-size:20px;font-weight:900;font-family:Poppins,sans-serif;color:${c}">${v}</div></div>`).join('')}
-    </div>
-    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem">
-      ${[['🖱 Track a link click','clicks'],['💳 Log a completed sale','sales']].map(([l,k])=>`
-        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:12px 16px">
-          <div style="font-size:12px;font-weight:700;color:var(--white)">${l}</div>
-          <div style="display:flex;gap:7px">
-            <button onclick="window.affTrack('${k}',-1)" class="adj">−</button>
-            <button onclick="window.affTrack('${k}',1)" class="adj plus">+</button>
-          </div>
-        </div>`).join('')}
-    </div>
-    <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between">
-      <div style="font-size:11px;color:var(--dim)">Commission per sale</div>
-      <div style="font-size:14px;font-weight:900;color:var(--teal)">\$${commission.toLocaleString()}</div>
-    </div>`;
-};
-
-// ─── Alias so all callers work ────────────────────────────────────────────
 /* ══════════════════════════════════════════════════════════
    BUSINESS INTELLIGENCE PROFILE — Save / Load / Inject
 ══════════════════════════════════════════════════════════ */
@@ -21929,6 +22022,12 @@ window.runMindsetReframe = async function() {
     // Save to localStorage
     try { localStorage.setItem('eos_mindset_reframe', JSON.stringify({ q1:q1, q2:q2, q3:q3, reframe:text, date:new Date().toISOString() })); } catch(e) {}
 
+    // Populate window._mindsetData — this is what brCollectInputs() and the
+    // Boardroom revenue-plan prompt actually read (inp._mindsetData / mindset.q1).
+    // Without this, the user's stated limiting belief never reaches the AI
+    // even though the prompt-building code already has a line ready for it.
+    window._mindsetData = { q1: q1, q2: q2, q3: q3, reframe: text, date: new Date().toISOString() };
+
     // Scroll to output
     setTimeout(function(){ if(out) out.scrollIntoView({ behavior:'smooth', block:'start' }); }, 200);
 
@@ -21946,6 +22045,9 @@ window.runMindsetReframe = async function() {
     if (!saved) return;
     var data = JSON.parse(saved);
     if (!data.reframe) return;
+    // Make this session's Boardroom calls aware of the saved reframe too —
+    // mirrors the write in runMindsetReframe() so returning users don't lose this.
+    if (!window._mindsetData) window._mindsetData = data;
     // Pre-fill answers if available
     setTimeout(function() {
       if (data.q1) { var e = document.getElementById('mindset_q1'); if(e && !e.value) e.value = data.q1; }
@@ -24825,6 +24927,22 @@ window.saveBizIntelAndContinue = async function() {
   showPage('avatar', document.getElementById('nav-avatar'));
 };
 
+window.confirmSkipBizIntel = function() {
+  var fieldIds = ['bi_origin_story','bi_personal_proof','bi_client_results','bi_turning_point','bi_contrarian_truth','bi_why_built','bi_core_belief'];
+  var filledCount = fieldIds.filter(function(id){
+    var el = document.getElementById(id);
+    return el && el.value.trim().length > 0;
+  }).length;
+
+  var msg = filledCount > 0
+    ? 'You have ' + filledCount + ' of 7 fields filled in. Skipping now means none of this gets saved, and every Boardroom output — your research, copy, and strategy — will be built without your real story and proof. Skip anyway?'
+    : 'Without this, the Boardroom builds your strategy, copy, and research using generic advice instead of your real story and proof. You can always come back before generating your Boardroom plan. Skip anyway?';
+
+  if (confirm(msg)) {
+    showPage('avatar', document.getElementById('nav-avatar'));
+  }
+};
+
 window.saveBizIntelProfile = async function() {
   var btn = document.getElementById('save-biintel-btn');
   var msg = document.getElementById('save-biintel-msg');
@@ -24965,12 +25083,6 @@ window.buildBizIntelContext = function() {
   return parts.join('\n');
 };
 
-window.renderAffCommTracker = function() {
-  var _rawComm = (window._affiliateOffer && window._affiliateOffer.commission) || window._appliedPrice || 0;
-  var commission = parseInt(String(_rawComm).replace(/[^0-9.]/g, '')) || 0;
-  window.renderAffCommTrackerFn(commission);
-};
-
 // ─── Commission tracker adjustment (global) ───────────────────────────────
 window.affTrack = function(key, delta) {
   let data = {};
@@ -25014,179 +25126,6 @@ window.affTrack = function(key, delta) {
 
 
 
-/* ══════════════════════════════════════════════════════════════════
-   MERGED BUYER INTELLIGENCE TAB
-   Combines live web research + product avatar into one unified profile
-   with immediate action items mapped to Execution OS tools
-══════════════════════════════════════════════════════════════════ */
-
-/* Override the renderAffBuyerResearch function to show merged profile */
-window.renderAffBuyerResearch = function() {
-  var el = document.getElementById('aff-buyer-research-body');
-  if (!el) return;
-  var intel = window._affiliateResearchIntel || {};
-  var d     = intel.buyerResearch || {};
-  var av    = window._avatarData  || {};
-  var offer = window._affiliateOffer || {};
-
-  // Empty state — needs research
-  if (!d.corePain && (!av || Object.keys(av).length < 3)) {
-    el.innerHTML = '<div style="text-align:center;padding:3rem 1.5rem">'
-      + '<div style="font-size:40px;margin-bottom:14px">🔬</div>'
-      + '<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">Buyer Intelligence</div>'
-      + '<div style="font-size:12px;color:var(--dim);margin-bottom:8px;line-height:1.8;max-width:420px;margin-left:auto;margin-right:auto">Combines your product avatar with live web research — Reddit, Quora, forums, YouTube comments — to build a complete intelligence profile of your ideal buyer. Every section connects directly to your content, DMs, and automation strategy.</div>'
-      + '<div style="font-size:11px;color:var(--dimmer);margin-bottom:20px">Complete the affiliate setup first, then run Buyer Intelligence.</div>'
-      + '<button onclick="window.runAffBuyerResearch()" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcc);border:none;border-radius:50px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 6px 20px rgba(108,99,255,.35)">🔬 Build Buyer Intelligence</button>'
-      + '</div>';
-    return;
-  }
-
-  var h = '';
-  var js      = (av.job || 'ideal buyer').split('/')[0].trim();
-  var pain    = d.corePain    || av.pain    || '';
-  var transf  = av.transformation || '';
-  var niche   = offer.niche   || av.niche   || '';
-  var objArr  = Array.isArray(av.objections) ? av.objections
-              : (av.objections||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
-  var kwArr   = Array.isArray(av.keywords) ? av.keywords : [];
-  var researchDone = !!(d.corePain);
-
-  // ── HEADER — who they are ─────────────────────────────────────────
-  h += '<div style="background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(78,204,163,.08));border:1px solid rgba(108,99,255,.3);border-radius:18px;padding:1.5rem;margin-bottom:1.25rem">'
-    + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">🔬 BUYER INTELLIGENCE — ' + (researchDone ? 'RESEARCH-BACKED' : 'PROFILE DATA') + '</div>'
-    + '<div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">'
-    + '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--teal));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#fff;flex-shrink:0">'
-    + (d.buyerPersonaName || av.name || 'B')[0]
-    + '</div>'
-    + '<div>'
-    + '<div style="font-size:18px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white)">' + (d.buyerPersonaName || av.name || js) + '</div>'
-    + '<div style="font-size:11px;color:var(--dim);margin-top:2px">'
-    + [av.age, av.gender, av.location, js].filter(Boolean).join(' · ')
-    + '</div>'
-    + '</div>'
-    + (av.personality ? '<div style="margin-left:auto;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);border-radius:99px;padding:4px 12px;font-size:10px;color:var(--purple);font-weight:700;white-space:nowrap">' + av.personality + '</div>' : '')
-    + '</div>'
-    + '<div style="font-size:12px;color:var(--muted);line-height:1.7;border-left:3px solid var(--purple);padding-left:12px">'
-    + (d.keyInsight || transf || 'Run live research to surface the key insight about this buyer.')
-    + '</div>'
-    + '</div>';
-
-  // ── EXACT LANGUAGE — the most important section ───────────────────
-  var phrases = (d.exactLanguage && d.exactLanguage.length) ? d.exactLanguage : kwArr;
-  if (phrases.length) {
-    h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.25rem">'
-      + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:4px">💬 EXACT LANGUAGE THEY USE — COPY THIS INTO ALL YOUR CONTENT</div>'
-      + '<div style="font-size:10px;color:var(--dimmer);margin-bottom:10px">These are real phrases from forums, reviews, and social media. Use them verbatim in hooks, captions, DM openers, and email subjects.</div>'
-      + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
-      + phrases.map(function(p) {
-          return '<div style="background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.25);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--white);font-weight:600">&ldquo;' + p + '&rdquo;</div>';
-        }).join('')
-      + '</div></div>';
-  }
-
-  // ── PAIN + TRANSFORMATION side by side ────────────────────────────
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem">';
-  h += '<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:12px;padding:1rem 1.1rem">'
-    + '<div style="font-size:9px;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🔥 CORE PAIN</div>'
-    + '<div style="font-size:12px;color:var(--muted);line-height:1.7;font-style:italic">&ldquo;' + (pain || av.pain || '—') + '&rdquo;</div>'
-    + '</div>';
-  h += '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:1rem 1.1rem">'
-    + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">🌟 TRANSFORMATION THEY WANT</div>'
-    + '<div style="font-size:12px;color:var(--muted);line-height:1.7">' + (transf || '—') + '</div>'
-    + '</div>';
-  h += '</div>';
-
-  // ── PROFILE GRID ──────────────────────────────────────────────────
-  var profileFields = [
-    ['😰 Biggest Fear', av.fear],
-    ['💪 What Drives Them', av.motivation],
-    ['❌ Already Tried', av.tried],
-    ['💰 Income Level', av.income],
-    ['👀 Follows & Communities', av.influences],
-    ['🧠 Personality', av.personality]
-  ].filter(function(f){ return f[1]; });
-
-  if (profileFields.length) {
-    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.25rem">';
-    profileFields.forEach(function(f) {
-      h += '<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px 12px">'
-        + '<div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">' + f[0] + '</div>'
-        + '<div style="font-size:11px;color:var(--muted);line-height:1.6">' + f[1] + '</div>'
-        + '</div>';
-    });
-    h += '</div>';
-  }
-
-  // ── BUYING TRIGGERS + OBJECTIONS ──────────────────────────────────
-  h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.25rem">';
-  var triggers = (d.buyingTriggers && d.buyingTriggers.length) ? d.buyingTriggers : [];
-  if (triggers.length) {
-    h += '<div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:12px;padding:1rem 1.1rem">'
-      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚡ BUYING TRIGGERS</div>'
-      + triggers.map(function(t){ return '<div style="font-size:11px;color:var(--dim);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5">→ ' + t + '</div>'; }).join('')
-      + '</div>';
-  }
-  var objections = (d.topObjections && d.topObjections.length) ? d.topObjections
-    : objArr.length ? objArr : [];
-  if (objections.length) {
-    h += '<div style="background:rgba(255,107,107,.05);border:1px solid rgba(255,107,107,.15);border-radius:12px;padding:1rem 1.1rem">'
-      + '<div style="font-size:9px;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚠️ OBJECTIONS BEFORE BUYING</div>'
-      + objections.map(function(o, i){ return '<div style="font-size:11px;color:var(--dim);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04);line-height:1.5">' + (i+1) + '. &ldquo;' + o + '&rdquo;</div>'; }).join('')
-      + '</div>';
-  }
-  h += '</div>';
-
-  // ── WHERE THEY LIVE + TRUST BREAKERS ──────────────────────────────
-  var whereLive = d.whereTheyLive || [];
-  if (whereLive.length) {
-    h += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem">'
-      + '<div style="font-size:9px;font-weight:900;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">📍 WHERE THEY SPEND TIME ONLINE</div>'
-      + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
-      + whereLive.map(function(p){ return '<span style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:50px;padding:5px 13px;font-size:11px;color:var(--purple);font-weight:600">' + p + '</span>'; }).join('')
-      + '</div></div>';
-  }
-
-  // ── AFFILIATE-SPECIFIC CONTENT ANGLES ─────────────────────────────
-  if (d.affiliateContentAngles && d.affiliateContentAngles.length) {
-    h += '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1.25rem">'
-      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">📐 YOUR 7-DAY CONTENT ANGLES — TRUST SEQUENCE</div>'
-      + '<div style="display:flex;flex-direction:column;gap:8px">';
-    var dayLabels = ['Days 1–2: Build trust (no product mention)', 'Days 3–4: Challenge the belief keeping them stuck', 'Day 5: Your authentic discovery story', 'Day 6: Address objections with radical honesty', 'Day 7: Soft recommendation'];
-    d.affiliateContentAngles.slice(0,5).forEach(function(angle, i) {
-      h += '<div style="display:flex;gap:10px;align-items:flex-start">'
-        + '<div style="min-width:130px;background:rgba(78,204,163,.1);border-radius:6px;padding:3px 8px;font-size:9px;font-weight:800;color:var(--teal);text-align:center;flex-shrink:0;margin-top:2px">' + (dayLabels[i] || '') + '</div>'
-        + '<div style="font-size:11px;color:var(--muted);line-height:1.6">' + angle + '</div>'
-        + '</div>';
-    });
-    h += '</div></div>';
-  }
-
-  // ── PRODUCT BENEFITS (why this offer resonates) ───────────────────
-  var bens = Array.isArray(offer.benefits) ? offer.benefits : [];
-  if (bens.length) {
-    h += '<div style="background:rgba(78,204,163,.04);border:1px solid rgba(78,204,163,.15);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem">'
-      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">✅ WHY THIS OFFER RESONATES WITH THIS BUYER</div>'
-      + bens.map(function(b){ return '<div style="font-size:11px;color:var(--muted);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">• ' + b + '</div>'; }).join('')
-      + '</div>';
-  }
-
-  // ── RESEARCH DATA SOURCE ──────────────────────────────────────────
-  if (d.researchSources && d.researchSources.length) {
-    h += '<div style="background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:10px 14px;margin-bottom:1rem">'
-      + '<div style="font-size:9px;font-weight:900;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">🔎 SOURCED FROM</div>'
-      + '<div style="display:flex;flex-wrap:wrap;gap:5px">'
-      + d.researchSources.map(function(s){ return '<span style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:6px;padding:3px 10px;font-size:10px;color:var(--dim)">' + s + '</span>'; }).join('')
-      + '</div></div>';
-  }
-
-  // ── CTAs ─────────────────────────────────────────────────────────
-  h += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'
-    + '<button onclick="window.runAffBuyerResearch()" style="padding:8px 18px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:8px;color:var(--purple);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">'
-    + (researchDone ? '🔄 Re-research' : '🔬 Run Live Research') + '</button>'
-    + '</div>';
-
-  el.innerHTML = h;
-};
 
 /* ══════════════════════════════════════════════════════════════════
    CONTENT STRATEGY AI CALLER + RENDERER
@@ -25322,6 +25261,12 @@ function brCallAI_ContentStrategy(inp) {
       + '\nTop objections: ' + (icp.objections||[]).join(' | ')
       + '\nWhere they live: ' + (icp.whereTheyLive||[]).join(', ');
   }
+  // Business DNA (origin story, proof, client results) was never reaching
+  // this function — it builds its own ICP-only context above and never
+  // reads inp._researchContext, the shared channel the other 8 Boardroom
+  // tabs use. Appending it here so content recommendations can reference
+  // the user's real proof, not just generic ICP data.
+  if (inp._researchContext) researchCtx += '\n\n' + inp._researchContext;
   var av = window._avatarData || {};
   var p = buildContentStrategyPrompt({
     niche: inp.niche, offerName: inp.offerName, price: inp.price,
@@ -25525,6 +25470,7 @@ window.runAffContentStrategy = async function() {
     if (!window._affiliateResearchIntel) window._affiliateResearchIntel = {};
     window._affiliateResearchIntel.contentStrategy = result;
     try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e) {}
+    window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
     window.renderAffContentStrategy();
   } catch(err) {
     loader.stop();
@@ -25676,21 +25622,34 @@ window.renderAffBuyerResearch = function() {
   var el = document.getElementById('aff-buyer-research-body');
   if (!el) return;
   var intel = window._affiliateResearchIntel || {};
-  var d = intel.buyerResearch || {};
-  if (!d || !d.corePain) { el.innerHTML = renderAffBuyerResearchEmpty(); return; }
+  var d     = intel.buyerResearch || {};
+  var av    = window._avatarData  || {};
+  var offer = window._affiliateOffer || {};
+  var researchDone = !!d.corePain;
+
+  // If research hasn't finished yet but the avatar (built from the sales
+  // page during analysis) already has useful data, show that instead of
+  // an empty state — the avatar is available immediately, well before
+  // research completes, so there's no reason to show nothing in the
+  // meantime. Only fall back to the true empty state if neither exists.
+  if (!researchDone && (!av || Object.keys(av).length < 3)) {
+    el.innerHTML = renderAffBuyerResearchEmpty();
+    return;
+  }
 
   var h = '';
+  var js = (av.job || 'ideal buyer').split('/')[0].trim();
 
   // Header
   h += '<div style="background:linear-gradient(135deg,rgba(108,99,255,.18),rgba(78,204,163,.08));border:1px solid rgba(108,99,255,.35);border-radius:18px;padding:1.5rem;margin-bottom:1.25rem">'
-    + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">🔬 BUYER INTELLIGENCE — REAL MARKET DATA</div>'
-    + '<div style="font-size:20px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:6px">' + (d.buyerPersonaName || '') + '</div>'
-    + '<div style="font-size:12px;color:var(--muted);line-height:1.7;border-left:3px solid var(--purple);padding-left:12px;margin-top:8px">' + (d.keyInsight || '') + '</div>'
+    + '<div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">🔬 BUYER INTELLIGENCE — ' + (researchDone ? 'REAL MARKET DATA' : 'FROM YOUR PRODUCT ANALYSIS') + '</div>'
+    + '<div style="font-size:20px;font-weight:900;font-family:Poppins,sans-serif;color:var(--white);margin-bottom:6px">' + (d.buyerPersonaName || av.name || js) + '</div>'
+    + '<div style="font-size:12px;color:var(--muted);line-height:1.7;border-left:3px solid var(--purple);padding-left:12px;margin-top:8px">' + (d.keyInsight || av.transformation || 'Run live research for the key insight about this buyer.') + '</div>'
     + '</div>';
 
   // Demographics row
-  if (d.demographics) {
-    var dm = d.demographics;
+  var dm = d.demographics || { age: av.age, income: av.income, location: av.location };
+  if (dm.age || dm.income || dm.location) {
     h += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem">';
     [['👤 Age', dm.age], ['💰 Income', dm.income], ['📍 Location', dm.location]].forEach(function(item) {
       h += '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 12px;text-align:center">'
@@ -25701,22 +25660,26 @@ window.renderAffBuyerResearch = function() {
     h += '</div>';
   }
 
-  // Exact language — the gold
-  if (d.exactLanguage && d.exactLanguage.length) {
+  // Exact language — falls back to avatar keywords if research hasn't run
+  var phrases = (d.exactLanguage && d.exactLanguage.length) ? d.exactLanguage : (Array.isArray(av.keywords) ? av.keywords : []);
+  if (phrases.length) {
     h += '<div style="background:rgba(255,217,61,.06);border:1px solid rgba(255,217,61,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem">'
       + '<div style="font-size:9px;font-weight:900;color:var(--yellow);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:10px">💬 EXACT LANGUAGE YOUR BUYERS USE — COPY THIS INTO YOUR CONTENT</div>'
       + '<div style="display:flex;flex-wrap:wrap;gap:6px">'
-      + d.exactLanguage.map(function(p) {
+      + phrases.map(function(p) {
           return '<div style="background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.25);border-radius:8px;padding:6px 12px;font-size:12px;color:var(--white);font-weight:600">&ldquo;' + p + '&rdquo;</div>';
         }).join('')
       + '</div></div>';
   }
 
-  // Core pain
-  h += '<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem">'
-    + '<div style="font-size:9px;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">🔥 THEIR CORE PAIN — IN THEIR OWN WORDS</div>'
-    + '<div style="font-size:13px;color:var(--muted);line-height:1.8;font-style:italic">&ldquo;' + (d.corePain || '') + '&rdquo;</div>'
-    + '</div>';
+  // Core pain — falls back to avatar pain
+  var corePain = d.corePain || av.pain || '';
+  if (corePain) {
+    h += '<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:8px">🔥 THEIR CORE PAIN — IN THEIR OWN WORDS</div>'
+      + '<div style="font-size:13px;color:var(--muted);line-height:1.8;font-style:italic">&ldquo;' + corePain + '&rdquo;</div>'
+      + '</div>';
+  }
 
   // Content angles specifically for affiliates
   if (d.affiliateContentAngles && d.affiliateContentAngles.length) {
@@ -25731,9 +25694,37 @@ window.renderAffBuyerResearch = function() {
         + '</div>';
     });
     h += '</div></div>';
+  } else if (Array.isArray(av.contentAngles) && av.contentAngles.length) {
+    h += '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:14px;padding:1.1rem 1.3rem;margin-bottom:1rem">'
+      + '<div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1.2px;margin-bottom:12px">📐 CONTENT ANGLES FROM YOUR PRODUCT ANALYSIS</div>'
+      + '<div style="display:flex;flex-direction:column;gap:8px">'
+      + av.contentAngles.map(function(angle) { return '<div style="font-size:11px;color:var(--muted);line-height:1.6">• ' + angle + '</div>'; }).join('')
+      + '</div></div>';
+  }
+
+  // Profile fields from the avatar — fear, motivation, tried, influences,
+  // personality — these come straight from product analysis and were
+  // never shown anywhere in this tab before.
+  var profileFields = [
+    ['😰 Biggest Fear', av.fear],
+    ['💪 What Drives Them', av.motivation],
+    ['❌ Already Tried (from analysis)', av.tried],
+    ['👀 Follows & Communities', av.influences],
+    ['🧠 Personality', av.personality]
+  ].filter(function(f){ return f[1]; });
+  if (profileFields.length) {
+    h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem">';
+    profileFields.forEach(function(f) {
+      h += '<div style="background:rgba(255,255,255,.03);border-radius:10px;padding:10px 12px">'
+        + '<div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">' + f[0] + '</div>'
+        + '<div style="font-size:11px;color:var(--muted);line-height:1.6">' + f[1] + '</div>'
+        + '</div>';
+    });
+    h += '</div>';
   }
 
   // Buying triggers + objections
+  var objArr = Array.isArray(av.objections) ? av.objections : (av.objections||'').split(',').map(function(s){ return s.trim(); }).filter(Boolean);
   h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem">';
   if (d.buyingTriggers && d.buyingTriggers.length) {
     h += '<div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.15);border-radius:12px;padding:1rem 1.1rem">'
@@ -25742,11 +25733,12 @@ window.renderAffBuyerResearch = function() {
       + d.buyingTriggers.map(function(t) { return '<div style="font-size:11px;color:var(--dim);line-height:1.5;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">→ ' + t + '</div>'; }).join('')
       + '</div></div>';
   }
-  if (d.topObjections && d.topObjections.length) {
+  var objections = (d.topObjections && d.topObjections.length) ? d.topObjections : objArr;
+  if (objections.length) {
     h += '<div style="background:rgba(255,107,107,.05);border:1px solid rgba(255,107,107,.15);border-radius:12px;padding:1rem 1.1rem">'
       + '<div style="font-size:9px;font-weight:900;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">⚠️ TOP OBJECTIONS</div>'
       + '<div style="display:flex;flex-direction:column;gap:6px">'
-      + d.topObjections.map(function(o, i) { return '<div style="font-size:11px;color:var(--dim);line-height:1.5;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">' + (i+1) + '. &ldquo;' + o + '&rdquo;</div>'; }).join('')
+      + objections.map(function(o, i) { return '<div style="font-size:11px;color:var(--dim);line-height:1.5;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">' + (i+1) + '. &ldquo;' + o + '&rdquo;</div>'; }).join('')
       + '</div></div>';
   }
   h += '</div>';
@@ -25799,7 +25791,7 @@ window.renderAffBuyerResearch = function() {
       + '</div></div>';
   }
 
-  h += '<div style="text-align:right;margin-top:8px"><button onclick="window.runAffBuyerResearch()" style="padding:8px 18px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:8px;color:var(--purple);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🔄 Re-research</button></div>';
+  h += '<div style="text-align:right;margin-top:8px"><button onclick="window.runAffBuyerResearch()" style="padding:8px 18px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:8px;color:var(--purple);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">' + (researchDone ? '🔄 Re-research' : '🔬 Run Live Research') + '</button></div>';
 
   el.innerHTML = h;
 };
@@ -25828,6 +25820,7 @@ window.runAffBuyerResearch = async function() {
     if (!window._affiliateResearchIntel) window._affiliateResearchIntel = {};
     window._affiliateResearchIntel.buyerResearch = result;
     try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e) {}
+    window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
     window.renderAffBuyerResearch();
   } catch(err) {
     loader.stop();
@@ -26223,6 +26216,7 @@ window.runAffOfferViability = async function() {
     if (!window._affiliateResearchIntel) window._affiliateResearchIntel = {};
     window._affiliateResearchIntel.offerViability = result;
     try { localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel)); } catch(e) {}
+    window.affResyncOfferSnapshot && window.affResyncOfferSnapshot();
     window.renderAffOfferViability();
   } catch(err) {
     loader.stop();
@@ -26831,6 +26825,7 @@ window.setAppMode = function(mode) {
       appliedTarget:  _snapTarget,
       appliedNiche:   _snapNiche,
       avatarData:     window._avatarData    || null,
+      offerData:      window._offerData     || null,
       boardroomIntel: window._boardroomIntel|| null,
       boardroomOffer: window._boardroomOffer|| null,
       mindsetData:    window._mindsetData   || null,
@@ -26849,6 +26844,7 @@ window.setAppMode = function(mode) {
       window._appliedTarget  = restored.appliedTarget || 0;
       window._appliedNiche   = restored.appliedNiche  || '';
       window._avatarData     = restored.avatarData    || null;
+      window._offerData      = restored.offerData     || null;
       window._boardroomIntel = restored.boardroomIntel|| null;
       window._boardroomOffer = restored.boardroomOffer|| null;
       window._mindsetData    = restored.mindsetData   || null;
@@ -28208,6 +28204,12 @@ onAuthStateChanged(auth, async (user) => {
     loadAvatarFields(userDocData.avatarData);
   }
 
+  // ── Restore saved Offer data ──────────────────────────────────────────────
+  if (userDocData.offerData) {
+    window._offerData = userDocData.offerData;
+    loadOfferFields(userDocData.offerData);
+  }
+
   // ── Restore Content Calendar ───────────────────────────────────────────────
   if (userDocData.calendar) loadCalendar(userDocData.calendar);
 
@@ -28328,6 +28330,13 @@ onAuthStateChanged(auth, async (user) => {
     try {
       await setDoc(doc(db,'users',user.uid),{avatarData:window._avatarData},{merge:true});
     } catch(e) { console.warn('Save avatar failed:',e.message); }
+  };
+
+  window.saveOfferData = async () => {
+    if (!window._offerData) return;
+    try {
+      await setDoc(doc(db,'users',user.uid),{offerData:window._offerData},{merge:true});
+    } catch(e) { console.warn('Save offer failed:',e.message); }
   };
 
   window.saveCalendarState = async () => {
@@ -29510,7 +29519,7 @@ function loadRevenuePlan(data) {
 function loadAvatarFields(data) {
   if (!data) return;
   const fields = ['av_name','av_age','av_gender','av_location','av_edu','av_income',
-                  'av_job','av_industry','av_employ','av_hrs','av_current','av_desired',
+                  'av_job','av_industry','av_cost','av_employ','av_hrs','av_current','av_desired',
                   'av_igr','av_transformation','av_fear','av_tried','av_personality',
                   'av_motivation','av_influences','av_objections'];
   fields.forEach(id => {
@@ -29540,6 +29549,40 @@ function loadAvatarFields(data) {
     }
   }
 }
+
+function loadOfferFields(data) {
+  if (!data) return;
+  var map = {
+    offer_name: data.name, offer_price: data.price, offer_promise: data.promise,
+    offer_result: data.result, offer_no_effort: data.noEffort, offer_transformation: data.transformation,
+    offer_system: data.system, offer_format: data.format, offer_duration: data.duration,
+    offer_difference: data.difference, offer_payment: data.payment, offer_guarantee: data.guarantee,
+    offer_guarantee_cond: data.guaranteeCond, offer_scarcity: data.scarcity, offer_bonus: data.bonus
+  };
+  Object.keys(map).forEach(function(id){
+    if (map[id] === undefined || map[id] === '') return;
+    var el = document.getElementById(id);
+    if (el) el.value = map[id];
+  });
+  // Restore value-stack rows
+  if (Array.isArray(data.valueStack) && data.valueStack.length) {
+    var container = document.getElementById('offer-stack-items');
+    if (container) {
+      container.innerHTML = '';
+      data.valueStack.forEach(function(s){
+        var row = document.createElement('div');
+        row.className = 'offer-stack-row';
+        row.style.cssText = 'display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center';
+        row.innerHTML = '<input class="fi" placeholder="e.g. 12-Week Private Revenue Acceleration Coaching" style="font-size:12px" value="' + (s.item||'').replace(/"/g,'&quot;') + '">'
+          + '<input class="fi" placeholder="Value $" style="width:110px;font-size:12px" oninput="calcStackTotal()" type="number" min="0" value="' + (s.value||'').replace(/"/g,'&quot;') + '">'
+          + '<button onclick="removeStackRow(this)" style="background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.25);color:var(--red);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:12px;font-family:\'Poppins\',sans-serif;font-weight:700">✕</button>';
+        container.appendChild(row);
+      });
+      if (window.calcStackTotal) window.calcStackTotal();
+    }
+  }
+}
+window.loadOfferFields = loadOfferFields;
 
 function loadCalendar(data) {
   if (!data||!data.data) return;
@@ -34197,7 +34240,7 @@ var EOS_OFFER_FIELDS = [
 ];
 var EOS_AVATAR_FIELDS = [
   'av_name','av_age','av_gender','av_location','av_edu','av_income','av_job',
-  'av_industry','av_employ','av_hrs','av_current','av_desired','av_igr',
+  'av_industry','av_cost','av_employ','av_hrs','av_current','av_desired','av_igr',
   'av_transformation','av_fear','av_tried','av_personality','av_motivation',
   'av_influences','av_objections'
 ];
@@ -34231,7 +34274,7 @@ window._eosSaveCurrentAudience = function(customName) {
   var niche=window._appliedNiche||'';
   var name=customName||(job?job.split('/')[0].split(',')[0].trim().slice(0,30)+(niche?' · '+niche.split('&')[0].trim().slice(0,18):''):'My Audience');
   var snap={niche:niche};
-  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections','av_self_story'].forEach(function(id){var el=document.getElementById(id);if(el)snap[id]=el.value;});
+  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_cost','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections','av_self_story'].forEach(function(id){var el=document.getElementById(id);if(el)snap[id]=el.value;});
   snap._keywords=Array.from((document.getElementById('kw-wrap')||{}).querySelectorAll&&document.getElementById('kw-wrap').querySelectorAll('.tag')||[]).map(function(t){return t.textContent.replace('×','').trim();});
   if(window._avatarData)snap._avatarData=window._avatarData;
   if(window._aiAvatarData)snap._aiAvatarData=window._aiAvatarData;
@@ -34248,7 +34291,7 @@ window._eosLoadAudience = function(audienceId) {
   if(!a||!a.data)return false;
   var d=a.data;
   if(d.niche){var ne=document.getElementById('niche');if(ne){ne.value=d.niche;ne.dispatchEvent(new Event('change',{bubbles:true}));}window._appliedNiche=d.niche;}
-  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections','av_self_story'].forEach(function(id){if(d[id]===undefined)return;var el=document.getElementById(id);if(el){el.value=d[id];el.dispatchEvent(new Event('input',{bubbles:true}));}});
+  ['av_name','av_age','av_gender','av_location','av_edu','av_income','av_job','av_industry','av_cost','av_employ','av_hrs','av_current','av_desired','av_igr','av_transformation','av_fear','av_tried','av_personality','av_motivation','av_influences','av_objections','av_self_story'].forEach(function(id){if(d[id]===undefined)return;var el=document.getElementById(id);if(el){el.value=d[id];el.dispatchEvent(new Event('input',{bubbles:true}));}});
   if(d._keywords&&d._keywords.length){var kw=document.getElementById('kw-wrap');if(kw){kw.querySelectorAll('.tag').forEach(function(t){t.remove();});d._keywords.forEach(function(k){if(!k)return;var t=document.createElement('span');t.className='tag';t.innerHTML=k+'<span onclick="removeTag(this,event)" style="margin-left:5px;cursor:pointer;opacity:.6">×</span>';kw.insertBefore(t,kw.querySelector('#kw-inp')||kw.firstChild);});}}
   if(d._avatarData)window._avatarData=d._avatarData;
   if(d._aiAvatarData)window._aiAvatarData=d._aiAvatarData;
@@ -35154,6 +35197,18 @@ async function brBuildPlan() {
     inp._mindsetData     = mindset;
     inp._salesNeeded     = salesNeeded;
 
+    // Inject Business DNA (origin story, proof, client results, contrarian
+    // truth) here, at the point inp is first built — this `inp` object is
+    // reused by every later Boardroom call including brBuildCompleteSystem's
+    // sequence (Architect, Offer Stack, Copy Vault, War Plan, Content Engine,
+    // Funnel Strategy), so injecting once here reaches all of them instead of
+    // only the 2 functions that previously injected it themselves too late.
+    var _bizCtxEarly = window.buildBizIntelContext ? window.buildBizIntelContext() : '';
+    if (_bizCtxEarly && !inp._bizIntelInjected) {
+      inp._researchContext = (inp._researchContext || '') + _bizCtxEarly;
+      inp._bizIntelInjected = true;
+    }
+
     // CALL 1: 30-Day Revenue Plan
     _brStage(0, 'running');
     _brProgress(5, 'Building your 30-day revenue plan...');
@@ -35838,7 +35893,8 @@ function _brAttractionCard(title, desc, color) {
 /* ── Funnel Strategy AI call ── */
 function brCallAI_FunnelStrategy(inp) {
   var sys = 'You are a 9-Figure digital marketing strategist. You give specific, researched funnel recommendations with real proven examples. Return ONLY valid compact JSON. Keep all string values under 150 chars.';
-  var p = 'Recommend the top 3 funnel strategies for this business with real proof.\n\n'
+  var _fsCtx = inp._researchContext ? ('\n\nBUSINESS CONTEXT (use this person\'s real proof and positioning to make funnel recommendations specific to them, not generic):\n' + inp._researchContext) : '';
+  var p = 'Recommend the top 3 funnel strategies for this business with real proof.' + _fsCtx + '\n\n'
     + 'Niche: ' + (inp.niche||'online business') + '\n'
     + 'Offer: ' + (inp.offerName||'their offer') + ' at $' + (inp.price||2000) + '\n'
     + 'Target: $' + (inp.target||10000) + '/month\n'
@@ -36102,8 +36158,9 @@ async function brCallAI_WithSearch(systemPrompt, userPrompt, maxTokens) {
 /* ── ICP Research Lab AI Caller ── */
 function brCallAI_ICPResearch(inp) {
   var sys = 'You are an elite market researcher and customer psychology expert. You use real web research to uncover the exact language, pain, desires, and buying triggers of a specific audience. You search Reddit, Quora, forums, Amazon reviews, and social media to find what real people say — not marketing assumptions. Return ONLY valid compact JSON.';
+  var _icpCtx = inp._researchContext ? ('\n\nBUSINESS CONTEXT (use this person\'s real story and proof to make research more targeted):\n' + inp._researchContext) : '';
   var p = [
-    'Research the ideal customer profile for this business using real web data.',
+    'Research the ideal customer profile for this business using real web data.' + _icpCtx,
     'Search Reddit, Quora, forums, Facebook groups, Amazon reviews, and YouTube comments',
     'to find what real customers in this market actually say.',
     '',
@@ -36136,8 +36193,9 @@ function brCallAI_ICPResearch(inp) {
 /* ── Competitor Intelligence AI Caller ── */
 function brCallAI_CompetitorIntel(inp) {
   var sys = 'You are a competitive intelligence analyst who has studied thousands of online business markets. You use web research to find real competitors, analyse their offers, read their customer reviews, and identify market gaps. You are brutally honest about competitive dynamics. Return ONLY valid compact JSON.';
+  var _ciCtx = inp._researchContext ? ('\n\nBUSINESS CONTEXT (use this to find competitors and gaps relevant to this specific person\'s positioning):\n' + inp._researchContext) : '';
   var p = [
-    'Research the competitive landscape for this business using real web data.',
+    'Research the competitive landscape for this business using real web data.' + _ciCtx,
     'Search for actual competitors, read their customer reviews on Trustpilot, Reddit, and social media,',
     'and identify the gaps in this market.',
     '',
@@ -36168,8 +36226,9 @@ function brCallAI_CompetitorIntel(inp) {
 function brCallAI_MarketViability(inp) {
   var sys = 'You are a market analyst who has evaluated hundreds of online business opportunities. You research real market data to give honest assessments of whether a business can reach specific revenue targets. You never sugarcoat — if something is difficult you say so AND give the path forward. Return ONLY valid compact JSON.';
   var salesNeeded = Math.ceil((inp.target || 10000) / (inp.price || 2000));
+  var _mvCtx = inp._researchContext ? ('\n\nBUSINESS CONTEXT (use this person\'s real track record and proof when assessing viability):\n' + inp._researchContext) : '';
   var p = [
-    'Research and assess the market viability for this business reaching the stated monthly revenue target.',
+    'Research and assess the market viability for this business reaching the stated monthly revenue target.' + _mvCtx,
     '',
     'Niche: ' + inp.niche,
     'Offer: ' + (inp.offerName || 'digital programme') + ' at $' + inp.price,
@@ -36539,8 +36598,11 @@ window.brBuildCompleteSystem = async function() {
       + 'Biggest opportunity: ' + (mv.biggestOpportunity || '') + '\n';
   }
 
-  // Inject research context into inputs for all subsequent calls
-  inp._researchContext = researchCtx;
+  // Inject research context into inputs for all subsequent calls.
+  // Append rather than overwrite — inp may already carry Business DNA
+  // context injected earlier (see brBuildPlan), and overwriting here would
+  // silently discard it for every call that follows in this sequence.
+  inp._researchContext = researchCtx + (inp._researchContext || '');
 
   // Show the full-system build loading screen
   var phase3 = document.getElementById('br-phase3');
@@ -36932,8 +36994,9 @@ function brCallAI_Architect(inp) {
 }
 function brCallAI_OfferStack(inp) {
   var sys = 'You are the offer architect behind hundreds of $10K–$100K offers. You have studied Hormozi, Kern, Bauer, and every major offer structure that has generated millions. You know that an offer is not a product — it is a promise, a vehicle, and a transformation packaged for a specific buyer at a specific moment of pain. You build offers so compelling that the right buyer feels stupid saying no.';
+  var _osCtx = inp._researchContext ? ('\n\nBUSINESS CONTEXT (use this person\'s real story, proof, and results as the backbone of the value stack):\n' + inp._researchContext) : '';
   var p = [
-    'Rebuild this offer to command $' + inp.price + '+ with zero resistance. Return ONLY valid JSON.',
+    'Rebuild this offer to command $' + inp.price + '+ with zero resistance. Return ONLY valid JSON.' + _osCtx,
     '',
     'INPUTS:',
     'Current offer: ' + (inp.offerName || 'Unnamed'),
@@ -38798,9 +38861,17 @@ window.affSaveOfferToLibrary = function(offer, avatarData) {
     pain:         offer.pain        || '',
     transformation: offer.transformation || '',
     savedAt:      new Date().toISOString(),
-    // Full snapshot for instant restore
-    offerSnapshot:  offer,
-    avatarSnapshot: avatarData || offer._avatarSnapshot || null,
+    // Full snapshot for instant restore — research/boardroom intel and the
+    // calendar are included so switching offers in the library doesn't
+    // silently lose work that's already been generated. This function is
+    // called again (see affResyncOfferSnapshot below) whenever any of that
+    // intel finishes generating in the background, so the snapshot stays
+    // current rather than only capturing the moment right after analysis.
+    offerSnapshot:   offer,
+    avatarSnapshot:  avatarData || offer._avatarSnapshot || null,
+    researchIntel:   window._affiliateResearchIntel   || null,
+    boardroomIntel:  window._affiliateBoardroomIntel  || null,
+    calendarSnapshot: window._aiCalendar30 || null,
   };
 
   if (existing >= 0) offers[existing] = entry;
@@ -38818,6 +38889,31 @@ window.affSaveOfferToLibrary = function(offer, avatarData) {
   } catch(e) {}
 
   affRenderOffersLibrary();
+};
+
+// ── Re-sync the current offer's saved snapshot with freshly-generated
+// intel — called after any background research call completes, so the
+// library entry stays current rather than only reflecting the moment
+// right after the initial avatar build. Quiet by design: no library
+// re-render, since this fires repeatedly as background calls resolve.
+window.affResyncOfferSnapshot = function() {
+  var offer = window._affiliateOffer;
+  if (!offer || !offer.url) return;
+  var offers = affGetSavedOffers();
+  var idx = offers.findIndex(function(o){ return o.url === offer.url; });
+  if (idx < 0) return;
+  offers[idx].offerSnapshot    = offer;
+  offers[idx].avatarSnapshot   = window._avatarData || offers[idx].avatarSnapshot;
+  offers[idx].researchIntel    = window._affiliateResearchIntel  || offers[idx].researchIntel;
+  offers[idx].boardroomIntel   = window._affiliateBoardroomIntel || offers[idx].boardroomIntel;
+  offers[idx].calendarSnapshot = window._aiCalendar30 || offers[idx].calendarSnapshot;
+  try { localStorage.setItem(AFF_OFFERS_KEY, JSON.stringify(offers)); } catch(e) {}
+  try {
+    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
+      window._setDoc(window._doc(window._db,'users',window._currentUserUid),
+        { affiliateOffers: offers }, { merge: true }).catch(function(){});
+    }
+  } catch(e) {}
 };
 
 // ── Delete an offer from library ──────────────────────────────────
@@ -38838,6 +38934,31 @@ window.affLoadOffer = function(offerId) {
   // Restore offer and avatar data
   if (entry.offerSnapshot)  window._affiliateOffer = entry.offerSnapshot;
   if (entry.avatarSnapshot) window._avatarData     = entry.avatarSnapshot;
+
+  // Restore research/boardroom intel and the calendar — previously these
+  // were never saved into the library entry at all (the entry was only
+  // ever snapshotted once, right after the avatar was built, before any
+  // of this intel existed), so switching offers always lost buyer
+  // research, promo intel, offer viability, content strategy, and the
+  // calendar even when they had already been generated. affResyncOfferSnapshot
+  // keeps the saved entry current now, so this restore is meaningful.
+  window._affiliateResearchIntel  = entry.researchIntel   || null;
+  window._affiliateBoardroomIntel = entry.boardroomIntel  || null;
+  window._boardroomIntel = (window._appMode||'affiliate') === 'affiliate'
+    ? (entry.boardroomIntel ? {
+        generatedAt:  entry.boardroomIntel.generatedAt,
+        inputs:       { niche: entry.niche, price: entry.commission, target: entry.monthlyTarget, isAffiliate: true, offerName: entry.name },
+        architect:    entry.boardroomIntel.positioning  || {},
+        offerStack:   {},
+        copyVault:    entry.boardroomIntel.copyVault    || {},
+        warPlan:      entry.boardroomIntel.warPlan      || {},
+        contentEngine:entry.boardroomIntel.contentEngine|| {},
+      } : null)
+    : window._boardroomIntel;
+  window._aiCalendar30 = entry.calendarSnapshot || null;
+  try {
+    if (window._affiliateResearchIntel) localStorage.setItem('eos_aff_research_intel', JSON.stringify(window._affiliateResearchIntel));
+  } catch(e) {}
 
   // Restore niche/price globals
   window._appliedNiche  = entry.niche       || window._appliedNiche;
@@ -38866,6 +38987,23 @@ window.affLoadOffer = function(offerId) {
   setTimeout(function() {
     if (typeof window.affInitTrackingLink === 'function') window.affInitTrackingLink();
   }, 500);
+
+  // Re-render every tab so restored data is visible immediately — previously
+  // none of these were called, so even the offer/avatar data that DID
+  // restore correctly wouldn't actually show up until something else
+  // happened to trigger a re-render.
+  var av = window._avatarData || {};
+  window.renderAffStrategy        && window.renderAffStrategy(av);
+  window.renderAffAvatarView      && window.renderAffAvatarView(av);
+  window.renderAffDMScripts       && window.renderAffDMScripts(av, entry.name, entry.commission);
+  window.renderAffCommTrackerFn   && window.renderAffCommTrackerFn(entry.commission);
+  window.renderAffBuyerResearch   && window.renderAffBuyerResearch();
+  window.renderAffPromoIntel      && window.renderAffPromoIntel();
+  window.renderAffOfferViability  && window.renderAffOfferViability();
+  window.renderAffContentStrategy && window.renderAffContentStrategy();
+  window.renderAffCalendarInTab   && window.renderAffCalendarInTab();
+  setTimeout(function(){ window.renderAffDailyPlan && window.renderAffDailyPlan(); }, 200);
+  setTimeout(function(){ window.renderTAM && window.renderTAM('affiliate'); }, 400);
 
   // Mark as active in grid
   affRenderOffersLibrary(offerId);
@@ -42909,16 +43047,49 @@ function vpeGetIntel() {
     if (av.transformation)       lines.push('Desired outcome: '+av.transformation);
     if (biCv.uniqueMechanism||biOs.uniqueMechanism) lines.push('Unique mechanism: '+(biCv.uniqueMechanism||biOs.uniqueMechanism||''));
   } else {
+    // ── Expert mode ──────────────────────────────────────────────────
+    // Previously this read av.av_current / av.av_igr / av.av_transformation
+    // as a fallback chain — but window._avatarData's real keys are
+    // pain / incomeGoal / transformation (see generateAvatar()). Those
+    // fallbacks always silently returned undefined. Fixed below, and
+    // substantially deepened: this used to surface only 2 Copy Vault
+    // fields and never touched the Boardroom's ICP research (exact
+    // customer language, real objections, buying triggers) or Business
+    // DNA (proof, client results, positioning) — both of which exist by
+    // this point in the user's journey and directly sharpen content that
+    // has to land with a real, skeptical, paying audience.
     var draft = {}; try { draft = JSON.parse(localStorage.getItem('eos_draft_offer')||'{}'); } catch(e){}
-    var of = draft.offer || {};
-    var avd = draft.avatar || av;
+    var of  = draft.offer  || {};
+    var avd = draft.avatar || {};
+    var icp = bi.icpResearch    || {};
+    var ar  = bi.architect      || {};
+
     if (of.offer_name)    lines.push('Offer: '+of.offer_name);
     if (of.offer_promise) lines.push('Promise: '+of.offer_promise);
     if (draft.niche||window._appliedNiche) lines.push('Niche: '+(draft.niche||window._appliedNiche||''));
-    if (avd.av_current||av.av_igr) lines.push('Audience pain: '+(avd.av_current||av.av_igr||''));
-    if (avd.av_desired||avd.av_transformation) lines.push('Desired outcome: '+(avd.av_desired||avd.av_transformation||''));
+
+    var painText = avd.av_current || av.pain || '';
+    if (painText) lines.push('Audience pain: '+painText);
+
+    var desiredText = avd.av_desired || avd.av_transformation || av.desired || av.transformation || '';
+    if (desiredText) lines.push('Desired outcome: '+desiredText);
+
     if (biOs.uniqueMechanism||biCv.uniqueMechanism) lines.push('Unique mechanism: '+(biOs.uniqueMechanism||biCv.uniqueMechanism||''));
     if (biCv.bigPromise) lines.push('Big promise: '+biCv.bigPromise);
+
+    // ICP research — the exact words real buyers use. This is the single
+    // highest-leverage addition for content that needs to stop a scroll
+    // or convert a skeptical reader, since it's grounded in real web
+    // research rather than the AI's generic guess at audience language.
+    if (icp.exactLanguage && icp.exactLanguage.length) lines.push('Exact words your audience uses: '+icp.exactLanguage.slice(0,4).join(' | '));
+    if (icp.topPains && icp.topPains.length)           lines.push('Their top pains, in their words: '+icp.topPains.slice(0,3).join(' | '));
+    if (icp.objections && icp.objections.length)        lines.push('What makes them hesitate to buy: '+icp.objections.slice(0,3).join(' | '));
+    if (icp.buyingTriggers && icp.buyingTriggers.length) lines.push('What finally makes them buy: '+icp.buyingTriggers.slice(0,2).join(' | '));
+
+    // Business DNA / positioning — gives content a real, ownable angle
+    // instead of generic niche advice.
+    if (ar.positioningStatement) lines.push('Positioning: '+ar.positioningStatement);
+    if (ar.dominanceAngle)       lines.push('What makes this different: '+ar.dominanceAngle);
   }
   return lines.join('\n');
 }
@@ -43415,17 +43586,28 @@ async function qcGenerate() {
   var textarea = document.getElementById('qc-quote-text');
   var captionEl = document.getElementById('qc-caption');
 
-  var niche = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).av_job || 'online business';
+  var niche = window._appliedNiche || (window._affiliateOffer||{}).niche || (window._avatarData||{}).job || 'online business';
   var typePrompt = (QC_TYPE_PROMPTS[_qcState.type]||QC_TYPE_PROMPTS.truth).replace(/\{niche\}/g, niche);
   var lengthInstr = QC_LENGTH[_qcState.length] || QC_LENGTH.short;
   typePrompt = typePrompt.replace(/1-3 sentences max\./g, lengthInstr);
 
-  // Add avatar context
+  // Add avatar context — previously read av.av_current / av.av_igr /
+  // av.av_desired / av.av_transformation, but window._avatarData's real
+  // keys are pain / incomeGoal / desired / transformation (see
+  // generateAvatar()), so this always silently evaluated to empty and
+  // the quote was written with zero audience context. Fixed below, and
+  // added the audience's exact real-world phrasing from Boardroom ICP
+  // research where available, since a quote card lives or dies on
+  // whether it sounds like something the reader would actually say.
   var av = window._avatarData || {};
-  var pain = av.av_current || av.av_igr || '';
-  var desired = av.av_desired || av.av_transformation || '';
+  var pain = av.pain || '';
+  var desired = av.desired || av.transformation || '';
   if (pain)    typePrompt += ' Audience pain: ' + pain + '.';
   if (desired) typePrompt += ' Desired outcome: ' + desired + '.';
+  var icpQc = (window._boardroomIntel||{}).icpResearch || {};
+  if (icpQc.exactLanguage && icpQc.exactLanguage.length) {
+    typePrompt += ' Real phrases this audience actually uses: ' + icpQc.exactLanguage.slice(0,3).join(' | ') + '. Where it fits naturally, echo this language rather than generic motivational phrasing.';
+  }
   typePrompt += ' LENGTH: ' + lengthInstr
     + ' Wrap the 1-3 MOST impactful words or short phrases in double asterisks so they stand out visually, e.g. "You can **never** give up on **your dream**." Pick words that carry the emotional punch — not random words, not every sentence, just the words that would make someone stop scrolling.'
     + ' Return ONLY the quote text — no quotes, no explanation, no attribution.';
