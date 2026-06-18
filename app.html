@@ -23824,33 +23824,79 @@ window.csInitCarousel = function() {
 
 // Returns the current ICP data from boardroom intel, regardless of mode
 function _carGetIcpData() {
-  var icp = window._boardroomIntel && window._boardroomIntel.icpResearch;
-  return {
-    questions: (icp && Array.isArray(icp.commonQuestions)) ? icp.commonQuestions : [],
-    phrases:   (icp && Array.isArray(icp.exactLanguage))   ? icp.exactLanguage   : [],
-  };
+  var questions = [];
+  var phrases   = [];
+
+  // ── Source 1: Value Post Engine questions (fetched live from Reddit,
+  // Quora, Google, YouTube, X) — this is the primary source the user
+  // is referring to when they say "pull from what's in Value Post Engine"
+  if (window._vpeState && Array.isArray(window._vpeState.questions) && window._vpeState.questions.length) {
+    questions = window._vpeState.questions
+      .map(function(q) { return typeof q === 'string' ? q : (q.question || ''); })
+      .filter(Boolean);
+  }
+
+  // ── Source 2: Boardroom ICP research (commonQuestions + exactLanguage)
+  // Checks live memory first, then localStorage for both modes
+  var icpSources = [];
+  if (window._boardroomIntel && window._boardroomIntel.icpResearch) {
+    icpSources.push(window._boardroomIntel.icpResearch);
+  }
+  try {
+    var affState = JSON.parse(localStorage.getItem('eos_state_affiliate') || '{}');
+    if (affState.boardroomIntel && affState.boardroomIntel.icpResearch) {
+      icpSources.push(affState.boardroomIntel.icpResearch);
+    }
+  } catch(e) {}
+  try {
+    var expIntel = JSON.parse(localStorage.getItem('eos_boardroom_intel') || 'null');
+    if (expIntel && expIntel.icpResearch) {
+      icpSources.push(expIntel.icpResearch);
+    }
+  } catch(e) {}
+
+  for (var i = 0; i < icpSources.length; i++) {
+    if (!questions.length && Array.isArray(icpSources[i].commonQuestions) && icpSources[i].commonQuestions.length) {
+      questions = icpSources[i].commonQuestions;
+    }
+    if (!phrases.length && Array.isArray(icpSources[i].exactLanguage) && icpSources[i].exactLanguage.length) {
+      phrases = icpSources[i].exactLanguage;
+    }
+    if (questions.length && phrases.length) break;
+  }
+
+  return { questions: questions, phrases: phrases };
 }
 
-// Updates the status line and populates/clears the selection panel
+// Updates the status line and shows/populates the selection panel
 window.carCheckAudienceData = function() {
   var statusEl = document.getElementById('car-audience-status');
   var panel    = document.getElementById('car-audience-panel');
   var data     = _carGetIcpData();
   var hasData  = data.questions.length > 0 || data.phrases.length > 0;
+  var isOn     = window._carUseAudienceQ !== false;
 
   if (statusEl) {
     if (hasData) {
+      var fromVpe = window._vpeState && Array.isArray(window._vpeState.questions) && window._vpeState.questions.length > 0;
       statusEl.style.color = 'var(--teal)';
-      statusEl.textContent = '✅ ' + data.questions.length + ' questions + ' + data.phrases.length + ' exact phrases ready';
+      statusEl.textContent = '✅ ' + data.questions.length + ' questions'
+        + (data.phrases.length ? ' + ' + data.phrases.length + ' exact phrases' : '')
+        + (fromVpe ? ' — from Value Post Engine' : ' — from Boardroom research')
+        + ' · select below';
     } else {
       statusEl.style.color = 'var(--dimmer)';
-      statusEl.textContent = 'No research data yet — run Boardroom first to unlock this';
+      statusEl.textContent = 'No questions yet — run Value Post Engine (Find Questions) or Boardroom first';
     }
   }
 
-  // Populate the panel if data exists and toggle is currently On
-  if (panel && window._carUseAudienceQ !== false && hasData) {
-    _carPopulateAudiencePanel(data);
+  if (panel) {
+    if (hasData && isOn) {
+      panel.style.display = 'block';
+      _carPopulateAudiencePanel(data);
+    } else {
+      panel.style.display = 'none';
+    }
   }
 };
 
@@ -23861,7 +23907,10 @@ function _carPopulateAudiencePanel(data) {
 
   if (qList) {
     if (data.questions.length) {
-      qList.innerHTML = '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:8px">Questions your audience is asking</div>'
+      var fromVpe = window._vpeState && Array.isArray(window._vpeState.questions) && window._vpeState.questions.length > 0;
+      qList.innerHTML = '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:8px">'
+        + (fromVpe ? '🔍 Questions from Value Post Engine (Reddit, Quora, Google, YouTube, X)' : 'Questions your audience is asking')
+        + '</div>'
         + data.questions.map(function(q, i) {
             return '<label style="display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer">'
               + '<input type="checkbox" checked data-car-q="' + i + '" style="margin-top:2px;cursor:pointer;accent-color:var(--teal);flex-shrink:0">'
