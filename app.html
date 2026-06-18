@@ -7350,13 +7350,29 @@ button[onclick="generateOffer()"] {
         <div class="card-dark" style="margin-bottom:16px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
             <div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">Slide Preview</div>
-            <div style="font-size:10px;color:var(--dimmer)">Click headline or body text below to edit · drag to reposition</div>
+            <div style="font-size:10px;color:var(--dimmer)">Type below to edit · click text on the slide to style it · drag to reposition</div>
           </div>
           <div id="car-thumbnails" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin"></div>
           <div id="car-preview-wrap" style="margin-top:14px;border-radius:var(--r-md);overflow:hidden;background:var(--bg2);position:relative;width:100%;max-width:540px;aspect-ratio:1/1;margin-left:auto;margin-right:auto">
             <canvas id="car-preview-canvas" width="540" height="540" style="position:absolute;top:0;left:0;display:block;width:100%;height:100%;border-radius:var(--r-md)"></canvas>
             <div id="car-edit-overlay" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none"></div>
           </div>
+
+          <!-- Real, permanent text fields — same pattern as the Quote Card
+               Generator's qc-quote-text: a normal textarea that updates the
+               preview live as you type, with normal Enter-for-newline
+               behavior, instead of a cramped popup box on the canvas. -->
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">
+            <div class="inp-box">
+              <div class="inp-lbl">Headline</div>
+              <textarea id="car-edit-headline" rows="2" placeholder="Slide headline…" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:10px 12px;font-size:13px;font-weight:700;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.5;resize:vertical;outline:none;margin-top:4px" oninput="carEditFieldInput('headline', this.value)" onfocus="carEditFieldFocus('headline');this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+            </div>
+            <div class="inp-box">
+              <div class="inp-lbl">Body text</div>
+              <textarea id="car-edit-body" rows="3" placeholder="Supporting text…" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:10px 12px;font-size:12px;font-weight:500;color:var(--white);font-family:'Inter',sans-serif;line-height:1.6;resize:vertical;outline:none;margin-top:4px" oninput="carEditFieldInput('body', this.value)" onfocus="carEditFieldFocus('body');this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+            </div>
+          </div>
+
           <div style="display:flex;gap:8px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap">
             <button onclick="carResetSlideEdits()" id="car-reset-edits-btn" style="padding:9px 18px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">↺ Reset This Slide</button>
             <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);cursor:pointer;padding:0 4px">
@@ -24278,27 +24294,31 @@ var _carThemeCycle = ['navy','teal','purple','yellow','green','crimson'];
 function _carDrawAccentText(gc, text, accentWord, x, y, maxW, lineH, mainColor, accentColor, font, accentFont, align) {
   if (!text) return;
   align = align || 'left';
-  // Split text into words, find accent word position
-  var words = text.split(' ');
-  var lines = [];
-  var line  = '';
-  // First pass — wrap into lines. Uses the (possibly accent) font for
-  // measurement consistency since headline text is usually all-caps and
-  // bold either way; close enough for wrapping purposes.
   gc.font = font;
-  words.forEach(function(word) {
-    var test = line ? line + ' ' + word : word;
-    if (gc.measureText(test).width > maxW && line) {
-      lines.push(line);
-      line = word;
-    } else {
-      line = test;
-    }
+  // Split on explicit newlines first (real Enter keypresses from the
+  // editor) so manual line breaks land exactly where the user put them,
+  // then word-wrap each resulting paragraph independently.
+  var paragraphs = text.split('\n');
+  var lines = [];
+  paragraphs.forEach(function(para) {
+    if (!para) { lines.push(''); return; } // preserve intentional blank lines
+    var words = para.split(' ');
+    var line = '';
+    words.forEach(function(word) {
+      var test = line ? line + ' ' + word : word;
+      if (gc.measureText(test).width > maxW && line) {
+        lines.push(line);
+        line = word;
+      } else {
+        line = test;
+      }
+    });
+    if (line) lines.push(line);
   });
-  if (line) lines.push(line);
 
   var cy = y;
   lines.forEach(function(ln) {
+    if (!ln) { cy += lineH; return; } // blank line — just advance
     var lnWords = ln.split(' ');
     // Measure this line's full rendered width (each word + its accent
     // font if applicable) so the starting x can be shifted for center
@@ -24344,20 +24364,35 @@ function _carDrawBodyWithAccent(gc, text, accentPhrase, x, y, maxW, lineH, mainC
       ].filter(function(p){ return p.text; });
     }
   }
-  // Re-join and wrap with color info
+  // Re-join and wrap with color info. Newlines (real Enter keypresses
+  // from the editor) are preserved as explicit break markers so manual
+  // line breaks land exactly where the user put them, rather than
+  // getting silently absorbed into the surrounding word.
   var words = [];
   parts.forEach(function(part) {
-    part.text.split(' ').forEach(function(w) {
-      if (w) words.push({ w: w, accent: part.accent });
+    var lines2 = part.text.split('\n');
+    lines2.forEach(function(lineText, li) {
+      lineText.split(' ').forEach(function(w) {
+        if (w) words.push({ w: w, accent: part.accent });
+      });
+      if (li < lines2.length - 1) words.push({ break: true });
     });
   });
 
   // Wrap into lines, tracking each line's final rendered width so the
   // starting x can be shifted for center/right alignment afterward.
+  // An explicit { break: true } marker forces a new line immediately,
+  // independent of the normal width-based wrapping below.
   var lines  = [];
   var curLine= [];
   var curW   = 0;
   words.forEach(function(item) {
+    if (item.break) {
+      lines.push({ words: curLine, width: curW });
+      curLine = [];
+      curW    = 0;
+      return;
+    }
     var ww = gc.measureText(item.w + ' ').width;
     if (curW + ww > maxW && curLine.length) {
       lines.push({ words: curLine, width: curW });
@@ -24721,6 +24756,10 @@ window.carShowSlideInEditor = function(idx) {
   previewCanvas.getContext('2d').drawImage(window._carCanvases[idx], 0, 0, 540, 540);
 
   _carBuildOverlay(idx);
+
+  // Sync the textareas to this slide's text — never overwrites a field
+  // the user currently has focused (see _carSyncFieldsToActiveSlide).
+  _carSyncFieldsToActiveSlide(idx);
 };
 
 // Build the draggable/editable DOM regions over the preview canvas.
@@ -24750,8 +24789,7 @@ function _carBuildOverlay(idx) {
     region.onmouseleave = function(){ if (!region._dragging && !isSelected) { region.style.borderColor = 'rgba(255,255,255,0)'; region.style.background = 'transparent'; } };
     region.onmousedown  = function(e){ _carDragStart(e, idx, field, region); };
     region.ontouchstart = function(e){ _carDragStart(e, idx, field, region); };
-    region.onclick      = function(e){ e.stopPropagation(); _carSelectedField = field; _carBuildOverlay(idx); };
-    region.ondblclick    = function(e){ e.stopPropagation(); _carEditText(idx, field); };
+    region.onclick      = function(e){ e.stopPropagation(); _carSelectField(idx, field); };
     overlay.appendChild(region);
 
     if (isSelected) {
@@ -24959,40 +24997,56 @@ function _carResizeEnd() {
   _carResize = null;
 }
 
-// Opens an inline textarea over the clicked region so the user can
-// rewrite the headline or body text directly, without touching the AI.
-function _carEditText(idx, field) {
-  var overlay = document.getElementById('car-edit-overlay');
-  var boxes   = window._carBoxes[idx] || {};
-  var box     = boxes[field];
-  if (!overlay || !box) return;
-  var DISPLAY_SCALE = 540 / 1080;
-  var meta = window._carSlideMeta[idx];
-  var es   = window._carEditState[idx] || (window._carEditState[idx] = {});
-  var currentText = es[field + 'Text'] != null ? es[field + 'Text'] : (meta.slide[field] || '');
-
-  var ta = document.createElement('textarea');
-  ta.value = currentText;
-  ta.style.cssText = 'position:absolute;pointer-events:auto;resize:none;z-index:20;'
-    + 'left:' + (box.x * DISPLAY_SCALE) + 'px;top:' + (box.y * DISPLAY_SCALE) + 'px;'
-    + 'width:' + (box.w * DISPLAY_SCALE) + 'px;height:' + (box.h * DISPLAY_SCALE) + 'px;'
-    + 'background:rgba(10,15,40,.92);border:1.5px solid var(--teal);border-radius:6px;color:#fff;'
-    + 'font-family:Poppins,sans-serif;font-size:' + (field === 'headline' ? 13 : 11) + 'px;font-weight:'+(field==='headline'?800:400)+';padding:6px 8px;line-height:1.4';
-  overlay.innerHTML = '';
-  overlay.appendChild(ta);
-  ta.focus();
-  ta.select();
-
-  function commit() {
-    es[field + 'Text'] = ta.value;
-    _carRerenderSlide(idx);
-  }
-  ta.onblur = commit;
-  ta.onkeydown = function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); ta.blur(); }
-    if (e.key === 'Escape') { e.preventDefault(); _carBuildOverlay(idx); }
-  };
+// Selecting a region focuses and syncs the matching real textarea below
+// the canvas, the same way the Quote Card Generator's qcSelectEl readies
+// its input. Typing happens there — a normal textarea with completely
+// normal Enter-for-newline behavior — never in a popup on the canvas.
+function _carSelectField(idx, field) {
+  _carSelectedField = field;
+  _carBuildOverlay(idx);
+  var ta = document.getElementById('car-edit-' + field);
+  if (ta) { _carSyncFieldsToActiveSlide(idx); ta.focus(); }
 }
+
+// Keeps the two textareas (headline/body) showing whatever the active
+// slide's current text actually is — called whenever the active slide
+// changes, so the fields never show stale text from a previous slide.
+// Never overwrites a field the user currently has focused, since this
+// also runs after every debounced re-render while typing, and clobbering
+// an active field mid-edit would reset the cursor unexpectedly.
+function _carSyncFieldsToActiveSlide(idx) {
+  var meta = window._carSlideMeta && window._carSlideMeta[idx];
+  if (!meta) return;
+  var es = window._carEditState[idx] || {};
+  var headlineEl = document.getElementById('car-edit-headline');
+  var bodyEl     = document.getElementById('car-edit-body');
+  if (headlineEl && document.activeElement !== headlineEl) headlineEl.value = es.headlineText != null ? es.headlineText : (meta.slide.headline || '');
+  if (bodyEl && document.activeElement !== bodyEl)         bodyEl.value     = es.bodyText     != null ? es.bodyText     : (meta.slide.body     || '');
+}
+
+// Called on focus, just to mark which field is active for the toolbar —
+// no canvas work happens here, focusing a field should never feel heavy.
+window.carEditFieldFocus = function(field) {
+  var idx = window._carActiveIdx || 0;
+  if (_carSelectedField !== field) {
+    _carSelectedField = field;
+    _carBuildOverlay(idx);
+  }
+};
+
+// Debounced canvas re-render so typing itself never stutters — the
+// textarea updates instantly (it's just a native input, free), and the
+// actual slide re-render (genuinely real work: re-wrapping text, re-
+// drawing the canvas) catches up a moment after the user pauses typing,
+// the same tradeoff every live-preview editor makes.
+var _carEditDebounce = null;
+window.carEditFieldInput = function(field, value) {
+  var idx = window._carActiveIdx || 0;
+  var es = window._carEditState[idx] || (window._carEditState[idx] = {});
+  es[field + 'Text'] = value;
+  clearTimeout(_carEditDebounce);
+  _carEditDebounce = setTimeout(function(){ _carRerenderSlide(idx); }, 250);
+};
 
 // Re-renders exactly one slide using its cached background/theme/photo
 // plus the current editState, updates its thumbnail and (if active)
