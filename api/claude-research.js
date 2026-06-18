@@ -2,6 +2,16 @@ const Anthropic = require('@anthropic-ai/sdk');
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+// This endpoint runs multi-round web search (up to 12 tool uses) before
+// synthesising a response — that can take well over a minute. Without an
+// explicit maxDuration, this function may be capped at a much shorter
+// platform default than execution-engine.js (which has 300s configured) —
+// worth confirming directly in vercel.json since this file has no such
+// config currently. A real timeout returns a 504 FUNCTION_INVOCATION_TIMEOUT,
+// not a dropped connection, so this alone may not explain ERR_CONNECTION_CLOSED,
+// but it's a real gap regardless and should be fixed.
+module.exports.config = { maxDuration: 300 };
+
 /**
  * /api/claude-research
  * Web search-enabled endpoint for all research tabs.
@@ -51,7 +61,7 @@ module.exports = async function handler(req, res) {
 
   const body     = req.body || {};
   const messages = body.messages;
-  const model    = body.model || 'claude-sonnet-4-20250514';
+  const model    = body.model || 'claude-sonnet-4-6'; // was 'claude-sonnet-4-20250514' — retired snapshot, caused 404s
   const system   = body.system;
 
   if (!messages || !messages.length) {
