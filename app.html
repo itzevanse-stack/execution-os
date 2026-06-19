@@ -7386,7 +7386,7 @@ button[onclick="generateOffer()"] {
             <div style="position:relative;width:100%;max-width:100%;margin:0 auto">
               <div id="car-card" style="width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;position:relative;background:#0a0f28;box-shadow:0 16px 48px rgba(0,0,0,.5)">
                 <div id="car-bg-layer" style="position:absolute;inset:0;background-size:cover;background-position:center;z-index:0"></div>
-                <div id="car-fade-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(to top,rgba(0,0,0,.9) 0%,rgba(0,0,0,.55) 35%,rgba(0,0,0,.18) 65%,rgba(0,0,0,.05) 100%)"></div>
+                <div id="car-fade-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:1;background:transparent"></div>
                 <div id="car-overlay-layer" style="position:absolute;inset:0;background:rgba(10,15,40,.72);pointer-events:none;z-index:2"></div>
                 <div id="car-badge" class="car-el" data-el="badge" style="position:absolute;top:20px;left:20px;width:34px;height:34px;border-radius:50%;background:#FFD93D;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#0a0f28;font-family:Poppins,sans-serif;z-index:5;cursor:pointer;border:2px solid transparent;transition:border-color .12s;box-sizing:border-box" onclick="carElSelect('badge',event)" onmousedown="window._carElSelected==='badge'?carElDragStart(event,'car-badge'):null">1</div>
                 <div id="car-accent-line" class="car-el" data-el="accent-line" style="position:absolute;top:27px;left:64px;width:160px;height:10px;z-index:5;cursor:pointer;display:flex;align-items:center;border:2px solid transparent;transition:border-color .12s;box-sizing:border-box;border-radius:4px" onclick="carElSelect('accent-line',event)" onmousedown="window._carElSelected==='accent-line'?carElDragStart(event,'car-accent-line'):null">
@@ -7425,9 +7425,9 @@ button[onclick="generateOffer()"] {
             <div id="car-fade-row" style="display:none;margin-top:14px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
               <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
                 <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Image Fade</div>
-                <div id="car-fade-val" style="font-size:11px;color:var(--teal);font-weight:800">72%</div>
+                <div id="car-fade-val" style="font-size:11px;color:var(--teal);font-weight:800">40%</div>
               </div>
-              <input type="range" id="car-fade-slider" min="0" max="95" value="72" oninput="carSetFade(this.value)" style="width:100%;accent-color:var(--teal);cursor:pointer;height:4px">
+              <input type="range" id="car-fade-slider" min="0" max="95" value="40" oninput="carSetFade(this.value)" style="width:100%;accent-color:var(--teal);cursor:pointer;height:4px">
               <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dimmer);margin-top:5px"><span>Vivid</span><span>Faded</span></div>
             </div>
 
@@ -24354,6 +24354,60 @@ window.carAddUserPhoto = async function(dataUrl, name) {
   var photo = { dataUrl: dataUrl, name: name || 'photo', brightness: brightness, isLight: isLight };
   window._carUserPhotos.push(photo);
   carRenderPhotoGrid();
+
+  // Show the photo immediately on the card — the user should see their
+  // photo on the slide the moment they upload it, not only after generating.
+  // Assign this photo to the next available slide slot and update the preview.
+  var photoIdx = window._carUserPhotos.length - 1;
+
+  // If slides already exist (post-generation), update the bg URL for that slot
+  if (window._carBgUrls) {
+    window._carBgUrls[photoIdx] = dataUrl;
+    // If this is the currently visible slide, update the card immediately
+    if (window._carActiveIdx === photoIdx) {
+      var bgLayer = document.getElementById('car-bg-layer');
+      var ovLayer = document.getElementById('car-overlay-layer');
+      var fadeRow = document.getElementById('car-fade-row');
+      if (bgLayer) {
+        bgLayer.style.backgroundImage = 'url(' + dataUrl + ')';
+        bgLayer.style.backgroundSize  = 'cover';
+        bgLayer.style.backgroundPosition = 'center';
+        bgLayer.style.background = '';
+      }
+      if (ovLayer) ovLayer.style.background = 'rgba(0,0,0,.08)';
+      if (fadeRow) {
+        fadeRow.style.display = 'block';
+        var fadeSlider = document.getElementById('car-fade-slider');
+        if (fadeSlider) window.carSetFade(fadeSlider.value);
+      }
+      _carUpdateThumb && _carUpdateThumb(photoIdx);
+    }
+  }
+
+  // If no carousel has been generated yet, show a mini preview of the photo
+  // on the card right now so the user can see how it'll look
+  if (!window._carSlides || !window._carSlides.length) {
+    var bgLayer = document.getElementById('car-bg-layer');
+    var ovLayer = document.getElementById('car-overlay-layer');
+    var fadeRow = document.getElementById('car-fade-row');
+    var emptyState = document.getElementById('car-empty-state');
+    var output = document.getElementById('car-output');
+    if (bgLayer) {
+      bgLayer.style.backgroundImage = 'url(' + dataUrl + ')';
+      bgLayer.style.backgroundSize  = 'cover';
+      bgLayer.style.backgroundPosition = 'center';
+      bgLayer.style.background = '';
+    }
+    if (ovLayer) ovLayer.style.background = 'rgba(0,0,0,.08)';
+    if (fadeRow) {
+      fadeRow.style.display = 'block';
+      var fadeSlider2 = document.getElementById('car-fade-slider');
+      if (fadeSlider2) window.carSetFade(fadeSlider2.value);
+    }
+    // Show the card, hide the empty state
+    if (emptyState) emptyState.style.display = 'none';
+    if (output)     output.style.display = 'block';
+  }
 };
 
 // ── Analyse average brightness of an image ───────────────────────
@@ -24406,11 +24460,62 @@ window.carRenderPhotoGrid = function() {
       + (photo.isLight ? '<div style="position:absolute;bottom:2px;right:3px;font-size:8px">☀️</div>' : '')
       + '</div>';
   }).join('');
+
+  // Also update the thumbnail strip if it exists (pre-generation preview)
+  // so the user sees their photos in the slide strip immediately
+  var thumbRow = document.getElementById('car-thumbnails');
+  if (thumbRow && photos.length && (!window._carSlides || !window._carSlides.length)) {
+    thumbRow.innerHTML = '';
+    photos.forEach(function(photo, i) {
+      var thumb = document.createElement('div');
+      thumb.style.cssText = 'width:72px;height:72px;border-radius:8px;cursor:pointer;border:2px solid ' + (i===0?'var(--teal)':'transparent') + ';flex-shrink:0;overflow:hidden;background-size:cover;background-position:center;background-image:url(' + photo.dataUrl + ')';
+      thumb.onclick = function() {
+        document.querySelectorAll('#car-thumbnails div').forEach(function(t){ t.style.borderColor='transparent'; });
+        thumb.style.borderColor = 'var(--teal)';
+        var bgLayer = document.getElementById('car-bg-layer');
+        var ovLayer = document.getElementById('car-overlay-layer');
+        if (bgLayer) { bgLayer.style.backgroundImage = 'url(' + photo.dataUrl + ')'; bgLayer.style.backgroundSize = 'cover'; bgLayer.style.backgroundPosition = 'center'; bgLayer.style.background = ''; }
+        if (ovLayer) ovLayer.style.background = 'rgba(0,0,0,.08)';
+        var fadeSlider = document.getElementById('car-fade-slider');
+        if (fadeSlider && window.carSetFade) window.carSetFade(fadeSlider.value);
+      };
+      thumbRow.appendChild(thumb);
+    });
+  }
 };
 
 // ── Remove a photo by index ───────────────────────────────────────
 window.carRemovePhoto = function(idx) {
   window._carUserPhotos.splice(idx, 1);
+  // Update bgUrls if carousel already generated
+  if (window._carBgUrls && window._carBgUrls[idx] !== undefined) {
+    var replacement = (window._carUserPhotos[idx] && window._carUserPhotos[idx].dataUrl) || null;
+    window._carBgUrls[idx] = replacement;
+    if (window._carActiveIdx === idx) {
+      var bgLayer = document.getElementById('car-bg-layer');
+      var ovLayer = document.getElementById('car-overlay-layer');
+      var fadeRow = document.getElementById('car-fade-row');
+      if (bgLayer) {
+        if (replacement) { bgLayer.style.backgroundImage = 'url(' + replacement + ')'; bgLayer.style.background = ''; }
+        else { bgLayer.style.backgroundImage = 'none'; bgLayer.style.background = 'linear-gradient(135deg,#0a0f28,#1a2050)'; }
+      }
+      if (ovLayer) ovLayer.style.background = replacement ? 'rgba(0,0,0,.08)' : 'rgba(10,15,40,.72)';
+      if (fadeRow) fadeRow.style.display = replacement ? 'block' : 'none';
+    }
+  }
+  // If no photos left and no slides, revert card to empty state
+  if (!window._carUserPhotos.length && (!window._carSlides || !window._carSlides.length)) {
+    var bgLayer2 = document.getElementById('car-bg-layer');
+    var ovLayer2 = document.getElementById('car-overlay-layer');
+    var fadeRow2 = document.getElementById('car-fade-row');
+    var emptyState = document.getElementById('car-empty-state');
+    var output = document.getElementById('car-output');
+    if (bgLayer2) { bgLayer2.style.backgroundImage = 'none'; bgLayer2.style.background = ''; }
+    if (ovLayer2) ovLayer2.style.background = 'rgba(10,15,40,.72)';
+    if (fadeRow2) fadeRow2.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'block';
+    if (output)     output.style.display = 'none';
+  }
   carRenderPhotoGrid();
 };
 
@@ -24990,8 +25095,15 @@ window.carShowSlideInEditor = function(idx) {
 
   if (bgLayer) {
     var bgUrl = window._carBgUrls[idx];
-    if (bgUrl) { bgLayer.style.backgroundImage = 'url(' + bgUrl + ')'; bgLayer.style.background = ''; }
-    else        { bgLayer.style.backgroundImage = 'none'; bgLayer.style.background = 'linear-gradient(135deg,' + (gradMap[themeName]||gradMap.navy) + ')'; }
+    if (bgUrl) {
+      bgLayer.style.backgroundImage = 'url(' + bgUrl + ')';
+      bgLayer.style.backgroundSize = 'cover';
+      bgLayer.style.backgroundPosition = 'center';
+      bgLayer.style.background = '';
+    } else {
+      bgLayer.style.backgroundImage = 'none';
+      bgLayer.style.background = 'linear-gradient(135deg,' + (gradMap[themeName]||gradMap.navy) + ')';
+    }
     // Show/hide fade slider depending on whether there's an image
     var fadeRow = document.getElementById('car-fade-row');
     if (fadeRow) {
@@ -25002,7 +25114,15 @@ window.carShowSlideInEditor = function(idx) {
       }
     }
   }
-  if (ovLayer)  ovLayer.style.background = T.overlay;
+
+  // When a user photo is present, reduce the theme colour overlay to almost
+  // nothing — the photo should be the background, not a dark colour wash.
+  // Without this, rgba(10,15,40,.72) covers the photo almost completely,
+  // making it look like no photo was used at all.
+  if (ovLayer) {
+    var hasBg = !!(window._carBgUrls && window._carBgUrls[idx]);
+    ovLayer.style.background = hasBg ? 'rgba(0,0,0,.08)' : T.overlay;
+  }
   if (badge)    { badge.textContent = idx + 1; badge.style.background = T.badge; badge.style.color = T.badgeText; }
   if (accentLn) accentLn.style.background = 'linear-gradient(90deg,' + T.accent + ',rgba(255,255,255,.1))';
   if (divider)  divider.style.background = T.accent;
@@ -25342,11 +25462,13 @@ window.carSetFade = function(val) {
   var valEl   = document.getElementById('car-fade-val');
   if (overlay) {
     var op = val / 100;
+    // Bottom-heavy gradient so text at top and bottom stays readable
+    // while the middle of the photo shows clearly through
     overlay.style.background = 'linear-gradient(to top,'
-      + 'rgba(0,0,0,' + Math.min(op + 0.5, 1)    + ') 0%,'
-      + 'rgba(0,0,0,' + Math.min(op + 0.15, 0.9)  + ') 35%,'
-      + 'rgba(0,0,0,' + Math.max(op - 0.2, 0)     + ') 65%,'
-      + 'rgba(0,0,0,' + Math.max(op - 0.4, 0)     + ') 100%)';
+      + 'rgba(0,0,0,' + Math.min(op + 0.4, 1)    + ') 0%,'
+      + 'rgba(0,0,0,' + Math.min(op + 0.1, 0.85) + ') 25%,'
+      + 'rgba(0,0,0,' + Math.max(op - 0.2, 0)    + ') 60%,'
+      + 'rgba(0,0,0,' + Math.max(op - 0.35, 0)   + ') 100%)';
   }
   if (valEl) valEl.textContent = val + '%';
 };
