@@ -24355,59 +24355,41 @@ window.carAddUserPhoto = async function(dataUrl, name) {
   window._carUserPhotos.push(photo);
   carRenderPhotoGrid();
 
-  // Show the photo immediately on the card — the user should see their
-  // photo on the slide the moment they upload it, not only after generating.
-  // Assign this photo to the next available slide slot and update the preview.
+  // Show the photo immediately on the card
   var photoIdx = window._carUserPhotos.length - 1;
 
-  // If slides already exist (post-generation), update the bg URL for that slot
-  if (window._carBgUrls) {
-    window._carBgUrls[photoIdx] = dataUrl;
-    // If this is the currently visible slide, update the card immediately
-    if (window._carActiveIdx === photoIdx) {
-      var bgLayer = document.getElementById('car-bg-layer');
-      var ovLayer = document.getElementById('car-overlay-layer');
-      var fadeRow = document.getElementById('car-fade-row');
-      if (bgLayer) {
-        bgLayer.style.backgroundImage = 'url(' + dataUrl + ')';
-        bgLayer.style.backgroundSize  = 'cover';
-        bgLayer.style.backgroundPosition = 'center';
-        bgLayer.style.background = '';
-      }
-      if (ovLayer) ovLayer.style.background = 'rgba(0,0,0,.08)';
-      if (fadeRow) {
-        fadeRow.style.display = 'block';
-        var fadeSlider = document.getElementById('car-fade-slider');
-        if (fadeSlider) window.carSetFade(fadeSlider.value);
-      }
-      _carUpdateThumb && _carUpdateThumb(photoIdx);
-    }
+  // Always show car-output and hide empty state when photos are uploaded
+  var emptyState = document.getElementById('car-empty-state');
+  var output = document.getElementById('car-output');
+  if (emptyState) emptyState.style.display = 'none';
+  if (output) output.style.display = 'block';
+
+  // Set the background directly on the card element using both
+  // background shorthand AND backgroundImage to ensure it shows
+  // regardless of any child element visibility issues
+  var bgLayer = document.getElementById('car-bg-layer');
+  var card    = document.getElementById('car-card');
+  var ovLayer = document.getElementById('car-overlay-layer');
+  var fadeRow = document.getElementById('car-fade-row');
+
+  if (bgLayer) {
+    bgLayer.style.cssText = 'position:absolute;inset:0;z-index:0;background:url(' + JSON.stringify(dataUrl) + ') center/cover no-repeat';
+  }
+  if (card && !bgLayer) {
+    // Fallback: set directly on card
+    card.style.backgroundImage = 'url(' + dataUrl + ')';
+    card.style.backgroundSize  = 'cover';
+    card.style.backgroundPosition = 'center';
+  }
+  if (ovLayer) ovLayer.style.background = 'rgba(0,0,0,.15)';
+  if (fadeRow) {
+    fadeRow.style.display = 'block';
+    var fadeSlider = document.getElementById('car-fade-slider');
+    if (fadeSlider) window.carSetFade(fadeSlider.value);
   }
 
-  // If no carousel has been generated yet, show a mini preview of the photo
-  // on the card right now so the user can see how it'll look
-  if (!window._carSlides || !window._carSlides.length) {
-    var bgLayer = document.getElementById('car-bg-layer');
-    var ovLayer = document.getElementById('car-overlay-layer');
-    var fadeRow = document.getElementById('car-fade-row');
-    var emptyState = document.getElementById('car-empty-state');
-    var output = document.getElementById('car-output');
-    if (bgLayer) {
-      bgLayer.style.backgroundImage = 'url(' + dataUrl + ')';
-      bgLayer.style.backgroundSize  = 'cover';
-      bgLayer.style.backgroundPosition = 'center';
-      bgLayer.style.background = '';
-    }
-    if (ovLayer) ovLayer.style.background = 'rgba(0,0,0,.08)';
-    if (fadeRow) {
-      fadeRow.style.display = 'block';
-      var fadeSlider2 = document.getElementById('car-fade-slider');
-      if (fadeSlider2) window.carSetFade(fadeSlider2.value);
-    }
-    // Show the card, hide the empty state
-    if (emptyState) emptyState.style.display = 'none';
-    if (output)     output.style.display = 'block';
-  }
+  // Update _carBgUrls if carousel already generated
+  if (window._carBgUrls) window._carBgUrls[photoIdx] = dataUrl;
 };
 
 // ── Analyse average brightness of an image ───────────────────────
