@@ -20945,6 +20945,22 @@ window.analyseAffiliateProduct = async function() {
   if (statusEl) statusEl.style.display='block';
   if (btnEl)    { btnEl.disabled=true; btnEl.textContent='Analysing…'; }
 
+  // Global watchdog — if analysis hasn't finished in 90 seconds,
+  // surface a clear error so the user isn't left staring at a spinner.
+  var _affWatchdog = setTimeout(function() {
+    var b = document.getElementById('aff-analyse-btn');
+    var s = document.getElementById('aff-analyse-status');
+    if (b && b.disabled) {
+      b.disabled = false; b.textContent = '⚡ Analyse Offer';
+    }
+    if (s) {
+      var txt = document.getElementById('aff-status-msg');
+      if (txt) txt.textContent = '⚠️ Analysis timed out — the server took too long. Please try again.';
+      var bar = document.getElementById('aff-progress-bar');
+      if (bar) bar.style.background = 'var(--red)';
+    }
+  }, 90000);
+
   const setProgress = (pct, msg, step) => {
     const bar   = document.getElementById('aff-progress-bar');
     const txt   = document.getElementById('aff-status-msg');
@@ -21106,9 +21122,12 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
       setProgress(15, 'Reading the sales page content…', null);
       var _affBi  = window._boardroomIntel || null;
       var _affInp = (_affBi && _affBi.inputs) || {};
+      var _avatarCtl = new AbortController();
+      var _avatarTid = setTimeout(function(){ _avatarCtl.abort(); }, 30000);
       const resp = await fetch(window.location.origin + '/api/generate-affiliate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: _avatarCtl.signal,
         body: JSON.stringify({
           type:          'avatar',
           productUrl:    url,
@@ -21131,6 +21150,7 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
           },
         })
       });
+      clearTimeout(_avatarTid);
       if (!resp.ok) throw new Error('API error ' + resp.status);
       av = await resp.json();
       setProgress(40, 'Sales page analysed — building buyer profile…', 'Sales page read ✅');
@@ -21307,9 +21327,12 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
     // rather than reading it synchronously before it could ever resolve.
     var _affIntelPromise = (async function() {
       try {
+        var _affIntelCtl = new AbortController();
+        var _affIntelTid = setTimeout(function(){ _affIntelCtl.abort(); }, 45000);
         var affIntelResp = await fetch(window.location.origin + '/api/affiliate-intel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: _affIntelCtl.signal,
           body: JSON.stringify({
             inputs: {
               productName:   av.productName||productName||url,
@@ -21322,6 +21345,7 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
             }
           })
         });
+        clearTimeout(_affIntelTid);
         if (!affIntelResp.ok) return;
         var affIntelData = await affIntelResp.json();
         if (!affIntelData.success) return;
@@ -21336,12 +21360,19 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
         // Affiliate Mode user regardless of whether it was on or off.
         var icpResult = {};
         try {
-          icpResult = await brCallAI_ICPResearch({
-            niche:     av.niche || productNiche,
-            offerName: av.productName || productName,
-            price:     commission,
-            av_job:    av.job || ''
-          });
+          // Race with a 15s timeout — ICP research is a nice-to-have
+          // enhancement, not a blocker. If /api/claude-research hangs
+          // (common cause of the 15+ minute freeze), this resolves with
+          // empty data and the rest of the analysis continues normally.
+          icpResult = await Promise.race([
+            brCallAI_ICPResearch({
+              niche:     av.niche || productNiche,
+              offerName: av.productName || productName,
+              price:     commission,
+              av_job:    av.job || ''
+            }),
+            new Promise(function(resolve){ setTimeout(function(){ resolve({}); }, 15000); })
+          ]);
         } catch(icpErr) {
           console.warn('[Affiliate] ICP research failed silently:', icpErr.message);
         }
@@ -21628,9 +21659,12 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
     try {
       var _calBi  = window._boardroomIntel || null;
       var _calInp = (_calBi && _calBi.inputs) || {};
+      var _calCtl = new AbortController();
+      var _calTid = setTimeout(function(){ _calCtl.abort(); }, 40000);
       const calResp = await fetch(window.location.origin + '/api/generate-affiliate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: _calCtl.signal,
         body: JSON.stringify({
           type:          'calendar',
           productName:   pn,
@@ -21653,6 +21687,7 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
           },
         })
       });
+      clearTimeout(_calTid);
 
       setProgress(80, 'Content written — building DM scripts…', 'Content plan written ✅');
 
@@ -21713,9 +21748,12 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
            : '')
         : '';
 
+      var _dmCtl = new AbortController();
+      var _dmTid = setTimeout(function(){ _dmCtl.abort(); }, 30000);
       const dmResp = await fetch(window.PROXY_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: _dmCtl.signal,
         body: JSON.stringify({
           model: 'claude-sonnet-4-6',
           max_tokens: 3000,
@@ -21746,6 +21784,7 @@ Return ONLY valid JSON — no markdown, no backticks:
 ]` }]
         })
       });
+      clearTimeout(_dmTid);
 
       if (dmResp.ok) {
         const dmData = await dmResp.json();
@@ -21804,6 +21843,7 @@ Return ONLY valid JSON — no markdown, no backticks:
     setProgress(100, 'Ready — check each tab', null);
   }
 
+  clearTimeout(_affWatchdog);
   setTimeout(function(){ showResults(window._avatarData || {}); }, 500);
 }
 ;
@@ -23746,7 +23786,30 @@ window.csShowTab = function(tab, btn) {
   if (tab === 'automate' && typeof window.csInitAutomate === 'function') window.csInitAutomate();
   if (tab === 'automate') setTimeout(window._tzUpdateAutomateLabels, 120);
   if (tab === 'quote'    && typeof window.qcInit === 'function') window.qcInit();
-  if (tab === 'vpe'      && typeof window.emBroadcastLoadCount === 'function') window.emBroadcastLoadCount();
+  if (tab === 'vpe') {
+    if (typeof window.emBroadcastLoadCount === 'function') window.emBroadcastLoadCount();
+    // Restore saved questions grid on tab open
+    if (_vpeState.questions && _vpeState.questions.length > 0) {
+      var _vpeGrid = document.getElementById('vpe-questions-grid');
+      if (_vpeGrid && !_vpeGrid.children.length) {
+        _vpeGrid.innerHTML = _vpeState.questions.map(function(q, i) {
+          var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform] || 'var(--dim)';
+          var srcLink = q.url ? '<a href="'+q.url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px;white-space:nowrap">View Source →</a>' : '';
+          return '<div class="vpe-q-card" onclick="vpeSelectQuestion(this,'+i+')">'
+            +'<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">'+q.question+'</div>'
+            +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">'+q.why+'</div>':'')
+            +'<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">'
+            +(q.platform?'<span style="font-size:10px;font-weight:700;color:'+pc+'">'+q.platform.charAt(0).toUpperCase()+q.platform.slice(1)+'</span>':'')
+            + srcLink
+            +'</div></div>';
+        }).join('');
+        var lmRow = document.getElementById('vpe-load-more-row');
+        if (lmRow) lmRow.style.display = 'block';
+        var statusEl = document.getElementById('vpe-q-status');
+        if (statusEl) statusEl.innerHTML = '✅ ' + _vpeState.questions.length + ' questions restored';
+      }
+    }
+  }
 };
 
 window.csRenderReadinessBanner = function() {
@@ -24842,7 +24905,9 @@ window.carRenderSlides = async function(data, ctx, bgImages) {
   // Collect background image URLs (user photos take priority)
   for (var i = 0; i < slides.length; i++) {
     var userPhoto = (window._carUserPhotos && window._carUserPhotos[i]) || null;
-    window._carBgUrls.push(userPhoto ? userPhoto : ((bgImages[i] && bgImages[i].url) || null));
+    // userPhoto is an object { dataUrl, name, brightness, isLight } — use .dataUrl, not the object itself
+    var bgUrl = userPhoto ? userPhoto.dataUrl : ((bgImages[i] && bgImages[i].url) || null);
+    window._carBgUrls.push(bgUrl);
     if (slides[i].colorTheme === undefined) slides[i].colorTheme = _carThemeCycle[i % _carThemeCycle.length];
   }
 
@@ -26531,7 +26596,10 @@ function brCallAI_ContentStrategy(inp) {
     target: inp.target, avatar: { job: inp.av_job || av.job, pain: inp.av_pain || av.pain },
     researchContext: researchCtx
   }, 'expert');
-  return brCallAI_WithSearch(sys, p, 5000);
+  // Use regular brCallAI — all context needed is already in memory (niche,
+  // avatar, ICP research). brCallAI_WithSearch was timing out and silently
+  // overwriting good data with error objects, making the tab appear stuck.
+  return brCallAI(sys, p, 5000);
 }
 
 /* ── Shared Content Strategy Renderer ── */
@@ -36957,8 +37025,14 @@ window.brRegenerateTab = async function(tab) {
     if (tab === 'content-strategy') {
       var newCS = await brCallAI_ContentStrategy(inp2);
       _stopLoading();
-      if (window._boardroomIntel) window._boardroomIntel.contentStrategy = newCS;
-      try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      if (newCS && newCS._error) {
+        panel.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--red);font-size:12px">⚠️ ' + newCS._error + '<br><br><button onclick="brRegenerateTab(\'content-strategy\')" style="padding:8px 20px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.25);border-radius:8px;color:var(--purple);font-size:11px;font-weight:700;cursor:pointer">Try Again</button></div>';
+        return;
+      }
+      if (newCS && newCS.platformStack) {
+        if (window._boardroomIntel) window._boardroomIntel.contentStrategy = newCS;
+        try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      }
       window.renderBrContentStrategy && window.renderBrContentStrategy();
       return;
     }
@@ -38498,26 +38572,66 @@ function brRenderArchitect(d, inp) {
     +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to build it now — takes about 15 seconds.</div>'
     +'<button onclick="brRegenerateTab(\'architect\')" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcccc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Build Business Architect</button></div>';
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
+
+  // Field name normalisation — the AI schema uses these names but earlier
+  // renderer code expected different keys, causing every card to show empty.
+  var positioningStatement = d.positioningStatement || '';
+  var categoryName         = d.categoryName         || '';
+  var dominanceAngle       = d.dominanceAngle        || '';
+  var competitiveMoat      = d.competitiveMoat       || '';
+  var immediateWin         = d.immediateWin          || '';
+  var unfairAdvantage      = d.unfairAdvantage       || '';
+  var biggestThreat        = d.biggestThreat         || '';
+
+  // revenue breakdown — AI returns as revenueBreakdown OR targetRevenueBreakdown
+  var rb = d.revenueBreakdown || d.targetRevenueBreakdown || null;
+
+  // mistakes — AI returns as top3Mistakes array OR biggestMistake string
+  var mistakes = Array.isArray(d.top3Mistakes) ? d.top3Mistakes : (d.biggestMistake ? [d.biggestMistake] : []);
+
+  // roadmap — AI returns as dominanceRoadmap OR nicheDominanceSteps
+  var roadmap = Array.isArray(d.dominanceRoadmap) ? d.dominanceRoadmap : (Array.isArray(d.nicheDominanceSteps) ? d.nicheDominanceSteps : []);
+
   var h = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem">';
-  h += '<div style="grid-column:1/-1">'+brCard('var(--purple)','🏆 Your Market Positioning Statement', brValue(d.positioningStatement||''))+'</div>';
-  h += brCard('var(--teal)','🎯 Category Dominance Angle', brValue(d.dominanceAngle||''));
-  h += brCard('var(--yellow)','🏰 Your Competitive Moat', brValue(d.competitiveMoat||''));
+  h += '<div style="grid-column:1/-1">'+brCard('var(--purple)','🏆 Your Market Positioning Statement', brValue(positioningStatement))+'</div>';
+  if (categoryName) h += '<div style="grid-column:1/-1">'+brCard('var(--purple)','🏷 Category You Own', brValue(categoryName))+'</div>';
+  h += brCard('var(--teal)','🎯 Category Dominance Angle', brValue(dominanceAngle));
+  h += brCard('var(--yellow)','🏰 Your Competitive Moat', brValue(competitiveMoat));
   h += '</div>';
-  if (d.targetRevenueBreakdown) {
-    var rb = d.targetRevenueBreakdown;
-    h += brCard('var(--teal)','💰 $'+Number(inp.target||25000).toLocaleString()+'/Month Breakdown',
+
+  if (rb) {
+    var clientsNeeded = rb.clientsPerMonth || rb.clientsNeeded || '—';
+    var closingRate   = rb.closingRate     || '25%';
+    var leadsNeeded   = rb.leadsPerMonth   || rb.leadsNeeded   || '—';
+    var weeklyActions = rb.weeklyMilestone || rb.weeklyActions || rb.dailyActions || '';
+    h += brCard('var(--teal)','💰 Revenue Breakdown to $'+ Number(inp&&inp.target||25000).toLocaleString()+'/Month',
       '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">'
-      +'<div style="text-align:center;background:rgba(78,204,163,.07);border-radius:10px;padding:12px"><div style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">'+rb.clientsNeeded+'</div><div style="font-size:10px;color:var(--dimmer);font-weight:700">clients/mo</div></div>'
-      +'<div style="text-align:center;background:rgba(108,99,255,.07);border-radius:10px;padding:12px"><div style="font-size:22px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif">'+rb.closingRate+'</div><div style="font-size:10px;color:var(--dimmer);font-weight:700">close rate</div></div>'
-      +'<div style="text-align:center;background:rgba(255,217,61,.07);border-radius:10px;padding:12px"><div style="font-size:22px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">'+rb.leadsNeeded+'</div><div style="font-size:10px;color:var(--dimmer);font-weight:700">leads/mo</div></div>'
-      +'</div><div style="font-size:12px;color:var(--dim);line-height:1.65"><strong style="color:var(--white)">Weekly focus:</strong> '+rb.weeklyActions+'</div>');
+      +'<div style="text-align:center;background:rgba(78,204,163,.07);border-radius:10px;padding:12px"><div style="font-size:22px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">'+clientsNeeded+'</div><div style="font-size:10px;color:var(--dimmer);font-weight:700">clients/mo</div></div>'
+      +'<div style="text-align:center;background:rgba(108,99,255,.07);border-radius:10px;padding:12px"><div style="font-size:22px;font-weight:900;color:var(--purple);font-family:Poppins,sans-serif">'+closingRate+'</div><div style="font-size:10px;color:var(--dimmer);font-weight:700">close rate</div></div>'
+      +'<div style="text-align:center;background:rgba(255,217,61,.07);border-radius:10px;padding:12px"><div style="font-size:22px;font-weight:900;color:var(--yellow);font-family:Poppins,sans-serif">'+leadsNeeded+'</div><div style="font-size:10px;color:var(--dimmer);font-weight:700">leads/mo</div></div>'
+      +'</div>'+(weeklyActions?'<div style="font-size:12px;color:var(--dim);line-height:1.65"><strong style="color:var(--white)">Weekly focus:</strong> '+weeklyActions+'</div>':''));
   }
+
   h += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">';
-  h += brCard('var(--orange)','🚨 Biggest Mistake Right Now', '<div style="font-size:12px;color:var(--dim);line-height:1.65;border-left:3px solid var(--orange);padding-left:12px">'+(d.biggestMistake||'')+'</div>');
-  h += brCard('var(--teal)','⚡ Immediate Win This Week', '<div style="font-size:12px;color:var(--dim);line-height:1.65;border-left:3px solid var(--teal);padding-left:12px">'+(d.immediateWin||'')+'</div>');
+  if (mistakes.length) {
+    h += brCard('var(--orange)','🚨 Top Mistakes to Fix Now',
+      '<div style="display:flex;flex-direction:column;gap:8px">'
+      + mistakes.map(function(m,i){ return '<div style="font-size:12px;color:var(--dim);line-height:1.65;border-left:3px solid var(--orange);padding-left:12px"><strong style="color:var(--orange)">#'+(i+1)+'</strong> '+m+'</div>'; }).join('')
+      +'</div>');
+  }
+  if (immediateWin) {
+    h += brCard('var(--teal)','⚡ Immediate Win This Week', '<div style="font-size:12px;color:var(--dim);line-height:1.65;border-left:3px solid var(--teal);padding-left:12px">'+immediateWin+'</div>');
+  }
   h += '</div>';
-  if (d.nicheDominanceSteps && d.nicheDominanceSteps.length) {
-    h += brCard('var(--purple)','📈 5-Step Niche Dominance Roadmap', brList(d.nicheDominanceSteps, 'var(--purple)'));
+
+  if (unfairAdvantage) {
+    h += brCard('var(--yellow)','💪 Your Unfair Advantage', brValue(unfairAdvantage));
+  }
+  if (biggestThreat) {
+    h += brCard('var(--red, #ff4444)','⚠️ Biggest Threat to Watch', brValue(biggestThreat));
+  }
+  if (roadmap.length) {
+    h += brCard('var(--purple)','📈 Dominance Roadmap', brList(roadmap, 'var(--purple)'));
   }
   return h;
 }
@@ -44276,7 +44390,13 @@ window.dbShowGraph = function(trackerData) {
 
 <script>
 /* ══ VALUE POST ENGINE JS ══════════════════════════════════════════════════ */
-var _vpeState = { platform: 'quora', topic: '', lastPost: '', questions: [] };
+var _vpeState = (function() {
+  try {
+    var saved = JSON.parse(localStorage.getItem('eos_vpe_state') || 'null');
+    if (saved && Array.isArray(saved.questions)) return saved;
+  } catch(e) {}
+  return { platform: 'quora', topic: '', lastPost: '', questions: [] };
+})();
 
 var VPE_PLATFORM_RULES = {
   quora:    'Quora: Answer as an expert. First-person. No hard sell — end with a genuine recommendation. No duplicate answers. Links allowed when genuinely helpful.',
@@ -44401,6 +44521,7 @@ async function vpeFindQuestions() {
     var questions = data.questions || [];
     var source    = data.source    || 'generated';
     _vpeState.questions = questions;
+    try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
     var sourceLabel = source==='live'
       ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live results — Reddit, Quora, Google, YouTube &amp; X (last 12 months)</span>'
       : '<span style="color:#F5C842;font-weight:700;font-size:11px">⚡ Generated from niche knowledge</span>';
@@ -44439,7 +44560,7 @@ function vpeSelectQuestion(el, idx) {
   el.classList.add('selected');
   var q = _vpeState.questions[idx];
   if (q) {
-    _vpeState.topic = q.question;
+    _vpeState.topic = q.question; try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
     var t = document.getElementById('vpe-topic');
     if (t) t.value = q.question;
     // Update display
@@ -44460,7 +44581,7 @@ async function vpeGenerate() {
   var topicEl = document.getElementById('vpe-topic');
   var topic   = topicEl ? topicEl.value.trim() : '';
   if (!topic) { if (topicEl) topicEl.focus(); return; }
-  _vpeState.topic = topic;
+  _vpeState.topic = topic; try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
   await vpeWrite(_vpeState.platform, topic);
 }
 
@@ -45316,6 +45437,7 @@ async function vpeKeywordSearch() {
     var data = await resp.json();
     var questions = data.questions||[];
     _vpeState.questions = questions;
+    try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
     var src = data.source==='live' ? '🟢 Live results for "'+keyword+'"' : '⚡ Generated for "'+keyword+'"';
     var lmRow2 = document.getElementById('vpe-load-more-row'); if (lmRow2) lmRow2.style.display='block';
     _vpeLoadMorePage = 1;
@@ -45396,6 +45518,7 @@ async function vpeLoadMore() {
 
     var startIdx = _vpeState.questions.length;
     _vpeState.questions = _vpeState.questions.concat(newQs);
+    try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
 
     newQs.forEach(function(q, i) {
       var idx = startIdx + i;
