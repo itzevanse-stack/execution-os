@@ -20,7 +20,22 @@ export default async function handler(req, res) {
   if (!CLAUDE_KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
 
   const currentYear = new Date().getFullYear();
-  const searchTerm  = keyword || niche;
+
+  // Long descriptive niche strings (e.g. "Digital Products and Info Business
+  // — High-Ticket Affiliate Partnership") return zero results when quoted
+  // verbatim in search — nobody types that exact sentence anywhere. Extract
+  // a clean, short core term before it's used to build search queries.
+  // Strategy: take text before any em-dash/colon (the category, not the
+  // specific positioning), then cap to the first ~4 meaningful words.
+  function cleanSearchTerm(raw) {
+    if (!raw) return raw;
+    let t = String(raw).split(/[—–\-:]/)[0].trim(); // before dash/colon
+    t = t.replace(/\b(and|the|a|an|for|with|of|in|to)\b/gi, ' ').replace(/\s+/g, ' ').trim();
+    const words = t.split(' ').filter(Boolean);
+    return words.slice(0, 4).join(' ') || raw;
+  }
+
+  const searchTerm  = keyword || cleanSearchTerm(niche);
 
   try {
     let searches;
@@ -235,6 +250,9 @@ Return ONLY valid JSON. No markdown:
     const raw       = (data.content || []).map(b => b.text || '').join('').trim();
     const clean     = raw.replace(/```json|```/g, '').trim();
     const match     = clean.match(/\[[\s\S]*\]/);
+    if (!match) {
+      console.error('[vpe-questions] Fallback returned no parseable JSON. Raw output:', raw.slice(0, 300));
+    }
     const questions = match ? JSON.parse(match[0]) : [];
 
     return res.status(200).json({ questions, source: 'generated', total: questions.length });
