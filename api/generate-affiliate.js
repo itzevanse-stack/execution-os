@@ -582,3 +582,15 @@ ${faqSection(c.faq)}
 </script>
 </body></html>`;
 }
+
+// ── Vercel function duration config ─────────────────────────────────────
+// The 'calendar' branch above generates a full 7-day content plan (Facebook
+// post + 2 reels + email per day, up to 4000 tokens) in a single AI call.
+// That genuinely takes 30-60+ seconds to generate. Without this config,
+// Vercel applies its default timeout (as low as 10-15s) and kills the
+// function before the AI response finishes, even on the Pro plan — Pro
+// only raises the *ceiling*, it doesn't change the default unless this
+// is set explicitly.
+module.exports.config = {
+  maxDuration: 60, // seconds — requires Vercel Pro plan or higher to take effect above 10s
+};
