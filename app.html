@@ -7221,280 +7221,179 @@ button[onclick="generateOffer()"] {
     <!-- 2E: Tab 2 — Carousel (populated in Task 3) -->
     <div id="cs-tab-carousel" style="display:none">
 
-      <!-- ── HERO ───────────────────────────────────────────────────── -->
-      <div style="text-align:center;margin-bottom:32px;padding-top:4px">
-        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.22);border-radius:100px;padding:6px 18px;font-size:11px;font-weight:700;color:#a089ff;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px">4K · AI-Powered · Audience-Driven</div>
-        <div style="font-size:26px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;letter-spacing:-.4px;margin-bottom:8px">Carousel Builder</div>
-        <div style="font-size:13px;color:var(--dim);max-width:480px;margin:0 auto;line-height:1.7">Built from what your audience is already asking. Edit text directly on each slide. Download at 4K.</div>
-      </div>
+      <!-- 3A: Generator controls -->
+      <div class="card-dark" style="margin-bottom:16px">
+        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🖼 Carousel Generator</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:18px">Picks your topic from your content pillars if you leave it blank. All output is 2160×2160px (4K).</div>
 
-      <!-- ── SAVED CAROUSELS ────────────────────────────────────────── -->
-      <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 24px;margin-bottom:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="carToggleSavedLibrary()">
-          <div style="display:flex;align-items:center;gap:10px">
-            <div style="width:32px;height:32px;border-radius:8px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px">📁</div>
-            <div>
-              <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif">Saved Carousels</div>
-              <div style="font-size:10px;color:var(--dimmer);margin-top:1px"><span id="car-saved-count">None saved yet</span></div>
-            </div>
-          </div>
-          <span id="car-saved-chevron" style="font-size:11px;color:var(--dim);transition:transform .2s">▾</span>
+        <!-- Topic input -->
+        <div class="inp-box" style="margin-bottom:14px">
+          <div class="inp-lbl">Topic (optional — picks from your pillars if blank)</div>
+          <input id="car-topic" class="fi" placeholder="e.g. Why most people fail at this…" style="margin-top:4px" />
         </div>
-        <div id="car-saved-body" style="display:none;margin-top:16px">
-          <div id="car-saved-empty" style="text-align:center;padding:24px;color:var(--dimmer);font-size:11px;background:rgba(255,255,255,.02);border-radius:var(--r-md);border:1px dashed rgba(255,255,255,.07)">Generate a carousel below, then save it here to come back to it later.</div>
-          <div id="car-saved-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px"></div>
+
+        <!-- Custom angle -->
+        <div class="inp-box" style="margin-bottom:14px">
+          <div class="inp-lbl">Custom Angle <span style="font-weight:400;color:var(--dimmer)">(optional — overrides topic + style)</span></div>
+          <input id="car-angle" class="fi" placeholder='e.g. "HOW TO START A DIGITAL PRODUCT BUSINESS IN 5 SIMPLE STEPS"' style="margin-top:4px" />
+          <div style="font-size:9px;color:var(--dimmer);margin-top:4px">If you set an angle, it takes priority over Topic and Style — the carousel is built specifically around your exact framing.</div>
         </div>
-      </div>
 
-      <!-- ── TWO-COLUMN LAYOUT ──────────────────────────────────────── -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
-
-        <!-- LEFT: Configuration -->
-        <div style="display:flex;flex-direction:column;gap:16px">
-
-          <!-- Topic + Angle -->
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:22px 24px">
-            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px">What's it about?</div>
-
-            <div style="margin-bottom:16px">
-              <label style="display:block;font-size:11px;font-weight:700;color:var(--dim);margin-bottom:6px">Topic <span style="color:var(--dimmer);font-weight:400">(optional)</span></label>
-              <input id="car-topic" class="fi" placeholder="e.g. Why most coaches stay broke…" style="font-size:13px" />
+        <!-- Audience questions toggle -->
+        <div id="car-audience-toggle-wrap" style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.18);border-radius:var(--r-md);margin-bottom:14px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;gap:12px">
+            <div style="flex:1">
+              <div style="font-size:11px;font-weight:700;color:var(--white)">Pull from real audience questions</div>
+              <div id="car-audience-status" style="font-size:10px;color:var(--dim);margin-top:3px;font-weight:600"></div>
             </div>
-
-            <div style="position:relative">
-              <label style="display:block;font-size:11px;font-weight:700;color:var(--dim);margin-bottom:6px">Custom Angle <span style="color:var(--dimmer);font-weight:400">(overrides topic + style)</span></label>
-              <input id="car-angle" class="fi" placeholder='e.g. "5 STEPS TO YOUR FIRST DIGITAL PRODUCT"' style="font-size:13px" />
+            <div class="toggle-pill" style="width:auto;flex-shrink:0">
+              <button id="car-audience-q-on" class="toggle-pill-btn active-teal" onclick="carToggleAudienceQ(true)" style="padding:6px 14px;font-size:11px">On</button>
+              <button id="car-audience-q-off" class="toggle-pill-btn" onclick="carToggleAudienceQ(false)" style="padding:6px 14px;font-size:11px">Off</button>
             </div>
           </div>
-
-          <!-- Audience questions -->
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:22px 24px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
-              <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Audience questions</div>
-              <div class="toggle-pill" style="width:auto;flex-shrink:0">
-                <button id="car-audience-q-on"  class="toggle-pill-btn active-teal" onclick="carToggleAudienceQ(true)"  style="padding:6px 14px;font-size:11px">On</button>
-                <button id="car-audience-q-off" class="toggle-pill-btn"             onclick="carToggleAudienceQ(false)" style="padding:6px 14px;font-size:11px">Off</button>
-              </div>
-            </div>
-            <div id="car-audience-status" style="font-size:11px;color:var(--dim);margin-bottom:0;line-height:1.5">Pull real questions from Value Post Engine into the carousel prompt.</div>
-            <div id="car-audience-panel" style="display:none;margin-top:16px;border-top:1px solid var(--border2);padding-top:16px">
-              <div style="font-size:10px;color:var(--dim);margin-bottom:12px">Check the questions you want the carousel built around.</div>
-              <div id="car-audience-questions-list"></div>
-              <div id="car-audience-phrases-list"></div>
-              <div style="display:flex;gap:8px;margin-top:12px">
-                <button onclick="carAudienceSelectAll(true)"  style="padding:5px 12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Select All</button>
-                <button onclick="carAudienceSelectAll(false)" style="padding:5px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Clear</button>
-              </div>
+          <div id="car-audience-panel" style="display:none;border-top:1px solid rgba(108,99,255,.18);padding:14px">
+            <div style="font-size:10px;color:var(--dim);margin-bottom:12px">Check the questions you want the carousel built around.</div>
+            <div id="car-audience-questions-list"></div>
+            <div id="car-audience-phrases-list"></div>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button onclick="carAudienceSelectAll(true)" style="padding:5px 12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:6px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Select All</button>
+              <button onclick="carAudienceSelectAll(false)" style="padding:5px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Clear</button>
             </div>
           </div>
+        </div>
 
-          <!-- Style -->
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:22px 24px">
-            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">Style</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="car-style-grid">
-              <div class="car-style-card on" onclick="carSelectStyle('educational',this)" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);border-radius:var(--r-md);padding:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px">
-                <span style="font-size:18px">📚</span>
-                <div><div style="font-size:12px;font-weight:800;color:var(--teal);font-family:'Poppins',sans-serif">Educational</div><div style="font-size:10px;color:var(--dim);margin-top:1px">Teach step-by-step</div></div>
-              </div>
-              <div class="car-style-card" onclick="carSelectStyle('story',this)" style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px">
-                <span style="font-size:18px">📖</span>
-                <div><div style="font-size:12px;font-weight:800;color:var(--dim);font-family:'Poppins',sans-serif">Story</div><div style="font-size:10px;color:var(--dimmer);margin-top:1px">Personal narrative</div></div>
-              </div>
-              <div class="car-style-card" onclick="carSelectStyle('list',this)" style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px">
-                <span style="font-size:18px">📋</span>
-                <div><div style="font-size:12px;font-weight:800;color:var(--dim);font-family:'Poppins',sans-serif">List</div><div style="font-size:10px;color:var(--dimmer);margin-top:1px">Tips or mistakes</div></div>
-              </div>
-              <div class="car-style-card" onclick="carSelectStyle('controversy',this)" style="background:rgba(255,255,255,.02);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px">
-                <span style="font-size:18px">🔥</span>
-                <div><div style="font-size:12px;font-weight:800;color:var(--dim);font-family:'Poppins',sans-serif">Controversy</div><div style="font-size:10px;color:var(--dimmer);margin-top:1px">Challenge beliefs</div></div>
-              </div>
+        <!-- Style selector -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700;margin-bottom:10px">Style</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px" id="car-style-grid">
+            <div class="car-style-card on" onclick="carSelectStyle('educational',this)" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:6px">📚</div>
+              <div style="font-size:11px;font-weight:800;color:var(--teal);font-family:Poppins,sans-serif">Educational</div>
+            </div>
+            <div class="car-style-card" onclick="carSelectStyle('story',this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:6px">📖</div>
+              <div style="font-size:11px;font-weight:800;color:var(--dim);font-family:Poppins,sans-serif">Story</div>
+            </div>
+            <div class="car-style-card" onclick="carSelectStyle('list',this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:6px">📋</div>
+              <div style="font-size:11px;font-weight:800;color:var(--dim);font-family:Poppins,sans-serif">List</div>
+            </div>
+            <div class="car-style-card" onclick="carSelectStyle('controversy',this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s">
+              <div style="font-size:20px;margin-bottom:6px">🔥</div>
+              <div style="font-size:11px;font-weight:800;color:var(--dim);font-family:Poppins,sans-serif">Controversy</div>
             </div>
           </div>
+        </div>
 
-          <!-- Slides + Photos -->
-          <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:22px 24px">
-            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px">Slides</div>
-            <div style="display:flex;gap:8px;margin-bottom:20px">
-              <button class="car-count-btn" onclick="carSelectCount(5,this)" style="flex:1;padding:11px;border-radius:var(--r-md);border:1px solid var(--border2);background:rgba(255,255,255,.02);color:var(--dim);font-family:'Poppins',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:all .15s">5</button>
-              <button class="car-count-btn on" onclick="carSelectCount(6,this)" style="flex:1;padding:11px;border-radius:var(--r-md);border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.12);color:#a089ff;font-family:'Poppins',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:all .15s">6</button>
-              <button class="car-count-btn" onclick="carSelectCount(7,this)" style="flex:1;padding:11px;border-radius:var(--r-md);border:1px solid var(--border2);background:rgba(255,255,255,.02);color:var(--dim);font-family:'Poppins',sans-serif;font-weight:800;font-size:16px;cursor:pointer;transition:all .15s">7</button>
-            </div>
-
-            <div style="font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">Your Photos <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--dimmer);font-size:10px">optional</span></div>
-            <div style="font-size:10px;color:var(--dim);margin-bottom:10px;line-height:1.5">Upload results, transformations, or brand shots — AI uses yours instead of stock.</div>
-
-            <div id="car-dropzone"
-              onclick="document.getElementById('car-photo-input').click()"
-              ondragover="event.preventDefault();this.style.borderColor='var(--teal)';this.style.background='rgba(78,204,163,.05)'"
-              ondragleave="this.style.borderColor='rgba(255,255,255,.1)';this.style.background='transparent'"
-              ondrop="carHandleDrop(event)"
-              style="border:2px dashed rgba(255,255,255,.1);border-radius:var(--r-md);padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:transparent">
-              <div style="font-size:22px;margin-bottom:4px">📷</div>
-              <div style="font-size:11px;font-weight:600;color:var(--muted)">Drop photos or click to upload</div>
-              <div style="font-size:9px;color:var(--dimmer);margin-top:3px">JPG · PNG · WebP · up to 6 · max 10MB</div>
-            </div>
-            <input type="file" id="car-photo-input" accept="image/*" multiple style="display:none" onchange="carHandlePhotoUpload(this.files)">
-            <div id="car-photo-previews" style="display:none;margin-top:12px">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                <div style="font-size:9px;color:var(--dimmer);font-weight:700;text-transform:uppercase;letter-spacing:1px">Your photos</div>
-                <button onclick="carClearPhotos()" id="car-clear-photos-btn" style="padding:3px 10px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);border-radius:5px;color:var(--red);font-size:9px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Clear all</button>
-              </div>
-              <div id="car-photo-grid" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-              <div style="margin-top:8px;padding:8px 10px;background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.12);border-radius:8px;font-size:10px;color:var(--teal)">✅ <strong id="car-photo-count">0</strong> photo(s) ready</div>
-            </div>
+        <!-- Slide count -->
+        <div style="margin-bottom:18px">
+          <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700;margin-bottom:10px">Number of Slides</div>
+          <div style="display:flex;gap:8px">
+            <button class="car-count-btn" onclick="carSelectCount(5,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid var(--border2);background:rgba(255,255,255,.03);color:var(--dim);font-family:Poppins,sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:all .15s">5</button>
+            <button class="car-count-btn on" onclick="carSelectCount(6,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.12);color:#a089ff;font-family:Poppins,sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:all .15s">6</button>
+            <button class="car-count-btn" onclick="carSelectCount(7,this)" style="flex:1;padding:10px;border-radius:var(--r-md);border:1px solid var(--border2);background:rgba(255,255,255,.03);color:var(--dim);font-family:Poppins,sans-serif;font-weight:800;font-size:14px;cursor:pointer;transition:all .15s">7</button>
           </div>
+        </div>
 
-          <!-- Generate -->
-          <button onclick="carGenerate()" id="car-generate-btn" style="width:100%;padding:16px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-xl);color:#fff;font-family:'Poppins',sans-serif;font-weight:900;font-size:14px;cursor:pointer;letter-spacing:.2px;box-shadow:0 8px 28px rgba(108,99,255,.4);transition:all .18s;display:flex;align-items:center;justify-content:center;gap:10px">
-            <span style="font-size:18px">✨</span> Generate Carousel
+        <div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.18);border-radius:var(--r-md);padding:12px 14px;margin-bottom:18px;font-size:11px;color:var(--dim);line-height:1.6">
+          💡 After generating, click any slide and use <strong style="color:var(--teal)">"Add Photo to This Slide"</strong> to attach your own photo as that slide's background — same as the Quote Card Generator.
+        </div>
+
+        <div style="text-align:center;margin-top:4px">
+          <button onclick="carGenerate()" id="car-generate-btn" style="display:inline-flex;align-items:center;gap:8px;padding:13px 36px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:13px;cursor:pointer;letter-spacing:.4px;text-transform:uppercase;box-shadow:0 6px 22px rgba(108,99,255,.35);transition:all .18s">
+            <span style="font-size:15px">✨</span> Generate Carousel
           </button>
-          <div id="car-progress-wrap" style="display:none;margin-top:12px">
-            <div style="height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden">
-              <div id="car-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--teal));border-radius:2px;transition:width .4s ease"></div>
-            </div>
+        </div>
+        <div id="car-progress-wrap" style="display:none;margin-top:12px">
+          <div style="height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden">
+            <div id="car-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--teal));border-radius:3px;transition:width .4s ease"></div>
           </div>
-          <div id="car-status" style="text-align:center;margin-top:10px;font-size:11px;color:var(--dim);min-height:16px"></div>
+        </div>
+        <div id="car-status" style="text-align:center;margin-top:10px;font-size:11px;color:var(--dim);min-height:16px"></div>
+      </div>
 
+      <!-- Output area (hidden until generated) -->
+      <div id="car-output" style="display:none">
+
+        <!-- Slide thumbnails + canvas preview -->
+        <div class="card-dark" style="margin-bottom:16px">
+          <div style="font-size:11px;font-weight:800;color:var(--white);margin-bottom:12px;font-family:Poppins,sans-serif">Slide Preview</div>
+          <div id="car-thumbnails" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;scrollbar-width:thin"></div>
+          <div style="margin-top:14px;border-radius:var(--r-md);overflow:hidden;background:var(--bg2)">
+            <canvas id="car-preview-canvas" width="540" height="540" style="display:block;width:100%;max-width:540px;margin:0 auto;border-radius:var(--r-md)"></canvas>
+          </div>
+
+          <!-- Per-slide background photo — attach after generation, same
+               flow as the Quote Card Generator -->
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap">
+            <input type="file" id="car-slide-photo-input" accept="image/*" style="display:none" onchange="carAttachPhotoToSlide(this.files[0])">
+            <button onclick="document.getElementById('car-slide-photo-input').click()" id="car-add-photo-btn" style="padding:9px 18px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:var(--r-md);color:#a089ff;font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📷 Add Photo to This Slide</button>
+            <button onclick="carRemovePhotoFromSlide()" id="car-remove-photo-btn" style="display:none;padding:9px 16px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);border-radius:var(--r-md);color:var(--red);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Remove Photo</button>
+          </div>
+
+          <!-- Image fade slider -->
+          <div id="car-fade-row" style="display:none;margin-top:14px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Image Fade</div>
+              <div id="car-fade-val" style="font-size:11px;color:var(--teal);font-weight:800">40%</div>
+            </div>
+            <input type="range" id="car-fade-slider" min="0" max="95" value="40" oninput="carSetFade(this.value)" style="width:100%;accent-color:var(--teal);cursor:pointer;height:4px">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dimmer);margin-top:5px"><span>Vivid</span><span>Faded</span></div>
+          </div>
+
+          <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);cursor:pointer">
+              <input type="checkbox" id="car-watermark-toggle" checked onchange="carToggleWatermark(this.checked)" style="cursor:pointer;accent-color:var(--teal)"> Watermark
+            </label>
+            <div style="flex:1"></div>
+            <button onclick="carSaveCurrent()" id="car-save-btn" style="padding:8px 16px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:var(--r-md);color:#a089ff;font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">💾 Save</button>
+            <button onclick="carDownloadAll()" id="car-download-all-btn" style="padding:8px 18px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 4px 14px rgba(78,204,163,.25)">⬇ Download 4K ZIP</button>
+          </div>
         </div>
 
-        <!-- RIGHT: Editor + Output -->
-        <div style="display:flex;flex-direction:column;gap:16px">
-
-          <!-- Slide editor — hidden until generated -->
-          <div id="car-output" style="display:none">
-
-            <!-- Toolbar -->
-            <div id="car-toolbar" style="display:none;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 12px;margin-bottom:12px;flex-wrap:wrap;gap:6px;align-items:center" onmousedown="event.preventDefault()">
-              <select onchange="carFmtSize(this.value)" id="car-size-sel" style="background:var(--bg3);border:1px solid var(--border2);border-radius:5px;padding:3px 6px;color:var(--muted);font-family:Poppins,sans-serif;font-size:10px;cursor:pointer">
-                <option value="18px">S</option><option value="24px">M</option><option value="32px" selected>L</option><option value="42px">XL</option><option value="56px">XXL</option>
-              </select>
-              <div style="width:1px;height:18px;background:var(--border2)"></div>
-              <button onclick="carFmtAlign('left')"   class="qc-fmt-btn" title="Left">⟸</button>
-              <button onclick="carFmtAlign('center')" class="qc-fmt-btn" title="Center">⟺</button>
-              <button onclick="carFmtAlign('right')"  class="qc-fmt-btn" title="Right">⟹</button>
-              <div style="width:1px;height:18px;background:var(--border2)"></div>
-              <input type="color" id="car-color-pick" value="#ffffff" onchange="carFmtColor(this.value)" style="width:26px;height:22px;border:none;border-radius:4px;cursor:pointer;padding:0;background:none" title="Text color">
-              <div style="width:1px;height:18px;background:var(--border2)"></div>
-              <button onclick="carFmtBold()"   class="qc-fmt-btn" title="Bold"><b>B</b></button>
-              <button onclick="carFmtItalic()" class="qc-fmt-btn" title="Italic"><i>I</i></button>
-            </div>
-
-            <!-- Thumbnails -->
-            <div id="car-thumbnails" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin;margin-bottom:12px"></div>
-
-            <!-- Live card -->
-            <div style="position:relative;width:100%;max-width:100%;margin:0 auto">
-              <div id="car-card" style="width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;position:relative;background:#0a0f28;box-shadow:0 16px 48px rgba(0,0,0,.5)">
-                <div id="car-bg-layer" style="position:absolute;inset:0;background-size:cover;background-position:center;z-index:0"></div>
-                <div id="car-fade-overlay" style="position:absolute;inset:0;pointer-events:none;z-index:1;background:transparent"></div>
-                <div id="car-overlay-layer" style="position:absolute;inset:0;background:transparent;pointer-events:none;z-index:2"></div>
-                <div id="car-badge" class="car-el" data-el="badge" style="position:absolute;top:20px;left:20px;width:34px;height:34px;border-radius:50%;background:#FFD93D;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:#0a0f28;font-family:Poppins,sans-serif;z-index:5;cursor:pointer;border:2px solid transparent;transition:border-color .12s;box-sizing:border-box" onclick="carElSelect('badge',event)" onmousedown="window._carElSelected==='badge'?carElDragStart(event,'car-badge'):null">1</div>
-                <div id="car-accent-line" class="car-el" data-el="accent-line" style="position:absolute;top:27px;left:64px;width:160px;height:10px;z-index:5;cursor:pointer;display:flex;align-items:center;border:2px solid transparent;transition:border-color .12s;box-sizing:border-box;border-radius:4px" onclick="carElSelect('accent-line',event)" onmousedown="window._carElSelected==='accent-line'?carElDragStart(event,'car-accent-line'):null">
-                  <div style="width:100%;height:3px;background:linear-gradient(90deg,#FFD93D,rgba(255,255,255,.1));border-radius:2px;pointer-events:none"></div>
-                </div>
-                <div id="car-slide-icon" class="car-el" data-el="icon" style="position:absolute;top:64px;left:20px;font-size:34px;z-index:5;cursor:pointer;border:2px solid transparent;transition:border-color .12s;border-radius:6px;padding:2px;box-sizing:border-box" onclick="carElSelect('icon',event)" onmousedown="window._carElSelected==='icon'?carElDragStart(event,'car-slide-icon'):null"></div>
-                <div id="car-el-headline" class="car-el" data-el="headline" style="position:absolute;top:120px;left:20px;right:20px;z-index:10;padding:4px;border-radius:6px;border:2px solid transparent;box-sizing:border-box;cursor:pointer;transition:border-color .12s"
-                  onclick="carSelectEl('headline',event)"
-                  onmousedown="window._carSelected==='headline' ? carDragStart(event,'car-el-headline') : null">
-                  <div id="car-card-headline" contenteditable="false" spellcheck="false" style="font-size:30px;font-weight:900;color:#fff;font-family:'Poppins',sans-serif;line-height:1.2;text-transform:uppercase;word-break:break-word;min-height:1em;cursor:pointer" oninput="carOnTextInput('headline')"></div>
-                </div>
-                <div id="car-divider" class="car-el" data-el="divider" style="position:absolute;left:20px;width:46px;height:14px;z-index:5;cursor:pointer;display:flex;align-items:center;border:2px solid transparent;transition:border-color .12s;border-radius:4px;top:226px;box-sizing:border-box" onclick="carElSelect('divider',event)" onmousedown="window._carElSelected==='divider'?carElDragStart(event,'car-divider'):null">
-                  <div style="width:100%;height:3px;background:#FFD93D;border-radius:2px;pointer-events:none"></div>
-                </div>
-                <div id="car-el-body" class="car-el" data-el="body" style="position:absolute;top:246px;left:20px;right:20px;z-index:10;padding:4px;border-radius:6px;border:2px solid transparent;box-sizing:border-box;cursor:pointer;transition:border-color .12s"
-                  onclick="carSelectEl('body',event)"
-                  onmousedown="window._carSelected==='body' ? carDragStart(event,'car-el-body') : null">
-                  <div id="car-card-body" contenteditable="false" spellcheck="false" style="font-size:14px;font-weight:500;color:rgba(255,255,255,.88);font-family:'Inter',sans-serif;line-height:1.65;word-break:break-word;min-height:1em;cursor:pointer" oninput="carOnTextInput('body')"></div>
-                </div>
-                <div id="car-cta-strip" class="car-el" data-el="cta" style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);padding:10px 16px;z-index:5;cursor:pointer;display:none;border:2px solid transparent;transition:border-color .12s;box-sizing:border-box" onclick="carElSelect('cta',event)" onmousedown="window._carElSelected==='cta'?carElDragStart(event,'car-cta-strip'):null">
-                  <div id="car-cta-text" style="font-size:10px;font-weight:700;color:rgba(255,255,255,.9);font-family:Poppins,sans-serif;text-align:center;pointer-events:none"></div>
-                </div>
-                <div id="car-counter" class="car-el" data-el="counter" style="position:absolute;bottom:12px;right:14px;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);font-family:Poppins,sans-serif;z-index:6;cursor:pointer;border:2px solid transparent;transition:border-color .12s;border-radius:4px;padding:2px 4px;box-sizing:border-box" onclick="carElSelect('counter',event)" onmousedown="window._carElSelected==='counter'?carElDragStart(event,'car-counter'):null"></div>
-                <div id="car-wm" class="car-el" data-el="watermark" style="position:absolute;bottom:12px;left:14px;font-size:9px;color:rgba(255,255,255,.28);font-family:Poppins,sans-serif;z-index:6;cursor:pointer;border:2px solid transparent;transition:border-color .12s;border-radius:4px;padding:2px 4px;box-sizing:border-box" onclick="carElSelect('watermark',event)" onmousedown="window._carElSelected==='watermark'?carElDragStart(event,'car-wm'):null">ExecutionOS</div>
-                <!-- Floating remove button — appears next to selected element -->
-                <div id="car-el-remove-btn" style="display:none;position:absolute;z-index:30;background:#ff4444;border:none;border-radius:50%;width:20px;height:20px;color:#fff;font-size:12px;line-height:20px;text-align:center;cursor:pointer;font-weight:900;box-shadow:0 2px 8px rgba(0,0,0,.4)" onclick="carElRemove()">×</div>
-              </div>
-              <div id="car-resize-handle" onmousedown="carResizeStart(event)" ontouchstart="carResizeStart(event)" style="position:absolute;bottom:-6px;right:-6px;width:16px;height:16px;cursor:se-resize;z-index:20;display:none">
-                <svg width="16" height="16" viewBox="0 0 16 16"><path d="M12 4l-8 8M16 8l-8 8M16 12l-4 4" stroke="rgba(78,204,163,.8)" stroke-width="2" stroke-linecap="round"/></svg>
+        <!-- Hook, Caption, Hashtags -->
+        <div class="card-dark" style="margin-bottom:16px">
+          <div style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700">Hook</div>
+              <div style="display:flex;gap:6px">
+                <button onclick="carCopy('hook')" id="car-copy-hook" style="padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
+                <button onclick="carRegenerate('hook')" style="padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
               </div>
             </div>
-
-            <div style="font-size:10px;color:var(--dimmer);text-align:center;margin-top:8px">Click text to select · click again to edit · drag to move</div>
-
-            <!-- Fade slider -->
-            <div id="car-fade-row" style="display:none;margin-top:14px;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 16px">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Image Fade</div>
-                <div id="car-fade-val" style="font-size:11px;color:var(--teal);font-weight:800">40%</div>
-              </div>
-              <input type="range" id="car-fade-slider" min="0" max="95" value="40" oninput="carSetFade(this.value)" style="width:100%;accent-color:var(--teal);cursor:pointer;height:4px">
-              <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dimmer);margin-top:5px"><span>Vivid</span><span>Faded</span></div>
-            </div>
-
-            <!-- Actions -->
-            <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
-              <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);cursor:pointer">
-                <input type="checkbox" id="car-watermark-toggle" checked onchange="carToggleWatermark(this.checked)" style="cursor:pointer;accent-color:var(--teal)"> Watermark
-              </label>
-              <div style="flex:1"></div>
-              <button onclick="carSaveCurrent()" id="car-save-btn" style="padding:8px 16px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:var(--r-md);color:#a089ff;font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">💾 Save</button>
-              <button onclick="carDownloadAll()" id="car-download-all-btn" style="padding:8px 18px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;box-shadow:0 4px 14px rgba(78,204,163,.25)">⬇ Download 4K ZIP</button>
-            </div>
-
-            <!-- Caption + Hashtags -->
-            <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px 22px;margin-top:16px">
-              <div style="margin-bottom:16px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                  <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Hook</div>
-                  <div style="display:flex;gap:6px">
-                    <button onclick="carCopy('hook')" id="car-copy-hook" style="padding:4px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:5px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
-                    <button onclick="carRegenerate('hook')" style="padding:4px 10px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.18);border-radius:5px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
-                  </div>
-                </div>
-                <div id="car-hook-text" style="font-size:13px;color:var(--white);line-height:1.6;font-weight:700"></div>
-              </div>
-              <div style="margin-bottom:16px;border-top:1px solid var(--border3);padding-top:16px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                  <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Caption</div>
-                  <div style="display:flex;gap:6px">
-                    <button onclick="carCopy('caption')" id="car-copy-caption" style="padding:4px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:5px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
-                    <button onclick="carRegenerate('caption')" style="padding:4px 10px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.18);border-radius:5px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
-                  </div>
-                </div>
-                <div id="car-caption-text" style="font-size:12px;color:var(--muted);line-height:1.8;white-space:pre-wrap"></div>
-              </div>
-              <div style="border-top:1px solid var(--border3);padding-top:16px">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-                  <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px">Hashtags</div>
-                  <div style="display:flex;gap:6px">
-                    <button onclick="carCopy('hashtags')" id="car-copy-hashtags" style="padding:4px 10px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:5px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
-                    <button onclick="carRegenerate('hashtags')" style="padding:4px 10px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.18);border-radius:5px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
-                  </div>
-                </div>
-                <div id="car-hashtags-text" style="font-size:11px;color:var(--teal);line-height:2;word-break:break-word"></div>
-              </div>
-            </div>
-
-            <!-- Send to calendar -->
-            <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:18px 22px;margin-top:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-              <div>
-                <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:3px">Best time to post</div>
-                <div id="car-best-time" style="font-size:13px;font-weight:700;color:var(--yellow)"></div>
-              </div>
-              <button onclick="carSendToCalendar()" id="car-send-btn" style="padding:11px 24px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer;letter-spacing:.2px;box-shadow:0 4px 16px rgba(78,204,163,.25)">✅ Send to Calendar</button>
-            </div>
-            <div id="car-send-confirm" style="display:none;text-align:center;margin-top:10px;padding:10px;background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.18);border-radius:var(--r-md);font-size:12px;font-weight:700;color:var(--teal)"></div>
-
+            <div id="car-hook-text" style="font-size:13px;color:var(--white);line-height:1.6;font-weight:700"></div>
           </div>
-
-          <!-- Empty state — shown before first generation -->
-          <div id="car-empty-state" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:48px 24px;text-align:center">
-            <div style="font-size:40px;margin-bottom:16px">🖼</div>
-            <div style="font-size:14px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:8px">Your carousel appears here</div>
-            <div style="font-size:12px;color:var(--dim);line-height:1.7;max-width:260px;margin:0 auto">Configure your settings on the left, then click Generate. You can edit text directly on each slide.</div>
+          <div style="margin-bottom:14px;border-top:1px solid var(--border3);padding-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700">Caption</div>
+              <div style="display:flex;gap:6px">
+                <button onclick="carCopy('caption')" id="car-copy-caption" style="padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
+                <button onclick="carRegenerate('caption')" style="padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
+              </div>
+            </div>
+            <div id="car-caption-text" style="font-size:12px;color:var(--muted);line-height:1.8;white-space:pre-wrap"></div>
           </div>
-
+          <div style="border-top:1px solid var(--border3);padding-top:14px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dimmer);font-weight:700">Hashtags (30)</div>
+              <div style="display:flex;gap:6px">
+                <button onclick="carCopy('hashtags')" id="car-copy-hashtags" style="padding:5px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:6px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Copy</button>
+                <button onclick="carRegenerate('hashtags')" style="padding:5px 12px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.2);border-radius:6px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">Redo</button>
+              </div>
+            </div>
+            <div id="car-hashtags-text" style="font-size:11px;color:var(--teal);line-height:2;word-break:break-word"></div>
+          </div>
         </div>
+
+        <!-- Best time + Send to Calendar -->
+        <div class="card-dark" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:4px">Best Time to Post</div>
+            <div id="car-best-time" style="font-size:13px;font-weight:700;color:var(--yellow)"></div>
+          </div>
+          <button onclick="carSendToCalendar()" id="car-send-btn" style="padding:13px 28px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;box-shadow:0 6px 20px rgba(78,204,163,.3)">✅ Confirm &amp; Send to Calendar</button>
+        </div>
+        <div id="car-send-confirm" style="display:none;text-align:center;margin-top:12px;padding:12px;background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);font-size:12px;font-weight:700;color:var(--teal)"></div>
       </div>
 
     </div><!-- /cs-tab-carousel -->
@@ -24054,8 +23953,10 @@ window.carToggleAudienceQ = function(on) {
 // immediately, rather than only applying to the next fresh generation.
 window.carToggleWatermark = function(show) {
   window._carShowWatermark = !!show;
-  var wm = document.getElementById('car-wm');
-  if (wm) wm.style.display = show ? 'block' : 'none';
+  if (!window._carSlideMeta || !window._carSlideMeta.length) return;
+  for (var i = 0; i < window._carSlideMeta.length; i++) {
+    if (window._carSlideMeta[i]) _carRerenderSlide(i);
+  }
 };
 
 window.carSelectStyle = function(style, el) {
@@ -24084,6 +23985,9 @@ window.carSelectCount = function(n, el) {
   el.style.borderColor = 'rgba(108,99,255,.3)';
   el.style.color       = '#a089ff';
   el.classList.add('on');
+  // Update the max-photos hint to show the actual total slide count
+  var hint = document.getElementById('car-max-photos-hint');
+  if (hint) hint.textContent = n + 1;
   // Refresh photo grid to update the max-photos limit and dropzone visibility
   if (window._carUserPhotos && window._carUserPhotos.length) carRenderPhotoGrid();
 };
@@ -24256,17 +24160,14 @@ async function _carRunGeneration(topic, angle, ctx, icpQ, icpLang) {
     if (!result || result._error) throw new Error(result ? result._error : 'No response');
 
     window._carData = result;
-    _carSetProgress(48, userPhotoCount > 0
-      ? 'Composing your ' + userPhotoCount + ' photo(s)…'
-      : 'Fetching niche images…');
+    _carSetProgress(60, 'Rendering slides…');
 
-    // ── Fetch Pexels background images for each slide ──────────────────
-    var bgImages = await carFetchNicheImages(result, ctx.niche);
-
-    _carSetProgress(72, 'Rendering slides at 4K…');
-
-    // Render canvases with photographic backgrounds
-    await carRenderSlides(result, ctx, bgImages);
+    // No automatic background images — every slide renders with its
+    // gradient theme first. Photos get added per-slide afterward, the
+    // same way the Quote Card Generator works: generate the card, then
+    // attach a background to it. This keeps generation fast and immune
+    // to image-fetch failures entirely.
+    await carRenderSlides(result, ctx, []);
 
     _carSetProgress(96, 'Finishing up…');
 
@@ -24340,56 +24241,20 @@ window.carHandleDrop = function(e) {
 
 // ── Add one photo to the collection ──────────────────────────────
 window.carAddUserPhoto = async function(dataUrl, name) {
-  var maxPhotos = window._carCount || 6;
+  var maxPhotos = (window._carCount || 6) + 1; // +1 to cover hook + content + CTA slides
   if (window._carUserPhotos.length >= maxPhotos) {
     var st = document.getElementById('car-status');
-    if (st) st.textContent = '⚠️ Maximum ' + maxPhotos + ' photos (one per slide). Remove one to add another.';
+    if (st) st.textContent = '\u26a0\ufe0f Maximum ' + maxPhotos + ' photos (one per slide). Remove one to add another.';
     return;
   }
 
-  // Analyse brightness to know how to overlay text
+  // Analyse brightness to determine how to overlay text on this photo
   var brightness = await _carAnalyseBrightness(dataUrl);
-  var isLight    = brightness > 140; // 0-255 scale
+  var isLight    = brightness > 140;
 
   var photo = { dataUrl: dataUrl, name: name || 'photo', brightness: brightness, isLight: isLight };
   window._carUserPhotos.push(photo);
   carRenderPhotoGrid();
-
-  // Show the photo immediately on the card
-  var photoIdx = window._carUserPhotos.length - 1;
-
-  // Always show car-output and hide empty state when photos are uploaded
-  var emptyState = document.getElementById('car-empty-state');
-  var output = document.getElementById('car-output');
-  if (emptyState) emptyState.style.display = 'none';
-  if (output) output.style.display = 'block';
-
-  // Set the background directly on the card element using both
-  // background shorthand AND backgroundImage to ensure it shows
-  // regardless of any child element visibility issues
-  var bgLayer = document.getElementById('car-bg-layer');
-  var card    = document.getElementById('car-card');
-  var ovLayer = document.getElementById('car-overlay-layer');
-  var fadeRow = document.getElementById('car-fade-row');
-
-  if (bgLayer) {
-    bgLayer.style.cssText = 'position:absolute;inset:0;z-index:0;background:url(' + JSON.stringify(dataUrl) + ') center/cover no-repeat';
-  }
-  if (card && !bgLayer) {
-    // Fallback: set directly on card
-    card.style.backgroundImage = 'url(' + dataUrl + ')';
-    card.style.backgroundSize  = 'cover';
-    card.style.backgroundPosition = 'center';
-  }
-  if (ovLayer) ovLayer.style.background = 'rgba(0,0,0,.15)';
-  if (fadeRow) {
-    fadeRow.style.display = 'block';
-    var fadeSlider = document.getElementById('car-fade-slider');
-    if (fadeSlider) window.carSetFade(fadeSlider.value);
-  }
-
-  // Update _carBgUrls if carousel already generated
-  if (window._carBgUrls) window._carBgUrls[photoIdx] = dataUrl;
 };
 
 // ── Analyse average brightness of an image ───────────────────────
@@ -24418,86 +24283,32 @@ function _carAnalyseBrightness(dataUrl) {
 
 // ── Render the photo preview grid ────────────────────────────────
 window.carRenderPhotoGrid = function() {
-  var grid      = document.getElementById('car-photo-grid');
-  var previews  = document.getElementById('car-photo-previews');
-  var count     = document.getElementById('car-photo-count');
-  var clearBtn  = document.getElementById('car-clear-photos-btn');
-  var dropzone  = document.getElementById('car-dropzone');
-  var photos    = window._carUserPhotos;
+  var grid     = document.getElementById('car-photo-grid');
+  var previews = document.getElementById('car-photo-previews');
+  var count    = document.getElementById('car-photo-count');
+  var clearBtn = document.getElementById('car-clear-photos-btn');
+  var dropzone = document.getElementById('car-dropzone');
+  var photos   = window._carUserPhotos;
 
   if (!grid) return;
 
-  if (count)    count.textContent  = photos.length;
+  if (count)    count.textContent = photos.length;
   if (previews) previews.style.display = photos.length ? 'block' : 'none';
   if (clearBtn) clearBtn.style.display = photos.length ? 'block' : 'none';
-  if (dropzone) {
-    dropzone.style.display = photos.length >= (window._carCount || 6) ? 'none' : 'block';
-  }
+  if (dropzone) dropzone.style.display = photos.length >= ((window._carCount || 6) + 1) ? 'none' : 'block';
 
   grid.innerHTML = photos.map(function(photo, idx) {
-    return '<div style="position:relative;width:72px;height:72px;border-radius:8px;overflow:hidden;flex-shrink:0;cursor:grab">'
+    return '<div style="position:relative;width:68px;height:68px;border-radius:8px;overflow:hidden;flex-shrink:0">'
       + '<img src="' + photo.dataUrl + '" style="width:100%;height:100%;object-fit:cover;display:block">'
       + '<div style="position:absolute;top:2px;left:4px;background:rgba(0,0,0,.65);border-radius:4px;padding:1px 5px;font-size:9px;font-weight:800;color:#fff">' + (idx+1) + '</div>'
-      + '<button onclick="carRemovePhoto(' + idx + ')" style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(255,50,50,.85);border:none;color:#fff;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;line-height:1">×</button>'
-      + (photo.isLight ? '<div style="position:absolute;bottom:2px;right:3px;font-size:8px">☀️</div>' : '')
+      + '<button onclick="carRemovePhoto(' + idx + ')" style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(255,50,50,.85);border:none;color:#fff;font-size:11px;font-weight:900;cursor:pointer;line-height:1;padding:0">\u00d7</button>'
       + '</div>';
   }).join('');
-
-  // Also update the thumbnail strip if it exists (pre-generation preview)
-  // so the user sees their photos in the slide strip immediately
-  var thumbRow = document.getElementById('car-thumbnails');
-  if (thumbRow && photos.length && (!window._carSlides || !window._carSlides.length)) {
-    thumbRow.innerHTML = '';
-    photos.forEach(function(photo, i) {
-      var thumb = document.createElement('div');
-      thumb.style.cssText = 'width:72px;height:72px;border-radius:8px;cursor:pointer;border:2px solid ' + (i===0?'var(--teal)':'transparent') + ';flex-shrink:0;overflow:hidden;background-size:cover;background-position:center;background-image:url(' + photo.dataUrl + ')';
-      thumb.onclick = function() {
-        document.querySelectorAll('#car-thumbnails div').forEach(function(t){ t.style.borderColor='transparent'; });
-        thumb.style.borderColor = 'var(--teal)';
-        var bgLayer = document.getElementById('car-bg-layer');
-        var ovLayer = document.getElementById('car-overlay-layer');
-        if (bgLayer) { bgLayer.style.backgroundImage = 'url(' + photo.dataUrl + ')'; bgLayer.style.backgroundSize = 'cover'; bgLayer.style.backgroundPosition = 'center'; bgLayer.style.background = ''; }
-        if (ovLayer) ovLayer.style.background = 'rgba(0,0,0,.08)';
-        var fadeSlider = document.getElementById('car-fade-slider');
-        if (fadeSlider && window.carSetFade) window.carSetFade(fadeSlider.value);
-      };
-      thumbRow.appendChild(thumb);
-    });
-  }
 };
 
 // ── Remove a photo by index ───────────────────────────────────────
 window.carRemovePhoto = function(idx) {
   window._carUserPhotos.splice(idx, 1);
-  // Update bgUrls if carousel already generated
-  if (window._carBgUrls && window._carBgUrls[idx] !== undefined) {
-    var replacement = (window._carUserPhotos[idx] && window._carUserPhotos[idx].dataUrl) || null;
-    window._carBgUrls[idx] = replacement;
-    if (window._carActiveIdx === idx) {
-      var bgLayer = document.getElementById('car-bg-layer');
-      var ovLayer = document.getElementById('car-overlay-layer');
-      var fadeRow = document.getElementById('car-fade-row');
-      if (bgLayer) {
-        if (replacement) { bgLayer.style.backgroundImage = 'url(' + replacement + ')'; bgLayer.style.background = ''; }
-        else { bgLayer.style.backgroundImage = 'none'; bgLayer.style.background = 'linear-gradient(135deg,#0a0f28,#1a2050)'; }
-      }
-      if (ovLayer) ovLayer.style.background = replacement ? 'rgba(0,0,0,.08)' : 'rgba(10,15,40,.72)';
-      if (fadeRow) fadeRow.style.display = replacement ? 'block' : 'none';
-    }
-  }
-  // If no photos left and no slides, revert card to empty state
-  if (!window._carUserPhotos.length && (!window._carSlides || !window._carSlides.length)) {
-    var bgLayer2 = document.getElementById('car-bg-layer');
-    var ovLayer2 = document.getElementById('car-overlay-layer');
-    var fadeRow2 = document.getElementById('car-fade-row');
-    var emptyState = document.getElementById('car-empty-state');
-    var output = document.getElementById('car-output');
-    if (bgLayer2) { bgLayer2.style.backgroundImage = 'none'; bgLayer2.style.background = ''; }
-    if (ovLayer2) ovLayer2.style.background = 'rgba(10,15,40,.72)';
-    if (fadeRow2) fadeRow2.style.display = 'none';
-    if (emptyState) emptyState.style.display = 'block';
-    if (output)     output.style.display = 'none';
-  }
   carRenderPhotoGrid();
 };
 
@@ -24521,14 +24332,19 @@ function _carLoadUserPhoto(photo) {
 function _carGetSmartOverlay(photo, theme) {
   if (!photo) return null;
   var T = _carThemes[theme] || _carThemes.navy;
+  // User-adjustable fade level (0-95 from the slider, default 40) blends
+  // with the automatic brightness-based overlay so the slider has a real,
+  // visible effect on the rendered canvas rather than doing nothing.
+  var userFade = (window._carFadeLevel != null ? window._carFadeLevel : 40) / 100;
   if (photo.isLight) {
     // Light image (earnings screenshot, bright photo) — heavier dark overlay
-    // Also flip text color to stay readable
-    return { overlay: 'rgba(5,5,20,.82)', isLightBg: true };
+    var op = Math.max(0.5, userFade + 0.35);
+    return { overlay: 'rgba(5,5,20,' + Math.min(op, 0.95) + ')', isLightBg: true };
   }
-  // Dark/medium image — use theme overlay but slightly heavier for readability
+  // Dark/medium image — blend brightness-based opacity with user fade
   var b = photo.brightness;
-  var opacity = b > 100 ? 0.72 : 0.58; // brighter image = more overlay needed
+  var baseOpacity = b > 100 ? 0.5 : 0.35;
+  var opacity = Math.min(0.95, Math.max(0, baseOpacity * 0.4 + userFade));
   return { overlay: T.overlay.replace(/[\d.]+\)$/, opacity + ')'), isLightBg: false };
 }
 
@@ -24969,6 +24785,10 @@ async function _carRenderOneSlide(slide, bgImageObj, theme, slideNum, totalSlide
 window.carRenderSlides = async function(data, ctx, bgImages) {
   bgImages = bgImages || [];
   window._carActiveIdx = 0;
+  window._carCanvases  = [];
+  window._carBoxes     = [];
+  window._carSlideMeta = [];
+  window._carEditState = window._carEditState || [];
 
   // Build the full slide list
   var slides = [];
@@ -24987,18 +24807,13 @@ window.carRenderSlides = async function(data, ctx, bgImages) {
   window._carSlides  = slides;
   window._carBgUrls  = [];
   window._carNiche   = ctx.niche;
+  window._carTotal   = slides.length;
   window._carUserHandle = (window._voiceProfile && window._voiceProfile.handle) || '';
 
-  // Collect background image URLs (user photos take priority)
-  for (var i = 0; i < slides.length; i++) {
-    var userPhoto = (window._carUserPhotos && window._carUserPhotos[i]) || null;
-    // userPhoto is an object { dataUrl, name, brightness, isLight } — use .dataUrl, not the object itself
-    var bgUrl = userPhoto ? userPhoto.dataUrl : ((bgImages[i] && bgImages[i].url) || null);
-    window._carBgUrls.push(bgUrl);
-    if (slides[i].colorTheme === undefined) slides[i].colorTheme = _carThemeCycle[i % _carThemeCycle.length];
-  }
+  var userHandle = window._carUserHandle;
+  var total      = slides.length;
 
-  // Build thumbnail strip — placeholder divs, filled by html2canvas after the card updates
+  // Build thumbnail strip
   var thumbRow = document.getElementById('car-thumbnails');
   if (thumbRow) {
     thumbRow.innerHTML = '';
@@ -25017,30 +24832,38 @@ window.carRenderSlides = async function(data, ctx, bgImages) {
     });
   }
 
-  // Load html2canvas if not already present (same pattern as JSZip)
-  if (!window.html2canvas) {
-    await new Promise(function(res, rej) {
-      var s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      s.onload = res; s.onerror = rej;
-      document.head.appendChild(s);
-    });
+  // Render each slide using the canvas renderer (drawImage — works with
+  // any data URL, no CSS url() quoting issues) then store the result
+  for (var i = 0; i < slides.length; i++) {
+    var slide     = slides[i];
+    var theme     = slide.colorTheme || _carThemeCycle[i % _carThemeCycle.length];
+    var userPhoto = (window._carUserPhotos && window._carUserPhotos[i]) || null;
+    var bgObj     = null;
+
+    if (!userPhoto && bgImages[i] && bgImages[i].url) {
+      bgObj = await _carLoadImage(bgImages[i].url);
+    }
+
+    var bgUrl = userPhoto ? userPhoto.dataUrl : ((bgImages[i] && bgImages[i].url) || null);
+    window._carBgUrls.push(bgUrl);
+    window._carSlideMeta[i] = { slide: slide, theme: theme, bgObj: bgObj, bgUrl: bgUrl, userPhoto: userPhoto };
+    if (!window._carEditState[i]) window._carEditState[i] = {};
+
+    var rendered = await _carRenderOneSlide(
+      slide, bgObj, theme, i + 1, total, ctx.niche, userHandle, userPhoto, window._carEditState[i]
+    );
+    window._carCanvases[i] = rendered.canvas;
+    window._carBoxes[i]    = rendered.boxes;
+
+    // Update thumbnail with the rendered canvas
+    if (thumbRow && thumbRow.children[i]) {
+      var thumbDataUrl = rendered.canvas.toDataURL('image/jpeg', 0.7);
+      thumbRow.children[i].style.backgroundImage = 'url("' + thumbDataUrl + '")';
+    }
   }
 
-  // Show first slide in the live DOM editor
+  // Show first slide
   carShowSlideInEditor(0);
-
-  // Trigger thumbnail generation for all slides after a short delay
-  // (let the first slide render fully before kicking off background thumbs)
-  setTimeout(function() {
-    for (var j = 1; j < slides.length; j++) {
-      (function(idx) {
-        carShowSlideInEditor(idx);
-        // Reset to first slide after all thumbs queued
-        if (idx === slides.length - 1) setTimeout(function(){ carShowSlideInEditor(0); }, 500);
-      })(j);
-    }
-  }, 400);
 };
 
 // ═══════════════════════════════════════════════════════════════════
@@ -25049,127 +24872,110 @@ window.carRenderSlides = async function(data, ctx, bgImages) {
 // toolbar. html2canvas handles 4K export at download time.
 // ═══════════════════════════════════════════════════════════════════
 
-window._carSlides = window._carSlides || [];
-window._carBgUrls = window._carBgUrls || [];
-var _carSelected = null; // 'headline' | 'body' | null
-
 // Update the live DOM card to show slide idx
 window.carShowSlideInEditor = function(idx) {
-  if (!window._carSlides || !window._carSlides[idx]) return;
+  var previewCanvas = document.getElementById('car-preview-canvas');
+  if (!previewCanvas || !window._carCanvases || !window._carCanvases[idx]) return;
   window._carActiveIdx = idx;
-  var slide = window._carSlides[idx];
-  var themeName = slide.colorTheme || _carThemeCycle[idx % _carThemeCycle.length];
-  var T = window._carThemes[themeName] || window._carThemes.navy;
-  var gradMap = { navy:'#0a0f28,#1a2050', teal:'#052830,#0d4a50', purple:'#1a0530,#2d1060', yellow:'#1e1400,#3d2800', green:'#05230f,#0d3d1a', crimson:'#2d050a,#500a12' };
 
-  var bgLayer  = document.getElementById('car-bg-layer');
-  var ovLayer  = document.getElementById('car-overlay-layer');
-  var badge    = document.getElementById('car-badge');
-  var accentLn = document.getElementById('car-accent-line');
-  var divider  = document.getElementById('car-divider');
-  var iconEl   = document.getElementById('car-slide-icon');
-  var headEl   = document.getElementById('car-card-headline');
-  var bodyEl   = document.getElementById('car-card-body');
-  var counter  = document.getElementById('car-counter');
-  var ctaStrip = document.getElementById('car-cta-strip');
-  var ctaTxt   = document.getElementById('car-cta-text');
-  var wm       = document.getElementById('car-wm');
+  if (previewCanvas.width  !== 540) previewCanvas.width  = 540;
+  if (previewCanvas.height !== 540) previewCanvas.height = 540;
+  previewCanvas.getContext('2d').drawImage(window._carCanvases[idx], 0, 0, 540, 540);
 
-  if (bgLayer) {
-    var bgUrl = window._carBgUrls[idx];
-    if (bgUrl) {
-      bgLayer.style.backgroundImage = 'url(' + bgUrl + ')';
-      bgLayer.style.backgroundSize = 'cover';
-      bgLayer.style.backgroundPosition = 'center';
-      bgLayer.style.background = '';
-    } else {
-      bgLayer.style.backgroundImage = 'none';
-      bgLayer.style.background = 'linear-gradient(135deg,' + (gradMap[themeName]||gradMap.navy) + ')';
-    }
-    // Show/hide fade slider depending on whether there's an image
-    var fadeRow = document.getElementById('car-fade-row');
-    if (fadeRow) {
-      fadeRow.style.display = bgUrl ? 'block' : 'none';
-      if (bgUrl) {
-        var fadeSlider = document.getElementById('car-fade-slider');
-        if (fadeSlider) window.carSetFade(fadeSlider.value);
-      }
+  var meta  = window._carSlideMeta && window._carSlideMeta[idx];
+  var hasBg = !!(meta && meta.userPhoto);
+
+  // Show fade row only when this slide has a user photo attached
+  var fadeRow = document.getElementById('car-fade-row');
+  if (fadeRow) {
+    fadeRow.style.display = hasBg ? 'block' : 'none';
+    if (hasBg) {
+      var fadeSlider = document.getElementById('car-fade-slider');
+      if (fadeSlider) window.carSetFade(fadeSlider.value);
     }
   }
 
-  // When a user photo is present, reduce the theme colour overlay to almost
-  // nothing — the photo should be the background, not a dark colour wash.
-  // Without this, rgba(10,15,40,.72) covers the photo almost completely,
-  // making it look like no photo was used at all.
-  if (ovLayer) {
-    var hasBg = !!(window._carBgUrls && window._carBgUrls[idx]);
-    ovLayer.style.background = hasBg ? 'rgba(0,0,0,.08)' : T.overlay;
-  }
-  if (badge)    { badge.textContent = idx + 1; badge.style.background = T.badge; badge.style.color = T.badgeText; }
-  if (accentLn) accentLn.style.background = 'linear-gradient(90deg,' + T.accent + ',rgba(255,255,255,.1))';
-  if (divider)  divider.style.background = T.accent;
-  if (iconEl)   iconEl.textContent = slide.icon || '';
-
-  if (headEl && document.activeElement !== headEl) {
-    headEl.textContent = (slide.headlineOverride !== undefined ? slide.headlineOverride : (slide.headline||'')).toUpperCase();
-    headEl.style.color     = slide.headlineColor || '#ffffff';
-    headEl.style.textAlign = slide.headlineAlign || 'left';
-    headEl.style.fontSize  = slide.headlineSize  || '32px';
-    headEl.style.fontStyle = slide.headlineItalic ? 'italic' : 'normal';
-  }
-  if (bodyEl && document.activeElement !== bodyEl) {
-    bodyEl.textContent = slide.bodyOverride !== undefined ? slide.bodyOverride : (slide.body||'');
-    bodyEl.style.color     = slide.bodyColor || 'rgba(255,255,255,.88)';
-    bodyEl.style.textAlign = slide.bodyAlign || 'left';
-    bodyEl.style.fontSize  = slide.bodySize  || '15px';
-    bodyEl.style.fontStyle = slide.bodyItalic ? 'italic' : 'normal';
-  }
-
-  var total = window._carSlides.length;
-  if (counter)  counter.textContent = (idx + 1) + ' / ' + total;
-  var isLast = idx === total - 1;
-  if (ctaStrip) ctaStrip.style.display = isLast ? 'block' : 'none';
-  if (ctaTxt && isLast) {
-    var handle = (window._voiceProfile && window._voiceProfile.handle) || '';
-    ctaTxt.textContent = handle ? ('\uD83D\uDE80 FOLLOW @' + handle.replace('@','') + ' FOR MORE') : '\uD83D\uDE80 FOLLOW FOR MORE';
-  }
-  if (wm) wm.style.display = (window._carShowWatermark !== false) ? 'block' : 'none';
-
-  // Restore stored positions
-  var elH = document.getElementById('car-el-headline');
-  var elB = document.getElementById('car-el-body');
-  if (elH) { elH.style.top = slide.headlineTop || (slide.icon ? '120px' : '90px'); elH.style.left = slide.headlineLeft || '20px'; }
-  if (elB) { elB.style.top = slide.bodyTop || '246px'; elB.style.left = slide.bodyLeft || '20px'; }
-
-  // Restore positions of simple draggable elements
-  var simplEls = [
-    { name:'badge',       id:'car-badge',        dl:'20px', dt:'20px' },
-    { name:'accent-line', id:'car-accent-line',   dl:'64px', dt:'27px' },
-    { name:'icon',        id:'car-slide-icon',    dl:'20px', dt:'64px' },
-    { name:'divider',     id:'car-divider',       dl:'20px', dt:'226px' },
-    { name:'counter',     id:'car-counter',       dl:null,   dt:null },
-    { name:'watermark',   id:'car-wm',            dl:null,   dt:null },
-  ];
-  simplEls.forEach(function(s) {
-    var el = document.getElementById(s.id);
-    if (!el) return;
-    if (slide[s.name + 'Left']) el.style.left = slide[s.name + 'Left'];
-    else if (s.dl) { el.style.left = s.dl; el.style.right = 'auto'; }
-    if (slide[s.name + 'Top']) el.style.top = slide[s.name + 'Top'];
-    else if (s.dt) el.style.top = s.dt;
-  });
-
-  // Apply per-slide hidden element state
-  if (typeof _carRestoreEls === 'function') _carRestoreEls(idx);
-  // Watermark visibility overrides hidden state
-  if (wm) wm.style.display = (window._carShowWatermark !== false && !(slide.hiddenEls && slide.hiddenEls.watermark)) ? 'block' : 'none';
-
-  // Deselect any previously selected element
-  _carElDeselect && _carElDeselect();
-
-  _carRefreshToolbar();
-  _carUpdateThumb(idx);
+  // Toggle Add Photo / Remove Photo buttons for the active slide
+  var addBtn = document.getElementById('car-add-photo-btn');
+  var rmBtn  = document.getElementById('car-remove-photo-btn');
+  if (addBtn) addBtn.style.display = hasBg ? 'none'  : 'inline-block';
+  if (rmBtn)  rmBtn.style.display  = hasBg ? 'inline-block' : 'none';
 };
+
+// Attach a photo to whichever slide is currently shown in the preview.
+// Mirrors the Quote Card flow: generate text first, attach background after.
+window.carAttachPhotoToSlide = function(file) {
+  if (!file) return;
+  var idx = window._carActiveIdx || 0;
+  var meta = window._carSlideMeta && window._carSlideMeta[idx];
+  if (!meta) return;
+
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var dataUrl = e.target.result;
+    var img = new Image();
+    img.onload = function() {
+      // Compute brightness so the overlay can adapt automatically
+      var sampleCanvas = document.createElement('canvas');
+      sampleCanvas.width = 40; sampleCanvas.height = 40;
+      var sctx = sampleCanvas.getContext('2d');
+      sctx.drawImage(img, 0, 0, 40, 40);
+      var brightness = 128;
+      try {
+        var data = sctx.getImageData(0, 0, 40, 40).data;
+        var total = 0, count = 0;
+        for (var i = 0; i < data.length; i += 4) {
+          total += (data[i] + data[i+1] + data[i+2]) / 3;
+          count++;
+        }
+        brightness = total / count;
+      } catch(e) {}
+
+      var photo = { dataUrl: dataUrl, name: file.name, brightness: brightness, isLight: brightness > 140 };
+      meta.userPhoto = photo;
+      meta.bgObj = img;
+      window._carBgUrls[idx] = dataUrl;
+
+      var addBtn = document.getElementById('car-add-photo-btn');
+      if (addBtn) { addBtn.textContent = '⏳ Applying…'; addBtn.disabled = true; }
+
+      _carRerenderSlide(idx).then(function() {
+        if (addBtn) { addBtn.textContent = '📷 Add Photo to This Slide'; addBtn.disabled = false; }
+        var addBtn2 = document.getElementById('car-add-photo-btn');
+        var rmBtn2  = document.getElementById('car-remove-photo-btn');
+        if (addBtn2) addBtn2.style.display = 'none';
+        if (rmBtn2)  rmBtn2.style.display  = 'inline-block';
+      });
+    };
+    img.src = dataUrl;
+  };
+  reader.readAsDataURL(file);
+
+  // Reset the file input so the same file can be re-selected if needed
+  var input = document.getElementById('car-slide-photo-input');
+  if (input) input.value = '';
+};
+
+// Remove the photo from whichever slide is currently shown — reverts to
+// the slide's gradient theme background
+window.carRemovePhotoFromSlide = function() {
+  var idx = window._carActiveIdx || 0;
+  var meta = window._carSlideMeta && window._carSlideMeta[idx];
+  if (!meta) return;
+  meta.userPhoto = null;
+  meta.bgObj = null;
+  if (window._carBgUrls) window._carBgUrls[idx] = null;
+  _carRerenderSlide(idx).then(function() {
+    var addBtn = document.getElementById('car-add-photo-btn');
+    var rmBtn  = document.getElementById('car-remove-photo-btn');
+    if (addBtn) addBtn.style.display = 'inline-block';
+    if (rmBtn)  rmBtn.style.display  = 'none';
+    var fadeRow = document.getElementById('car-fade-row');
+    if (fadeRow) fadeRow.style.display = 'none';
+  });
+};
+
+
 
 // Listen to live typing — update slide data and preview immediately
 document.addEventListener('DOMContentLoaded', function() {
@@ -25218,7 +25024,7 @@ function _carUpdateThumb(idx) {
   _carUpdateThumb._t = setTimeout(function() {
     html2canvas(card, { scale: 0.25, useCORS: true, logging: false, backgroundColor: null }).then(function(c) {
       var thumb = thumbRow.children[idx];
-      if (thumb) { thumb.style.backgroundImage = 'url(' + c.toDataURL('image/jpeg', 0.7) + ')'; thumb.style.backgroundSize = 'cover'; thumb.style.backgroundPosition = 'center'; }
+      if (thumb) { thumb.style.backgroundImage = 'url("' + c.toDataURL('image/jpeg', 0.7) + '")'; thumb.style.backgroundSize = 'cover'; thumb.style.backgroundPosition = 'center'; }
     }).catch(function(){});
   }, 300);
 }
@@ -25270,6 +25076,26 @@ window.carSelectEl = function(name, e) {
 };
 
 // Live input handler — updates the slide data as the user types directly on the card
+// Re-render a single slide using cached meta + current editState,
+// then update the display. Called after any edit (text, color, align, size).
+window._carRerenderSlide = async function(idx) {
+  var meta = window._carSlideMeta && window._carSlideMeta[idx];
+  if (!meta) return;
+  var rendered = await _carRenderOneSlide(
+    meta.slide, meta.bgObj, meta.theme, idx + 1, window._carTotal,
+    window._carNiche, window._carUserHandle, meta.userPhoto, window._carEditState[idx]
+  );
+  window._carCanvases[idx] = rendered.canvas;
+  window._carBoxes[idx]    = rendered.boxes;
+  // Update thumbnail
+  var thumbRow = document.getElementById('car-thumbnails');
+  if (thumbRow && thumbRow.children[idx]) {
+    thumbRow.children[idx].style.backgroundImage = 'url("' + rendered.canvas.toDataURL('image/jpeg', 0.7) + '")';
+  }
+  if (window._carActiveIdx === idx) carShowSlideInEditor(idx);
+};
+function _carRerenderSlide(idx) { return window._carRerenderSlide(idx); }
+
 window.carOnTextInput = function(field) {
   var idx = window._carActiveIdx || 0;
   var slide = window._carSlides && window._carSlides[idx];
@@ -25438,21 +25264,24 @@ document.addEventListener('click', function(e) {
 });
 
 // Image fade — same logic as Quote Card's qcSetFade
+var _carFadeDebounce = null;
 window.carSetFade = function(val) {
   val = parseInt(val);
-  var overlay = document.getElementById('car-fade-overlay');
-  var valEl   = document.getElementById('car-fade-val');
-  if (overlay) {
-    var op = val / 100;
-    // Bottom-heavy gradient so text at top and bottom stays readable
-    // while the middle of the photo shows clearly through
-    overlay.style.background = 'linear-gradient(to top,'
-      + 'rgba(0,0,0,' + Math.min(op + 0.4, 1)    + ') 0%,'
-      + 'rgba(0,0,0,' + Math.min(op + 0.1, 0.85) + ') 25%,'
-      + 'rgba(0,0,0,' + Math.max(op - 0.2, 0)    + ') 60%,'
-      + 'rgba(0,0,0,' + Math.max(op - 0.35, 0)   + ') 100%)';
-  }
+  window._carFadeLevel = val;
+  var valEl = document.getElementById('car-fade-val');
   if (valEl) valEl.textContent = val + '%';
+
+  // Debounce the actual re-render — dragging the slider fires this on
+  // every pixel of movement, and re-rendering a 4K canvas is real work.
+  clearTimeout(_carFadeDebounce);
+  _carFadeDebounce = setTimeout(function() {
+    if (!window._carSlideMeta || !window._carSlideMeta.length) return;
+    for (var i = 0; i < window._carSlideMeta.length; i++) {
+      if (window._carSlideMeta[i] && window._carSlideMeta[i].userPhoto) {
+        _carRerenderSlide(i);
+      }
+    }
+  }, 150);
 };
 
 document.addEventListener('click', function(e) {
@@ -25585,12 +25414,6 @@ window.carFmtItalic = function() {
   var inner = document.getElementById('car-card-' + _carSelected);
   if (inner) { var idx = window._carActiveIdx||0; inner.style.fontStyle = inner.style.fontStyle==='italic' ? 'normal' : 'italic'; _carUpdateThumb(idx); }
 };
-window.carToggleWatermark = function(show) {
-  window._carShowWatermark = !!show;
-  var wm = document.getElementById('car-wm');
-  if (wm) wm.style.display = show ? 'block' : 'none';
-};
-
 // Also keep carResetSlideEdits for the UI button
 window.carResetSlideEdits = function() {
   var idx = window._carActiveIdx || 0;
@@ -25776,56 +25599,35 @@ window.carRenderSavedLibrary = function() {
 // export with no upscaling. Reuses the same JSZip pattern already used
 // for calendar carousel downloads elsewhere in the app.
 window.carDownloadAll = async function() {
-  var btn    = document.getElementById('car-download-all-btn');
-  var slides = window._carSlides || [];
-  var card   = document.getElementById('car-card');
-  if (!slides.length || !card) return;
-  if (btn) { btn.textContent = '⏳ Rendering…'; btn.disabled = true; }
+  var btn      = document.getElementById('car-download-all-btn');
+  var canvases = window._carCanvases || [];
+  if (!canvases.length) return;
+  if (btn) { btn.textContent = '⏳ Packaging…'; btn.disabled = true; }
   try {
-    // Ensure libraries loaded
-    if (!window.html2canvas) {
-      await new Promise(function(res, rej) {
-        var s = document.createElement('script');
-        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-        s.onload = res; s.onerror = rej; document.head.appendChild(s);
-      });
-    }
     if (typeof JSZip === 'undefined') {
       await new Promise(function(res, rej) {
         var s = document.createElement('script');
         s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
-        s.onload = res; s.onerror = rej; document.head.appendChild(s);
+        s.onload = res; s.onerror = rej;
+        document.head.appendChild(s);
       });
     }
-
     var zip = new JSZip();
-    var activeIdx = window._carActiveIdx || 0;
-    var cardW = card.offsetWidth || 480;
-    var TARGET = 2160;
-    var scale  = TARGET / cardW;
-
-    for (var i = 0; i < slides.length; i++) {
-      if (btn) btn.textContent = '⏳ Slide ' + (i+1) + '/' + slides.length + '…';
-      // Show this slide in the card
-      carShowSlideInEditor(i);
-      // Wait a tick for the DOM to settle (background image loads, etc.)
-      await new Promise(function(r){ setTimeout(r, 200); });
-      var canvas = await html2canvas(card, { scale: scale, useCORS: true, allowTaint: true, logging: false, backgroundColor: null, imageTimeout: 8000 });
-      var base64 = canvas.toDataURL('image/png', 1.0).replace(/^data:image\/png;base64,/, '');
-      zip.file('slide_' + (i+1) + '.png', base64, { base64: true });
-    }
-
-    // Restore active slide
-    carShowSlideInEditor(activeIdx);
-
+    canvases.forEach(function(canvas, i) {
+      if (!canvas) return;
+      var dataUrl = canvas.toDataURL('image/png', 1.0);
+      var base64  = dataUrl.replace(/^data:image\/png;base64,/, '');
+      zip.file('slide_' + (i + 1) + '_4K.png', base64, { base64: true });
+    });
     var blob = await zip.generateAsync({ type: 'blob' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     var label = ((document.getElementById('car-topic')||{}).value || (window._carData && window._carData.hook) || 'carousel').toString().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40);
-    a.download = 'carousel-' + label + '.zip';
-    document.body.appendChild(a); a.click();
+    a.download = 'carousel-4k-' + label + '.zip';
+    document.body.appendChild(a);
+    a.click();
     setTimeout(function(){ document.body.removeChild(a); }, 100);
-    if (btn) btn.textContent = '✅ Downloaded ' + slides.length + ' slides';
+    if (btn) btn.textContent = '✅ Downloaded ' + canvases.length + ' slides';
   } catch(e) {
     console.error('[Carousel Download]', e);
     if (btn) btn.textContent = '⚠️ Download failed — try again';
