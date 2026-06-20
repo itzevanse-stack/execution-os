@@ -20466,6 +20466,7 @@ function renderDashboard() {
     const hasAffOffer = !!(offer && offer.name);
     const hasAvatar   = !!(window._aiAvatarData || window._avatarData);
     const hasCalendar = !!(window._aiCalendar30 && window._aiCalendar30.length > 0);
+    const calDone     = window._calDone ? window._calDone.size : 0;
     let trackerToday = {};
     try { trackerToday = JSON.parse(localStorage.getItem('eos_daily_tracker_' + new Date().toISOString().slice(0,10)) || '{}'); } catch(e) {}
     const dmsDone  = trackerToday.dms  || 0;
@@ -20824,12 +20825,39 @@ window.analyseAffiliateProduct = async function() {
   window._affiliateBoardroomIntel = null;
   window._affTrackingSlug         = null;
   window._laClicks                = [];
-  // Clear all intelligence tab content so old data is never shown
-  ['aff-tab-buyer-research','aff-tab-promo-intel','aff-tab-offer-viability',
-   'aff-tab-strategy','aff-tab-content-strategy','aff-tab-dms',
-   'aff-tab-dailyplan','aff-tab-tam','aff-tab-tracker'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dimmer);font-size:12px">Analysing new offer…</div>';
+  // Clear all intelligence tab content so old data is never shown.
+  //
+  // CRITICAL: each tab is structured as an outer container wrapping an
+  // inner "body" div, e.g. <div id="aff-tab-buyer-research"><div id="aff-buyer-research-body"></div></div>
+  // The render functions (renderAffBuyerResearch, etc.) look for the INNER
+  // body div specifically. Previously this loop wiped innerHTML on the
+  // OUTER container, which destroyed the inner body div entirely — so when
+  // analysis finished and tried to write results into the inner div, it no
+  // longer existed, getElementById returned null, and every render function
+  // silently no-op'd, leaving "Analysing new offer…" stuck forever. Fixed by
+  // targeting the correct inner body id for each tab.
+  var _affTabBodyIds = {
+    'aff-tab-buyer-research':   'aff-buyer-research-body',
+    'aff-tab-promo-intel':      'aff-promo-intel-body',
+    'aff-tab-offer-viability':  'aff-offer-viability-body',
+    'aff-tab-strategy':         'aff-strategy-body',
+    'aff-tab-content-strategy': 'aff-content-strategy-body',
+    'aff-tab-dms':              'aff-dms-body',
+    'aff-tab-dailyplan':        'aff-dailyplan-body',
+    'aff-tab-tam':              'tam-affiliate-content',
+    'aff-tab-tracker':          'aff-tracker-body',
+  };
+  Object.keys(_affTabBodyIds).forEach(function(outerId) {
+    var bodyEl = document.getElementById(_affTabBodyIds[outerId]);
+    if (bodyEl) {
+      bodyEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dimmer);font-size:12px">Analysing new offer…</div>';
+    } else {
+      // Fallback: body div not found for some reason — clear the outer
+      // container as before, better than leaving stale data, though this
+      // shouldn't happen given the fix above
+      var outerEl = document.getElementById(outerId);
+      if (outerEl) outerEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--dimmer);font-size:12px">Analysing new offer…</div>';
+    }
   });
   // Clear tracking link strip
   var trackStrip = document.getElementById('aff-tracking-strip');
@@ -21511,11 +21539,11 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
     // STEP 2 — Build 7-day content calendar using avatar data
     // ═══════════════════════════════════════════════════════════════════
     const pn     = av.productName||productName||'the product';
-    const pain   = av.pain||'their biggest challenge';
-    const transf = av.transformation||'their desired outcome';
-    const job    = (av.job||'professional').split('/')[0].split(',')[0].trim();
+    const pain   = (Array.isArray(av.pain) ? av.pain.join(', ') : (av.pain ? String(av.pain) : '')) || 'their biggest challenge';
+    const transf = (Array.isArray(av.transformation) ? av.transformation.join(', ') : (av.transformation ? String(av.transformation) : '')) || 'their desired outcome';
+    const job    = (String(av.job||'professional')).split('/')[0].split(',')[0].trim();
     const fear   = av.fear||'wasting money';
-    const tried  = av.tried||'other programmes';
+    const tried  = (Array.isArray(av.tried) ? av.tried.join(', ') : (av.tried ? String(av.tried) : '')) || 'other programmes';
     const deeper = av.deeperPain||fear;
 
     // 7-day arc built from the actual avatar psychology
