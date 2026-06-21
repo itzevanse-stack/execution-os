@@ -19,7 +19,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { name, email, source = 'unknown', page = 'unknown', userId } = req.body || {};
+  const { name, email, source = 'unknown', page = 'unknown', userId, affiliateId } = req.body || {};
 
   if (!name || !email) return res.status(400).json({ error: 'Name and email required' });
 
@@ -56,7 +56,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Clean up affiliateId — guards against an unsubstituted template token
+    // ever reaching here (e.g. {{AFFILIATE_ID}} if a page was served before
+    // substitution ran), and against blank/whitespace-only values.
+    const cleanAffiliateId = (affiliateId && typeof affiliateId === 'string' &&
+      !affiliateId.includes('{{') && affiliateId.trim())
+        ? affiliateId.trim()
+        : null;
+
     // ── Fix 7: Deduplicate — check if this email already opted in ─────────────
+    // NOTE: dedup is by email only, with no affiliate awareness. If the same
+    // email opts in again later through a DIFFERENT affiliate's page, this
+    // still counts as a duplicate and the lead is NOT re-attributed to the
+    // second affiliate — only whichever affiliate captured it first keeps
+    // the attribution. That's a commission-policy question, not changed here.
     const existing = await db.collection('leads')
       .where('email', '==', normEmail)
       .limit(1)
@@ -76,6 +89,7 @@ export default async function handler(req, res) {
       page,
       country,
       createdAt: FieldValue.serverTimestamp(),
+      ...(cleanAffiliateId ? { affiliateId: cleanAffiliateId } : {}),
     });
 
     // ── 2. Send Day 1 welcome email immediately ───────────────────────────────
@@ -99,6 +113,7 @@ export default async function handler(req, res) {
       page,
       leadId: leadRef.id,
       userId,
+      affiliateId: cleanAffiliateId,
     });
 
     return res.status(200).json({ success: true });
@@ -113,7 +128,7 @@ export default async function handler(req, res) {
 // Note: requires Firestore composite index on emailMarketing.sequenceLive (collection group)
 // Create at: Firebase Console → Firestore → Indexes → Add index:
 //   Collection ID: emailMarketing | Field: sequenceLive ASC | Scope: Collection group
-async function enqueueSequenceSteps({ name, email, source, page, leadId, userId }) {
+async function enqueueSequenceSteps({ name, email, source, page, leadId, userId, affiliateId }) {
   try {
     let usersToCheck = [];
 
@@ -214,6 +229,7 @@ async function enqueueSequenceSteps({ name, email, source, page, leadId, userId 
             createdAt:   FieldValue.serverTimestamp(),
             source,
             page,
+            ...(affiliateId ? { affiliateId } : {}),
           });
 
           console.log(`[funnel-lead] Queued step ${i} for ${email} — sends in ${delayMs/86400000} days`);
