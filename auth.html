@@ -277,6 +277,42 @@ if (signupConfirm) {
       localStorage.setItem('eos_mode', selectedMode || 'affiliate');
       localStorage.setItem('eos_user_name', name);
 
+      // Auto-create the Alliance Partnership funnel for new affiliates —
+      // this is the ONLY trigger for new signups; the second trigger
+      // (someone added as an affiliate via CopeCart purchase / webhook)
+      // is handled separately in the webhook handler, not here. Links
+      // start empty — the affiliate fills those in via the locked
+      // partnership-links screen in their Funnel Builder tab. Wrapped in
+      // its own try/catch so a failure here never blocks account creation.
+      if ((selectedMode || 'affiliate') === 'affiliate') {
+        try {
+          var slug = (name || 'partner').trim().toLowerCase()
+            .replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'partner';
+          var funnelId = 'funnel_partnership_' + uid.slice(0, 8);
+          await setDoc(doc(db, 'users', uid, 'funnels', funnelId), {
+            id: funnelId,
+            name: 'Alliance Partnership Page',
+            type: 'partnership',
+            icon: '🤝',
+            // Empty placeholder page until the affiliate saves real links —
+            // app.html's fbSavePartnershipLinks rebuilds this from the
+            // canonical template the first time they fill in a link.
+            pages: { home: { label: 'Partnership Page', html: '' } },
+            pageOrder: ['home'],
+            homePage: 'home',
+            pagePaths: { home: '/' },
+            status: 'draft',
+            domain: '',
+            views: 0, leads: 0, sales: 0, revenue: 0,
+            createdAt: Date.now(),
+            ownerUid: uid,
+            affiliateMeta: { affiliateId: slug, starterUrl: '', proUrl: '', eliteUrl: '' },
+          }, { merge: true });
+        } catch (fe) {
+          console.warn('[Auto-funnel] Could not pre-create partnership funnel:', fe.message);
+        }
+      }
+
       // Send welcome email
       fetch('/api/welcome-email', {
         method:  'POST',
