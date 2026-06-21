@@ -27,7 +27,7 @@ module.exports = async function handler(req, res) {
 
   const {
     type, productUrl, productName, commission, monthlyTarget,
-    niche, trafficMode, avatarData,
+    niche, trafficMode, avatarData, salesPageContent,
     boardroomIntel, userContext,
   } = req.body || {};
 
@@ -75,7 +75,13 @@ Offer Positioning:  ${bi.offerPositioning     || ''}
     }
 
     let pageContent = '';
-    if (productUrl) {
+    if (salesPageContent && salesPageContent.trim().length > 200) {
+      // Reuse the Tavily extraction the frontend already paid for and
+      // performed — avoids a redundant second scrape of the same URL with
+      // a cruder method, and avoids re-triggering the same truncation bug
+      // independently in two places.
+      pageContent = salesPageContent.trim().substring(0, 20000);
+    } else if (productUrl) {
       try {
         const pageResp = await fetch(productUrl, {
           headers: {
@@ -91,7 +97,7 @@ Offer Positioning:  ${bi.offerPositioning     || ''}
             .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
             .replace(/<[^>]+>/g, ' ')
             .replace(/\s{2,}/g, ' ')
-            .substring(0, 6000).trim();
+            .substring(0, 20000).trim(); // raised from 6000 — same reasoning as tavily-extract's cap fix
         }
       } catch(e) { console.warn('Page scrape failed:', e.message); }
     }
