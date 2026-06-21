@@ -593,8 +593,10 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
               <input class="search-input" id="ap-search" placeholder="Search name or email…" oninput="filterAPSearch(this.value)">
               <button class="btn" onclick="exportAPCSV()">⬇ Export CSV</button>
               <button class="btn" onclick="loadAlliancePartners()">↻ Refresh</button>
+              <button class="btn" id="ap-backfill-btn" onclick="backfillPartnershipFunnels()" title="Creates the Alliance Partnership funnel for any existing affiliate who doesn't already have one — safe to run more than once, never overwrites an affiliate's saved links">🛠 Add Funnel to Existing Affiliates</button>
             </div>
           </div>
+          <div id="ap-backfill-status" style="display:none;padding:10px 16px;font-size:12px;border-top:1px solid var(--card-border)"></div>
           <div class="tbl-wrap">
             <table><thead><tr><th>Name</th><th>Email</th><th>Tier</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="ap-tbody"><tr><td colspan="6" style="text-align:center;color:var(--dim);padding:2rem">Loading partners…</td></tr></tbody></table>
@@ -683,7 +685,7 @@ td{padding:11px 16px;font-size:12px;color:var(--muted);font-weight:400}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, getDoc, setDoc, deleteDoc, onSnapshot, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBoesV8cPuhd8VJBtN7Wn5AUSf5B482TX0",
@@ -1422,6 +1424,128 @@ window.loadAlliancePartners = async function() {
     renderAP();
   } catch(e) {
     tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--rose);padding:2rem">Error: ${e.message}</td></tr>`;
+  }
+};
+
+// ── ONE-TIME BACKFILL: give every existing affiliate their Alliance ──────────
+// Partnership funnel, the same empty record new affiliates now get
+// automatically (see auth.html signup hook + copecart-webhook.mjs).
+// Safe to run more than once: skips anyone who already has the funnel
+// doc, and never touches/overwrites links an affiliate already saved.
+//
+// "Existing affiliate" = union of:
+//   1. Everyone in alliance_partners (bought a tier via CopeCart)
+//   2. Everyone in users with mode or appMode === 'affiliate'
+//      (the codebase writes this field inconsistently across signup vs
+//      sign-in paths, so both field names are checked — a where() query
+//      on a single field name would silently miss some real affiliates)
+window.backfillPartnershipFunnels = async function() {
+  const btn       = document.getElementById('ap-backfill-btn');
+  const statusBox = document.getElementById('ap-backfill-status');
+  if (!statusBox) return;
+
+  if (!confirm('This will create the Alliance Partnership funnel for every existing affiliate who doesn\'t already have one. It will NOT touch anyone\'s existing links or pages. Continue?')) return;
+
+  if (btn) { btn.disabled = true; btn.textContent = '🛠 Running…'; }
+  statusBox.style.display = 'block';
+  statusBox.style.color = 'var(--dim)';
+  statusBox.textContent = 'Scanning alliance_partners and users…';
+
+  try {
+    // 1. Collect emails from alliance_partners
+    const apSnap = await getDocs(collection(db, 'alliance_partners'));
+    const emailsFromPartners = apSnap.docs
+      .map(d => (d.data().email || '').toLowerCase().trim())
+      .filter(Boolean);
+
+    // 2. Collect emails from users where mode or appMode = 'affiliate'
+    //    (full scan + client-side check — see comment above on why)
+    const usersSnap = await getDocs(collection(db, 'users'));
+    const affiliateUsers = []; // { uid, email, name }
+    usersSnap.forEach(d => {
+      const u = d.data() || {};
+      const isAffiliate = u.mode === 'affiliate' || u.appMode === 'affiliate';
+      if (isAffiliate && u.email) {
+        affiliateUsers.push({ uid: d.id, email: String(u.email).toLowerCase().trim(), name: u.name || '' });
+      }
+    });
+
+    // 3. Union by email — build a single map of email -> {uid, name}
+    //    where we have it. Partner-only entries (no users doc match yet)
+    //    get resolved to a uid in the loop below, same as the webhook does.
+    const byEmail = new Map();
+    affiliateUsers.forEach(u => byEmail.set(u.email, { uid: u.uid, name: u.name }));
+    emailsFromPartners.forEach(email => {
+      if (!byEmail.has(email)) byEmail.set(email, { uid: null, name: '' });
+    });
+
+    const totalCandidates = byEmail.size;
+    statusBox.textContent = `Found ${totalCandidates} existing affiliate(s) to check. Creating funnels…`;
+
+    let created = 0, alreadyHad = 0, noAccountYet = 0, failed = 0;
+
+    for (const [email, info] of byEmail.entries()) {
+      try {
+        let uid = info.uid;
+
+        // Resolve uid if we only found this person via alliance_partners
+        if (!uid) {
+          const userMatch = usersSnap.docs.find(d => (d.data().email || '').toLowerCase().trim() === email);
+          uid = userMatch ? userMatch.id : null;
+        }
+
+        if (!uid) {
+          // No Execution OS account yet — this person bought a tier but
+          // never signed up. Same as the webhook's pending-funnel path:
+          // store a pending flag, claimed automatically on their first login.
+          const emailKey = email.replace(/[.#$[\]]/g, '_');
+          await setDoc(doc(db, 'pending_partnership_funnels', emailKey), {
+            email, name: info.name || '', createdAt: new Date().toISOString(),
+          }, { merge: true });
+          noAccountYet++;
+          continue;
+        }
+
+        const funnelId = 'funnel_partnership_' + uid.slice(0, 8);
+        const existing = await getDoc(doc(db, 'users', uid, 'funnels', funnelId));
+        if (existing.exists()) { alreadyHad++; continue; }
+
+        const slug = (info.name || 'partner').trim().toLowerCase()
+          .replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'partner';
+
+        await setDoc(doc(db, 'users', uid, 'funnels', funnelId), {
+          id: funnelId,
+          name: 'Alliance Partnership Page',
+          type: 'partnership',
+          icon: '🤝',
+          pages: { home: { label: 'Partnership Page', html: '' } },
+          pageOrder: ['home'],
+          homePage: 'home',
+          pagePaths: { home: '/' },
+          status: 'draft',
+          domain: '',
+          views: 0, leads: 0, sales: 0, revenue: 0,
+          createdAt: Date.now(),
+          ownerUid: uid,
+          affiliateMeta: { affiliateId: slug, starterUrl: '', proUrl: '', eliteUrl: '' },
+        });
+        created++;
+      } catch (innerErr) {
+        console.error('[Backfill] Failed for', email, innerErr.message);
+        failed++;
+      }
+    }
+
+    statusBox.style.color = 'var(--teal)';
+    statusBox.innerHTML = `✅ Done. <strong>${created}</strong> funnel(s) created, <strong>${alreadyHad}</strong> already had one, <strong>${noAccountYet}</strong> pending first login (no account yet), <strong>${failed}</strong> failed.` +
+      (failed > 0 ? ' Check browser console for failure details.' : '');
+
+  } catch (e) {
+    statusBox.style.color = 'var(--rose)';
+    statusBox.textContent = '❌ Backfill failed: ' + e.message;
+    console.error('[Backfill] Fatal error:', e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🛠 Add Funnel to Existing Affiliates'; }
   }
 };
 
