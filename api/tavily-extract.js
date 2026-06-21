@@ -56,12 +56,17 @@ module.exports = async function handler(req, res) {
       return res.status(200).json({ ok: false, error: 'No content extracted from URL' });
     }
 
-    // Return clean extracted content
+    // Cap at 40k chars — generous enough to get past bulky page sections
+    // (e.g. inline base64 images, lengthy opt-in gates) and reach the real
+    // offer content, while still bounding prompt size downstream. The
+    // previous 8k cap was too low for pages with heavy inline markup before
+    // the actual sales copy, meaning the real offer details never made it
+    // into the extracted content at all.
     return res.status(200).json({
       ok:      true,
       url:     result.url     || url,
       title:   result.title   || '',
-      content: (result.raw_content || result.content || '').slice(0, 8000), // cap at 8k chars
+      content: (result.raw_content || result.content || '').slice(0, 40000),
     });
 
   } catch (err) {
