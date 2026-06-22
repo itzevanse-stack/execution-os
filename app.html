@@ -8351,6 +8351,32 @@ button[onclick="generateOffer()"] {
           <div class="ftype-name">Tripwire</div>
           <div class="ftype-desc">Low-ticket front-end offer to break the ice, then upsell to your main offer.</div>
         </div>
+        <div class="ftype-card purple" onclick="fbSelectType(this,'partnership','Alliance Partnership Page','🤝')" data-type="partnership" data-affiliate-only="1">
+          <div class="ftype-icon">🤝</div>
+          <div class="ftype-name">Alliance Partnership Page</div>
+          <div class="ftype-desc">Your own copy of the official Alliance Partnership page, with your affiliate links built in. Not AI-written — this is the real, proven page.</div>
+        </div>
+      </div>
+
+      <div id="fb-partnership-links" style="display:none;margin-top:var(--sp-4);background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.18);border-radius:var(--r-md);padding:18px 20px">
+        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px">Your Affiliate Checkout Links</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">Paste your CopeCart affiliate link for each tier you're approved to promote. Leave a tier blank if you're not approved for it — that button will be hidden on your page.</div>
+        <div class="inp-box" style="margin-bottom:10px">
+          <div class="inp-lbl">Your affiliate ID or short name (used in your page URL)</div>
+          <input id="fb-aff-id" class="fi" placeholder="e.g. john-smith" style="margin-top:4px" />
+        </div>
+        <div class="inp-box" style="margin-bottom:10px">
+          <div class="inp-lbl">🥉 Starter tier link</div>
+          <input id="fb-aff-starter" class="fi" placeholder="https://app.cope.com/products/...?ref=..." style="margin-top:4px" />
+        </div>
+        <div class="inp-box" style="margin-bottom:10px">
+          <div class="inp-lbl">🥈 Pro tier link</div>
+          <input id="fb-aff-pro" class="fi" placeholder="https://app.cope.com/products/...?ref=..." style="margin-top:4px" />
+        </div>
+        <div class="inp-box">
+          <div class="inp-lbl">👑 Elite tier link</div>
+          <input id="fb-aff-elite" class="fi" placeholder="https://app.cope.com/products/...?ref=..." style="margin-top:4px" />
+        </div>
       </div>
 
       <div id="fb-type-selected" style="display:none;margin-top:var(--sp-4)">
@@ -8529,6 +8555,66 @@ button[onclick="generateOffer()"] {
 
       </div><!-- /funnel-editor-wrap -->
     </div><!-- /fb-view-editor -->
+
+
+    <!-- ── VIEW: PARTNERSHIP LINKS (locked page, links-only editing) ── -->
+    <div id="fb-view-partnership-links" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:var(--sp-4);flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:12px">
+          <button onclick="fbBackToList()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 14px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">← Back</button>
+          <div>
+            <div style="font-size:18px;font-weight:900;font-family:'Poppins',sans-serif;color:var(--white)">🤝 Your Alliance Partnership Page</div>
+            <div style="font-size:12px;color:var(--dim);margin-top:2px">This is your real page, exactly as visitors will see it. Add your checkout links below — that's the only thing you can change.</div>
+          </div>
+        </div>
+        <button class="fb-publish-btn" style="font-size:13px;background:linear-gradient(135deg,var(--teal),var(--teal2))" onclick="fbGoToPublish()">Continue to Domain & Publish →</button>
+      </div>
+
+      <!-- The real, live page — this IS the opt-in page visitors land on -->
+      <div style="position:relative;background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-lg);overflow:hidden;height:78vh;min-height:520px">
+        <div style="background:var(--card3,#161616);padding:10px 14px;border-bottom:1px solid var(--border2);font-size:11px;color:var(--dim);display:flex;align-items:center;gap:8px">
+          <span style="display:flex;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#ff5f57;display:inline-block"></span><span style="width:8px;height:8px;border-radius:50%;background:#febc2e;display:inline-block"></span><span style="width:8px;height:8px;border-radius:50%;background:#28c840;display:inline-block"></span></span>
+          Your live page — locked content, view only
+        </div>
+        <iframe id="fbpl-preview" style="width:100%;height:calc(100% - 37px);border:none;background:#fff"></iframe>
+
+        <!-- Floating link dock — sits on top of the real page, not a separate screen -->
+        <div id="fbpl-dock" style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:min(640px,92%);background:rgba(17,17,17,.97);backdrop-filter:blur(8px);border:1px solid var(--border2);border-radius:var(--r-lg);box-shadow:0 12px 40px rgba(0,0,0,.5);padding:16px 18px;transition:all .25s">
+          <div id="fbpl-dock-expanded">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <div style="font-size:12px;font-weight:800;color:var(--white)">🔗 Add Your Checkout Links</div>
+              <div style="font-size:10px;color:var(--dim)">Leave a tier blank if you're not approved — it's hidden automatically</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+              <div>
+                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">🥉 Starter</div>
+                <input id="fbpl-starter" class="fi" placeholder="Paste link…" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
+                <div id="fbpl-starter-status" style="font-size:9px;margin-top:3px;color:var(--dim2,#666)"></div>
+              </div>
+              <div>
+                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">🥈 Pro</div>
+                <input id="fbpl-pro" class="fi" placeholder="Paste link…" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
+                <div id="fbpl-pro-status" style="font-size:9px;margin-top:3px;color:var(--dim2,#666)"></div>
+              </div>
+              <div>
+                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">👑 Elite</div>
+                <input id="fbpl-elite" class="fi" placeholder="Paste link…" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
+                <div id="fbpl-elite-status" style="font-size:9px;margin-top:3px;color:var(--dim2,#666)"></div>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <button class="fb-publish-btn" style="flex:1;font-size:12px;padding:9px" onclick="fbSavePartnershipLinks()">💾 Save Links</button>
+              <button onclick="fbToggleLinkDock(false)" style="background:none;border:none;color:var(--dim);font-size:11px;cursor:pointer;padding:9px 4px" title="Collapse">▾</button>
+            </div>
+            <div id="fbpl-status" style="font-size:11px;margin-top:8px;text-align:center"></div>
+          </div>
+          <div id="fbpl-dock-collapsed" style="display:none;align-items:center;justify-content:space-between;gap:10px">
+            <div id="fbpl-dock-summary" style="font-size:11px;color:var(--muted)">No links added yet</div>
+            <button onclick="fbToggleLinkDock(true)" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:7px 12px;color:var(--white);font-size:11px;cursor:pointer;font-weight:700">Edit Links ▴</button>
+          </div>
+        </div>
+      </div>
+    </div><!-- /fb-view-partnership-links -->
 
 
     <!-- ── VIEW: PUBLISH ── -->
@@ -20872,8 +20958,12 @@ window.analyseAffiliateProduct = async function() {
   if (statusEl) statusEl.style.display='block';
   if (btnEl)    { btnEl.disabled=true; btnEl.textContent='Analysing…'; }
 
-  // Global watchdog — if analysis hasn't finished in 90 seconds,
+  // Global watchdog — if analysis hasn't finished in 180 seconds,
   // surface a clear error so the user isn't left staring at a spinner.
+  // Extended from 90s because the analysis now properly waits for deep
+  // Boardroom market research (up to 75s) before generating the calendar,
+  // rather than racing ahead after only 12s — research-backed results take
+  // longer than a shallow pass, and that's the correct tradeoff here.
   var _affWatchdog = setTimeout(function() {
     var b = document.getElementById('aff-analyse-btn');
     var s = document.getElementById('aff-analyse-status');
@@ -20886,7 +20976,7 @@ window.analyseAffiliateProduct = async function() {
       var bar = document.getElementById('aff-progress-bar');
       if (bar) bar.style.background = 'var(--red)';
     }
-  }, 90000);
+  }, 180000);
 
   const setProgress = (pct, msg, step) => {
     const bar   = document.getElementById('aff-progress-bar');
@@ -21063,6 +21153,7 @@ Return ONLY valid JSON — no markdown, no backticks, no explanation:
           monthlyTarget: monthlyTarget,
           niche:         productNiche,
           trafficMode:   platform || 'organic',
+          salesPageContent: _salesPageContent,
           boardroomIntel: _affBi,
           userContext: {
             niche:         _affInp.niche         || productNiche,
@@ -21566,20 +21657,25 @@ Style: ${vp.style||'conversational'}${vp.words?'\nAlways use phrases like: '+vp.
       { postType:'Email', slotType:'email', viralHook:'Day '+(d+1)+': '+t.slice(0,50), fullScript:'', weekDay:DN[d], topic:t, dayNum:d+1, emailSubject:t.slice(0,60), callToAction:'Reply to this email.', engagementTip:'Send 8–10am.' },
     ]));
 
-    setProgress(55, 'Writing your 7-day content plan…', 'Buyer profile locked ✅');
-
-    // Give the affiliate-intel call a chance to finish so the calendar gets
-    // real boardroom context — previously this read window._boardroomIntel
-    // synchronously right after launching that background call, so it was
-    // always still null. Capped at 12s so a slow web-search-backed intel
-    // call can never stall calendar generation — the calendar still works
-    // fine without this context, it's an enhancement, not a dependency.
+    // Wait for the deep Boardroom market research to actually finish before
+    // generating the calendar. Previously this was capped at 12 seconds —
+    // but /api/affiliate-intel + ICP research realistically take 30-60+
+    // seconds combined (it's live market research, not a quick lookup), so
+    // the 12s cap meant the calendar almost always proceeded WITHOUT real
+    // intelligence, silently degrading to avatar-only content while still
+    // feeling "fast" to the user. Since the goal is research-backed results
+    // over speed, this now waits up to 75s — comfortably longer than the
+    // research call's own internal timeouts (45s + 15s) — so the calendar
+    // is built on real intelligence in the large majority of runs.
+    setProgress(40, 'Researching your market — competitors, positioning, buyer language…', 'Sales page read ✅');
     try {
       await Promise.race([
         _affIntelPromise,
-        new Promise(function(resolve){ setTimeout(resolve, 12000); })
+        new Promise(function(resolve){ setTimeout(resolve, 75000); })
       ]);
     } catch(e) {}
+
+    setProgress(55, 'Writing your 7-day content plan…', window._boardroomIntel ? 'Market research locked in ✅' : 'Buyer profile locked ✅');
 
     // Build full content via API — routed through /api/generate-affiliate
     // so Boardroom hooks, DM openers and email subjects seed the content
@@ -30955,15 +31051,15 @@ let fbState = {
 
 // ── VIEWS ──
 function fbSetView(v) {
-  ['list','create','building','editor','publish','live'].forEach(function(name) {
+  ['list','create','building','editor','partnership-links','publish','live'].forEach(function(name) {
     const el = document.getElementById('fb-view-'+name);
     if (el) el.style.display = (name === v) ? 'block' : 'none';
   });
   const wizard = document.getElementById('fb-wizard');
   if (wizard) {
-    wizard.style.display = ['create','building','editor','publish','live'].includes(v) ? 'flex' : 'none';
+    wizard.style.display = ['create','building','editor','partnership-links','publish','live'].includes(v) ? 'flex' : 'none';
   }
-  const stepMap = { create:1, building:2, editor:3, publish:5, live:6 };
+  const stepMap = { create:1, building:2, editor:3, 'partnership-links':3, publish:5, live:6 };
   if (stepMap[v]) fbSetWizardStep(stepMap[v]);
   fbState.view = v;
 
@@ -30987,9 +31083,18 @@ function fbSetWizardStep(n) {
 }
 
 // ── NAVIGATION ──
-function fbShowCreate() { fbSetView('create'); };
+function fbShowCreate() {
+  fbSetView('create');
+  // Partnership Page only applies to Affiliate Mode
+  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  var pCard = document.querySelector('.ftype-card[data-type="partnership"]');
+  if (pCard) pCard.style.display = isAffiliate ? '' : 'none';
+};
 function fbBackToList() { fbLoadList(); fbSetView('list'); };
-function fbGoToEditor() { fbSetView('editor'); };
+function fbGoToEditor() {
+  if (fbState.current && fbState.current.type === 'partnership') { fbSetView('partnership-links'); return; }
+  fbSetView('editor');
+};
 function fbGoToPublish() { fbSetView('publish'); fbSetWizardStep(4); };
 
 // ── TYPE SELECTION ──
@@ -31005,11 +31110,23 @@ function fbSelectType(card, type, name, icon) {
     document.getElementById('fb-selected-icon').textContent = icon;
     document.getElementById('fb-selected-name').textContent = name;
   }
+  // Partnership Page needs the affiliate's real checkout links — show that
+  // form only for this type, since it's a fixed template, not AI-generated
+  var linksForm = document.getElementById('fb-partnership-links');
+  if (linksForm) linksForm.style.display = (type === 'partnership') ? 'block' : 'none';
 };
 
 // ── GENERATE FUNNEL ──
 async function fbGenerateFunnel() {
   if (!fbState.selectedType) return;
+
+  // Partnership Page is a fixed, pre-built template, not AI-generated —
+  // route to a separate builder that just substitutes the affiliate's
+  // own links into the real page instead of calling the AI page-writer.
+  if (fbState.selectedType === 'partnership') {
+    return fbBuildPartnershipFunnel();
+  }
+
   fbSetView('building');
 
   // Get user data from the correct app state globals
@@ -31110,6 +31227,215 @@ async function fbGenerateFunnel() {
     }
   }
 };
+
+// ── PARTNERSHIP PAGE — fixed template, no AI generation ───────────────
+// Builds a funnel record in the exact same shape fbGenerateFunnel produces
+// for AI-generated types, so the existing list/publish views work on it
+// unmodified. The only difference is where the HTML comes from: a
+// canonical template fetched once, with placeholder tokens replaced by
+// the affiliate's own checkout links and ID, instead of text written
+// fresh by Claude on every generation. The page itself is never routed
+// through the free-edit visual editor — only this function and
+// fbSavePartnershipLinks can change its content, and both only ever
+// touch the three checkout links.
+async function fbBuildPartnershipFunnel() {
+  var affId     = (document.getElementById('fb-aff-id')     || {}).value || '';
+  var starterUrl= (document.getElementById('fb-aff-starter')|| {}).value || '';
+  var proUrl    = (document.getElementById('fb-aff-pro')    || {}).value || '';
+  var eliteUrl  = (document.getElementById('fb-aff-elite')  || {}).value || '';
+
+  affId = affId.trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!affId) {
+    alert('Please enter an affiliate ID or short name — this is used to identify leads as yours.');
+    return;
+  }
+  if (!starterUrl && !proUrl && !eliteUrl) {
+    alert('Please paste at least one tier checkout link — you need to be approved for at least one tier to use this page.');
+    return;
+  }
+
+  fbSetView('building');
+  var stepEl = document.getElementById('fb-gen-step-text');
+  if (stepEl) stepEl.textContent = 'Loading the partnership page template…';
+
+  try {
+    // Canonical template lives at a fixed path — one file to maintain,
+    // never copy-pasted per affiliate.
+    var resp = await fetch('/templates/partnership-template.html');
+    if (!resp.ok) throw new Error('Template fetch failed: ' + resp.status);
+    var html = await resp.text();
+
+    if (stepEl) stepEl.textContent = 'Adding your affiliate links…';
+    html = fbApplyPartnershipTokens(html, affId, starterUrl, proUrl, eliteUrl);
+
+    if (stepEl) stepEl.textContent = 'Saving your page…';
+
+    var funnelId = 'funnel_' + Date.now();
+    fbState.current = {
+      id: funnelId,
+      name: 'Alliance Partnership Page',
+      type: 'partnership',
+      icon: '🤝',
+      pages: { home: { label: 'Partnership Page', html: html } },
+      pageOrder: ['home'],
+      homePage: 'home',
+      pagePaths: { home: '/' },
+      status: 'draft',
+      domain: '',
+      views: 0, leads: 0, sales: 0, revenue: 0,
+      createdAt: Date.now(),
+      // Stored separately from the baked-in HTML so the affiliate can
+      // come back and update a link later without re-pasting everything —
+      // fbSavePartnershipLinks reads these to rebuild the page.
+      affiliateMeta: { affiliateId: affId, starterUrl: starterUrl, proUrl: proUrl, eliteUrl: eliteUrl }
+    };
+
+    fbState.funnels = fbState.funnels.filter(function(f){return f.id!==fbState.current.id;});
+    fbState.funnels.push(fbState.current);
+    await fbSaveFunnelToFirestore(fbState.current);
+
+    // Route into the locked links screen, NOT the standard visual editor —
+    // this funnel type's copy/design is fixed; only links are editable.
+    var nameEl = document.getElementById('fb-editor-funnel-name');
+    if (nameEl) nameEl.textContent = fbState.current.name;
+    var sId = document.getElementById('fbpl-starter'); if (sId) sId.value = starterUrl;
+    var pId = document.getElementById('fbpl-pro');     if (pId) pId.value = proUrl;
+    var eId = document.getElementById('fbpl-elite');   if (eId) eId.value = eliteUrl;
+    fbUpdateTierStatus();
+    fbRenderPartnershipPreview(html);
+    fbSetView('partnership-links');
+  } catch(e) {
+    console.error('[Partnership Funnel] Build failed:', e);
+    alert('Could not load the partnership page template. Please try again, or contact support if this keeps happening.');
+    fbSetView('create');
+  }
+}
+
+// Shared token substitution — used both at creation and whenever links are
+// edited later, so the rules live in exactly one place.
+function fbApplyPartnershipTokens(html, affId, starterUrl, proUrl, eliteUrl) {
+  html = html.split('{{AFFILIATE_ID}}').join(affId);
+  html = html.split('{{STARTER_URL}}').join(starterUrl || '#tier-not-available');
+  html = html.split('{{PRO_URL}}').join(proUrl || '#tier-not-available');
+  html = html.split('{{ELITE_URL}}').join(eliteUrl || '#tier-not-available');
+  // Flags the template's own script reads to hide ungranted tier buttons
+  html = html.split('{{HAS_STARTER}}').join(starterUrl ? 'true' : 'false');
+  html = html.split('{{HAS_PRO}}').join(proUrl ? 'true' : 'false');
+  html = html.split('{{HAS_ELITE}}').join(eliteUrl ? 'true' : 'false');
+  return html;
+}
+
+// Renders the locked preview iframe via srcdoc — visible, but not the
+// standard fb-view-editor canvas, so nothing on the page is clickable
+// into edit mode the way fbRenderPreview's contenteditable elements are.
+function fbRenderPartnershipPreview(html) {
+  var frame = document.getElementById('fbpl-preview');
+  if (frame) frame.srcdoc = html;
+}
+
+// Live per-tier confirmation under each input — runs on every keystroke
+// and whenever the screen loads with pre-filled values, so an affiliate
+// who only has a Starter link (the common case) sees explicit confirmation
+// that this is fine, rather than being left to guess whether something's
+// missing. Also catches an obviously-empty/placeholder paste mistake.
+function fbUpdateTierStatus() {
+  var tiers = [
+    { input: 'fbpl-starter', status: 'fbpl-starter-status', label: 'Starter' },
+    { input: 'fbpl-pro',     status: 'fbpl-pro-status',     label: 'Pro' },
+    { input: 'fbpl-elite',   status: 'fbpl-elite-status',   label: 'Elite' },
+  ];
+  var filledCount = 0;
+  tiers.forEach(function(t) {
+    var inputEl  = document.getElementById(t.input);
+    var statusEl = document.getElementById(t.status);
+    if (!inputEl || !statusEl) return;
+    var val = (inputEl.value || '').trim();
+    if (!val) {
+      statusEl.textContent = 'Not approved for ' + t.label + ' — button will be hidden on your page.';
+      statusEl.style.color = 'var(--dim2,#666)';
+      return;
+    }
+    filledCount++;
+    if (!/^https?:\/\//i.test(val)) {
+      statusEl.textContent = '⚠️ This doesn\'t look like a full link — make sure you copied the whole URL.';
+      statusEl.style.color = 'var(--orange,#ff8c42)';
+    } else {
+      statusEl.textContent = '✅ ' + t.label + ' button active on your page.';
+      statusEl.style.color = 'var(--teal)';
+    }
+  });
+  return filledCount;
+}
+
+// Collapses the floating link dock down to a thin summary strip so the
+// real page underneath isn't obstructed once the affiliate is done
+// editing — or re-expands it for further edits. Purely a UI state toggle,
+// doesn't touch saved data.
+function fbToggleLinkDock(expand) {
+  var exp = document.getElementById('fbpl-dock-expanded');
+  var col = document.getElementById('fbpl-dock-collapsed');
+  if (!exp || !col) return;
+  exp.style.display = expand ? 'block' : 'none';
+  col.style.display  = expand ? 'none'  : 'flex';
+  if (!expand) fbUpdateDockSummary();
+}
+
+// Builds the one-line summary shown when the dock is collapsed, e.g.
+// "Starter + Pro active" or "No links added yet"
+function fbUpdateDockSummary() {
+  var summaryEl = document.getElementById('fbpl-dock-summary');
+  if (!summaryEl) return;
+  var active = [];
+  if ((document.getElementById('fbpl-starter')||{}).value) active.push('Starter');
+  if ((document.getElementById('fbpl-pro')||{}).value)     active.push('Pro');
+  if ((document.getElementById('fbpl-elite')||{}).value)   active.push('Elite');
+  summaryEl.textContent = active.length ? (active.join(' + ') + ' active') : 'No links added yet';
+}
+
+// Saves an edited set of links without re-fetching a corrupted/already
+// substituted copy — rebuilds from a fresh template fetch every time, so
+// repeated edits can't accumulate substitution artifacts.
+async function fbSavePartnershipLinks() {
+  if (!fbState.current || fbState.current.type !== 'partnership') return;
+
+  var starterUrl = (document.getElementById('fbpl-starter') || {}).value || '';
+  var proUrl     = (document.getElementById('fbpl-pro')     || {}).value || '';
+  var eliteUrl   = (document.getElementById('fbpl-elite')   || {}).value || '';
+  var affId      = (fbState.current.affiliateMeta && fbState.current.affiliateMeta.affiliateId) || '';
+
+  if (!starterUrl && !proUrl && !eliteUrl) {
+    alert('Please keep at least one tier link filled in.');
+    return;
+  }
+
+  var statusEl = document.getElementById('fbpl-status');
+  if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.style.color = 'var(--dim)'; }
+
+  try {
+    var resp = await fetch('/templates/partnership-template.html');
+    if (!resp.ok) throw new Error('Template fetch failed: ' + resp.status);
+    var html = await resp.text();
+    html = fbApplyPartnershipTokens(html, affId, starterUrl, proUrl, eliteUrl);
+
+    fbState.current.pages.home.html = html;
+    fbState.current.affiliateMeta = { affiliateId: affId, starterUrl: starterUrl, proUrl: proUrl, eliteUrl: eliteUrl };
+    await fbSaveFunnelToFirestore(fbState.current);
+
+    fbState.funnels = fbState.funnels.filter(function(f){return f.id!==fbState.current.id;});
+    fbState.funnels.push(fbState.current);
+
+    fbRenderPartnershipPreview(html);
+    fbUpdateTierStatus();
+    if (statusEl) { statusEl.textContent = '✅ Saved'; statusEl.style.color = 'var(--teal)'; }
+    // Auto-collapse the dock shortly after a successful save so the
+    // affiliate sees their real, finished page clearly — they can always
+    // re-expand via "Edit Links" if they want to change something.
+    setTimeout(function(){ fbToggleLinkDock(false); }, 1200);
+  } catch(e) {
+    console.error('[Partnership Links] Save failed:', e);
+    if (statusEl) { statusEl.textContent = 'Could not save — please try again.'; statusEl.style.color = 'var(--red)'; }
+  }
+}
 
 function fbGetPagesForType(type) {
   var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
@@ -32582,8 +32908,7 @@ function fbSaveStripeKey() {
   fbSaveFunnelToFirestore(fbState.current); fbShowStripeConnected(key);
 }
 
-// ── PUBLISH ──
-function fbGoToPublish() { fbSetView('publish'); fbSetWizardStep(4); }
+// ── PUBLISH ── (fbGoToPublish defined once, near fbGoToEditor above)
 
 // ── BRANDING — Logo + Favicon ─────────────────────────────────────────────────
 function fbHandleLogoUpload(input, type) {
@@ -33368,7 +33693,33 @@ function fbRenderList() {
 function fbOpenFunnel(id) {
   var funnel = fbState.funnels.find(function(f){return f.id===id;});
   if (!funnel) return;
-  fbState.current = funnel; fbSetupEditor(funnel); fbSetView('editor');
+  fbState.current = funnel;
+
+  if (funnel.type === 'partnership') {
+    var nameEl = document.getElementById('fb-editor-funnel-name');
+    if (nameEl) nameEl.textContent = funnel.name;
+    var meta = funnel.affiliateMeta || {};
+    var sId = document.getElementById('fbpl-starter'); if (sId) sId.value = meta.starterUrl || '';
+    var pId = document.getElementById('fbpl-pro');     if (pId) pId.value = meta.proUrl || '';
+    var eId = document.getElementById('fbpl-elite');   if (eId) eId.value = meta.eliteUrl || '';
+    fbUpdateTierStatus();
+    // A freshly auto-created funnel has no real HTML yet (links not saved
+    // once) — show a placeholder instead of an empty iframe until the
+    // affiliate saves their first link via fbSavePartnershipLinks.
+    var hasRealPage = funnel.pages && funnel.pages.home && funnel.pages.home.html;
+    if (hasRealPage) {
+      fbRenderPartnershipPreview(funnel.pages.home.html);
+      fbToggleLinkDock(false); // already set up — show the real page, dock collapsed
+    } else {
+      var frame = document.getElementById('fbpl-preview');
+      if (frame) frame.srcdoc = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-family:sans-serif;color:#888;text-align:center;padding:40px">Add at least one checkout link and click Save to generate your page preview.</div>';
+      fbToggleLinkDock(true); // first-time setup — keep the dock open
+    }
+    fbSetView('partnership-links');
+    return;
+  }
+
+  fbSetupEditor(funnel); fbSetView('editor');
 }
 
 // Event delegation for funnel list — avoids inline onclick quote issues
@@ -34172,6 +34523,61 @@ async function planLoad() {
         // Delete pending record now that it's claimed
         await window._deleteDoc(
           window._doc(window._db, 'pending_credits', emailKey)
+        ).catch(function(){});
+      }
+
+      // Check for a pending partnership funnel — stored by the CopeCart
+      // webhook when someone bought a tier before ever creating an
+      // Execution OS account. Same claim pattern as pending_credits above:
+      // look up by email key, create the real funnel record now that we
+      // have a uid, then delete the pending flag.
+      var pendingFunnelSnap = await window._getDoc(
+        window._doc(window._db, 'pending_partnership_funnels', emailKey)
+      ).catch(function(){ return null; });
+
+      if (pendingFunnelSnap && pendingFunnelSnap.exists && pendingFunnelSnap.exists()) {
+        var pendingFunnel = pendingFunnelSnap.data ? pendingFunnelSnap.data() : {};
+        try {
+          var pfSlug = (pendingFunnel.name || 'partner').trim().toLowerCase()
+            .replace(/[^a-z0-9-]+/g, '-').replace(/^-+|-+$/g, '') || 'partner';
+          var pfFunnelId = 'funnel_partnership_' + uid.slice(0, 8);
+
+          // Only create if they don't already have one — e.g. they signed
+          // up choosing Affiliate Mode (auth.html already created it) AND
+          // separately bought a tier before their first login finished.
+          var existingFunnelSnap = await window._getDoc(
+            window._doc(window._db, 'users', uid, 'funnels', pfFunnelId)
+          ).catch(function(){ return null; });
+
+          if (!existingFunnelSnap || !existingFunnelSnap.exists || !existingFunnelSnap.exists()) {
+            await window._setDoc(
+              window._doc(window._db, 'users', uid, 'funnels', pfFunnelId),
+              {
+                id: pfFunnelId,
+                name: 'Alliance Partnership Page',
+                type: 'partnership',
+                icon: '🤝',
+                pages: { home: { label: 'Partnership Page', html: '' } },
+                pageOrder: ['home'],
+                homePage: 'home',
+                pagePaths: { home: '/' },
+                status: 'draft',
+                domain: '',
+                views: 0, leads: 0, sales: 0, revenue: 0,
+                createdAt: Date.now(),
+                ownerUid: uid,
+                affiliateMeta: { affiliateId: pfSlug, starterUrl: '', proUrl: '', eliteUrl: '' },
+              },
+              { merge: true }
+            ).catch(function(){});
+            console.log('[Plan] Claimed pending partnership funnel for', userEmail);
+          }
+        } catch(pfe) {
+          console.warn('[Plan] Partnership funnel claim failed (non-fatal):', pfe.message);
+        }
+        // Delete pending record now that it's claimed (or already existed)
+        await window._deleteDoc(
+          window._doc(window._db, 'pending_partnership_funnels', emailKey)
         ).catch(function(){});
       }
     }
