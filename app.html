@@ -3816,6 +3816,14 @@ button[onclick="generateOffer()"] {
               <option value="Travel &amp; Lifestyle" style="background:#2d2d4a">✈️ Travel &amp; Lifestyle</option>
               <option value="Arts, Music &amp; Creative" style="background:#2d2d4a">🎨 Arts, Music &amp; Creative</option>
               <option value="Education &amp; Online Courses" style="background:#2d2d4a">📚 Education &amp; Online Courses</option>
+              <option value="Legal &amp; Compliance Services" style="background:#2d2d4a">⚖️ Legal &amp; Compliance Services</option>
+              <option value="Career Coaching &amp; Job Search" style="background:#2d2d4a">🎓 Career Coaching &amp; Job Search</option>
+              <option value="Pet &amp; Animal" style="background:#2d2d4a">🐾 Pet &amp; Animal</option>
+              <option value="Sustainability &amp; Green Living" style="background:#2d2d4a">♻️ Sustainability &amp; Green Living</option>
+              <option value="Mental Health &amp; Therapy Coaching" style="background:#2d2d4a">🧘 Mental Health &amp; Therapy Coaching</option>
+              <option value="Home &amp; Interior Design" style="background:#2d2d4a">🏡 Home &amp; Interior Design</option>
+              <option value="Sports Performance &amp; Athletic Coaching" style="background:#2d2d4a">🏆 Sports Performance &amp; Athletic Coaching</option>
+              <option value="Music Production &amp; Audio" style="background:#2d2d4a">🎵 Music Production &amp; Audio</option>
             </select>
           </div>
           <button onclick="applyAll()" id="apply-btn" style="width:100%;margin-top:8px;padding:11px;background:linear-gradient(135deg,var(--teal),var(--teal2));color:var(--text-dark);border:none;border-radius:12px;font-family:'Poppins',sans-serif;font-weight:800;font-size:12px;cursor:pointer;letter-spacing:.5px;text-transform:uppercase;transition:all .15s;box-shadow:0 4px 18px rgba(78,204,163,.4)">⚡ Apply to Everything</button>
@@ -4794,6 +4802,23 @@ button[onclick="generateOffer()"] {
         <button onclick="calDismissAutoBanner()" style="padding:5px 12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:6px;color:var(--dim);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;flex-shrink:0">Dismiss</button>
       </div>
 
+      <!-- TODAY'S QUEUE — compact action list for what to post right now -->
+      <div id="cal-queue-section" style="display:none;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">📬 Today's Queue</div>
+          <div style="font-size:10px;color:var(--dim)" id="cal-queue-date"></div>
+        </div>
+        <div id="cal-queue-list" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="cal-queue-empty" style="display:none;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:var(--r-md);padding:16px;text-align:center;font-size:12px;color:var(--dim)">
+          Nothing scheduled for today — all done, or no content generated yet.
+        </div>
+        <!-- Tomorrow preview -->
+        <div id="cal-queue-tomorrow-wrap" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);margin-bottom:8px">Tomorrow</div>
+          <div id="cal-queue-tomorrow" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+      </div>
+
       <!-- List view -->
       <div id="cal-list-view">
         <div id="cal-days-list" style="display:flex;flex-direction:column;gap:10px"></div>
@@ -4868,13 +4893,14 @@ button[onclick="generateOffer()"] {
 
     <!-- TOGGLE STRIP -->
     <div style="display:flex;gap:4px;padding:4px;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:50px;margin-bottom:1.5rem;overflow-x:auto;scrollbar-width:none">
-      <button class="tab on" id="stab-dm" onclick="setScriptsMode('dm',this)" style="flex:1;min-width:120px">💬 DM Outreach</button>
+      <button class="tab" id="stab-dm" onclick="setScriptsMode('dm',this)" style="flex:1;min-width:120px">💬 DM Outreach</button>
       <button class="tab" id="stab-warm" onclick="setScriptsMode('warm',this)" style="flex:1;min-width:120px">🔥 Warm Lead Close</button>
       <button class="tab" id="stab-call" onclick="setScriptsMode('call',this)" style="flex:1;min-width:130px">📞 Sales Call Close</button>
       <button class="tab" id="stab-objection" onclick="setScriptsMode('objection',this)" style="flex:1;min-width:130px">🛡 Objection Kill</button>
       <button class="tab" id="stab-follow" onclick="setScriptsMode('follow',this)" style="flex:1;min-width:120px">↩️ Follow-Up</button>
       <button class="tab" id="stab-queue" onclick="setScriptsMode('queue',this)" style="flex:1;min-width:120px">⚡ DM Queue</button>
       <button class="tab" id="stab-manychat" onclick="setScriptsMode('manychat',this)" style="flex:1;min-width:120px">🔗 ManyChat</button>
+      <button class="tab" id="stab-coach" onclick="setScriptsMode('coach',this)" style="flex:1;min-width:140px;background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(78,204,163,.1));border-color:rgba(108,99,255,.3)!important;color:var(--purple)!important">🧠 Conversation Coach</button>
     </div>
 
     <div id="scripts-niche-notice" style="display:none;background:rgba(255,217,61,.07);border:1px solid rgba(255,217,61,.2);border-radius:12px;padding:11px 16px;margin-bottom:1.25rem;font-size:11px;color:var(--dim)">⚡ <strong style="color:var(--yellow)">Select your niche + build your avatar</strong> first — these scripts personalise to your exact niche, offer price, audience pain points, and transformation promise.</div>
@@ -4882,6 +4908,122 @@ button[onclick="generateOffer()"] {
     <div id="scripts-grid" class="scripts-grid"></div>
     <div id="scripts-queue-panel" style="display:none"></div>
     <div id="scripts-manychat-panel" style="display:none"></div>
+    <div id="scripts-coach-panel" style="display:none">
+      <div style="max-width:900px;margin:0 auto">
+
+        <!-- Header -->
+        <div style="text-align:center;margin-bottom:28px">
+          <div style="font-size:22px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">🧠 Live Conversation Coach</div>
+          <div style="font-size:13px;color:var(--dim);max-width:520px;margin:0 auto;line-height:1.7">Paste the full conversation. The system reads what's really happening — then tells you exactly what to say next to move toward your goal.</div>
+        </div>
+
+        <!-- Input card -->
+        <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
+
+          <!-- Goal selector -->
+          <div style="margin-bottom:20px">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px">What's your goal in this conversation?</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="coach-goal-grid">
+              <button class="coach-goal-btn coach-goal-active" data-goal="close" onclick="coachSetGoal(this,'exp')" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:20px;padding:7px 16px;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">💰 Close the Sale</button>
+              <button class="coach-goal-btn" data-goal="book" onclick="coachSetGoal(this,'exp')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:7px 16px;color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📅 Book a Call</button>
+              <button class="coach-goal-btn" data-goal="objection" onclick="coachSetGoal(this,'exp')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:7px 16px;color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🛡 Handle Objection</button>
+              <button class="coach-goal-btn" data-goal="reengage" onclick="coachSetGoal(this,'exp')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:7px 16px;color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔄 Re-engage Cold Lead</button>
+              <button class="coach-goal-btn" data-goal="qualify" onclick="coachSetGoal(this,'exp')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:7px 16px;color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🎯 Qualify Prospect</button>
+            </div>
+            <input type="hidden" id="exp-coach-goal" value="close" />
+          </div>
+
+          <!-- Conversation paste area -->
+          <div style="margin-bottom:16px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim)">Paste the full conversation</div>
+              <div style="font-size:10px;color:var(--dim)">Include all messages — context is everything</div>
+            </div>
+            <textarea id="exp-coach-convo" class="fi" placeholder="Paste the entire conversation here — the more context you give, the sharper the coaching.
+
+Example:
+You: Hey [Name], saw your comment on the video — what did you think?
+Them: It was interesting, I've tried stuff like this before and it didn't work
+You: What happened with that?
+Them: Just didn't get results, probably my fault
+Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize:vertical;font-size:13px;line-height:1.8;font-family:'Inter',sans-serif;box-sizing:border-box"></textarea>
+          </div>
+
+          <button onclick="coachAnalyse('exp')" id="exp-coach-btn" style="background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);padding:13px 32px;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Poppins',sans-serif;letter-spacing:.3px">🧠 Coach Me →</button>
+          <div id="exp-coach-status" style="font-size:12px;color:var(--teal);margin-top:12px;display:none"></div>
+        </div>
+
+        <!-- Output — four panels -->
+        <div id="exp-coach-output" style="display:none">
+
+          <!-- 1. Diagnosis -->
+          <div style="background:var(--card2);border:1px solid rgba(108,99,255,.25);border-radius:var(--r-xl);padding:24px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+              <div style="width:32px;height:32px;background:rgba(108,99,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🔍</div>
+              <div>
+                <div style="font-size:13px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">What's Actually Happening</div>
+                <div style="font-size:11px;color:var(--dim)">Read the room before you respond</div>
+              </div>
+            </div>
+            <div id="exp-coach-diagnosis" style="font-size:13px;color:var(--muted);line-height:1.9;white-space:pre-wrap"></div>
+          </div>
+
+          <!-- 2. Next message -->
+          <div style="background:var(--card2);border:1px solid rgba(78,204,163,.3);border-radius:var(--r-xl);padding:24px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+              <div style="display:flex;align-items:center;gap:10px">
+                <div style="width:32px;height:32px;background:rgba(78,204,163,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">✍️</div>
+                <div>
+                  <div style="font-size:13px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Send This Next</div>
+                  <div style="font-size:11px;color:var(--dim)">Copy and send — written for this exact conversation</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button onclick="coachCopyReply('exp')" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:7px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📋 Copy</button>
+                <button onclick="coachAlternative('exp')" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--r-md);padding:7px 14px;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">↺ Alternative</button>
+              </div>
+            </div>
+            <div id="exp-coach-reply" style="font-size:13px;color:var(--white);line-height:1.9;white-space:pre-wrap;background:var(--bg3);border-radius:var(--r-md);padding:16px;font-family:'Inter',sans-serif"></div>
+          </div>
+
+          <!-- 3. Reasoning + Follow-up side by side -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+                <div style="font-size:18px">💡</div>
+                <div style="font-size:12px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">Why This Works</div>
+              </div>
+              <div id="exp-coach-reasoning" style="font-size:12px;color:var(--muted);line-height:1.8;white-space:pre-wrap"></div>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="font-size:18px">📅</div>
+                  <div style="font-size:12px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">If They Go Silent</div>
+                </div>
+                <button onclick="coachCopyFollowUp('exp')" style="background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;font-weight:700;font-family:'Poppins',sans-serif">Copy</button>
+              </div>
+              <div id="exp-coach-followup" style="font-size:12px;color:var(--muted);line-height:1.8;white-space:pre-wrap"></div>
+            </div>
+          </div>
+
+          <!-- 4. Red flags -->
+          <div id="exp-coach-redflag-wrap" style="background:rgba(255,80,80,.04);border:1px solid rgba(255,80,80,.15);border-radius:var(--r-xl);padding:20px;margin-bottom:16px;display:none">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <div style="font-size:18px">🚩</div>
+              <div style="font-size:12px;font-weight:900;color:#ff6b6b;font-family:'Poppins',sans-serif">Watch Out</div>
+            </div>
+            <div id="exp-coach-redflag" style="font-size:12px;color:rgba(255,107,107,.8);line-height:1.8;white-space:pre-wrap"></div>
+          </div>
+
+          <!-- Re-analyse -->
+          <div style="text-align:center">
+            <button onclick="coachAnalyse('exp')" style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:var(--r-md);padding:10px 24px;color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">↺ Re-analyse with new messages</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
 
     <!-- Affiliate DM scripts render target -->
     <div id="aff-scripts-list" style="margin-bottom:1.5rem"></div>
@@ -5621,6 +5763,23 @@ button[onclick="generateOffer()"] {
               <option>Personal Development &amp; Mindset</option>
               <option>Spirituality &amp; Faith</option>
               <option>Freelancing &amp; Agency Services</option>
+              <option>Real Estate &amp; Property</option>
+              <option>Affiliate Marketing</option>
+              <option>Beauty &amp; Fashion</option>
+              <option>Food &amp; Nutrition</option>
+              <option>Technology &amp; SaaS</option>
+              <option>Travel &amp; Lifestyle</option>
+              <option>Arts, Music &amp; Creative</option>
+              <option>Education &amp; Online Courses</option>
+              <option>Parenting &amp; Family</option>
+              <option>Legal &amp; Compliance Services</option>
+              <option>Career Coaching &amp; Job Search</option>
+              <option>Pet &amp; Animal</option>
+              <option>Sustainability &amp; Green Living</option>
+              <option>Mental Health &amp; Therapy Coaching</option>
+              <option>Home &amp; Interior Design</option>
+              <option>Sports Performance &amp; Athletic Coaching</option>
+              <option>Music Production &amp; Audio</option>
             </select>
           </div>
 
@@ -6703,6 +6862,21 @@ button[onclick="generateOffer()"] {
       </div>
     </div>
 
+    <!-- Market Pulse staleness banner — only shown when intel is 30+ days old -->
+    <div id="br-pulse-banner" style="display:none;padding:0 1.25rem;margin-bottom:12px">
+      <div style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);border-radius:12px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:20px;flex-shrink:0">📡</div>
+          <div>
+            <div style="font-size:12px;font-weight:800;color:#F5C842;font-family:Poppins,sans-serif">Market Pulse — Intel May Be Stale</div>
+            <div style="font-size:10px;color:var(--dim);margin-top:2px" id="br-pulse-desc">Your Boardroom intelligence is over 30 days old. Markets move. Run a quick pulse check to update what's changed.</div>
+          </div>
+        </div>
+        <button onclick="brRunMarketPulse()" id="br-pulse-btn" style="padding:8px 18px;background:linear-gradient(135deg,#F5C842,#d4a800);border:none;border-radius:8px;color:#080808;font-size:11px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap;flex-shrink:0">🔄 Refresh Market Pulse</button>
+      </div>
+      <div id="br-pulse-status" style="display:none;font-size:11px;color:var(--teal);padding:8px 4px"></div>
+    </div>
+
     <!-- Restored plan banner -->
     <div id="br-restored-banner" style="display:none;padding:0 1.25rem;margin-bottom:12px">
       <div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:12px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px">
@@ -7099,6 +7273,16 @@ button[onclick="generateOffer()"] {
           </div>
           <div id="avs-vpe-status" style="font-size:11px;color:var(--teal);margin-bottom:8px;display:none"></div>
           <div id="avs-vpe-grid" style="display:flex;flex-direction:column;gap:6px"></div>
+
+          <!-- Custom question input -->
+          <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border2)">
+            <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:6px">Or type your own question</div>
+            <div style="display:flex;gap:6px">
+              <input id="avs-vpe-custom-q" class="fi" placeholder="Type any question your audience asks…" style="flex:1;font-size:11px;padding:8px 10px" />
+              <button onclick="avsVpeUseCustomQ()" style="background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:var(--r-md);padding:7px 12px;color:#F5C842;font-size:10px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap">Use →</button>
+            </div>
+          </div>
+
           <div id="avs-vpe-selected" style="display:none;background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.25);border-radius:var(--r-md);padding:10px 14px;margin-top:8px">
             <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#F5C842;margin-bottom:4px">Selected Question</div>
             <div id="avs-vpe-selected-text" style="font-size:12px;font-weight:700;color:var(--white);line-height:1.5"></div>
@@ -7738,12 +7922,41 @@ button[onclick="generateOffer()"] {
       <!-- Step 2 -->
       <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
         <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Step 2 — Write Your Post</div>
-        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Select a question above. E-OS Intelligence writes using your offer, avatar and boardroom strategy.</div>
+        <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Select a question above — or type your own. E-OS Intelligence writes using your offer, avatar and boardroom strategy.</div>
         <div style="margin-bottom:12px" id="vpe-selected-q-display" style="display:none">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Selected Question</div>
           <div id="vpe-topic-display" style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:var(--r-md);padding:10px 14px;font-size:13px;font-weight:700;color:var(--white);line-height:1.5">Pick a question from Step 1 above →</div>
           <input id="vpe-topic" style="display:none">
         </div>
+
+        <!-- Custom question input -->
+        <div style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim)">Or type your own question</div>
+            <div style="font-size:10px;color:var(--dim)">Overrides the selected question above</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <input id="vpe-custom-question" class="fi" placeholder="e.g. Why do most people fail at affiliate marketing in the first 90 days?" style="flex:1;font-size:12px" oninput="vpeOnCustomQuestion()" />
+            <button onclick="vpeUseCustomQuestion()" style="background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:var(--r-md);padding:9px 16px;color:#F5C842;font-size:11px;font-weight:800;cursor:pointer;font-family:'Poppins',sans-serif;white-space:nowrap">Use This →</button>
+          </div>
+        </div>
+
+        <!-- Angle selector -->
+        <div style="margin-bottom:16px">
+          <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Post Angle</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap" id="vpe-angle-grid">
+            <button class="vpe-angle-btn vpe-angle-active" data-angle="value" onclick="vpeSetAngle(this)" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:20px;padding:5px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">💡 Value</button>
+            <button class="vpe-angle-btn" data-angle="story" onclick="vpeSetAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📖 Story</button>
+            <button class="vpe-angle-btn" data-angle="contrarian" onclick="vpeSetAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">⚡ Contrarian</button>
+            <button class="vpe-angle-btn" data-angle="myth" onclick="vpeSetAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🚫 Myth Bust</button>
+            <button class="vpe-angle-btn" data-angle="story-bts" onclick="vpeSetAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🎬 Behind Scenes</button>
+            <button class="vpe-angle-btn" data-angle="listicle" onclick="vpeSetAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📋 Listicle</button>
+            <button class="vpe-angle-btn" data-angle="proof" onclick="vpeSetAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🏆 Proof</button>
+            <button class="vpe-angle-btn" data-angle="promotion" onclick="vpeSetAngle(this)" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:5px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔥 Promotion</button>
+          </div>
+          <input type="hidden" id="vpe-angle" value="value" />
+        </div>
+
         <div style="margin-bottom:16px">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Platform</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -8360,22 +8573,22 @@ button[onclick="generateOffer()"] {
 
       <div id="fb-partnership-links" style="display:none;margin-top:var(--sp-4);background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.18);border-radius:var(--r-md);padding:18px 20px">
         <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px">Your Affiliate Checkout Links</div>
-        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">Paste your CopeCart affiliate link for each tier you're approved to promote. Leave a tier blank if you're not approved for it — that button will be hidden on your page.</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:6px;line-height:1.6">Find your links in CopeCart → <strong style="color:var(--muted)">Affiliate Area → My Affiliate Links</strong> — you'll see a separate link for each product you're approved for. Paste only the ones you have. Leave a tier blank if you're not approved — its button is hidden on your page automatically.</div>
         <div class="inp-box" style="margin-bottom:10px">
-          <div class="inp-lbl">Your affiliate ID or short name (used in your page URL)</div>
+          <div class="inp-lbl">Your affiliate ID or short name <span style="color:var(--dim);font-weight:400">(auto-filled from your profile — you can change it)</span></div>
           <input id="fb-aff-id" class="fi" placeholder="e.g. john-smith" style="margin-top:4px" />
         </div>
         <div class="inp-box" style="margin-bottom:10px">
-          <div class="inp-lbl">🥉 Starter tier link</div>
-          <input id="fb-aff-starter" class="fi" placeholder="https://app.cope.com/products/...?ref=..." style="margin-top:4px" />
+          <div class="inp-lbl">🥉 Starter tier link <span style="color:var(--dim);font-weight:400">— $1,000 entry · your commission is set in CopeCart</span></div>
+          <input id="fb-aff-starter" class="fi" placeholder="CopeCart → Affiliate Area → My Affiliate Links → Starter product" style="margin-top:4px" />
         </div>
         <div class="inp-box" style="margin-bottom:10px">
-          <div class="inp-lbl">🥈 Pro tier link</div>
-          <input id="fb-aff-pro" class="fi" placeholder="https://app.cope.com/products/...?ref=..." style="margin-top:4px" />
+          <div class="inp-lbl">🥈 Pro tier link <span style="color:var(--dim);font-weight:400">— $2,000 entry · only if you joined Pro or Elite</span></div>
+          <input id="fb-aff-pro" class="fi" placeholder="CopeCart → Affiliate Area → My Affiliate Links → Pro product" style="margin-top:4px" />
         </div>
         <div class="inp-box">
-          <div class="inp-lbl">👑 Elite tier link</div>
-          <input id="fb-aff-elite" class="fi" placeholder="https://app.cope.com/products/...?ref=..." style="margin-top:4px" />
+          <div class="inp-lbl">👑 Elite tier link <span style="color:var(--dim);font-weight:400">— $3,000 entry · only if you joined Elite</span></div>
+          <input id="fb-aff-elite" class="fi" placeholder="CopeCart → Affiliate Area → My Affiliate Links → Elite product" style="margin-top:4px" />
         </div>
       </div>
 
@@ -8583,22 +8796,22 @@ button[onclick="generateOffer()"] {
           <div id="fbpl-dock-expanded">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
               <div style="font-size:12px;font-weight:800;color:var(--white)">🔗 Add Your Checkout Links</div>
-              <div style="font-size:10px;color:var(--dim)">Leave a tier blank if you're not approved — it's hidden automatically</div>
+              <div style="font-size:10px;color:var(--dim)">CopeCart → Affiliate Area → My Affiliate Links</div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
               <div>
-                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">🥉 Starter</div>
-                <input id="fbpl-starter" class="fi" placeholder="Paste link…" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
+                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">🥉 Starter <span style="color:var(--dim2,#555)">· $1,000 entry</span></div>
+                <input id="fbpl-starter" class="fi" placeholder="Your Starter affiliate link" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
                 <div id="fbpl-starter-status" style="font-size:9px;margin-top:3px;color:var(--dim2,#666)"></div>
               </div>
               <div>
-                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">🥈 Pro</div>
-                <input id="fbpl-pro" class="fi" placeholder="Paste link…" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
+                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">🥈 Pro <span style="color:var(--dim2,#555)">· $2,000 · Pro/Elite only</span></div>
+                <input id="fbpl-pro" class="fi" placeholder="Your Pro affiliate link" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
                 <div id="fbpl-pro-status" style="font-size:9px;margin-top:3px;color:var(--dim2,#666)"></div>
               </div>
               <div>
-                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">👑 Elite</div>
-                <input id="fbpl-elite" class="fi" placeholder="Paste link…" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
+                <div style="font-size:10px;color:var(--dim);margin-bottom:3px">👑 Elite <span style="color:var(--dim2,#555)">· $3,000 · Elite only</span></div>
+                <input id="fbpl-elite" class="fi" placeholder="Your Elite affiliate link" style="font-size:11px;padding:8px 10px" oninput="fbUpdateTierStatus()" />
                 <div id="fbpl-elite-status" style="font-size:9px;margin-top:3px;color:var(--dim2,#666)"></div>
               </div>
             </div>
@@ -10244,7 +10457,15 @@ const NICHE_DM_CONFIG = {
   "Technology & SaaS": {metric:"monthly recurring revenue",resource:"SaaS Growth Audit",audience:"indie hackers and SaaS founders",result:"consistent MRR growth and product-market fit",pain:"building features nobody asked for or struggling to market their product"},
   "Education & Online Courses": {metric:"course revenue target",resource:"Course Launch Blueprint",audience:"educators and course creators",result:"a launched and selling course with consistent enrolments",pain:"building a course nobody buys or not knowing how to market it"},
   "Beauty & Fashion": {metric:"beauty business revenue goal",resource:"Beauty Business Blueprint",audience:"beauty enthusiasts and aspiring makeup artists",result:"a monetised beauty brand with multiple income streams",pain:"building someone else's brand through deals without real ownership"},
-  "Food & Nutrition": {metric:"health and nutrition goal",resource:"Nutrition Lifestyle Blueprint",audience:"people wanting to eat better and feel their best",result:"a sustainable, enjoyable healthy lifestyle with consistent energy",pain:"restrictive diets, complicated meal plans, or expensive health food"}
+  "Food & Nutrition": {metric:"health and nutrition goal",resource:"Nutrition Lifestyle Blueprint",audience:"people wanting to eat better and feel their best",result:"a sustainable, enjoyable healthy lifestyle with consistent energy",pain:"restrictive diets, complicated meal plans, or expensive health food"},
+  "Legal & Compliance Services": {metric:"monthly advisory revenue",resource:"Legal Business Growth Assessment",audience:"small business owners and individuals navigating legal or compliance challenges",result:"clear, confident decisions on their legal situation without expensive hourly fees or confusing jargon",pain:"feeling overwhelmed, exposed, or like they cannot afford proper legal guidance"},
+  "Career Coaching & Job Search": {metric:"target salary or career goal",resource:"Career Clarity Assessment",audience:"employed professionals who feel stuck, underpaid, or in the wrong role",result:"a clear career strategy, a standout application, and a job offer that actually excites them",pain:"applying for hundreds of jobs with no responses, or feeling trapped in a role they have outgrown"},
+  "Pet & Animal": {metric:"pet training or business goal",resource:"Pet Training Blueprint",audience:"pet owners struggling with behaviour issues, or pet professionals wanting to grow their income",result:"a well-behaved, happy pet — or a profitable pet coaching business built around their passion",pain:"expensive trainers that do not work long-term, or feeling like they are failing their animal"},
+  "Sustainability & Green Living": {metric:"sustainability or impact goal",resource:"Green Living Starter Guide",audience:"people who want to live more sustainably without the overwhelm or the expensive overhaul",result:"practical, affordable changes that genuinely reduce their footprint and align with their values",pain:"not knowing where to start, greenwashing, or feeling like individual actions do not matter"},
+  "Mental Health & Therapy Coaching": {metric:"wellbeing or recovery goal",resource:"Wellbeing Assessment",audience:"people managing anxiety, burnout, or emotional exhaustion who want real support without the waitlist",result:"practical tools and a supportive framework that helps them feel calmer, clearer, and more in control",pain:"being on long waitlists, feeling misunderstood, or trying to push through alone without it getting better"},
+  "Home & Interior Design": {metric:"home transformation goal",resource:"Home Design Style Assessment",audience:"homeowners or renters who want a beautiful, functional space without hiring an expensive designer",result:"a home they are genuinely proud of — organised, cohesive, and reflecting their personality",pain:"decision paralysis, wasted money on the wrong pieces, or rooms that just never come together"},
+  "Sports Performance & Athletic Coaching": {metric:"athletic performance goal",resource:"Performance Readiness Assessment",audience:"competitive athletes and driven fitness enthusiasts who want to reach the next level in their sport",result:"measurable performance gains — faster times, higher outputs, or peak condition when it counts",pain:"plateauing despite hard work, inconsistent results, or training blind without a structured system"},
+  "Music Production & Audio": {metric:"music income or production goal",resource:"Producer Income Blueprint",audience:"beatmakers, producers, and audio engineers who want to turn their craft into consistent income",result:"a music production business generating real revenue — through beat sales, licensing, mixing services, or courses",pain:"making great music nobody hears, undercharging for their work, or not knowing how to package and sell their skills"}
 };
 
 function getNicheDMConfig(){
@@ -10336,24 +10557,33 @@ window.setScriptsMode = function(mode, btn) {
   window._scriptsMode = mode;
   document.querySelectorAll('#page-scripts .tab').forEach(function(t){ t.classList.remove('on'); });
   if(btn) btn.classList.add('on');
-  var labels = {dm:'DM Outreach', warm:'Warm Lead Close', call:'Sales Call Close', objection:'Objection Kill', follow:'Follow-Up', queue:'DM Queue', manychat:'ManyChat'};
+  var labels = {dm:'DM Outreach', warm:'Warm Lead Close', call:'Sales Call Close', objection:'Objection Kill', follow:'Follow-Up', queue:'DM Queue', manychat:'ManyChat', coach:'Conversation Coach'};
   var lbl = document.getElementById('scripts-mode-label');
   if(lbl) lbl.textContent = labels[mode]||mode;
   var grid = document.getElementById('scripts-grid');
   var queuePanel = document.getElementById('scripts-queue-panel');
   var mcPanel = document.getElementById('scripts-manychat-panel');
+  var coachPanel = document.getElementById('scripts-coach-panel');
   if(mode === 'queue') {
     if(grid) grid.style.display = 'none';
     if(queuePanel) { queuePanel.style.display = 'block'; renderDMQueue('expert'); }
     if(mcPanel) mcPanel.style.display = 'none';
+    if(coachPanel) coachPanel.style.display = 'none';
   } else if(mode === 'manychat') {
     if(grid) grid.style.display = 'none';
     if(queuePanel) queuePanel.style.display = 'none';
     if(mcPanel) { mcPanel.style.display = 'block'; renderManyChatPanel('expert'); }
+    if(coachPanel) coachPanel.style.display = 'none';
+  } else if(mode === 'coach') {
+    if(grid) grid.style.display = 'none';
+    if(queuePanel) queuePanel.style.display = 'none';
+    if(mcPanel) mcPanel.style.display = 'none';
+    if(coachPanel) coachPanel.style.display = 'block';
   } else {
     if(grid) grid.style.display = '';
     if(queuePanel) queuePanel.style.display = 'none';
     if(mcPanel) mcPanel.style.display = 'none';
+    if(coachPanel) coachPanel.style.display = 'none';
     renderScripts();
   }
 };
@@ -10999,18 +11229,37 @@ window.setAffDMTab = function(mode, btn) {
   const grid  = document.getElementById('aff-dm-scripts-grid');
   const qp    = document.getElementById('aff-dm-queue-panel');
   const mcp   = document.getElementById('aff-dm-manychat-panel');
-  if (mode === 'queue') {
-    if (grid) grid.style.display = 'none';
-    if (qp)   { qp.style.display = 'block'; renderDMQueue('affiliate'); }
-    if (mcp)  mcp.style.display = 'none';
-  } else if (mode === 'manychat') {
+  if (mode === 'coach') {
     if (grid) grid.style.display = 'none';
     if (qp)   qp.style.display = 'none';
-    if (mcp)  { mcp.style.display = 'block'; renderManyChatPanel('affiliate'); }
+    if (mcp)  mcp.style.display = 'none';
+    // Render the shared conversation coach inline inside the affiliate DM section
+    var existing = document.getElementById('aff-dm-coach-panel');
+    if (!existing) {
+      var cp = document.createElement('div');
+      cp.id = 'aff-dm-coach-panel';
+      cp.innerHTML = coachGetPanelHTML('aff');
+      var body = document.getElementById('aff-dms-body');
+      if (body) body.appendChild(cp);
+    } else {
+      existing.style.display = 'block';
+    }
   } else {
-    if (grid) { grid.style.display = ''; renderAffDMTab(mode); }
-    if (qp)   qp.style.display = 'none';
-    if (mcp)  mcp.style.display = 'none';
+    var cp = document.getElementById('aff-dm-coach-panel');
+    if (cp) cp.style.display = 'none';
+    if (mode === 'queue') {
+      if (grid) grid.style.display = 'none';
+      if (qp)   { qp.style.display = 'block'; renderDMQueue('affiliate'); }
+      if (mcp)  mcp.style.display = 'none';
+    } else if (mode === 'manychat') {
+      if (grid) grid.style.display = 'none';
+      if (qp)   qp.style.display = 'none';
+      if (mcp)  { mcp.style.display = 'block'; renderManyChatPanel('affiliate'); }
+    } else {
+      if (grid) { grid.style.display = ''; renderAffDMTab(mode); }
+      if (qp)   qp.style.display = 'none';
+      if (mcp)  mcp.style.display = 'none';
+    }
   }
 };
 
@@ -15659,6 +15908,182 @@ const NICHE_CONFIG = {
       value_topics:["5-ingredient healthy meals","meal prep for beginners","eating healthy on a budget","understanding macros simply","breaking sugar addiction"],
       hooks:["The reason you cannot stick to healthy eating (it is not willpower).","5 meals I eat every week that take under 20 minutes to make.","You don't need to track calories to eat healthy — do this instead.","Why your diet keeps failing after 2 weeks (the honest answer).","The budget grocery list that feeds you healthily for under $50/week."],
       cta_angle:"free nutrition and meal planning starter guide"
+    }
+  },
+  "Legal & Compliance Services": {
+    avatar: {
+      job_placeholder:"e.g. Small business owner, startup founder, individual needing legal guidance",industry_placeholder:"e.g. Business law, immigration, employment law, compliance",
+      current_placeholder:"e.g. Avoids legal questions because solicitors feel expensive and unapproachable. Makes decisions based on guesswork and hopes nothing goes wrong. Knows they have exposure but does not know how to fix it without spending thousands on hourly fees...",
+      desired_placeholder:"e.g. Feels legally protected and confident in their business decisions. Understands their obligations clearly. Has agreements, contracts and compliance sorted without paying premium hourly rates for every question...",
+      fear_placeholder:"e.g. Getting sued, making a costly legal mistake, not knowing what I don't know",
+      tried_placeholder:"e.g. Google searches, generic templates, one expensive solicitor meeting, ignoring the problem",
+      transformation_placeholder:"e.g. Get my business legally protected with proper contracts and compliance in place within 30 days",
+      influences_placeholder:"e.g. Legal Eagle YouTube, r/legaladvice, local business associations",
+      objections_placeholder:"e.g. 'I cannot afford a solicitor', 'My business is too small to need this', 'I will sort it when something goes wrong'",
+      pains:["Scared of legal exposure they don't understand","Can't afford hourly solicitor fees","Using generic templates that may not protect them","No clear contracts with clients or suppliers","Don't know their compliance obligations","Avoiding legal issues until they become crises","Making decisions blindly hoping nothing goes wrong","No idea where to start with legal basics"],
+      keywords_placeholder:"e.g. small business legal protection, contract templates, compliance basics",income_label:"Monthly advisory service revenue goal"
+    },
+    content:{
+      audience_type:"small business owners and individuals navigating legal and compliance challenges",
+      pain_themes:["legal exposure","expensive solicitors","not understanding obligations","generic contracts","compliance confusion"],
+      desire_themes:["legal protection","business confidence","clear contracts","compliance peace of mind","affordable legal guidance"],
+      value_topics:["5 contracts every small business needs","how to protect yourself without a solicitor","the compliance checklist for new businesses","when you actually need a lawyer vs when you don't","how to read a contract before you sign it"],
+      hooks:["The legal mistake most small business owners make in year one — and how to fix it.","You don't need a solicitor for every legal question. Here's what you actually need.","5 contracts every business owner should have in place before anything goes wrong.","The compliance checklist nobody gives you when you start a business.","How to protect your business legally without spending thousands on hourly fees."],
+      cta_angle:"free legal protection assessment for your business"
+    }
+  },
+  "Career Coaching & Job Search": {
+    avatar: {
+      job_placeholder:"e.g. Mid-level professional, recent graduate, career changer",industry_placeholder:"e.g. Corporate, tech, finance, healthcare, marketing",
+      current_placeholder:"e.g. Has been applying for roles for months with no responses. Feels undervalued in their current job but does not know how to make a move. Sends the same CV to hundreds of jobs and hears nothing. Knows they are capable of more but cannot seem to break through...",
+      desired_placeholder:"e.g. Gets responses to every application. Has a clear career strategy and knows exactly which roles to target. Negotiates confidently. Lands a role that actually excites them at a salary they deserve...",
+      fear_placeholder:"e.g. Being rejected again, making the wrong career move, not being good enough",
+      tried_placeholder:"e.g. Job boards, updating CV themselves, LinkedIn applications, recruiters",
+      transformation_placeholder:"e.g. Land a role that excites me with a 30% salary increase within 90 days",
+      influences_placeholder:"e.g. LinkedIn career pages, Austin Belcak, r/jobs, Ask a Manager",
+      objections_placeholder:"e.g. 'The market is too competitive', 'My CV is fine', 'I don't have enough experience'",
+      pains:["Sending hundreds of applications with no responses","Feels stuck and undervalued in current role","CV not getting past screening","No interview skills or confidence","Doesn't know how to negotiate salary","Career direction feels unclear","LinkedIn profile not attracting attention","Terrified of career change and starting over"],
+      keywords_placeholder:"e.g. how to get a job fast, CV tips, career change advice, salary negotiation",income_label:"Target monthly salary"
+    },
+    content:{
+      audience_type:"professionals looking to advance their career, land better roles, or make a career change",
+      pain_themes:["job search frustration","no interview callbacks","feeling stuck in current role","salary plateau","career direction confusion"],
+      desire_themes:["dream job","salary increase","career clarity","professional confidence","meaningful work"],
+      value_topics:["how to get past ATS screening","LinkedIn profile optimisation","salary negotiation scripts","how to answer the toughest interview questions","career change strategy for non-traditional candidates"],
+      hooks:["Why you are not getting callbacks despite a strong CV (the real reason).","The salary negotiation script that got me 25% more than the offer.","Applying to hundreds of jobs and hearing nothing? Stop doing this immediately.","How I changed careers with no experience in the new field — and got hired in 60 days.","The LinkedIn profile change that tripled my recruiter messages in one week."],
+      cta_angle:"free career clarity assessment"
+    }
+  },
+  "Pet & Animal": {
+    avatar: {
+      job_placeholder:"e.g. Dog owner, pet trainer, animal behaviour coach, pet business owner",industry_placeholder:"e.g. Dog training, pet care, animal behaviour, pet products",
+      current_placeholder:"e.g. Dog pulls on the lead, barks constantly, jumps on visitors, or shows aggression. Owner feels embarrassed, exhausted, and like they have failed their pet. Has tried YouTube videos and various trainers with inconsistent results. Feels judged by other dog owners...",
+      desired_placeholder:"e.g. Has a calm, obedient dog that makes them proud. Walks are enjoyable. Guests are not jumped on. Home is peaceful. Feels like a confident pet owner who genuinely understands their animal...",
+      fear_placeholder:"e.g. My dog will never change, something is wrong with my pet, people judging me in public",
+      tried_placeholder:"e.g. YouTube tutorials, puppy classes, multiple trainers, dominance-based methods",
+      transformation_placeholder:"e.g. Have a calm, well-behaved dog I can take anywhere within 8 weeks",
+      influences_placeholder:"e.g. Cesar Millan, Zak George, r/dogs, local dog training groups",
+      objections_placeholder:"e.g. 'My dog is too old to change', 'My breed is just like this', 'I don't have time for training'",
+      pains:["Dog has behaviour problems they can't fix","Embarrassed or stressed by their pet in public","Tried trainers that did not work long-term","Not sure if the behaviour will get worse","Other people judging their pet or parenting","Walks are a battle not a pleasure","Guests avoid their home because of the dog","Feeling like they are failing their animal"],
+      keywords_placeholder:"e.g. dog training tips, stop dog barking, leash pulling dog, obedient dog",income_label:"Monthly pet coaching or business revenue goal"
+    },
+    content:{
+      audience_type:"pet owners struggling with behaviour issues and pet professionals building their business",
+      pain_themes:["dog behaviour problems","public embarrassment with pet","failed training attempts","reactive dog","leash pulling","barking"],
+      desire_themes:["obedient calm dog","enjoyable walks","confident pet ownership","pet that brings joy not stress"],
+      value_topics:["how to stop leash pulling in 10 minutes","the biggest dog training mistake owners make","why dominance training makes things worse","reading your dog's body language","how to introduce your dog to strangers calmly"],
+      hooks:["Your dog is not being dominant — they are anxious. Here's the difference.","The one change that stopped my dog's leash pulling in three days.","Why your dog misbehaves around strangers (and the fix is not what you think).","The biggest mistake dog owners make that makes behaviour worse.","Your dog is trying to tell you something. Here's how to listen."],
+      cta_angle:"free dog behaviour assessment"
+    }
+  },
+  "Sustainability & Green Living": {
+    avatar: {
+      job_placeholder:"e.g. Eco-conscious professional, sustainability blogger, green lifestyle coach",industry_placeholder:"e.g. Sustainable living, zero waste, ethical consumerism, green business",
+      current_placeholder:"e.g. Wants to live more sustainably but feels overwhelmed by where to start. Worried about greenwashing. Feels guilty about their footprint but does not know what actually makes a difference. Sustainable products feel expensive and inconvenient...",
+      desired_placeholder:"e.g. Has a genuinely sustainable lifestyle that feels natural, not restrictive. Knows exactly which changes make the biggest impact. Spends less on stuff they do not need. Feels aligned with their values every day...",
+      fear_placeholder:"e.g. Individual actions don't matter, being judged as preachy, being greenwashed",
+      tried_placeholder:"e.g. Reusable bags, switching to organic brands, recycling, reading articles",
+      transformation_placeholder:"e.g. Build a genuinely low-waste lifestyle with practical swaps that save money within 60 days",
+      influences_placeholder:"e.g. Sustainably Vegan, Shelbizleee, r/zerowaste, The Good Trade",
+      objections_placeholder:"e.g. 'Sustainable living is too expensive', 'My individual choices don't matter', 'It's too inconvenient'",
+      pains:["Overwhelmed by where to start with sustainability","Suspicious of greenwashing and marketing claims","Sustainable products feel expensive","Individual actions feel pointless against big systemic issues","Lifestyle changes feel too restrictive or inconvenient","Doesn't know which swaps actually make a difference","Guilt about their environmental footprint","Feels alone in caring about sustainability"],
+      keywords_placeholder:"e.g. zero waste living, sustainable lifestyle tips, eco-friendly swaps, reduce plastic",income_label:"Monthly sustainability coaching or content revenue goal"
+    },
+    content:{
+      audience_type:"environmentally conscious people building more sustainable lifestyles",
+      pain_themes:["greenwashing confusion","sustainability overwhelm","eco-anxiety","expensive eco products","not knowing where to start"],
+      desire_themes:["genuine sustainable lifestyle","reduced footprint","values-aligned living","saving money through sustainability","simple eco habits"],
+      value_topics:["5 swaps that actually reduce your footprint (not just feel good)","how to spot greenwashing before you buy","sustainable living on a tight budget","zero waste kitchen basics","the changes that make the biggest environmental impact"],
+      hooks:["Stop buying bamboo toothbrushes. This is what actually reduces your footprint.","The sustainability myth that makes people give up before they start.","How I reduced my household waste by 80% without spending more money.","The greenwashing checklist before you buy anything 'eco'.","Sustainability does not have to be expensive or inconvenient — here's proof."],
+      cta_angle:"free sustainable living starter guide"
+    }
+  },
+  "Mental Health & Therapy Coaching": {
+    avatar: {
+      job_placeholder:"e.g. Anxiety coach, burnout recovery coach, trauma-informed practitioner",industry_placeholder:"e.g. Mental wellness coaching, anxiety, stress management, emotional wellbeing",
+      current_placeholder:"e.g. Living with persistent anxiety, burnout, or emotional exhaustion that is affecting every area of life. On a long NHS or therapy waitlist. Trying to push through alone but it is not working. Feels like they should just be able to cope...",
+      desired_placeholder:"e.g. Feels calm and in control of their emotional responses. Has tools that actually work for their specific situation. Sleeps well. Has energy for the things they care about. No longer feels like they are just surviving...",
+      fear_placeholder:"e.g. Being judged for struggling, it getting worse, never fully recovering",
+      tried_placeholder:"e.g. NHS therapy waitlist, self-help books, meditation apps, talking to friends",
+      transformation_placeholder:"e.g. Manage anxiety day-to-day with practical tools and feel genuinely calm within 90 days",
+      influences_placeholder:"e.g. Therapy in a Nutshell, Dr Julie Smith, r/anxiety, The Anxiety and Worry Workbook",
+      objections_placeholder:"e.g. 'I should be able to handle this myself', 'Coaching is not the same as therapy', 'I've tried things before and they haven't worked'",
+      pains:["Living with anxiety or burnout that is affecting daily life","Long therapy waitlists with no support in the meantime","Trying to push through alone without it improving","Feels like they should be able to cope","Tired of advice that doesn't work for their specific situation","Cannot afford weekly private therapy","Struggling to function at work or in relationships","Feels misunderstood by people who haven't experienced it"],
+      keywords_placeholder:"e.g. anxiety help, burnout recovery, stress management tools, emotional wellbeing",income_label:"Monthly coaching revenue goal"
+    },
+    content:{
+      audience_type:"people managing anxiety, burnout, or emotional exhaustion who want real, practical support",
+      pain_themes:["anxiety management","burnout recovery","therapy waitlists","emotional exhaustion","stress overload","not being able to cope"],
+      desire_themes:["calm and control","emotional resilience","genuine recovery","tools that actually work","feeling like yourself again"],
+      value_topics:["practical anxiety tools that work in the moment","how to recognise burnout before it hits","the difference between anxiety coaching and therapy","nervous system regulation basics","building emotional resilience daily"],
+      hooks:["Anxiety is not a mindset problem. Here is what it actually is and what helps.","The burnout warning signs most people miss until it is too late.","You are not weak for struggling. You are missing the right tools.","Why pushing through anxiety makes it worse — and what to do instead.","3 practical things that help anxiety more than most therapy advice."],
+      cta_angle:"free wellbeing and anxiety assessment"
+    }
+  },
+  "Home & Interior Design": {
+    avatar: {
+      job_placeholder:"e.g. Interior design coach, home stylist, home organiser, DIY home creator",industry_placeholder:"e.g. Interior design, home organisation, home renovation, lifestyle",
+      current_placeholder:"e.g. Lives in a home that never quite comes together. Buys random pieces that do not work. Scrolls Pinterest for hours with no idea how to translate the look to their own space. Feels like their home does not reflect who they are. Renovation feels overwhelming and expensive...",
+      desired_placeholder:"e.g. Has a home they are genuinely proud to have people in. Every room has a clear style and it all works together. Bought the right pieces first time. Did not overspend. Their home feels like them...",
+      fear_placeholder:"e.g. Spending money on the wrong things, no natural eye for design, renting so changes feel pointless",
+      tried_placeholder:"e.g. Pinterest boards, IKEA trips, interior design YouTube, buying individual pieces they saw online",
+      transformation_placeholder:"e.g. Transform my main living areas into a cohesive, beautiful space I love without overspending",
+      influences_placeholder:"e.g. Architectural Digest, Studio McGee, Mr Kate, r/malelivingspace, Amber Interiors",
+      objections_placeholder:"e.g. 'I don't have a good eye for design', 'It's too expensive to do properly', 'I rent so I can't do much'",
+      pains:["Home never comes together despite effort","Buys things that don't work with each other","No clear style or direction","Wasted money on wrong purchases","Overwhelmed by options and decisions","Does not know how to start a room transformation","Renting feels like an excuse to not bother","Scrolls Pinterest but cannot translate it"],
+      keywords_placeholder:"e.g. interior design tips for beginners, living room transformation, home styling on a budget",income_label:"Monthly design coaching or content revenue goal"
+    },
+    content:{
+      audience_type:"homeowners and renters wanting a beautiful, cohesive home without an interior designer",
+      pain_themes:["home never coming together","wasted money on wrong purchases","no clear design style","decision paralysis","rental home limitations"],
+      desire_themes:["home they are proud of","cohesive design","space that reflects their personality","beautiful on a budget","easy transformation"],
+      value_topics:["how to find your interior design style in 10 minutes","the 5 pieces every room needs before anything else","how to make a rental feel like yours","mixing furniture styles without it looking wrong","the biggest home styling mistakes and how to avoid them"],
+      hooks:["Stop buying furniture until you do this one thing first.","The reason your room never looks as good as the ones you save on Pinterest.","You don't need a designer. You need to understand these 3 principles.","How I transformed my living room for £400 and why it finally worked.","The colour rule that makes any room look expensive on a budget."],
+      cta_angle:"free home design style assessment"
+    }
+  },
+  "Sports Performance & Athletic Coaching": {
+    avatar: {
+      job_placeholder:"e.g. Speed coach, strength coach, youth sports coach, athletic performance trainer",industry_placeholder:"e.g. Sports performance, athletic training, youth athletics, competitive sport",
+      current_placeholder:"e.g. Training consistently but results have plateaued. Does not know what to change. Comparing to teammates and feeling behind. Parents of young athletes unsure how to support development without burning them out. Coaches running programmes built on feel rather than data...",
+      desired_placeholder:"e.g. Measurable performance gains — faster times, higher outputs, peak condition for competition. A structured training system that progressively builds. Confidence they are doing the right things in the right order...",
+      fear_placeholder:"e.g. Injuring themselves, burning out, peaking too early, falling behind teammates",
+      tried_placeholder:"e.g. Generic online programmes, watching YouTube training videos, training harder not smarter",
+      transformation_placeholder:"e.g. Improve my 40-yard dash time by 0.3 seconds and peak for the season in 12 weeks",
+      influences_placeholder:"e.g. Tony Holler, EXOS, Vertical Jump Bible, r/weightroom, sports performance podcasts",
+      objections_placeholder:"e.g. 'I already train hard enough', 'Generic programmes online are the same thing', 'I cannot afford a performance coach'",
+      pains:["Performance plateau despite consistent training","Training hard but not smarter","No structured progressive programme","No data to understand what is actually working","Coaches not specialised in performance","Fear of injury from overtraining","Not peaking at the right time for competition","Parents pushing without understanding athlete development"],
+      keywords_placeholder:"e.g. athletic performance training, speed training, strength programme for athletes, vertical jump programme",income_label:"Monthly coaching or programme revenue goal"
+    },
+    content:{
+      audience_type:"competitive athletes and driven coaches who want measurable performance improvement",
+      pain_themes:["performance plateau","training without a system","no measurable progress","injury fear","competition preparation"],
+      desire_themes:["measurable gains","peak performance","structured training","sport-specific results","competitive edge"],
+      value_topics:["why training harder causes plateaus","the science of peaking for competition","the most undertrained athletic quality in your sport","how to build a training block that actually progressively overloads","the data metrics every serious athlete should track"],
+      hooks:["You are not training too little. You are training wrong. Here's the difference.","The most undertrained quality in most athletes — and how to develop it in 6 weeks.","Why 90% of athletic programmes produce average results.","How elite athletes peak on competition day — and how to replicate it.","The training mistake that is costing you 10% of your potential performance."],
+      cta_angle:"free athletic performance assessment"
+    }
+  },
+  "Music Production & Audio": {
+    avatar: {
+      job_placeholder:"e.g. Beat maker, music producer, mixing engineer, audio engineer, music educator",industry_placeholder:"e.g. Music production, beat selling, audio engineering, music licensing",
+      current_placeholder:"e.g. Makes great music but has no idea how to sell it or build income from it. Posts beats online and gets listens but no sales. Knows their production is good enough but does not know how to package or market it. Feels like success is random and depends on luck or going viral...",
+      desired_placeholder:"e.g. Has consistent monthly income from beat sales, licensing, mixing services, or teaching production online. Has a system that brings in buyers. Is recognised in their lane and does not need to go viral to earn from their craft...",
+      fear_placeholder:"e.g. Giving away music for free and being taken advantage of, never making it, my style not being commercial enough",
+      tried_placeholder:"e.g. BeatStars, YouTube channel, Instagram posts, selling beats for $20",
+      transformation_placeholder:"e.g. Generate $3k/month from my production skills through beat sales and mixing services within 90 days",
+      influences_placeholder:"e.g. Busy Works Beats, In The Lab, r/WeAreTheMusicMakers, BeatStars community",
+      objections_placeholder:"e.g. 'The market is too saturated', 'I need more clout first', 'Real producers don't teach — they produce'",
+      pains:["Making great beats nobody is buying","Undercharging for production and mixing work","No system for consistent sales or clients","Feels invisible in a saturated market","Giving tracks away for free hoping for exposure","No idea how to package and price services","Dependent on placements that never come","Making music as a hobby that never becomes income"],
+      keywords_placeholder:"e.g. how to sell beats online, music producer income, beat licensing, mixing engineer clients",income_label:"Monthly music production income goal"
+    },
+    content:{
+      audience_type:"music producers, beatmakers and audio engineers turning their craft into consistent income",
+      pain_themes:["beats not selling","undercharging for production","no buyers despite good music","saturated market","income inconsistency"],
+      desire_themes:["consistent beat sales","music income","recognised in your lane","production business","earning from your craft"],
+      value_topics:["how to price your beats and mixing services properly","the beat licensing model that creates passive income","how to attract clients without a huge following","packaging your production skills as a service","building a beat store that sells while you sleep"],
+      hooks:["Your beats are not the problem. Your packaging and pricing are.","How I went from $20 beats to $500 placements — the shift nobody talks about.","The music producer income model that doesn't depend on going viral.","Why posting beats on Instagram doesn't sell beats (and what does).","The pricing mistake 90% of producers make that keeps them broke."],
+      cta_angle:"free music production income blueprint"
     }
   }
 };
@@ -22119,6 +22544,7 @@ window.renderAffDMScripts = function renderAffDMScripts(av, productName, commiss
       <button class="tab" onclick="setAffDMTab('ai',this)" style="flex:1;min-width:90px;font-size:10px">✨ AI Personalized</button>
       <button class="tab" onclick="setAffDMTab('queue',this)" style="flex:1;min-width:90px;font-size:10px">⚡ DM Queue</button>
       <button class="tab" onclick="setAffDMTab('manychat',this)" style="flex:1;min-width:90px;font-size:10px">🔗 ManyChat</button>
+      <button class="tab" onclick="setAffDMTab('coach',this)" style="flex:1;min-width:110px;font-size:10px;background:linear-gradient(135deg,rgba(108,99,255,.15),rgba(78,204,163,.1));border-color:rgba(108,99,255,.3)!important;color:var(--purple)!important">🧠 Coach</button>
     </div>
     <div id="aff-dm-scripts-grid"></div>
     <div id="aff-dm-queue-panel" style="display:none"></div>
@@ -23099,6 +23525,7 @@ async function avsVpeWriteScript() {
   var ctx   = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
   var type  = (document.getElementById('avs-video-type')||{}).value || 'reel';
   var angle = (document.getElementById('avs-script-angle')||{}).value || 'story';
+  var angleInstruction = VPE_ANGLE_PROMPTS[angle] || VPE_ANGLE_PROMPTS.story;
 
   var isShort  = ['reel','shorts','story'].includes(type);
   var wordTarget = isShort ? '150-185' : '165-200';
@@ -23121,6 +23548,7 @@ async function avsVpeWriteScript() {
 
   var prompt = 'You are an elite video script writer. Write a video script that directly answers this real audience question:\n\n'
     + 'QUESTION: ' + q.question + '\n\n'
+    + angleInstruction + '\n\n'
     + 'OFFER AND AUDIENCE CONTEXT:\n'
     + 'Niche: ' + niche + '\n'
     + 'Audience pain: ' + pain + '\n'
@@ -30779,6 +31207,8 @@ window.showGrowthTab = function(tab, btn) {
 // ─── Render user UI (same as before but uses real data) ──────────────────────
 function renderUserUI(user, userDocData, memberData) {
   const name     = userDocData.name || memberData?.name || user.displayName || user.email?.split('@')[0] || 'Member';
+  window._currentUserName  = name;
+  window._currentUserEmail = user.email || '';
   const rawPhoto = userDocData.photoURL || user.photoURL || '';
   const photo    = (rawPhoto && rawPhoto.startsWith('http') || rawPhoto.startsWith('data:')) ? rawPhoto : '';
   const joined   = userDocData.createdAt || memberData?.grantedAt || '';
@@ -31113,7 +31543,22 @@ function fbSelectType(card, type, name, icon) {
   // Partnership Page needs the affiliate's real checkout links — show that
   // form only for this type, since it's a fixed template, not AI-generated
   var linksForm = document.getElementById('fb-partnership-links');
-  if (linksForm) linksForm.style.display = (type === 'partnership') ? 'block' : 'none';
+  if (linksForm) {
+    linksForm.style.display = (type === 'partnership') ? 'block' : 'none';
+    if (type === 'partnership') {
+      // Auto-fill affiliate ID from user's name — convert to clean slug
+      // (lowercase, hyphens, no special chars). They can edit it freely,
+      // this is just a sensible starting point so the field isn't blank.
+      var affIdInput = document.getElementById('fb-aff-id');
+      if (affIdInput && !affIdInput.value) {
+        var rawName = window._currentUserName || window._currentUserEmail.split('@')[0] || '';
+        var slug = rawName.trim().toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '');
+        if (slug) affIdInput.value = slug;
+      }
+    }
+  }
 };
 
 // ── GENERATE FUNNEL ──
@@ -37019,6 +37464,7 @@ async function brBuildPlan() {
     window._boardroomIntel = intel;
     try {
       localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel));
+      brSaveToFirestore(intel);
       var _expState = JSON.parse(localStorage.getItem('eos_state_expert') || '{}');
       _expState.boardroomIntel = intel;
       localStorage.setItem('eos_state_expert', JSON.stringify(_expState));
@@ -37360,6 +37806,7 @@ window.brRegenerateTab = async function(tab) {
       if (window._boardroomIntel) window._boardroomIntel.funnelStrategy = newFunnel;
       panel.innerHTML = _brRenderFunnelStrategy(newFunnel, inp2);
       try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      brSaveToFirestore(window._boardroomIntel);
       return;
     }
     if (tab === 'content-strategy') {
@@ -37372,6 +37819,7 @@ window.brRegenerateTab = async function(tab) {
       if (newCS && newCS.platformStack) {
         if (window._boardroomIntel) window._boardroomIntel.contentStrategy = newCS;
         try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+        brSaveToFirestore(window._boardroomIntel);
       }
       window.renderBrContentStrategy && window.renderBrContentStrategy();
       return;
@@ -37382,6 +37830,7 @@ window.brRegenerateTab = async function(tab) {
       if (window._boardroomIntel) window._boardroomIntel.icpResearch = newICP;
       panel.innerHTML = _brRenderICPResearch(newICP, inp2);
       try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      brSaveToFirestore(window._boardroomIntel);
       return;
     }
     if (tab === 'competitor-intel') {
@@ -37390,6 +37839,7 @@ window.brRegenerateTab = async function(tab) {
       if (window._boardroomIntel) window._boardroomIntel.competitorIntel = newComp;
       panel.innerHTML = _brRenderCompetitorIntel(newComp, inp2);
       try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      brSaveToFirestore(window._boardroomIntel);
       return;
     }
     if (tab === 'market-viability') {
@@ -37398,6 +37848,7 @@ window.brRegenerateTab = async function(tab) {
       if (window._boardroomIntel) window._boardroomIntel.marketViability = newMkt;
       panel.innerHTML = _brRenderMarketViability(newMkt, inp2);
       try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      brSaveToFirestore(window._boardroomIntel);
       return;
     }
     _stopLoading();
@@ -37405,6 +37856,7 @@ window.brRegenerateTab = async function(tab) {
       var km = { 'architect':'architect','offer-stack':'offerStack','copy-vault':'copyVault','war-plan':'warPlan','content-engine':'contentEngine' };
       if (km[tab]) window._boardroomIntel[km[tab]] = result2;
       try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(window._boardroomIntel)); } catch(e) {}
+      brSaveToFirestore(window._boardroomIntel);
       if (typeof brRenderTab === 'function') brRenderTab(tab, window._boardroomIntel);
     }
   } catch(err2) {
@@ -38359,6 +38811,7 @@ window.brBuildCompleteSystem = async function() {
 
     window._boardroomIntel = fullIntel;
     try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(fullIntel)); } catch(e) {}
+    brSaveToFirestore(fullIntel);
 
     if (typeof brActivateGlobalIntelligence === 'function') brActivateGlobalIntelligence(fullIntel);
 
@@ -38422,6 +38875,7 @@ window.brRunFullAnalysis         = brBuildPlan;
 
 function brResetBoardroom() {
   try { localStorage.removeItem('eos_boardroom_intel'); } catch(e) {}
+  brDeleteFromFirestore();
   window._boardroomIntel   = null;
   window._boardroomAnswers = {};
   window._brChatState      = { step: 0, answers: {} };
@@ -38464,14 +38918,230 @@ function brResetBoardroom() {
 }
 window.brResetBoardroom = brResetBoardroom;
 
-// Hook into showPage — always call brShowPhase1, which handles all states
+// ── MARKET PULSE ──────────────────────────────────────────────────────────────
+// Checks whether Boardroom intel is older than 30 days when the Boardroom
+// page loads. If stale, shows a banner with a one-click refresh that runs
+// a targeted Tavily search on the user's niche and updates only the three
+// market-sensitive tabs (ICP Research, Competitor Intel, Market Viability)
+// without touching the user's strategy, offer stack, or war plan.
+
+function brCheckStaleness() {
+  var intel = window._boardroomIntel;
+  if (!intel || !intel.generatedAt) return;
+  var banner = document.getElementById('br-pulse-banner');
+  if (!banner) return;
+  var ageMs   = Date.now() - (typeof intel.generatedAt === 'number' ? intel.generatedAt : new Date(intel.generatedAt).getTime());
+  var ageDays = Math.floor(ageMs / 86400000);
+  if (ageDays >= 30) {
+    var desc = document.getElementById('br-pulse-desc');
+    if (desc) desc.textContent = 'Your Boardroom intelligence is ' + ageDays + ' days old. Markets move — run a quick pulse to see what\'s changed in your niche.';
+    banner.style.display = 'block';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+async function brRunMarketPulse() {
+  var btn    = document.getElementById('br-pulse-btn');
+  var status = document.getElementById('br-pulse-status');
+  var intel  = window._boardroomIntel;
+  if (!intel) return;
+
+  var inp    = intel.inputs || {};
+  var niche  = inp.niche || window._appliedNiche || (typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext().niche : '') || 'Online Business';
+  var offer  = inp.offerName || (typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext().offerName : '') || '';
+
+  if (btn)    { btn.disabled = true; btn.textContent = '⏳ Checking market…'; }
+  if (status) { status.style.display = 'block'; status.textContent = 'Searching for what\'s changed in your market…'; }
+
+  try {
+    // Step 1 — Tavily search for current market signals
+    var searchResp = await fetch(window.location.origin + '/api/tavily-extract', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'https://www.reddit.com/search/?q=' + encodeURIComponent(niche + ' 2025') })
+    });
+
+    if (status) status.textContent = 'Analysing new market signals with AI…';
+
+    // Step 2 — Ask Claude to generate updated intel for the three market-sensitive tabs
+    var prompt = 'You are updating Boardroom market intelligence for a business in this niche: ' + niche + '.\n'
+      + (offer ? 'Their offer: ' + offer + '\n' : '')
+      + '\nThis is a MARKET PULSE UPDATE — not a full rebuild. Only update the three sections most affected by market changes.\n\n'
+      + 'Return a JSON object with exactly these three keys:\n\n'
+      + '{\n'
+      + '  "icpResearch": { updated ICP research object with current buyer language, search behaviour, fears, triggers },\n'
+      + '  "competitorIntel": { updated competitor analysis — what is changing in the competitive landscape right now },\n'
+      + '  "marketViability": { updated market signals — what platforms are working, what content angles are gaining traction, what has changed }\n'
+      + '}\n\n'
+      + 'Base this on what you know about current market conditions for ' + niche + ' in 2025.\n'
+      + 'Be specific and current — not generic. Return ONLY the JSON object, no preamble.';
+
+    var aiResp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    var aiData = await aiResp.json();
+    var text   = (aiData.content || []).map(function(b){ return b.text || ''; }).join('').trim();
+    var clean  = text.replace(/^```json|^```|```$/gm, '').trim();
+    var pulse  = JSON.parse(clean);
+
+    // Step 3 — Merge into existing intel (only the three market tabs)
+    if (pulse.icpResearch)     intel.icpResearch     = pulse.icpResearch;
+    if (pulse.competitorIntel) intel.competitorIntel = pulse.competitorIntel;
+    if (pulse.marketViability) intel.marketViability = pulse.marketViability;
+    intel.generatedAt    = Date.now();
+    intel.lastPulseAt    = Date.now();
+    window._boardroomIntel = intel;
+
+    // Save to both localStorage and Firestore
+    try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel)); } catch(e) {}
+    brSaveToFirestore(intel);
+
+    // Re-render the three updated tabs if they're currently visible
+    var i2 = intel.inputs || {};
+    var icpEl  = document.getElementById('br-tab-icp-research');
+    var compEl = document.getElementById('br-tab-competitor-intel');
+    var mktEl  = document.getElementById('br-tab-market-viability');
+    if (icpEl  && typeof _brRenderICPResearch     === 'function') icpEl.innerHTML  = _brRenderICPResearch(intel.icpResearch, i2);
+    if (compEl && typeof _brRenderCompetitorIntel  === 'function') compEl.innerHTML = _brRenderCompetitorIntel(intel.competitorIntel, i2);
+    if (mktEl  && typeof _brRenderMarketViability  === 'function') mktEl.innerHTML  = _brRenderMarketViability(intel.marketViability, i2);
+
+    // Hide the banner — pulse is fresh now
+    var banner = document.getElementById('br-pulse-banner');
+    if (banner) banner.style.display = 'none';
+
+    if (status) {
+      status.style.display = 'block';
+      status.textContent   = '✅ Market Pulse complete — ICP Research, Competitor Intel, and Market Viability updated with current signals.';
+      setTimeout(function(){ if(status) status.style.display = 'none'; }, 5000);
+    }
+
+  } catch(e) {
+    console.error('[Market Pulse] Failed:', e);
+    if (status) {
+      status.style.display = 'block';
+      status.textContent   = '⚠️ Pulse failed — please try again.';
+    }
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '🔄 Refresh Market Pulse'; }
+}
+window.brRunMarketPulse = brRunMarketPulse;
+
+// ── TODAY'S QUEUE — Content Calendar ─────────────────────────────────────────
+// Shows today's and tomorrow's scheduled content as a compact action list
+// at the top of the Content Calendar, so users never have to scroll through
+// 30 days to find what to post right now. Each item has a one-click copy.
+
+function calRenderQueue() {
+  var section = document.getElementById('cal-queue-section');
+  if (!section) return;
+  var cal = window._aiCalendar30;
+  if (!cal || !cal.length) { section.style.display = 'none'; return; }
+
+  // Figure out which calendar day corresponds to today
+  // Calendar starts from its generated start date, or treat day 1 as today
+  // and offset from there. We use cal-start-date stored at generation time.
+  var startMs = window._calStartDate ? new Date(window._calStartDate).getTime() : null;
+  var todayMs  = new Date().setHours(0,0,0,0);
+  var dayIndex = startMs ? Math.floor((todayMs - startMs) / 86400000) : 0;
+  var tomorrowIndex = dayIndex + 1;
+
+  section.style.display = 'block';
+  var dateEl = document.getElementById('cal-queue-date');
+  if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+
+  function renderItems(slots, containerId, emptyId) {
+    var el = document.getElementById(containerId);
+    var em = document.getElementById(emptyId);
+    if (!el) return;
+    if (!slots || !slots.length || dayIndex < 0 || dayIndex >= cal.length) {
+      if (el) el.innerHTML = '';
+      if (em) em.style.display = 'block';
+      return;
+    }
+    if (em) em.style.display = 'none';
+    var typeIcons = { reel:'🎬', carousel:'🖼', email:'📨', fb_post:'📝', story:'✨', post:'📝' };
+    el.innerHTML = slots.filter(Boolean).map(function(slot) {
+      if (!slot || !slot.content) return '';
+      var icon  = typeIcons[slot.type] || '📄';
+      var label = (slot.type || 'content').replace(/_/g,' ').replace(/\b\w/g,function(c){ return c.toUpperCase(); });
+      var preview = (slot.content || '').slice(0, 120).replace(/\n/g,' ');
+      var fullContent = (slot.content || '').replace(/'/g, "\\'").replace(/\n/g, '\\n');
+      return '<div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:12px">'
+        + '<div style="display:flex;align-items:center;gap:10px;min-width:0;flex:1">'
+        + '<div style="font-size:18px;flex-shrink:0">' + icon + '</div>'
+        + '<div style="min-width:0">'
+        + '<div style="font-size:11px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:2px">' + label + '</div>'
+        + '<div style="font-size:11px;color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + preview + '</div>'
+        + '</div></div>'
+        + '<button onclick="calQueueCopy(\'' + fullContent + '\')" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:7px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif;flex-shrink:0">📋 Copy</button>'
+        + '</div>';
+    }).filter(Boolean).join('');
+    if (!el.innerHTML.trim()) {
+      el.innerHTML = '';
+      if (em) em.style.display = 'block';
+    }
+  }
+
+  // Today's items
+  var todaySlots = (dayIndex >= 0 && dayIndex < cal.length) ? (cal[dayIndex] || []) : [];
+  renderItems(todaySlots, 'cal-queue-list', 'cal-queue-empty');
+
+  // Tomorrow preview
+  var tomorrowSlots = (tomorrowIndex >= 0 && tomorrowIndex < cal.length) ? (cal[tomorrowIndex] || []) : [];
+  var tomorrowWrap  = document.getElementById('cal-queue-tomorrow-wrap');
+  var tomorrowEl    = document.getElementById('cal-queue-tomorrow');
+  if (tomorrowSlots.length && tomorrowEl && tomorrowWrap) {
+    tomorrowWrap.style.display = 'block';
+    var typeIcons2 = { reel:'🎬', carousel:'🖼', email:'📨', fb_post:'📝', story:'✨', post:'📝' };
+    tomorrowEl.innerHTML = tomorrowSlots.filter(Boolean).map(function(slot) {
+      if (!slot) return '';
+      var icon  = typeIcons2[slot.type] || '📄';
+      var label = (slot.type || 'content').replace(/_/g,' ').replace(/\b\w/g,function(c){ return c.toUpperCase(); });
+      return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:var(--r-sm)">'
+        + '<span style="font-size:14px">' + icon + '</span>'
+        + '<span style="font-size:11px;color:var(--dim)">' + label + '</span>'
+        + '</div>';
+    }).filter(Boolean).join('');
+  } else if (tomorrowWrap) {
+    tomorrowWrap.style.display = 'none';
+  }
+}
+
+function calQueueCopy(content) {
+  var decoded = content.replace(/\\n/g, '\n').replace(/\\'/g, "'");
+  navigator.clipboard.writeText(decoded).then(function() {
+    // Brief success indicator — could flash the button but clipboard API has no callback position
+  }).catch(function(){
+    alert('Copy failed — please select and copy manually.');
+  });
+}
+window.calRenderQueue  = calRenderQueue;
+window.calQueueCopy    = calQueueCopy;
+window.brCheckStaleness = brCheckStaleness;
+
+
 var _origShowPageBR = window.showPage;
 window.showPage = function(page, nav) {
   if(typeof _origShowPageBR==='function') _origShowPageBR.apply(this, arguments);
   if(page==='boardroom') {
     setTimeout(function(){
       if (!window._brGenerating) brShowPhase1();
+      // Check if intel is stale and show Market Pulse banner if so
+      brCheckStaleness();
     }, 80);
+  }
+  // Render today's content queue at the top of the Content Calendar
+  if(page==='calendar') {
+    setTimeout(function(){ typeof calRenderQueue === 'function' && calRenderQueue(); }, 200);
   }
   // Scorecard: refresh stats every time the page is opened
   if(page==='scorecard') {
@@ -39325,65 +39995,402 @@ window.brActivateGlobalIntelligence = function(intel) {
 };
 
 /* ── Load saved intel on app boot ── */
+// ── Boardroom Firestore persistence ──────────────────────────────────────────
+// localStorage is the fast, synchronous cache used on every page load.
+// Firestore is the durable backup — survives cache clears, works across
+// devices and browsers. Both are kept in sync on every save. On boot,
+// if localStorage is empty (cleared), Firestore is the fallback.
+// Path: users/{uid}/boardroom/intel
+async function brSaveToFirestore(intel) {
+  try {
+    var uid = window._currentUserUid || (window._currentUser && window._currentUser.uid);
+    if (!uid || !window._db) return;
+    await window._setDoc(
+      window._doc(window._db, 'users', uid, 'boardroom', 'intel'),
+      { data: JSON.stringify(intel), savedAt: Date.now() },
+      { merge: true }
+    );
+  } catch(e) {
+    // Non-fatal — localStorage copy is still intact as fallback
+    console.warn('[Boardroom] Firestore save failed (non-fatal):', e.message);
+  }
+}
+
+async function brLoadFromFirestore() {
+  try {
+    var uid = window._currentUserUid || (window._currentUser && window._currentUser.uid);
+    if (!uid || !window._db) return null;
+    var snap = await window._getDoc(
+      window._doc(window._db, 'users', uid, 'boardroom', 'intel')
+    );
+    if (!snap || !snap.exists || !snap.exists()) return null;
+    var d = snap.data ? snap.data() : {};
+    if (!d || !d.data) return null;
+    var intel = JSON.parse(d.data);
+    if (!intel || !intel.generatedAt) return null;
+    // Restore to localStorage so next boot is instant
+    try { localStorage.setItem('eos_boardroom_intel', JSON.stringify(intel)); } catch(e) {}
+    console.log('[Boardroom] Intel restored from Firestore ✅');
+    return intel;
+  } catch(e) {
+    console.warn('[Boardroom] Firestore load failed:', e.message);
+    return null;
+  }
+}
+
+async function brDeleteFromFirestore() {
+  try {
+    var uid = window._currentUserUid || (window._currentUser && window._currentUser.uid);
+    if (!uid || !window._db) return;
+    await window._deleteDoc(
+      window._doc(window._db, 'users', uid, 'boardroom', 'intel')
+    );
+  } catch(e) {
+    console.warn('[Boardroom] Firestore delete failed (non-fatal):', e.message);
+  }
+}
+
+
 (function brBootLoad() {
+  function bootWithIntel(intel) {
+    if (!intel || !intel.generatedAt) return;
+    window._boardroomIntel = intel;
+    brActivateGlobalIntelligence(intel);
+    var powBanner = document.getElementById('br-powered-banner');
+    var powDesc   = document.getElementById('br-powered-desc');
+    var tabsNav   = document.getElementById('br-tabs-nav');
+    var genWrap   = document.getElementById('br-build-wrap');
+    if (powBanner){ powBanner.style.display='flex'; }
+    if (tabsNav)  { tabsNav.style.display='block'; }
+    if (genWrap)  { genWrap.style.display='none'; }
+    if (powDesc && intel.inputs){ powDesc.textContent='Boardroom profile active for '+intel.inputs.niche+' · '+(intel.inputs.offerName||'Your Offer')+'. All sections powered.'; }
+    setTimeout(function() {
+      var i2 = intel.inputs || {};
+      var sn = i2.target && i2.price ? Math.ceil(i2.target / i2.price) : 5;
+      var panels = {
+        'war-room':          function(){ return typeof _brRenderWarRoom === 'function'          ? _brRenderWarRoom(intel.plan||{}, i2, sn) : ''; },
+        'architect':         function(){ return typeof brRenderArchitect === 'function'         ? brRenderArchitect(intel.architect||{}, i2) : ''; },
+        'offer-stack':       function(){ return typeof brRenderOfferStack === 'function'        ? brRenderOfferStack(intel.offerStack||{}, i2) : ''; },
+        'client-attraction': function(){ return typeof _brRenderClientAttraction === 'function' ? _brRenderClientAttraction(intel.plan||{}, i2) : ''; },
+        'copy-vault':        function(){ return typeof brRenderCopyVault === 'function'         ? brRenderCopyVault(intel.copyVault||{}, i2) : ''; },
+        'war-plan':          function(){ return typeof brRenderWarPlan === 'function'           ? brRenderWarPlan(intel.warPlan||{}, i2) : ''; },
+        'content-engine':    function(){ return typeof brRenderContentEngine === 'function'     ? brRenderContentEngine(intel.contentEngine||{}, i2) : ''; },
+        'funnel-strategy':   function(){ return typeof _brRenderFunnelStrategy === 'function'   ? _brRenderFunnelStrategy(intel.funnelStrategy||{}, i2) : ''; },
+        'icp-research':      function(){ return typeof _brRenderICPResearch === 'function'      ? _brRenderICPResearch(intel.icpResearch||{}, i2) : ''; },
+        'competitor-intel':  function(){ return typeof _brRenderCompetitorIntel === 'function'  ? _brRenderCompetitorIntel(intel.competitorIntel||{}, i2) : ''; },
+        'market-viability':  function(){ return typeof _brRenderMarketViability === 'function'  ? _brRenderMarketViability(intel.marketViability||{}, i2) : ''; },
+      };
+      Object.keys(panels).forEach(function(tab) {
+        var panel = document.getElementById('br-tab-' + tab);
+        if (panel && panel.innerHTML.trim() === '') {
+          try { var html = panels[tab](); if (html) panel.innerHTML = html; } catch(e) {}
+        }
+      });
+      if (typeof window.renderBrContentStrategy === 'function') window.renderBrContentStrategy();
+      var firstBtn = document.querySelector('.br-tab');
+      if (firstBtn && typeof brShowTab === 'function') brShowTab('architect', firstBtn);
+      // Check if intel is stale once it's loaded and rendered
+      setTimeout(function(){ typeof brCheckStaleness === 'function' && brCheckStaleness(); }, 600);
+    }, 800);
+  }
+
   function boot() {
     var saved = localStorage.getItem('eos_boardroom_intel');
-    if (!saved) return;
-    try {
-      var intel = JSON.parse(saved);
-      if (!intel || !intel.generatedAt) return;
-      window._boardroomIntel = intel;
-      brActivateGlobalIntelligence(intel);
-      // Show powered banner on boardroom page
-      var powBanner = document.getElementById('br-powered-banner');
-      var powDesc   = document.getElementById('br-powered-desc');
-      var tabsNav   = document.getElementById('br-tabs-nav');
-      var genWrap   = document.getElementById('br-build-wrap');
-      if (powBanner){ powBanner.style.display='flex'; }
-      if (tabsNav)  { tabsNav.style.display='block'; }
-      if (genWrap)  { genWrap.style.display='none'; }
-      if (powDesc && intel.inputs){ powDesc.textContent='Boardroom profile active for '+intel.inputs.niche+' · '+(intel.inputs.offerName||'Your Offer')+'. All sections powered.'; }
-
-      // ── Render all tabs from saved intel ─────────────────────────────────
-      setTimeout(function() {
-        var i2  = intel.inputs || {};
-        var sn  = i2.target && i2.price ? Math.ceil(i2.target / i2.price) : 5;
-
-        var panels = {
-          'war-room':         function(){ return typeof _brRenderWarRoom === 'function'          ? _brRenderWarRoom(intel.plan||{}, i2, sn) : ''; },
-          'architect':        function(){ return typeof brRenderArchitect === 'function'         ? brRenderArchitect(intel.architect||{}, i2) : ''; },
-          'offer-stack':      function(){ return typeof brRenderOfferStack === 'function'        ? brRenderOfferStack(intel.offerStack||{}, i2) : ''; },
-          'client-attraction':function(){ return typeof _brRenderClientAttraction === 'function' ? _brRenderClientAttraction(intel.plan||{}, i2) : ''; },
-          'copy-vault':       function(){ return typeof brRenderCopyVault === 'function'         ? brRenderCopyVault(intel.copyVault||{}, i2) : ''; },
-          'war-plan':         function(){ return typeof brRenderWarPlan === 'function'           ? brRenderWarPlan(intel.warPlan||{}, i2) : ''; },
-          'content-engine':   function(){ return typeof brRenderContentEngine === 'function'     ? brRenderContentEngine(intel.contentEngine||{}, i2) : ''; },
-          'funnel-strategy':  function(){ return typeof _brRenderFunnelStrategy === 'function'   ? _brRenderFunnelStrategy(intel.funnelStrategy||{}, i2) : ''; },
-          'icp-research':     function(){ return typeof _brRenderICPResearch === 'function'      ? _brRenderICPResearch(intel.icpResearch||{}, i2) : ''; },
-          'competitor-intel': function(){ return typeof _brRenderCompetitorIntel === 'function'  ? _brRenderCompetitorIntel(intel.competitorIntel||{}, i2) : ''; },
-          'market-viability': function(){ return typeof _brRenderMarketViability === 'function'  ? _brRenderMarketViability(intel.marketViability||{}, i2) : ''; },
-        };
-
-        Object.keys(panels).forEach(function(tab) {
-          var panel = document.getElementById('br-tab-' + tab);
-          if (panel && panel.innerHTML.trim() === '') {
-            try { var html = panels[tab](); if (html) panel.innerHTML = html; } catch(e) {}
-          }
-        });
-
-        // Content strategy needs its own render function
-        if (typeof window.renderBrContentStrategy === 'function') window.renderBrContentStrategy();
-
-        // Show first tab
-        var firstBtn = document.querySelector('.br-tab');
-        if (firstBtn && typeof brShowTab === 'function') brShowTab('architect', firstBtn);
-      }, 800);
-
-      console.log('[Boardroom] Saved intel loaded from storage ✅');
-    } catch(e) { console.warn('[Boardroom] Boot load failed:', e); }
+    if (saved) {
+      // Fast path — localStorage hit
+      try {
+        var intel = JSON.parse(saved);
+        bootWithIntel(intel);
+        console.log('[Boardroom] Saved intel loaded from localStorage ✅');
+      } catch(e) { console.warn('[Boardroom] Boot load failed:', e); }
+    } else {
+      // localStorage empty (e.g. cache cleared) — fall back to Firestore
+      brLoadFromFirestore().then(function(intel) {
+        if (!intel) return;
+        bootWithIntel(intel);
+        console.log('[Boardroom] Intel recovered from Firestore after cache clear ✅');
+      }).catch(function(){});
+    }
   }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else setTimeout(boot, 600);
 })();
+
+
+// ══════════════════════════════════════════════════════════════════
+// LIVE CONVERSATION COACH
+// ══════════════════════════════════════════════════════════════════
+// Reads the full pasted conversation + user's goal, then returns:
+// 1. Diagnosis — what's really happening in this conversation
+// 2. Next message — exact reply to send, written for this specific exchange
+// 3. Reasoning — why this approach works (teaches, not just gives a fish)
+// 4. Follow-up — what to send if they go silent for 48 hours
+// 5. Red flags — warning signs this prospect may not be a real buyer
+//
+// Powered entirely by _getFullIntelContext() — automatically uses the
+// user's offer, avatar intel, boardroom strategy, and voice profile
+// for both Expert and Affiliate mode, detecting which automatically.
+
+var _coachState = { lastAnalysis: null, lastConversation: '', lastGoal: 'close' };
+
+// Returns the shared panel HTML — used by both Expert (static HTML in DOM)
+// and Affiliate (dynamically injected). Prefix avoids ID collisions.
+function coachGetPanelHTML(prefix) {
+  prefix = prefix || 'exp';
+  return '<div style="max-width:900px;margin:0 auto;padding-top:8px">'
+  + '<div style="text-align:center;margin-bottom:24px">'
+  + '<div style="font-size:20px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:6px">🧠 Live Conversation Coach</div>'
+  + '<div style="font-size:12px;color:var(--dim);max-width:480px;margin:0 auto;line-height:1.7">Paste the full conversation — the system reads what\'s really happening, then tells you exactly what to say next.</div>'
+  + '</div>'
+  + '<div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:24px;margin-bottom:14px">'
+  + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:10px">What\'s your goal?</div>'
+  + '<div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:18px" id="'+prefix+'-coach-goal-grid">'
+  + '<button class="'+prefix+'-cgoal-btn '+prefix+'-cgoal-active" data-goal="close" onclick="coachSetGoal(this,\''+prefix+'\')" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:20px;padding:6px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">💰 Close the Sale</button>'
+  + '<button class="'+prefix+'-cgoal-btn" data-goal="book" onclick="coachSetGoal(this,\''+prefix+'\')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📅 Book a Call</button>'
+  + '<button class="'+prefix+'-cgoal-btn" data-goal="objection" onclick="coachSetGoal(this,\''+prefix+'\')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🛡 Handle Objection</button>'
+  + '<button class="'+prefix+'-cgoal-btn" data-goal="reengage" onclick="coachSetGoal(this,\''+prefix+'\')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🔄 Re-engage Cold Lead</button>'
+  + '<button class="'+prefix+'-cgoal-btn" data-goal="qualify" onclick="coachSetGoal(this,\''+prefix+'\')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:20px;padding:6px 14px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🎯 Qualify Prospect</button>'
+  + '</div>'
+  + '<input type="hidden" id="'+prefix+'-coach-goal" value="close" />'
+  + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:8px">Paste the full conversation</div>'
+  + '<textarea id="'+prefix+'-coach-convo" class="fi" placeholder="Paste the entire conversation here — all messages, both sides. The more context, the sharper the coaching.\n\nExample:\nYou: Hey [Name], saw your comment — what did you think?\nThem: It was interesting, I\'ve tried stuff like this before and it didn\'t work\nYou: What happened?\nThem: Just didn\'t get results\nThem: How much does this cost anyway?" style="width:100%;min-height:180px;resize:vertical;font-size:12px;line-height:1.8;font-family:Inter,sans-serif;box-sizing:border-box;margin-bottom:14px"></textarea>'
+  + '<button onclick="coachAnalyse(\''+prefix+'\')" id="'+prefix+'-coach-btn" style="background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:var(--r-md);padding:12px 28px;color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">🧠 Coach Me →</button>'
+  + '<div id="'+prefix+'-coach-status" style="font-size:11px;color:var(--teal);margin-top:10px;display:none"></div>'
+  + '</div>'
+  // Output
+  + '<div id="'+prefix+'-coach-output" style="display:none">'
+  + '<div style="background:var(--card2);border:1px solid rgba(108,99,255,.25);border-radius:var(--r-xl);padding:20px;margin-bottom:10px">'
+  + '<div style="font-size:12px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:10px">🔍 What\'s Actually Happening</div>'
+  + '<div id="'+prefix+'-coach-diagnosis" style="font-size:12px;color:var(--muted);line-height:1.9;white-space:pre-wrap"></div>'
+  + '</div>'
+  + '<div style="background:var(--card2);border:1px solid rgba(78,204,163,.3);border-radius:var(--r-xl);padding:20px;margin-bottom:10px">'
+  + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">'
+  + '<div style="font-size:12px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">✍️ Send This Next</div>'
+  + '<div style="display:flex;gap:7px">'
+  + '<button onclick="coachCopyReply(\''+prefix+'\')" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:6px 12px;color:var(--teal);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📋 Copy</button>'
+  + '<button onclick="coachAlternative(\''+prefix+'\')" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--r-md);padding:6px 12px;color:var(--muted);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">↺ Alternative</button>'
+  + '</div></div>'
+  + '<div id="'+prefix+'-coach-reply" style="font-size:13px;color:var(--white);line-height:1.9;white-space:pre-wrap;background:var(--bg3);border-radius:var(--r-md);padding:14px;font-family:Inter,sans-serif"></div>'
+  + '</div>'
+  + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">'
+  + '<div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:18px">'
+  + '<div style="font-size:12px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">💡 Why This Works</div>'
+  + '<div id="'+prefix+'-coach-reasoning" style="font-size:11px;color:var(--muted);line-height:1.8;white-space:pre-wrap"></div>'
+  + '</div>'
+  + '<div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:18px">'
+  + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+  + '<div style="font-size:12px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">📅 If They Go Silent</div>'
+  + '<button onclick="coachCopyFollowUp(\''+prefix+'\')" style="background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;font-weight:700;font-family:Poppins,sans-serif">Copy</button>'
+  + '</div>'
+  + '<div id="'+prefix+'-coach-followup" style="font-size:11px;color:var(--muted);line-height:1.8;white-space:pre-wrap"></div>'
+  + '</div></div>'
+  + '<div id="'+prefix+'-coach-redflag-wrap" style="background:rgba(255,80,80,.04);border:1px solid rgba(255,80,80,.15);border-radius:var(--r-xl);padding:18px;margin-bottom:14px;display:none">'
+  + '<div style="font-size:12px;font-weight:900;color:#ff6b6b;font-family:Poppins,sans-serif;margin-bottom:8px">🚩 Watch Out</div>'
+  + '<div id="'+prefix+'-coach-redflag" style="font-size:11px;color:rgba(255,107,107,.8);line-height:1.8;white-space:pre-wrap"></div>'
+  + '</div>'
+  + '<div style="text-align:center;margin-bottom:16px">'
+  + '<button onclick="coachAnalyse(\''+prefix+'\')" style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:var(--r-md);padding:9px 22px;color:var(--purple);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">↺ Re-analyse with new messages</button>'
+  + '</div>'
+  + '</div></div>';
+}
+
+function coachSetGoal(btn, prefix) {
+  prefix = prefix || 'exp';
+  document.querySelectorAll('.' + prefix + '-cgoal-btn').forEach(function(b) {
+    b.style.background = 'rgba(255,255,255,.03)';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color = 'var(--dim)';
+  });
+  btn.style.background = 'rgba(78,204,163,.1)';
+  btn.style.borderColor = 'rgba(78,204,163,.3)';
+  btn.style.color = 'var(--teal)';
+  var inp = document.getElementById(prefix + '-coach-goal');
+  if (inp) inp.value = btn.dataset.goal || 'close';
+}
+
+async function coachAnalyse(prefix) {
+  prefix = prefix || 'exp';
+  var conversation = ((document.getElementById(prefix + '-coach-convo') || {}).value || '').trim();
+  if (!conversation) { alert('Please paste your conversation first.'); return; }
+
+  var goal = (document.getElementById(prefix + '-coach-goal') || {}).value || 'close';
+  var btn    = document.getElementById(prefix + '-coach-btn');
+  var status = document.getElementById(prefix + '-coach-status');
+  var output = document.getElementById(prefix + '-coach-output');
+
+  if (btn)    { btn.disabled = true; btn.textContent = 'Analysing…'; }
+  if (status) { status.style.display = 'block'; status.textContent = 'Reading the conversation and building your coaching…'; }
+  if (output) output.style.display = 'none';
+
+  // Pull the full intel context — automatically picks Expert or Affiliate
+  var ctx = typeof window._getFullIntelContext === 'function'
+    ? window._getFullIntelContext()
+    : {};
+
+  var goalDescriptions = {
+    close:     'Close the sale — move this conversation to a definite yes or no decision. No more fence-sitting.',
+    book:      'Book a discovery or strategy call — get a confirmed time in the calendar.',
+    objection: 'Handle the objection professionally and move the conversation forward without pressure.',
+    reengage:  'Re-engage a lead who has gone cold — reopen the conversation naturally without being pushy.',
+    qualify:   'Qualify this prospect — determine whether they are a real buyer before investing more time.',
+  };
+
+  var intelBlock = [
+    ctx.offerName    ? 'Offer/product: ' + ctx.offerName : '',
+    ctx.price        ? 'Price point: $' + ctx.price : '',
+    ctx.niche        ? 'Niche: ' + ctx.niche : '',
+    ctx.pain         ? 'Audience pain: ' + ctx.pain : '',
+    ctx.deeperPain   ? 'Deeper fear: ' + ctx.deeperPain : '',
+    ctx.transformation ? 'Transformation promise: ' + ctx.transformation : '',
+    ctx.objections   ? 'Known objections: ' + ctx.objections : '',
+    ctx.tried        ? 'What they\'ve tried before: ' + ctx.tried : '',
+    ctx.positioning  ? 'Your positioning: ' + ctx.positioning : '',
+    ctx.dominanceAngle ? 'Dominance angle: ' + ctx.dominanceAngle : '',
+    ctx.voiceContext || '',
+  ].filter(Boolean).join('\n');
+
+  var prompt = 'You are an elite sales conversation coach. Your job is to read a real conversation and give precise, specific coaching — not generic advice.\n\n'
+    + 'OFFER AND CONTEXT:\n' + intelBlock + '\n\n'
+    + 'CONVERSATION GOAL: ' + (goalDescriptions[goal] || goal) + '\n\n'
+    + 'THE CONVERSATION:\n' + conversation + '\n\n'
+    + 'Analyse this conversation and return a JSON object with exactly these five keys:\n\n'
+    + '{\n'
+    + '  "diagnosis": "2-3 sentences. Where is this prospect in their decision process? What is their REAL objection or hesitation — stated vs unstated? Are they hot, warm, or stalling? What emotional state are they in based on their exact language? Be specific and direct.",\n'
+    + '  "nextMessage": "The exact message to send right now. Written in the seller\'s voice based on the voice profile above. Match the tone and length of the conversation — if they are sending short messages, keep it short. If they are engaged and writing a lot, you can be warmer and more detailed. No templates, no placeholders — a real message ready to copy and send. Do NOT explain it here, just write the message itself.",\n'
+    + '  "reasoning": "2-3 sentences. Why this specific reply is the right move for THIS conversation at THIS moment. What psychological principle does it use? What is it designed to make the prospect feel or do? Teach the seller so they learn, not just copy.",\n'
+    + '  "followUp": "The exact follow-up message to send if they go silent for 48 hours. Short, natural, no pressure — opens a door without pushing through it.",\n'
+    + '  "redFlags": "Any genuine warning signs that this prospect may not be a real buyer, may be wasting time, or needs a different approach entirely. If there are no red flags, return an empty string."\n'
+    + '}\n\n'
+    + 'CRITICAL RULES:\n'
+    + '- nextMessage must be a REAL message ready to send — not a template, not instructions, not [brackets]\n'
+    + '- Base everything on what is actually in the conversation — do not assume or invent context\n'
+    + '- Match the seller\'s voice profile above if provided\n'
+    + '- If the prospect\'s last message is a clear buying signal, the nextMessage should move toward a close — not ask another question\n'
+    + '- If the prospect is clearly not a buyer (no budget, no interest, time-waster), say so clearly in redFlags\n'
+    + '- Return ONLY the JSON object — no preamble, no explanation, no markdown fences';
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1500,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    var data = await resp.json();
+    var text = (data.content || []).map(function(b){ return b.text || ''; }).join('').trim();
+
+    // Parse JSON response
+    var clean = text.replace(/^```json|^```|```$/gm, '').trim();
+    var result = JSON.parse(clean);
+
+    // Store for copy/alternative functions
+    _coachState.lastAnalysis    = result;
+    _coachState.lastConversation = conversation;
+    _coachState.lastGoal         = goal;
+    _coachState.lastPrefix       = prefix;
+
+    // Render into panels
+    coachRenderOutput(result, prefix);
+
+    if (status) status.style.display = 'none';
+    if (output) output.style.display = 'block';
+
+  } catch(e) {
+    console.error('[Coach] Analysis failed:', e);
+    if (status) { status.textContent = '⚠️ Analysis failed — please try again.'; }
+  }
+
+  if (btn) { btn.disabled = false; btn.textContent = '🧠 Coach Me →'; }
+}
+
+function coachRenderOutput(result, prefix) {
+  prefix = prefix || 'exp';
+  var set = function(id, val) {
+    var el = document.getElementById(prefix + '-coach-' + id);
+    if (el) el.textContent = val || '';
+  };
+  set('diagnosis', result.diagnosis || '');
+  set('reply',     result.nextMessage || '');
+  set('reasoning', result.reasoning || '');
+  set('followup',  result.followUp || '');
+
+  var flagWrap = document.getElementById(prefix + '-coach-redflag-wrap');
+  var flagEl   = document.getElementById(prefix + '-coach-redflag');
+  if (result.redFlags && result.redFlags.trim()) {
+    if (flagEl)   flagEl.textContent = result.redFlags;
+    if (flagWrap) flagWrap.style.display = 'block';
+  } else {
+    if (flagWrap) flagWrap.style.display = 'none';
+  }
+}
+
+function coachCopyReply(prefix) {
+  prefix = prefix || _coachState.lastPrefix || 'exp';
+  var el = document.getElementById(prefix + '-coach-reply');
+  if (!el || !el.textContent) return;
+  navigator.clipboard.writeText(el.textContent.trim()).then(function() {
+    var btn = el.closest('[id$="-coach-output"]');
+    // Brief visual confirmation
+    var orig = el.style.background;
+    el.style.background = 'rgba(78,204,163,.08)';
+    setTimeout(function(){ el.style.background = orig; }, 600);
+  }).catch(function(){ alert('Copy failed — please select and copy manually.'); });
+}
+
+function coachCopyFollowUp(prefix) {
+  prefix = prefix || _coachState.lastPrefix || 'exp';
+  var el = document.getElementById(prefix + '-coach-followup');
+  if (!el || !el.textContent) return;
+  navigator.clipboard.writeText(el.textContent.trim()).catch(function(){
+    alert('Copy failed — please select and copy manually.');
+  });
+}
+
+async function coachAlternative(prefix) {
+  prefix = prefix || _coachState.lastPrefix || 'exp';
+  if (!_coachState.lastAnalysis) return;
+
+  var btn = document.getElementById(prefix + '-coach-btn');
+  var replyEl = document.getElementById(prefix + '-coach-reply');
+  if (replyEl) { replyEl.style.opacity = '.4'; }
+
+  var ctx = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
+  var intelBlock = [
+    ctx.offerName    ? 'Offer: ' + ctx.offerName : '',
+    ctx.pain         ? 'Audience pain: ' + ctx.pain : '',
+    ctx.objections   ? 'Known objections: ' + ctx.objections : '',
+    ctx.positioning  ? 'Positioning: ' + ctx.positioning : '',
+    ctx.voiceContext || '',
+  ].filter(Boolean).join('\n');
+
+  var prompt = 'You are an elite sales conversation coach. I already have one suggested reply for a sales conversation. Give me a DIFFERENT approach — different tone, different angle, same goal.\n\n'
+    + 'CONTEXT:\n' + intelBlock + '\n\n'
+    + 'GOAL: ' + _coachState.lastGoal + '\n\n'
+    + 'CONVERSATION:\n' + _coachState.lastConversation + '\n\n'
+    + 'FIRST REPLY (already suggested — DO NOT repeat this):\n' + (_coachState.lastAnalysis.nextMessage || '') + '\n\n'
+    + 'Write ONE alternative reply. Different approach — could be softer, more direct, more empathetic, more assertive, or use a completely different angle. '
+    + 'Return ONLY the message itself, ready to send. No explanation, no preamble, no quotes around it.';
+
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-6', max_tokens: 400, messages: [{ role: 'user', content: prompt }] })
+    });
+    var data = await resp.json();
+    var text = (data.content || []).map(function(b){ return b.text || ''; }).join('').trim();
+    if (text && replyEl) {
+      replyEl.textContent = text;
+      _coachState.lastAnalysis.nextMessage = text;
+    }
+  } catch(e) {
+    console.error('[Coach] Alternative failed:', e);
+  }
+  if (replyEl) replyEl.style.opacity = '1';
+}
 
 /* ── Patch generateDMQueue to use Boardroom context when available ── */
 (function patchDMWithBoardroom() {
@@ -40370,6 +41377,8 @@ window.calRefresh = function() {
   calRenderStats(entries);
   calRenderDayList(entries);
   calCheckAutoBanner();
+  // Render today's queue at the top
+  setTimeout(function(){ typeof calRenderQueue === 'function' && calRenderQueue(); }, 100);
 };
 
 // ── Hook into showPage ──
@@ -41490,7 +42499,7 @@ window.leadsShowModal = function(lead, isEdit) {
     // Action buttons
     + '<div style="display:flex;gap:8px;margin-bottom:' + (isEdit ? '16px' : '0') + '">'
     + '<button onclick="leadsSaveModal(' + (isEdit?'true':'false') + ')" style="flex:2;padding:12px;background:linear-gradient(135deg,var(--purple),var(--purple2));border:none;border-radius:50px;color:#fff;font-family:Poppins,sans-serif;font-weight:900;font-size:12px;cursor:pointer">' + (isEdit?'Save Changes':'Add Lead') + '</button>'
-    + (isEdit ? '<button onclick="leadsGetScript()" style="flex:1;padding:12px;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:50px;color:var(--teal);font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">💬 Get Script</button>' : '')
+    + (isEdit ? '<button onclick="leadsGetScript()" style="flex:1;padding:12px;background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:50px;color:#a089ff;font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">🧠 Coach Me</button>' : '')
     + (isEdit ? '<button onclick="leadsDeleteLead(\'' + lead.id + '\')" style="flex-shrink:0;padding:12px 16px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:50px;color:var(--red);font-family:Poppins,sans-serif;font-weight:800;font-size:11px;cursor:pointer">Delete</button>' : '')
     + '</div>'
     // Activity log (edit only)
@@ -41560,18 +42569,128 @@ window.leadsDeleteLead = function(id) {
 
 // ── Get DM script based on lead status — mode-aware ──────────────
 window.leadsGetScript = function() {
-  var status    = (document.getElementById('lm-status')||{}).value || 'cold';
+  // Keep the generic script navigation as a fallback, but add the
+  // Conversation Coach as the primary path — it's contextual to THIS
+  // specific lead rather than a generic script page.
+  leadsCoachThisLead();
+};
+
+// ── Coach me on this lead ─────────────────────────────────────────
+// Pre-loads the lead's notes + activity log into the Conversation Coach,
+// maps their pipeline stage to the right goal, and opens the coach
+// without the user having to paste or configure anything manually.
+window.leadsCoachThisLead = function() {
+  var id = window._leadsEditId;
+  var lead = id ? window._leads.find(function(l){ return l.id === id; }) : null;
+  if (!lead) { alert('Save this lead first, then click Coach Me.'); return; }
+
+  // Map pipeline stage → conversation goal
   var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+  var stageGoalMap = isAffiliate
+    ? { cold:'qualify', replied:'qualify', interested:'close', sent:'close', won:'close', lost:'reengage' }
+    : { cold:'qualify', warm:'objection', hot:'close', booked:'book', won:'close', lost:'reengage' };
+  var goal = stageGoalMap[lead.status] || 'qualify';
+
+  // Build a pre-filled conversation from notes + activity log
+  var parts = [];
+
+  // Add notes as context block
+  if (lead.notes && lead.notes.trim()) {
+    parts.push('[Context from notes]\n' + lead.notes.trim());
+  }
+
+  // Add activity log in chronological order (oldest first)
+  var activity = (lead.activity || []).slice().reverse();
+  if (activity.length) {
+    parts.push('[Activity log — most recent at bottom]');
+    activity.forEach(function(a) {
+      var d = new Date(a.date).toLocaleDateString('en-GB', { day:'numeric', month:'short' });
+      parts.push(d + ': ' + a.note);
+    });
+  }
+
+  if (!parts.length) {
+    // No content yet — still open the coach but prompt them to add context
+    parts.push('[No conversation notes yet — paste or type the conversation below before clicking Coach Me]');
+  }
+
+  var prefilledConvo = parts.join('\n\n');
+
+  // Close the lead modal first
   leadsCloseModal();
-  showPage('scripts', document.getElementById('nav-scripts'));
+
+  // Navigate to the scripts page and open the Conversation Coach tab
   setTimeout(function() {
-    // Expert: call-booking pipeline  |  Affiliate: link-sending pipeline
-    var scriptTypeMap = isAffiliate
-      ? { cold:'opener', replied:'follow-up', interested:'value-add', sent:'follow-up', won:'referral', lost:'re-engage' }
-      : { cold:'opener', warm:'follow-up',   hot:'closing',          booked:'pre-call', won:'referral', lost:'re-engage' };
-    window._leadsRequestedScriptType = scriptTypeMap[status] || 'opener';
-    document.dispatchEvent(new CustomEvent('leadScriptRequest', { detail: { status: status, isAffiliate: isAffiliate } }));
-  }, 400);
+    showPage('scripts', document.getElementById('nav-scripts'));
+
+    setTimeout(function() {
+      // Activate the coach tab
+      var coachTab = document.getElementById('stab-coach');
+      if (coachTab) setScriptsMode('coach', coachTab);
+
+      // Pre-fill the conversation textarea
+      var convoEl = document.getElementById('exp-coach-convo');
+      if (convoEl) {
+        convoEl.value = prefilledConvo;
+        convoEl.scrollTop = convoEl.scrollHeight;
+      }
+
+      // Pre-select the goal
+      var goalInput = document.getElementById('exp-coach-goal');
+      if (goalInput) goalInput.value = goal;
+
+      // Update goal button visual state
+      document.querySelectorAll('.exp-cgoal-btn').forEach(function(b) {
+        var isActive = b.dataset.goal === goal;
+        b.style.background    = isActive ? 'rgba(78,204,163,.1)' : 'rgba(255,255,255,.03)';
+        b.style.borderColor   = isActive ? 'rgba(78,204,163,.3)' : 'var(--border2)';
+        b.style.color         = isActive ? 'var(--teal)' : 'var(--dim)';
+      });
+
+      // Add a lead-context banner above the coach if it's not already there
+      var coachPanel = document.getElementById('scripts-coach-panel');
+      var existingBanner = document.getElementById('coach-lead-banner');
+      if (coachPanel && !existingBanner) {
+        var banner = document.createElement('div');
+        banner.id = 'coach-lead-banner';
+        banner.style.cssText = 'background:rgba(108,99,255,.07);border:1px solid rgba(108,99,255,.2);border-radius:var(--r-lg);padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap';
+        banner.innerHTML = '<div style="display:flex;align-items:center;gap:10px">'
+          + '<div style="font-size:20px">🎯</div>'
+          + '<div><div style="font-size:12px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">' + (lead.name || 'Lead') + '</div>'
+          + '<div style="font-size:10px;color:var(--dim);margin-top:2px">' + (lead.handle ? lead.handle + ' · ' : '') + (lead.platform || '') + ' · Stage: ' + (lead.status || 'cold') + '</div></div>'
+          + '</div>'
+          + '<button onclick="leadsOpenDetail(\'' + lead.id + '\')" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.25);border-radius:var(--r-md);padding:6px 12px;color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">← Back to Lead</button>';
+        var firstChild = coachPanel.querySelector('div');
+        if (firstChild) coachPanel.insertBefore(banner, firstChild);
+      } else if (existingBanner) {
+        // Update the banner for the new lead
+        existingBanner.querySelector('div div div:first-child').textContent = lead.name || 'Lead';
+        existingBanner.querySelector('div div div:last-child').textContent = (lead.handle ? lead.handle + ' · ' : '') + (lead.platform || '') + ' · Stage: ' + (lead.status || 'cold');
+        var backBtn = existingBanner.querySelector('button');
+        if (backBtn) backBtn.onclick = function(){ leadsOpenDetail(lead.id); };
+      }
+
+      // Scroll the coach into view
+      var coachCard = coachPanel && coachPanel.querySelector('.card-dark, [style*="background:var(--card2)"]');
+      if (coachPanel) coachPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    }, 350);
+  }, 150);
+};
+
+// ── After coaching, mark lead for follow-up and log the session ───
+// Called from the coach output — updates the lead's activity log
+// automatically when a coaching session produces a reply.
+window.leadsLogCoachSession = function(leadId, reply, goal) {
+  var lead = window._leads && window._leads.find(function(l){ return l.id === leadId; });
+  if (!lead) return;
+  if (!lead.activity) lead.activity = [];
+  lead.activity.unshift({
+    date: new Date().toISOString(),
+    note: '[Coach] Goal: ' + goal + ' — Reply generated and ready to send.'
+  });
+  lead.updatedAt = new Date().toISOString();
+  leadsSave && leadsSave();
 };
 
 // ── Close modal ───────────────────────────────────────────────────
@@ -43304,21 +44423,35 @@ var EOS_PRODUCT = {
     },
     'ai-video': {
       name: 'Content Studio',
-      what: 'Where you build your actual content. Four sections: Video Studio (talking-head videos with HeyGen avatar), Carousel (slide-by-slide image posts), Story Video (cinematic AI-generated video with Runway ML), and Automate (schedule and publish everything). In Video Studio: pick your content angle (Story, Value, Education, Promotion, Myth Bust, Proof, Before/After, Authority), click Write Script to generate your script with AI, pick your avatar and voice, then click Generate Video. The video renders on HeyGen and appears in My Videos when done — takes 5-15 minutes.',
+      what: 'Where you build your actual content. Five main sections: Value Post Engine (social media posts and long-form content from real audience questions), Video Studio (talking-head videos with HeyGen avatar), Carousel (slide-by-slide image posts), Story Video (cinematic AI-generated video with Runway ML), and Automate (schedule and publish). The Value Post Engine is the most-used section — it finds real questions your audience is asking online, or you can type your own question, then lets you pick a post angle (Value, Story, Contrarian, Myth Bust, Behind the Scenes, Listicle, Proof, Promotion) and a platform, then writes the full post. In Video Studio: pick your content angle, click Write Script to generate your script with AI, pick your avatar and voice, then click Generate Video.',
       tabs: {
-        'clone': 'Clone Yourself — upload a photo or record a short video to create your personal AI avatar for all future videos',
-        'build': 'Build Video — pick angle, write script, choose avatar and voice, generate your HeyGen talking-head video',
-        'story': 'Story Video — generate cinematic AI video using Runway ML. Write your story framework, pick style, generate 5 scenes that get stitched into one video',
+        'vpe':      'Value Post Engine — Step 1: find real audience questions automatically by clicking Auto-Find for My Niche, or type your own question in the custom question field. Step 2: pick a post angle (Value answers directly, Story uses a personal experience, Contrarian challenges common beliefs, Myth Bust dismantles a lie, Behind the Scenes shows your process, Listicle structures as a numbered list, Proof leads with a real result, Promotion sells softly). Step 3: pick your platform (LinkedIn, Instagram, Facebook, X Thread, Reddit, Quora, Email, Medium). Click Write My Post.',
+        'clone':    'Clone Yourself — upload a photo or record a short video to create your personal AI avatar for all future videos',
+        'build':    'Build Video — pick angle, write script, choose avatar and voice, generate your HeyGen talking-head video',
+        'story':    'Story Video — generate cinematic AI video using Runway ML. Write your story framework, pick style, generate 5 scenes that get stitched into one video',
         'carousel': 'Carousel — generate slide-by-slide carousel posts for Instagram and LinkedIn with AI-generated copy',
-        'library': 'My Videos — all your generated videos saved here. Download, copy link, or post directly'
+        'library':  'My Videos — all your generated videos saved here. Download, copy link, or post directly'
       },
-      actions: ['Go to Build Video tab', 'Select your content angle', 'Click Write Script — AI writes it based on your offer and avatar', 'Select an avatar that matches your target audience', 'Pick a voice', 'Click Generate Video — renders in 5-15 minutes'],
-      next: 'After building videos, go to Funnel Builder to create your sales funnel'
+      actions: [
+        'Go to Value Post Engine — click Auto-Find for My Niche to find real audience questions, or type your own in the custom question field',
+        'Select a post angle — Value for direct insight, Story for personal narrative, Contrarian to challenge a belief, Promotion to sell softly',
+        'Pick your platform and click Write My Post',
+        'Go to Build Video tab for video content — select angle, click Write Script, choose avatar and voice, click Generate Video'
+      ],
+      next: 'After building content, go to Funnel Builder to create your sales funnel'
     },
     funnels: {
       name: 'Funnel Builder',
-      what: 'Build complete sales funnels with AI-generated copy. Choose your funnel type (VSL, Webinar, Lead Magnet, Challenge), select your pages, and the AI writes all the copy — headline, subheadline, bullet points, CTA, and every section — based on your offer and avatar from Boardroom intelligence. You can visually edit every element, add your video, connect your payment processor, and publish to a custom domain.',
-      actions: ['Click Create New Funnel', 'Choose funnel type', 'AI generates all copy automatically', 'Click Visual Edit to change any text directly on the page', 'Connect Stripe for payments', 'Publish to your domain'],
+      what: 'Build complete sales funnels with AI-generated copy. Choose your funnel type (VSL, Webinar, Lead Magnet, Challenge, Bridge Page, Tripwire), select your pages, and the AI writes all the copy — headline, subheadline, bullet points, CTA, and every section — based on your offer and avatar from Boardroom intelligence. You can visually edit every element, add your video, connect your payment processor, and publish to a custom domain. For Alliance Partners in Affiliate Mode, there is also the Alliance Partnership Page funnel type — this is your own copy of the official Alliance Partnership page with your own CopeCart affiliate checkout links built in. It is pre-created automatically in your Funnel Builder tab when you join. Open it, add your Starter/Pro/Elite affiliate links from CopeCart, and publish it to your own domain to start capturing leads and closing partnership sales with your own branded page.',
+      actions: [
+        'Click Create New Funnel',
+        'Choose funnel type — VSL, Webinar, Lead Magnet, Challenge, Bridge, Tripwire, or Alliance Partnership Page',
+        'AI generates all copy automatically for standard funnel types',
+        'For Alliance Partnership Page — open your pre-created funnel, paste your CopeCart affiliate links for each tier you are approved for, click Save, then Continue to Domain and Publish',
+        'Click Visual Edit to change any text directly on the page',
+        'Connect Stripe for payments on your own funnels',
+        'Link your domain and publish'
+      ],
       next: 'With your funnel live, go to Email Marketing to follow up with your leads'
     },
     email: {
@@ -43329,8 +44462,23 @@ var EOS_PRODUCT = {
     },
     scripts: {
       name: 'DM and Sales Scripts',
-      what: 'Personalised scripts for every stage of the sales conversation. DM openers that start conversations without being spammy — written in your buyer\'s exact language. Objection handlers for the 5 most common objections in your niche. Closing scripts for when someone is interested. Follow-up messages for warm leads. All generated from your avatar psychology and offer positioning.',
-      actions: ['Read your DM openers — use these to start conversations on Instagram, Facebook, LinkedIn', 'Study the objection handlers — memorise the top 3', 'Use the closing script when someone asks about your offer'],
+      what: 'Personalised scripts for every stage of the sales conversation — plus a live AI conversation coach. DM openers that start conversations without being spammy, written in your buyer\'s exact language. Objection handlers for the 5 most common objections in your niche. Closing scripts for when someone is interested. Follow-up messages for warm leads. All generated from your avatar psychology and offer positioning. The Conversation Coach tab is the most powerful — paste any real conversation you are having with a prospect and it tells you exactly what to say next to achieve your goal (close, book a call, handle objection, re-engage, qualify). It reads the full conversation, diagnoses what is actually happening, writes the exact reply to send, explains why it works, and gives a follow-up if they go silent.',
+      tabs: {
+        'dm':        'DM Outreach — cold openers to start conversations on Instagram, Facebook, LinkedIn without being salesy',
+        'warm':      'Warm Lead Close — scripts for prospects who have shown interest or replied to your content',
+        'call':      'Sales Call Close — frameworks for closing on a live call or voice note',
+        'objection': 'Objection Kill — exact responses to the 5 most common objections in your niche',
+        'follow':    'Follow-Up — messages for warm leads who have gone quiet at every time interval',
+        'queue':     'DM Queue — your list of people to DM today, prioritised by engagement',
+        'manychat':  'ManyChat — automated comment-to-DM flows for Instagram and Facebook',
+        'coach':     'Conversation Coach — paste a real conversation, pick your goal, get an exact reply to send plus diagnosis of what is happening and a follow-up if they go silent. Works for closing sales, booking calls, handling objections, re-engaging cold leads, or qualifying prospects.'
+      },
+      actions: [
+        'Read your DM openers — use these to start conversations on Instagram, Facebook, LinkedIn',
+        'Study the objection handlers — memorise the top 3 for your niche',
+        'Use the closing script when someone asks about your offer',
+        'Open the Conversation Coach tab, paste your conversation, pick a goal, and click Coach Me to get an exact reply'
+      ],
       next: 'Use the Daily Tracker to log every DM, piece of content, and sale'
     },
     routine: {
@@ -43504,10 +44652,10 @@ function coachPageButtons(ctx) {
     avatar:     ['How do I fill in my ideal customer?', 'What is buyer psychology?', 'How does this feed my content?'],
     boardroom:  ['What does this tab mean for me?', 'How do I use the War Room?', 'Run me through all 11 tabs', 'What is my next action from this?'],
     calendar:   ['How do I generate my calendar?', 'How do I post from here?', 'What is the difference between Reels and Carousels?'],
-    'ai-video': ['How do I build a video step by step?', 'Which avatar should I choose?', 'What content angle should I use?', 'Why is my video going to HeyGen?'],
-    funnels:    ['How do I create my first funnel?', 'What type of funnel should I build?', 'How do I connect Stripe?', 'How do I publish my funnel?'],
+    'ai-video': ['How do I use the Value Post Engine?', 'What post angle should I use?', 'How do I build a video step by step?', 'Which avatar should I choose?', 'How do I write content that converts?'],
+    funnels:    ['How do I create my first funnel?', 'What type of funnel should I build?', 'How do I set up my Alliance Partnership Page?', 'How do I connect Stripe?', 'How do I publish my funnel?'],
     email:      ['How do I set up my email?', 'How do I send my first campaign?'],
-    scripts:    ['How do I use these DM scripts?', 'Walk me through closing a sale', 'What do I say when someone objects?'],
+    scripts:    ['How do I use the Conversation Coach?', 'Walk me through closing a sale', 'What do I say when someone objects?', 'How do I re-engage a cold lead?', 'What DM opener should I use for my niche?'],
     tracker:    ['What should I log today?', 'How does the tracker affect my health score?'],
     affiliate:  ['How do I analyse a new offer?', 'Walk me through the affiliate tabs', 'What is my next action today?', 'How do I get my first commission?'],
     leads:      ['How do I move a lead forward?', 'What makes a hot lead?'],
@@ -44751,7 +45899,86 @@ var VPE_PLATFORM_RULES = {
 
 var VPE_PLATFORM_LABELS = { quora:'Quora Answer', reddit:'Reddit Post', linkedin:'LinkedIn Article', medium:'Medium Article', facebook:'Facebook Post', x:'X Thread', email:'Email Broadcast', instagram:'Instagram Caption' };
 
-function vpeGetIntel() {
+// ── Shared angle prompt library — used by both Expert and Affiliate VPE ──────
+// Each angle reshapes the same question/topic into a fundamentally different
+// post type, hitting different psychological triggers and performing
+// differently depending on audience awareness level.
+var VPE_ANGLE_PROMPTS = {
+  value:      'ANGLE — Direct Value: Answer the question directly with the most useful, specific insight you can give. No story setup, no buildup — open with the real answer immediately. Give 2-3 specific tactics, not concepts. The reader should learn something concrete they can act on today.',
+  story:      'ANGLE — Story: Open with a personal moment — a specific situation, a conversation, a result — that is directly relevant to the question. Let the story carry the insight. The lesson emerges from what happened, not from you explaining it. End with what the reader should do differently.',
+  contrarian: 'ANGLE — Contrarian: Start by naming the conventional wisdom everyone in this niche accepts — then directly contradict it. Argue the opposite position confidently and specifically. Back it up with real reasoning. Not edgy for its own sake — genuinely challenge a belief your audience holds that is slowing them down.',
+  myth:       'ANGLE — Myth Bust: Name one specific widely-believed lie or misconception in this niche. State it plainly. Then dismantle it point by point with real evidence and specifics. End with what is actually true. Be surgical — the best myth-busts feel like a revelation.',
+  'story-bts':'ANGLE — Behind the Scenes: Pull the curtain back on something most people in this space do not show. A real process, a real decision, a real mistake. Make it feel like the reader is getting access to something most people never see. Specificity is everything — vague behind-the-scenes is just another post.',
+  listicle:   'ANGLE — Listicle: Structure this as a numbered list of 5-7 specific, distinct points. Each point must be genuinely useful and standalone — not padding for each other. Lead with the number in the headline/opening. No filler points. Every item earns its place.',
+  proof:      'ANGLE — Proof/Result: Lead with a specific, concrete result — a number, a timeframe, a before/after. Then explain exactly how it happened — the specific decision, action or system behind it. The reader should be able to see themselves replicating this. Specificity is the only thing that makes proof credible.',
+  promotion:  'ANGLE — Promotion: This post should sell, but not feel like an ad. Open with a real value point or insight. Build genuine interest in the problem or opportunity. Then present the offer as the obvious, natural next step — not a pitch, a recommendation from someone who has seen what works. End with a clear, direct CTA.',
+};
+
+// Expert VPE — angle selector
+function vpeSetAngle(btn) {
+  document.querySelectorAll('.vpe-angle-btn').forEach(function(b) {
+    b.style.background = 'rgba(255,255,255,.03)';
+    b.style.borderColor = 'var(--border2)';
+    b.style.color = 'var(--dim)';
+  });
+  btn.style.background = 'rgba(78,204,163,.1)';
+  btn.style.borderColor = 'rgba(78,204,163,.3)';
+  btn.style.color = 'var(--teal)';
+  var angleInput = document.getElementById('vpe-angle');
+  if (angleInput) angleInput.value = btn.dataset.angle || 'value';
+}
+
+// Expert VPE — custom question handlers
+function vpeOnCustomQuestion() {
+  // Live-preview the custom question in the selected display as user types
+  var val = (document.getElementById('vpe-custom-question')||{}).value || '';
+  if (!val.trim()) return;
+  var display = document.getElementById('vpe-topic-display');
+  var topicInput = document.getElementById('vpe-topic');
+  // Only update display if nothing from the grid is selected (i.e. display
+  // still shows the placeholder text or the custom value itself)
+}
+
+function vpeUseCustomQuestion() {
+  var val = ((document.getElementById('vpe-custom-question')||{}).value || '').trim();
+  if (!val) { alert('Please type a question first.'); return; }
+  // Deselect any grid-selected question
+  document.querySelectorAll('.vpe-q-card').forEach(function(c){ c.classList.remove('selected'); });
+  // Set as the active topic
+  var display = document.getElementById('vpe-topic-display');
+  var topicInput = document.getElementById('vpe-topic');
+  if (display) display.textContent = val;
+  if (topicInput) topicInput.value = val;
+  _vpeState.topic = val;
+  // Flash confirmation
+  if (display) {
+    display.style.borderColor = 'rgba(78,204,163,.5)';
+    setTimeout(function(){ if(display) display.style.borderColor = ''; }, 1200);
+  }
+}
+
+// Affiliate VPE — custom question handler
+function avsVpeUseCustomQ() {
+  var val = ((document.getElementById('avs-vpe-custom-q')||{}).value || '').trim();
+  if (!val) { alert('Please type a question first.'); return; }
+  // Deselect any grid-selected question
+  document.querySelectorAll('#avs-vpe-grid button').forEach(function(b){
+    b.style.background = '';
+    b.style.borderColor = '';
+    b.style.color = '';
+  });
+  // Set as the active question in affiliate VPE state
+  _avsVpeState.selectedQ = { question: val, platform: 'custom', source: 'custom' };
+  var selectedBox  = document.getElementById('avs-vpe-selected');
+  var selectedText = document.getElementById('avs-vpe-selected-text');
+  if (selectedText) selectedText.textContent = val;
+  if (selectedBox)  selectedBox.style.display = 'block';
+  // Scroll to the write button
+  var writeBtn = document.getElementById('avs-vpe-write-btn');
+  if (writeBtn) writeBtn.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+
   var mode = window._appMode || 'expert';
   var av   = window._avatarData || {};
   var bi   = window._boardroomIntel || {};
@@ -44941,6 +46168,8 @@ async function vpeWrite(platform, topic) {
 
   var intel = vpeGetIntel();
   var rules = VPE_PLATFORM_RULES[platform]||'';
+  var selectedAngle = (document.getElementById('vpe-angle')||{}).value || 'value';
+  var anglePrompt = VPE_ANGLE_PROMPTS[selectedAngle] || VPE_ANGLE_PROMPTS.value;
 
   var platformInstructions = {
     quora:    'Write a long-form Quora answer (600-900 words). Open with a bold contrarian statement that immediately reframes the question. Give 3-4 specific tactical insights — not concepts, actual things to do. First-person authority. Weave the offer as a natural recommendation in the final paragraph only. End with a question that keeps the thread alive.',
@@ -44958,6 +46187,8 @@ async function vpeWrite(platform, topic) {
     '',
     'QUESTION / TOPIC TO ADDRESS:',
     topic,
+    '',
+    anglePrompt,
     '',
     intel ? 'OFFER AND AUDIENCE INTELLIGENCE — use this, it is critical:' : '',
     intel ? intel : '',
