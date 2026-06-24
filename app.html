@@ -45935,19 +45935,45 @@ window.vpeOnCustomQuestion = function() {
 function vpeOnCustomQuestion() { window.vpeOnCustomQuestion(); }
 
 window.vpeUseCustomQuestion = function() {
-  var val = ((document.getElementById('vpe-custom-question')||{}).value || '').trim();
-  if (!val) { alert('Please type a question first.'); return; }
-  document.querySelectorAll('.vpe-q-card').forEach(function(c){ c.classList.remove('selected'); });
-  var display = document.getElementById('vpe-topic-display');
-  var topicInput = document.getElementById('vpe-topic');
-  if (display) display.textContent = val;
-  if (topicInput) topicInput.value = val;
-  _vpeState.topic = val;
-  if (display) {
-    display.style.borderColor = 'rgba(78,204,163,.5)';
-    setTimeout(function(){ if(display) display.style.borderColor = ''; }, 1200);
+  var inputEl = document.getElementById('vpe-custom-question');
+  var val     = inputEl ? inputEl.value.trim() : '';
+  var btn     = document.getElementById('vpe-use-custom-btn');
+  if (!val) {
+    if (inputEl) {
+      inputEl.style.borderColor = '#ff4d4d';
+      inputEl.placeholder = 'Type your question first...';
+      inputEl.focus();
+      setTimeout(function(){ inputEl.style.borderColor = ''; inputEl.placeholder = 'e.g. Why do most people fail at affiliate marketing in the first 90 days?'; }, 2000);
+    }
+    return;
   }
-};
+  document.querySelectorAll('.vpe-q-card').forEach(function(c){ c.classList.remove('selected'); });
+  _vpeState.topic = val;
+  var topicInput = document.getElementById('vpe-topic');
+  if (topicInput) topicInput.value = val;
+  try { var ls = window.localStorage; if (ls) ls.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
+  var displayWrap = document.getElementById('vpe-selected-q-display');
+  var displayEl   = document.getElementById('vpe-topic-display');
+  if (displayWrap) displayWrap.style.display = 'block';
+  if (displayEl)   displayEl.textContent = val;
+  if (displayEl) {
+    displayEl.style.borderColor = 'rgba(78,204,163,.6)';
+    displayEl.style.background  = 'rgba(78,204,163,.08)';
+    setTimeout(function(){
+      if (displayEl) { displayEl.style.borderColor = ''; displayEl.style.background = ''; }
+    }, 1500);
+  }
+  if (btn) {
+    btn.textContent = 'Set!';
+    btn.style.cssText = 'background:rgba(78,204,163,.2);border:1px solid rgba(78,204,163,.5);border-radius:var(--r-md);padding:9px 16px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap';
+    setTimeout(function(){
+      btn.textContent = 'Use This \u2192';
+      btn.style.cssText = 'background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:var(--r-md);padding:9px 16px;color:#F5C842;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap';
+    }, 1500);
+  }
+  var angleSection = document.getElementById('vpe-angle-grid');
+  if (angleSection) setTimeout(function(){ angleSection.scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 150);
+}
 function vpeUseCustomQuestion() { window.vpeUseCustomQuestion(); }
 
 window.avsVpeUseCustomQ = function() {
