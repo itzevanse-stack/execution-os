@@ -46135,9 +46135,14 @@ function vpeSelectQuestion(el, idx) {
 }
 
 async function vpeGenerate() {
-  var topicEl = document.getElementById('vpe-topic');
-  var topic   = topicEl ? topicEl.value.trim() : '';
-  if (!topic) { if (topicEl) topicEl.focus(); return; }
+  var topicEl  = document.getElementById('vpe-topic');
+  var customEl = document.getElementById('vpe-custom-question');
+  var topic    = (topicEl ? topicEl.value.trim() : '') || _vpeState.topic || (customEl ? customEl.value.trim() : '');
+  if (!topic) {
+    var status = document.getElementById('vpe-gen-status');
+    if (status) { status.style.display='block'; status.textContent='Please select a question from Step 1 or type your own question first.'; }
+    return;
+  }
   _vpeState.topic = topic; try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
   await vpeWrite(_vpeState.platform, topic);
 }
@@ -46151,6 +46156,8 @@ async function vpeWrite(platform, topic) {
   var status    = document.getElementById('vpe-gen-status');
   var output    = document.getElementById('vpe-output');
   var contentEl = document.getElementById('vpe-post-content');
+  var labelEl   = document.getElementById('vpe-output-label');
+  var badgeEl   = document.getElementById('vpe-platform-badge');
   if (btn)      { btn.disabled=true; btn.textContent='Writing…'; }
   if (status)   { status.style.display='block'; status.textContent='E-OS Intelligence is writing your '+VPE_PLATFORM_LABELS[platform]+'…'; }
   if (output)   { output.style.display='none'; }
