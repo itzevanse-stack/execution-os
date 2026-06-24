@@ -7923,7 +7923,7 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
       <div style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px">
         <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:4px">Step 2 — Write Your Post</div>
         <div style="font-size:12px;color:var(--dim);margin-bottom:16px">Select a question above — or type your own. E-OS Intelligence writes using your offer, avatar and boardroom strategy.</div>
-        <div style="margin-bottom:12px" id="vpe-selected-q-display" style="display:none">
+        <div style="margin-bottom:12px;display:none" id="vpe-selected-q-display">
           <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:6px">Selected Question</div>
           <div id="vpe-topic-display" style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:var(--r-md);padding:10px 14px;font-size:13px;font-weight:700;color:var(--white);line-height:1.5">Pick a question from Step 1 above →</div>
           <input id="vpe-topic" style="display:none">
@@ -45879,8 +45879,11 @@ window.dbShowGraph = function(trackerData) {
 /* ══ VALUE POST ENGINE JS ══════════════════════════════════════════════════ */
 var _vpeState = (function() {
   try {
-    var saved = JSON.parse(localStorage.getItem('eos_vpe_state') || 'null');
-    if (saved && Array.isArray(saved.questions)) return saved;
+    var ls = (function(){ try { return window.localStorage; } catch(e){ return null; } })();
+    if (ls) {
+      var saved = JSON.parse(ls.getItem('eos_vpe_state') || 'null');
+      if (saved && Array.isArray(saved.questions)) return saved;
+    }
   } catch(e) {}
   return { platform: 'quora', topic: '', lastPost: '', questions: [] };
 })();
