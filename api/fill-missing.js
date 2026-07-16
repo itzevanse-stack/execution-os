@@ -22,7 +22,7 @@ function getDb() {
 
 async function ai(system, user, maxTokens) {
   const r = await client.messages.create({
-    model:      'claude-sonnet-4-20250514',
+    model:      'claude-sonnet-4-6',
     max_tokens: maxTokens || 1000,
     system,
     messages: [{ role: 'user', content: user }],
