@@ -35418,6 +35418,7 @@ async function emSendCampaign() {
 
     // Send to each contact via Resend
     var sent = 0, failed = 0;
+    var firstError = null;
     var batchSize = 5;  // send in small batches to avoid rate limits
     for (var i = 0; i < contacts.length; i += batchSize) {
       var batch = contacts.slice(i, i + batchSize);
@@ -35439,9 +35440,19 @@ async function emSendCampaign() {
               previewText: preview || ''
             })
           });
-          if (resp.ok) sent++;
-          else failed++;
-        } catch(e) { failed++; }
+          if (resp.ok) { sent++; }
+          else {
+            failed++;
+            var errData = await resp.json().catch(function(){ return {}; });
+            var msg = 'HTTP ' + resp.status + ': ' + (errData.error || 'Unknown error');
+            console.error('[emSendCampaign] Send failed for', contact.email, '—', msg);
+            if (!firstError) firstError = msg;
+          }
+        } catch(e) {
+          failed++;
+          console.error('[emSendCampaign] Network error for', contact.email, '—', e.message);
+          if (!firstError) firstError = 'Network error: ' + e.message;
+        }
       }));
     }
 
@@ -35456,7 +35467,7 @@ async function emSendCampaign() {
     emRenderCampaigns();
     emUpdateStats();
     emCloseCompose();
-    emToast('🚀 Campaign sent to ' + sent + ' contacts!' + (failed ? ' (' + failed + ' failed)' : ''));
+    emToast('🚀 Campaign sent to ' + sent + ' contacts!' + (failed ? ' (' + failed + ' failed — ' + (firstError || 'unknown error') + ')' : ''), !!failed);
   } catch(err) {
     emToast('Send failed: ' + (err.message || 'Connection error. Check your API key.'), true);
   } finally {
