@@ -35545,6 +35545,33 @@ function emFmt(cmd) {
   var hiddenEl = document.getElementById('em-compose-body');
   if (hiddenEl) hiddenEl.value = ed.innerHTML;
 }
+function emFmtSize(size) {
+  var ed = document.getElementById('em-quill-editor');
+  if (!ed || !size) return;
+  ed.focus();
+  // execCommand('fontSize') only supports 1-7, not arbitrary px values, so
+  // apply the actual px size via a wrapping span on the current selection.
+  var sel = window.getSelection();
+  if (sel && sel.rangeCount && !sel.isCollapsed) {
+    var span = document.createElement('span');
+    span.style.fontSize = size;
+    try { sel.getRangeAt(0).surroundContents(span); } catch(e) {
+      document.execCommand('fontSize', false, '3');
+    }
+  }
+  var hiddenEl = document.getElementById('em-compose-body');
+  if (hiddenEl) hiddenEl.value = ed.innerHTML;
+}
+function emFmtColor(color) {
+  var ed = document.getElementById('em-quill-editor');
+  if (!ed) return;
+  ed.focus();
+  document.execCommand('foreColor', false, color);
+  var swatch = document.getElementById('em-color-swatch');
+  if (swatch) swatch.style.background = color;
+  var hiddenEl = document.getElementById('em-compose-body');
+  if (hiddenEl) hiddenEl.value = ed.innerHTML;
+}
 function emFmtAlign(align) {
   var ed = document.getElementById('em-quill-editor');
   if (!ed) return;
@@ -35753,10 +35780,18 @@ function emLoadSettings() {
   if (funnelEl && emState.connectedFunnel) funnelEl.value = emState.connectedFunnel;
   var triggerEl = document.getElementById('em-trigger-select');
   if (triggerEl && emState.trigger) triggerEl.value = emState.trigger;
+  var liveEl = document.getElementById('em-sequence-live');
+  if (liveEl) liveEl.checked = !!emState.sequenceLive;
   var fn = document.getElementById('em-footer-name');
   var fe = document.getElementById('em-footer-email');
   if (fn) fn.textContent = sender.name  || 'Your Name';
   if (fe) fe.textContent = sender.email || 'your@email.com';
+}
+
+function emToggleSequenceLive(checkbox) {
+  emState.sequenceLive = !!checkbox.checked;
+  emSave();
+  emToast(emState.sequenceLive ? '✅ Welcome sequence is now live' : 'Welcome sequence turned off');
 }
 
 function emSaveSender() {
@@ -39310,13 +39345,15 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
   try {
     var endpoint = window.PROXY_URL || (window.location.origin + '/api/claude');
     var _brCtl = new AbortController();
-    // Timeout scales with the requested token budget — a fixed 90s ceiling
-    // was too tight for the largest sections (e.g. Content Strategy at 5000
-    // tokens, the biggest JSON schema in the whole Boardroom system), which
-    // were timing out simply because they legitimately need more wall-clock
-    // time to generate, not because anything was actually broken.
+    // Server (api/claude.js) allows up to 300s (vercel.json maxDuration).
+    // The previous client-side cap of 110s for large calls was still far
+    // short of that, which is almost certainly why this kept timing out —
+    // the client was giving up long before the server would have. Scaling
+    // much closer to the real server ceiling now, with actual elapsed-time
+    // logging so a future failure comes with real numbers, not another guess.
     var _effectiveTokens = maxTokens || 3000;
-    var _timeoutMs = Math.min(150000, Math.max(60000, 60000 + _effectiveTokens * 10));
+    var _timeoutMs = Math.min(270000, Math.max(90000, 60000 + _effectiveTokens * 30));
+    var _brStartTime = Date.now();
     var _brTid = setTimeout(function(){ _brCtl.abort(); }, _timeoutMs);
     var resp = await fetch(endpoint, {
       method: 'POST',
@@ -39331,6 +39368,7 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
     });
 
     clearTimeout(_brTid);
+    console.log('[Boardroom] Response received after ' + ((Date.now() - _brStartTime) / 1000).toFixed(1) + 's (timeout was ' + (_timeoutMs/1000) + 's, max_tokens ' + _effectiveTokens + ')');
 
     // ── Handle rate limit (429) — retry with exponential backoff ────────
     if (resp.status === 429 && _retryCount < 4) {
@@ -39399,7 +39437,7 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
   } catch (err) {
     clearTimeout(_brTid);
     var _isTO = err.name === 'AbortError';
-    console.error('[Boardroom] Error:', err.name, err.message);
+    console.error('[Boardroom] Error:', err.name, err.message, '| elapsed:', ((Date.now() - _brStartTime) / 1000).toFixed(1) + 's', '| timeout was:', (_timeoutMs/1000) + 's', '| max_tokens:', _effectiveTokens);
     return { _error: _isTO ? 'Request timed out. Click the tab Regenerate button to retry.' : 'Network error: ' + err.message };
   }
 }
