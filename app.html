@@ -38387,6 +38387,36 @@ function _brRenderFunnelStrategy(d, inp) {
 /* ══════════════════════════════════════════════════════════════════
    RESEARCH AI CALLER — uses /api/claude-research (web search enabled)
 ══════════════════════════════════════════════════════════════════ */
+// Attempts to repair malformed JSON before falling back to a full,
+// expensive regeneration retry. The overwhelming majority of failures here
+// are the model including a literal '"' inside a string value (e.g.
+// quoting a phrase for emphasis) without escaping it, which breaks the
+// parser at that exact point. JSON.parse's own error message tells us the
+// character position it choked on — walk backward from there to find the
+// nearest unescaped quote and escape it, then retry parsing. Repeat for
+// each successive break point. This fixes the problem deterministically
+// and instantly, in milliseconds, with zero extra API cost — much more
+// reliable than hoping a full regeneration comes out clean.
+function _repairAndParseJSON(rawSlice) {
+  var text = rawSlice;
+  for (var attempt = 0; attempt < 40; attempt++) {
+    try {
+      return { ok: true, value: JSON.parse(text) };
+    } catch (e) {
+      var m = /position (\d+)/.exec(e.message);
+      if (!m) return { ok: false, error: e };
+      var pos = parseInt(m[1], 10);
+      var found = -1;
+      for (var i = Math.min(pos, text.length - 1); i >= 0 && i > pos - 300; i--) {
+        if (text[i] === '"' && text[i - 1] !== '\\') { found = i; break; }
+      }
+      if (found === -1) return { ok: false, error: e };
+      text = text.slice(0, found) + '\\"' + text.slice(found + 1);
+    }
+  }
+  return { ok: false, error: new Error('Could not repair JSON after 40 attempts') };
+}
+
 async function brCallAI_WithSearch(systemPrompt, userPrompt, maxTokens) {
   try {
     var endpoint = window.location.origin + '/api/claude-research';
@@ -38413,7 +38443,11 @@ async function brCallAI_WithSearch(systemPrompt, userPrompt, maxTokens) {
     var clean = text.replace(/```json\s*/gi,'').replace(/```\s*/g,'').trim();
     var s = clean.indexOf('{'), e = clean.lastIndexOf('}');
     if (s >= 0 && e > s) {
-      try { return JSON.parse(clean.slice(s, e+1)); } catch(je) { return { _error: 'JSON parse failed', _raw: text }; }
+      try { return JSON.parse(clean.slice(s, e+1)); } catch(je) {
+        var repaired = _repairAndParseJSON(clean.slice(s, e+1));
+        if (repaired.ok) { console.warn('[Boardroom] JSON auto-repaired after parse failure'); return repaired.value; }
+        return { _error: 'JSON parse failed', _raw: text };
+      }
     }
     return { _raw: text };
   } catch(err) {
@@ -39418,12 +39452,20 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
       } catch (jsonErr) {
         console.error('[Boardroom] JSON parse error:', jsonErr.message);
         console.error('[Boardroom] Raw JSON attempt:', clean.slice(s, s + 500));
+        // Try a deterministic, local repair first — fast, free, and handles
+        // the overwhelming majority of cases (an unescaped quote inside a
+        // string value). Only fall back to a full paid regeneration if that
+        // doesn't work.
+        var repaired = _repairAndParseJSON(clean.slice(s, e + 1));
+        if (repaired.ok) {
+          console.warn('[Boardroom] JSON auto-repaired after parse failure — no retry needed');
+          return repaired.value;
+        }
         // Retry once — the model is stochastic, and a malformed-JSON output
-        // (usually an unescaped quote inside a string value) very often
-        // parses correctly on a second attempt. Previously this failed
-        // permanently on the first bad generation, showing an empty tab.
+        // very often parses correctly on a second attempt. Previously this
+        // failed permanently on the first bad generation, showing an empty tab.
         if (_jsonRetryCount < 1) {
-          console.warn('[Boardroom] Retrying generation once after JSON parse failure...');
+          console.warn('[Boardroom] Repair failed too — retrying generation once...');
           return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonRetryCount + 1);
         }
         return { _error: 'JSON parse failed: ' + jsonErr.message, _raw: text };
