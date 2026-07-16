@@ -6,7 +6,7 @@ const MENTOR = 'You are the core intelligence of Execution-OS — a 9-Figure Dig
 
 async function callJSON(prompt, maxTokens) {
   const msg = await anthropic.messages.create({
-    model:      'claude-sonnet-4-20250514',
+    model:      'claude-sonnet-4-6',
     max_tokens: maxTokens || 2000,
     system:     MENTOR,
     messages:   [{ role: 'user', content: prompt }],
