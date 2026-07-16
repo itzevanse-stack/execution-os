@@ -18,7 +18,7 @@ const { initializeApp, getApps, cert } = require('firebase-admin/app');
 const { getFirestore, FieldValue }      = require('firebase-admin/firestore');
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-const MODEL  = 'claude-sonnet-4-20250514';
+const MODEL  = 'claude-sonnet-4-6';
 
 // ── Firebase — same pattern as execution-engine.js ───────────────────────────
 function getDb() {
