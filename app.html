@@ -26991,7 +26991,7 @@ function buildContentStrategyPrompt(inp, mode) {
     '    "triggerMessage": "the exact CTA viewers see: comment X to get Y",',
     '    "dmSequence": ["DM message 1 sent automatically", "DM message 2 after 24hrs", "DM message 3 after 48hrs"],',
     '    "leadMagnet": "the free resource offered in exchange for the opt-in",',
-    '    "optInRate": "realistic opt-in rate to expect"',
+    '    "optInRate": "realistic opt-in rate as a quoted string, e.g. \\"15-20%\\" — never a bare number"',
     '  },',
     '  "emailSequence": {',
     '    "welcomeEmail": "subject and purpose of email 1",',
@@ -38388,33 +38388,53 @@ function _brRenderFunnelStrategy(d, inp) {
    RESEARCH AI CALLER — uses /api/claude-research (web search enabled)
 ══════════════════════════════════════════════════════════════════ */
 // Attempts to repair malformed JSON before falling back to a full,
-// expensive regeneration retry. The overwhelming majority of failures here
-// are the model including a literal '"' inside a string value (e.g.
-// quoting a phrase for emphasis) without escaping it, which breaks the
-// parser at that exact point. JSON.parse's own error message tells us the
-// character position it choked on — walk backward from there to find the
-// nearest unescaped quote and escape it, then retry parsing. Repeat for
-// each successive break point. This fixes the problem deterministically
-// and instantly, in milliseconds, with zero extra API cost — much more
-// reliable than hoping a full regeneration comes out clean.
+// expensive regeneration retry. Two known failure patterns are handled:
+//
+// 1. QUOTE-CLOSED-EARLY: the model wrote a literal, unescaped '"' inside a
+//    string value (e.g. quoting a phrase for emphasis), which the parser
+//    reads as the string's actual closing quote. Signature: the character
+//    immediately before the reported error position IS an unescaped '"'.
+//
+// 2. BARE VALUE: the model wrote an unquoted value where a string was
+//    expected (e.g. "optInRate": 15% instead of "optInRate": "15%") —
+//    this produces the identical parser error message as #1 but has
+//    nothing to do with quotes at all, and needs a different fix: find the
+//    value's real span and wrap it in quotes. Distinguishing the two: if
+//    the character before the error position is NOT a quote, it's this case.
+//
+// Both are fixed deterministically and instantly with zero extra API cost.
 function _repairAndParseJSON(rawSlice) {
   var text = rawSlice;
-  for (var attempt = 0; attempt < 40; attempt++) {
+  for (var attempt = 0; attempt < 60; attempt++) {
     try {
       return { ok: true, value: JSON.parse(text) };
     } catch (e) {
       var m = /position (\d+)/.exec(e.message);
       if (!m) return { ok: false, error: e };
       var pos = parseInt(m[1], 10);
-      var found = -1;
-      for (var i = Math.min(pos, text.length - 1); i >= 0 && i > pos - 300; i--) {
-        if (text[i] === '"' && text[i - 1] !== '\\') { found = i; break; }
+
+      var lastIdx = pos - 1;
+      while (lastIdx >= 0 && /\s/.test(text[lastIdx])) lastIdx--;
+
+      if (text[lastIdx] === '"' && text[lastIdx - 1] !== '\\') {
+        text = text.slice(0, lastIdx) + '\\"' + text.slice(lastIdx + 1);
+        continue;
       }
-      if (found === -1) return { ok: false, error: e };
-      text = text.slice(0, found) + '\\"' + text.slice(found + 1);
+
+      var colonIdx = text.lastIndexOf(':', pos);
+      if (colonIdx === -1) return { ok: false, error: e };
+      var delimMatch = /[,}\]]/.exec(text.slice(pos));
+      if (!delimMatch) return { ok: false, error: e };
+      var delimIdx = pos + delimMatch.index;
+      var rawValue = text.slice(colonIdx + 1, delimIdx).trim();
+      if (/^"|^\{|^\[|^(true|false|null)$|^-?\d+(\.\d+)?$/.test(rawValue) || !rawValue) {
+        return { ok: false, error: e };
+      }
+      var escapedValue = rawValue.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      text = text.slice(0, colonIdx + 1) + ' "' + escapedValue + '"' + text.slice(delimIdx);
     }
   }
-  return { ok: false, error: new Error('Could not repair JSON after 40 attempts') };
+  return { ok: false, error: new Error('Could not repair JSON after 60 attempts') };
 }
 
 async function brCallAI_WithSearch(systemPrompt, userPrompt, maxTokens) {
