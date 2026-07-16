@@ -14,7 +14,7 @@ export default async function handler(req, res) {
   if (_rawPrompt) {
     try {
       const anthropicBody = {
-        model: "claude-sonnet-4-20250514",           // Sonnet for quality
+        model: "claude-sonnet-4-6",           // Sonnet for quality
         max_tokens: _maxTokens || 8000,              // Raised: 7-day calendars need room
         messages: [{ role: "user", content: _rawPrompt }]
       };
@@ -106,7 +106,7 @@ ${isAffiliate ? "✓ Never mention commission or that it is an affiliate product
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",   // ← Changed from Haiku to Sonnet
+        model: "claude-sonnet-4-6",   // ← Changed from Haiku to Sonnet
         max_tokens: 8000,                    // ← Raised from 4000 to fit full 7-day calendar
         messages: [{ role: "user", content: prompt }]
       })
