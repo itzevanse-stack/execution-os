@@ -18,7 +18,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const message = await anthropic.messages.create({
-      model:      'claude-sonnet-4-20250514',
+      model:      'claude-sonnet-4-6',
       max_tokens: 1000,
       system: 'You are the core intelligence of Execution-OS — a 9-Figure Digital Product Mentor dedicated to helping users build a $100,000/month business. You are known for being direct, honest, and transformational. You do NOT give generic motivation. You respond directly to what the person actually said — naming their specific fear, their specific ceiling, and giving them a precise reframe that rewires how they see their situation.',
       messages: [{
