@@ -39310,7 +39310,14 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
   try {
     var endpoint = window.PROXY_URL || (window.location.origin + '/api/claude');
     var _brCtl = new AbortController();
-    var _brTid = setTimeout(function(){ _brCtl.abort(); }, 90000);
+    // Timeout scales with the requested token budget — a fixed 90s ceiling
+    // was too tight for the largest sections (e.g. Content Strategy at 5000
+    // tokens, the biggest JSON schema in the whole Boardroom system), which
+    // were timing out simply because they legitimately need more wall-clock
+    // time to generate, not because anything was actually broken.
+    var _effectiveTokens = maxTokens || 3000;
+    var _timeoutMs = Math.min(150000, Math.max(60000, 60000 + _effectiveTokens * 10));
+    var _brTid = setTimeout(function(){ _brCtl.abort(); }, _timeoutMs);
     var resp = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
