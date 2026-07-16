@@ -59,7 +59,7 @@ module.exports = async function handler(req, res) {
     const onTrack      = ratio >= 0.75;
 
     const message = await anthropic.messages.create({
-      model:      'claude-sonnet-4-20250514',
+      model:      'claude-sonnet-4-6',
       max_tokens: 2000,
       system: 'You are the adaptive intelligence of Execution-OS — a 9-Figure Digital Product Mentor. You analyze weekly results against the plan and produce a precise, personalised adaptation. You respond to specific numbers and specific obstacles. CRITICAL: Return ONLY valid JSON. No markdown, no preamble.',
       messages: [{
