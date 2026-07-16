@@ -206,7 +206,7 @@ JSON SCHEMA (all fields required):
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model:      'claude-sonnet-4-20250514',
+        model:      'claude-sonnet-4-6',
         max_tokens: Math.min(max_tokens || 4000, 4000),
         system:     SYSTEM,
         messages:   [{ role: 'user', content: prompt }],
@@ -221,10 +221,10 @@ JSON SCHEMA (all fields required):
 
     let copy;
     try { copy = JSON.parse(text); }
-    catch(e) { return res.status(200).json({ content: [{ type: 'text', text }], model: 'claude-sonnet-4-20250514' }); }
+    catch(e) { return res.status(200).json({ content: [{ type: 'text', text }], model: 'claude-sonnet-4-6' }); }
 
     const html = renderTemplate(copy, mode || 'optin');
-    return res.status(200).json({ content: [{ type: 'text', text: html }], model: 'claude-sonnet-4-20250514' });
+    return res.status(200).json({ content: [{ type: 'text', text: html }], model: 'claude-sonnet-4-6' });
 
   } catch(e) {
     console.error('generate-funnel:', e.message);
