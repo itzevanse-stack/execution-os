@@ -83,7 +83,7 @@ You speak like a trusted advisor who has helped hundreds of people build $10K–
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
+        model: "claude-sonnet-4-6",
         max_tokens: 1200,
         system: systemPrompt,
         messages: messages.map(m => ({ role: m.role, content: m.content }))
