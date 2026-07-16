@@ -35235,7 +35235,26 @@ function emShowCompose(campaign){
   emUpdateRecipientCount();
 }
 function emCloseCompose(){var v=document.getElementById('em-view-compose');if(v)v.style.display='none';var a=document.getElementById('em-view-'+emState.tab);if(a)a.style.display='block';}
-async function emSave(){var uid=window._currentUserUid;try{if(uid&&window._db&&window._setDoc&&window._doc){await window._setDoc(window._doc(window._db,'users',uid,'emailMarketing','data'),{campaigns:emState.campaigns,sender:emState.sender,sequences:emState.sequences,sequenceLive:emState.sequenceLive,connectedFunnel:emState.connectedFunnel,trigger:emState.trigger,updatedAt:Date.now()},{merge:true});}localStorage.setItem('eos_email_'+(uid||'anon'),JSON.stringify({campaigns:emState.campaigns,sender:emState.sender,sequences:emState.sequences,sequenceLive:emState.sequenceLive,connectedFunnel:emState.connectedFunnel,trigger:emState.trigger}));}catch(e){localStorage.setItem('eos_email_'+(window._currentUserUid||'anon'),JSON.stringify(emState));}}
+// Waits for Firebase Auth to resolve the current user before letting
+// save/load touch Firestore. Without this, emSave() can run while
+// window._currentUserUid is still empty (auth resolves asynchronously in
+// the background) and silently falls back to saving under a generic
+// 'eos_email_anon' localStorage key instead of the real account — which
+// looks like it worked, then "vanishes" on the next visit once auth is
+// actually ready and looks in the real account and finds nothing there.
+function emWaitForAuth(timeoutMs) {
+  return new Promise(function(resolve) {
+    if (window._currentUserUid) { resolve(window._currentUserUid); return; }
+    var waited = 0, interval = 150;
+    var poll = setInterval(function() {
+      waited += interval;
+      if (window._currentUserUid) { clearInterval(poll); resolve(window._currentUserUid); }
+      else if (waited >= (timeoutMs || 4000)) { clearInterval(poll); resolve(null); }
+    }, interval);
+  });
+}
+
+async function emSave(){var uid=await emWaitForAuth(3000);try{if(uid&&window._db&&window._setDoc&&window._doc){await window._setDoc(window._doc(window._db,'users',uid,'emailMarketing','data'),{campaigns:emState.campaigns,sender:emState.sender,sequences:emState.sequences,sequenceLive:emState.sequenceLive,connectedFunnel:emState.connectedFunnel,trigger:emState.trigger,updatedAt:Date.now()},{merge:true});}else if(!uid){console.warn('[emSave] Auth not ready — saved locally only, not synced to account yet.');}localStorage.setItem('eos_email_'+(uid||'anon'),JSON.stringify({campaigns:emState.campaigns,sender:emState.sender,sequences:emState.sequences,sequenceLive:emState.sequenceLive,connectedFunnel:emState.connectedFunnel,trigger:emState.trigger}));}catch(e){localStorage.setItem('eos_email_'+(window._currentUserUid||'anon'),JSON.stringify(emState));}}
 async function emLoad(){var uid=window._currentUserUid;var lk='eos_email_'+(uid||'anon');if(uid&&window._db&&window._getDoc&&window._doc){try{var snap=await window._getDoc(window._doc(window._db,'users',uid,'emailMarketing','data'));if(snap.exists&&snap.exists()){var d=snap.data();if(d.campaigns)emState.campaigns=d.campaigns;if(d.sender)emState.sender=d.sender;if(d.sequences)emState.sequences=d.sequences;if(d.sequenceLive!==undefined)emState.sequenceLive=d.sequenceLive;if(d.connectedFunnel)emState.connectedFunnel=d.connectedFunnel;if(d.trigger)emState.trigger=d.trigger;emUpdateStats();emRenderCampaigns();emWireCampaignList();return;}}catch(e){}}try{var local=JSON.parse(localStorage.getItem(lk)||'{}');if(local.campaigns)emState.campaigns=local.campaigns;if(local.sender)emState.sender=local.sender;if(local.sequences)emState.sequences=local.sequences;if(local.sequenceLive!==undefined)emState.sequenceLive=local.sequenceLive;if(local.trigger)emState.trigger=local.trigger;}catch(e){}emUpdateStats();emRenderCampaigns();}
 function emSyncFromCalendar(){if(!window._aiCalendar30||!window._aiCalendar30.length){alert('Build your Content Calendar first, then sync emails from it here.');return;}var n=0;window._aiCalendar30.forEach(function(daySlots,i){if(!daySlots)return;daySlots.forEach(function(slot){if(!slot||slot.type!=='email')return;var ex=emState.campaigns.find(function(c){return c.calDay===i;});if(!ex){var sm=slot.content&&slot.content.match(/SUBJECT:\s*(.+)/),bm=slot.content&&slot.content.match(/\n\n([\s\S]+)/);emState.campaigns.push({id:'cal_'+i+'_'+Date.now(),calDay:i,subject:sm?sm[1].trim():'Email — Day '+(i+1),preview:'From your Content Calendar',body:bm?bm[1].substring(0,2000):(slot.content||''),status:'draft',source:'calendar',createdAt:Date.now(),stats:{sent:0,opens:0,clicks:0}});n++;}});});if(n>0){emSave();emRenderCampaigns();emUpdateStats();alert(n+' email'+(n>1?'s':'')+' imported from your Content Calendar.');}else{alert('All calendar emails already imported, or no email slots found.');}}
 
@@ -35394,6 +35413,13 @@ async function emSendCampaign() {
   var sendBtn = document.getElementById('em-send-btn');
   if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Sending…'; }
 
+  var sendUid = await emWaitForAuth();
+  if (!sendUid) {
+    emToast('⚠️ Still confirming your account — wait a moment and try again.', true);
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send Campaign →'; }
+    return;
+  }
+
   try {
     // If scheduled, just mark as scheduled and return
     if (scheduleVal === 'scheduled') {
@@ -35432,7 +35458,7 @@ async function emSendCampaign() {
             headers: { 'Content-Type':'application/json' },
             body: JSON.stringify({
               action: 'send',
-              userId: window._currentUserUid || '',
+              userId: sendUid,
               from: fromName + ' <' + fromEmail + '>',
               to: contact.email,
               subject: subject,
@@ -35715,18 +35741,24 @@ function emSaveSender() {
   emLoadSettings();
 }
 
-function emAddDomain() {
+async function emAddDomain() {
   var inputEl = document.getElementById('em-domain-input');
   var domain = inputEl ? inputEl.value.trim() : '';
   if (!domain) { emToast('⚠️ Enter your domain first.', true); return; }
+  var addBtn = document.querySelector('button[onclick="emAddDomain()"]');
+  if (addBtn) { addBtn.textContent = 'Adding…'; addBtn.disabled = true; }
+  var uid = await emWaitForAuth();
+  if (!uid) {
+    if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
+    emToast('⚠️ Still confirming your account — wait a moment and try again.', true);
+    return;
+  }
   if (!emState.sender) emState.sender = {};
   emState.sender.domain = domain.toLowerCase().replace(/^https?:\/\//,'');
   emSave();
-  var addBtn = document.querySelector('button[onclick="emAddDomain()"]');
-  if (addBtn) { addBtn.textContent = 'Adding…'; addBtn.disabled = true; }
   fetch('/api/email-setup', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'add-domain', domain: emState.sender.domain, userId: window._currentUserUid || '' })
+    body: JSON.stringify({ action: 'add-domain', domain: emState.sender.domain, userId: uid })
   }).then(function(r){ return r.json(); }).then(function(data) {
     if (addBtn) { addBtn.textContent = 'Add →'; addBtn.disabled = false; }
     if (data.error) { emToast('⚠️ ' + data.error, true); return; }
@@ -35762,12 +35794,14 @@ function emChangeDomain() {
   if (verEl) verEl.style.display = 'none';
 }
 
-function emVerifyDomain() {
+async function emVerifyDomain() {
   var domain = emState.sender && emState.sender.domain;
   if (!domain) { emToast('Add a domain first.', true); return; }
+  var uid = await emWaitForAuth();
+  if (!uid) { emToast('⚠️ Still confirming your account — wait a moment and try again.', true); return; }
   fetch('/api/email-setup', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'verify-domain', domain: domain, domainId: emState.sender.domainId, userId: window._currentUserUid || '' })
+    body: JSON.stringify({ action: 'verify-domain', domain: domain, domainId: emState.sender.domainId, userId: uid })
   }).then(function(r){ return r.json(); }).then(function(data) {
     if (data.verified) {
       emState.sender.domainVerified = true; emSave();
