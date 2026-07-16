@@ -35516,6 +35516,27 @@ async function emSendCampaign() {
 }
 
 /* ── Editor Toolbar ─────────────────────────────────────────────── */
+// These two were referenced in the editor's oninput/onpaste handlers but
+// never actually defined, throwing a ReferenceError on every keystroke and
+// paste. They don't cause data loss — Save/Send already independently
+// re-sync the editor into the hidden field right before using it — but they
+// were spamming the console and meant no live sync ever ran while typing.
+function emSyncRichToHidden() {
+  var ed = document.getElementById('em-quill-editor');
+  var hiddenEl = document.getElementById('em-compose-body');
+  if (ed && hiddenEl) hiddenEl.value = ed.innerHTML;
+}
+
+function emHandlePaste(event) {
+  // Let the paste happen, then strip pasted formatting/styles down to plain
+  // structure so content from Word/Google Docs doesn't drag in messy inline
+  // styles, and sync the result to the hidden field.
+  event.preventDefault();
+  var text = (event.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, text);
+  emSyncRichToHidden();
+}
+
 function emFmt(cmd) {
   var ed = document.getElementById('em-quill-editor');
   if (!ed) return;
@@ -39279,8 +39300,13 @@ function brBuildAnalysisUI(inp) {
 }
 
 /* ── 5 Parallel AI Calls ── */
-async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount) {
+async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonRetryCount) {
   _retryCount = _retryCount || 0;
+  _jsonRetryCount = _jsonRetryCount || 0;
+  // Guardrail against the most common cause of JSON parse failures here:
+  // the model quoting a phrase inside a string value with literal double
+  // quotes, which breaks the JSON structure partway through parsing.
+  var safeSystemPrompt = systemPrompt + '\n\nCRITICAL JSON SAFETY: Inside any string value, NEVER use literal double-quote characters ("). If you need to emphasize or quote a phrase within a string, use single quotes (\') instead. This is required for the JSON to parse correctly.';
   try {
     var endpoint = window.PROXY_URL || (window.location.origin + '/api/claude');
     var _brCtl = new AbortController();
@@ -39292,7 +39318,7 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount) {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: maxTokens || 3000,
-        system: systemPrompt,
+        system: safeSystemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
       })
     });
@@ -39304,7 +39330,7 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount) {
       var waitSecs = Math.pow(2, _retryCount + 1); // 2, 4, 8, 16 seconds
       console.warn('[brCallAI] Rate limited — retrying in ' + waitSecs + 's (attempt ' + (_retryCount+1) + '/4)');
       await new Promise(function(resolve){ setTimeout(resolve, waitSecs * 1000); });
-      return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount + 1);
+      return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount + 1, _jsonRetryCount);
     }
     var rawText = await resp.text();
     console.log('[Boardroom] HTTP status:', resp.status, '| Response length:', rawText.length);
@@ -39347,6 +39373,14 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount) {
       } catch (jsonErr) {
         console.error('[Boardroom] JSON parse error:', jsonErr.message);
         console.error('[Boardroom] Raw JSON attempt:', clean.slice(s, s + 500));
+        // Retry once — the model is stochastic, and a malformed-JSON output
+        // (usually an unescaped quote inside a string value) very often
+        // parses correctly on a second attempt. Previously this failed
+        // permanently on the first bad generation, showing an empty tab.
+        if (_jsonRetryCount < 1) {
+          console.warn('[Boardroom] Retrying generation once after JSON parse failure...');
+          return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonRetryCount + 1);
+        }
         return { _error: 'JSON parse failed: ' + jsonErr.message, _raw: text };
       }
     }
