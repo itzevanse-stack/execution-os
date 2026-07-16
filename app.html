@@ -46143,7 +46143,16 @@ function vpeSelectQuestion(el, idx) {
   el.classList.add('selected');
   var q = _vpeState.questions[idx];
   if (q) {
-    _vpeState.topic = q.question; try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
+    _vpeState.topic = q.question;
+    // Preserve the live-research context (why this question matters, source,
+    // volume, buyer intent) so vpeWrite() can ground the post in the actual
+    // research instead of rewriting from the model's general knowledge.
+    _vpeState.topicWhy      = q.why || '';
+    _vpeState.topicUrl      = q.url || '';
+    _vpeState.topicPlatform = q.platform || '';
+    _vpeState.topicVolume   = q.volume || '';
+    _vpeState.topicIntent   = q.intent || '';
+    try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
     var t = document.getElementById('vpe-topic');
     if (t) t.value = q.question;
     // Update display
@@ -46169,11 +46178,17 @@ async function vpeGenerate() {
     if (status) { status.style.display='block'; status.textContent='Please select a question from Step 1 or type your own question first.'; }
     return;
   }
+  // Only keep the captured research context (why/url/volume/intent) if the
+  // topic still matches the question it came from. If the user edited the
+  // topic or typed a custom question, that context no longer applies.
+  if (topic !== _vpeState.topic) {
+    _vpeState.topicWhy = ''; _vpeState.topicUrl = ''; _vpeState.topicPlatform = ''; _vpeState.topicVolume = ''; _vpeState.topicIntent = '';
+  }
   _vpeState.topic = topic; try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
   await vpeWrite(_vpeState.platform, topic);
 }
 
-async function vpeWrite(platform, topic) {
+async function vpeWrite(platform, topic, force) {
   if (typeof window.creditDeduct === 'function') {
     var ok = await window.creditDeduct('vpe_write');
     if (!ok) return;
@@ -46190,6 +46205,21 @@ async function vpeWrite(platform, topic) {
   if (contentEl){ contentEl.textContent=''; }
 
   var intel = vpeGetIntel();
+  if (!force && (!intel || intel.trim().length < 20)) {
+    if (status) {
+      status.style.display = 'block';
+      status.innerHTML = '<div style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:16px 20px">'
+        + '<div style="font-size:13px;font-weight:800;color:#F5C842;margin-bottom:6px">⚠️ Your Foundation is too thin for a strong post</div>'
+        + '<div style="font-size:12px;color:var(--dim);line-height:1.7">Without your niche, offer and ideal customer filled in, this post will come out generic. Fill in Avatar and Offer first for content that actually sounds like you and speaks to your exact reader.</div>'
+        + '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">'
+        + '<button onclick="showPage(\'page-avatar\')" style="background:linear-gradient(135deg,var(--teal),#0d9488);border:none;border-radius:8px;padding:8px 16px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:\'Poppins\',sans-serif">→ Set Up Ideal Customer</button>'
+        + '<button onclick="showPage(\'page-offer\')" style="background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:8px;padding:8px 16px;color:var(--white);font-size:12px;font-weight:700;cursor:pointer;font-family:\'Poppins\',sans-serif">→ Set Up Your Offer</button>'
+        + '<button onclick="vpeWrite(\''+platform+'\',\''+topic.replace(/'/g,"\\'")+'\',true)" style="background:rgba(255,255,255,.06);border:1px solid var(--border2);border-radius:8px;padding:8px 16px;color:var(--dim);font-size:12px;font-weight:700;cursor:pointer;font-family:\'Poppins\',sans-serif">Write anyway</button>'
+        + '</div></div>';
+    }
+    if (btn) { btn.disabled=false; btn.textContent='Write My Post'; }
+    return;
+  }
   var rules = VPE_PLATFORM_RULES[platform]||'';
   var selectedAngle = (document.getElementById('vpe-angle')||{}).value || 'value';
   var anglePrompt = VPE_ANGLE_PROMPTS[selectedAngle] || VPE_ANGLE_PROMPTS.value;
@@ -46205,12 +46235,25 @@ async function vpeWrite(platform, topic) {
     email:    'Write an email broadcast (300-600 words). First line is the subject line formatted as: SUBJECT: [subject here]. Then a blank line. Then the email body. Open with one line that makes them want to keep reading — a bold claim, a surprising result, or a story hook. Short paragraphs. One topic only. One CTA link at the end — clear and direct. Close with your name. Add a PS line that reinforces the CTA or adds one more hook. No hashtags. No HTML — plain text only. Write like you are talking to one person.'
   };
 
+  var researchContext = '';
+  if (_vpeState.topicWhy || _vpeState.topicUrl) {
+    var rc = [];
+    if (_vpeState.topicPlatform) rc.push('This was found live on ' + _vpeState.topicPlatform + '.');
+    if (_vpeState.topicWhy)      rc.push('Why this question matters right now: ' + _vpeState.topicWhy);
+    if (_vpeState.topicVolume)   rc.push('Search/discussion volume: ' + _vpeState.topicVolume + '.');
+    if (_vpeState.topicIntent)   rc.push('Reader intent: ' + _vpeState.topicIntent + '.');
+    researchContext = rc.join(' ');
+  }
+
   var aiPrompt = [
     'You are writing a high-performing social media post for a real expert in the digital product and online business space.',
     '',
     'QUESTION / TOPIC TO ADDRESS:',
     topic,
     '',
+    researchContext ? 'LIVE RESEARCH CONTEXT — this question was pulled from a real, current discussion, not invented. Ground your answer in this specific context rather than a generic version of the question:' : '',
+    researchContext ? researchContext : '',
+    researchContext ? '' : '',
     anglePrompt,
     '',
     intel ? 'OFFER AND AUDIENCE INTELLIGENCE — use this, it is critical:' : '',
@@ -46254,6 +46297,44 @@ async function vpeWrite(platform, topic) {
       return;
     }
     _vpeState.lastPost = text;
+
+    // ── Critique-and-revise pass ────────────────────────────────────────
+    // The first draft can silently break the MANDATORY QUALITY RULES above
+    // (banned phrases, no real position, no specific CTA, etc.) with no way
+    // to catch it. Run one cheap check-and-fix pass before showing the user.
+    if (status) status.textContent = 'Checking quality…';
+    try {
+      var critiquePrompt = [
+        'You are a strict editor reviewing a social media post draft against a fixed rulebook. Be tough — most drafts fail at least one rule on first pass.',
+        '',
+        'RULEBOOK:',
+        '1. Takes a clear, specific position — not "it depends."',
+        '2. Names the wrong approach/enemy specifically, not vaguely.',
+        '3. Uses real numbers or specifics from the intel provided, not vague claims.',
+        '4. Gives one genuinely actionable insight, not a platitude.',
+        '5. Feels written for one specific reader, not a generic audience.',
+        '6. Contains ZERO of these banned phrases (case-insensitive): "in today digital landscape", "game-changer", "hustle harder", "passion", "at the end of the day", "leverage", "synergy", "authentic", "journey".',
+        '7. Ends with a specific, concrete call to action.',
+        '',
+        'DRAFT:',
+        text,
+        '',
+        'If the draft passes all 7 rules, return it completely unchanged.',
+        'If it fails any rule, rewrite the ENTIRE post fixing only what fails — keep everything that already works, same length and format.',
+        'Return ONLY the final post text. No preamble, no explanation, no rule-by-rule breakdown.'
+      ].join('\n');
+      var critResp = await fetch(window.location.origin+'/api/claude', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens: platform==='linkedin'||platform==='medium'||platform==='email'?4000:2500, messages:[{role:'user',content:critiquePrompt}] })
+      });
+      var critData = await critResp.json();
+      var revised  = (critData.content||[]).map(function(b){ return b.text||''; }).join('').trim();
+      if (revised) { text = revised; _vpeState.lastPost = text; }
+    } catch(e) {
+      // If the critique pass fails for any reason, fall back to the first
+      // draft rather than blocking the user from getting a post at all.
+    }
+
     if (contentEl) contentEl.textContent = text;
     if (output)    output.style.display = 'block';
     if (labelEl)   labelEl.textContent  = VPE_PLATFORM_LABELS[platform] + ' Post';
