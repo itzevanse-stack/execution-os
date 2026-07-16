@@ -9532,6 +9532,20 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
               <button class="em-toolbar-btn" onclick="document.execCommand('redo')" title="Redo">↪</button>
             </div>
 
+            <!-- ROW 1.5: Angle selector — same framework as Value Post Engine -->
+            <div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(78,204,163,.03);border-bottom:1px solid var(--border2);flex-wrap:wrap">
+              <span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-right:2px">Angle</span>
+              <input type="hidden" id="em-angle" value="value">
+              <button class="em-angle-btn" data-angle="value" onclick="window.emSetAngle(this)" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:20px;padding:5px 14px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">💡 Value</button>
+              <button class="em-angle-btn" data-angle="story" onclick="window.emSetAngle(this)" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📖 Story</button>
+              <button class="em-angle-btn" data-angle="contrarian" onclick="window.emSetAngle(this)" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">⚡ Contrarian</button>
+              <button class="em-angle-btn" data-angle="myth" onclick="window.emSetAngle(this)" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🚫 Myth Bust</button>
+              <button class="em-angle-btn" data-angle="story-bts" onclick="window.emSetAngle(this)" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🎬 Behind Scenes</button>
+              <button class="em-angle-btn" data-angle="listicle" onclick="window.emSetAngle(this)" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📋 Listicle</button>
+              <button class="em-angle-btn" data-angle="proof" onclick="window.emSetAngle(this)" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🏆 Proof</button>
+              <button class="em-angle-btn" data-angle="promotion" onclick="window.emSetAngle(this)" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:5px 14px;color:rgba(255,255,255,.7);font-size:11px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔥 Promotion</button>
+            </div>
+
             <!-- ROW 2: AI Write + angles -->
             <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(78,204,163,.03);border-bottom:1px solid var(--border2);flex-wrap:wrap">
               <button onclick="emAiWrite()" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:6px;padding:5px 14px;color:var(--text-dark);font-family:Poppins,sans-serif;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap">⚡ Write Email</button>
@@ -35955,13 +35969,29 @@ function emExportContacts(){if(!emState.contacts.length){alert('No contacts to e
 function emUpdateStats(){var ts=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.sent)||0);},0);var to=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.opens)||0);},0);var tc=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.clicks)||0);},0);var or=ts>0?Math.round((to/ts)*100):0;var cr=ts>0?Math.round((tc/ts)*100):0;var s=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};s('em-stat-contacts',emState.contacts.length||'—');s('em-stat-campaigns',emState.campaigns.length);s('em-stat-sent',ts.toLocaleString());s('em-stat-opens',or+'%');s('em-stat-clicks',cr+'%');}
 function emRenderTemplates(){var grid=document.getElementById('em-templates-grid');if(!grid)return;var templates=[{icon:'👋',name:'Welcome Email',goal:'First impression. Set expectations.',tone:'Warm, personal'},{icon:'🔥',name:'Re-engagement',goal:'Win back cold leads.',tone:'Direct, curious'},{icon:'💎',name:'Value Drop',goal:'Give value. Build trust.',tone:'Generous, expert'},{icon:'🚀',name:'Launch Announcement',goal:'Announce a new offer.',tone:'Urgent, exciting'},{icon:'🎯',name:'Sales Close',goal:'Final push. Drive the decision.',tone:'Confident, urgent'},{icon:'❓',name:'Story Email',goal:'Tell a transformation story.',tone:'Narrative, emotional'},{icon:'📋',name:'Case Study',goal:'Show real proof.',tone:'Specific, credible'},{icon:'⚡',name:'Flash Offer',goal:'24-48 hour limited offer.',tone:'Fast, high energy'}];grid.innerHTML=templates.map(function(t){return'<div class="em-campaign-card" onclick="emUseTemplate(\''+t.name+'\')">'+'<div style="font-size:28px;margin-bottom:8px">'+t.icon+'</div>'+'<div class="em-campaign-subject">'+t.name+'</div>'+'<div style="font-size:12px;color:var(--dim);margin:6px 0;line-height:1.6">'+t.goal+'</div>'+'<div style="font-size:10px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.8px">Tone: '+t.tone+'</div>'+'</div>';}).join('');}
 function emUseTemplate(name){emShowCompose({id:'c_'+Date.now(),status:'draft',stats:{sent:0,opens:0,clicks:0}});setTimeout(function(){emAiWriteTemplate(name);},300);}
+// Angle selector for Email Marketing — reuses the same VPE_ANGLE_PROMPTS
+// library as the Value Post Engine so "Contrarian", "Proof", etc. mean the
+// same thing in both places rather than maintaining two definitions.
+window.emSetAngle = function(btn) {
+  document.querySelectorAll('.em-angle-btn').forEach(function(b) {
+    b.style.background = 'rgba(255,255,255,.07)';
+    b.style.borderColor = 'rgba(255,255,255,.15)';
+    b.style.color = 'rgba(255,255,255,.7)';
+  });
+  btn.style.background = 'rgba(78,204,163,.1)';
+  btn.style.borderColor = 'rgba(78,204,163,.3)';
+  btn.style.color = 'var(--teal)';
+  var angleInput = document.getElementById('em-angle');
+  if (angleInput) angleInput.value = btn.dataset.angle || 'value';
+};
+
 async function emAiWriteTemplate(name) {
   var bodyEl    = document.getElementById('em-compose-body');
   var subjectEl = document.getElementById('em-compose-subject');
   if (!bodyEl) return;
   bodyEl.value = 'Building your ' + name + '…';
 
-  var isAffiliate = (window._appMode || window._currentMode || 'affiliate') === 'affiliate';
+  var isAffiliate = (window._appMode || window._currentMode || 'expert') === 'affiliate';
   var affOffer    = window._affiliateOffer || {};
   var bi          = window._boardroomIntel || {};
   var biCopy      = bi.copyVault  || affOffer.copyVault  || {};
@@ -35969,7 +35999,7 @@ async function emAiWriteTemplate(name) {
   var av          = window._avatarData || {};
 
   var niche       = isAffiliate ? (affOffer.niche || window._appliedNiche || 'digital products') : (window._appliedNiche || 'digital products');
-  var offer       = isAffiliate ? (affOffer.name || 'this product') : ((window._offerData && window._offerData.headline) || (document.getElementById('offer_name')||{}).value || 'your offer');
+  var offer       = isAffiliate ? (affOffer.name || 'this product') : ((window._offerData && (window._offerData.name || window._offerData.headline)) || (document.getElementById('offer_name')||{}).value || 'your offer');
   var pain        = av.pain           || affOffer.pain           || 'not getting the results they want';
   var transf      = av.transformation || affOffer.transformation || 'their desired transformation';
   var fear        = av.fear           || 'wasting money on something that does not work';
@@ -36025,9 +36055,18 @@ async function emAiWrite(){
 
   var niche     = window._appliedNiche || 'digital products';
   var av        = window._avatarData   || {};
+  // Mode must be resolved BEFORE it's used to decide which offer name to
+  // fall back to. Two stacked bugs were here previously:
+  // 1. window._offerData stores the real offer name under `.name`, not
+  //    `.headline` — that field never existed, so the real Expert offer
+  //    was NEVER being read, regardless of mode.
+  // 2. The fallback after that unconditionally used the affiliate offer's
+  //    name with no mode check, so Expert Mode emails could end up
+  //    pitching whatever product was last analyzed in Affiliate Mode.
+  var isAffiliate  = (window._appMode || window._currentMode || 'expert') === 'affiliate';
   var affOff    = window._affiliateOffer || {};
-  var offer     = (window._offerData && window._offerData.headline)
-                || affOff.name
+  var offer     = (window._offerData && (window._offerData.name || window._offerData.headline))
+                || (isAffiliate ? affOff.name : '')
                 || (document.getElementById('offer_name') || {}).value
                 || 'your offer';
   var pain      = av.pain           || 'not seeing the results they want';
@@ -36037,9 +36076,10 @@ async function emAiWrite(){
   var keywords  = av.keywords       || '';
   var subHint   = subjectEl && subjectEl.value ? subjectEl.value : '';
   var allowMoney= window.nicheAllowsMoneyTalk ? window.nicheAllowsMoneyTalk(niche) : true;
+  var selectedAngle = (document.getElementById('em-angle')||{}).value || 'value';
+  var angleInstruction = (typeof VPE_ANGLE_PROMPTS !== 'undefined' && VPE_ANGLE_PROMPTS[selectedAngle]) || '';
 
   // Build affiliate-specific context from boardroom intelligence
-  var isAffiliate  = (window._appMode || window._currentMode || 'affiliate') === 'affiliate';
   var affOffer     = window._affiliateOffer || {};
   var bi           = window._boardroomIntel || {};
   var biCopy       = bi.copyVault  || affOffer.copyVault  || {};
@@ -36060,6 +36100,7 @@ async function emAiWrite(){
   var parts = [
     'Write ONE complete ready-to-send marketing email.',
     'OFFER: ' + offer,
+    angleInstruction,
     affBenefits ? 'KEY BENEFITS: ' + affBenefits : '',
     positioning ? 'POSITIONING ANGLE: ' + positioning : '',
     'READER PAIN: ' + pain,
@@ -36090,9 +36131,9 @@ async function emAiWrite(){
     if(!text) throw new Error('Empty response');
 
     var sm = text.match(/SUBJECT:\s*(.+)/);
-    if(sm && subjectEl && !subjectEl.value) subjectEl.value = sm[1].trim();
+    if(sm && subjectEl) subjectEl.value = sm[1].trim();
     var pm = text.match(/PREVIEW:\s*(.+)/);
-    if(pm && previewEl && !previewEl.value) previewEl.value = pm[1].trim();
+    if(pm && previewEl) previewEl.value = pm[1].trim();
 
     // Robust body extraction — strip SUBJECT and PREVIEW lines, rest is body
     var lines = text.split('\n');
@@ -40887,12 +40928,17 @@ function calLoadEntries() {
 
 // ── Firestore live listener — writes from Cloud Function appear in real time ──
 window._calFirestoreUnsub = null;
+window._calFirestoreUnsubUid = null;
 
 window.calInitFirestoreListener = function() {
   // Guard: only run if Firebase is available and user is authenticated
   if (!window._db || !window._currentUserUid) return;
-  // Only init once per session
-  if (window._calFirestoreUnsub) return;
+  // Re-init if a DIFFERENT account logs in within the same tab
+  if (window._calFirestoreUnsub) {
+    if (window._calFirestoreUnsubUid === window._currentUserUid) return;
+    try { window._calFirestoreUnsub(); } catch(e) {}
+    window._calFirestoreUnsub = null;
+  }
 
   try {
     var _collection = window._collection || (window.firebase && window.firebase.firestore && function(db, path) { return db.collection(path); });
@@ -40910,6 +40956,7 @@ window.calInitFirestoreListener = function() {
     }
     if (!daysRef) return;
 
+    window._calFirestoreUnsubUid = window._currentUserUid;
     window._calFirestoreUnsub = _onSnapshot(daysRef, function(snapshot) {
       if (!snapshot || !snapshot.docs) return;
       // Parse Firestore docs into the flat entry array format
@@ -41276,38 +41323,11 @@ window.calEditContent = function() {
   }
 };
 
-window.calMarkPublished = function() {
-  var entry = window._calModal;
-  if (!entry) return;
-  entry.status     = 'published';
-  entry.publishedAt= new Date().toISOString();
-  // Update in localStorage
-  try {
-    var entries = JSON.parse(localStorage.getItem('eos_calendar_entries') || '[]');
-    var match = entries.find(function(e){ return e.dayNum === entry.dayNum && e.type === entry.type; });
-    if (match) { match.status = 'published'; match.publishedAt = entry.publishedAt; localStorage.setItem('eos_calendar_entries', JSON.stringify(entries)); }
-  } catch(e) {}
-  // Increment streak if all today's pieces published
-  try {
-    var allTodayDone = window._calEntries.filter(function(e){ return e.dayNum === 1; }).every(function(e){ return e.status === 'published'; });
-    if (allTodayDone) {
-      var streak = parseInt(localStorage.getItem('eos_cal_streak') || '0') || 0;
-      var _newStreak = streak + 1;
-      localStorage.setItem('eos_cal_streak', String(_newStreak));
-      // Keep eos_streak in sync — this is the unified source for dashboard
-      localStorage.setItem('eos_streak', JSON.stringify({ count: _newStreak, updatedAt: new Date().toISOString() }));
-    }
-  } catch(e) {}
-  // Write to Firestore if available
-  try {
-    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
-      window._setDoc(window._doc(window._db, 'calendar', window._currentUserUid, 'days', 'day' + entry.dayNum),
-        { [entry.type]: { status: 'published', publishedAt: entry.publishedAt } }, { merge: true }).catch(function(){});
-    }
-  } catch(e) {}
-  calCloseModal();
-  calRefresh();
-};
+// NOTE: the modal's zero-argument "Mark as Published" call is now handled by
+// the unified calMarkPublished(dayNum, idx, btn) function further down this
+// file, which detects the zero-arg modal case via window._calModal. This
+// duplicate definition used to sit here and get silently overridden by the
+// later one — removed to avoid that trap recurring.
 
 window.calCloseModal = function() {
   var overlay = document.getElementById('cal-modal-overlay');
@@ -43373,8 +43393,25 @@ window.calNextWeek = function(max) {
   }
 };
 
-// ── Mark as Published directly from calendar list ─────────────────
+// Maps a stored entry's display type/label back to the Firestore field key
+// (fb1/fb2/reel1/reel2/carousel/email) used under calendar/{uid}/days/{dayN}.
+function calTypeToKey(typeStr) {
+  var norm = (typeStr || '').toLowerCase().replace(/\s+/g, '');
+  var map = { carousel:'carousel', fbpost1:'fb1', fbpost2:'fb2', reel1:'reel1', reel2:'reel2', email:'email', post1:'fb1', post2:'fb2', fb1:'fb1', fb2:'fb2' };
+  return map[norm] || norm;
+}
+
+// ── Mark as Published — called two ways in this app:
+//   1. From the list view:   calMarkPublished(dayNum, idx, btn)
+//   2. From the entry modal: calMarkPublished()  — relies on window._calModal
+// Both must be supported here; the modal's three "Mark as Published" buttons
+// call with zero arguments and were silently doing nothing once this
+// function's signature changed to (dayNum, idx, btn) without a fallback.
 window.calMarkPublished = function(dayNum, idx, btn) {
+  var fromModal  = (dayNum === undefined && window._calModal);
+  var modalEntry = fromModal ? window._calModal : null;
+  var publishedAt = new Date().toISOString();
+
   if (btn) {
     btn.textContent  = '✅ Published';
     btn.style.background = 'rgba(39,200,64,.1)';
@@ -43382,25 +43419,58 @@ window.calMarkPublished = function(dayNum, idx, btn) {
     btn.style.color  = '#27c840';
     btn.disabled     = true;
   }
-  // Update in entries array
+
   var entries = window._calEntries || [];
-  var count   = 0;
-  entries.forEach(function(e) {
-    if (e.dayNum === dayNum) {
-      if (count === idx) e.status = 'published';
-      count++;
-    }
-  });
-  // Save to Firestore + localStorage
+  var matchedEntry = null;
+
+  if (fromModal) {
+    entries.forEach(function(e) {
+      if (e.dayNum === modalEntry.dayNum && e.type === modalEntry.type) {
+        e.status = 'published'; e.publishedAt = publishedAt; matchedEntry = e;
+      }
+    });
+    if (!matchedEntry) { matchedEntry = modalEntry; matchedEntry.status = 'published'; matchedEntry.publishedAt = publishedAt; }
+    dayNum = modalEntry.dayNum;
+  } else {
+    var count = 0;
+    entries.forEach(function(e) {
+      if (e.dayNum === dayNum) {
+        if (count === idx) { e.status = 'published'; e.publishedAt = publishedAt; matchedEntry = e; }
+        count++;
+      }
+    });
+  }
+
   try { localStorage.setItem('eos_calendar_entries', JSON.stringify(entries)); } catch(e2) {}
-  try {
-    if (window._db && window._setDoc && window._doc && window._currentUserUid) {
-      window._setDoc(window._doc(window._db,'users',window._currentUserUid),
-        { calendarEntries: entries }, { merge: true }).catch(function(){});
-    }
-  } catch(e3) {}
-  // Refresh stats
-  calRenderStats(entries);
+
+  if (fromModal) {
+    try {
+      var allTodayDone = entries.filter(function(e){ return e.dayNum === 1; }).every(function(e){ return e.status === 'published'; });
+      if (allTodayDone) {
+        var streak = parseInt(localStorage.getItem('eos_cal_streak') || '0') || 0;
+        var _newStreak = streak + 1;
+        localStorage.setItem('eos_cal_streak', String(_newStreak));
+        localStorage.setItem('eos_streak', JSON.stringify({ count: _newStreak, updatedAt: new Date().toISOString() }));
+      }
+    } catch(e) {}
+  }
+
+  // Save to Firestore at the SAME path the live listener reads from
+  // (calendar/{uid}/days/dayN) — a previous version of this function wrote to
+  // users/{uid}.calendarEntries, a field nothing ever reads back, so
+  // "published" never actually persisted past this one browser's localStorage.
+  if (matchedEntry && typeof emWaitForAuth === 'function') {
+    emWaitForAuth().then(function(uid) {
+      if (!uid || !window._db || !window._setDoc || !window._doc) return;
+      var typeKey = calTypeToKey(matchedEntry.type);
+      window._setDoc(window._doc(window._db, 'calendar', uid, 'days', 'day' + dayNum),
+        { [typeKey]: { status: 'published', publishedAt: publishedAt } }, { merge: true })
+        .catch(function(err) { console.warn('[Calendar] Failed to sync published status:', err.message); });
+    });
+  }
+
+  if (fromModal) { calCloseModal(); calRefresh(); }
+  else { calRenderStats(entries); }
 };
 
 // ── Download all ready content as a text file ─────────────────────
