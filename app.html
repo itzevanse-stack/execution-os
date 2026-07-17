@@ -26972,7 +26972,8 @@ function buildContentStrategyPrompt(inp, mode) {
     '',
     toolsCtx,
     '',
-    'Build a complete content strategy. Return ONLY this JSON:',
+    'Build a complete content strategy. Return ONLY this JSON.',
+    'LENGTH RULE: keep every string value under 220 characters — punchy and specific beats long and thorough. The COMPLETE JSON must be returned; never let it get cut off.',
     '{',
     '  "platformStack": [',
     '    { "platform": "primary platform name", "why": "specific reason this is #1 for this niche and avatar", "contentTypes": ["format 1", "format 2"], "postingFrequency": "X per day/week", "role": "what this platform does in the funnel (awareness/trust/conversion)" },',
@@ -27041,7 +27042,7 @@ function affCallAI_ContentStrategy(offer, av, researchIntel) {
     niche: offer.niche, offerName: offer.name, price: offer.commission,
     target: offer.monthlyTarget, avatar: av, researchContext: researchCtx
   }, 'affiliate');
-  return brCallAI_WithSearch(sys, p, 5000);
+  return brCallAI_WithSearch(sys, p, 9000);
 }
 
 /* ── Expert Boardroom Content Strategy AI Caller ── */
@@ -27071,7 +27072,7 @@ function brCallAI_ContentStrategy(inp) {
   // Use regular brCallAI — all context needed is already in memory (niche,
   // avatar, ICP research). brCallAI_WithSearch was timing out and silently
   // overwriting good data with error objects, making the tab appear stuck.
-  return brCallAI(sys, p, 5000);
+  return brCallAI(sys, p, 9000);
 }
 
 /* ── Shared Content Strategy Renderer ── */
@@ -29897,6 +29898,9 @@ onAuthStateChanged(auth, async (user) => {
 
   // ── Render UI with real user data ─────────────────────────────────────────
   renderUserUI(user, userDocData, memberData);
+  // Load the user's real 30-day performance so every AI call is grounded in
+  // their actual numbers (the feedback loop). Non-blocking.
+  if (typeof eosLoadPerformance === 'function') setTimeout(eosLoadPerformance, 1500);
 
   // ── Restore app mode ─────────────────────────────────────────────────────────
   // Source of truth priority:
@@ -37094,6 +37098,8 @@ function brShowPhase1() {
           brRenderTab('war-plan',       parsed);
           brRenderTab('content-engine', parsed);
         }
+        // Weekly Board Meeting — proactive review from real performance data
+        if (typeof brWeeklyBoardMeeting === 'function') setTimeout(brWeeklyBoardMeeting, 2500);
 
         var caR = document.getElementById('br-tab-client-attraction');
         if (caR && typeof _brRenderClientAttraction === 'function') caR.innerHTML = _brRenderClientAttraction(parsed.plan||{}, parsed.inputs||{});
@@ -39026,17 +39032,24 @@ window.brBuildCompleteSystem = async function() {
 
     _csProgress(96, 'Assembling your complete intelligence system...');
 
-    // Store everything
+    // Store everything — but never persist an {_error} object as if it were
+    // tab data: it has keys (so the renderer skips its empty-state) but no
+    // display fields, which renders as a permanently blank tab. Strip errors
+    // down to {} so the proper "Build this section" empty-state shows instead.
+    function _brStripError(r, name) {
+      if (r && r._error) { console.error('[Boardroom] ' + name + ' failed — storing empty so the tab shows its rebuild button:', r._error); return {}; }
+      return r || {};
+    }
     var fullIntel = Object.assign({}, intel, {
       generatedAt:    Date.now(),
       inputs:         inp,
-      plan:           planResult       || {},
-      architect:      architectResult  || {},
-      offerStack:     offerStackResult || {},
-      copyVault:      copyVaultResult  || {},
-      warPlan:        warPlanResult    || {},
-      contentEngine:  contentResult    || {},
-      funnelStrategy: funnelResult     || {}
+      plan:           _brStripError(planResult, 'Revenue Plan'),
+      architect:      _brStripError(architectResult, 'Business Architect'),
+      offerStack:     _brStripError(offerStackResult, 'Offer Stack'),
+      copyVault:      _brStripError(copyVaultResult, 'Copy Vault'),
+      warPlan:        _brStripError(warPlanResult, 'War Plan'),
+      contentEngine:  _brStripError(contentResult, 'Content Engine'),
+      funnelStrategy: _brStripError(funnelResult, 'Funnel Strategy')
     });
 
     window._boardroomIntel = fullIntel;
@@ -39422,14 +39435,127 @@ function brBuildAnalysisUI(inp) {
   return html;
 }
 
+/* ══ THE FEEDBACK LOOP — real results feeding the AI ══════════════════════
+   Loads the user's actual last-30-days numbers (sales, leads, email
+   engagement, content published) and injects them into every Boardroom AI
+   call, with a hard rule against inventing metrics. */
+window._eosPerformance = null;
+
+async function eosLoadPerformance() {
+  var uid = window._currentUserUid;
+  if (!uid) return null;
+  try {
+    var resp = await fetch(window.location.origin + '/api/performance-summary', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ uid: uid })
+    });
+    if (!resp.ok) return null;
+    var data = await resp.json();
+    window._eosPerformance = data;
+    try { localStorage.setItem('eos_performance', JSON.stringify(data)); } catch(e) {}
+    console.log('[Performance] Real 30-day data loaded:', data.hasAnyData ? (data.sales.count + ' sales, ' + data.leads.count + ' leads, ' + data.content.published + ' posts published') : 'no activity data yet');
+    return data;
+  } catch (e) {
+    // Fall back to last cached snapshot so the AI still has something real
+    try { window._eosPerformance = JSON.parse(localStorage.getItem('eos_performance') || 'null'); } catch(e2) {}
+    return window._eosPerformance;
+  }
+}
+
+function eosBuildRealDataContext() {
+  var p = window._eosPerformance;
+  if (!p || !p.hasAnyData) {
+    return '\n\nREAL PERFORMANCE DATA: This user has no tracked sales, leads, or email activity in the last 30 days yet. '
+      + 'CRITICAL RULE: Do NOT invent, estimate, or imply any specific performance numbers, client results, or revenue figures as if they were real. '
+      + 'Any projections must be clearly framed as illustrative examples (e.g. "if your close rate lands around X..."), never as facts.';
+  }
+  var lines = ['\n\nREAL PERFORMANCE DATA — this user\'s ACTUAL tracked results, last 30 days:'];
+  lines.push('- Sales: ' + p.sales.count + ' (' + p.sales.currency + ' ' + p.sales.revenue.toLocaleString() + ' revenue), ' + p.sales.last7Days + ' in the last 7 days');
+  lines.push('- Leads captured: ' + p.leads.count + ' (' + p.leads.last7Days + ' in the last 7 days' + (p.leads.topSource ? ', best source: ' + p.leads.topSource : '') + ')');
+  lines.push('- Email: ' + p.email.sent + ' sent, ' + p.email.opens + ' opens' + (p.email.openRate ? ' (' + p.email.openRate + ' open rate)' : '') + ', ' + p.email.clicks + ' clicks');
+  lines.push('- Content published: ' + p.content.published + ' pieces');
+  lines.push('CRITICAL RULE: Base every recommendation and number on THESE real figures. Never invent metrics, client results, or revenue claims. If a number is a projection, label it as a projection derived from the data above.');
+  return lines.join('\n');
+}
+
+/* ── Weekly Board Meeting — proactive review from REAL data ──────────────
+   Once every 7 days, when the user opens the Boardroom, the AI reviews
+   their actual tracked results and delivers: what worked, the one thing to
+   fix, and this week's focus. Proactive intelligence from real numbers —
+   not reactive generation from guesses. */
+async function brWeeklyBoardMeeting() {
+  try {
+    var last = parseInt(localStorage.getItem('eos_weekly_brief_at') || '0', 10);
+    if (Date.now() - last < 7 * 24 * 60 * 60 * 1000) return;
+
+    // Need real data — wait for the performance load if it hasn't finished
+    if (!window._eosPerformance) await eosLoadPerformance();
+    var p = window._eosPerformance;
+    if (!p) return;
+
+    var banner = document.getElementById('br-powered-banner');
+    if (!banner || banner.style.display === 'none') return;
+
+    // Placeholder card while generating
+    var host = document.getElementById('eos-weekly-brief');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'eos-weekly-brief';
+      host.style.cssText = 'margin:0 1.25rem 1rem';
+      banner.parentNode.insertBefore(host, banner.nextSibling);
+    }
+    host.innerHTML = '<div style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.06));border:1px solid rgba(108,99,255,.25);border-radius:16px;padding:1.1rem 1.4rem">'
+      + '<div style="font-size:10px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px">📋 Weekly Board Meeting</div>'
+      + '<div style="font-size:12px;color:var(--dim);margin-top:6px">Reviewing your real numbers from the last 7 days…</div></div>';
+
+    var intel = window._boardroomIntel || {};
+    var inp = intel.inputs || {};
+    var sys = 'You are the user\'s board of directors delivering a short weekly review. You ONLY reason from the real tracked data provided. Be direct, specific, and useful — no fluff, no invented numbers. Return ONLY valid compact JSON.';
+    var prompt = [
+      'Business: ' + (inp.niche || 'digital products') + ', selling ' + (inp.offerName || 'their offer') + ' at $' + (inp.price || '—') + '. Monthly target: $' + (inp.target || '—') + '.',
+      '',
+      'Their REAL tracked results (last 30 days): ' + JSON.stringify({ sales: p.sales, leads: p.leads, email: p.email, contentPublished: p.content.published }),
+      '',
+      'Deliver this week\'s board meeting. Return ONLY this JSON:',
+      '{',
+      '  "headline": "one sentence: the single most important truth about their week, from the data",',
+      '  "working": "what the data shows is actually working (or: what has not started yet, if no activity)",',
+      '  "fix": "the ONE highest-leverage thing to fix or start this week — specific and doable",',
+      '  "focus": "this week\'s single focus, one sentence, tied to their target"',
+      '}'
+    ].join('\n');
+
+    var result = await brCallAI(sys, prompt, 1200);
+    if (!result || result._error || !result.headline) { host.innerHTML = ''; return; }
+
+    host.innerHTML = '<div style="background:linear-gradient(135deg,rgba(108,99,255,.08),rgba(78,204,163,.06));border:1px solid rgba(108,99,255,.25);border-radius:16px;padding:1.2rem 1.4rem">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+      + '<div style="font-size:10px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1.2px">📋 Weekly Board Meeting — from your real numbers</div>'
+      + '<button onclick="document.getElementById(\'eos-weekly-brief\').style.display=\'none\'" style="background:none;border:none;color:var(--dimmer);cursor:pointer;font-size:14px">✕</button></div>'
+      + '<div style="font-size:14px;font-weight:800;color:var(--white);line-height:1.6;margin-bottom:10px;font-family:Poppins,sans-serif">' + result.headline + '</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px">'
+      + '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.15);border-radius:10px;padding:10px 14px"><div style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">✅ Working</div><div style="font-size:12px;color:var(--dim);line-height:1.6">' + (result.working || '') + '</div></div>'
+      + '<div style="background:rgba(255,107,107,.06);border:1px solid rgba(255,107,107,.15);border-radius:10px;padding:10px 14px"><div style="font-size:9px;font-weight:900;color:#ff6b6b;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">🔧 Fix This Week</div><div style="font-size:12px;color:var(--dim);line-height:1.6">' + (result.fix || '') + '</div></div>'
+      + '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.15);border-radius:10px;padding:10px 14px"><div style="font-size:9px;font-weight:900;color:var(--purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">🎯 This Week\'s Focus</div><div style="font-size:12px;color:var(--dim);line-height:1.6">' + (result.focus || '') + '</div></div>'
+      + '</div></div>';
+
+    localStorage.setItem('eos_weekly_brief_at', String(Date.now()));
+  } catch (e) {
+    console.warn('[WeeklyBrief] Failed:', e.message);
+    var h = document.getElementById('eos-weekly-brief');
+    if (h) h.innerHTML = '';
+  }
+}
+
 /* ── 5 Parallel AI Calls ── */
-async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonRetryCount) {
+async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonRetryCount, _truncRetryCount) {
   _retryCount = _retryCount || 0;
   _jsonRetryCount = _jsonRetryCount || 0;
+  _truncRetryCount = _truncRetryCount || 0;
   // Guardrail against the most common cause of JSON parse failures here:
   // the model quoting a phrase inside a string value with literal double
   // quotes, which breaks the JSON structure partway through parsing.
-  var safeSystemPrompt = systemPrompt + '\n\nCRITICAL JSON SAFETY: Inside any string value, NEVER use literal double-quote characters ("). If you need to emphasize or quote a phrase within a string, use single quotes (\') instead. This is required for the JSON to parse correctly.';
+  var safeSystemPrompt = systemPrompt + '\n\nCRITICAL JSON SAFETY: Inside any string value, NEVER use literal double-quote characters ("). If you need to emphasize or quote a phrase within a string, use single quotes (\') instead. This is required for the JSON to parse correctly.' + eosBuildRealDataContext();
   try {
     var endpoint = window.PROXY_URL || (window.location.origin + '/api/claude');
     var _brCtl = new AbortController();
@@ -39463,7 +39589,7 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
       var waitSecs = Math.pow(2, _retryCount + 1); // 2, 4, 8, 16 seconds
       console.warn('[brCallAI] Rate limited — retrying in ' + waitSecs + 's (attempt ' + (_retryCount+1) + '/4)');
       await new Promise(function(resolve){ setTimeout(resolve, waitSecs * 1000); });
-      return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount + 1, _jsonRetryCount);
+      return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount + 1, _jsonRetryCount, _truncRetryCount);
     }
     var rawText = await resp.text();
     console.log('[Boardroom] HTTP status:', resp.status, '| Response length:', rawText.length);
@@ -39490,6 +39616,22 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
     if (!text) {
       console.error('[Boardroom] Empty text in response. Full data:', JSON.stringify(data).slice(0, 300));
       return { _error: 'Empty response from AI' };
+    }
+
+    // ── TRUNCATION DETECTION — the actual root cause of the repeated
+    // Content Strategy failures. When the response hits the max_tokens
+    // ceiling, the API reports stop_reason 'max_tokens' and the JSON is
+    // simply cut off mid-document — not malformed, INCOMPLETE. No amount
+    // of punctuation repair can fix a document missing its final third.
+    // Detect it here and retry once with a substantially larger budget.
+    if (data.stop_reason === 'max_tokens') {
+      console.warn('[Boardroom] Response TRUNCATED at max_tokens (' + _effectiveTokens + '). This is why the JSON fails to parse.');
+      if (_truncRetryCount < 1) {
+        var biggerBudget = Math.min(16000, Math.round(_effectiveTokens * 2));
+        console.warn('[Boardroom] Retrying with a larger budget: ' + biggerBudget + ' tokens...');
+        return brCallAI(systemPrompt, userPrompt, biggerBudget, _retryCount, _jsonRetryCount, _truncRetryCount + 1);
+      }
+      return { _error: 'The AI response was too long even for the increased limit. Click Regenerate to try again.' };
     }
 
     console.log('[Boardroom] AI response length:', text.length, 'chars | First 200:', text.slice(0, 200));
@@ -39533,7 +39675,7 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
         // LAYER 3 — full regeneration, once. Last resort.
         if (_jsonRetryCount < 1) {
           console.warn('[Boardroom] AI fix failed too — regenerating once...');
-          return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonRetryCount + 1);
+          return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonRetryCount + 1, _truncRetryCount);
         }
         return { _error: 'JSON parse failed: ' + jsonErr.message, _raw: text };
       }
@@ -39832,11 +39974,15 @@ function brRevealIntelligence(intel) {
 function brRenderTab(tab, intel) {
   var panel = document.getElementById('br-tab-'+tab);
   if (!panel) return;
-  if (tab === 'architect')     panel.innerHTML = brRenderArchitect(intel.architect, intel.inputs);
-  if (tab === 'offer-stack')   panel.innerHTML = brRenderOfferStack(intel.offerStack, intel.inputs);
-  if (tab === 'copy-vault')    panel.innerHTML = brRenderCopyVault(intel.copyVault, intel.inputs);
-  if (tab === 'war-plan')      panel.innerHTML = brRenderWarPlan(intel.warPlan, intel.inputs);
-  if (tab === 'content-engine')panel.innerHTML = brRenderContentEngine(intel.contentEngine, intel.inputs);
+  // Safety net for error objects persisted by older versions: {_error, _raw}
+  // has keys but no display fields and used to render as a blank tab. Treat
+  // it as empty so each renderer's proper "build this section" state shows.
+  function _clean(d) { return (d && d._error) ? null : d; }
+  if (tab === 'architect')     panel.innerHTML = brRenderArchitect(_clean(intel.architect), intel.inputs);
+  if (tab === 'offer-stack')   panel.innerHTML = brRenderOfferStack(_clean(intel.offerStack), intel.inputs);
+  if (tab === 'copy-vault')    panel.innerHTML = brRenderCopyVault(_clean(intel.copyVault), intel.inputs);
+  if (tab === 'war-plan')      panel.innerHTML = brRenderWarPlan(_clean(intel.warPlan), intel.inputs);
+  if (tab === 'content-engine')panel.innerHTML = brRenderContentEngine(_clean(intel.contentEngine), intel.inputs);
 }
 
 function brCard(color, title, content) {
