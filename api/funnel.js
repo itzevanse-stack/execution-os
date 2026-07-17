@@ -320,7 +320,11 @@ module.exports = async function handler(req, res) {
 
     // ── SERVE ─────────────────────────────────────────────────────────────────
     const baseUrl   = fid ? '/api/funnel?fid=' + fid + (uid ? '&uid=' + uid : '') : '';
-    const navScript = buildNavScript(baseUrl, resolvedPageId, pageOrder, pagePaths, funnel.domain);
+    const navScript = buildNavScript(baseUrl, resolvedPageId, pageOrder, pagePaths, funnel.domain, {
+      funnelId:   funnel.id || fid || '',
+      funnelName: funnel.name || '',
+      ownerUid:   funnel.ownerUid || uid || '',
+    });
     const html      = injectIntoHtml(pageData.html, navScript);
 
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -334,14 +338,15 @@ module.exports = async function handler(req, res) {
   }
 };
 
-function buildNavScript(baseUrl, currentPageId, pageOrder, pagePaths, domain) {
+function buildNavScript(baseUrl, currentPageId, pageOrder, pagePaths, domain, meta) {
+  meta = meta || {};
   const pageUrls = {};
   pageOrder.forEach(pid => {
     const path = pagePaths[pid] || '/' + pid;
     pageUrls[pid] = domain ? 'https://' + domain + path : (baseUrl ? baseUrl + '&page=' + pid : '');
   });
   return `<script>
-window.__eosFunnel = ${JSON.stringify({ currentPage: currentPageId, pageUrls })};
+window.__eosFunnel = ${JSON.stringify({ currentPage: currentPageId, pageUrls, funnelId: meta.funnelId || '', funnelName: meta.funnelName || '', ownerUid: meta.ownerUid || '' })};
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('a[href], button[data-page]').forEach(function(el) {
     var t = el.getAttribute('href') || el.getAttribute('data-page') || '';
@@ -358,6 +363,61 @@ document.addEventListener('DOMContentLoaded', function() {
       el.addEventListener('click', function() { window.location.href = window.__eosFunnel.pageUrls[next]; });
     });
   }
+
+  /* ── EOS LEAD CAPTURE + ATTRIBUTION ─────────────────────────────────────
+     1. Remember which content sent this visitor: ?src= from tracked links
+        (persisted in sessionStorage so it survives multi-page funnels).
+     2. Intercept any form containing an email input, save the lead with
+        full attribution (owner, funnel, content source), then continue the
+        funnel flow (data-next / next page) as normal. */
+  try {
+    var qs = new URLSearchParams(window.location.search);
+    var srcParam = qs.get('src') || qs.get('utm_source') || '';
+    if (srcParam) { try { sessionStorage.setItem('eos_src', srcParam.slice(0, 80)); } catch(e) {} }
+  } catch(e) {}
+
+  document.querySelectorAll('form').forEach(function(form) {
+    var emailInput = form.querySelector('input[type="email"], input[name*="email" i]');
+    if (!emailInput) return;
+    form.addEventListener('submit', function(ev) {
+      ev.preventDefault();
+      var nameInput = form.querySelector('input[name*="name" i], input[type="text"]');
+      var email = (emailInput.value || '').trim();
+      if (!email) return;
+      var name = nameInput ? (nameInput.value || '').trim() : '';
+      var btn = form.querySelector('button, input[type="submit"]');
+      var btnText = btn ? (btn.textContent || btn.value) : '';
+      if (btn) { btn.disabled = true; if (btn.textContent !== undefined) btn.textContent = 'One moment…'; }
+      var savedSrc = '';
+      try { savedSrc = sessionStorage.getItem('eos_src') || ''; } catch(e) {}
+      fetch('/api/funnel-lead', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name || 'Subscriber',
+          email: email,
+          source:   window.__eosFunnel.funnelName || window.__eosFunnel.funnelId || 'funnel',
+          page:     window.__eosFunnel.funnelId || 'funnel',
+          funnelId: window.__eosFunnel.funnelId || '',
+          ownerUid: window.__eosFunnel.ownerUid || '',
+          src:      savedSrc || 'direct'
+        })
+      }).catch(function(){}).finally(function() {
+        if (btn) { btn.disabled = false; if (btn.textContent !== undefined && btnText) btn.textContent = btnText; }
+        var nextPage = ${JSON.stringify(currentPageId)};
+        var order2 = ${JSON.stringify(pageOrder)};
+        var i2 = order2.indexOf(nextPage);
+        var n2 = i2 >= 0 && i2 < order2.length - 1 ? order2[i2 + 1] : null;
+        if (n2 && window.__eosFunnel.pageUrls[n2]) window.location.href = window.__eosFunnel.pageUrls[n2];
+        else {
+          var ok = document.createElement('div');
+          ok.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#10b981;color:#fff;padding:12px 24px;border-radius:10px;font-family:sans-serif;font-size:14px;font-weight:700;z-index:99999';
+          ok.textContent = "You're in! Check your email.";
+          document.body.appendChild(ok);
+          setTimeout(function(){ ok.remove(); }, 4000);
+        }
+      });
+    });
+  });
 });
 </script>`;
 }
