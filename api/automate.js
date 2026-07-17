@@ -33,11 +33,24 @@ function getDb() {
 }
 
 // ── Core AI call — same pattern as execution-engine.js ───────────────────────
+// ── SHARED QUALITY CORE ──────────────────────────────────────────────────────
+// Appended to every generation in this file (posts, carousels, reels, emails,
+// captions) via the central ai() helper, so every piece of content meets the
+// same standard: educate for real, build trust through depth, establish
+// authority through specificity — and never through invented facts.
+const QUALITY_CORE = `
+
+CONTENT QUALITY STANDARD (applies to everything you write here):
+1. TEACH COMPLETELY. The reader must be able to act on this TODAY without buying anything: give the steps, the reasoning behind each step, and one concrete worked example or scenario. Content that teases instead of teaches builds neither trust nor authority.
+2. AUTHORITY THROUGH DEPTH, not claims. Demonstrate expertise by naming the exact mistake people make, the exact reason it fails, and the exact correction — never by asserting credentials or throwing around big numbers.
+3. NEVER FABRICATE. No invented client names, testimonials, revenue figures, follower counts, percentages, or "results" of any kind. If a real number was provided in the context above, use it; otherwise make the point through mechanism and specificity instead of statistics.
+4. PERCEIVED VALUE comes from usefulness density: every paragraph should either teach something, remove an objection, or move the reader to act. Cut anything that does none of these.`;
+
 async function ai(system, user, maxTokens) {
   const msg = await client.messages.create({
     model:      MODEL,
     max_tokens: maxTokens || 1000,
-    system,
+    system:     (system || '') + QUALITY_CORE,
     messages: [{ role: 'user', content: user }],
   });
   return msg.content?.[0]?.text || '';
