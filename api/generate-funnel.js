@@ -229,7 +229,7 @@ JSON SCHEMA (all fields required):
     try { copy = JSON.parse(text); }
     catch(e) { return res.status(200).json({ content: [{ type: 'text', text }], model: 'claude-sonnet-4-6' }); }
 
-    const html = renderTemplate(copy, mode || 'optin');
+    const html = renderTemplate(copy, mode || 'optin', ic.niche);
     return res.status(200).json({ content: [{ type: 'text', text: html }], model: 'claude-sonnet-4-6' });
 
   } catch(e) {
@@ -242,7 +242,7 @@ JSON SCHEMA (all fields required):
 // ─────────────────────────────────────────────────────────────────────────────
 // RENDER TEMPLATE — Complete rewrite for agency-quality funnel pages
 // ─────────────────────────────────────────────────────────────────────────────
-function renderTemplate(c, mode) {
+function renderTemplate(c, mode, niche) {
 
   const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:ital,wght@0,700;0,800;0,900;1,800&display=swap" rel="stylesheet">`;
 
@@ -253,6 +253,7 @@ function renderTemplate(c, mode) {
   // a fitness trainer each get a distinctly different, professionally
   // matched look, applied as a CSS override layer on top of the base design
   // system so layout and typography quality stay identical.
+  const ACTIVE_THEME = pickTheme(niche); // niche passed per request from the handler
   function pickTheme(niche) {
     const n = String(niche || '').toLowerCase();
     if (/wellness|mindset|mindfulness|meditat|yoga|health coach|life coach|healing|spiritual|therapy|relationship|parenting|nutrition/.test(n)) return 'radiance';
@@ -670,7 +671,10 @@ img{max-width:100%;display:block}a{text-decoration:none;color:inherit}em{font-st
 })();
 </script>`;
 
-  const ACTIVE_THEME = pickTheme(ic.niche);
+  // ACTIVE_THEME is selected per-request inside the handler (where the
+  // request's intelContext exists) and stored in the module-level variable
+  // below. Referencing `ic` here at module scope was a ReferenceError that
+  // 500'd every funnel generation.
   const HEAD = (title) => `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">${FONTS}<title>${title||'Free Training'}</title><style>${CSS}
 ${THEME_CSS[ACTIVE_THEME] || ''}</style></head><body>`;
 
