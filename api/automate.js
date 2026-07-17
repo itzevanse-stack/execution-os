@@ -38,6 +38,19 @@ function getDb() {
 // captions) via the central ai() helper, so every piece of content meets the
 // same standard: educate for real, build trust through depth, establish
 // authority through specificity — and never through invented facts.
+let REQUEST_REAL_DATA = '';
+function buildRealDataBlock(p) {
+  if (!p || !p.hasAnyData) {
+    return '\n\nREAL PERFORMANCE DATA: none tracked yet for this user. Do not state any performance numbers as fact.';
+  }
+  let out = '\n\nREAL PERFORMANCE DATA — this user\'s ACTUAL tracked results (last 30 days). These are the ONLY performance numbers you may cite, and citing them where relevant makes content dramatically more credible:';
+  out += '\n- Sales: ' + p.sales.count + ' (' + p.sales.currency + ' ' + p.sales.revenue + ' revenue)';
+  out += '\n- Leads captured: ' + p.leads.count + (p.leads.topSource ? ' (best source: ' + p.leads.topSource + ')' : '');
+  if (p.email && p.email.sent) out += '\n- Email: ' + p.email.sent + ' sent' + (p.email.openRate ? ', ' + p.email.openRate + ' open rate' : '');
+  out += '\n- Content published: ' + (p.content ? p.content.published : 0) + ' pieces';
+  return out;
+}
+
 const QUALITY_CORE = `
 
 CONTENT QUALITY STANDARD (applies to everything you write here):
@@ -50,7 +63,7 @@ async function ai(system, user, maxTokens) {
   const msg = await client.messages.create({
     model:      MODEL,
     max_tokens: maxTokens || 1000,
-    system:     (system || '') + QUALITY_CORE,
+    system:     (system || '') + QUALITY_CORE + REQUEST_REAL_DATA,
     messages: [{ role: 'user', content: user }],
   });
   return msg.content?.[0]?.text || '';
@@ -536,7 +549,11 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'Method not allowed' });
 
-  const { uid, dayNumber, job } = req.body || {};
+  const { uid, dayNumber, job, performance } = req.body || {};
+  // Real-performance context (the feedback loop): when the frontend sends
+  // the user's actual 30-day numbers, every piece of content generated in
+  // this request can cite REAL results instead of being proof-free.
+  REQUEST_REAL_DATA = buildRealDataBlock(performance);
 
   if (!uid)       return res.status(400).json({ error: 'uid required' });
   if (!dayNumber) return res.status(400).json({ error: 'dayNumber required' });
