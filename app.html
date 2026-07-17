@@ -7988,6 +7988,7 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
             </div>
             <div style="display:flex;gap:8px">
               <button onclick="vpeCopy()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:8px 16px;color:var(--teal);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">📋 Copy</button>
+              <button onclick="vpeCopyTrackedLink()" title="Your funnel link with attribution — use this in the post so the system learns which content brings leads" style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:var(--r-md);padding:8px 16px;color:var(--purple);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">🔗 Tracked Link</button>
               <button onclick="vpeRegenerate()" style="background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:var(--r-md);padding:8px 16px;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Poppins',sans-serif">↺ Rewrite</button>
             </div>
           </div>
@@ -31958,10 +31959,30 @@ async function fbGeneratePage(page, niche, offer, avatar, apiKey) {
   // ═══════════════════════════════════════════════════════════════════════════
   // PULL EVERY DATA POINT FROM THE USER'S ACTUAL PROFILE
   // ═══════════════════════════════════════════════════════════════════════════
-  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  // NOTE: default is 'expert', matching the rest of the app — a previous
+  // 'affiliate' fallback here could misclassify Expert users when the mode
+  // variable wasn't set yet (same bug family as the email writer had).
+  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'expert') === 'affiliate';
   var av          = window._avatarData || avatar || {};
   var affOffer    = window._affiliateOffer || {};
   var voiceProfile = window._voiceProfile || {};
+
+  // ── THIN-INTEL GUARD ───────────────────────────────────────────────────────
+  // Without niche + avatar pain + an offer, the copy engine falls back to
+  // generic output — the exact "not tailored to my niche" problem. Warn the
+  // user once per session instead of silently producing a template-feeling page.
+  var _hasNiche = !!(niche || window._appliedNiche);
+  var _hasPain  = !!(av.pain || av.transformation);
+  var _hasOffer = isAffiliate ? !!affOffer.name : !!(offer || window._currentOfferName);
+  if ((!_hasNiche || !_hasPain || !_hasOffer) && !window._fbThinIntelWarned) {
+    window._fbThinIntelWarned = true;
+    var _missing = [];
+    if (!_hasNiche) _missing.push('your niche');
+    if (!_hasPain)  _missing.push('your ideal customer (Avatar)');
+    if (!_hasOffer) _missing.push('your offer');
+    var _proceed = confirm('⚠️ Your funnel copy will come out GENERIC because these are not set up yet: ' + _missing.join(', ') + '.\n\nFor copy tailored to your exact audience, complete your Foundation first (Ideal Customer + Offer Creation + Boardroom).\n\nGenerate a generic version anyway?');
+    if (!_proceed) return null;
+  }
 
   // ── OFFER DETAILS ──────────────────────────────────────────────────────────
   var offerName        = isAffiliate
@@ -47514,6 +47535,39 @@ window.brRunMarketPulse      = brRunMarketPulse;
 window.calQueueCopy          = calQueueCopy;
 window.vpeGenerate       = vpeGenerate;
 window.vpeCopy           = vpeCopy;
+
+// ── Tracked link: the user's live funnel URL tagged with which content is
+// sending the visitor (?src=vpe-<platform>-<angle>). Leads arriving through
+// it are attributed back to this exact content type, which is what lets the
+// Weekly Board Meeting say "your contrarian posts drive 3x more leads."
+function vpeCopyTrackedLink() {
+  var funnelUrl = null;
+  try {
+    var funnels = JSON.parse(localStorage.getItem('eos_funnels_' + (window._currentUserUid || 'anon')) || '{}');
+    var ids = Object.keys(funnels);
+    for (var i = 0; i < ids.length; i++) {
+      var f = funnels[ids[i]];
+      if (f && f.status === 'live') {
+        funnelUrl = f.domain ? ('https://' + f.domain) : (window.location.origin + '/api/funnel?fid=' + f.id + '&uid=' + (window._currentUserUid || ''));
+        if (f.domain) break; // prefer a custom-domain funnel
+      }
+    }
+  } catch (e) {}
+  if (!funnelUrl) {
+    if (typeof emToast === 'function') emToast('⚠️ Publish a funnel first — then this button gives you a tracked link for your posts.', true);
+    return;
+  }
+  var platform = (_vpeState && _vpeState.platform) || 'post';
+  var angle = (document.getElementById('vpe-angle') || {}).value || 'value';
+  var src = 'vpe-' + platform + '-' + angle;
+  var link = funnelUrl + (funnelUrl.indexOf('?') >= 0 ? '&' : '?') + 'src=' + encodeURIComponent(src);
+  navigator.clipboard.writeText(link).then(function() {
+    if (typeof emToast === 'function') emToast('🔗 Tracked link copied — use it in this post. Leads from it are attributed to "' + src + '".');
+  }).catch(function() {
+    prompt('Copy your tracked link:', link);
+  });
+}
+window.vpeCopyTrackedLink = vpeCopyTrackedLink;
 
 function vpeCopy() {
   var contentEl = document.getElementById('vpe-post-content');
