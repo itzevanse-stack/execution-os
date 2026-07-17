@@ -19,7 +19,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { name, email, source = 'unknown', page = 'unknown', userId, affiliateId } = req.body || {};
+  const { name, email, source = 'unknown', page = 'unknown', userId, affiliateId, ownerUid, src, funnelId } = req.body || {};
 
   if (!name || !email) return res.status(400).json({ error: 'Name and email required' });
 
@@ -90,6 +90,14 @@ export default async function handler(req, res) {
       country,
       createdAt: FieldValue.serverTimestamp(),
       ...(cleanAffiliateId ? { affiliateId: cleanAffiliateId } : {}),
+      // ── Attribution (the feedback loop) ────────────────────────────────
+      // ownerUid: which platform user's funnel captured this lead
+      // src:      which piece of content sent them (e.g. vpe-contrarian,
+      //           email-broadcast, ig-reel) — from the ?src= tracked link
+      // funnelId: which funnel converted them
+      ...(ownerUid ? { ownerUid } : {}),
+      ...(src      ? { src: String(src).slice(0, 80) } : {}),
+      ...(funnelId ? { funnelId } : {}),
     });
 
     // ── 2. Send Day 1 welcome email immediately ───────────────────────────────
