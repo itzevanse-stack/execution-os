@@ -38387,22 +38387,21 @@ function _brRenderFunnelStrategy(d, inp) {
 /* ══════════════════════════════════════════════════════════════════
    RESEARCH AI CALLER — uses /api/claude-research (web search enabled)
 ══════════════════════════════════════════════════════════════════ */
-// Attempts to repair malformed JSON before falling back to a full,
-// expensive regeneration retry. Two known failure patterns are handled:
+// Attempts to repair malformed JSON before falling back to costlier fixes.
+// THREE known failure patterns, all producing the same parser message
+// ("Expected ',' or '}' after property value"):
 //
-// 1. QUOTE-CLOSED-EARLY: the model wrote a literal, unescaped '"' inside a
-//    string value (e.g. quoting a phrase for emphasis), which the parser
-//    reads as the string's actual closing quote. Signature: the character
-//    immediately before the reported error position IS an unescaped '"'.
-//
-// 2. BARE VALUE: the model wrote an unquoted value where a string was
-//    expected (e.g. "optInRate": 15% instead of "optInRate": "15%") —
-//    this produces the identical parser error message as #1 but has
-//    nothing to do with quotes at all, and needs a different fix: find the
-//    value's real span and wrap it in quotes. Distinguishing the two: if
-//    the character before the error position is NOT a quote, it's this case.
-//
-// Both are fixed deterministically and instantly with zero extra API cost.
+// 1. MISSING COMMA between properties or array elements. Signature: the
+//    text at the error position starts a new `"key":` pattern or a new
+//    object/array element. MUST be checked first — its "previous char is
+//    a quote" shape otherwise gets misread as pattern 2, and escaping
+//    that quote corrupts the document further.
+// 2. UNESCAPED QUOTE inside a string value (model quoting a phrase for
+//    emphasis). Signature: the char immediately before the error position
+//    is an unescaped '"'.
+// 3. BARE VALUE that should have been a quoted string (e.g. optInRate:
+//    15% instead of "15%"). Signature: neither of the above; the span
+//    between the preceding ':' and next delimiter isn't valid JSON.
 function _repairAndParseJSON(rawSlice) {
   var text = rawSlice;
   for (var attempt = 0; attempt < 60; attempt++) {
@@ -38410,31 +38409,66 @@ function _repairAndParseJSON(rawSlice) {
       return { ok: true, value: JSON.parse(text) };
     } catch (e) {
       var m = /position (\d+)/.exec(e.message);
-      if (!m) return { ok: false, error: e };
+      if (!m) return { ok: false, error: e, text: text };
       var pos = parseInt(m[1], 10);
+
+      var ahead = text.slice(pos);
+      if (/^\s*"[^"\n]{1,80}"\s*:/.test(ahead)) {
+        text = text.slice(0, pos) + ',' + text.slice(pos);
+        continue;
+      }
+      if (/^\s*[\{\[]/.test(ahead) && /[\}\]"]\s*$/.test(text.slice(Math.max(0, pos - 40), pos))) {
+        text = text.slice(0, pos) + ',' + text.slice(pos);
+        continue;
+      }
 
       var lastIdx = pos - 1;
       while (lastIdx >= 0 && /\s/.test(text[lastIdx])) lastIdx--;
-
       if (text[lastIdx] === '"' && text[lastIdx - 1] !== '\\') {
         text = text.slice(0, lastIdx) + '\\"' + text.slice(lastIdx + 1);
         continue;
       }
 
       var colonIdx = text.lastIndexOf(':', pos);
-      if (colonIdx === -1) return { ok: false, error: e };
+      if (colonIdx === -1) return { ok: false, error: e, text: text };
       var delimMatch = /[,}\]]/.exec(text.slice(pos));
-      if (!delimMatch) return { ok: false, error: e };
+      if (!delimMatch) return { ok: false, error: e, text: text };
       var delimIdx = pos + delimMatch.index;
       var rawValue = text.slice(colonIdx + 1, delimIdx).trim();
       if (/^"|^\{|^\[|^(true|false|null)$|^-?\d+(\.\d+)?$/.test(rawValue) || !rawValue) {
-        return { ok: false, error: e };
+        return { ok: false, error: e, text: text };
       }
       var escapedValue = rawValue.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
       text = text.slice(0, colonIdx + 1) + ' "' + escapedValue + '"' + text.slice(delimIdx);
     }
   }
-  return { ok: false, error: new Error('Could not repair JSON after 60 attempts') };
+  return { ok: false, error: new Error('Could not repair JSON after 60 attempts'), text: text };
+}
+
+// Last-resort fixer: sends the broken JSON to the model in a small, cheap
+// call asking only for corrected JSON back. Unlike the deterministic
+// strategies above, this handles ANY malformation — it doesn't require us
+// to have predicted the failure pattern in advance.
+async function _aiFixJSON(brokenJSON) {
+  try {
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 6000,
+        system: 'You are a JSON repair tool. You receive malformed JSON and return ONLY the corrected, valid JSON. Fix syntax errors (missing commas, unescaped quotes, unquoted values) while preserving ALL content exactly. Never add commentary, markdown fences, or explanations — output must start with { and end with }.',
+        messages: [{ role: 'user', content: brokenJSON }]
+      })
+    });
+    var data = await resp.json();
+    if (!resp.ok || data.error) return null;
+    var text = ((data.content || [])[0] || {}).text || '';
+    var clean = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+    var s = clean.indexOf('{'), e = clean.lastIndexOf('}');
+    if (s < 0 || e <= s) return null;
+    try { return JSON.parse(clean.slice(s, e + 1)); } catch (err) { return null; }
+  } catch (e) { return null; }
 }
 
 async function brCallAI_WithSearch(systemPrompt, userPrompt, maxTokens) {
@@ -39471,21 +39505,34 @@ async function brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonR
         return JSON.parse(clean.slice(s, e + 1));
       } catch (jsonErr) {
         console.error('[Boardroom] JSON parse error:', jsonErr.message);
-        console.error('[Boardroom] Raw JSON attempt:', clean.slice(s, s + 500));
-        // Try a deterministic, local repair first — fast, free, and handles
-        // the overwhelming majority of cases (an unescaped quote inside a
-        // string value). Only fall back to a full paid regeneration if that
-        // doesn't work.
+        // Log the exact text AROUND the failure point — not just the start
+        // of the document — so any future unknown pattern arrives with the
+        // evidence needed to fix it, instead of requiring more guesswork.
+        var _pm = /position (\d+)/.exec(jsonErr.message);
+        if (_pm) {
+          var _p = parseInt(_pm[1], 10);
+          console.error('[Boardroom] Text around failure position:', JSON.stringify(clean.slice(s, e + 1).slice(Math.max(0, _p - 200), _p + 200)));
+        }
+        // LAYER 1 — deterministic local repair: instant, free, handles the
+        // three known patterns (missing comma, unescaped quote, bare value).
         var repaired = _repairAndParseJSON(clean.slice(s, e + 1));
         if (repaired.ok) {
-          console.warn('[Boardroom] JSON auto-repaired after parse failure — no retry needed');
+          console.warn('[Boardroom] JSON auto-repaired locally — no retry needed');
           return repaired.value;
         }
-        // Retry once — the model is stochastic, and a malformed-JSON output
-        // very often parses correctly on a second attempt. Previously this
-        // failed permanently on the first bad generation, showing an empty tab.
+        // LAYER 2 — AI-based JSON fix: a small, cheap call that sends the
+        // broken JSON back to the model to correct. Pattern-agnostic — it
+        // handles malformations the local repair has never seen, without
+        // regenerating (and possibly changing) the actual content.
+        console.warn('[Boardroom] Local repair failed — sending to AI JSON fixer...');
+        var aiFixed = await _aiFixJSON(clean.slice(s, e + 1));
+        if (aiFixed) {
+          console.warn('[Boardroom] JSON fixed by AI repair call');
+          return aiFixed;
+        }
+        // LAYER 3 — full regeneration, once. Last resort.
         if (_jsonRetryCount < 1) {
-          console.warn('[Boardroom] Repair failed too — retrying generation once...');
+          console.warn('[Boardroom] AI fix failed too — regenerating once...');
           return brCallAI(systemPrompt, userPrompt, maxTokens, _retryCount, _jsonRetryCount + 1);
         }
         return { _error: 'JSON parse failed: ' + jsonErr.message, _raw: text };
