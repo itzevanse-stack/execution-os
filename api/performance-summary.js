@@ -63,33 +63,56 @@ export default async function handler(req, res) {
       });
     } catch (e) { console.warn('[performance] sales query failed:', e.message); }
 
-    // ── LEADS (from funnels this user owns) ─────────────────────────────
+    // ── LEADS (attributed to this user + grouped by content source) ─────
     try {
-      const funnelsSnap = await db.collection('published-funnels')
-        .where('ownerUid', '==', uid).get();
-      const funnelKeys = new Set();
-      funnelsSnap.forEach(d => {
-        funnelKeys.add(d.id);
-        const f = d.data();
-        if (f.name) funnelKeys.add(f.name);
-      });
-      if (funnelKeys.size > 0) {
-        const leadsSnap = await db.collection('leads')
-          .where('createdAt', '>=', cutoff).get();
-        const sourceCounts = {};
-        leadsSnap.forEach(d => {
+      // Primary: leads directly attributed via ownerUid (new capture path)
+      const bySource = {};
+      let matched = 0, week = 0;
+      try {
+        const attributedSnap = await db.collection('leads')
+          .where('ownerUid', '==', uid).get();
+        attributedSnap.forEach(d => {
           const l = d.data();
-          const key = l.page || l.source || '';
-          if (!funnelKeys.has(key)) return;
-          summary.leads.count++;
-          sourceCounts[key] = (sourceCounts[key] || 0) + 1;
           const ts = l.createdAt && l.createdAt.toDate ? l.createdAt.toDate() : null;
-          if (ts && ts >= weekAgo) summary.leads.last7Days++;
+          if (ts && ts < cutoff) return;
+          matched++;
+          if (ts && ts >= weekAgo) week++;
+          const srcKey = l.src || l.source || 'direct';
+          bySource[srcKey] = (bySource[srcKey] || 0) + 1;
         });
-        let top = null, topN = 0;
-        Object.keys(sourceCounts).forEach(k => { if (sourceCounts[k] > topN) { top = k; topN = sourceCounts[k]; } });
-        summary.leads.topSource = top;
+      } catch (e) { console.warn('[performance] attributed leads query failed:', e.message); }
+
+      // Fallback: match by funnel name/id for older leads without ownerUid
+      if (matched === 0) {
+        const funnelsSnap = await db.collection('published-funnels')
+          .where('ownerUid', '==', uid).get();
+        const funnelKeys = new Set();
+        funnelsSnap.forEach(d => {
+          funnelKeys.add(d.id);
+          const f = d.data();
+          if (f.name) funnelKeys.add(f.name);
+        });
+        if (funnelKeys.size > 0) {
+          const leadsSnap = await db.collection('leads')
+            .where('createdAt', '>=', cutoff).get();
+          leadsSnap.forEach(d => {
+            const l = d.data();
+            const key = l.page || l.source || '';
+            if (!funnelKeys.has(key)) return;
+            matched++;
+            bySource[l.src || key] = (bySource[l.src || key] || 0) + 1;
+            const ts = l.createdAt && l.createdAt.toDate ? l.createdAt.toDate() : null;
+            if (ts && ts >= weekAgo) week++;
+          });
+        }
       }
+
+      summary.leads.count = matched;
+      summary.leads.last7Days = week;
+      summary.leads.bySource = bySource;
+      let top = null, topN = 0;
+      Object.keys(bySource).forEach(k => { if (bySource[k] > topN) { top = k; topN = bySource[k]; } });
+      summary.leads.topSource = top;
     } catch (e) { console.warn('[performance] leads query failed:', e.message); }
 
     // ── EMAIL ENGAGEMENT ────────────────────────────────────────────────
