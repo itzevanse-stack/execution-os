@@ -60,7 +60,7 @@ BUYER AVATAR:
 WEEK STRATEGY:
 - Days 1–2: Educate about the PROBLEM only. Zero selling. Pure value and relatability.
 - Days 3–4: Teach the solution approach. Introduce the offer naturally.
-- Days 5–6: Share proof, handle objections, build trust.
+- Days 5–6: Build trust through DEPTH: explain exactly WHY this approach works when the things they already tried failed, address their biggest objections head-on, and show you deeply understand their situation. Do NOT invent client results, testimonials, or revenue numbers.
 - Day 7: Clear, confident CTA. Outcome-focused.
 
 Generate content for ALL 7 DAYS. Each day must have a DIFFERENT topic, angle, and emotional trigger.
@@ -91,7 +91,8 @@ NON-NEGOTIABLE QUALITY RULES:
 ✓ Perfect grammar — every sentence
 ✓ Active voice always
 ✓ Sound human — never AI
-✓ Specific over vague: use real numbers, timeframes, names
+✓ TEACH COMPLETELY: every educational post must contain a full, usable insight the reader can act on TODAY without buying anything — steps, the reasoning behind them, and a concrete worked example. Value they can feel is what builds authority.
+✓ Specificity comes from MECHANISM and DETAIL (exact steps, exact mistakes, exact scenarios) — NEVER from invented client results, revenue claims, follower counts, or made-up names. If a number is not provided above, do not state one as fact.
 ✓ Write for ${av.job || "the exact target audience"} — not generic entrepreneurs
 ✓ Each day genuinely different in topic AND emotional approach
 ✓ Never use: "game-changer", "journey", "in today's world", "let's be honest"
