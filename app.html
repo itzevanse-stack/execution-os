@@ -3518,6 +3518,9 @@ button[onclick="generateOffer()"] {
   <div class="page on" id="page-dashboard" style="display:block;opacity:1">
     <div style="padding-top:1.5rem">
 
+      <!-- First Win Path — data-verified journey from empty account to first lead -->
+      <div id="first-win-path" style="display:none;margin:0 1.25rem 16px"></div>
+
       <!-- Setup completion nudge — shows when setup is incomplete -->
       <div id="setup-nudge-banner" style="display:none;margin:0 1.25rem 16px">
         <div style="background:linear-gradient(135deg,rgba(255,140,66,.08),rgba(108,99,255,.06));border:1px solid rgba(255,140,66,.3);border-radius:var(--r-lg);padding:16px 18px">
@@ -26555,7 +26558,7 @@ window.autoStart = async function() {
       var resp = await fetch('/api/automate', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ uid: uid, dayNumber: day, job: job }),
+        body:    JSON.stringify({ uid: uid, dayNumber: day, job: job, performance: window._eosPerformance || null }),
       });
 
       var result = await resp.json();
@@ -29902,6 +29905,7 @@ onAuthStateChanged(auth, async (user) => {
   // Load the user's real 30-day performance so every AI call is grounded in
   // their actual numbers (the feedback loop). Non-blocking.
   if (typeof eosLoadPerformance === 'function') setTimeout(eosLoadPerformance, 1500);
+  if (typeof eosRenderFirstWinPath === 'function') setTimeout(eosRenderFirstWinPath, 800);
 
   // ── Restore app mode ─────────────────────────────────────────────────────────
   // Source of truth priority:
@@ -39462,6 +39466,86 @@ function brBuildAnalysisUI(inp) {
    call, with a hard rule against inventing metrics. */
 window._eosPerformance = null;
 
+/* ══ FIRST WIN PATH ═══════════════════════════════════════════════════════
+   The guided journey from empty account to first lead. Every step is
+   verified against REAL state (avatar data, offer data, boardroom intel,
+   live funnels, tracked leads/publishes) — not against what was clicked.
+   The quality of every generator in this app depends on the Foundation
+   being filled in; this makes sure no paying user reaches the generators
+   with an empty one. */
+function eosRenderFirstWinPath() {
+  var host = document.getElementById('first-win-path');
+  if (!host) return;
+
+  var isAff = (window._appMode || 'expert') === 'affiliate';
+  var av = window._avatarData || {};
+  var bi = window._boardroomIntel || {};
+  var perf = window._eosPerformance || {};
+
+  // Live funnel check from local funnel state
+  var hasLiveFunnel = false;
+  try {
+    var fns = JSON.parse(localStorage.getItem('eos_funnels_' + (window._currentUserUid || 'anon')) || '{}');
+    hasLiveFunnel = Object.keys(fns).some(function(k){ return fns[k] && fns[k].status === 'live'; });
+  } catch(e) {}
+
+  var steps = [
+    { id: 'avatar',   icon: '🎯', label: 'Define your ideal customer',
+      done: !!(av.pain && av.transformation),
+      why: 'Every piece of copy is written FROM this. Without it, everything comes out generic.' },
+    { id: isAff ? 'affiliate' : 'offer', icon: '💎', label: isAff ? 'Set up your affiliate offer' : 'Create your offer',
+      done: isAff ? !!(window._affiliateOffer && window._affiliateOffer.name) : !!(window._offerData && (window._offerData.name || window._offerData.headline)),
+      why: 'The thing all your content and funnels sell. The AI needs its name, promise, and price.' },
+    { id: 'boardroom', icon: '🏛️', label: 'Build your Boardroom intelligence',
+      done: !!(bi.architect && Object.keys(bi.architect).length),
+      why: 'Live market research + positioning that makes your copy sound like you, not a template.' },
+    { id: 'funnels',  icon: '🚀', label: 'Publish your first funnel',
+      done: hasLiveFunnel,
+      why: 'Your lead-capture machine. Until one is live, content has nowhere to send people.' },
+    { id: 'calendar', icon: '📅', label: 'Publish your first content',
+      done: !!(perf.content && perf.content.published > 0),
+      why: 'Content is what fills the funnel. One post published beats ten drafted.' },
+    { id: 'leads',    icon: '⚡', label: 'Capture your first lead',
+      done: !!(perf.leads && perf.leads.count > 0),
+      why: 'The first win. From here, the system starts learning from your real numbers.' }
+  ];
+
+  var doneCount = steps.filter(function(s){ return s.done; }).length;
+
+  // All complete → celebrate briefly, then hide for good
+  if (doneCount === steps.length) {
+    if (!localStorage.getItem('eos_first_win_celebrated')) {
+      localStorage.setItem('eos_first_win_celebrated', '1');
+      host.style.display = 'block';
+      host.innerHTML = '<div style="background:linear-gradient(135deg,rgba(78,204,163,.1),rgba(108,99,255,.08));border:1px solid rgba(78,204,163,.35);border-radius:var(--r-lg);padding:16px 20px;display:flex;align-items:center;gap:14px"><div style="font-size:28px">🏆</div><div><div style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">First Win complete — your growth engine is live</div><div style="font-size:11px;color:var(--dim);margin-top:2px">Foundation built, funnel live, first lead captured. The system is now learning from your real numbers every week.</div></div><button onclick="document.getElementById(\'first-win-path\').style.display=\'none\'" style="margin-left:auto;background:none;border:none;color:var(--dimmer);cursor:pointer;font-size:15px">✕</button></div>';
+    } else {
+      host.style.display = 'none';
+    }
+    return;
+  }
+
+  var next = steps.find(function(s){ return !s.done; });
+  var rows = steps.map(function(s) {
+    var isNext = next && s.id === next.id && !s.done;
+    return '<div onclick="showPage(\'' + s.id + '\')" style="display:flex;align-items:flex-start;gap:12px;padding:11px 14px;border-radius:12px;cursor:pointer;transition:background .15s;' + (isNext ? 'background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.25)' : 'border:1px solid transparent;opacity:' + (s.done ? '.55' : '.85')) + '" onmouseover="this.style.background=\'rgba(255,255,255,.03)\'" onmouseout="this.style.background=\'' + (isNext ? 'rgba(78,204,163,.06)' : 'transparent') + '\'">'
+      + '<div style="width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:1px;' + (s.done ? 'background:rgba(78,204,163,.15);border:1px solid rgba(78,204,163,.4);color:var(--teal)' : 'background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:var(--dimmer)') + '">' + (s.done ? '✓' : (steps.indexOf(s) + 1)) + '</div>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:' + (s.done ? 'var(--dim)' : 'var(--white)') + ';font-family:Poppins,sans-serif;' + (s.done ? 'text-decoration:line-through' : '') + '">' + s.icon + ' ' + s.label + (isNext ? ' <span style="font-size:9px;font-weight:900;color:var(--teal);text-transform:uppercase;letter-spacing:.8px;margin-left:6px">← You are here</span>' : '') + '</div>'
+      + (isNext ? '<div style="font-size:11px;color:var(--dim);line-height:1.55;margin-top:3px">' + s.why + '</div>' : '')
+      + '</div></div>';
+  }).join('');
+
+  host.style.display = 'block';
+  host.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:16px 18px">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">'
+    + '<div><div style="font-size:13px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">🏁 Your First Win Path</div>'
+    + '<div style="font-size:11px;color:var(--dim);margin-top:2px">From setup to your first captured lead — each step is verified from your real data.</div></div>'
+    + '<div style="font-size:11px;font-weight:800;color:var(--teal);background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:50px;padding:5px 14px">' + doneCount + ' / ' + steps.length + '</div>'
+    + '</div>'
+    + '<div style="height:5px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden;margin-bottom:12px"><div style="height:100%;width:' + Math.round(doneCount / steps.length * 100) + '%;background:linear-gradient(90deg,var(--teal),var(--purple));border-radius:3px;transition:width .5s"></div></div>'
+    + rows + '</div>';
+}
+window.eosRenderFirstWinPath = eosRenderFirstWinPath;
+
 async function eosLoadPerformance() {
   var uid = window._currentUserUid;
   if (!uid) return null;
@@ -39475,6 +39559,7 @@ async function eosLoadPerformance() {
     window._eosPerformance = data;
     try { localStorage.setItem('eos_performance', JSON.stringify(data)); } catch(e) {}
     console.log('[Performance] Real 30-day data loaded:', data.hasAnyData ? (data.sales.count + ' sales, ' + data.leads.count + ' leads, ' + data.content.published + ' posts published') : 'no activity data yet');
+    try { eosRenderFirstWinPath(); } catch(e) {}
     return data;
   } catch (e) {
     // Fall back to last cached snapshot so the AI still has something real
@@ -43907,6 +43992,7 @@ window.calFillMissing = async function(missingType) {
         missingType,
         dayNumbers:  allDays,
         isAffiliate: isAff,
+        performance: window._eosPerformance || null,
       }),
     });
     var data = await resp.json();
