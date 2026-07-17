@@ -150,6 +150,12 @@ NEVER USE:
 - Hollow phrases, generic corporate language
 - Any copy that could apply to any niche (must be niche-specific)
 
+PROOF INTEGRITY — ABSOLUTE RULES:
+- NEVER invent testimonials, client names, quotes, or dollar results. If the intelligence above contains REAL client results or proof, use those verbatim. If it does not, return "testimonials": [] (empty array) — the page renders cleanly without that section and the user adds real proof later.
+- NEVER invent user counts, revenue totals, or percentages for proof_bar. If real numbers exist in the intelligence, use them. Otherwise use non-numeric trust markers instead: e.g. { "num": "Step-by-Step", "label": "No experience needed" }, { "num": "Guaranteed", "label": "Or your money back" }, { "num": "Beginner Friendly", "label": "Start from zero" }.
+- Social proof ticker lines follow the same rule: real numbers or none.
+- A page with honest trust markers converts better long-term than one with invented proof that destroys credibility the moment a visitor questions it.
+
 Return ONLY valid JSON. No markdown. No backticks. No explanation.
 
 JSON SCHEMA (all fields required):
@@ -239,6 +245,98 @@ JSON SCHEMA (all fields required):
 function renderTemplate(c, mode) {
 
   const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:ital,wght@0,700;0,800;0,900;1,800&display=swap" rel="stylesheet">`;
+
+  // ── NICHE-ADAPTIVE DESIGN THEMES ────────────────────────────────────────
+  // Every funnel used to ship the identical dark teal/purple look regardless
+  // of who the user is — which is what makes pages feel templated. Now the
+  // aesthetic adapts to the niche: a wellness coach, a finance educator, and
+  // a fitness trainer each get a distinctly different, professionally
+  // matched look, applied as a CSS override layer on top of the base design
+  // system so layout and typography quality stay identical.
+  function pickTheme(niche) {
+    const n = String(niche || '').toLowerCase();
+    if (/wellness|mindset|mindfulness|meditat|yoga|health coach|life coach|healing|spiritual|therapy|relationship|parenting|nutrition/.test(n)) return 'radiance';
+    if (/finance|invest|trading|wealth|money|real estate|property|account|tax|legal|consult|b2b|agency|saas/.test(n)) return 'authority';
+    if (/fitness|gym|workout|training|sport|muscle|weight loss|bodybuild|running|athlet|performance/.test(n)) return 'voltage';
+    return 'momentum';
+  }
+
+  const THEME_CSS = {
+    momentum: '',
+    radiance: `
+/* THEME: Radiance — warm, light, trustworthy (wellness/coaching) */
+body{background:#faf6f0;color:#5c5348}
+strong{color:#2b241c}
+.headline{color:#2b241c}
+.section-dark{background:#faf6f0}.section-mid{background:#f4ede3}.section-alt{background:#efe6d9}
+.section-accent{background:linear-gradient(180deg,#f4ede3 0%,#efe6d9 100%)}
+.subline,.subline-sm{color:#8a7f6f}
+.eyebrow{color:#c2703d}
+.grad{background:linear-gradient(135deg,#c2703d 0%,#a8862d 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.badge{background:rgba(194,112,61,.08);border-color:rgba(194,112,61,.25);color:#c2703d}
+.badge-dot{background:#c2703d}
+.ticker-wrap{background:rgba(194,112,61,.04);border-color:rgba(194,112,61,.1)}
+.ticker-item{color:#a89a86}.ticker-dot{color:#c2703d}
+.btn-primary{background:linear-gradient(135deg,#c2703d 0%,#a85c2e 100%);color:#fff;box-shadow:0 0 60px rgba(194,112,61,.22),0 8px 32px rgba(60,40,20,.18)}
+.btn-primary:hover{box-shadow:0 0 100px rgba(194,112,61,.32),0 16px 48px rgba(60,40,20,.24)}
+.btn-secondary{color:#c2703d;border-color:rgba(194,112,61,.35)}
+.btn-secondary:hover{background:rgba(194,112,61,.06);border-color:rgba(194,112,61,.55)}
+.cta-note{color:#b0a490}
+.divider{background:linear-gradient(90deg,#c2703d,#a8862d)}
+.hero-glow{background:radial-gradient(ellipse,rgba(194,112,61,.08) 0%,rgba(168,134,45,.05) 40%,transparent 68%)}
+.hero-line{background:linear-gradient(90deg,transparent,rgba(194,112,61,.18),transparent)}
+.proof-bar{background:#f4ede3;border-color:rgba(60,40,20,.06)}
+.proof-item:not(:last-child)::after{background:rgba(60,40,20,.08)}
+.proof-num{color:#2b241c}.proof-label{color:#a89a86}
+.bullets li{color:#6d6355}
+.check-wrap{background:rgba(194,112,61,.1);border-color:rgba(194,112,61,.3)}
+.testi-card{background:#fffdf9;border-color:rgba(60,40,20,.08)}
+.testi-card:hover{border-color:rgba(194,112,61,.25)}`,
+    authority: `
+/* THEME: Authority — deep navy + gold (finance/consulting/B2B) */
+body{background:#0a1020;color:#a8b2c8}
+.section-dark{background:#0a1020}.section-mid{background:#0d1428}.section-alt{background:#101a33}
+.section-accent{background:linear-gradient(180deg,#0d1428 0%,#101a33 100%)}
+.eyebrow{color:#d4a94e}
+.grad{background:linear-gradient(135deg,#d4a94e 0%,#e8ca85 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.badge{background:rgba(212,169,78,.07);border-color:rgba(212,169,78,.22);color:#d4a94e}
+.badge-dot{background:#d4a94e}
+.ticker-wrap{background:rgba(212,169,78,.03);border-color:rgba(212,169,78,.08)}
+.ticker-dot{color:#d4a94e}
+.btn-primary{background:linear-gradient(135deg,#d4a94e 0%,#b8903c 100%);color:#0a1020;box-shadow:0 0 60px rgba(212,169,78,.2),0 8px 32px rgba(0,0,0,.4)}
+.btn-primary:hover{box-shadow:0 0 100px rgba(212,169,78,.32),0 16px 48px rgba(0,0,0,.5)}
+.btn-secondary{color:#d4a94e;border-color:rgba(212,169,78,.3)}
+.btn-secondary:hover{background:rgba(212,169,78,.06);border-color:rgba(212,169,78,.5)}
+.divider{background:linear-gradient(90deg,#d4a94e,#e8ca85)}
+.hero-glow{background:radial-gradient(ellipse,rgba(212,169,78,.06) 0%,rgba(232,202,133,.04) 40%,transparent 68%)}
+.hero-line{background:linear-gradient(90deg,transparent,rgba(212,169,78,.14),transparent)}
+.proof-bar{background:#0d1428}
+.check-wrap{background:rgba(212,169,78,.1);border-color:rgba(212,169,78,.25)}
+.testi-card{background:#111a30}
+.testi-card:hover{border-color:rgba(212,169,78,.15)}`,
+    voltage: `
+/* THEME: Voltage — high-energy dark + electric orange (fitness/performance) */
+body{background:#0b0a09;color:#b8b0a8}
+.section-dark{background:#0b0a09}.section-mid{background:#12100d}.section-alt{background:#171410}
+.section-accent{background:linear-gradient(180deg,#12100d 0%,#171410 100%)}
+.eyebrow{color:#ff6b2b}
+.grad{background:linear-gradient(135deg,#ff6b2b 0%,#ffb02b 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.badge{background:rgba(255,107,43,.07);border-color:rgba(255,107,43,.25);color:#ff6b2b}
+.badge-dot{background:#ff6b2b}
+.ticker-wrap{background:rgba(255,107,43,.03);border-color:rgba(255,107,43,.08)}
+.ticker-dot{color:#ff6b2b}
+.btn-primary{background:linear-gradient(135deg,#ff6b2b 0%,#e5551a 100%);color:#fff;box-shadow:0 0 60px rgba(255,107,43,.25),0 8px 32px rgba(0,0,0,.45)}
+.btn-primary:hover{box-shadow:0 0 100px rgba(255,107,43,.4),0 16px 48px rgba(0,0,0,.55)}
+.btn-secondary{color:#ff6b2b;border-color:rgba(255,107,43,.3)}
+.btn-secondary:hover{background:rgba(255,107,43,.06);border-color:rgba(255,107,43,.5)}
+.divider{background:linear-gradient(90deg,#ff6b2b,#ffb02b)}
+.hero-glow{background:radial-gradient(ellipse,rgba(255,107,43,.08) 0%,rgba(255,176,43,.04) 40%,transparent 68%)}
+.hero-line{background:linear-gradient(90deg,transparent,rgba(255,107,43,.16),transparent)}
+.proof-bar{background:#12100d}
+.check-wrap{background:rgba(255,107,43,.1);border-color:rgba(255,107,43,.28)}
+.testi-card{background:#171310}
+.testi-card:hover{border-color:rgba(255,107,43,.18)}`
+  };
 
   const CSS = `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -572,7 +670,9 @@ img{max-width:100%;display:block}a{text-decoration:none;color:inherit}em{font-st
 })();
 </script>`;
 
-  const HEAD = (title) => `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">${FONTS}<title>${title||'Free Training'}</title><style>${CSS}</style></head><body>`;
+  const ACTIVE_THEME = pickTheme(ic.niche);
+  const HEAD = (title) => `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">${FONTS}<title>${title||'Free Training'}</title><style>${CSS}
+${THEME_CSS[ACTIVE_THEME] || ''}</style></head><body>`;
 
   // ══════════════════════════════════════════════════════════════════════════
   // OPT-IN PAGE
