@@ -20,11 +20,26 @@ function getDb() {
   return getFirestore();
 }
 
+// Real-performance context (the feedback loop) — set per-request in the
+// handler; ensures content cites the user's REAL numbers or none at all.
+let REQUEST_REAL_DATA = '';
+function buildRealDataBlock(p) {
+  if (!p || !p.hasAnyData) {
+    return '\n\nREAL PERFORMANCE DATA: none tracked yet for this user. Do not state any performance numbers as fact.';
+  }
+  let out = '\n\nREAL PERFORMANCE DATA — this user\'s ACTUAL tracked results (last 30 days). These are the ONLY performance numbers you may cite:';
+  out += '\n- Sales: ' + p.sales.count + ' (' + p.sales.currency + ' ' + p.sales.revenue + ' revenue)';
+  out += '\n- Leads captured: ' + p.leads.count + (p.leads.topSource ? ' (best source: ' + p.leads.topSource + ')' : '');
+  if (p.email && p.email.sent) out += '\n- Email: ' + p.email.sent + ' sent' + (p.email.openRate ? ', ' + p.email.openRate + ' open rate' : '');
+  out += '\n- Content published: ' + (p.content ? p.content.published : 0) + ' pieces';
+  return out;
+}
+
 async function ai(system, user, maxTokens) {
   const r = await client.messages.create({
     model:      'claude-sonnet-4-6',
     max_tokens: maxTokens || 1000,
-    system,
+    system:     (system || '') + REQUEST_REAL_DATA,
     messages: [{ role: 'user', content: user }],
   });
   return (r.content[0] && r.content[0].text) || '';
@@ -179,7 +194,8 @@ module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST')   return res.status(405).json({ error: 'POST only' });
 
-  const { uid, missingType, dayNumbers, isAffiliate } = req.body || {};
+  const { uid, missingType, dayNumbers, isAffiliate, performance } = req.body || {};
+  REQUEST_REAL_DATA = buildRealDataBlock(performance);
   if (!uid || !missingType || !Array.isArray(dayNumbers) || !dayNumbers.length) {
     return res.status(400).json({ error: 'uid, missingType, dayNumbers[] required' });
   }
