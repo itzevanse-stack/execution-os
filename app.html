@@ -6406,6 +6406,15 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
             </div>
           </div>
 
+          <!-- Applications from grow.html -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900">📥 Applications <span id="admin-apps-count" style="color:var(--teal)"></span></div>
+            <button onclick="adminLoadApplications()" style="background:none;border:none;color:var(--dimmer);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif">↻ Refresh</button>
+          </div>
+          <div id="admin-apps-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px">
+            <div style="font-size:12px;color:var(--dimmer);text-align:center;padding:16px">Loading applications…</div>
+          </div>
+
           <!-- Member list -->
           <div style="font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:900;margin-bottom:10px">📋 Active Members</div>
           <div id="admin-member-list" style="display:flex;flex-direction:column;gap:8px">
@@ -14693,6 +14702,45 @@ window.adminAddMember = async function(){
     }
   } catch(e) {
     if(statusEl){ statusEl.style.color='var(--red)'; statusEl.textContent='❌ Error: ' + (e.message||String(e)); }
+  }
+};
+
+// Reads the growLeads collection where grow.html applications land. Until
+// now that collection was WRITE-ONLY — applications existed solely as
+// notification emails, invisible inside the platform.
+window.adminLoadApplications = async function(){
+  const listEl = document.getElementById('admin-apps-list');
+  if(!listEl) return;
+  if(!window._db || !window._getDocs || !window._collection){
+    listEl.innerHTML='<div style="font-size:12px;color:var(--dimmer);text-align:center;padding:12px">Connect Firestore to see applications.</div>';
+    return;
+  }
+  try {
+    const snap = await window._getDocs(window._collection(window._db, 'growLeads'));
+    const apps = [];
+    snap.forEach(doc=>apps.push({id:doc.id,...doc.data()}));
+    if(!apps.length){ listEl.innerHTML='<div style="font-size:12px;color:var(--dimmer);text-align:center;padding:12px">No applications yet — they arrive here the moment someone applies on grow.html.</div>'; const c0=document.getElementById('admin-apps-count'); if(c0)c0.textContent=''; return; }
+    apps.sort((a,b)=>{
+      const ta=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate().getTime():(a.createdAt?new Date(a.createdAt).getTime():0);
+      const tb=b.createdAt&&b.createdAt.toDate?b.createdAt.toDate().getTime():(b.createdAt?new Date(b.createdAt).getTime():0);
+      return tb-ta;
+    });
+    const cEl=document.getElementById('admin-apps-count'); if(cEl)cEl.textContent='('+apps.length+')';
+    listEl.innerHTML = apps.slice(0,50).map(a=>{
+      const ts=a.createdAt&&a.createdAt.toDate?a.createdAt.toDate():(a.createdAt?new Date(a.createdAt):null);
+      const when=ts?ts.toLocaleDateString()+' '+ts.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'—';
+      const isWaitlist=(a.name==='Waitlist'||a.phone==='waitlist');
+      const wa=(a.phone&&a.phone!=='waitlist')?('https://wa.me/'+String(a.phone).replace(/[^0-9]/g,'')):'';
+      return '<div style="background:rgba(255,255,255,.04);border:1px solid '+(isWaitlist?'rgba(245,200,66,.25)':'rgba(78,204,163,.2)')+';border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">'
+        +'<div style="width:36px;height:36px;border-radius:50%;background:'+(isWaitlist?'linear-gradient(135deg,#F5C842,#d4a800)':'linear-gradient(135deg,var(--teal),var(--teal2))')+';display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;color:var(--text-dark);flex-shrink:0">'+(isWaitlist?'⏳':(a.name||'?').charAt(0).toUpperCase())+'</div>'
+        +'<div style="flex:1;min-width:150px"><div style="font-size:13px;font-weight:700;color:var(--white)">'+(isWaitlist?'Waitlist signup':(a.name||'Unnamed'))+'</div>'
+        +'<div style="font-size:11px;color:var(--dimmer);margin-top:1px">'+(a.email||'—')+(a.phone&&!isWaitlist?' · '+a.phone:'')+'</div></div>'
+        +'<div style="font-size:10px;color:var(--dimmer)">'+when+'</div>'
+        +(wa?'<a href="'+wa+'" target="_blank" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:8px;padding:7px 14px;color:var(--teal);font-size:11px;font-weight:800;text-decoration:none;font-family:Poppins,sans-serif">💬 WhatsApp</a>':'')
+        +'</div>';
+    }).join('');
+  } catch(e) {
+    listEl.innerHTML='<div style="font-size:12px;color:#ff6b6b;text-align:center;padding:12px">Could not load applications: '+e.message+'</div>';
   }
 };
 
@@ -29964,6 +30012,7 @@ onAuthStateChanged(auth, async (user) => {
     if (ap) {
       ap.style.display = 'block';
       window.adminLoadMembers && window.adminLoadMembers();
+      window.adminLoadApplications && window.adminLoadApplications();
     // Auto-repair domain mappings on admin load
     setTimeout(function() {
       fetch(window.location.origin + '/api/sync-domain', {
@@ -34877,7 +34926,7 @@ async function emBroadcastLoadCount() {
   var uid = window._currentUserUid;
   var contacts = [];
   if (uid && window._db && window._getDocs && window._collection) {
-    try { var s = await window._getDocs(window._collection(window._db, 'leads')); s.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email) contacts.push(data); }); } catch(e) {}
+    try { var s = await window._getDocs(window._collection(window._db, 'leads')); s.forEach(function(d){ var data=d.data?d.data():d; if(!data||!data.email) return; var mine = data.ownerUid===uid || (window._isAdmin && !data.ownerUid); if(mine) contacts.push(data); }); } catch(e) {}
     try { var s2 = await window._getDocs(window._collection(window._db, 'users', uid, 'leads')); s2.forEach(function(d){ var data=d.data?d.data():d; if(data&&data.email&&!contacts.find(function(c){return c.email===data.email;})) contacts.push(data); }); } catch(e) {}
   }
   var seg = emBroadcastState.segment;
@@ -36562,7 +36611,7 @@ function emRenderCampaigns(){var list=document.getElementById('em-campaigns-list
   var badgeTxt=isSent?'✅ Sent':isLive?'🟡 Scheduled':'📝 Draft';
   var cid = String(c.id||'').replace(/["']/g,'');
   return '<div class="em-campaign-card" style="position:relative;cursor:default" data-cid="'+cid+'">'    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px">'    +'<div style="flex:1;font-size:14px;font-weight:800;font-family:Poppins,sans-serif;color:var(--white);line-height:1.3;cursor:pointer" data-action="open">'      +(c.subject||'<em style="color:var(--dim);font-weight:400;font-size:12px">No subject &mdash; click Edit</em>')    +'</div>'    +'<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">'    +'<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;'+badgeStyle+'">'+badgeTxt+'</span>'    +'<button data-action="delete" style="background:rgba(255,91,91,.06);border:1px solid rgba(255,91,91,.12);border-radius:5px;padding:3px 7px;color:#ff8888;font-size:11px;cursor:pointer">\u{1F5D1}\uFE0F</button>'    +'</div></div>'    +'<div class="em-campaign-meta"><span>To: '+(c.audience||'All Contacts')+'</span>'+(c.source==='calendar'?'<span>\u{1F4C5} Day '+((c.calDay||0)+1)+'</span>':'')+'</div>'    +'<div class="em-campaign-stats">'    +'<div class="em-stat-mini"><div class="em-stat-mini-val">'+(c.stats&&c.stats.sent?c.stats.sent.toLocaleString():'\u2014')+'</div><div class="em-stat-mini-lbl">Sent</div></div>'    +'<div class="em-stat-mini"><div class="em-stat-mini-val">'+(c.stats&&c.stats.sent?or+'%':'\u2014')+'</div><div class="em-stat-mini-lbl">Opens</div></div>'    +'<div class="em-stat-mini"><div class="em-stat-mini-val">'+(c.stats&&c.stats.sent?cr+'%':'\u2014')+'</div><div class="em-stat-mini-lbl">Clicks</div></div>'    +'</div>'    +(isDraft    ?'<div style="display:flex;gap:6px;margin-top:8px">'    +'<button data-action="open" style="flex:1;padding:7px;background:rgba(78,204,163,.07);border:1px solid rgba(78,204,163,.18);border-radius:7px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">\u270F\uFE0F Edit</button>'    +'<button data-action="send" style="flex:1;padding:7px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:7px;color:var(--text-dark);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">\u{1F680} Send Now</button>'    +'</div>':'')    +'</div>';}).join('');}
-async function emLoadContacts(filter){var tbody=document.getElementById('em-contacts-tbody');if(!tbody)return;tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--dim)">Loading…</td></tr>';var uid=window._currentUserUid;var contacts=[];if(uid&&window._db&&window._getDocs&&window._collection){try{var s=await window._getDocs(window._collection(window._db,'leads'));s.forEach(function(d){var data=d.data?d.data():d;if(data&&data.email)contacts.push(data);});}catch(e){}try{var s2=await window._getDocs(window._collection(window._db,'users',uid,'leads'));s2.forEach(function(d){var data=d.data?d.data():d;if(data&&data.email&&!contacts.find(function(c){return c.email===data.email;}))contacts.push(data);});}catch(e){}}emState.contacts=contacts;var ce=document.getElementById('em-contacts-count');if(ce)ce.textContent='('+contacts.length+')';if(contacts.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--dim)">No contacts yet. Opt-ins from your funnels appear here automatically.</td></tr>';emUpdateStats();return;}var filtered=filter?contacts.filter(function(c){return(c.name||'').toLowerCase().includes(filter)||(c.email||'').toLowerCase().includes(filter);}):contacts;tbody.innerHTML=filtered.map(function(c){var date=c.createdAt?new Date(c.createdAt).toLocaleDateString():'Unknown';return'<tr><td style="font-weight:600;color:var(--white)">'+(c.name||'—')+'</td><td>'+(c.email||'—')+'</td><td>'+(c.phone||'—')+'</td><td><span class="em-badge synced">'+(c.source||'funnel')+'</span></td><td>'+date+'</td><td><span class="em-badge live">Active</span></td></tr>';}).join('');emUpdateStats();}
+async function emLoadContacts(filter){var tbody=document.getElementById('em-contacts-tbody');if(!tbody)return;tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--dim)">Loading…</td></tr>';var uid=window._currentUserUid;var contacts=[];if(uid&&window._db&&window._getDocs&&window._collection){try{var s=await window._getDocs(window._collection(window._db,'leads'));s.forEach(function(d){var data=d.data?d.data():d;if(!data||!data.email)return;var mine=data.ownerUid===uid||(window._isAdmin&&!data.ownerUid);if(mine)contacts.push(data);});}catch(e){}try{var s2=await window._getDocs(window._collection(window._db,'users',uid,'leads'));s2.forEach(function(d){var data=d.data?d.data():d;if(data&&data.email&&!contacts.find(function(c){return c.email===data.email;}))contacts.push(data);});}catch(e){}}emState.contacts=contacts;var ce=document.getElementById('em-contacts-count');if(ce)ce.textContent='('+contacts.length+')';if(contacts.length===0){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--dim)">No contacts yet. Opt-ins from your funnels appear here automatically.</td></tr>';emUpdateStats();return;}var filtered=filter?contacts.filter(function(c){return(c.name||'').toLowerCase().includes(filter)||(c.email||'').toLowerCase().includes(filter);}):contacts;tbody.innerHTML=filtered.map(function(c){var date=c.createdAt?new Date(c.createdAt).toLocaleDateString():'Unknown';return'<tr><td style="font-weight:600;color:var(--white)">'+(c.name||'—')+'</td><td>'+(c.email||'—')+'</td><td>'+(c.phone||'—')+'</td><td><span class="em-badge synced">'+(c.source||'funnel')+'</span></td><td>'+date+'</td><td><span class="em-badge live">Active</span></td></tr>';}).join('');emUpdateStats();}
 function emSearchContacts(val){emLoadContacts(val.toLowerCase());}
 function emExportContacts(){if(!emState.contacts.length){alert('No contacts to export.');return;}var csv='Name,Email,Phone,Source,Date\n'+emState.contacts.map(function(c){return[c.name||'',c.email||'',c.phone||'',c.source||'',c.createdAt?new Date(c.createdAt).toLocaleDateString():''].join(',');}).join('\n');var blob=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='execution-os-contacts.csv';a.click();}
 function emUpdateStats(){var ts=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.sent)||0);},0);var to=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.opens)||0);},0);var tc=emState.campaigns.reduce(function(s,c){return s+((c.stats&&c.stats.clicks)||0);},0);var or=ts>0?Math.round((to/ts)*100):0;var cr=ts>0?Math.round((tc/ts)*100):0;var s=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};s('em-stat-contacts',emState.contacts.length||'—');s('em-stat-campaigns',emState.campaigns.length);s('em-stat-sent',ts.toLocaleString());s('em-stat-opens',or+'%');s('em-stat-clicks',cr+'%');}
