@@ -120,53 +120,31 @@ export default async function handler(req, res) {
       ? `\n\nDO NOT return questions similar to these already shown:\n${exclude.slice(0, 10).map((q, i) => `${i+1}. ${q}`).join('\n')}`
       : '';
 
-    const rankPrompt = `You are a content strategist helping experts create high-performing social media posts.
+    const rankPrompt = `You are a research analyst extracting the questions REAL people in a niche are actually asking, from live search results.
 
 NICHE: "${niche}"
-${intel ? `OFFER AND AUDIENCE:\n${intel}\n` : ''}
-SEARCH RESULTS:
+${intel ? `THE EXPERT'S AUDIENCE (use ONLY to judge which questions are relevant to this audience — NEVER to reshape questions toward any product):\n${intel}\n` : ''}
+SEARCH RESULTS (real threads, videos and articles):
 ${rawText}
 ${excludeText}
 
-Extract the 8 BEST questions for writing sharp, authoritative posts. Each question must:
+Extract the 8 best REAL questions from these results. Rules:
 
-1. Be specific enough to take a clear position — not vague
-2. Have a wrong popular belief most people hold that the expert can correct
-3. Resonate with a large segment of the target audience
-4. Lead naturally toward the expert's offer as the solution
-5. Have a non-obvious insight available
-
-GOOD questions (sharp, specific, position-taking):
-- "Isn't the digital product space completely saturated in 2026?"
-- "Why do most people fail at affiliate marketing even when they follow all the steps?"
-- "How do I scale past $20K/month without working more hours?"
-- "Is buying a digital product course actually worth it or just a waste of money?"
-- "Do you actually need a big audience to make $10K/month selling digital products?"
-
-BAD questions (reject these completely):
-- "How do I grow my business?" — too vague, no position
-- "What is affiliate marketing?" — basic definition, no insight
-- "How do I make money online?" — too broad
-- Any question that reads like a Reddit thread title
-- Any question with casual or slang language
-- Any question that can't be answered with a sharp contrarian take
-
-STRICT RULES:
-- Questions must sound like something a serious buyer would Google
-- Every question must have an obvious wrong belief most people hold
-- Rewrite vague titles into sharp questions if needed
-- Do not use the source title verbatim — extract the real question behind it
+1. FAITHFULNESS FIRST: every question must represent something a real person is genuinely asking in these sources. You may tighten grammar and sharpen phrasing, but the underlying concern must be exactly what the source shows — never invent a question the sources don't support.
+2. NEVER shape a question to set up, hint at, or "lead toward" any product or offer. Questions engineered to fit a pitch read as ads and destroy trust. The expert earns authority by answering what people ACTUALLY ask.
+3. Prefer specific, practical questions (pricing, tools, sequencing, mistakes, comparisons) over broad philosophical ones — specificity is what signals real intent.
+4. Each question needs a real teaching opportunity: a common wrong belief or missing piece the expert can correct with substance.
+5. Every question MUST carry the URL of the actual source it came from. If a candidate has no supporting source, drop it.
+6. Variety: cover different sub-topics and formats — not eight variations of the same angle.
 
 Return ONLY valid JSON. No markdown:
 [
   {
-    "question": "...",
+    "question": "the real question, faithfully extracted",
     "platform": "reddit|quora|google|youtube|x",
-    "url": "https://...",
+    "url": "https://... (the ACTUAL source URL from the results)",
     "year": "${currentYear}",
-    "volume": "high|medium",
-    "intent": "informational|commercial",
-    "why": "one sentence: what position the expert can take and why this builds authority",
+    "why": "one sentence: the teaching opportunity — what the expert can explain with substance",
     "wrong_belief": "one sentence: what most people wrongly believe about this"
   }
 ]`;
@@ -205,29 +183,26 @@ Return ONLY valid JSON. No markdown:
 async function fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche) {
   const currentYear = new Date().getFullYear();
   try {
-    const prompt = `Generate the 8 best questions someone could write a sharp, authoritative social media post about in the "${niche}" space.
+    const prompt = `Suggest the 8 most common REAL questions people in the "${niche}" space genuinely ask, based on your knowledge of this audience.
 
 ${isKeyword ? `Questions must be specifically about: "${searchTerm}"` : `Questions must be relevant to: "${searchTerm}"`}
 
-${intel ? `Offer and audience context:\n${intel}\n` : ''}
+${intel ? `The expert's audience (for RELEVANCE only — never shape questions toward any product):\n${intel}\n` : ''}
 
-Each question must:
-1. Be specific enough to take a clear position
-2. Have a wrong popular belief most people hold
-3. Have mass appeal in this niche
-4. Lead naturally toward the expert's offer
-5. Have a non-obvious insight available
+Rules:
+1. Only questions this audience genuinely, commonly asks — practical and specific (pricing, tools, sequencing, mistakes, comparisons) over broad philosophical ones
+2. NEVER shape a question to set up or hint at any product or offer
+3. Each needs a real teaching opportunity: a wrong belief or missing piece the expert can correct with substance
+4. Variety across sub-topics
 
 Return ONLY valid JSON. No markdown:
 [
   {
     "question": "...",
-    "platform": "reddit|quora|google|youtube|x",
+    "platform": "generated",
     "url": "",
     "year": "${currentYear}",
-    "volume": "high|medium",
-    "intent": "informational|commercial",
-    "why": "one sentence: what position the expert can take",
+    "why": "one sentence: the teaching opportunity",
     "wrong_belief": "one sentence: what most people wrongly believe"
   }
 ]`;
