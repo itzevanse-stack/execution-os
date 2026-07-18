@@ -23498,7 +23498,8 @@ async function avsVpeFindQuestions() {
             + '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">'
             + '<span style="font-size:9px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:3px;padding:1px 6px;text-transform:uppercase">'+( q.platform||'web')+'</span>'
             + (q.year ? '<span style="font-size:9px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:3px;padding:1px 6px">'+q.year+'</span>' : '')
-            + '<span style="font-size:9px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:3px;padding:1px 6px">'+(q.intent==='commercial'?'💰 buyer':'ℹ️ info')+'</span>'
+            + (q.url ? '<span style="font-size:9px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:3px;padding:1px 6px">✓ source</span>'
+                     : '<span style="font-size:9px;font-weight:700;color:#F5C842;background:var(--card2);border-radius:3px;padding:1px 6px">✦ AI</span>')
             + srcLink
             + '</div></div>';
         }).join('');
@@ -23617,7 +23618,7 @@ async function avsVpeWriteScript() {
       if (genStatus) { genStatus.textContent = '✅ Script written from real audience question — review and build your video.'; }
 
       // Auto-select best angle based on question intent
-      var bestAngle = q.intent === 'commercial' ? 'value' : 'education';
+      var bestAngle = 'value';
       var angleBtn = document.querySelector('.avs-angle-card[data-angle="'+bestAngle+'"]');
       if (angleBtn) avsPickAngle(angleBtn);
     }
@@ -47269,8 +47270,8 @@ async function vpeFindQuestions() {
           +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'
           +'<span style="font-size:10px;font-weight:700;color:'+pc+';background:var(--card2);border-radius:4px;padding:2px 8px;text-transform:uppercase">📍 '+(q.platform||'web')+'</span>'
           +(q.year?'<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">📅 '+q.year+'</span>':'')
-          +'<span style="font-size:10px;font-weight:700;color:'+(q.volume==='high'?'var(--teal)':'#F5C842')+';background:var(--card2);border-radius:4px;padding:2px 8px">📊 '+(q.volume||'medium')+' volume</span>'
-          +'<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">'+(q.intent==='commercial'?'💰 buyer intent':'ℹ️ informational')+'</span>'
+          +(q.url ? '<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">✓ real source</span>'
+                  : '<span style="font-size:10px;font-weight:700;color:#F5C842;background:var(--card2);border-radius:4px;padding:2px 8px">✦ AI-suggested</span>')
           +srcLink
           +'</div></div>';
       }).join('');
