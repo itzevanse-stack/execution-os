@@ -63,6 +63,29 @@ export default async function handler(req, res) {
       });
     } catch (e) { console.warn('[performance] sales query failed:', e.message); }
 
+    // ── LOGGED COMMISSIONS (affiliate revenue on third-party networks) ──
+    // These networks can't be auto-tracked, so affiliates log commissions
+    // manually. They count as REAL sales here — otherwise the feedback
+    // loop would tell a successful affiliate "0 sales" forever.
+    try {
+      const commSnap = await db.collection('users').doc(uid).collection('commissions').get();
+      const comm = { count: 0, revenue: 0, bySource: {} };
+      commSnap.forEach(d => {
+        const c = d.data();
+        const ts = c.createdAt ? new Date(c.createdAt) : null;
+        if (ts && ts < cutoff) return;
+        comm.count++;
+        comm.revenue += Number(c.amount || 0);
+        if (c.source) comm.bySource[c.source] = (comm.bySource[c.source] || 0) + Number(c.amount || 0);
+        summary.sales.count++;
+        summary.sales.revenue += Number(c.amount || 0);
+        if (ts && ts >= weekAgo) summary.sales.last7Days++;
+      });
+      comm.revenue = Math.round(comm.revenue * 100) / 100;
+      summary.sales.commissions = comm;
+      summary.sales.revenue = Math.round(summary.sales.revenue * 100) / 100;
+    } catch (e) { console.warn('[performance] commissions query failed:', e.message); }
+
     // ── LEADS (attributed to this user + grouped by content source) ─────
     try {
       // Primary: leads directly attributed via ownerUid (new capture path)
