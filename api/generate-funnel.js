@@ -28,7 +28,7 @@ module.exports = async function handler(req, res) {
   const KEY = process.env.ANTHROPIC_API_KEY;
   if (!KEY) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set in Vercel.' });
 
-  const { prompt, max_tokens, mode, intelContext } = req.body || {};
+  const { prompt, max_tokens, mode, intelContext, optinStyle } = req.body || {};
   if (!prompt) return res.status(400).json({ error: 'Missing prompt' });
 
   const ic = intelContext || {};
@@ -339,7 +339,16 @@ body{background:#0b0a09;color:#b8b0a8}
 .testi-card:hover{border-color:rgba(255,107,43,.18)}`
   };
 
-  const CSS = `
+  const OPTIN_CSS = `
+.optin-card{max-width:460px;margin:0 auto 20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:26px 24px;backdrop-filter:blur(8px);text-align:center}
+.optin-card-head{font-family:Poppins,sans-serif;font-weight:800;font-size:15px;margin-bottom:16px}
+.optin-form{display:flex;flex-direction:column;gap:10px}
+.optin-form .field{width:100%;box-sizing:border-box;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:13px 15px;font-size:14px;color:inherit;font-family:Inter,sans-serif;outline:none;transition:border-color .15s}
+.optin-form .field:focus{border-color:rgba(255,255,255,.35)}
+.optin-submit{width:100%;margin-top:4px}
+@media(max-width:560px){.optin-card{padding:20px 16px}}
+`;
+  const CSS = OPTIN_CSS + `
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:#06060f;color:#b8c2e0;font-family:'Inter',system-ui,sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased;overflow-x:hidden}
@@ -590,6 +599,22 @@ img{max-width:100%;display:block}a{text-decoration:none;color:inherit}em{font-st
 
   const urgencySection = () => `<section class="section section-dark text-center"><div class="container"><div class="urgency-bar"><span class="urgency-icon">⏰</span><div><div class="urgency-text">Limited availability — spots filling fast</div><div class="urgency-sub">Join now to lock in your access before this closes</div></div></div><div style="margin-top:40px"><button class="btn-primary" data-optin>${c.cta||'Get Instant Access Now'} ${ARROW}</button><p class="cta-note">${c.cta_note||''}</p></div></div></section>`;
 
+  // ── ON-PAGE OPT-IN FORM — the heart of a true squeeze page ──────────────
+  // A REAL <form> element: the platform's funnel-serving layer automatically
+  // intercepts any form with an email input, saves the lead with full
+  // attribution, and advances to the next funnel page. Works standalone too
+  // via the fallback handler in BASE_JS.
+  const OPTIN_FORM = (formHeadline, ctaText, ctaNote) => `
+<div class="optin-card">
+  <div class="optin-card-head">${formHeadline||'Get Instant Access'}</div>
+  <form class="optin-form" data-eos-optin>
+    <input class="field" type="text" name="name" placeholder="Your first name" autocomplete="given-name">
+    <input class="field" type="email" name="email" placeholder="your@email.com" autocomplete="email" required>
+    <button type="submit" class="btn-primary optin-submit">${ctaText||'Get Free Access Now'} ${ARROW}</button>
+  </form>
+  <p class="cta-note" style="margin-top:12px">${ctaNote||'Free. No credit card needed. Unsubscribe anytime.'}</p>
+</div>`;
+
   const MODAL = (formHeadline, ctaText, ctaNote, redirectUrl='#') => `
 <div id="modal-overlay" class="modal-overlay" role="dialog" aria-modal="true">
   <div class="modal">
@@ -598,9 +623,11 @@ img{max-width:100%;display:block}a{text-decoration:none;color:inherit}em{font-st
     <h2 class="modal-title">${formHeadline||'Get Instant Access'}</h2>
     <p class="modal-sub">Enter your details and get access immediately.</p>
     <div class="modal-divider"></div>
-    <div class="field-wrap"><label class="field-label" for="f-name">First Name</label><input id="f-name" class="field" type="text" placeholder="Your first name" autocomplete="given-name"></div>
-    <div class="field-wrap" style="margin-bottom:20px"><label class="field-label" for="f-email">Email Address</label><input id="f-email" class="field" type="email" placeholder="your@email.com" autocomplete="email"></div>
-    <button id="modal-submit-btn" class="btn-primary" style="width:100%">${ctaText||'Get Free Access'} ${ARROW}</button>
+    <form id="modal-form">
+      <div class="field-wrap"><label class="field-label" for="f-name">First Name</label><input id="f-name" name="name" class="field" type="text" placeholder="Your first name" autocomplete="given-name"></div>
+      <div class="field-wrap" style="margin-bottom:20px"><label class="field-label" for="f-email">Email Address</label><input id="f-email" name="email" class="field" type="email" placeholder="your@email.com" autocomplete="email" required></div>
+      <button id="modal-submit-btn" type="submit" class="btn-primary" style="width:100%">${ctaText||'Get Free Access'} ${ARROW}</button>
+    </form>
     <p class="cta-note">${ctaNote||'Free. No credit card needed. Unsubscribe anytime.'}</p>
   </div>
 </div>`;
@@ -633,23 +660,33 @@ img{max-width:100%;display:block}a{text-decoration:none;color:inherit}em{font-st
   }
   document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal();});
 
-  // Form submit
-  var submitBtn = document.getElementById('modal-submit-btn');
-  if(submitBtn){
-    submitBtn.addEventListener('click',function(){
-      var name  = (document.getElementById('f-name') ||{value:''}).value.trim();
-      var email = (document.getElementById('f-email')||{value:''}).value.trim();
-      if(!email){var ef=document.getElementById('f-email');if(ef){ef.style.borderColor='rgba(239,68,68,.5)';ef.focus();}return;}
-      submitBtn.textContent='Sending…';submitBtn.disabled=true;
-      // Capture lead in parent window if inside iframe
-      try{if(window.parent&&window.parent.captureEOSLead)window.parent.captureEOSLead(name,email);}catch(e){}
-      setTimeout(function(){
+  // Form submit — fallback capture for every form on the page (hero opt-in
+  // card AND modal). When the page is served live by the platform, its
+  // universal interceptor handles capture + navigation, so this defers
+  // (checked at submit time). Standalone/preview: POST the lead directly.
+  // The previous version called window.parent.captureEOSLead — a function
+  // that only exists inside the app's preview — so live pages lost every lead.
+  document.querySelectorAll('form').forEach(function(fm){
+    fm.addEventListener('submit',function(ev){
+      if(window.__eosFunnel) return; // live: platform interceptor owns this
+      ev.preventDefault();
+      var emailEl=fm.querySelector('input[type="email"]');
+      var nameEl=fm.querySelector('input[name="name"],input[type="text"]');
+      var email=emailEl?emailEl.value.trim():'';
+      if(!email){if(emailEl){emailEl.style.borderColor='rgba(239,68,68,.5)';emailEl.focus();}return;}
+      var sb=fm.querySelector('button[type="submit"],button');
+      var sbText=sb?sb.textContent:'';
+      if(sb){sb.textContent='Sending…';sb.disabled=true;}
+      var src='';try{src=sessionStorage.getItem('eos_src')||'';}catch(e){}
+      fetch('/api/funnel-lead',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({name:(nameEl?nameEl.value.trim():'')||'Subscriber',email:email,source:document.title||'funnel',page:'standalone',src:src||'direct'})
+      }).catch(function(){}).finally(function(){
         closeModal();
         if('${redirectUrl}'!=='#'){window.location.href='${redirectUrl}';}
-        else{submitBtn.textContent='Access Granted ✓';submitBtn.style.background='linear-gradient(135deg,#22c55e,#16a34a)';}
-      },800);
+        else if(sb){sb.textContent='Access Granted ✓';sb.disabled=false;sb.style.background='linear-gradient(135deg,#22c55e,#16a34a)';setTimeout(function(){sb.textContent=sbText;sb.style.background='';},4000);}
+      });
     });
-  }
+  });
 
   // Sticky bar
   var stickyBar = document.getElementById('sticky-bar');
@@ -693,9 +730,11 @@ ${ticker()}
     ${c.badge?`<div class="badge"><span class="badge-dot"></span>${c.badge}</div><br>`:''}
     <h1 class="headline headline-xl" style="margin-bottom:20px">${c.headline||'Your Headline'}</h1>
     <p class="subline" style="margin:0 auto 36px">${c.subheadline||''}</p>
-    ${c.bullets&&c.bullets.length?`<div style="max-width:520px;margin:0 auto 44px;text-align:left">${bullets(c.bullets)}</div>`:''}
-    <button class="btn-primary" data-optin style="margin-bottom:14px">${c.cta||'Get Free Access Now'} ${ARROW}</button>
-    <p class="cta-note">${c.cta_note||'Free. No credit card needed.'}</p>
+    ${c.bullets&&c.bullets.length?`<div style="max-width:520px;margin:0 auto 36px;text-align:left">${bullets(c.bullets)}</div>`:''}
+    ${optinStyle === 'onpage'
+      ? OPTIN_FORM(c.form_headline,c.cta,c.cta_note)
+      : `<button class="btn-primary" data-optin style="margin-bottom:14px">${c.cta||'Get Free Access Now'} ${ARROW}</button>
+    <p class="cta-note">${c.cta_note||'Free. No credit card needed.'}</p>`}
     <div class="hero-line"></div>
   </div>
 </section>
