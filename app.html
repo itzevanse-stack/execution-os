@@ -23191,6 +23191,13 @@ window.runMindsetReframe = async function() {
     if (!grid) return;
     grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:12px">Loading avatars…</div>';
     heygenCall('get-avatars').then(function(data) {
+      // Surface the REAL failure reason — a quota or auth error from HeyGen
+      // used to render as a generic 'No avatars found', which made the actual
+      // problem (e.g. expired key, exhausted plan) invisible and undebuggable.
+      if (data && data.error) {
+        grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--red);text-align:center;padding:16px;line-height:1.6">⚠️ HeyGen error: ' + String(data.error).slice(0, 160) + '<br><span style="color:var(--dim)">This usually means the platform HeyGen API key is invalid or the plan limit was reached.</span></div>';
+        return;
+      }
       var avatars = (data && data.avatars) || [];
       if (!avatars.length) {
         grid.innerHTML = '<div style="grid-column:1/-1;font-size:10px;color:var(--dim);text-align:center;padding:16px">No avatars found.<br>Connect HeyGen in your account.</div>';
@@ -23813,6 +23820,29 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
       if (!videoId) throw new Error('No video ID returned. Response: ' + JSON.stringify(data).slice(0,150));
       if (status) status.textContent = 'Video generating… checking status every 10 seconds.';
       avsToast('Video submitted! Checking status…');
+      // Record as pending IMMEDIATELY — both locally and in Firestore — so the
+      // video is recoverable even if the user closes the tab during HeyGen's
+      // 5-15 minute render. Previously nothing was recorded until a 15-minute
+      // frontend timeout, so closing the tab orphaned the video forever
+      // (HeyGen finished it and emailed, but the platform never knew).
+      try {
+        var pend = JSON.parse(localStorage.getItem('eos_pending_videos') || '[]');
+        if (!pend.some(function(p){ return p.videoId === videoId; })) {
+          pend.unshift({ videoId: videoId, ts: Date.now(), script: script.slice(0,80), type: type });
+          localStorage.setItem('eos_pending_videos', JSON.stringify(pend.slice(0,10)));
+        }
+      } catch(e) {}
+      try {
+        var pUid = window._currentUserUid;
+        if (pUid && window._db && window._setDoc && window._doc) {
+          window._setDoc(
+            window._doc(window._db, 'users', pUid, 'videos', 'vid_' + videoId),
+            { videoId: videoId, status: 'processing', title: 'Video — ' + new Date().toLocaleDateString(),
+              script: script.slice(0, 500), type: type, angle: _avs.angle || '', source: 'heygen', createdAt: Date.now() },
+            { merge: true }
+          ).catch(function(){});
+        }
+      } catch(e) {}
       // Poll for completion — HeyGen can take 8-15 min for longer scripts
       var maxPolls = 90; // 15 minutes max
       var polls = 0;
@@ -23918,7 +23948,7 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
     var url = videoUrl || _avs.generatedVideoUrl;
     if (!url) { try { url = localStorage.getItem('eos_last_video_url') || ''; } catch(e) {} }
     if (!url) { avsToast('No video to save.', true); return; }
-    var uid = window._currentUser && window._currentUser.uid;
+    var uid = window._currentUserUid || (window._currentUser && window._currentUser.uid);
     if (!uid) { avsToast('Please log in to save videos.', true); return; }
     var entry = Object.assign({
       url:       url,
@@ -23933,10 +23963,15 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
     }, meta || {});
     try {
       if (window._db && window._setDoc && window._doc) {
-        var docId = 'vid_' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+        // Deterministic id keyed to the HeyGen videoId: the completion save
+        // upgrades the 'processing' doc written at submit time (merge), and
+        // duplicate saves of the same video collapse into one entry.
+        var docId = entry.videoId ? ('vid_' + entry.videoId) : ('vid_' + Date.now() + '_' + Math.random().toString(36).slice(2,7));
+        entry.status = 'ready';
         window._setDoc(
           window._doc(window._db, 'users', uid, 'videos', docId),
-          entry
+          entry,
+          { merge: true }
         ).then(function() {
           avsToast('✅ Saved to My Videos');
           // Refresh library if open
@@ -23972,7 +24007,7 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
     if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--dim);font-size:11px">Loading your videos…</div>';
 
-    var uid = window._currentUser && window._currentUser.uid;
+    var uid = window._currentUserUid || (window._currentUser && window._currentUser.uid);
     var videos = [];
 
     function renderLibrary(vids) {
@@ -24021,7 +24056,12 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
       window._getDocs(
         window._collection(window._db, 'users', uid, 'videos')
       ).then(function(snap) {
-        snap.forEach(function(doc) { videos.push(doc.data()); });
+        var pendingDocs = [];
+        snap.forEach(function(doc) {
+          var v = doc.data();
+          if (v.url) { videos.push(v); }
+          else if (v.videoId) { pendingDocs.push(v); } // submitted but never confirmed — recover below
+        });
         // Merge with localStorage
         try {
           var local = JSON.parse(localStorage.getItem('eos_video_library') || '[]');
@@ -24030,6 +24070,39 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
           local.forEach(function(v){ if (v.url && !urls.has(v.url)) videos.push(v); });
         } catch(e) {}
         renderLibrary(videos);
+        // ── RECOVERY: videos submitted to HeyGen whose completion was never
+        // seen (tab closed during render). Ask HeyGen directly; if finished,
+        // upgrade the doc with the real URL and refresh once.
+        if (pendingDocs.length) {
+          var upgraded = 0;
+          Promise.all(pendingDocs.slice(0, 6).map(function(pv) {
+            return heygenCall('status', { videoId: pv.videoId }).then(function(data) {
+              var d   = (data && data.data) ? data.data : data;
+              var st  = d.status || data.status || '';
+              var url = d.video_url || d.videoUrl || data.video_url || data.videoUrl || '';
+              if (url) {
+                upgraded++;
+                return window._setDoc(
+                  window._doc(window._db, 'users', uid, 'videos', 'vid_' + pv.videoId),
+                  { url: url, thumb: url, status: 'ready' },
+                  { merge: true }
+                ).catch(function(){});
+              } else if (st === 'failed' || st === 'error') {
+                return window._setDoc(
+                  window._doc(window._db, 'users', uid, 'videos', 'vid_' + pv.videoId),
+                  { status: 'failed' },
+                  { merge: true }
+                ).catch(function(){});
+              }
+            }).catch(function(){});
+          })).then(function() {
+            if (upgraded > 0) {
+              avsToast('🎬 ' + upgraded + ' finished video' + (upgraded > 1 ? 's' : '') + ' recovered from HeyGen!');
+              window.avsLoadVideoLibrary._recovering = false;
+              avsLoadVideoLibrary();
+            }
+          });
+        }
       }).catch(function(e) {
         // Firestore failed — use localStorage
         try {
@@ -45868,7 +45941,7 @@ function fbSaveData() {
   try { localStorage.setItem('eos_foundation', JSON.stringify(d)); } catch(e){}
 
   // Save to Firestore
-  var uid = window._currentUser && window._currentUser.uid;
+  var uid = window._currentUserUid || (window._currentUser && window._currentUser.uid);
   if (uid && window._db && window._setDoc && window._doc) {
     window._setDoc(
       window._doc(window._db, 'users', uid, 'foundation', 'data'),
