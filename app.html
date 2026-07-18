@@ -9960,7 +9960,7 @@ function showPage(n,btn){
   // Calendar restore — use mode-namespaced key so modes don't share calendars
   if(n==='calendar'){
     if(!window._aiCalendar30||window._aiCalendar30.length===0){
-      var _calMode = window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+      var _calMode = window._appMode || localStorage.getItem('eos_app_mode') || 'expert';
       var _calKey  = 'eos_calendar30_' + _calMode;
       try{
         var sv = localStorage.getItem(_calKey) || localStorage.getItem('eos_calendar30');
@@ -10608,7 +10608,7 @@ window.setScriptsMode = function(mode, btn) {
 
 function buildScriptSet(mode) {
   // Affiliate mode uses product-data-driven scripts, not expert offer fields
-  if ((window._appMode || 'affiliate') === 'affiliate') {
+  if ((window._appMode || 'expert') === 'affiliate') {
     return buildAffiliateScriptSet(mode);
   }
   var niche = (document.getElementById('niche')||{}).value || window._appliedNiche || '';
@@ -14289,7 +14289,7 @@ window.generateCustomRoutine = function() {
         // Pull Foundation data for personalised routine
         var fbRoutineData = {};
         try { fbRoutineData = JSON.parse(localStorage.getItem('eos_foundation') || '{}'); } catch(e) {}
-        var routineMode   = window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+        var routineMode   = window._appMode || localStorage.getItem('eos_app_mode') || 'expert';
         var routineFn     = fbRoutineData.freedomNum  || window._appliedTarget || 10000;
         var routineDream  = fbRoutineData.dreams && fbRoutineData.dreams[0] ? fbRoutineData.dreams[0].id : '';
         var routineTf     = fbRoutineData.timeframe   || 6;
@@ -20818,7 +20818,7 @@ window.generateMarketIntelligence = generateMarketIntelligence;
 // ═══════════════════════════════════════════════════════════════════════════
 
 function renderDashboard() {
-  const mode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+  const mode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'expert';
   const isAffiliate = mode === 'affiliate';
 
   // ── Gate: don't render real numbers until Firestore has loaded ─────────────
@@ -24357,7 +24357,7 @@ window.csShowTab = function(tab, btn) {
 window.csRenderReadinessBanner = function() {
   var el = document.getElementById('cs-readiness-banner');
   if (!el) return;
-  var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+  var isAffiliate = (window._appMode || 'expert') === 'affiliate';
   var isReady, sourceName, sourcePage, sourceNav;
   if (isAffiliate) {
     // Affiliate mode: check whether Offer Setup has completed (avatar generated)
@@ -24636,7 +24636,7 @@ window.carSelectCount = function(n, el) {
 };
 
 function _carGetContext() {
-  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  var isAff = (window._appMode || 'expert') === 'affiliate';
 
   if (isAff) {
     // ── AFFILIATE MODE — read ONLY from _affiliateOffer ──────────────────
@@ -26352,7 +26352,7 @@ window.carSendToCalendar = async function() {
     // Find next available day slot in calendar
     var dayNum = 1;
     try {
-      var calKey = 'eos_calendar30_' + (window._appMode || 'affiliate');
+      var calKey = 'eos_calendar30_' + (window._appMode || 'expert');
       var calRaw = localStorage.getItem(calKey);
       if (calRaw) {
         var calArr = JSON.parse(calRaw);
@@ -26470,7 +26470,7 @@ window.autoToggle = function() {
 };
 
 function autoChecklistValid() {
-  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  var isAff = (window._appMode || 'expert') === 'affiliate';
   var intelReady = isAff
     ? !!(window._affiliateOffer && window._affiliateOffer.name && (window._aiAvatarData || window._avatarData))
     : !!(window._boardroomIntel && window._boardroomIntel.copyVault);
@@ -26482,7 +26482,7 @@ function autoChecklistValid() {
 function autoRenderChecklist() {
   var el = document.getElementById('auto-checklist');
   if (!el) return;
-  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  var isAff = (window._appMode || 'expert') === 'affiliate';
   var intelReady = isAff
     ? !!(window._affiliateOffer && window._affiliateOffer.name && (window._aiAvatarData || window._avatarData))
     : !!(window._boardroomIntel && window._boardroomIntel.copyVault);
@@ -26558,7 +26558,7 @@ window.autoStart = async function() {
   var startDate  = (document.getElementById('auto-start-date') || {}).value || new Date().toISOString().slice(0,10);
   var cloneIds   = (window._autoClones || []).filter(function(c){ return c && c.avatarId; }).map(function(c){ return c.avatarId; });
   var uid        = window._currentUserUid || 'local';
-  var isAffiliate= (window._appMode || 'affiliate') === 'affiliate';
+  var isAffiliate= (window._appMode || 'expert') === 'affiliate';
   // Default ALL content types to true if checkbox doesn't exist in DOM
   // (happens when user hasn't opened Automate tab in this session)
   function getChecked(id) {
@@ -26873,7 +26873,7 @@ window.loadBizIntelProfile = function(data) {
 
 /* Build the full intelligence context string injected into every AI call */
 window.buildBizIntelContext = function() {
-  var isAffiliate = (window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  var isAffiliate = (window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'expert') === 'affiliate';
   var bi   = window._businessIntelligence || {};
   var vp   = window._voiceProfile || {};
   var aff  = window._affiliateOffer || {};
@@ -28558,7 +28558,12 @@ window.affTrack = function(key, delta) {
 // MODE SYSTEM — Expert / Affiliate toggle
 // ═══════════════════════════════════════════════════════════════════════════
 
-window._appMode = 'affiliate';
+// Default is EXPERT, the platform's primary persona. A hardcoded
+// 'affiliate' here was the root cause of a whole bug family: any code
+// running before the user's saved mode loaded treated experts as
+// affiliates (e.g. expert emails pitching affiliate offers). Saved mode
+// restores instantly from localStorage; Firestore restore follows on login.
+window._appMode = (function(){ try { return localStorage.getItem('eos_app_mode') || 'expert'; } catch(e) { return 'expert'; } })();
 
 window.setAppMode = function(mode) {
   window._appMode      = mode;
@@ -28911,7 +28916,7 @@ document.addEventListener('DOMContentLoaded', function() {
     'affiliate','aff-offer','funnels','email','scorecard','ai-video',
     'foundation','affiliate-setup','link-analytics','daily-plan'];
   var _earlyLastPage = localStorage.getItem('eos_last_page');
-  var _earlyMode     = localStorage.getItem('eos_app_mode') || 'affiliate';
+  var _earlyMode     = localStorage.getItem('eos_app_mode') || 'expert';
 
   if (!_earlyLastPage || _earlyLastPage === 'dashboard') {
     var dashNav = document.getElementById('nav-dashboard');
@@ -28942,7 +28947,7 @@ document.addEventListener('DOMContentLoaded', function() {
     window.setAppMode(_earlyMode);
   } else {
     setTimeout(function() {
-      window.setAppMode && window.setAppMode(localStorage.getItem('eos_app_mode') || 'affiliate');
+      window.setAppMode && window.setAppMode(localStorage.getItem('eos_app_mode') || 'expert');
     }, 200);
   }
   setTimeout(function() { window.renderDashboard && window.renderDashboard(); }, 100);
@@ -29239,7 +29244,7 @@ if (document.readyState !== 'loading') {
   let advisorMode    = null;
   const MAX_HISTORY  = 20;
 
-  function historyKey() { return 'eos_advisor_history_' + (window._appMode || 'affiliate'); }
+  function historyKey() { return 'eos_advisor_history_' + (window._appMode || 'expert'); }
   function saveHistory() { try { localStorage.setItem(historyKey(), JSON.stringify(advisorHistory)); } catch(e) {} }
 
   function fmtMsg(text) {
@@ -29269,7 +29274,7 @@ if (document.readyState !== 'loading') {
 
   function buildCtx() {
     return {
-      mode:        window._appMode        || 'affiliate',
+      mode:        window._appMode        || 'expert',
       niche:       window._appliedNiche   || '',
       price:       Number(window._appliedPrice)  || 0,
       target:      Number(window._appliedTarget) || 0,
@@ -29979,6 +29984,7 @@ onAuthStateChanged(auth, async (user) => {
   // their actual numbers (the feedback loop). Non-blocking.
   if (typeof eosLoadPerformance === 'function') setTimeout(eosLoadPerformance, 1500);
   if (typeof eosRenderFirstWinPath === 'function') setTimeout(eosRenderFirstWinPath, 800);
+  if (typeof eosRenderCommissionCard === 'function') setTimeout(eosRenderCommissionCard, 900);
 
   // ── Restore app mode ─────────────────────────────────────────────────────────
   // Source of truth priority:
@@ -29989,7 +29995,7 @@ onAuthStateChanged(auth, async (user) => {
   //   5. 'affiliate'            → absolute fallback for brand new users only
   const savedMode = isAdmin
     ? 'expert'
-    : (memberData?.appMode || userDocData.appMode || localStorage.getItem('eos_app_mode') || 'affiliate');
+    : (memberData?.appMode || userDocData.appMode || localStorage.getItem('eos_app_mode') || 'expert');
 
   // Always sync localStorage so it matches Firestore source of truth
   localStorage.setItem('eos_app_mode', savedMode);
@@ -30104,7 +30110,7 @@ onAuthStateChanged(auth, async (user) => {
     var _affNiche  = userDocData.affAppliedNiche  || userDocData.affiliateOffer.niche         || '';
 
     // Only write to shared globals if currently in affiliate mode
-    if ((window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate') {
+    if ((window._appMode || localStorage.getItem('eos_app_mode') || 'expert') === 'affiliate') {
       window._appliedNiche   = _affNiche;
       window._appliedPrice   = _affPrice;
       window._appliedTarget  = _affTarget;
@@ -30194,7 +30200,7 @@ onAuthStateChanged(auth, async (user) => {
   // ── Save functions wired to Firestore ────────────────────────────────────
   window.saveRevenuePlan = async () => {
     // Revenue Plan is Expert-only — never save it from Affiliate mode
-    var _saveMode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+    var _saveMode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'expert';
     if (_saveMode !== 'expert') return;
     const price  = parseInt((document.getElementById('price')||{}).value)||0;
     const target = parseInt((document.getElementById('target')||{}).value)||0;
@@ -31365,7 +31371,7 @@ function loadRevenuePlan(data) {
   // In Affiliate mode: stash the values into the expert localStorage namespace so
   // they are ready when the user switches back — but NEVER touch shared globals
   // or populate DOM fields, which would cross-contaminate the affiliate session.
-  var _currentMode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+  var _currentMode = window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'expert';
   if (_currentMode !== 'expert') {
     try {
       var _expSnap = JSON.parse(localStorage.getItem('eos_state_expert') || '{}');
@@ -31612,7 +31618,7 @@ function fbSetWizardStep(n) {
 function fbShowCreate() {
   fbSetView('create');
   // Partnership Page only applies to Affiliate Mode
-  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'expert') === 'affiliate';
   var pCard = document.querySelector('.ftype-card[data-type="partnership"]');
   if (pCard) pCard.style.display = isAffiliate ? '' : 'none';
 };
@@ -31671,7 +31677,7 @@ async function fbGenerateFunnel() {
   fbSetView('building');
 
   // Get user data from the correct app state globals
-  var _fbIsAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  var _fbIsAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'expert') === 'affiliate';
   var _fbAffOffer    = window._affiliateOffer || {};
   var _fbBI          = window._boardroomIntel || {};
   var _fbBIInputs    = _fbBI.inputs || {};
@@ -31979,7 +31985,7 @@ async function fbSavePartnershipLinks() {
 }
 
 function fbGetPagesForType(type) {
-  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate';
+  var isAffiliate = (window._appMode || localStorage.getItem('eos_app_mode') || 'expert') === 'affiliate';
 
   var expertMap = {
     // VSL for experts = Opt-in → Watch Training → Book Call. NEVER show price upfront.
@@ -32637,7 +32643,7 @@ function fbDeletePage(pageId) {
 
 // ── Add Page modal ────────────────────────────────────────────────
 function fbShowAddPageModal() {
-  var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+  var isAffiliate = (window._appMode || 'expert') === 'affiliate';
 
   var PAGE_OPTIONS = [
     { id: 'optin',     label: 'Opt-In Page',       icon: '📧', desc: 'Collect name & email for free access' },
@@ -33625,7 +33631,7 @@ async function fbPublishLive() {
   if (btn) { btn.textContent = '🚀 Go Live — Publish Funnel'; btn.disabled = false; }
 
   // ── Show tracking section based on mode ────────────────────────
-  var isAffMode = (window._appMode || 'affiliate') === 'affiliate';
+  var isAffMode = (window._appMode || 'expert') === 'affiliate';
   var affSection = document.getElementById('fb-aff-tracking-section');
   var expSection = document.getElementById('fb-expert-tracking-section');
   if (affSection) affSection.style.display = isAffMode ? 'block' : 'none';
@@ -34519,7 +34525,10 @@ window.fbvRegenScript = function() {
     icp.buyingTriggers && icp.buyingTriggers.length ? 'What makes them act: ' + icp.buyingTriggers.slice(0,3).join(' | ') : ''
   ].filter(Boolean).join('\n');
 
-  var sys = 'You write 60-90 second spoken video scripts for funnel pages. Conversational, direct, zero fluff. Speak TO one person using the audience\'s own language from the intelligence provided. No stage directions, no labels, no markdown — ONLY the words the presenter says out loud. Never invent numbers, client results, or statistics.' + (typeof eosBuildRealDataContext === 'function' ? eosBuildRealDataContext() : '');
+  var _fbvIsAff = (window._appMode || 'expert') === 'affiliate';
+  var sys = 'You write 60-90 second spoken video scripts for funnel pages. Conversational, direct, zero fluff. Speak TO one person using the audience\'s own language from the intelligence provided. No stage directions, no labels, no markdown — ONLY the words the presenter says out loud. Never invent numbers, client results, or statistics.'
+    + (_fbvIsAff ? ' This promotes a product the speaker recommends: NEVER mention commissions, affiliate relationships, or that it is someone else\'s product — speak as a genuine recommender who has evaluated it.' : '')
+    + (typeof eosBuildRealDataContext === 'function' ? eosBuildRealDataContext() : '');
 
   fetch(window.location.origin + '/api/claude', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -35133,7 +35142,7 @@ function anTimeAgo(ts) {
 async function dbAnLoad() {
   if (!window._db || !window._currentUserUid) return;
   var uid  = window._currentUserUid;
-  var mode = window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+  var mode = window._appMode || localStorage.getItem('eos_app_mode') || 'expert';
 
   try {
     // ── Leads — same for both modes ───────────────────────────────────────
@@ -37533,7 +37542,7 @@ function brShowTab(tab, btn) {
 // ── Phase 1: show intel summary on page load ─────────────────────
 function brShowPhase1() {
   // Boardroom is Expert Mode only — block entirely in affiliate mode
-  if ((window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'affiliate') === 'affiliate') {
+  if ((window._appMode || window._currentMode || localStorage.getItem('eos_app_mode') || 'expert') === 'affiliate') {
     var phase1 = document.getElementById('br-phase1');
     var phase2 = document.getElementById('br-phase2');
     var phase3 = document.getElementById('br-phase3');
@@ -39977,6 +39986,82 @@ window._eosPerformance = null;
    The quality of every generator in this app depends on the Foundation
    being filled in; this makes sure no paying user reaches the generators
    with an empty one. */
+/* ══ AFFILIATE COMMISSION LOG ═════════════════════════════════════════════
+   Affiliates earn on third-party networks (CopeCart, ClickBank, etc.) that
+   can't be auto-tracked — so without this, the feedback loop reported
+   "0 sales" to successful affiliates forever. Commissions logged here flow
+   into the performance summary, the Weekly Board Meeting, and every AI
+   call's real-data context. */
+window.eosLogCommission = function() {
+  var existing = document.getElementById('eos-comm-modal'); if (existing) existing.remove();
+  var offerName = (window._affiliateOffer && window._affiliateOffer.name) || '';
+  var m = document.createElement('div');
+  m.id = 'eos-comm-modal';
+  m.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(5,5,15,.85);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px';
+  m.innerHTML = '<div style="background:#12122a;border:1px solid rgba(78,204,163,.3);border-radius:16px;max-width:400px;width:100%;padding:22px" onclick="event.stopPropagation()">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+    + '<div style="font-size:14px;font-weight:900;color:#fff;font-family:Poppins,sans-serif">💰 Log a Commission</div>'
+    + '<button onclick="document.getElementById(\'eos-comm-modal\').remove()" style="background:none;border:none;color:rgba(255,255,255,.4);font-size:18px;cursor:pointer">✕</button></div>'
+    + '<div style="font-size:11px;color:var(--dim);margin-bottom:14px">Every commission you log teaches the system what\'s working — your Weekly Board Meeting runs on these real numbers.</div>'
+    + '<label style="font-size:9px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px">Amount (USD)</label>'
+    + '<input id="comm-amount" type="number" step="0.01" min="0" placeholder="e.g. 148.50" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:11px 13px;color:#fff;font-size:14px;margin:6px 0 12px;font-family:Inter,sans-serif">'
+    + '<label style="font-size:9px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px">Product</label>'
+    + '<input id="comm-product" type="text" value="' + offerName.replace(/"/g,'&quot;') + '" placeholder="Which offer paid this?" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:11px 13px;color:#fff;font-size:13px;margin:6px 0 12px;font-family:Inter,sans-serif">'
+    + '<label style="font-size:9px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:1px">Where did this buyer come from? <span style="color:var(--dimmer);text-transform:none;letter-spacing:0;font-weight:600">(optional but powerful)</span></label>'
+    + '<select id="comm-source" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:9px;padding:11px 13px;color:#fff;font-size:13px;margin:6px 0 16px;font-family:Inter,sans-serif">'
+    + '<option value="">Not sure</option><option value="content-organic">My content (organic)</option><option value="email">My email list</option><option value="dm">DMs / conversations</option><option value="funnel">My funnel / bridge page</option><option value="other">Other</option></select>'
+    + '<button onclick="eosSaveCommission()" style="width:100%;padding:12px;border:none;border-radius:10px;background:linear-gradient(135deg,var(--teal),#2db88c);color:#0a0a1a;font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">Save Commission</button>'
+    + '</div>';
+  m.addEventListener('click', function(){ m.remove(); });
+  document.body.appendChild(m);
+  setTimeout(function(){ var a = document.getElementById('comm-amount'); if (a) a.focus(); }, 50);
+};
+
+window.eosSaveCommission = function() {
+  var amount = parseFloat((document.getElementById('comm-amount') || {}).value || '0');
+  if (!amount || amount <= 0) { if (typeof emToast === 'function') emToast('Enter the commission amount.', true); return; }
+  var uid = window._currentUserUid;
+  if (!uid || !window._db || !window._setDoc || !window._doc) { if (typeof emToast === 'function') emToast('Please log in first.', true); return; }
+  var rec = {
+    amount: Math.round(amount * 100) / 100,
+    currency: 'USD',
+    product: ((document.getElementById('comm-product') || {}).value || '').slice(0, 120),
+    source: (document.getElementById('comm-source') || {}).value || '',
+    createdAt: Date.now()
+  };
+  var id = 'comm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+  window._setDoc(window._doc(window._db, 'users', uid, 'commissions', id), rec)
+    .then(function() {
+      var mm = document.getElementById('eos-comm-modal'); if (mm) mm.remove();
+      if (typeof emToast === 'function') emToast('💰 Commission logged — your board meeting just got smarter.');
+      // Refresh the real-data snapshot so AI calls see it immediately
+      if (typeof eosLoadPerformance === 'function') setTimeout(eosLoadPerformance, 600);
+    })
+    .catch(function(e) { if (typeof emToast === 'function') emToast('Save failed: ' + e.message, true); });
+};
+
+// Dashboard card (affiliate mode): 30-day commission total + quick log button
+window.eosRenderCommissionCard = function() {
+  var isAff = (window._appMode || 'expert') === 'affiliate';
+  var fwHost = document.getElementById('first-win-path');
+  if (!fwHost) return;
+  var host = document.getElementById('eos-comm-card');
+  if (!isAff) { if (host) host.remove(); return; }
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'eos-comm-card';
+    host.style.cssText = 'margin:0 1.25rem 16px';
+    fwHost.parentNode.insertBefore(host, fwHost.nextSibling);
+  }
+  var p = window._eosPerformance || {};
+  var comm = (p.sales && p.sales.commissions) || { count: 0, revenue: 0 };
+  host.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r-lg);padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">'
+    + '<div style="flex:1;min-width:180px"><div style="font-size:10px;font-weight:800;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px">💰 Commissions · Last 30 Days</div>'
+    + '<div style="font-size:20px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif;margin-top:2px">$' + (comm.revenue || 0).toLocaleString() + ' <span style="font-size:11px;color:var(--dim);font-weight:600">from ' + (comm.count || 0) + ' sale' + (comm.count === 1 ? '' : 's') + '</span></div></div>'
+    + '<button onclick="eosLogCommission()" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:10px;padding:10px 18px;color:var(--teal);font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">+ Log Commission</button>'
+    + '</div>';
+};
+
 function eosRenderFirstWinPath() {
   var host = document.getElementById('first-win-path');
   if (!host) return;
@@ -40064,6 +40149,7 @@ async function eosLoadPerformance() {
     try { localStorage.setItem('eos_performance', JSON.stringify(data)); } catch(e) {}
     console.log('[Performance] Real 30-day data loaded:', data.hasAnyData ? (data.sales.count + ' sales, ' + data.leads.count + ' leads, ' + data.content.published + ' posts published') : 'no activity data yet');
     try { eosRenderFirstWinPath(); } catch(e) {}
+    try { eosRenderCommissionCard(); } catch(e) {}
     return data;
   } catch (e) {
     // Fall back to last cached snapshot so the AI still has something real
@@ -41839,7 +41925,7 @@ function calLoadEntries() {
   } catch(e) {}
   // From existing Boardroom calendar (legacy format)
   try {
-    var calKey = 'eos_calendar30_' + (window._appMode || 'affiliate');
+    var calKey = 'eos_calendar30_' + (window._appMode || 'expert');
     var calRaw = localStorage.getItem(calKey);
     if (calRaw) {
       var calArr = JSON.parse(calRaw);
@@ -42848,7 +42934,7 @@ window.affLoadOffersFromFirestore = function() {
 
 // ── Initial render on script load ────────────────────────────────
 setTimeout(function() {
-  if ((window._appMode || 'affiliate') === 'affiliate') {
+  if ((window._appMode || 'expert') === 'affiliate') {
     affRenderOffersLibrary();
   }
 }, 1500);
@@ -42860,7 +42946,7 @@ setTimeout(function() {
 // Reads from the correct mode-isolated source. Zero cross-contamination.
 // ══════════════════════════════════════════════════════════════════
 window._getFullIntelContext = function() {
-  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  var isAff = (window._appMode || 'expert') === 'affiliate';
 
   if (isAff) {
     // ── AFFILIATE MODE — reads ONLY from _affiliateOffer ──────────
@@ -43032,7 +43118,7 @@ window.onboardShow = function() {
   if (el) el.style.display = 'block';
 
   // Read mode from the session — set by admin before user logged in
-  var mode = window._appMode || window._currentMode || 'affiliate';
+  var mode = window._appMode || window._currentMode || 'expert';
   window._obMode = mode;
 
   // Populate the welcome screen with mode-specific content
@@ -43323,7 +43409,7 @@ var LEAD_STATUSES_AFFILIATE = {
 
 // Returns the correct status set for the current mode
 function getLeadStatuses() {
-  return (window._appMode || 'affiliate') === 'affiliate'
+  return (window._appMode || 'expert') === 'affiliate'
     ? LEAD_STATUSES_AFFILIATE
     : LEAD_STATUSES_EXPERT;
 }
@@ -43593,7 +43679,7 @@ window.leadsCoachThisLead = function() {
   if (!lead) { alert('Save this lead first, then click Coach Me.'); return; }
 
   // Map pipeline stage → conversation goal
-  var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+  var isAffiliate = (window._appMode || 'expert') === 'affiliate';
   var stageGoalMap = isAffiliate
     ? { cold:'qualify', replied:'qualify', interested:'close', sent:'close', won:'close', lost:'reengage' }
     : { cold:'qualify', warm:'objection', hot:'close', booked:'book', won:'close', lost:'reengage' };
@@ -43716,7 +43802,7 @@ window.leadsCloseModal = function() {
     if (page === 'leads') {
       setTimeout(function() {
         // Update subtitle and pipeline bar for current mode
-        var isAffiliate = (window._appMode || 'affiliate') === 'affiliate';
+        var isAffiliate = (window._appMode || 'expert') === 'affiliate';
         var subEl = document.getElementById('leads-page-sub');
         if (subEl) subEl.textContent = isAffiliate
           ? 'Track every DM conversation. Cold → Replied → Interested → Link Sent → Converted.'
@@ -43988,7 +44074,7 @@ window.laPopulateTrackingLink = function() {
   var input  = document.getElementById('la-tracking-link-input');
   if (!input) return;
   var origin = window.location.origin || 'https://build.skillslibrary.com';
-  var isAff  = (window._appMode || 'affiliate') === 'affiliate';
+  var isAff  = (window._appMode || 'expert') === 'affiliate';
   var slug   = isAff
     ? window._affTrackingSlug
     : window._expertTrackingSlug; // base slug for expert
@@ -44027,7 +44113,7 @@ window.laPopulateTrackingLink = function() {
   window.brActivateGlobalIntelligence = function(intel) {
     if (_origActivateGlobal) _origActivateGlobal.apply(this, arguments);
     // Only init tracking link in affiliate mode
-    if ((window._appMode || 'affiliate') === 'affiliate' && window._affiliateOffer && window._affiliateOffer.url) {
+    if ((window._appMode || 'expert') === 'affiliate' && window._affiliateOffer && window._affiliateOffer.url) {
       setTimeout(window.affInitTrackingLink, 500);
     }
   };
@@ -44058,7 +44144,7 @@ window._setupNudgeDismissed = false;
 window.setupNudgeCheck = function() {
   if (window._setupNudgeDismissed) return;
 
-  var isAff      = (window._appMode || 'affiliate') === 'affiliate';
+  var isAff      = (window._appMode || 'expert') === 'affiliate';
   var banner     = document.getElementById('setup-nudge-banner');
   var stepsEl    = document.getElementById('nudge-steps');
   var titleEl    = document.getElementById('nudge-title');
@@ -44158,7 +44244,7 @@ window.setupNudgeCheck = function() {
 };
 
 window.setupNudgeCTA = function() {
-  var isAff = (window._appMode || 'affiliate') === 'affiliate';
+  var isAff = (window._appMode || 'expert') === 'affiliate';
   if (isAff) {
     showPage('affiliate', document.getElementById('nav-aff-offer'));
   } else {
@@ -44476,7 +44562,7 @@ window.calFillMissing = async function(missingType) {
 
   var entries = window._calEntries || [];
   var allDays = Array.from(new Set(entries.map(function(e){ return e.dayNum; }))).sort(function(a,b){return a-b;});
-  var isAff   = (window._appMode || 'affiliate') === 'affiliate';
+  var isAff   = (window._appMode || 'expert') === 'affiliate';
   var uid     = window._currentUserUid;
 
   if (!uid) { avsToast('Please log in first.'); return; }
@@ -45631,7 +45717,7 @@ var EOS_PRODUCT = {
 
 /* ── GET USER CONTEXT ────────────────────────────────────────── */
 function coachGetCtx() {
-  var mode   = window._appMode || localStorage.getItem('eos_app_mode') || 'affiliate';
+  var mode   = window._appMode || localStorage.getItem('eos_app_mode') || 'expert';
   var isAff  = mode === 'affiliate';
   var c      = typeof window._getFullIntelContext === 'function' ? window._getFullIntelContext() : {};
   var av     = window._avatarData     || {};
