@@ -8644,7 +8644,7 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
         </div>
         <div style="display:flex;gap:8px">
           <button onclick="fbSaveFunnel()" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-md);padding:9px 18px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700;transition:all .15s" onmouseover="this.style.borderColor='rgba(78,204,163,.3)'" onmouseout="this.style.borderColor='var(--border2)'">💾 Save Draft</button>
-          <button onclick="fbOpenVisualEditor()" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);border-radius:var(--r-md);padding:9px 18px;color:#a089ff;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">✏️ Visual Edit</button>
+          <button onclick="fbCreateFunnelVideo()" style="background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:var(--r-md);padding:9px 18px;color:var(--teal);font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">🎬 AI Video</button> <button onclick="fbOpenProEditor()" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);border-radius:var(--r-md);padding:9px 18px;color:#a089ff;font-size:12px;cursor:pointer;font-family:'Poppins',sans-serif;font-weight:700">✏️ Edit Page (Drag & Drop)</button> <button onclick="fbOpenVisualEditor()" title="The lightweight quick editor" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:var(--r-md);padding:9px 12px;color:var(--dim);font-size:11px;cursor:pointer;font-family:'Poppins',sans-serif">⚡ Quick Edit</button>
           <button onclick="fbGoToPublish()" class="fb-publish-btn" style="width:auto;padding:9px 22px;font-size:12px">🚀 Publish</button>
         </div>
       </div>
@@ -33781,6 +33781,158 @@ window.fbCopySourceLink = function(inputId, btn) {
 // ── Funnel Builder — additional function stubs ────────────────────
 window.fbShowCloneModal = function() {
   avsToast('Funnel cloning coming soon — paste a competitor funnel URL to clone its structure.');
+};
+
+/* ══ PRO EDITOR — GrapesJS drag-and-drop, embedded ════════════════════════
+   A true builder-grade editor (GrapesJS is the open-source engine several
+   commercial page builders run on), embedded INSIDE the platform: pages
+   stay in our storage, served by our funnel layer, so lead capture,
+   attribution, and the feedback loop remain fully intact — the strategic
+   reason we chose this over white-labeling an external builder. */
+window._fbGjs = null;
+
+window.fbOpenProEditor = function() {
+  var page = fbState.current && fbState.current.pages && fbState.current.pages[fbState.currentPage];
+  if (!page || !page.html) { avsToast('Open a funnel page first.', true); return; }
+
+  // Overlay shell
+  var existing = document.getElementById('fb-pro-editor'); if (existing) existing.remove();
+  var ov = document.createElement('div');
+  ov.id = 'fb-pro-editor';
+  ov.style.cssText = 'position:fixed;inset:0;z-index:999998;background:#0b0b1e;display:flex;flex-direction:column';
+  ov.innerHTML = ''
+    + '<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#12122a;border-bottom:1px solid rgba(108,99,255,.25);flex-wrap:wrap">'
+    +   '<div style="font-size:13px;font-weight:900;color:#fff;font-family:Poppins,sans-serif">✏️ Pro Editor <span style="font-size:10px;color:var(--dim);font-weight:600">— drag blocks in from the left · click anything to style it</span></div>'
+    +   '<div style="flex:1"></div>'
+    +   '<button onclick="_fbGjs&&_fbGjs.setDevice(\'Desktop\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;color:#cfd0ff;font-size:11px;cursor:pointer">🖥 Desktop</button>'
+    +   '<button onclick="_fbGjs&&_fbGjs.setDevice(\'Mobile\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;color:#cfd0ff;font-size:11px;cursor:pointer">📱 Mobile</button>'
+    +   '<button onclick="_fbGjs&&_fbGjs.UndoManager.undo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;color:#cfd0ff;font-size:11px;cursor:pointer">↶ Undo</button>'
+    +   '<button onclick="fbProEditorSave()" style="background:linear-gradient(135deg,var(--teal),#2db88c);border:none;border-radius:8px;padding:8px 20px;color:#0a0a1a;font-size:12px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">💾 Save</button>'
+    +   '<button onclick="fbProEditorClose()" style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:7px 14px;color:#ff6b6b;font-size:11px;cursor:pointer">✕ Exit</button>'
+    + '</div>'
+    + '<div style="flex:1;display:flex;min-height:0">'
+    +   '<div id="gjs-blocks" style="width:200px;overflow-y:auto;background:#0e0e22;border-right:1px solid rgba(108,99,255,.15);padding:8px"></div>'
+    +   '<div id="gjs-canvas" style="flex:1;min-width:0"></div>'
+    +   '<div style="width:250px;display:flex;flex-direction:column;background:#0e0e22;border-left:1px solid rgba(108,99,255,.15)">'
+    +     '<div style="display:flex;border-bottom:1px solid rgba(255,255,255,.08)">'
+    +       '<button class="gjs-tab on" data-t="styles" onclick="fbProTab(this)" style="flex:1;background:none;border:none;padding:10px 0;color:var(--teal);font-size:10px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Style</button>'
+    +       '<button class="gjs-tab" data-t="traits" onclick="fbProTab(this)" style="flex:1;background:none;border:none;padding:10px 0;color:rgba(255,255,255,.4);font-size:10px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Settings</button>'
+    +       '<button class="gjs-tab" data-t="layers" onclick="fbProTab(this)" style="flex:1;background:none;border:none;padding:10px 0;color:rgba(255,255,255,.4);font-size:10px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Layers</button>'
+    +     '</div>'
+    +     '<div id="gjs-pan-styles" style="flex:1;overflow-y:auto"><div id="gjs-selectors"></div><div id="gjs-styles"></div></div>'
+    +     '<div id="gjs-pan-traits" style="flex:1;overflow-y:auto;display:none"></div>'
+    +     '<div id="gjs-pan-layers" style="flex:1;overflow-y:auto;display:none"></div>'
+    +   '</div>'
+    + '</div>';
+  document.body.appendChild(ov);
+
+  // Dark theme for GrapesJS panels + load the library once
+  if (!document.getElementById('gjs-dark-css')) {
+    var st = document.createElement('style');
+    st.id = 'gjs-dark-css';
+    st.textContent = '.gjs-one-bg{background-color:#0e0e22!important}.gjs-two-color{color:#cfd0ff!important}.gjs-three-bg{background-color:#6c63ff!important;color:#fff!important}.gjs-four-color,.gjs-four-color-h:hover{color:#4ecca3!important}.gjs-block{background:#161632!important;border:1px solid rgba(108,99,255,.2)!important;border-radius:10px!important;color:#cfd0ff!important;font-size:10px!important;min-height:64px!important;margin:4px 0!important;width:100%!important}.gjs-block:hover{border-color:#4ecca3!important}.gjs-block-label{font-family:Poppins,sans-serif!important}.gjs-sm-sector-title,.gjs-layer-title,.gjs-trt-header{background:#12122a!important;color:#cfd0ff!important}.gjs-field{background:#161632!important;color:#fff!important}.gjs-sm-sector .gjs-sm-property{color:#a8a8c8!important}.gjs-clm-tags{background:#12122a!important}';
+    document.head.appendChild(st);
+  }
+
+  function boot() { _fbGjsInit(page); }
+  if (window.grapesjs) { boot(); return; }
+  var css = document.createElement('link');
+  css.rel = 'stylesheet';
+  css.href = 'https://cdn.jsdelivr.net/npm/grapesjs@0.21.13/dist/css/grapes.min.css';
+  document.head.appendChild(css);
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/grapesjs@0.21.13/dist/grapes.min.js';
+  s.onload = boot;
+  s.onerror = function() { avsToast('Could not load the editor library — check your connection.', true); fbProEditorClose(); };
+  document.head.appendChild(s);
+};
+
+window._fbGjsInit = function(page) {
+  // Split the saved document: head (fonts/meta), css, body
+  var doc = new DOMParser().parseFromString(page.html, 'text/html');
+  var cssText = '';
+  doc.querySelectorAll('style').forEach(function(el) { cssText += el.textContent + '\n'; el.remove(); });
+  var fontLinks = [];
+  doc.querySelectorAll('head link[rel="stylesheet"], head link[href*="fonts"]').forEach(function(l) { if (l.href) fontLinks.push(l.href); });
+  window._fbGjsHead = doc.head ? doc.head.innerHTML : '';
+  var bodyHtml = doc.body ? doc.body.innerHTML : page.html;
+
+  var editor = grapesjs.init({
+    container: '#gjs-canvas',
+    height: '100%',
+    fromElement: false,
+    components: bodyHtml,
+    style: cssText,
+    storageManager: false,
+    parser: { optionsHtml: { allowScripts: true } },
+    canvas: { styles: fontLinks },
+    deviceManager: { devices: [ { name: 'Desktop', width: '' }, { name: 'Mobile', width: '390px', widthMedia: '480px' } ] },
+    blockManager: { appendTo: '#gjs-blocks' },
+    selectorManager: { appendTo: '#gjs-selectors' },
+    styleManager: {
+      appendTo: '#gjs-styles',
+      sectors: [
+        { name: 'Typography', open: true, buildProps: ['font-size','font-weight','color','text-align','line-height','letter-spacing','font-family'] },
+        { name: 'Background & Border', open: false, buildProps: ['background-color','background','border-radius','border','box-shadow','opacity'] },
+        { name: 'Spacing & Size', open: false, buildProps: ['margin','padding','width','max-width','height','min-height'] },
+        { name: 'Layout', open: false, buildProps: ['display','flex-direction','justify-content','align-items','gap','position'] }
+      ]
+    },
+    traitManager: { appendTo: '#gjs-pan-traits' },
+    layerManager: { appendTo: '#gjs-pan-layers' },
+    panels: { defaults: [] }
+  });
+
+  // ── Block library — matched to the funnel design system ──
+  var B = editor.BlockManager;
+  var btnStyle = 'display:inline-block;background:linear-gradient(135deg,#4ecca3,#2db88c);color:#06060f;font-weight:800;font-size:15px;padding:14px 34px;border-radius:12px;border:none;cursor:pointer;text-decoration:none';
+  B.add('sec',      { label: '📄 Section',    content: '<section class="section" style="padding:60px 24px"><div class="container" style="max-width:1040px;margin:0 auto"><h2 style="font-size:30px;font-weight:900;text-align:center;margin:0 0 16px">New Section</h2><p style="text-align:center;opacity:.75;max-width:640px;margin:0 auto">Drop more blocks inside this section.</p></div></section>' });
+  B.add('head',     { label: 'H Heading',      content: '<h2 style="font-size:32px;font-weight:900;line-height:1.2;margin:16px 0">Your Headline Here</h2>' });
+  B.add('sub',      { label: 'h Sub-heading',  content: '<h3 style="font-size:19px;font-weight:700;opacity:.85;margin:10px 0">A supporting sub-heading</h3>' });
+  B.add('text',     { label: '¶ Text',         content: '<p style="font-size:15px;line-height:1.8;opacity:.8;margin:10px 0">Write your paragraph here. Click to edit the text directly.</p>' });
+  B.add('btn',      { label: '⬛ Button',       content: '<a href="#" data-optin style="' + btnStyle + '">Get Free Access →</a>' });
+  B.add('img',      { label: '🖼 Image',        content: { type: 'image', style: { 'max-width': '100%', 'border-radius': '12px' } } });
+  B.add('video',    { label: '▶ Video',        content: '<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:14px;overflow:hidden"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" style="position:absolute;inset:0;width:100%;height:100%;border:0" allowfullscreen></iframe></div>' });
+  B.add('cols2',    { label: '⫼ 2 Columns',    content: '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:10px 0"><div style="padding:14px;min-height:70px"><p>Left column</p></div><div style="padding:14px;min-height:70px"><p>Right column</p></div></div>' });
+  B.add('cols3',    { label: '⫴ 3 Columns',    content: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:10px 0"><div style="padding:12px;min-height:60px"><p>One</p></div><div style="padding:12px;min-height:60px"><p>Two</p></div><div style="padding:12px;min-height:60px"><p>Three</p></div></div>' });
+  B.add('optin',    { label: '✉ Opt-in Form',  content: '<div style="max-width:460px;margin:16px auto;background:rgba(128,128,128,.06);border:1px solid rgba(128,128,128,.2);border-radius:16px;padding:24px;text-align:center"><h3 style="font-size:17px;font-weight:800;margin:0 0 14px">Get Instant Access</h3><form style="display:flex;flex-direction:column;gap:10px"><input type="text" name="name" placeholder="Your first name" style="padding:12px 14px;border-radius:9px;border:1px solid rgba(128,128,128,.3);font-size:14px"><input type="email" name="email" placeholder="your@email.com" required style="padding:12px 14px;border-radius:9px;border:1px solid rgba(128,128,128,.3);font-size:14px"><button type="submit" style="' + btnStyle + ';width:100%">Get Free Access →</button></form></div>' });
+  B.add('testi',    { label: '❝ Testimonial',  content: '<div style="background:rgba(128,128,128,.06);border-left:4px solid #6c63ff;border-radius:10px;padding:20px 24px;margin:14px 0"><p style="font-style:italic;margin:0 0 10px">"Real quote from a real person goes here."</p><p style="font-weight:700;color:#6c63ff;margin:0">— Name, Role</p></div>' });
+  B.add('divider',  { label: '— Divider',      content: '<hr style="border:none;height:1px;background:rgba(128,128,128,.25);margin:28px 0">' });
+  B.add('spacer',   { label: '↕ Spacer',       content: '<div style="height:48px"></div>' });
+
+  window._fbGjs = editor;
+};
+
+window.fbProTab = function(btn) {
+  document.querySelectorAll('.gjs-tab').forEach(function(b) { b.style.color = 'rgba(255,255,255,.4)'; });
+  btn.style.color = 'var(--teal)';
+  var t = btn.dataset.t;
+  document.getElementById('gjs-pan-styles').style.display = t === 'styles' ? 'block' : 'none';
+  document.getElementById('gjs-pan-traits').style.display = t === 'traits' ? 'block' : 'none';
+  document.getElementById('gjs-pan-layers').style.display = t === 'layers' ? 'block' : 'none';
+};
+
+window.fbProEditorSave = function() {
+  var editor = window._fbGjs;
+  var page = fbState.current && fbState.current.pages && fbState.current.pages[fbState.currentPage];
+  if (!editor || !page) return;
+  var html = editor.getHtml();
+  var css  = editor.getCss();
+  // getHtml may or may not include the <body> wrapper depending on version —
+  // normalize to inner content
+  var inner = html;
+  var bm = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  if (bm) inner = bm[1];
+  var head = (window._fbGjsHead || '').replace(/<style[\s\S]*?<\/style>/gi, '');
+  page.html = '<!DOCTYPE html><html lang="en"><head>' + head + '<style>' + css + '</style></head><body>' + inner + '</body></html>';
+  if (typeof fbSave === 'function') fbSave();
+  if (typeof fbRenderPreview === 'function') try { fbRenderPreview(); } catch(e) {}
+  avsToast('💾 Page saved!');
+};
+
+window.fbProEditorClose = function() {
+  if (window._fbGjs) { try { window._fbGjs.destroy(); } catch(e) {} window._fbGjs = null; }
+  var ov = document.getElementById('fb-pro-editor'); if (ov) ov.remove();
 };
 
 window.fbOpenVisualEditor = function() {
