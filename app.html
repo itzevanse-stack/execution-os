@@ -33807,6 +33807,8 @@ window.fbOpenProEditor = function() {
     +   '<button onclick="_fbGjs&&_fbGjs.setDevice(\'Desktop\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;color:#cfd0ff;font-size:11px;cursor:pointer">🖥 Desktop</button>'
     +   '<button onclick="_fbGjs&&_fbGjs.setDevice(\'Mobile\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;color:#cfd0ff;font-size:11px;cursor:pointer">📱 Mobile</button>'
     +   '<button onclick="_fbGjs&&_fbGjs.UndoManager.undo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;color:#cfd0ff;font-size:11px;cursor:pointer">↶ Undo</button>'
+    +   '<button id="gjs-preview-btn" onclick="fbProPreviewToggle()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);border-radius:8px;padding:7px 12px;color:var(--teal);font-size:11px;cursor:pointer;font-weight:700">👁 Preview</button>'
+    +   '<button id="fb-gjs-preview" onclick="fbProPreviewToggle()" style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.3);border-radius:8px;padding:7px 12px;color:#F5C842;font-size:11px;cursor:pointer;font-weight:700">👁 Preview</button>'
     +   '<button onclick="fbProEditorSave()" style="background:linear-gradient(135deg,var(--teal),#2db88c);border:none;border-radius:8px;padding:8px 20px;color:#0a0a1a;font-size:12px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">💾 Save</button>'
     +   '<button onclick="fbProEditorClose()" style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:7px 14px;color:#ff6b6b;font-size:11px;cursor:pointer">✕ Exit</button>'
     + '</div>'
@@ -33883,6 +33885,21 @@ window._fbGjsInit = function(page) {
     panels: { defaults: [] }
   });
 
+  // ── Funnel-aware click actions on links & buttons ──────────────────
+  // Select any button or link → Settings tab shows: Link URL, "Go to next
+  // funnel page", and "Open opt-in popup" — the two data-attributes the
+  // funnel serving layer already understands.
+  var _clickTraits = [
+    { type: 'text',   name: 'href',       label: 'Link URL' },
+    { type: 'select', name: 'data-next',  label: 'Go to next funnel page', options: [ { id: '', name: 'No' }, { id: '1', name: 'Yes' } ] },
+    { type: 'select', name: 'data-optin', label: 'Open opt-in popup',      options: [ { id: '', name: 'No' }, { id: '1', name: 'Yes' } ] }
+  ];
+  editor.DomComponents.addType('link', { extend: 'link', model: { defaults: { traits: _clickTraits } } });
+  editor.DomComponents.addType('fb-button', {
+    isComponent: function(el) { return el.tagName === 'BUTTON'; },
+    model: { defaults: { traits: _clickTraits.slice(1) } }
+  });
+
   // ── Block library — matched to the funnel design system ──
   var B = editor.BlockManager;
   var btnStyle = 'display:inline-block;background:linear-gradient(135deg,#4ecca3,#2db88c);color:#06060f;font-weight:800;font-size:15px;padding:14px 34px;border-radius:12px;border:none;cursor:pointer;text-decoration:none';
@@ -33893,14 +33910,74 @@ window._fbGjsInit = function(page) {
   B.add('btn',      { label: '⬛ Button',       content: '<a href="#" data-optin style="' + btnStyle + '">Get Free Access →</a>' });
   B.add('img',      { label: '🖼 Image',        content: { type: 'image', style: { 'max-width': '100%', 'border-radius': '12px' } } });
   B.add('video',    { label: '▶ Video',        content: '<div style="position:relative;padding-bottom:56.25%;height:0;border-radius:14px;overflow:hidden"><iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" style="position:absolute;inset:0;width:100%;height:100%;border:0" allowfullscreen></iframe></div>' });
-  B.add('cols2',    { label: '⫼ 2 Columns',    content: '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:10px 0"><div style="padding:14px;min-height:70px"><p>Left column</p></div><div style="padding:14px;min-height:70px"><p>Right column</p></div></div>' });
-  B.add('cols3',    { label: '⫴ 3 Columns',    content: '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:10px 0"><div style="padding:12px;min-height:60px"><p>One</p></div><div style="padding:12px;min-height:60px"><p>Two</p></div><div style="padding:12px;min-height:60px"><p>Three</p></div></div>' });
+  B.add('cols2',    { label: '⫼ 2 Columns',    content: '<div class="fb-cols" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:10px 0"><div style="padding:14px;min-height:70px"><p>Left column</p></div><div style="padding:14px;min-height:70px"><p>Right column</p></div></div>' });
+  B.add('cols3',    { label: '⫴ 3 Columns',    content: '<div class="fb-cols" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;padding:10px 0"><div style="padding:12px;min-height:60px"><p>One</p></div><div style="padding:12px;min-height:60px"><p>Two</p></div><div style="padding:12px;min-height:60px"><p>Three</p></div></div>' });
   B.add('optin',    { label: '✉ Opt-in Form',  content: '<div style="max-width:460px;margin:16px auto;background:rgba(128,128,128,.06);border:1px solid rgba(128,128,128,.2);border-radius:16px;padding:24px;text-align:center"><h3 style="font-size:17px;font-weight:800;margin:0 0 14px">Get Instant Access</h3><form style="display:flex;flex-direction:column;gap:10px"><input type="text" name="name" placeholder="Your first name" style="padding:12px 14px;border-radius:9px;border:1px solid rgba(128,128,128,.3);font-size:14px"><input type="email" name="email" placeholder="your@email.com" required style="padding:12px 14px;border-radius:9px;border:1px solid rgba(128,128,128,.3);font-size:14px"><button type="submit" style="' + btnStyle + ';width:100%">Get Free Access →</button></form></div>' });
   B.add('testi',    { label: '❝ Testimonial',  content: '<div style="background:rgba(128,128,128,.06);border-left:4px solid #6c63ff;border-radius:10px;padding:20px 24px;margin:14px 0"><p style="font-style:italic;margin:0 0 10px">"Real quote from a real person goes here."</p><p style="font-weight:700;color:#6c63ff;margin:0">— Name, Role</p></div>' });
+  B.add('vslot',    { label: '🎯 AI Video Spot', content: '<section data-video-slot class="section" style="padding:30px 24px"><div style="max-width:820px;margin:0 auto;border:2px dashed rgba(78,204,163,.45);border-radius:16px;padding:44px 20px;text-align:center;color:rgba(128,148,140,.9);font-size:14px;font-weight:700">🎬 Your AI video will appear exactly here.<br><span style="font-size:12px;font-weight:500;opacity:.8">Generate it with the AI Video button — it replaces this box automatically.</span></div></section>' });
   B.add('divider',  { label: '— Divider',      content: '<hr style="border:none;height:1px;background:rgba(128,128,128,.25);margin:28px 0">' });
   B.add('spacer',   { label: '↕ Spacer',       content: '<div style="height:48px"></div>' });
 
+  // ── LINK & ACTION TRAITS ─────────────────────────────────────────────
+  // When a button or link is selected, the Settings tab gets the controls
+  // every builder has: where should this go? Options map directly to how
+  // the live funnel-serving layer navigates:
+  //   - Custom URL        → href (links)
+  //   - Go to next page   → data-next   (serving layer advances the funnel)
+  //   - Open opt-in popup → data-optin  (opens the capture modal)
+  //   - Go to page id     → data-page   (jump to a specific funnel page)
+  editor.on('component:selected', function(comp) {
+    try {
+      var tag = (comp.get('tagName') || '').toLowerCase();
+      if (tag === 'a') {
+        comp.set('traits', [
+          { type: 'text',     name: 'href',       label: 'Link URL (https://… or #section)' },
+          { type: 'checkbox', name: 'data-next',  label: 'Go to next funnel page', valueTrue: '1', valueFalse: '' },
+          { type: 'checkbox', name: 'data-optin', label: 'Open opt-in popup',      valueTrue: '1', valueFalse: '' },
+          { type: 'text',     name: 'target',     label: 'Open in (_blank = new tab)' }
+        ]);
+      } else if (tag === 'button') {
+        comp.set('traits', [
+          { type: 'checkbox', name: 'data-next',  label: 'Go to next funnel page', valueTrue: '1', valueFalse: '' },
+          { type: 'checkbox', name: 'data-optin', label: 'Open opt-in popup',      valueTrue: '1', valueFalse: '' },
+          { type: 'text',     name: 'data-page',  label: 'Or go to page id (e.g. thankyou)' }
+        ]);
+      } else if (tag === 'iframe' || tag === 'video' || tag === 'img') {
+        comp.set('traits', [ { type: 'text', name: 'src', label: 'Source URL' }, { type: 'text', name: 'alt', label: 'Alt text' } ]);
+      }
+      // Buttons and links are about actions — surface Settings automatically
+      if (tag === 'a' || tag === 'button') {
+        var tb = document.querySelector('.gjs-tab[data-t="traits"]');
+        if (tb) fbProTab(tb);
+      }
+    } catch(e) {}
+  });
+
   window._fbGjs = editor;
+};
+
+window.fbProPreviewToggle = function() {
+  var ed = window._fbGjs; if (!ed) return;
+  var btn = document.getElementById('fb-gjs-preview');
+  if (ed.Commands.isActive('core:preview')) {
+    ed.stopCommand('core:preview');
+    if (btn) btn.textContent = '👁 Preview';
+  } else {
+    ed.runCommand('core:preview');
+    if (btn) btn.textContent = '✏️ Back to Editing';
+  }
+};
+
+window.fbProPreviewToggle = function() {
+  var editor = window._fbGjs; if (!editor) return;
+  var btn = document.getElementById('gjs-preview-btn');
+  if (editor.Commands.isActive('core:preview')) {
+    editor.stopCommand('core:preview');
+    if (btn) { btn.textContent = '👁 Preview'; btn.style.background = 'rgba(78,204,163,.08)'; }
+  } else {
+    editor.runCommand('core:preview');
+    if (btn) { btn.textContent = '✏️ Back to Editing'; btn.style.background = 'rgba(78,204,163,.2)'; }
+  }
 };
 
 window.fbProTab = function(btn) {
@@ -33924,6 +34001,11 @@ window.fbProEditorSave = function() {
   var bm = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
   if (bm) inner = bm[1];
   var head = (window._fbGjsHead || '').replace(/<style[\s\S]*?<\/style>/gi, '');
+  // Responsive helpers for editor-inserted blocks: columns stack on mobile,
+  // media never overflows the screen.
+  if (inner.indexOf('fb-cols') !== -1 || /<img|<iframe|<video/.test(inner)) {
+    css += '\n@media(max-width:640px){.fb-cols{grid-template-columns:1fr!important}}\nimg,iframe,video{max-width:100%}';
+  }
   page.html = '<!DOCTYPE html><html lang="en"><head>' + head + '<style>' + css + '</style></head><body>' + inner + '</body></html>';
   if (typeof fbSave === 'function') fbSave();
   if (typeof fbRenderPreview === 'function') try { fbRenderPreview(); } catch(e) {}
@@ -34472,7 +34554,11 @@ window.fbEmbedVideoInFunnel = function(url) {
   var html = page.html;
   // Replace an existing embedded video rather than stacking a second one
   html = html.replace(/<!-- EOS-FUNNEL-VIDEO -->[\s\S]*?<!-- \/EOS-FUNNEL-VIDEO -->/, '');
-  if (html.indexOf('<!-- PROOF BAR -->') !== -1) {
+  // If the user placed an "AI Video Spot" in the Pro Editor, the video lands
+  // exactly there. Otherwise it defaults to the hero area.
+  if (/<section[^>]*data-video-slot[\s\S]*?<\/section>/.test(html)) {
+    html = html.replace(/<section[^>]*data-video-slot[\s\S]*?<\/section>/, section);
+  } else if (html.indexOf('<!-- PROOF BAR -->') !== -1) {
     html = html.replace('<!-- PROOF BAR -->', section + '\n<!-- PROOF BAR -->');
   } else if (/<\/section>/.test(html)) {
     html = html.replace('</section>', '</section>\n' + section);
