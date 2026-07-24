@@ -33044,7 +33044,9 @@ window.fbAddPage = async function(pageId, label) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         prompt,
-        max_tokens:  2500,
+        // 2500 was below what full page copy needs — same truncation trap
+        // that broke Content Strategy. Matched to the main generation budget.
+        max_tokens:  3500,
         mode:        templateMode,
         intelContext: {
           isAffiliate:     ctx.isAffiliate    || false,
@@ -33083,7 +33085,8 @@ window.fbAddPage = async function(pageId, label) {
     avsToast('✅ ' + label + ' added to your funnel');
 
   } catch(err) {
-    avsToast('⚠️ Could not generate page: ' + (err.message || 'try again'));
+    console.error('[AddPage] Failed:', err);
+    avsToast('⚠️ Could not generate page: ' + (err.message || 'try again'), true);
   }
 };
 
@@ -33808,7 +33811,6 @@ window.fbOpenProEditor = function() {
     +   '<button onclick="_fbGjs&&_fbGjs.setDevice(\'Mobile\')" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;color:#cfd0ff;font-size:11px;cursor:pointer">📱 Mobile</button>'
     +   '<button onclick="_fbGjs&&_fbGjs.UndoManager.undo()" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:7px 12px;color:#cfd0ff;font-size:11px;cursor:pointer">↶ Undo</button>'
     +   '<button id="gjs-preview-btn" onclick="fbProPreviewToggle()" style="background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.25);border-radius:8px;padding:7px 12px;color:var(--teal);font-size:11px;cursor:pointer;font-weight:700">👁 Preview</button>'
-    +   '<button id="fb-gjs-preview" onclick="fbProPreviewToggle()" style="background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.3);border-radius:8px;padding:7px 12px;color:#F5C842;font-size:11px;cursor:pointer;font-weight:700">👁 Preview</button>'
     +   '<button onclick="fbProEditorSave()" style="background:linear-gradient(135deg,var(--teal),#2db88c);border:none;border-radius:8px;padding:8px 20px;color:#0a0a1a;font-size:12px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">💾 Save</button>'
     +   '<button onclick="fbProEditorClose()" style="background:rgba(255,107,107,.1);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:7px 14px;color:#ff6b6b;font-size:11px;cursor:pointer">✕ Exit</button>'
     + '</div>'
@@ -33816,6 +33818,21 @@ window.fbOpenProEditor = function() {
     +   '<div id="gjs-blocks" style="width:200px;overflow-y:auto;background:#0e0e22;border-right:1px solid rgba(108,99,255,.15);padding:8px"></div>'
     +   '<div id="gjs-canvas" style="flex:1;min-width:0"></div>'
     +   '<div style="width:250px;display:flex;flex-direction:column;background:#0e0e22;border-left:1px solid rgba(108,99,255,.15)">'
+    +     '<div id="gjs-quick" style="display:none;padding:10px;border-bottom:1px solid rgba(255,255,255,.08);background:#12122a">'
+    +       '<div style="font-size:8px;font-weight:900;color:var(--dimmer);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px">Quick Style — <span id="gjs-quick-tag" style="color:var(--teal)"></span></div>'
+    +       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+    +         '<label style="font-size:9px;color:var(--dim);display:flex;flex-direction:column;gap:3px">Text colour<input type="color" id="gjs-q-color" style="width:100%;height:28px;border:1px solid rgba(255,255,255,.15);border-radius:6px;background:#161632;cursor:pointer;padding:2px"></label>'
+    +         '<label style="font-size:9px;color:var(--dim);display:flex;flex-direction:column;gap:3px">Background<input type="color" id="gjs-q-bg" style="width:100%;height:28px;border:1px solid rgba(255,255,255,.15);border-radius:6px;background:#161632;cursor:pointer;padding:2px"></label>'
+    +         '<label style="font-size:9px;color:var(--dim);display:flex;flex-direction:column;gap:3px">Font size (px)<input type="number" id="gjs-q-size" min="8" max="140" style="width:100%;background:#161632;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-size:12px;padding:5px 8px"></label>'
+    +         '<label style="font-size:9px;color:var(--dim);display:flex;flex-direction:column;gap:3px">Line height<input type="number" id="gjs-q-lh" min="0.8" max="3" step="0.05" style="width:100%;background:#161632;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#fff;font-size:12px;padding:5px 8px"></label>'
+    +       '</div>'
+    +       '<div style="display:flex;gap:6px;margin-top:8px">'
+    +         '<button onclick="fbQuickAlign(\'left\')" style="flex:1;background:#161632;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#cfd0ff;font-size:12px;padding:5px;cursor:pointer">⬅</button>'
+    +         '<button onclick="fbQuickAlign(\'center\')" style="flex:1;background:#161632;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#cfd0ff;font-size:12px;padding:5px;cursor:pointer">↔</button>'
+    +         '<button onclick="fbQuickAlign(\'right\')" style="flex:1;background:#161632;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#cfd0ff;font-size:12px;padding:5px;cursor:pointer">➡</button>'
+    +         '<button onclick="fbQuickBold()" style="flex:1;background:#161632;border:1px solid rgba(255,255,255,.15);border-radius:6px;color:#cfd0ff;font-size:12px;font-weight:900;padding:5px;cursor:pointer">B</button>'
+    +       '</div>'
+    +     '</div>'
     +     '<div style="display:flex;border-bottom:1px solid rgba(255,255,255,.08)">'
     +       '<button class="gjs-tab on" data-t="styles" onclick="fbProTab(this)" style="flex:1;background:none;border:none;padding:10px 0;color:var(--teal);font-size:10px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Style</button>'
     +       '<button class="gjs-tab" data-t="traits" onclick="fbProTab(this)" style="flex:1;background:none;border:none;padding:10px 0;color:rgba(255,255,255,.4);font-size:10px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.5px">Settings</button>'
@@ -33874,9 +33891,22 @@ window._fbGjsInit = function(page) {
     styleManager: {
       appendTo: '#gjs-styles',
       sectors: [
-        { name: 'Typography', open: true, buildProps: ['font-size','font-weight','color','text-align','line-height','letter-spacing','font-family'] },
-        { name: 'Background & Border', open: false, buildProps: ['background-color','background','border-radius','border','box-shadow','opacity'] },
-        { name: 'Spacing & Size', open: false, buildProps: ['margin','padding','width','max-width','height','min-height'] },
+        { name: 'Text', open: true, properties: [
+          { property: 'color', type: 'color', name: 'Text colour' },
+          { property: 'font-size', type: 'slider', units: ['px'], min: 8, max: 120, step: 1, name: 'Size' },
+          { property: 'line-height', type: 'slider', min: 0.8, max: 3, step: 0.05, name: 'Line height' },
+          { property: 'letter-spacing', type: 'slider', units: ['px'], min: -4, max: 20, step: 0.5, name: 'Letter spacing' },
+          { property: 'font-weight', type: 'select', name: 'Weight', options: [ {id:'400',label:'Regular'},{id:'600',label:'Semi-bold'},{id:'700',label:'Bold'},{id:'800',label:'Extra bold'},{id:'900',label:'Black'} ] },
+          { property: 'text-align', type: 'radio', name: 'Align', options: [ {id:'left',label:'←'},{id:'center',label:'↔'},{id:'right',label:'→'} ] }
+        ]},
+        { name: 'Colours & Background', open: true, properties: [
+          { property: 'background-color', type: 'color', name: 'Background colour' },
+          { property: 'border-radius', type: 'slider', units: ['px'], min: 0, max: 60, step: 1, name: 'Corner radius' },
+          { property: 'opacity', type: 'slider', min: 0, max: 1, step: 0.05, name: 'Opacity' },
+          { property: 'box-shadow', name: 'Shadow' },
+          { property: 'border', name: 'Border' }
+        ]},
+        { name: 'Spacing & Size', open: false, buildProps: ['padding','margin','width','max-width','height','min-height'] },
         { name: 'Layout', open: false, buildProps: ['display','flex-direction','justify-content','align-items','gap','position'] }
       ]
     },
@@ -33945,27 +33975,60 @@ window._fbGjsInit = function(page) {
       } else if (tag === 'iframe' || tag === 'video' || tag === 'img') {
         comp.set('traits', [ { type: 'text', name: 'src', label: 'Source URL' }, { type: 'text', name: 'alt', label: 'Alt text' } ]);
       }
-      // Buttons and links are about actions — surface Settings automatically
-      if (tag === 'a' || tag === 'button') {
-        var tb = document.querySelector('.gjs-tab[data-t="traits"]');
-        if (tb) fbProTab(tb);
-      }
+      // Buttons and links are about actions — surface Settings automatically;
+      // everything else lands on Style so styling is always one glance away
+      var tb = document.querySelector('.gjs-tab[data-t="' + ((tag === 'a' || tag === 'button') ? 'traits' : 'styles') + '"]');
+      if (tb) fbProTab(tb);
+      fbQuickSync(comp);
     } catch(e) {}
+  });
+  editor.on('component:deselected', function() {
+    var q = document.getElementById('gjs-quick'); if (q) q.style.display = 'none';
   });
 
   window._fbGjs = editor;
 };
 
-window.fbProPreviewToggle = function() {
-  var ed = window._fbGjs; if (!ed) return;
-  var btn = document.getElementById('fb-gjs-preview');
-  if (ed.Commands.isActive('core:preview')) {
-    ed.stopCommand('core:preview');
-    if (btn) btn.textContent = '👁 Preview';
-  } else {
-    ed.runCommand('core:preview');
-    if (btn) btn.textContent = '✏️ Back to Editing';
+// ── Quick Style bar — the five controls people actually reach for, live on
+// the selected element without hunting through sectors ──
+function _fbQuickHex(v) {
+  if (!v) return '';
+  if (v[0] === '#') return v.length === 4 ? '#'+v[1]+v[1]+v[2]+v[2]+v[3]+v[3] : v.slice(0,7);
+  var m = v.match(/rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+  if (!m) return '';
+  return '#' + [m[1],m[2],m[3]].map(function(n){ return ('0'+parseInt(n,10).toString(16)).slice(-2); }).join('');
+}
+window.fbQuickSync = function(comp) {
+  var q = document.getElementById('gjs-quick'); if (!q) return;
+  q.style.display = 'block';
+  window._fbQuickComp = comp;
+  var tagEl = document.getElementById('gjs-quick-tag');
+  if (tagEl) tagEl.textContent = (comp.get('tagName') || 'element').toUpperCase();
+  try {
+    var el = comp.getEl();
+    var cs = el ? getComputedStyle(el) : {};
+    var c  = document.getElementById('gjs-q-color'); if (c)  c.value  = _fbQuickHex(cs.color) || '#ffffff';
+    var b  = document.getElementById('gjs-q-bg');    if (b)  b.value  = _fbQuickHex(cs.backgroundColor) || '#000000';
+    var s  = document.getElementById('gjs-q-size');  if (s)  s.value  = parseInt(cs.fontSize, 10) || '';
+    var lh = document.getElementById('gjs-q-lh');
+    if (lh) {
+      var lhv = cs.lineHeight === 'normal' ? '' : (parseFloat(cs.lineHeight) / (parseFloat(cs.fontSize) || 16));
+      lh.value = lhv ? Math.round(lhv * 100) / 100 : '';
+    }
+  } catch(e) {}
+  if (!window._fbQuickWired) {
+    window._fbQuickWired = true;
+    document.getElementById('gjs-q-color').addEventListener('input', function(){ if (window._fbQuickComp) window._fbQuickComp.addStyle({ color: this.value }); });
+    document.getElementById('gjs-q-bg').addEventListener('input',    function(){ if (window._fbQuickComp) window._fbQuickComp.addStyle({ 'background-color': this.value }); });
+    document.getElementById('gjs-q-size').addEventListener('input',  function(){ if (window._fbQuickComp && this.value) window._fbQuickComp.addStyle({ 'font-size': this.value + 'px' }); });
+    document.getElementById('gjs-q-lh').addEventListener('input',    function(){ if (window._fbQuickComp && this.value) window._fbQuickComp.addStyle({ 'line-height': String(this.value) }); });
   }
+};
+window.fbQuickAlign = function(dir) { if (window._fbQuickComp) window._fbQuickComp.addStyle({ 'text-align': dir }); };
+window.fbQuickBold  = function() {
+  var c = window._fbQuickComp; if (!c) return;
+  var cur = (c.getStyle() || {})['font-weight'];
+  c.addStyle({ 'font-weight': (cur === '800' || cur === 'bold') ? '400' : '800' });
 };
 
 window.fbProPreviewToggle = function() {
