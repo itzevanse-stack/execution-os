@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     av_employ, av_hrs, av_current, av_desired, av_incomeGoal,
     av_fear, av_tried, av_transformation, av_influences,
     av_objections, av_pain_points, av_keywords
-  } = req.body;
+  , dna_context, mindset_context } = req.body;
 
   // Use sensible defaults if revenue plan not yet filled
   const resolvedNiche  = niche  || 'Coaching & Consulting';
@@ -26,6 +26,11 @@ export default async function handler(req, res) {
 
 Build a complete, deeply personalised buyer avatar for a ${resolvedNiche} business charging $${Number(resolvedPrice).toLocaleString()} per client, targeting $${Number(resolvedTarget).toLocaleString()}/month revenue.
 
+${typeof dna_context === 'string' && dna_context ? `THE FOUNDER'S REAL BUSINESS DNA (their story, proof, and philosophy — the avatar you build must be the person THIS founder is uniquely credible to serve):
+${dna_context}
+` : ''}${typeof mindset_context === 'string' && mindset_context ? `THE FOUNDER'S OWN PSYCHOLOGY (their customer often shares versions of these exact fears — use this to sharpen the avatar's inner world):
+${mindset_context}
+` : ''}
 AVATAR DETAILS PROVIDED:
 - Avatar name: ${av_name || 'Not specified'}
 - Age: ${av_age || '35'}
