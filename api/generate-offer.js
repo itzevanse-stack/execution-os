@@ -14,8 +14,7 @@ export default async function handler(req, res) {
     offer_dream, offer_result, offer_no_effort, offer_transformation,
     offer_system, offer_format, offer_duration, offer_difference,
     offer_stack, offer_guarantee, offer_guarantee_cond,
-    offer_scarcity, offer_bonus, offer_name, offer_payment
-  } = req.body;
+    offer_scarcity, offer_bonus, offer_name, offer_payment, dna_context } = req.body;
 
   if (!niche || !price) {
     return res.status(400).json({ error: "Missing required fields: niche, price." });
@@ -42,6 +41,9 @@ OFFER INPUTS:
 - Offer name: ${offer_name || 'Not specified'}
 - Payment structure: ${offer_payment || 'Not specified'}
 
+${typeof dna_context === 'string' && dna_context ? `THE FOUNDER'S REAL PROOF & PHILOSOPHY (weave their ACTUAL milestones, client results, and unique beliefs into the offer's credibility and mechanism — never invent proof beyond this):
+${dna_context}
+` : ''}
 TARGET BUYER: ${avatar ? `${avatar.job || 'professional'} dealing with "${avatar.pain || 'their main struggle'}" wanting "${avatar.transformation || 'their desired outcome'}"` : `${niche} target audience`}
 
 Generate the complete offer document. Return ONLY valid JSON:
