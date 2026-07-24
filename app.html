@@ -14816,11 +14816,35 @@ window.adminLoadMembers = async function(){
         </div>
         ${m.dealValue?`<div style="background:rgba(255,217,61,.1);border:1px solid rgba(255,217,61,.2);border-radius:8px;padding:4px 10px;font-size:11px;font-weight:800;color:var(--yellow)">${m.dealValue}</div>`:''}
         <div style="font-size:10px;color:var(--dimmer);text-align:right;flex-shrink:0">${m.grantedAt?new Date(m.grantedAt).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}):''}</div>
+        <button onclick="adminToggleComp('${(m.email||'').toLowerCase().replace(/'/g,'')}',this)" title="Toggle free access — no credits ever needed" style="font-size:10px;padding:5px 12px;background:rgba(245,200,66,.08);border:1px solid rgba(245,200,66,.25);color:#F5C842;border-radius:8px;font-family:Poppins,sans-serif;font-weight:700;cursor:pointer;flex-shrink:0">🎁 Comp</button>
         <button onclick="adminRevokeMember('${m.id}','${(m.name||'').replace(/'/g,'')}')" style="font-size:10px;padding:5px 12px;background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2);color:var(--red);border-radius:8px;font-family:Poppins,sans-serif;font-weight:700;cursor:pointer;flex-shrink:0">Revoke</button>
       </div>`).join('');
   } catch(e) {
     listEl.innerHTML=`<div style="font-size:12px;color:var(--red);padding:16px">Error loading members: ${e.message||e}</div>`;
   }
+};
+
+// Toggle complimentary (credit-free) access for a member by email.
+// Stored in compAccess/{email} — read at every login, no redeploy needed.
+window.adminToggleComp = async function(email, btn){
+  if (!email) { alert('This member has no email on record.'); return; }
+  if (!window._db || !window._getDoc || !window._setDoc || !window._deleteDoc) return;
+  try {
+    var ref = window._doc(window._db, 'compAccess', email);
+    var snap = await window._getDoc(ref);
+    var has = snap && snap.exists && snap.exists();
+    if (has) {
+      if (!confirm('Remove free access for ' + email + '? They will need credits again from their next login.')) return;
+      await window._deleteDoc(ref);
+      if (btn) { btn.textContent = '🎁 Comp'; btn.style.background = 'rgba(245,200,66,.08)'; }
+      emToast('Free access removed for ' + email);
+    } else {
+      if (!confirm('Grant ' + email + ' unlimited free access (no credits ever deducted)?')) return;
+      await window._setDoc(ref, { exempt: true, grantedAt: Date.now(), grantedBy: window._currentUserEmail || 'admin' });
+      if (btn) { btn.textContent = '✅ Comped'; btn.style.background = 'rgba(78,204,163,.15)'; }
+      emToast('🎁 ' + email + ' now has unlimited free access — active from their next login.');
+    }
+  } catch(e) { alert('Could not update: ' + e.message); }
 };
 
 window.adminRevokeMember = async function(memberId, memberName){
@@ -35675,6 +35699,13 @@ var PLAN_CREDITS = {
   'expert_annual':     500,
 };
 
+// ── Complimentary access ──────────────────────────────────────────────────────
+// Two ways a user gets credit-exempt status:
+//  1. Their email is in COMP_EMAILS below (works immediately on deploy)
+//  2. Their credits doc has { exempt: true } — toggleable from the admin
+//     panel's 🎁 button without any redeploy
+var COMP_EMAILS = ['bitheaven@telusplanet.net'];
+
 // ── Load credit balance from Firestore ────────────────────────────────────────
 async function creditLoad() {
   var uid = window._currentUserUid;
@@ -35685,6 +35716,20 @@ async function creditLoad() {
     var data = snap && snap.exists && snap.exists() ? (snap.data ? snap.data() : {}) : {};
     var balance = data.balance || 0;
     window._creditBalance = balance;
+
+    // Complimentary access check — by admin flag, comp collection, or email list
+    var userEmail = ((window._currentUserEmail || (window._currentUser && window._currentUser.email) || '') + '').toLowerCase();
+    window._creditExempt = !!data.exempt || (userEmail && COMP_EMAILS.indexOf(userEmail) !== -1);
+    if (!window._creditExempt && userEmail) {
+      try {
+        var compSnap = await window._getDoc(window._doc(window._db, 'compAccess', userEmail));
+        if (compSnap && compSnap.exists && compSnap.exists()) window._creditExempt = true;
+      } catch(e) {}
+    }
+    if (window._creditExempt) {
+      var disp = document.getElementById('credit-balance-display');
+      if (disp) { disp.style.display = ''; disp.textContent = '∞ credits'; }
+    }
     creditUpdateDisplay(balance);
 
     // ── Real-time listener — balance updates instantly when CopeCart webhook fires
@@ -35761,6 +35806,7 @@ async function creditDeduct(action) {
   var uid = window._currentUserUid;
   if (!uid || !window._db) return true; // allow if not logged in (dev mode)
   if (window._isAdmin) return true; // platform admin — unlimited, never gated by credits
+  if (window._creditExempt) return true; // complimentary access — granted by admin, never deducted or gated
   var cost = CREDIT_COSTS[action] || 5;
   var balance = window._creditBalance || 0;
   if (balance < cost) {
@@ -36143,7 +36189,7 @@ window.creditLowWarning = creditLowWarning;
 var _origCreditDeduct = window.creditDeduct;
 window.creditDeduct = async function(action) {
   var result = await _origCreditDeduct(action);
-  if (window._isAdmin) return result; // admin — never warn about credits
+  if (window._isAdmin || window._creditExempt) return result; // never warn about credits
   var balance = window._creditBalance || 0;
   if (result && balance < 20) {
     setTimeout(function(){ creditLowWarning(balance); }, 800);
@@ -40499,9 +40545,13 @@ function eosRenderFirstWinPath() {
     { id: isAff ? 'affiliate' : 'offer', icon: '💎', label: isAff ? 'Set up your affiliate offer' : 'Create your offer',
       done: isAff ? !!(window._affiliateOffer && window._affiliateOffer.name) : !!(window._offerData && (window._offerData.name || window._offerData.headline)),
       why: 'The thing all your content and funnels sell. The AI needs its name, promise, and price.' },
+    // Boardroom is an Expert Mode feature — affiliates skip straight to
+    // publishing (their intelligence comes from their offer + avatar setup).
+    ].concat(isAff ? [] : [
     { id: 'boardroom', icon: '🏛️', label: 'Build your Boardroom intelligence',
       done: !!(bi.architect && Object.keys(bi.architect).length),
       why: 'Live market research + positioning that makes your copy sound like you, not a template.' },
+    ]).concat([
     { id: 'funnels',  icon: '🚀', label: 'Publish your first funnel',
       done: hasLiveFunnel,
       why: 'Your lead-capture machine. Until one is live, content has nowhere to send people.' },
@@ -40511,7 +40561,7 @@ function eosRenderFirstWinPath() {
     { id: 'leads',    icon: '⚡', label: 'Capture your first lead',
       done: !!(perf.leads && perf.leads.count > 0),
       why: 'The first win. From here, the system starts learning from your real numbers.' }
-  ];
+  ]);
 
   var doneCount = steps.filter(function(s){ return s.done; }).length;
 
