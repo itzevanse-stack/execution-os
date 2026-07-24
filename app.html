@@ -13039,6 +13039,50 @@ function generateOffer(){
 }
 window.generateOffer=generateOffer;
 
+/* ── REVENUE REALITY CHECK ────────────────────────────────────────────────
+   The #1 silent business-model killer is a price that cannot mathematically
+   reach the target. Pure arithmetic with labeled assumptions — computed
+   live as the user types their price. */
+window.eosRevenueCheck = function() {
+  var priceEl = document.getElementById('offer_price');
+  if (!priceEl) return;
+  var host = document.getElementById('eos-rev-check');
+  if (!host) {
+    host = document.createElement('div');
+    host.id = 'eos-rev-check';
+    host.style.cssText = 'margin:10px 0 4px';
+    priceEl.parentNode.insertBefore(host, priceEl.nextSibling);
+  }
+  var price  = parseFloat(String(priceEl.value).replace(/[^0-9.]/g, '')) || 0;
+  var target = parseFloat(window._appliedTarget) || 0;
+  if (!price || !target) { host.innerHTML = ''; return; }
+
+  var clients   = Math.ceil(target / price);
+  var weekly    = Math.round(clients / 4.3 * 10) / 10;
+  // Labeled assumptions: 2% funnel opt-in→buyer for self-serve, 25% call
+  // close for high-ticket — honest mid-ranges, clearly framed as assumptions.
+  var highTicket = price >= 800;
+  var leads = highTicket ? Math.ceil(clients / 0.25) : Math.ceil(clients / 0.02);
+  var leadLabel = highTicket ? 'booked calls (assuming ~25% close — an assumption, not a promise)' : 'leads (assuming ~2% lead-to-buyer — an assumption, not a promise)';
+
+  var verdict, color, advice;
+  if (clients <= 12)      { verdict = '✅ Coherent model';  color = 'var(--teal)';  advice = weekly <= 2 ? 'Roughly ' + weekly + ' sales a week. Very achievable with consistent daily execution.' : 'About ' + weekly + ' sales weekly — demanding but realistic with a working funnel.'; }
+  else if (clients <= 30) { verdict = '⚠️ Stretch model';   color = '#F5C842';      advice = clients + ' sales every month solo is heavy. Consider raising the price — fewer, better clients is how most people actually hit this target.'; }
+  else                    { verdict = '🔴 The math fights you'; color = '#ff6b6b'; advice = clients + ' sales/month at this price is a volume business needing serious traffic. Either raise the price substantially or lower the monthly target — right now the model works against you.'; }
+
+  host.innerHTML = '<div style="background:rgba(255,255,255,.03);border:1px solid ' + (color === 'var(--teal)' ? 'rgba(78,204,163,.25)' : color === '#F5C842' ? 'rgba(245,200,66,.25)' : 'rgba(255,107,107,.3)') + ';border-radius:12px;padding:12px 16px">'
+    + '<div style="font-size:11px;font-weight:900;color:' + color + ';font-family:Poppins,sans-serif;margin-bottom:5px">' + verdict + ' — the math of your target</div>'
+    + '<div style="font-size:11.5px;color:var(--dim);line-height:1.75">$' + target.toLocaleString() + '/month at $' + price.toLocaleString() + ' = <strong style="color:var(--white)">' + clients + ' sales/month</strong> (~' + weekly + '/week), which needs roughly <strong style="color:var(--white)">' + leads.toLocaleString() + '</strong> ' + leadLabel + '.<br>' + advice + '</div></div>';
+};
+(function(){
+  var wire = function(){
+    var el = document.getElementById('offer_price');
+    if (el && !el._revWired) { el._revWired = true; el.addEventListener('input', eosRevenueCheck); setTimeout(eosRevenueCheck, 400); }
+  };
+  document.addEventListener('DOMContentLoaded', wire);
+  setTimeout(wire, 2500);
+})();
+
 function renderRules(){document.getElementById('rules-grid').innerHTML=RULES.map(([r,s])=>`<div class="rule"><div class="rule-dot"></div><div><div class="rule-txt">${r}</div><div class="rule-sub">${s}</div></div></div>`).join('')}
 
 function renderTracker(dmsDay,salesGoal){
@@ -13707,7 +13751,12 @@ function _showAvatarAnalysisUI(outputEl, av) {
       av_influences:     av.influences,
       av_objections:     av.objections,
       av_pain_points:    (av.pains||[]).join(', '),
-      av_keywords:       (av.keywords||[]).join(', ')
+      av_keywords:       (av.keywords||[]).join(', '),
+      // The chain: the founder's real story, proof, and philosophy (Business
+      // DNA) plus their own psychology (Mindset) shape WHO their ideal
+      // customer really is — previously each step generated blind to the rest.
+      dna_context:       (window.buildBizIntelContext ? window.buildBizIntelContext() : '').slice(0, 2400),
+      mindset_context:   (function(){ try { var m = JSON.parse(localStorage.getItem('eos_mindset_profile')||'null'); return m ? ('Founder fear: ' + (m.fear||'') + ' | Ceiling story: ' + (m.ceiling||'')).slice(0,500) : ''; } catch(e){ return ''; } })()
     }).then(function(aiData) {
       var elapsed = Date.now() - startTime;
       setTimeout(function(){ _revealAvatarAnalysis(aiData); }, Math.max(0, 9800 - elapsed));
@@ -22634,6 +22683,17 @@ function markBizIntelDirty() { _bizIntelDirty = true; }
    belief-reframe specific to this person's actual blocks
 ══════════════════════════════════════════════════════════ */
 window.runMindsetReframe = async function() {
+  // Persist the founder's psychology — their stated fear and ceiling become
+  // context for the Weekly Board Meeting and downstream generation, instead
+  // of one-shot therapy that gets discarded.
+  try {
+    localStorage.setItem('eos_mindset_profile', JSON.stringify({
+      fear:    ((document.getElementById('mindset_q1')||{}).value || '').slice(0, 300),
+      ceiling: ((document.getElementById('mindset_q2')||{}).value || '').slice(0, 300),
+      scale:   ((document.getElementById('mindset_q3')||{}).value || '').slice(0, 300),
+      savedAt: Date.now()
+    }));
+  } catch(e) {}
   var q1 = (document.getElementById('mindset_q1')||{}).value || '';
   var q2 = (document.getElementById('mindset_q2')||{}).value || '';
   var q3 = (document.getElementById('mindset_q3')||{}).value || '';
@@ -37856,6 +37916,9 @@ function brCollectInputs() {
     nichePain:      nv.painContext || '',
     nicheDesire:    nv.desireContext || '',
     allowMoney:     window.nicheAllowsMoneyTalk ? window.nicheAllowsMoneyTalk(window._appliedNiche) : true,
+    // The founder's REAL milestones, client results, and philosophy — the
+    // material that makes an offer credible and unique instead of generic.
+    dna_context:    (window.buildBizIntelContext ? window.buildBizIntelContext() : '').slice(0, 2400),
   };
 }
 
@@ -40558,8 +40621,10 @@ async function brWeeklyBoardMeeting() {
     var intel = window._boardroomIntel || {};
     var inp = intel.inputs || {};
     var sys = 'You are the user\'s board of directors delivering a short weekly review. You ONLY reason from the real tracked data provided. Be direct, specific, and useful — no fluff, no invented numbers. Return ONLY valid compact JSON.';
+    var _mp = null; try { _mp = JSON.parse(localStorage.getItem('eos_mindset_profile') || 'null'); } catch(e) {}
     var prompt = [
       'Business: ' + (inp.niche || 'digital products') + ', selling ' + (inp.offerName || 'their offer') + ' at $' + (inp.price || '—') + '. Monthly target: $' + (inp.target || '—') + '.',
+      _mp && _mp.fear ? 'The founder privately said their biggest fear is: "' + _mp.fear + '" and their ceiling story is: "' + (_mp.ceiling || '') + '". If this week\'s real data contradicts that fear or ceiling, point it out directly — evidence beats the story they tell themselves.' : '',
       '',
       'Their REAL tracked results (last 30 days): ' + JSON.stringify({ sales: p.sales, leads: p.leads, email: p.email, contentPublished: p.content.published }),
       '',
