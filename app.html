@@ -48885,6 +48885,31 @@ async function maGenerate() {
   var firstTabBtn = document.querySelector('.ma-tab[data-tab="angles"]');
   if (firstTabBtn) maShowTab(firstTabBtn, 'angles');
 
+  // ── The Money Math card — YOUR numbers, computed, not generated ──
+  (function(){
+    var host = document.getElementById('ma-money-math');
+    if (!host) {
+      host = document.createElement('div');
+      host.id = 'ma-money-math';
+      var out = document.getElementById('ma-output');
+      if (out && out.firstChild) out.insertBefore(host, out.firstChild); else if (out) out.appendChild(host);
+    }
+    if (!maMath) {
+      host.innerHTML = '<div style="background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);border-radius:12px;padding:14px 18px;margin-bottom:16px;font-size:12px;color:var(--dim);line-height:1.7"><strong style="color:#F5C842">⚠️ Set your offer price first.</strong> Without a price, there is no breakeven math — and running ads without breakeven math is gambling, not marketing. Set it in Offer Creation and regenerate.</div>';
+      return;
+    }
+    host.innerHTML = '<div style="background:rgba(78,204,163,.05);border:1px solid rgba(78,204,163,.25);border-radius:14px;padding:18px 20px;margin-bottom:18px">'
+      + '<div style="font-size:12px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif;margin-bottom:10px">💵 YOUR AD ECONOMICS — computed from your $' + maMath.price.toLocaleString() + ' offer, not generated</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:10px">'
+      +   '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px"><div style="font-size:9px;color:var(--dimmer);text-transform:uppercase;letter-spacing:.5px;font-weight:800">Value per lead</div><div style="font-size:19px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">$' + maMath.leadValue + '</div></div>'
+      +   '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px"><div style="font-size:9px;color:var(--dimmer);text-transform:uppercase;letter-spacing:.5px;font-weight:800">Max profitable CPL</div><div style="font-size:19px;font-weight:900;color:var(--teal);font-family:Poppins,sans-serif">$' + maMath.maxCPL + '</div></div>'
+      +   '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px"><div style="font-size:9px;color:var(--dimmer);text-transform:uppercase;letter-spacing:.5px;font-weight:800">Test budget</div><div style="font-size:19px;font-weight:900;color:var(--white);font-family:Poppins,sans-serif">$' + maMath.testBudget + '/day</div></div>'
+      +   '<div style="background:rgba(255,255,255,.04);border-radius:10px;padding:10px 14px"><div style="font-size:9px;color:var(--dimmer);text-transform:uppercase;letter-spacing:.5px;font-weight:800">Kill rule</div><div style="font-size:19px;font-weight:900;color:#ff6b6b;font-family:Poppins,sans-serif">$' + maMath.killCPL + ' CPL</div></div>'
+      + '</div>'
+      + '<div style="font-size:11px;color:var(--dim);line-height:1.7">Kill any ad above the kill CPL after $' + (maMath.killCPL*2) + ' spend. Scale winners +20% every 3 days — never double overnight. Assumption behind these numbers: ' + maMath.closeLabel + '. Your real close rate replaces this the moment you have data.</div>'
+      + '</div>';
+  })();
+
   // ── Animated loading state — spinner + cycling messages + progress bar ──
   var maMsgs = [
     'Reading your offer and audience intelligence…',
@@ -48938,6 +48963,35 @@ async function maGenerate() {
 
   var intel     = (typeof vpeGetIntel === 'function') ? vpeGetIntel() : ((typeof window.vpeGetIntel === 'function') ? window.vpeGetIntel() : '');
   var painInput = (document.getElementById('ma-pain-input')||{}).value || '';
+
+  // ── THE MONEY MATH — deterministic, from their real price ──────────────
+  // This is what separates disciplined ad spend from gambling: breakeven
+  // ROAS, maximum cost per lead, and kill/scale rules computed from THEIR
+  // numbers. Pure arithmetic with labeled assumptions — never AI-invented.
+  var maPrice = parseFloat(String((window._offerData||{}).price || window._appliedPrice || '').replace(/[^0-9.]/g,'')) || 0;
+  var maMath = null;
+  if (maPrice > 0) {
+    var isHT       = maPrice >= 800;                       // call-close vs self-serve
+    var closeRate  = isHT ? 0.20 : 0.02;                   // labeled assumptions below
+    var maxCPL     = Math.max(1, Math.round(maPrice * closeRate * 0.33)); // spend ≤ 1/3 of lead value
+    var breakevenLeadValue = Math.round(maPrice * closeRate);
+    maMath = {
+      price: maPrice, isHT: isHT,
+      closeLabel: isHT ? '20% of booked calls close (industry mid-range assumption — track your own)' : '2% of leads buy (self-serve mid-range assumption — track your own)',
+      leadValue: breakevenLeadValue,
+      maxCPL: maxCPL,
+      testBudget: Math.max(10, Math.min(50, Math.round(maxCPL * 1.5))),
+      killCPL: maxCPL * 3,
+    };
+  }
+  var mathBlock = maMath ? (
+      'THEIR REAL AD ECONOMICS (deterministic — computed from their actual $' + maMath.price.toLocaleString() + ' price; use THESE numbers in every budget and testing recommendation):\n'
+    + '- Estimated value per lead: $' + maMath.leadValue + ' (assumption: ' + maMath.closeLabel + ')\n'
+    + '- Maximum profitable cost per lead (CPL): $' + maMath.maxCPL + '\n'
+    + '- Recommended test budget: $' + maMath.testBudget + '/day per ad set\n'
+    + '- KILL rule: pause any ad whose CPL exceeds $' + maMath.killCPL + ' after $' + (maMath.killCPL * 2) + ' spend\n'
+    + '- SCALE rule: raise budget 20% every 3 days on any ad under $' + maMath.maxCPL + ' CPL — never double overnight (resets Meta learning)\n\n'
+  ) : '';
   var vpeState  = window._vpeState || _vpeState || { questions: [] };
   var vpeQs     = (vpeState.questions || []).slice(0,5).map(function(q){ return q.question || ''; }).filter(Boolean).join('\n');
 
@@ -48949,7 +49003,7 @@ async function maGenerate() {
   var angleDescriptions = {
     pain:           'PAIN ANGLE — opens with the exact frustration the audience feels. Makes them feel deeply understood before offering the solution.',
     curiosity:      'CURIOSITY ANGLE — teases a counterintuitive insight or surprising fact. Makes them need to know more.',
-    proof:          'PROOF ANGLE — leads with a specific result, number or case study. Social proof that this actually works.',
+    proof:          'PROOF ANGLE — leads with real proof. ONLY use results explicitly present in the REAL PROOF section; if none exists, lead with mechanism-proof (WHY the approach works) instead of numbers. NEVER invent a result, income figure, or client outcome.',
     transformation: 'TRANSFORMATION ANGLE — paints the vivid before/after picture. Where they are now vs where they could be.',
     controversy:    'CONTROVERSY ANGLE — challenges a widely held belief in the niche. Polarising but highly engaging.',
     question:       'QUESTION ANGLE — opens with the exact question they are already asking. Mirrors their internal dialogue.',
@@ -48958,8 +49012,14 @@ async function maGenerate() {
 
   var selectedAngles = angleTypes.slice(0, numAngles);
 
-  var prompt = 'You are a world-class Meta ads copywriter and paid traffic strategist. Build a complete launch-ready Meta ad package.\n\n'
+  var realData = (typeof eosBuildRealDataContext === 'function') ? eosBuildRealDataContext() : '';
+  var dnaProof = (typeof buildBizIntelContext === 'function') ? buildBizIntelContext().slice(0, 1600) : '';
+
+  var prompt = 'You are a world-class Meta ads copywriter and paid traffic strategist who has managed $50M+ in profitable spend. Build a complete launch-ready Meta ad package.\n\n'
     + 'BUSINESS INTELLIGENCE:\n' + (intel || 'Digital product / coaching business') + '\n\n'
+    + (dnaProof ? 'REAL PROOF AVAILABLE (the ONLY results you may reference in any ad):\n' + dnaProof + '\n\n' : '')
+    + (realData ? realData + '\n\n' : '')
+    + mathBlock
     + 'AD OBJECTIVE: ' + (objectiveLabels[_maObjective]||'Lead Generation') + '\n'
     + 'PLATFORM: ' + platformLabel + '\n'
     + 'NUMBER OF ANGLES: ' + numAngles + '\n\n'
@@ -48975,19 +49035,32 @@ async function maGenerate() {
           + '**Description:** (under 30 words)\n'
           + '**Why this angle works:** (one sentence)\n';
       }).join('\n')
-    + '\n## TARGETING STRATEGY\n'
+    + '\n## META COMPLIANCE — CRITICAL\n'
+    + 'These ads MUST survive Meta review. Non-negotiable rules for ALL copy above:\n'
+    + '- NEVER promise or imply specific income ("make $X/month", "quit your job in 90 days") — this is the #1 rejection and account-ban trigger in this niche\n'
+    + '- NEVER use "you" + a financial/personal outcome claim ("you will earn", "your debt")\n'
+    + '- NEVER imply Meta knows their attributes ("struggling entrepreneurs like you")\n'
+    + '- Frame outcomes as what the METHOD does or what OTHERS (with real proof) did — with "results vary" energy, never guarantees\n'
+    + 'Then write a section titled "## COMPLIANCE CHECK" that lists any phrase in your own ads above that could still trip review, with a compliant rewrite for each. If everything is clean, say so and explain the 3 rules they must never break when editing.\n\n'
+    + '## TARGETING STRATEGY\n'
     + 'Primary interests, behaviors, age range, lookalike source, exclusions.\n'
     + 'Separate recommendations for ' + platformLabel + '.\n\n'
     + '## BUDGET & TESTING\n'
     + 'Starter daily budget per angle, how long to test each, which metric decides the winner, how to scale.\n\n'
     + '## LAUNCH ORDER\n'
     + 'Which angle to launch first and why. Testing sequence for all ' + numAngles + ' angles.\n\n'
+    + '## FIRST-TIME LAUNCH — CLICK BY CLICK\n'
+    + 'Assume they have NEVER opened Meta Ads Manager. Number every step from "go to business.facebook.com" to "press Publish": account essentials, choosing the right objective, why beginners should run ONE campaign > ONE ad set (broad / Advantage+ targeting, minimal narrowing — modern Meta finds buyers from the CREATIVE, not interest stacking) > ' + numAngles + ' ads (one per angle above), setting the daily budget' + (maMath ? ' at $' + maMath.testBudget : '') + ', pixel and lead-form basics, and the 3 settings beginners always get wrong. Plain language; explain every term the first time it appears.\n\n'
+    + '## THE 14-DAY PROTOCOL\n'
+    + 'Day-by-day: what to check, what to touch, and what to NEVER touch (the learning phase). '
+    + (maMath ? 'Use the exact kill rule (pause at $' + maMath.killCPL + ' CPL) and scale rule (+20% every 3 days on ads under $' + maMath.maxCPL + ' CPL) from the economics above. ' : '')
+    + 'Include: when to declare a winner, what to do with losers, and the day-14 decision tree (scale / iterate hooks / rebuild the angle).\n\n'
     + 'No placeholders. Use the real offer name, real transformation, real pain points. Ready to copy-paste into Meta Ads Manager.';
 
   try {
     var resp = await fetch(window.location.origin + '/api/claude', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:4000, messages:[{ role:'user', content:prompt }] })
+      body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens:7000, system:'You write Meta ads that pass review and are grounded ONLY in real, provided data. You never fabricate results, income figures, or testimonials. You teach every recommendation so a complete beginner understands WHY.', messages:[{ role:'user', content:prompt }] })
     });
     var data = await resp.json();
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
