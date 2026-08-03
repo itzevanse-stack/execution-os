@@ -29554,8 +29554,19 @@ DM AND SALES:
 - DM Scripts — pre-written conversation starters for any platform.
 - Lead Pipeline — tracks every conversation and follow-up.
 
-STRATEGY:
+PAID TRAFFIC (Meta Ad Builder):
+- Builds a complete Meta ad package from their real offer price: computed breakeven math (max profitable cost-per-lead, test budget, a kill rule and a scale rule — real arithmetic from their price, not guesses), compliance-checked ad copy for Facebook/Instagram, a beginner click-by-click launch walkthrough, and a 14-day testing protocol. If they're spending on ads with no offer price set, tell them to set their price first — there's no valid ad math without it.
+
+FUNNEL BUILDER — DEEPER CAPABILITIES:
+- Pro Editor — a full drag-and-drop page builder inside the Funnel Builder (blocks, live style/color controls, mobile preview). If their funnel design needs work, point them here, not to an external tool.
+- AI Video — generates a HeyGen presenter video with a script built from their real Boardroom intelligence and embeds it directly into their funnel's video slot. Great answer when someone doesn't want to appear on camera themselves.
+
+STRATEGY & THE FEEDBACK LOOP:
 - Boardroom — full business strategy built around their offer. War Room, Copy Vault, Client Attraction.
+- Weekly Board Meeting — reads their REAL leads, sales, and content performance data every week and tells them what's actually working, not generic advice. This is what makes Execution OS different from a course: it learns from their real numbers.
+- Revenue Reality Check — on the Offer Creation page, shows the real math between their price and their monthly target (sales needed, leads needed, whether the model is realistic). If someone's target and price don't add up, this is where to send them.
+- First Win Path — the dashboard checklist from setup to their first captured lead, verified against real data, not self-reported.
+- Commission Log (affiliates) — logs every affiliate sale so their 30-day earnings are tracked automatically.
 - E-OS Intelligent Advisor — that's you. You know all of the above and you suggest the right tool for the right problem.`;
 
     // Voice profile
@@ -29583,6 +29594,7 @@ CRITICAL BEHAVIOUR RULES:
 6. Short paragraphs. Bold what matters most. Never write a wall of text.
 7. If they seem discouraged or upset, validate in one sentence then redirect to what IS in their control using platform tools.
 8. Never invent data. If something shows NOT SET, tell them exactly which step in the platform fixes it.
+9. LANGUAGE: Always reply in the same language the member just wrote in — fully fluent, natural phrasing native speakers actually use, never a stiff or literal translation. Keep your direct personality, your platform feature names, and your "one clear next action" close intact in that language. If a message mixes languages, match the dominant one. Default to English only if their message gives no language signal at all.
 
 ` + bizContext + '\n'
     + audienceContext + '\n'
@@ -29699,6 +29711,21 @@ CRITICAL BEHAVIOUR RULES:
     if (!isInit) {
       appendMsg('user',text);
       advisorHistory.push({role:'user',content:text});
+      // Detect + remember language for E-OS Coach's audio (which has no
+      // text input of its own). Reliable via Unicode script ranges for
+      // non-Latin scripts; Latin-alphabet languages (Spanish vs French vs
+      // Portuguese, etc.) can't be told apart this way, so those keep
+      // using the browser's own locale as the signal instead.
+      try {
+        var scriptMap = [
+          [/[\u0600-\u06FF]/, 'ar'], [/[\u4E00-\u9FFF]/, 'zh'], [/[\u3040-\u30FF]/, 'ja'],
+          [/[\uAC00-\uD7AF]/, 'ko'], [/[\u0400-\u04FF]/, 'ru'], [/[\u0900-\u097F]/, 'hi'],
+          [/[\u0E00-\u0E7F]/, 'th']
+        ];
+        for (var _i=0; _i<scriptMap.length; _i++) {
+          if (scriptMap[_i][0].test(text)) { localStorage.setItem('eos_pref_lang', scriptMap[_i][1]); break; }
+        }
+      } catch(e) {}
     }
     if (advisorHistory.length>MAX_HISTORY) advisorHistory.splice(0,2);
     saveHistory();
@@ -46034,32 +46061,35 @@ var EOS_PRODUCT = {
     },
     'ai-video': {
       name: 'Content Studio',
-      what: 'Where you build your actual content. Five main sections: Value Post Engine (social media posts and long-form content from real audience questions), Video Studio (talking-head videos with HeyGen avatar), Carousel (slide-by-slide image posts), Story Video (cinematic AI-generated video with Runway ML), and Automate (schedule and publish). The Value Post Engine is the most-used section — it finds real questions your audience is asking online, or you can type your own question, then lets you pick a post angle (Value, Story, Contrarian, Myth Bust, Behind the Scenes, Listicle, Proof, Promotion) and a platform, then writes the full post. In Video Studio: pick your content angle, click Write Script to generate your script with AI, pick your avatar and voice, then click Generate Video.',
+      what: 'Where you build your actual content and your paid ads. Six main sections: Value Post Engine (social media posts and long-form content from real audience questions), Video Studio (talking-head videos with HeyGen avatar), Carousel (slide-by-slide image posts), Story Video (cinematic AI-generated video with Runway ML), Meta Ads (a complete Facebook/Instagram ad package built from your real offer price, with breakeven math and compliance-checked copy), and Automate (schedule and publish). The Value Post Engine is the most-used section — it finds real questions your audience is asking online, or you can type your own question, then lets you pick a post angle (Value, Story, Contrarian, Myth Bust, Behind the Scenes, Listicle, Proof, Promotion) and a platform, then writes the full post. In Video Studio: pick your content angle, click Write Script to generate your script with AI, pick your avatar and voice, then click Generate Video. In Meta Ads: pick your objective and platform, choose how many ad angles, click Generate Ad Package — it computes your real ad economics (max profitable cost-per-lead, test budget, kill and scale rules) from your actual offer price before writing a single word of copy, then writes compliant ads plus a beginner click-by-click launch guide.',
       tabs: {
         'vpe':      'Value Post Engine — Step 1: find real audience questions automatically by clicking Auto-Find for My Niche, or type your own question in the custom question field. Step 2: pick a post angle (Value answers directly, Story uses a personal experience, Contrarian challenges common beliefs, Myth Bust dismantles a lie, Behind the Scenes shows your process, Listicle structures as a numbered list, Proof leads with a real result, Promotion sells softly). Step 3: pick your platform (LinkedIn, Instagram, Facebook, X Thread, Reddit, Quora, Email, Medium). Click Write My Post.',
         'clone':    'Clone Yourself — upload a photo or record a short video to create your personal AI avatar for all future videos',
         'build':    'Build Video — pick angle, write script, choose avatar and voice, generate your HeyGen talking-head video',
         'story':    'Story Video — generate cinematic AI video using Runway ML. Write your story framework, pick style, generate 5 scenes that get stitched into one video',
         'carousel': 'Carousel — generate slide-by-slide carousel posts for Instagram and LinkedIn with AI-generated copy',
+        'meta':     'Meta Ads — set your ad objective (Lead Generation, Traffic, Sales, Awareness), platform, and number of ad angles, then click Generate Ad Package. Requires your offer price to be set first — that is what the breakeven math is built from. Produces ready-to-launch ad copy, a compliance check, and a first-time click-by-click Ads Manager walkthrough.',
         'library':  'My Videos — all your generated videos saved here. Download, copy link, or post directly'
       },
       actions: [
         'Go to Value Post Engine — click Auto-Find for My Niche to find real audience questions, or type your own in the custom question field',
         'Select a post angle — Value for direct insight, Story for personal narrative, Contrarian to challenge a belief, Promotion to sell softly',
         'Pick your platform and click Write My Post',
-        'Go to Build Video tab for video content — select angle, click Write Script, choose avatar and voice, click Generate Video'
+        'Go to Build Video tab for video content — select angle, click Write Script, choose avatar and voice, click Generate Video',
+        'Go to Meta Ads tab to build a compliant, math-backed Facebook/Instagram ad package once your offer price is set'
       ],
       next: 'After building content, go to Funnel Builder to create your sales funnel'
     },
     funnels: {
       name: 'Funnel Builder',
-      what: 'Build complete sales funnels with AI-generated copy. Choose your funnel type (VSL, Webinar, Lead Magnet, Challenge, Bridge Page, Tripwire), select your pages, and the AI writes all the copy — headline, subheadline, bullet points, CTA, and every section — based on your offer and avatar from Boardroom intelligence. You can visually edit every element, add your video, connect your payment processor, and publish to a custom domain. For Alliance Partners in Affiliate Mode, there is also the Alliance Partnership Page funnel type — this is your own copy of the official Alliance Partnership page with your own CopeCart affiliate checkout links built in. It is pre-created automatically in your Funnel Builder tab when you join. Open it, add your Starter/Pro/Elite affiliate links from CopeCart, and publish it to your own domain to start capturing leads and closing partnership sales with your own branded page.',
+      what: 'Build complete sales funnels with AI-generated copy. Choose your funnel type (VSL, Webinar, Lead Magnet, Challenge, Bridge Page, Tripwire), select your pages, and the AI writes all the copy — headline, subheadline, bullet points, CTA, and every section — based on your offer and avatar from Boardroom intelligence. Edit Page (Drag & Drop) opens the full Pro Editor — a real drag-and-drop builder: drag in blocks (headings, buttons, images, opt-in forms, columns), click any element to change its color, size, spacing or text with live controls, and preview on desktop or mobile before saving. AI Video generates a HeyGen presenter video with a script built from your real Boardroom intelligence and embeds it directly into your funnel — good for anyone who does not want to appear on camera themselves. Add Page lets you add more pages to an existing funnel (thank-you pages, upsells, etc). Connect your payment processor and publish to a custom domain. For Alliance Partners in Affiliate Mode, there is also the Alliance Partnership Page funnel type — this is your own copy of the official Alliance Partnership page with your own CopeCart affiliate checkout links built in. It is pre-created automatically in your Funnel Builder tab when you join. Open it, add your Starter/Pro/Elite affiliate links from CopeCart, and publish it to your own domain to start capturing leads and closing partnership sales with your own branded page.',
       actions: [
         'Click Create New Funnel',
         'Choose funnel type — VSL, Webinar, Lead Magnet, Challenge, Bridge, Tripwire, or Alliance Partnership Page',
         'AI generates all copy automatically for standard funnel types',
         'For Alliance Partnership Page — open your pre-created funnel, paste your CopeCart affiliate links for each tier you are approved for, click Save, then Continue to Domain and Publish',
-        'Click Visual Edit to change any text directly on the page',
+        'Click Edit Page (Drag & Drop) to open the Pro Editor and change anything visually',
+        'Click AI Video to generate and embed a presenter video into your funnel',
         'Connect Stripe for payments on your own funnels',
         'Link your domain and publish'
       ],
@@ -46276,8 +46306,63 @@ function coachPageButtons(ctx) {
   return map[p] || map['dashboard'];
 }
 
+/* ── LANGUAGE — E-OS Coach has no free-text input (chip questions only,
+   always English labels), so it can't infer language from what was typed.
+   It reads a saved preference first (set automatically the moment someone
+   writes to E-OS Intelligent in another language — see advisorSend), then
+   falls back to the browser's own locale, which is a reliable signal for
+   a global audience who never explicitly chose anything. ────────────────*/
+function coachGetLang() {
+  try {
+    var saved = localStorage.getItem('eos_pref_lang');
+    if (saved) return saved;
+  } catch(e) {}
+  return (navigator.language || navigator.userLanguage || 'en').split('-')[0];
+}
+var EOS_LANG_NAMES = { en:'English', es:'Spanish', fr:'French', pt:'Portuguese', de:'German', it:'Italian', nl:'Dutch', sw:'Swahili', ha:'Hausa', yo:'Yoruba', ig:'Igbo', ar:'Arabic', hi:'Hindi', zh:'Chinese', ja:'Japanese', ko:'Korean', ru:'Russian', tr:'Turkish', id:'Indonesian', vi:'Vietnamese', th:'Thai', tl:'Tagalog' };
+
+/* ── LANGUAGE PICKER — explicit choice always wins over auto-detection ──── */
+var EOS_COACH_LANGS = ['en','es','fr','pt','de','it','nl','ar','hi','zh','ja','ko','ru','tr','id','vi','th','tl','sw','ha','yo','ig'];
+function coachLangMenuHtml() {
+  var current = coachGetLang();
+  return EOS_COACH_LANGS.map(function(code) {
+    var name = EOS_LANG_NAMES[code] || code;
+    var on = code === current;
+    return '<div onclick="eosCoachLangSelect(\'' + code + '\')" style="padding:7px 10px;border-radius:6px;cursor:pointer;font-size:11px;color:' + (on ? '#4ecca3' : 'rgba(255,255,255,.75)') + ';font-weight:' + (on ? '800' : '500') + ';display:flex;align-items:center;justify-content:space-between" onmouseover="this.style.background=\'rgba(255,255,255,.06)\'" onmouseout="this.style.background=\'transparent\'">' + name + (on ? ' <span style="color:#4ecca3">✓</span>' : '') + '</div>';
+  }).join('');
+}
+window.eosCoachLangToggle = function(e) {
+  if (e) e.stopPropagation();
+  var menu = document.getElementById('eos-coach-lang-menu');
+  if (!menu) return;
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  menu.innerHTML = coachLangMenuHtml();
+};
+window.eosCoachLangSelect = function(code) {
+  try { localStorage.setItem('eos_pref_lang', code); } catch(e) {}
+  var menu = document.getElementById('eos-coach-lang-menu'); if (menu) menu.style.display = 'none';
+  var label = document.getElementById('eos-coach-lang-label'); if (label) label.textContent = EOS_LANG_NAMES[code] || code;
+  // Re-coach the same request immediately, now in the newly chosen language
+  if (window._eosCoach.audioEl) { try { window._eosCoach.audioEl.pause(); } catch(e) {} }
+  var tr = document.getElementById('eos-coach-transcript'); if (tr) { tr.style.display = 'none'; tr.textContent = ''; }
+  var player = document.getElementById('eos-coach-player'); if (player) player.style.display = 'none';
+  coachStatus('loading', 'Switching to ' + (EOS_LANG_NAMES[code] || code) + '\u2026');
+  var ctx = coachGetCtx();
+  var prompts = coachBuildPrompt(ctx, window._eosCoachLastQ);
+  coachGenerate(prompts.system, prompts.prompt);
+};
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('eos-coach-lang-menu');
+  var btn  = document.getElementById('eos-coach-lang-btn');
+  if (menu && menu.style.display === 'block' && e.target !== btn && !btn.contains(e.target) && !menu.contains(e.target)) {
+    menu.style.display = 'none';
+  }
+});
+
 /* ── BUILD COACHING PROMPT ───────────────────────────────────── */
 function coachBuildPrompt(ctx, question) {
+  var coachLang     = coachGetLang();
+  var coachLangName = EOS_LANG_NAMES[coachLang] || 'English';
   var pageInfo = EOS_PRODUCT.pages[ctx.page] || EOS_PRODUCT.pages['dashboard'];
   var seq      = ctx.isAff ? EOS_PRODUCT.affiliateSequence : EOS_PRODUCT.expertSequence;
 
@@ -46324,7 +46409,8 @@ function coachBuildPrompt(ctx, question) {
 
   var sequenceContext = '\nPLATFORM SEQUENCE:\n' + seq.join('\n');
 
-  var system = 'You are the E-OS Coach — the personal AI advisor built into Execution OS. You know every feature of this platform precisely and accurately. You speak like a world-class business mentor who knows this user\'s exact situation. Be direct, specific, and warm. Always reference their specific niche and offer when relevant. Never speak generically.';
+  var system = 'You are the E-OS Coach — the personal AI advisor built into Execution OS. You know every feature of this platform precisely and accurately. You speak like a world-class business mentor who knows this user\'s exact situation. Be direct, specific, and warm. Always reference their specific niche and offer when relevant. Never speak generically.'
+    + (coachLangName !== 'English' ? ' Respond entirely in ' + coachLangName + ' — full natural fluency, the way a native ' + coachLangName + ' speaker actually talks, not a literal translation. The question chip that triggered this may be labeled in English; ignore that and coach in ' + coachLangName + ' regardless, since this is only a topic label, not the language to reply in.' : '');
 
   var prompt = userState + pageContext + sequenceContext
     + '\n\nCOACHING REQUEST: ' + (question || 'I just opened this page. Coach me on exactly what to do here, how to do it step by step, and what it will achieve for my business.')
@@ -46351,6 +46437,8 @@ window.eosCoachOpen = function(question) {
   var pageInfo = EOS_PRODUCT.pages[ctx.page] || EOS_PRODUCT.pages['dashboard'];
   var buttons  = coachPageButtons(ctx);
   var prompts  = coachBuildPrompt(ctx, question);
+  var coachLangName = EOS_LANG_NAMES[coachGetLang()] || 'English';
+  window._eosCoachLastQ = question; // so switching language mid-session can regenerate the same request
 
   var panel = document.createElement('div');
   panel.id  = 'eos-coach-panel';
@@ -46368,7 +46456,13 @@ window.eosCoachOpen = function(question) {
     +     '<div><div style="font-size:11px;font-weight:800;color:#fff">E-OS Coach</div>'
     +     '<div style="font-size:9px;color:rgba(255,255,255,.4)">Now coaching: ' + pageInfo.name + '</div></div>'
     +   '</div>'
-    +   '<button onclick="eosCoachClose()" style="width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);font-size:12px;cursor:pointer">&#x2715;</button>'
+    +   '<div style=\"display:flex;align-items:center;gap:6px\">'
+    +     '<div style=\"position:relative\">'
+    +       '<button onclick=\"eosCoachLangToggle()\" id=\"eos-coach-lang-btn\" title=\"Coaching language\" style=\"display:flex;align-items:center;gap:4px;width:auto;height:26px;padding:0 9px;border-radius:13px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:rgba(255,255,255,.7);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif\">🌐 <span id=\"eos-coach-lang-label\">' + coachLangName + '</span></button>'
+    +       '<div id=\"eos-coach-lang-menu\" style=\"display:none;position:absolute;top:30px;right:0;background:#151530;border:1px solid rgba(108,99,255,.3);border-radius:10px;padding:6px;width:150px;max-height:220px;overflow-y:auto;z-index:99999;box-shadow:0 12px 30px rgba(0,0,0,.6)\">' + coachLangMenuHtml() + '</div>'
+    +     '</div>'
+    +     '<button onclick=\"eosCoachClose()\" style=\"width:26px;height:26px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;flex-shrink:0\">&#x2715;</button>'
+    +   '</div>'
     + '</div>'
     + '<div id="eos-coach-status" style="padding:8px 14px;font-size:10px;color:rgba(255,255,255,.45);border-bottom:1px solid rgba(255,255,255,.05);display:flex;align-items:center;gap:7px">'
     +   '<div id="eos-coach-dot" style="width:6px;height:6px;border-radius:50%;background:#f7c948;flex-shrink:0;animation:vsPulse 1.2s infinite"></div>'
