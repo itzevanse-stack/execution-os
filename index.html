@@ -576,6 +576,42 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
   /* Bottom banner in struggles */
   .struggles-banner{padding:28px 18px!important}
 }
+
+/* ═══════════════════════════════════════
+   MOBILE FIX — inline grids that had zero
+   responsive coverage (the actual cause of
+   the squeezed/broken mobile layout)
+   ═══════════════════════════════════════ */
+@media(max-width:768px){
+  .mob-pricing-2{grid-template-columns:1fr!important;gap:20px!important}
+  .mob-metrics-4{grid-template-columns:1fr 1fr!important}
+  .mob-perks-3{grid-template-columns:1fr!important;gap:14px!important}
+  .mob-notif-2{grid-template-columns:1fr!important}
+  .mob-stats-3{gap:10px!important}
+  .mob-credits-card{padding:26px 22px!important}
+}
+@media(max-width:480px){
+  .mob-stats-3{grid-template-columns:1fr!important;gap:10px!important}
+  .mob-metrics-4{grid-template-columns:1fr 1fr!important;gap:10px!important}
+  .mob-credits-card{padding:22px 16px!important}
+  .mob-credits-card > div{gap:20px!important}
+  /* Pricing card inner padding + price size, only reachable on mobile via
+     the card's own inline styles — nudge them down at this width */
+  .mob-pricing-2 > div{padding:26px 22px!important}
+}
+
+/* Nav — a real mobile menu instead of the links vanishing with no
+   replacement (the previous mobile nav had only logo + CTA, no way to
+   reach The System / Results / Compare / Pricing at all) */
+@media(max-width:768px){
+  .mob-nav-toggle{display:flex!important}
+  .nav-links.mob-open{
+    display:flex!important;position:absolute;top:58px;left:0;right:0;
+    flex-direction:column;background:#0a0a1c;border-bottom:1px solid rgba(255,255,255,.08);
+    padding:1rem 1.25rem;gap:0;box-shadow:0 20px 40px rgba(0,0,0,.5);z-index:200;
+  }
+  .nav-links.mob-open .nav-a{padding:14px 4px;border-bottom:1px solid rgba(255,255,255,.06);width:100%}
+}
 </style>
 </head>
 <body>
@@ -583,18 +619,25 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
 <!-- NAV -->
 <nav>
   <a class="nav-logo" href="#"><div class="logo-badge"></div>Execution<span style="color:var(--teal)">OS</span></a>
-  <div class="nav-links">
-    <a href="#modules" class="nav-a">The System</a>
-    <a href="#results" class="nav-a">Results</a>
-    <a href="#compare" class="nav-a">Compare</a>
-    <a href="#pricing" class="nav-a">Pricing</a>
+  <div class="nav-links" id="nav-links">
+    <a href="#modules" class="nav-a" onclick="mobNavClose()">The System</a>
+    <a href="#results" class="nav-a" onclick="mobNavClose()">Results</a>
+    <a href="#compare" class="nav-a" onclick="mobNavClose()">Compare</a>
+    <a href="#pricing" class="nav-a" onclick="mobNavClose()">Pricing</a>
 
   </div>
   <div class="nav-ctas" id="nav-ctas">
     <button class="nav-login" onclick="window.location.href='auth.html'">Log in</button>
-
+    <button class="mob-nav-toggle" id="mob-nav-toggle" onclick="mobNavToggle()" aria-label="Menu" style="display:none;width:36px;height:36px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px;margin-left:8px">
+      <span style="width:16px;height:2px;background:#fff;border-radius:2px;display:block"></span>
+      <span style="width:16px;height:2px;background:#fff;border-radius:2px;display:block"></span>
+    </button>
   </div>
 </nav>
+<script>
+function mobNavToggle(){ var el=document.getElementById('nav-links'); if(el) el.classList.toggle('mob-open'); }
+function mobNavClose(){ var el=document.getElementById('nav-links'); if(el) el.classList.remove('mob-open'); }
+</script>
 
 <!-- ── HERO ── -->
 <section class="hero">
@@ -746,7 +789,7 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
     </div>
 
     <!-- Stats row — below video -->
-    <div class="reveal d3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px;margin-bottom:8px">
+    <div class="reveal d3 mob-stats-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px;margin-bottom:8px">
       <div style="background:linear-gradient(145deg,rgba(78,204,163,.08),rgba(78,204,163,.03));border:1px solid rgba(78,204,163,.2);border-radius:16px;padding:20px;text-align:center">
         <div style="font-size:28px;font-weight:900;color:var(--teal);font-family:'Poppins',sans-serif;line-height:1">$52K</div>
         <div style="font-size:11px;color:var(--muted);margin-top:6px;font-weight:700">Last 4 weeks</div>
@@ -1177,7 +1220,7 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
     </div>
 
     <!-- Metric cards -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:3rem" class="reveal d2">
+    <div class="reveal d2 mob-metrics-4" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:3rem">
       <div style="background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:20px">
         <div style="font-size:11px;color:var(--dim);font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">⚡ Revenue This Month</div>
         <div style="font-size:28px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif">$22,800</div>
@@ -1201,7 +1244,7 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
     </div>
 
     <!-- Activity notification cards -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:3rem" class="reveal d3">
+    <div class="reveal d3 mob-notif-2" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:3rem">
       <div style="background:var(--card);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:14px">
         <div style="width:40px;height:40px;border-radius:12px;background:rgba(245,200,66,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📅</div>
         <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--white)">Content day complete</div><div style="font-size:11px;color:var(--dim)">Week 3 · Day 5 posted</div></div>
@@ -1390,7 +1433,7 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
     </div>
 
     <!-- Cards -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:4rem;align-items:start">
+    <div class="mob-pricing-2" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:4rem;align-items:start">
 
       <!-- Affiliate Mode -->
       <div class="reveal d1" style="background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.02));border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:36px 32px;position:relative">
@@ -1523,7 +1566,7 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
         <div style="font-size:20px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:8px">What Real Builders Get</div>
         <div style="font-size:13px;color:var(--muted)">Annual members aren't just saving money. They're in a different category entirely.</div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
+      <div class="mob-perks-3" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
         <div style="text-align:center;padding:20px">
           <div style="font-size:24px;margin-bottom:10px">🔒</div>
           <div style="font-size:13px;font-weight:800;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">Price Locked Forever</div>
@@ -1548,7 +1591,7 @@ footer{border-top:1px solid var(--border);padding:1.75rem 2.5rem;display:flex;al
     </div>
 
     <!-- Credits section -->
-    <div class="reveal d3" style="background:var(--card2);border:1px solid var(--border2);border-radius:24px;padding:40px 44px;margin-bottom:4rem">
+    <div class="reveal d3 mob-credits-card" style="background:var(--card2);border:1px solid var(--border2);border-radius:24px;padding:40px 44px;margin-bottom:4rem">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:32px;flex-wrap:wrap">
         <div style="flex:1;min-width:260px">
           <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--teal);margin-bottom:12px">AI Credits</div>
