@@ -37050,11 +37050,17 @@ function brShowPhase1() {
 
   var av  = window._avatarData || {};
   var gv  = function(id){ var el=document.getElementById(id); return el?el.value.trim():''; };
-  var offerName  = gv('offer_name');
-  var offerPrice = gv('offer_price');
-  var target     = window._appliedTarget || 0;
+  var offerName  = gv('offer_name') || av.offer_name || '';
+  var offerPrice = gv('offer_price') || '';
+  var target     = window._appliedTarget || parseInt(gv('target')) || 0;
   var price      = window._appliedPrice  || parseInt(offerPrice) || 2000;
   var salesNeeded = target && price ? Math.ceil(target/price) : 0;
+  // Read avatar fields directly from DOM so card shows even before Build Avatar is clicked
+  var avatarName = av.name || gv('av_name') || '';
+  var avatarJob  = av.job  || gv('av_job')  || '';
+  var avatarTrans = av.transformation || gv('av_transformation') || gv('av_desired') || '';
+  var avatarPain  = av.pain || gv('av_current') || '';
+  var avatarDesc  = avatarName || (avatarJob ? avatarJob.split('/')[0].split(',')[0].trim() : 'Not set yet');
 
   var locked   = document.getElementById('br-locked');
   var intelCard= document.getElementById('br-intel-card');
@@ -37173,7 +37179,9 @@ function brShowPhase1() {
   if (cols) {
     cols.innerHTML = [
       _brIntelCol('var(--teal)',  'Revenue Target', '$'+(target?target.toLocaleString():'—'), salesNeeded ? salesNeeded+' sales of $'+parseInt(price).toLocaleString()+' to hit goal' : 'Set price & target first'),
-      _brIntelCol('var(--yellow)','Your Ideal Customer', av.job||'Not set yet', av.transformation ? av.transformation.slice(0,80)+'…' : 'Complete Step 2'),
+      _brIntelCol('var(--yellow)','Your Ideal Customer',
+        avatarDesc || 'Not set yet',
+        (avatarTrans ? avatarTrans.slice(0,80)+'…' : (avatarPain ? avatarPain.slice(0,80)+'…' : 'Complete Ideal Customer step'))),
       _brIntelCol('var(--orange)','Your Offer', offerName||'Not set yet', offerPrice ? '$'+parseInt(offerPrice).toLocaleString() : 'Complete Step 3'),
     ].join('');
   }
@@ -37189,12 +37197,16 @@ function _brIntelCol(color, label, value, sub) {
 
 // ── Phase 2: start mentor conversation ───────────────────────────
 window._brChatState = { step: 0, answers: {} };
+window._brQ1Retried = false;
+window._brNudged = {0:false,1:false,2:false,3:false,4:false};
 
 // BR_QUESTIONS are built dynamically inside brStartSession()
 // so they reflect the user's actual niche, offer, and sales target.
 var BR_QUESTIONS = [null, null, null, null, null];
 
 function brStartSession() {
+  window._brQ1Retried = false;
+  window._brNudged = {0:false,1:false,2:false,3:false,4:false}; // One nudge max per question
   var phase1 = document.getElementById('br-phase1');
   var phase2 = document.getElementById('br-phase2');
   var phase3 = document.getElementById('br-phase3');
@@ -37233,7 +37245,11 @@ function brStartSession() {
     platformExamples = 'YouTube subscribers, LinkedIn connections, Twitter/X followers, anyone in finance groups you are active in, past clients or colleagues who know your background';
   }
 
-  BR_QUESTIONS[0] = 'Right now — how many ' + avatarJob + 's can you actually reach in the next 7 days who already know you exist, even a little? Be specific: ' + platformExamples + '. Give me a real number, not a goal. And tell me — does any of this audience already know you help with ' + niche + '?';
+  BR_QUESTIONS[0] = 'Right now — how many ' + avatarJob + 's can you actually reach in the next 7 days? Be honest with me: this includes everyone — '
+    + platformExamples + ', past clients, anyone who has ever seen your content. '
+    + 'Give me a real number — even if it is small or zero. If you are starting from scratch, just say that. '
+    + 'I build better plans from honest starting points than from inflated numbers. '
+    + 'And tell me — does any of this audience already know you help with ' + niche + '?';
 
   // Q2 — platform, niche-specific
   var topPlatforms = 'Instagram, Facebook, TikTok, YouTube, LinkedIn, or email list';
@@ -37312,67 +37328,80 @@ function brShowTyping(cb) {
 
 // ── Answer quality checker ──────────────────────────────────────────
 function _brCheckAnswerQuality(step, text) {
-  // Returns null if answer is acceptable, or a push-back message if it needs more
+  // Work WITH the user. At most one gentle nudge per question then always accept.
+  // Honest short answers beat forced long ones. Never loop twice.
+
+  var lower = text.toLowerCase().trim();
   var words = text.trim().split(/\s+/).filter(function(w){ return w.length > 0; });
   var wordCount = words.length;
-  var lower = text.toLowerCase().trim();
 
-  // Universal minimum: answers must be at least 4 words
-  if (wordCount < 4) {
-    return 'That is too brief for me to build a precise plan from. Can you give me a more specific answer?';
+  // Completely blank or noise — nudge once then accept
+  var isBlank = wordCount < 2 || ['ok','okay','sure','idk','?','...'].indexOf(lower) > -1;
+  if (isBlank) {
+    if (!window._brNudged[step]) {
+      window._brNudged[step] = true;
+      return 'Take your time — even a rough honest answer helps me build a better plan. What comes to mind?';
+    }
+    return null;
   }
 
-  // Q1 — must contain a number (audience size)
+  // Q1 — audience size
   if (step === 0) {
-    var hasNumber = /\d/.test(text);
-    if (!hasNumber) {
-      return 'I need an actual number here — even a rough one. How many people specifically? Even if it is 50 or 200, give me a real figure so I can build your outreach plan around it.';
+    var honestZero = /\b(zero|none|0|no one|nobody|nothing|nada)\b/i.test(text) ||
+      ['starting out','just starting','brand new','from scratch','from zero',
+       "don't have",'dont have','have not','no followers','no contacts',
+       'no list','no network','no audience','just me','only me'].some(function(s){
+         return lower.indexOf(s) > -1;
+       });
+    if (honestZero) return null;
+    if (/\d/.test(text)) return null;
+    if (!window._brNudged[step]) {
+      window._brNudged[step] = true;
+      return 'That is fine — even zero is a valid answer and I can build from that. Roughly how many people, or is it zero right now?';
     }
-    // Catch obviously inflated answers
-    var nums = text.match(/\d[\d,]*/g) || [];
-    var biggest = Math.max.apply(null, nums.map(function(n){ return parseInt(n.replace(/,/g,'')) || 0; }));
-    if (biggest > 500000) {
-      return 'That is a very large audience. I want to make sure we are focused on the right people — of those ' + biggest.toLocaleString() + ', how many are actually engaged with your content about this specific niche? What is a realistic number of warm, responsive people?';
-    }
+    return null;
   }
 
-  // Q2 — must name a specific platform
+  // Q2 — platform
   if (step === 1) {
-    var platforms = ['instagram','facebook','tiktok','youtube','linkedin','whatsapp','email','twitter','x.com','telegram','discord','podcast'];
-    var namedPlatform = platforms.some(function(p){ return lower.indexOf(p) > -1; });
-    if (!namedPlatform) {
-      return 'I need you to name the specific platform. Instagram? Facebook? LinkedIn? YouTube? Email list? Which ONE will you commit to showing up on consistently for the next 30 days?';
+    var platformList = ['instagram','facebook','tiktok','youtube','linkedin',
+      'whatsapp','email','twitter','x.com',' x ','telegram','discord',
+      'podcast','snapchat','threads','pinterest'];
+    if (platformList.some(function(p){ return lower.indexOf(p) > -1; })) return null;
+    var noPlatform = ['no platform','none','dont use',"don't use",'not on',
+      'nowhere','no social','not active','no account'].some(function(s){
+        return lower.indexOf(s) > -1;
+      });
+    if (noPlatform) return null;
+    if (!window._brNudged[step]) {
+      window._brNudged[step] = true;
+      return 'Which platform feels most natural? Even if you are not very active yet — Instagram, Facebook, LinkedIn, YouTube, or email?';
     }
+    return null;
   }
 
-  // Q3 — vague "yes" or "no" without details
-  if (step === 2) {
-    if ((lower === 'yes' || lower === 'no' || lower === 'nope' || lower === 'yeah') && wordCount < 6) {
-      return 'I need more than that. If yes — what did you sell, at what price, and how did it go? If no — what is the specific honest reason? The more specific you are, the better I can help.';
-    }
-    if ((lower.indexOf('yes') === 0 || lower.indexOf('no') === 0) && wordCount < 8) {
-      return 'Good start, but I need the details. What specifically happened? Give me the numbers and the context.';
-    }
-  }
+  // Q3 — sales history: any honest answer accepted, no pushback
+  if (step === 2) { return null; }
 
-  // Q4 — must be specific, not just "confidence" or "time" as one word
-  if (step === 3) {
-    var vagueOne = ['confidence','time','money','fear','mindset','motivation','everything'];
-    var isJustOneVague = wordCount < 6 && vagueOne.some(function(v){ return lower.indexOf(v) > -1; });
-    if (isJustOneVague) {
-      return 'I hear you — but I need to go deeper. When you say "' + text.trim() + '" — what specifically does that look like for you right now? What have you actually tried? What happened?';
-    }
-  }
+  // Q4 — biggest obstacle: vulnerability and honesty here are the goal, never push back
+  if (step === 3) { return null; }
 
-  // Q5 — must contain a number (hours) and some budget indication
+  // Q5 — time and budget
   if (step === 4) {
-    var hasHours = /\d/.test(text);
-    if (!hasHours) {
-      return 'I need a specific number of hours per day — even if it is just 1. And tell me about budget: do you have $50, $300, or nothing to put behind this right now?';
+    if (/\d/.test(text)) return null;
+    var noBudget = ['no budget','no money','nothing','broke','zero',
+      "can't afford",'cannot afford','no funds'].some(function(s){
+        return lower.indexOf(s) > -1;
+      });
+    if (noBudget) return null;
+    if (!window._brNudged[step]) {
+      window._brNudged[step] = true;
+      return 'No problem if it is small — how many hours a day can you realistically protect? And any budget at all, or zero right now?';
     }
+    return null;
   }
 
-  return null; // answer is acceptable
+  return null;
 }
 
 window.brChatSend = function() {
