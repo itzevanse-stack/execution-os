@@ -14872,6 +14872,8 @@ window.liveRecalc = function() {
     // Update globals immediately
     window._appliedPrice  = price;
     window._appliedTarget = target;
+    // Persist immediately so target survives navigation without pressing Enter
+    if (typeof window._eosSaveFormState === 'function') window._eosSaveFormState();
 
     // Recalculate funnel math
     const sales    = Math.ceil(target / price);
@@ -46285,8 +46287,14 @@ function vpeGetIntel() {
     var icp = bi.icpResearch    || {};
     var ar  = bi.architect      || {};
 
-    if (of.offer_name)    lines.push('Offer: '+of.offer_name);
-    if (of.offer_promise) lines.push('Promise: '+of.offer_promise);
+    var _price  = parseInt(of.offer_price || window._appliedPrice || 0);
+    var _target = parseInt(window._appliedTarget || 0);
+    if (_price)              lines.push('Offer price: $'+_price.toLocaleString());
+    if (_target)             lines.push('Monthly revenue target: $'+_target.toLocaleString()+' ('+Math.ceil(_target/(_price||1))+' sales/month needed)');
+    if (of.offer_name)       lines.push('Offer: '+of.offer_name);
+    if (of.offer_promise)    lines.push('Promise: '+of.offer_promise);
+    if (of.offer_result)     lines.push('Result they get: '+of.offer_result);
+    if (of.offer_difference) lines.push('What makes it different: '+of.offer_difference);
     if (draft.niche||window._appliedNiche) lines.push('Niche: '+(draft.niche||window._appliedNiche||''));
 
     var painText = avd.av_current || av.pain || '';
