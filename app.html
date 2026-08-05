@@ -3786,7 +3786,7 @@ button[onclick="generateOffer()"] {
           <div class="inp-pair">
             <div class="inp-box">
               <div class="inp-lbl">Offer price</div>
-              <div class="inp-row"><span class="curr">$</span><input class="big-inp" id="price" type="number" value="1000" min="1" onkeydown="if(event.key==='Enter')applyAll()" oninput="window.liveRecalc()"></div>
+              <div class="inp-row"><span class="curr">$</span><input class="big-inp" id="price" type="number" value="1000" min="1" onkeydown="if(event.key==='Enter')applyAll()" oninput="window.liveRecalc();(function(){var op=document.getElementById('offer_price');if(op&&!op.dataset.userEdited&&this.value){op.value=this.value;op.dispatchEvent(new Event('input',{bubbles:true}));}}).call(this);"></div>
             </div>
             <div class="inp-box">
               <div class="inp-lbl">Monthly target</div>
@@ -15422,9 +15422,30 @@ function _vaultAttachListeners() {
 // Load draft on startup
 function _vaultRestoreDraft() {
   try {
-    var raw = localStorage.getItem('eos_draft_offer');
-    if (raw) _vaultRestore(JSON.parse(raw));
-  } catch(e) {}
+    var rawDraft = localStorage.getItem('eos_draft_offer');
+    var rawForm  = localStorage.getItem('eos_form_state');
+    var draft = rawDraft ? JSON.parse(rawDraft) : null;
+    var form  = rawForm  ? JSON.parse(rawForm)  : null;
+    // Use whichever was saved more recently
+    var formNewer = form && draft &&
+      new Date(form.savedAt||0).getTime() > new Date(draft.savedAt||0).getTime();
+    if (formNewer) {
+      var fields = ['niche','price','target','offer_promise','offer_result','offer_name',
+        'offer_no_effort','offer_transformation','offer_system','offer_format','offer_duration',
+        'offer_difference','offer_price','offer_payment','offer_guarantee','offer_guarantee_cond',
+        'offer_scarcity','offer_bonus'];
+      fields.forEach(function(id) {
+        if (!form[id]) return;
+        var el = document.getElementById(id);
+        if (el) { el.value = form[id]; el.dispatchEvent(new Event('input',{bubbles:true})); }
+      });
+      if (form.niche)  window._appliedNiche  = form.niche;
+      if (form.price)  window._appliedPrice  = Number(form.price);
+      if (form.target) window._appliedTarget = Number(form.target);
+    } else if (draft) {
+      _vaultRestore(draft);
+    }
+  } catch(e) { console.warn('[vault] restore failed:', e); }
 }
 
 // Vault data helpers
@@ -36431,7 +36452,7 @@ var _eosSaveTimer = null;
 window._eosSaveFormState = function() {
   clearTimeout(_eosSaveTimer);
   _eosSaveTimer = setTimeout(function() {
-    var state = { savedAt: Date.now(), niche: window._appliedNiche||'' };
+    var state = { savedAt: new Date().toISOString(), niche: window._appliedNiche||'' };
     EOS_ALL_FIELDS.forEach(function(id) {
       var el = document.getElementById(id);
       if (el) state[id] = el.value;
