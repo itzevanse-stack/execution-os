@@ -4216,7 +4216,7 @@ button[onclick="generateOffer()"] {
         <div class="av-fields">
           <div class="fr">
             <div class="fl">Describe their current painful reality in vivid detail. What does a typical Tuesday look like for them? What thoughts run through their head?</div>
-            <textarea class="fi" id="av_current" placeholder="e.g. Wakes up to check bank balance before getting out of bed. Spends the day on calls she did not want to take, working for clients who undervalue her. By 9pm she's too tired to work on her own business. Has 47 browser tabs open about 'passive income'. Hasn't taken a holiday in 2 years." style="min-height:90px" oninput="markFilled()"></textarea>
+            <textarea class="fi" id="av_current" oninput="this.dataset.userTyped='true';window._avatarData&&(window._avatarData.pain=this.value);" placeholder="e.g. Wakes up to check bank balance before getting out of bed. Spends the day on calls she did not want to take, working for clients who undervalue her. By 9pm she's too tired to work on her own business. Has 47 browser tabs open about 'passive income'. Hasn't taken a holiday in 2 years." style="min-height:90px" oninput="markFilled()"></textarea>
           </div>
           <div class="fl" style="margin-bottom:5px">Their biggest pain points <span id="pain-grid-niche-label" style="color:var(--purple);font-size:9px;margin-left:6px">(select niche in Revenue Plan to see tailored options)</span></div>
           <div class="pain-grid" id="pain-grid"></div>
@@ -9879,7 +9879,24 @@ function buildPainGrid(){
     `<div class="pain-item" id="pi-${i}" onclick="togglePain(${i})"><div class="pain-check"><svg class="pain-chk-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div><div class="pain-txt">${p}</div></div>`
   ).join('');
 }
-function togglePain(i){const el=document.getElementById('pi-'+i);if(selectedPains.has(i)){selectedPains.delete(i);el.classList.remove('sel')}else{selectedPains.add(i);el.classList.add('sel')}markFilled()}
+function togglePain(i){
+  const el=document.getElementById('pi-'+i);
+  if(selectedPains.has(i)){selectedPains.delete(i);el.classList.remove('sel');}
+  else{selectedPains.add(i);el.classList.add('sel');}
+  // Immediately sync to _avatarData and localStorage so nothing is lost
+  var pains = window._nichePains || [];
+  var selected = Array.from(selectedPains).map(function(idx){ return pains[idx]; }).filter(Boolean);
+  if (!window._avatarData) window._avatarData = {};
+  window._avatarData.painPoints = selected;
+  // Also push into av_current textarea if it's empty, so it feeds into prompts
+  var avCurrent = document.getElementById('av_current');
+  if (avCurrent && !avCurrent.dataset.userTyped) {
+    avCurrent.value = selected.join('; ');
+    window._avatarData.pain = avCurrent.value;
+  }
+  try { localStorage.setItem('eos_avatar_pain_points', JSON.stringify(selected)); } catch(e) {}
+  markFilled();
+}
 function addTag(e,wrap,inp){if(e.key!=='Enter')return;e.preventDefault();const val=e.target.value.trim();if(!val)return;const t=document.createElement('div');t.className='tag';t.innerHTML=val+'<button class="tag-rm" onclick="removeTag(this,event)">×</button>';document.getElementById(inp).before(t);e.target.value='';markFilled()}
 function removeTag(btn,e){if(e)e.stopPropagation();btn.parentElement.remove();markFilled()}
 function markFilled(){
@@ -13817,7 +13834,10 @@ function generateAvatar(){
     costOfInaction: gv('av_cost'),
     employ:         gv('av_employ'),
     hours:          gv('av_hrs'),
-    pain:           gv('av_current'),
+    pain:           gv('av_current') || (window._avatarData && window._avatarData.pain) || '',
+    painPoints:     (window._avatarData && window._avatarData.painPoints) || (function(){
+                      try{ return JSON.parse(localStorage.getItem('eos_avatar_pain_points')||'[]'); }catch(e){ return []; }
+                    })(),
     fear:           gv('av_fear'),
     tried:          gv('av_tried'),
     transformation: gv('av_transformation'),
@@ -14748,6 +14768,21 @@ window.adminRevokeMember = async function(memberId, memberName){
 
 // Init
 buildPainGrid();
+// Restore saved pain point selections
+(function restorePainSelections(){
+  try {
+    var saved = JSON.parse(localStorage.getItem('eos_avatar_pain_points') || '[]');
+    if (!saved.length) return;
+    var pains = window._nichePains || [];
+    saved.forEach(function(painText) {
+      var idx = pains.indexOf(painText);
+      if (idx === -1) return;
+      selectedPains.add(idx);
+      var el = document.getElementById('pi-'+idx);
+      if (el) el.classList.add('sel');
+    });
+  } catch(e) {}
+})();
 applyAll();
 
 // ─── Window exports for HTML onclick handlers ───────────────────────────
@@ -16177,12 +16212,16 @@ function showNicheBanner() {
 function rebuildPainGrid(pains) {
   const grid = document.getElementById('pain-grid');
   if(!grid || !pains || !pains.length) return;
-  // Save existing selections by index (they'll reset since pains change)
+  // Restore saved selections matched by pain text (survives niche changes)
+  var prevSaved = [];
+  try { prevSaved = JSON.parse(localStorage.getItem('eos_avatar_pain_points') || '[]'); } catch(e) {}
   window.selectedPains = new Set();
-  grid.innerHTML = pains.map((p,i) =>
-    `<div class="pain-item" id="pi-${i}" onclick="togglePain(${i})"><div class="pain-check"><svg class="pain-chk-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div><div class="pain-txt">${p}</div></div>`
-  ).join('');
   window._nichePains = pains;
+  grid.innerHTML = pains.map((p,i) => {
+    var isSel = prevSaved.indexOf(p) > -1;
+    if (isSel) window.selectedPains.add(i);
+    return '<div class="pain-item'+(isSel?' sel':'')+' id="pi-'+i+'" onclick="togglePain('+i+')"><div class="pain-check"><svg class="pain-chk-svg" viewBox="0 0 10 8"><polyline points="1,4 3.5,6.5 9,1"/></svg></div><div class="pain-txt">'+p+'</div></div>';
+  }).join('');
 }
 
 // generateAvatar override neutralised — niche pains are now read directly in generateAvatar
@@ -36837,7 +36876,12 @@ function brCollectInputs() {
     payment:        gv('offer_payment'),
     av_name:        av.name || gv('av_name'),
     av_job:         av.job  || gv('av_job'),
-    av_pain:        av.pain || gv('av_current'),
+    av_pain:        (function(){
+                      var pts = (av.painPoints && av.painPoints.length) ? av.painPoints.join('; ') : '';
+                      var typed = av.pain || gv('av_current') || '';
+                      return typed || pts || '';
+                    })(),
+    av_painPoints:  (av.painPoints || []).join('; '),
     av_fear:        av.fear || gv('av_fear'),
     av_desire:      av.transformation || gv('av_desired'),
     av_tried:       av.tried || gv('av_tried'),
