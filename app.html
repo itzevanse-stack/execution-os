@@ -9898,8 +9898,40 @@ function togglePain(i){
   try { localStorage.setItem('eos_avatar_pain_points', JSON.stringify(selected)); } catch(e) {}
   markFilled();
 }
-function addTag(e,wrap,inp){if(e.key!=='Enter')return;e.preventDefault();const val=e.target.value.trim();if(!val)return;const t=document.createElement('div');t.className='tag';t.innerHTML=val+'<button class="tag-rm" onclick="removeTag(this,event)">×</button>';document.getElementById(inp).before(t);e.target.value='';markFilled()}
-function removeTag(btn,e){if(e)e.stopPropagation();btn.parentElement.remove();markFilled()}
+function saveTagsToStorage(wrapId){
+  try {
+    var wrap = typeof wrapId==='string' ? document.getElementById(wrapId) : wrapId;
+    if (!wrap) return;
+    var id = wrap.id;
+    var tags = Array.from(wrap.querySelectorAll('.tag')).map(function(t){
+      return t.textContent.replace('×','').trim();
+    }).filter(Boolean);
+    localStorage.setItem('eos_tags_'+id, JSON.stringify(tags));
+    if (!window._avatarData) window._avatarData = {};
+    if (id === 'kw-wrap')   window._avatarData.keywords  = tags;
+    if (id === 'plat-wrap') window._avatarData.platforms = tags;
+  } catch(e) {}
+}
+function addTag(e,wrap,inp){
+  if(e.key!=='Enter')return;
+  e.preventDefault();
+  const val=e.target.value.trim();
+  if(!val)return;
+  const t=document.createElement('div');
+  t.className='tag';
+  t.innerHTML=val+'<button class="tag-rm" onclick="removeTag(this,event)">×</button>';
+  document.getElementById(inp).before(t);
+  e.target.value='';
+  markFilled();
+  saveTagsToStorage(wrap);
+}
+function removeTag(btn,e){
+  if(e)e.stopPropagation();
+  var wrap=btn.parentElement ? btn.parentElement.parentElement : null;
+  btn.parentElement.remove();
+  markFilled();
+  if(wrap) saveTagsToStorage(wrap);
+}
 function markFilled(){
   var navBtn = document.querySelectorAll('#main-nav .nav-btn')[3];
   if (navBtn) navBtn.classList.add('filled');
@@ -13850,6 +13882,20 @@ function generateAvatar(){
     objections:     gv('av_objections'),
     selfStory:      gv('av_self_story'),
     deeperPain:     gv('av_fear'),
+    keywords:       (function(){
+                      var wrap = document.getElementById('kw-wrap');
+                      if (!wrap) return [];
+                      return Array.from(wrap.querySelectorAll('.tag')).map(function(t){
+                        return t.textContent.replace('�','').replace('x','').trim();
+                      }).filter(Boolean);
+                    })(),
+    platforms:      (function(){
+                      var wrap = document.getElementById('plat-wrap');
+                      if (!wrap) return [];
+                      return Array.from(wrap.querySelectorAll('.tag')).map(function(t){
+                        return t.textContent.replace('�','').replace('x','').trim();
+                      }).filter(Boolean);
+                    })(),
     savedAt:        Date.now()
   };
   try {
@@ -14769,6 +14815,31 @@ window.adminRevokeMember = async function(memberId, memberName){
 
 // Init
 buildPainGrid();
+// Restore keyword and platform tags from localStorage
+(function restoreTagWraps(){
+  ['kw-wrap','plat-wrap'].forEach(function(wrapId){
+    try {
+      var saved = JSON.parse(localStorage.getItem('eos_tags_'+wrapId)||'[]');
+      if (!saved.length) return;
+      var wrap = document.getElementById(wrapId);
+      var inp  = wrap ? wrap.querySelector('.tag-inp') : null;
+      if (!wrap || !inp) return;
+      // Remove any existing tags first
+      wrap.querySelectorAll('.tag').forEach(function(t){ t.remove(); });
+      saved.forEach(function(val){
+        if (!val) return;
+        var t = document.createElement('div');
+        t.className = 'tag';
+        t.innerHTML = val + '<button class="tag-rm" onclick="removeTag(this,event)">×</button>';
+        wrap.insertBefore(t, inp);
+      });
+      // Sync into _avatarData
+      if (!window._avatarData) window._avatarData = {};
+      if (wrapId === 'kw-wrap')   window._avatarData.keywords  = saved;
+      if (wrapId === 'plat-wrap') window._avatarData.platforms = saved;
+    } catch(e) {}
+  });
+})();
 // Restore saved pain point selections
 (function restorePainSelections(){
   try {
@@ -36910,6 +36981,7 @@ function brCollectInputs() {
     av_motivation:  av.motivation || gv('av_motivation'),
     av_objections:  av.objections || gv('av_objections'),
     av_keywords:    (av.keywords||[]).join(', ') || gv('av_influences'),
+    av_platforms:   (av.platforms||[]).join(', '),
     av_incomeGoal:  av.incomeGoal || gv('av_igr'),
     nicheTransform: nv.transformation || '',
     nichePain:      nv.painContext || '',
@@ -46239,6 +46311,12 @@ function vpeGetIntel() {
     // instead of generic niche advice.
     if (ar.positioningStatement) lines.push('Positioning: '+ar.positioningStatement);
     if (ar.dominanceAngle)       lines.push('What makes this different: '+ar.dominanceAngle);
+    // Keywords and platforms from avatar builder
+    var kws  = av.keywords  || [];
+    var plts = av.platforms || [];
+    if (kws.length)  lines.push('Keywords their audience types into Google: '+kws.join(', '));
+    if (plts.length) lines.push('Platforms they use daily: '+plts.join(', '));
+    if (av.objections) lines.push('Their real objections before buying: '+av.objections);
   }
   return lines.join('\n');
 }
