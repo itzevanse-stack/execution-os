@@ -24408,6 +24408,7 @@ window.csShowTab = function(tab, btn) {
         _vpeGrid.innerHTML = _vpeState.questions.map(function(q, i) {
           var pc = {reddit:'#ff4500',quora:'#b92b27',google:'var(--teal)',youtube:'#ff0000',x:'var(--white)'}[q.platform] || 'var(--dim)';
           var srcLink = q.url ? '<a href="'+q.url+'" target="_blank" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--teal);text-decoration:none;background:rgba(78,204,163,.08);border:1px solid rgba(78,204,163,.2);border-radius:4px;padding:2px 8px;white-space:nowrap">View Source →</a>' : '';
+        var googleBadge = (q.source==='google_suggest') ? '<span style="font-size:10px;font-weight:800;color:#4285F4;background:rgba(66,133,244,.1);border:1px solid rgba(66,133,244,.25);border-radius:4px;padding:2px 8px">🔍 Google Search</span>' : '';
           return '<div class="vpe-q-card" onclick="vpeSelectQuestion(this,'+i+')">'
             +'<div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.6;margin-bottom:8px">'+q.question+'</div>'
             +(q.why?'<div style="font-size:11px;color:var(--dim);margin-bottom:8px;line-height:1.5">'+q.why+'</div>':'')
@@ -37803,6 +37804,17 @@ function brShowTab(tab, btn) {
   var panel = document.getElementById('br-tab-' + tab);
   if (panel) {
     panel.style.display = 'block';
+    // Auto-rebuild tabs that have empty intel (failed AI call during original run)
+    var _autoRebuildTabs = ['architect','offer-stack','copy-vault','war-plan'];
+    if (_autoRebuildTabs.indexOf(tab) > -1 && window._boardroomIntel) {
+      var _tabData = window._boardroomIntel[tab === 'architect' ? 'architect' : tab === 'offer-stack' ? 'offerStack' : tab === 'copy-vault' ? 'copyVault' : 'warPlan'] || {};
+      var _isEmpty = !_tabData || Object.keys(_tabData).length === 0 ||
+        !Object.values(_tabData).some(function(v){ return typeof v === 'string' && v.length > 20; });
+      if (_isEmpty && !panel._brAutoRebuilding) {
+        panel._brAutoRebuilding = true;
+        if (typeof brRegenerateTab === 'function') brRegenerateTab(tab);
+      }
+    }
     if (panel.innerHTML.trim() === '' && window._boardroomIntel) {
       if (tab === 'war-room') {
         var plan2 = window._boardroomIntel.plan || {};
@@ -39897,7 +39909,11 @@ function brRenderArchitect(d, inp) {
     +'<div style="font-size:15px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif;margin-bottom:8px">Business Architect Not Built Yet</div>'
     +'<div style="font-size:12px;color:var(--dim);margin-bottom:20px;line-height:1.7;max-width:380px;margin-left:auto;margin-right:auto">This section needs its own AI call. Click to build it now — takes about 15 seconds.</div>'
     +'<button onclick="brRegenerateTab(\'architect\')" style="padding:12px 28px;background:linear-gradient(135deg,#6c63ff,#4a3fcccc);border:none;border-radius:12px;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;letter-spacing:.3px">⚡ Build Business Architect</button></div>';
+  // Also treat as empty if all key values are blank/placeholder strings
   if (!d || Object.keys(d).length === 0) return _emptyHtml;
+  var _hasRealContent = ['positioningStatement','dominanceAngle','competitiveMoat','immediateWin']
+    .some(function(k){ return d[k] && d[k].length > 20 && d[k].indexOf('specific') === -1 && d[k].indexOf('placeholder') === -1; });
+  if (!_hasRealContent) return _emptyHtml;
 
   // Field name normalisation — the AI schema uses these names but earlier
   // renderer code expected different keys, causing every card to show empty.
@@ -46252,18 +46268,44 @@ window.vpeOnCustomQuestion = function() {
 function vpeOnCustomQuestion() { window.vpeOnCustomQuestion(); }
 
 window.vpeUseCustomQuestion = function() {
-  var val = ((document.getElementById('vpe-custom-question')||{}).value || '').trim();
-  if (!val) { alert('Please type a question first.'); return; }
-  document.querySelectorAll('.vpe-q-card').forEach(function(c){ c.classList.remove('selected'); });
-  var display = document.getElementById('vpe-topic-display');
-  var topicInput = document.getElementById('vpe-topic');
-  if (display) display.textContent = val;
-  if (topicInput) topicInput.value = val;
-  _vpeState.topic = val;
-  if (display) {
-    display.style.borderColor = 'rgba(78,204,163,.5)';
-    setTimeout(function(){ if(display) display.style.borderColor = ''; }, 1200);
+  var inputEl = document.getElementById('vpe-custom-question');
+  var val     = inputEl ? inputEl.value.trim() : '';
+  var btn     = document.getElementById('vpe-use-custom-btn');
+  if (!val) {
+    if (inputEl) {
+      inputEl.style.borderColor = '#ff4d4d';
+      inputEl.placeholder = 'Type your question first...';
+      inputEl.focus();
+      setTimeout(function(){ inputEl.style.borderColor = ''; inputEl.placeholder = 'e.g. Why do most people fail at affiliate marketing in the first 90 days?'; }, 2000);
+    }
+    return;
   }
+  document.querySelectorAll('.vpe-q-card').forEach(function(c){ c.classList.remove('selected'); });
+  _vpeState.topic = val;
+  var topicInput = document.getElementById('vpe-topic');
+  if (topicInput) topicInput.value = val;
+  try { var ls = window.localStorage; if (ls) ls.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
+  var displayWrap = document.getElementById('vpe-selected-q-display');
+  var displayEl   = document.getElementById('vpe-topic-display');
+  if (displayWrap) displayWrap.style.display = 'block';
+  if (displayEl)   displayEl.textContent = val;
+  if (displayEl) {
+    displayEl.style.borderColor = 'rgba(78,204,163,.6)';
+    displayEl.style.background  = 'rgba(78,204,163,.08)';
+    setTimeout(function(){
+      if (displayEl) { displayEl.style.borderColor = ''; displayEl.style.background = ''; }
+    }, 1500);
+  }
+  if (btn) {
+    btn.textContent = 'Set!';
+    btn.style.cssText = 'background:rgba(78,204,163,.2);border:1px solid rgba(78,204,163,.5);border-radius:var(--r-md);padding:9px 16px;color:var(--teal);font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap';
+    setTimeout(function(){
+      btn.textContent = 'Use This →';
+      btn.style.cssText = 'background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);border-radius:var(--r-md);padding:9px 16px;color:#F5C842;font-size:11px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif;white-space:nowrap';
+    }, 1500);
+  }
+  var angleSection = document.getElementById('vpe-angle-grid');
+  if (angleSection) setTimeout(function(){ angleSection.scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 150);
 };
 function vpeUseCustomQuestion() { window.vpeUseCustomQuestion(); }
 
@@ -46408,7 +46450,9 @@ async function vpeFindQuestions() {
     var source    = data.source    || 'generated';
     _vpeState.questions = questions;
     try { localStorage.setItem('eos_vpe_state', JSON.stringify(_vpeState)); } catch(e) {}
-    var sourceLabel = source==='live'
+    var sourceLabel = (source==='live+google')
+      ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live — Google Searches + Reddit, Quora, YouTube &amp; X</span>'
+      : source==='live'
       ? '<span style="color:var(--teal);font-weight:700;font-size:11px">🟢 Live results — Reddit, Quora, Google, YouTube &amp; X (last 12 months)</span>'
       : '<span style="color:#F5C842;font-weight:700;font-size:11px">⚡ Generated from niche knowledge</span>';
     if (status) status.innerHTML = '✅ Found '+questions.length+' questions &nbsp;·&nbsp;'+sourceLabel;
@@ -46428,6 +46472,7 @@ async function vpeFindQuestions() {
           +(q.year?'<span style="font-size:10px;font-weight:700;color:var(--teal);background:var(--card2);border-radius:4px;padding:2px 8px">📅 '+q.year+'</span>':'')
           +'<span style="font-size:10px;font-weight:700;color:'+(q.volume==='high'?'var(--teal)':'#F5C842')+';background:var(--card2);border-radius:4px;padding:2px 8px">📊 '+(q.volume||'medium')+' volume</span>'
           +'<span style="font-size:10px;font-weight:700;color:var(--dim);background:var(--card2);border-radius:4px;padding:2px 8px">'+(q.intent==='commercial'?'💰 buyer intent':'ℹ️ informational')+'</span>'
+          +googleBadge
           +srcLink
           +'</div></div>';
       }).join('');
