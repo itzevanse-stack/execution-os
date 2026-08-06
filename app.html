@@ -46517,14 +46517,30 @@ async function vpeGenerate() {
 }
 
 async function vpeWrite(platform, topic) {
-  if (typeof window.creditDeduct === 'function') {
-    var ok = await window.creditDeduct('vpe_write');
-    if (!ok) return;
+  // Prevent double-submission: lock immediately, synchronously, before any async work
+  if (window._vpeWriteInFlight) return;
+  window._vpeWriteInFlight = true;
+  var btn = document.getElementById('vpe-gen-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Writing…'; }
+  try {
+    if (typeof window.creditDeduct === 'function') {
+      var ok = await window.creditDeduct('vpe_write');
+      if (!ok) {
+        window._vpeWriteInFlight = false;
+        if (btn) { btn.disabled = false; btn.textContent = '✍️ Write My Post'; }
+        return;
+      }
+    }
+  } catch(e) {
+    window._vpeWriteInFlight = false;
+    if (btn) { btn.disabled = false; btn.textContent = '✍️ Write My Post'; }
+    return;
   }
-  var btn       = document.getElementById('vpe-gen-btn');
   var status    = document.getElementById('vpe-gen-status');
   var output    = document.getElementById('vpe-output');
   var contentEl = document.getElementById('vpe-post-content');
+  var labelEl   = document.getElementById('vpe-output-label');
+  var badgeEl   = document.getElementById('vpe-platform-badge');
   if (btn)      { btn.disabled=true; btn.textContent='Writing…'; }
   if (status)   { status.style.display='block'; status.textContent='E-OS Intelligence is writing your '+VPE_PLATFORM_LABELS[platform]+'…'; }
   if (output)   { output.style.display='none'; }
@@ -46630,7 +46646,8 @@ async function vpeWrite(platform, topic) {
     var text = (data.content||[]).map(function(b){ return b.text||''; }).join('').trim();
     if (!text) {
       if (status) { status.textContent='No content returned. Try again.'; }
-      if (btn) { btn.disabled=false; btn.textContent='Write My Post'; }
+      window._vpeWriteInFlight = false;
+      if (btn) { btn.disabled=false; btn.textContent='✍️ Write My Post'; }
       return;
     }
     _vpeState.lastPost = text;
@@ -46640,8 +46657,9 @@ async function vpeWrite(platform, topic) {
     if (badgeEl)   { badgeEl.textContent = VPE_PLATFORM_LABELS[platform]; badgeEl.style.display='inline-block'; }
     if (status)    status.style.display = 'none';
   } catch(e) {
-    if (status) { status.textContent='Error writing post. Try again.'; }
+    if (status) { status.style.display='block'; status.textContent='Error writing post. Try again.'; }
   }
+  window._vpeWriteInFlight = false;
   if (btn) { btn.disabled=false; btn.textContent='✍️ Write My Post'; }
 }
 
