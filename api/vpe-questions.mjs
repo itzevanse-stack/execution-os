@@ -35,6 +35,15 @@ export default async function handler(req, res) {
     return matches.length ? matches.sort().pop() : String(currentYear);
   }
 
+  // Browser-like headers — Google/Bing/Amazon's consumer suggest endpoints are
+  // built for real browsers and frequently silently reject or empty-response
+  // requests from datacenter IPs (like Vercel's) that show no User-Agent.
+  const BROWSER_HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    'Accept': 'application/json,text/javascript,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+  };
+
   const searchTerm = keyword || cleanSearchTerm(niche);
   const seedPrefixes = (seed) => [
     seed,
@@ -49,20 +58,24 @@ export default async function handler(req, res) {
   async function getGoogleSuggestions(seed) {
     const results = await Promise.allSettled(
       seedPrefixes(seed).map(q =>
-        fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(q)}`)
-          .then(r => r.json())
+        fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(q)}`, { headers: BROWSER_HEADERS })
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
           .then(d => (Array.isArray(d[1]) ? d[1] : []))
-          .catch(() => [])
       )
     );
     const all = [];
+    let failures = 0;
     for (const r of results) {
       if (r.status === 'fulfilled') {
         for (const s of r.value) {
           if (typeof s === 'string' && s.length > 8 && !all.includes(s)) all.push(s);
         }
+      } else {
+        failures++;
       }
     }
+    if (failures) console.warn(`[vpe-questions] Google Suggest: ${failures}/${results.length} requests failed. Last error:`, results.find(r => r.status === 'rejected')?.reason?.message);
+    if (!all.length) console.warn('[vpe-questions] Google Suggest returned zero results for:', seed);
     return all.slice(0, 30);
   }
 
@@ -73,20 +86,24 @@ export default async function handler(req, res) {
     const seeds = [seed, `${seed} tutorial`, `${seed} for beginners`, `is ${seed} worth it`, `${seed} explained`];
     const results = await Promise.allSettled(
       seeds.map(q =>
-        fetch(`https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(q)}`)
-          .then(r => r.json())
+        fetch(`https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(q)}`, { headers: BROWSER_HEADERS })
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
           .then(d => (Array.isArray(d[1]) ? d[1] : []))
-          .catch(() => [])
       )
     );
     const all = [];
+    let failures = 0;
     for (const r of results) {
       if (r.status === 'fulfilled') {
         for (const s of r.value) {
           if (typeof s === 'string' && s.length > 8 && !all.includes(s)) all.push(s);
         }
+      } else {
+        failures++;
       }
     }
+    if (failures) console.warn(`[vpe-questions] YouTube Suggest: ${failures}/${results.length} requests failed. Last error:`, results.find(r => r.status === 'rejected')?.reason?.message);
+    if (!all.length) console.warn('[vpe-questions] YouTube Suggest returned zero results for:', seed);
     return all.slice(0, 20);
   }
 
@@ -94,20 +111,24 @@ export default async function handler(req, res) {
   async function getBingSuggestions(seed) {
     const results = await Promise.allSettled(
       seedPrefixes(seed).slice(0, 4).map(q =>
-        fetch(`https://www.bing.com/osjson.aspx?query=${encodeURIComponent(q)}&form=OSDJAS`)
-          .then(r => r.json())
+        fetch(`https://www.bing.com/osjson.aspx?query=${encodeURIComponent(q)}&form=OSDJAS`, { headers: BROWSER_HEADERS })
+          .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
           .then(d => (Array.isArray(d[1]) ? d[1] : []))
-          .catch(() => [])
       )
     );
     const all = [];
+    let failures = 0;
     for (const r of results) {
       if (r.status === 'fulfilled') {
         for (const s of r.value) {
           if (typeof s === 'string' && s.length > 8 && !all.includes(s)) all.push(s);
         }
+      } else {
+        failures++;
       }
     }
+    if (failures) console.warn(`[vpe-questions] Bing Suggest: ${failures}/${results.length} requests failed. Last error:`, results.find(r => r.status === 'rejected')?.reason?.message);
+    if (!all.length) console.warn('[vpe-questions] Bing Suggest returned zero results for:', seed);
     return all.slice(0, 20);
   }
 
@@ -115,11 +136,14 @@ export default async function handler(req, res) {
   // Only useful if the niche has a physical/digital product angle; harmless no-op otherwise.
   async function getAmazonSuggestions(seed) {
     try {
-      const r = await fetch(`https://completion.amazon.com/api/2017/suggestions?mid=ATVPDKIKX0DER&alias=aps&prefix=${encodeURIComponent(seed)}`);
+      const r = await fetch(`https://completion.amazon.com/api/2017/suggestions?mid=ATVPDKIKX0DER&alias=aps&prefix=${encodeURIComponent(seed)}`, { headers: BROWSER_HEADERS });
+      if (!r.ok) { console.warn(`[vpe-questions] Amazon Suggest HTTP ${r.status} for:`, seed); return []; }
       const d = await r.json();
       const sugs = (d.suggestions || []).map(s => s.value).filter(v => typeof v === 'string' && v.length > 3);
+      if (!sugs.length) console.warn('[vpe-questions] Amazon Suggest returned zero results for:', seed);
       return sugs.slice(0, 15);
     } catch (e) {
+      console.warn('[vpe-questions] Amazon Suggest error:', e.message);
       return [];
     }
   }
@@ -162,15 +186,21 @@ export default async function handler(req, res) {
             include_raw_content: false,
           }),
         })
-        .then(r => r.json())
+        .then(async r => {
+          if (!r.ok) {
+            const body = await r.text().catch(() => '');
+            throw new Error(`HTTP ${r.status}: ${body.slice(0, 200)}`);
+          }
+          return r.json();
+        })
         .then(d => ({ ...d, _tag: s.tag }))
-        .catch(() => ({ _tag: s.tag, results: [] }))
       )
     );
 
     const rawResults = [];
+    let failures = 0;
     for (const result of tavilyResults) {
-      if (result.status !== 'fulfilled') continue;
+      if (result.status !== 'fulfilled') { failures++; continue; }
       const data = result.value;
       if (!Array.isArray(data.results)) continue;
       for (const r of data.results) {
@@ -184,6 +214,8 @@ export default async function handler(req, res) {
         });
       }
     }
+    if (failures) console.warn(`[vpe-questions] Tavily: ${failures}/${tavilyResults.length} searches failed. Last error:`, tavilyResults.find(r => r.status === 'rejected')?.reason?.message);
+    if (!rawResults.length) console.warn('[vpe-questions] Tavily returned zero usable results for:', searchTerm);
     return rawResults;
   }
 
