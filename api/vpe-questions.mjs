@@ -1,6 +1,9 @@
 // api/vpe-questions.mjs
 // Real-time question discovery for the Value Post Engine
-// Sources: Google Suggest (free, no key) + Tavily (live web) + Claude ranking
+// Sources: Google, YouTube, Bing, Amazon Suggest (all free, no key) + Tavily (live web)
+// + optional AnswerThePublic (TikTok/Instagram/ChatGPT/Gemini, requires ATP_API_TOKEN) + Claude ranking
+
+import { getATPQuestions } from './vpe-atp.mjs';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
@@ -33,21 +36,19 @@ export default async function handler(req, res) {
   }
 
   const searchTerm = keyword || cleanSearchTerm(niche);
+  const seedPrefixes = (seed) => [
+    seed,
+    `why ${seed}`,
+    `how to ${seed}`,
+    `is ${seed} worth it`,
+    `${seed} for beginners`,
+    `${seed} mistakes`,
+  ];
 
   // ── SOURCE 1: Google Suggest — free, no API key, real searches people type ──
-  // Uses Google's autocomplete endpoint. Returns what real users are actually
-  // searching right now, which is the highest-signal data for question discovery.
   async function getGoogleSuggestions(seed) {
-    const seeds = [
-      seed,
-      `why ${seed}`,
-      `how to ${seed}`,
-      `is ${seed} worth it`,
-      `${seed} for beginners`,
-      `${seed} mistakes`,
-    ];
     const results = await Promise.allSettled(
-      seeds.map(q =>
+      seedPrefixes(seed).map(q =>
         fetch(`https://suggestqueries.google.com/complete/search?client=firefox&q=${encodeURIComponent(q)}`)
           .then(r => r.json())
           .then(d => (Array.isArray(d[1]) ? d[1] : []))
@@ -62,10 +63,68 @@ export default async function handler(req, res) {
         }
       }
     }
-    return all.slice(0, 40); // top 40 unique suggestions
+    return all.slice(0, 30);
   }
 
-  // ── SOURCE 2: Tavily — live forum/blog/YouTube/Reddit results ──────────────
+  // ── SOURCE 2: YouTube Suggest — same infra as Google, different client param ──
+  // Surfaces what people search for when looking for VIDEO content — often more
+  // pain/tutorial-driven phrasing than plain web search.
+  async function getYouTubeSuggestions(seed) {
+    const seeds = [seed, `${seed} tutorial`, `${seed} for beginners`, `is ${seed} worth it`, `${seed} explained`];
+    const results = await Promise.allSettled(
+      seeds.map(q =>
+        fetch(`https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(q)}`)
+          .then(r => r.json())
+          .then(d => (Array.isArray(d[1]) ? d[1] : []))
+          .catch(() => [])
+      )
+    );
+    const all = [];
+    for (const r of results) {
+      if (r.status === 'fulfilled') {
+        for (const s of r.value) {
+          if (typeof s === 'string' && s.length > 8 && !all.includes(s)) all.push(s);
+        }
+      }
+    }
+    return all.slice(0, 20);
+  }
+
+  // ── SOURCE 3: Bing Suggest — free, no key, same endpoint Firefox itself uses ──
+  async function getBingSuggestions(seed) {
+    const results = await Promise.allSettled(
+      seedPrefixes(seed).slice(0, 4).map(q =>
+        fetch(`https://www.bing.com/osjson.aspx?query=${encodeURIComponent(q)}&form=OSDJAS`)
+          .then(r => r.json())
+          .then(d => (Array.isArray(d[1]) ? d[1] : []))
+          .catch(() => [])
+      )
+    );
+    const all = [];
+    for (const r of results) {
+      if (r.status === 'fulfilled') {
+        for (const s of r.value) {
+          if (typeof s === 'string' && s.length > 8 && !all.includes(s)) all.push(s);
+        }
+      }
+    }
+    return all.slice(0, 20);
+  }
+
+  // ── SOURCE 4: Amazon Suggest — free, no key — surfaces BUYER intent phrasing ──
+  // Only useful if the niche has a physical/digital product angle; harmless no-op otherwise.
+  async function getAmazonSuggestions(seed) {
+    try {
+      const r = await fetch(`https://completion.amazon.com/api/2017/suggestions?mid=ATVPDKIKX0DER&alias=aps&prefix=${encodeURIComponent(seed)}`);
+      const d = await r.json();
+      const sugs = (d.suggestions || []).map(s => s.value).filter(v => typeof v === 'string' && v.length > 3);
+      return sugs.slice(0, 15);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  // ── SOURCE 5: Tavily — live forum/blog/YouTube/Reddit results ──────────────
   async function getTavilyResults(searchTerm, isKeyword) {
     const searches = isKeyword ? [
       { query: `"${searchTerm}" is it worth it how does it work results ${currentYear}`, tag: 'google' },
@@ -129,31 +188,48 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Run Google Suggest and Tavily in parallel — don't let one block the other
-    const [googleSuggestions, tavilyResults] = await Promise.all([
+    // Run every source in parallel — no source blocks another
+    const [googleSug, youtubeSug, bingSug, amazonSug, tavilyResults, atpResult] = await Promise.all([
       getGoogleSuggestions(searchTerm),
+      getYouTubeSuggestions(searchTerm),
+      getBingSuggestions(searchTerm),
+      getAmazonSuggestions(searchTerm),
       getTavilyResults(searchTerm, isKeyword),
+      getATPQuestions(searchTerm), // optional — no-ops cleanly if ATP_API_TOKEN unset
     ]);
+    const atpQuestions = atpResult.questions || [];
+    const hasATP = atpQuestions.length > 0;
 
-    const hasTavily  = tavilyResults.length  > 0;
-    const hasGoogle  = googleSuggestions.length > 0;
+    const hasTavily = tavilyResults.length > 0;
+    const hasGoogle  = googleSug.length  > 0;
+    const hasYoutube = youtubeSug.length > 0;
+    const hasBing    = bingSug.length    > 0;
+    const hasAmazon  = amazonSug.length  > 0;
+    const hasAnySuggest = hasGoogle || hasYoutube || hasBing || hasAmazon;
 
-    if (!hasTavily && !hasGoogle) {
+    if (!hasTavily && !hasAnySuggest) {
       return await fallbackGenerate(searchTerm, intel, CLAUDE_KEY, res, isKeyword, niche, currentYear);
     }
 
-    // ── Build the combined context for Claude ────────────────────────────────
     const excludeText = exclude.length > 0
       ? `\n\nDO NOT return questions similar to:\n${exclude.slice(0, 10).map((q, i) => `${i + 1}. ${q}`).join('\n')}`
       : '';
 
-    // Google Suggest section — these are exact phrases real people type
-    const googleSection = hasGoogle
-      ? `\n\nGOOGLE AUTOCOMPLETE — What real people are typing into Google right now about "${searchTerm}":\n${googleSuggestions.map((s, i) => `[G${i}] ${s}`).join('\n')}\n`
-      : '';
+    // Each suggest source gets its own labelled section so Claude can attribute
+    // and diversify the final picks across real platforms, not just Google.
+    function suggestSection(label, list, prefix) {
+      if (!list.length) return '';
+      return `\n\n${label} — real queries people type there right now for "${searchTerm}":\n${list.map((s, i) => `[${prefix}${i}] ${s}`).join('\n')}\n`;
+    }
 
-    // Tavily section — live forum/blog/video results
-    const tavilySection = hasTavily
+    const googleSection  = suggestSection('GOOGLE AUTOCOMPLETE',  googleSug,  'G');
+    const youtubeSection = suggestSection('YOUTUBE AUTOCOMPLETE', youtubeSug, 'Y');
+    const bingSection    = suggestSection('BING AUTOCOMPLETE',    bingSug,    'B');
+    const amazonSection  = suggestSection('AMAZON AUTOCOMPLETE (buyer-intent phrasing)', amazonSug, 'A');
+    const atpSection = hasATP
+      ? `\n\nANSWERTHEPUBLIC — real questions from TikTok/Instagram/ChatGPT/Gemini search behavior for "${searchTerm}":\n${atpQuestions.slice(0, 25).map((q, i) => `[P${i}][${(q.provider||'').toUpperCase()}] ${q.question}`).join('\n')}\n`
+      : '';
+    const tavilySection  = hasTavily
       ? `\n\nLIVE WEB RESULTS — Reddit, Quora, YouTube, forums (index, platform, year, title, url, snippet):\n${tavilyResults.slice(0, 30).map((r, i) => `[T${i}][${r.tag.toUpperCase()}][${r.year}] ${r.title}\nURL: ${r.url}\n${r.snippet.slice(0, 180)}`).join('\n\n')}\n`
       : '';
 
@@ -161,13 +237,12 @@ export default async function handler(req, res) {
 
 NICHE: "${niche}"
 ${intel ? `OFFER AND AUDIENCE:\n${intel}\n` : ''}
-${googleSection}
-${tavilySection}
+${googleSection}${youtubeSection}${bingSection}${amazonSection}${atpSection}${tavilySection}
 ${excludeText}
 
 Extract the 8 BEST questions for writing sharp, authoritative posts that drive real business results.
 
-PRIORITISE questions from Google Autocomplete — these are exactly what your audience types when they are in pain and looking for a solution. They are the highest-signal data available.
+SOURCE DIVERSITY IS REQUIRED — do not pull all 8 from one source. Draw from across Google, YouTube, Bing, Amazon (if relevant), and the live Reddit/Quora/forum results. A good mix is roughly 2-3 from search autocomplete sources and 2-3 from the live Reddit/Quora/forum results, reflecting genuinely different angles people search from.
 
 Each question must:
 1. Be specific — a reader must feel "this is exactly my situation"
@@ -186,9 +261,9 @@ BAD questions (reject completely):
 - Anything copied verbatim from a Reddit title without sharpening it
 
 RULES:
-- Questions from Google Autocomplete are real search queries — use them as the raw material, then sharpen into a compelling question if needed
+- Autocomplete phrases are real search queries — use them as raw material, then sharpen into a compelling question if needed
 - For Tavily results, the "index" field must be T+number (e.g. T0, T3). The "url" and "year" MUST come from that source.
-- For Google Suggest sources, set url to "" and year to "${currentYear}"
+- For autocomplete sources (Google/YouTube/Bing/Amazon/ATP), set url to "" and year to "${currentYear}", and set "index" to the matching prefix+number (e.g. G3, Y1, B0, A2, P4)
 - Rewrite vague titles into sharp questions the expert can take a clear position on
 - Never copy a Reddit thread title verbatim
 
@@ -196,15 +271,15 @@ Return ONLY valid JSON — no markdown fences:
 [
   {
     "question": "sharp, specific question as a serious buyer would phrase it",
-    "platform": "reddit|quora|google|youtube|x",
-    "source": "google_suggest|tavily",
-    "url": "exact url from Tavily source, or empty string for Google Suggest",
+    "platform": "reddit|quora|google|youtube|bing|amazon|tiktok|instagram|chatgpt|gemini|x",
+    "source": "google_suggest|youtube_suggest|bing_suggest|amazon_suggest|tavily",
+    "url": "exact url from Tavily source, or empty string for autocomplete sources",
     "year": "${currentYear}",
     "volume": "high|medium",
     "intent": "informational|commercial",
     "why": "one sentence: what position the expert takes and why this builds authority",
     "wrong_belief": "one sentence: what most people wrongly believe about this",
-    "index": "T0 or G5 etc"
+    "index": "T0, G3, Y1, B0, A2 etc"
   }
 ]`;
 
@@ -255,7 +330,9 @@ Return ONLY valid JSON — no markdown fences:
       };
     });
 
-    const source = hasGoogle ? 'live+google' : 'live';
+    const activeSources = ['google','youtube','bing','amazon','atp']
+      .filter((_, i) => [hasGoogle, hasYoutube, hasBing, hasAmazon, hasATP][i]);
+    const source = (activeSources.length ? 'live+' + activeSources.join('+') : 'live');
     return res.status(200).json({ questions, source, total: questions.length });
 
   } catch (err) {
