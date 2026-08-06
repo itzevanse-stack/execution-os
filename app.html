@@ -46224,12 +46224,12 @@ var _vpeState = (function() {
 var VPE_PLATFORM_RULES = {
   quora:    'Quora: Answer as an expert. First-person. No hard sell — end with a genuine recommendation. No duplicate answers. Links allowed when genuinely helpful.',
   reddit:   'Reddit: Community-first. Zero hard-sell. Redditors downvote anything promotional. Only mention your offer as personal experience. No affiliate links in most subreddits.',
-  linkedin: 'LinkedIn: Professional, thought leadership. Data and specifics build credibility. One clear CTA at the end. 3-5 hashtags max.',
-  medium:   'Medium: Long-form, narrative, SEO-structured. Clear headers. Original insight only — no generic rehashed advice. Soft CTA at end.',
-  facebook: 'Facebook: Warm, personal, community-first. Open with a relatable story or honest statement. Build emotion and trust before any CTA. 300-500 words. No hard sell. Max 2 hashtags. End with a soft question or CTA.',
-  x:        'X (Twitter): 8-12 tweet thread. Hook tweet must stop the scroll. Each tweet under 280 characters. CTA only on final tweet. 1-2 hashtags max.',
-  instagram: 'Instagram Caption: 150-300 words max. First line MUST hook before the fold — make it impossible not to tap More. Core insight in 3-4 short punchy paragraphs. Direct CTA at the end — follow, comment, DM, click link in bio. 5-8 relevant hashtags on a new line at the end. No bullet points. No em dashes. Write like a real person, not a brand.',
-  email:    'Email Newsletter/Broadcast: Subject line as first line (make it impossible to ignore — curiosity, specificity or bold claim). 300-600 words max. One topic only — do not cover multiple things. Short paragraphs, 2-3 lines max. One clear CTA link at the end. No hashtags. Write like you are talking to one person. PS line at the end — always. Sign off with a real name.'
+  linkedin: 'LinkedIn: Professional, thought leadership. Data and specifics build credibility. 3-5 hashtags max.',
+  medium:   'Medium: Long-form, narrative, SEO-structured. Clear headers. Original insight only — no generic rehashed advice.',
+  facebook: 'Facebook: Warm, personal, community-first. Open with a relatable story or honest statement. Build emotion and trust first. 300-500 words. No hard sell. Max 2 hashtags.',
+  x:        'X (Twitter): 8-12 tweet thread. Hook tweet must stop the scroll. Each tweet under 280 characters. 1-2 hashtags max.',
+  instagram: 'Instagram Caption: 150-300 words max. First line MUST hook before the fold — make it impossible not to tap More. Core insight in 3-4 short punchy paragraphs. 5-8 relevant hashtags on a new line at the end. No bullet points. No em dashes. Write like a real person, not a brand.',
+  email:    'Email Newsletter/Broadcast: Subject line as first line (make it impossible to ignore — curiosity, specificity or bold claim). 300-600 words max. One topic only — do not cover multiple things. Short paragraphs, 2-3 lines max. No hashtags. Write like you are talking to one person. Sign off with a real name.'
 };
 
 var VPE_PLATFORM_LABELS = { quora:'Quora Answer', reddit:'Reddit Post', linkedin:'LinkedIn Article', medium:'Medium Article', facebook:'Facebook Post', x:'X Thread', email:'Email Broadcast', instagram:'Instagram Caption' };
@@ -46538,23 +46538,45 @@ async function vpeWrite(platform, topic) {
   var platformInstructions = {
     quora:    'Write a long-form Quora answer (600-900 words). Open with a bold contrarian statement that immediately reframes the question. Give 3-4 specific tactical insights — not concepts, actual things to do. First-person authority. Weave the offer as a natural recommendation in the final paragraph only. End with a question that keeps the thread alive.',
     reddit:   'Write a Reddit post (400-600 words). Sound like a genuine community member sharing hard-won experience. Give specific value — tactics, real numbers, real lessons. Mention the offer only as personal experience if at all. Zero promotional language.',
-    linkedin: 'Write a LinkedIn post (400-700 words) — NOT an article, a status post. Short punchy paragraphs, 2 lines max each. Open with ONE line that stops the scroll — a bold claim, a real number, or a contrarian truth. Build the argument point by point. End with a direct specific CTA. 2-3 hashtags only.',
-    medium:   'Write a Medium article (900-1400 words). Compelling headline as first line. Clear section breaks with ---. Narrative storytelling mixed with tactical specifics. Soft CTA at end.',
-    facebook: 'Write a Facebook post (300-500 words). Personal and warm — like a trusted friend sharing something real. Open with a relatable situation or honest confession. Build genuine insight. End with a soft question that invites comments. Max 2 hashtags.',
-    x:        'Write an X thread of 8-10 tweets. Tweet 1 must stop the scroll — bold claim, surprising stat, or provocative question. Each tweet under 280 characters, each earns the next. Last tweet is the CTA. Number each (1/ 2/ etc). Max 2 hashtags total.',
-    instagram: 'Write an Instagram caption (150-300 words). Line 1 is the hook — one sentence that makes someone stop scrolling and tap More. It must be bold, specific, or slightly provocative. Do NOT start with your name or a generic greeting. Lines 2-5 are the core insight — short paragraphs, 1-2 sentences each. Make them feel something or learn something real. Last paragraph is a direct CTA — tell them exactly what to do: comment a word, DM you, click the link in bio. Then a blank line, then 5-8 hashtags on their own line. No hashtag spam — only relevant ones. Write like a real person sharing a genuine insight, not a brand posting content.',
-    email:    'Write an email broadcast (300-600 words). First line is the subject line formatted as: SUBJECT: [subject here]. Then a blank line. Then the email body. Open with one line that makes them want to keep reading — a bold claim, a surprising result, or a story hook. Short paragraphs. One topic only. One CTA link at the end — clear and direct. Close with your name. Add a PS line that reinforces the CTA or adds one more hook. No hashtags. No HTML — plain text only. Write like you are talking to one person.'
+    linkedin: 'Write a LinkedIn post (400-700 words) — NOT an article, a status post. Short punchy paragraphs, 2 lines max each. Open with ONE line that stops the scroll — a bold claim, a real number, or a contrarian truth. Build the argument point by point. 2-3 hashtags only.',
+    medium:   'Write a Medium article (900-1400 words). Compelling headline as first line. Clear section breaks with ---. Narrative storytelling mixed with tactical specifics.',
+    facebook: 'Write a Facebook post (300-500 words). Personal and warm — like a trusted friend sharing something real. Open with a relatable situation or honest confession. Build genuine insight. Max 2 hashtags.',
+    x:        'Write an X thread of 8-10 tweets. Tweet 1 must stop the scroll — bold claim, surprising stat, or provocative question. Each tweet under 280 characters, each earns the next. Number each (1/ 2/ etc). Max 2 hashtags total.',
+    instagram: 'Write an Instagram caption (150-300 words). Line 1 is the hook — one sentence that makes someone stop scrolling and tap More. It must be bold, specific, or slightly provocative. Do NOT start with your name or a generic greeting. Lines 2-5 are the core insight — short paragraphs, 1-2 sentences each. Make them feel something or learn something real. Then a blank line, then 5-8 hashtags on their own line. No hashtag spam — only relevant ones. Write like a real person sharing a genuine insight, not a brand posting content.',
+    email:    'Write an email broadcast (300-600 words). First line is the subject line formatted as: SUBJECT: [subject here]. Then a blank line. Then the email body. Open with one line that makes them want to keep reading — a bold claim, a surprising result, or a story hook. Short paragraphs. One topic only. Close with your name. No hashtags. No HTML — plain text only. Write like you are talking to one person.'
   };
 
+  // ── CTA variation \u2014 not every post should end with a hard ask ─────────────
+  // Overusing "comment X below" on every single post reads as marketing, not authority.
+  // Weight toward soft/no-CTA endings so the writing itself does the persuading.
+  var CTA_STYLES = [
+    { weight: 3, name: 'none',
+      instruction: 'Do NOT include any call to action. End on your strongest, most resonant line \u2014 a sharp final insight, a reframe, or a statement that sits with the reader after they scroll away. The post should feel complete and confident without asking for anything. This is the most powerful ending when the content itself already proved the point.' },
+    { weight: 3, name: 'curiosity',
+      instruction: 'End with an implicit pull, not a direct ask. Close on a line that opens a small gap in the reader\u2019s mind \u2014 something that makes them want to know more, without literally asking them to comment, DM, or click. The curiosity itself is the hook. Do NOT write "comment below" or "DM me" \u2014 let the ending imply there is more without demanding a specific action.' },
+    { weight: 2, name: 'direct',
+      instruction: 'End with ONE specific, low-friction call to action \u2014 a specific word to comment, a specific question to answer, or a specific next step. It must feel like a natural continuation of the conversation, not a bolted-on sales line. Never generic ("let me know your thoughts") \u2014 always specific.' }
+  ];
+  function pickCtaStyle() {
+    var total = CTA_STYLES.reduce(function(s,c){ return s+c.weight; }, 0);
+    var r = Math.random() * total;
+    for (var i=0; i<CTA_STYLES.length; i++) {
+      r -= CTA_STYLES[i].weight;
+      if (r <= 0) return CTA_STYLES[i];
+    }
+    return CTA_STYLES[0];
+  }
+  var ctaStyle = pickCtaStyle();
+
   var aiPrompt = [
-    'You are writing a high-performing social media post for a real expert in the digital product and online business space.',
+    'You are a world-class copywriter and ghostwriter for a real expert in the digital product and online business space. You write posts that make people stop scrolling, feel something specific, and remember the writer days later.',
     '',
     'QUESTION / TOPIC TO ADDRESS:',
     topic,
     '',
     anglePrompt,
     '',
-    intel ? 'OFFER AND AUDIENCE INTELLIGENCE — use this, it is critical:' : '',
+    intel ? 'OFFER AND AUDIENCE INTELLIGENCE \u2014 use this, it is critical:' : '',
     intel ? intel : '',
     intel ? '' : '',
     'PLATFORM: ' + (VPE_PLATFORM_LABELS[platform]||platform),
@@ -46564,23 +46586,40 @@ async function vpeWrite(platform, topic) {
     'WRITING INSTRUCTIONS:',
     platformInstructions[platform]||'Write a high-value post.',
     '',
-    'MANDATORY QUALITY RULES — every single one must be met:',
+    'HOW A POST ACTUALLY PERSUADES \u2014 use these principles, don\u2019t just inform:',
+    '\u2022 PATTERN INTERRUPT OPENING. The first line must break the reader\u2019s expectation of what this kind of post usually says. Not a question, not "here\u2019s what I learned" \u2014 something that makes them pause mid-scroll.',
+    '\u2022 NAME THE UNSPOKEN TRUTH. Say the thing the reader has felt but never said out loud. That recognition \u2014 "someone else sees this too" \u2014 is what builds trust faster than any claim of expertise.',
+    '\u2022 OPEN A LOOP, THEN CLOSE IT. Raise a specific tension early (a wrong belief, a confusing contradiction, a surprising result) and resolve it through the body of the post. The resolution is what makes it memorable.',
+    '\u2022 CONTRAST, NOT CLAIMS. Instead of asserting you are right, show the gap: "Most people do X. Here is what happens when you do Y instead." Contrast persuades where assertion just states.',
+    '\u2022 SPECIFICITY IS THE PERSUASION. A real number, a named mechanism, an exact timeframe does more convincing than any adjective. Vague claims are ignored. Specific claims are believed.',
+    '\u2022 ONE IDEA, FULLY LANDED. Better to make one point land hard than to list five points that land soft. Depth beats breadth every time.',
+    '',
+    'HOW A POST ACTUALLY DIGESTS IN THE MIND \u2014 the reading experience matters as much as the argument:',
+    '\u2022 VARY YOUR SENTENCE RHYTHM. Short. Then build into something longer that carries momentum. Then short again. Uniform sentence length is what makes writing feel like it is being read out of obligation, not desire.',
+    '\u2022 ONE IDEA PER LINE OR PARAGRAPH. Let each thought have room to land before introducing the next one. Cramming ideas together forces the reader to do the separating work \u2014 they won\u2019t.',
+    '\u2022 GROUND ABSTRACTION IMMEDIATELY. Never stack two abstract concepts in a row. The moment you say something conceptual, follow it with something concrete \u2014 an example, a number, a scene \u2014 before moving on.',
+    '\u2022 WRITE IT LIKE YOU ARE TALKING TO ONE PERSON ACROSS A TABLE, not presenting to a room. If a line sounds like it belongs in a keynote, rewrite it as if you are saying it to a friend who is struggling with this exact thing right now.',
+    '',
+    'CALL TO ACTION FOR THIS POST:',
+    ctaStyle.instruction,
+    '',
+    'MANDATORY QUALITY RULES \u2014 every single one must be met:',
     '1. TAKE A CLEAR POSITION. A specific point of view that some people will strongly agree with and others will push back on. Not "it depends." A real stance.',
-    '2. NAME THE ENEMY SPECIFICALLY. What wrong approach do most people take? Name it. Generic business coaching. Copying funnels that worked for someone else. Motivational quotes instead of real strategy. Be specific.',
-    '3. USE REAL NUMBERS AND PROOF. Pull from the intel above — revenue figures, timeframes, number of clients, specific results. Specificity is credibility.',
-    '4. GIVE ONE REAL INSIGHT. The reader learns something specific and actionable. Not "build systems" — what system specifically. Not "get better clients" — how exactly.',
-    '5. SPEAK TO THE EXACT PERSON. Use the avatar pain from the intel. The reader should feel this was written for them personally.',
-    '6. ZERO GENERIC LANGUAGE. Banned phrases: in today digital landscape, game-changer, hustle harder, passion, at the end of the day, leverage, synergy, authentic, journey.',
-    '7. END WITH A SPECIFIC CALL TO ACTION. Comment a specific word. DM a specific phrase. Not "share your thoughts."',
+    '2. NAME THE ENEMY SPECIFICALLY. What wrong approach do most people take? Name it precisely \u2014 not "bad strategy" but the actual thing people do wrong.',
+    '3. USE REAL NUMBERS AND PROOF. Pull from the intel above \u2014 revenue figures, timeframes, number of clients, specific results. Specificity is credibility.',
+    '4. GIVE ONE REAL INSIGHT. The reader learns something specific and actionable. Not "build systems" \u2014 what system specifically. Not "get better clients" \u2014 how exactly.',
+    '5. SPEAK TO THE EXACT PERSON. Use the avatar pain from the intel. The reader should feel this was written for them personally, not for a general audience.',
+    '6. ZERO GENERIC LANGUAGE. Banned phrases: in today\u2019s digital landscape, game-changer, hustle harder, passion, at the end of the day, leverage, synergy, authentic, journey, unlock your potential.',
     '',
     'VOICE:',
-    '- Real expert who has done this — not a content marketer',
-    '- Confident, direct, slightly provocative — grounded in real results',
-    '- Short sentences. Active voice. No fluff.',
+    '- Real expert who has actually done this \u2014 not a content marketer performing expertise',
+    '- Confident, direct, occasionally provocative \u2014 always grounded in something real, never just for shock value',
+    '- Short sentences carry weight. Active voice. No filler.',
     '- First person throughout',
     '',
-    'Return ONLY the post — no preamble, no explanation, no "Here is your post". Just the post itself ready to copy and paste.'
+    'Return ONLY the post \u2014 no preamble, no explanation, no "Here is your post". Just the post itself, ready to copy and paste.'
   ].join('\n');
+
 
   try {
     var resp = await fetch(window.location.origin+'/api/claude', {
