@@ -20,7 +20,16 @@ const ATP_BASE = 'https://api.answerthepublic.com/api/public/v1';
 // Providers ATP is used for — deliberately NOT gweb/youtube/bing/amazon since
 // those are already covered for free elsewhere. This keeps credit usage down
 // and gets genuinely new coverage instead of duplicate data.
-const ATP_PROVIDERS = ['tiktok', 'instagram', 'chatgpt', 'gemini'];
+//
+// TEMPORARILY narrowed to just 'instagram' — as of Aug 7 2026, AnswerThePublic's
+// tiktok/chatgpt/gemini providers are consistently returning 500 Internal Server
+// Error on this workspace (confirmed via production logs, not a bug in this file).
+// This is either an ATP-side bug in their alpha API or those providers aren't
+// actually enabled on the current plan tier despite the docs. Re-add them to
+// this array once ATP confirms the issue is resolved — worth checking their
+// status page or contacting support with the exact error before then.
+const ATP_PROVIDERS = ['instagram'];
+// const ATP_PROVIDERS = ['tiktok', 'instagram', 'chatgpt', 'gemini']; // restore once fixed
 
 function atpHeaders(token) {
   return {
@@ -95,7 +104,7 @@ async function createProviderSearches(token, keyword) {
 // completes or the time budget runs out. Bounded so a live user-facing
 // request never hangs waiting on ATP's background pipeline — on repeat
 // requests within 24h the dedupe cache usually makes this instant anyway.
-async function pollUntilReady(token, searches, { timeoutMs = 7000, intervalMs = 1000 } = {}) {
+async function pollUntilReady(token, searches, { timeoutMs = 5000, intervalMs = 750 } = {}) {
   const pending = new Map(searches.filter(s => s.status !== 'completed').map(s => [s.id, s]));
   const ready   = searches.filter(s => s.status === 'completed');
 
