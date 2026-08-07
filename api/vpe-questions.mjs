@@ -220,6 +220,7 @@ export default async function handler(req, res) {
   }
 
   try {
+    const _t0 = Date.now();
     // Run every source in parallel — no source blocks another
     const [googleSug, youtubeSug, bingSug, amazonSug, tavilyResults, atpResult] = await Promise.all([
       getGoogleSuggestions(searchTerm),
@@ -229,6 +230,7 @@ export default async function handler(req, res) {
       getTavilyResults(searchTerm, isKeyword),
       getATPQuestions(searchTerm), // optional — no-ops cleanly if ATP_API_TOKEN unset
     ]);
+    console.log(`[vpe-questions] All sources fetched in ${Date.now() - _t0}ms`);
     const atpQuestions = atpResult.questions || [];
     const hasATP = atpQuestions.length > 0;
 
@@ -315,6 +317,7 @@ Return ONLY valid JSON — no markdown fences:
   }
 ]`;
 
+    const _t1 = Date.now();
     const claudeResp = await fetch('https://api.anthropic.com/v1/messages', {
       method:  'POST',
       headers: {
@@ -328,6 +331,7 @@ Return ONLY valid JSON — no markdown fences:
         messages:   [{ role: 'user', content: rankPrompt }],
       }),
     });
+    console.log(`[vpe-questions] Claude ranking took ${Date.now() - _t1}ms`);
 
     const claudeData = await claudeResp.json();
     const rawOutput  = (claudeData.content || []).map(b => b.text || '').join('').trim();
