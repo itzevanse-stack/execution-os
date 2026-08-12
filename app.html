@@ -2957,6 +2957,68 @@ button[onclick="generateOffer()"] {
 @media(max-width:900px){ .em-compose-wrap{grid-template-columns:1fr;} .em-stats-strip{grid-template-columns:repeat(3,1fr);} }
 @media(max-width:600px){ .em-stats-strip{grid-template-columns:repeat(2,1fr);} .em-campaign-stats{grid-template-columns:repeat(2,1fr);} }
 
+.ai-refine-wrap { margin-top: 14px; }
+.ai-refine-toggle {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(78,204,163,.08); border: 1px solid rgba(78,204,163,.25);
+  border-radius: var(--r-md); padding: 8px 16px;
+  color: var(--teal); font-size: 12px; font-weight: 800;
+  cursor: pointer; font-family: 'Poppins', sans-serif;
+  transition: background .15s;
+}
+.ai-refine-toggle:hover { background: rgba(78,204,163,.14); }
+.ai-refine-panel {
+  margin-top: 10px; background: var(--card2); border: 1px solid var(--border2);
+  border-radius: var(--r-md); padding: 12px; max-width: 520px;
+}
+.ai-refine-log {
+  max-height: 140px; overflow-y: auto; margin-bottom: 8px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.ai-refine-log:empty { display: none; }
+.ai-refine-msg {
+  font-size: 12px; font-family: 'Poppins', sans-serif; line-height: 1.5;
+  padding: 6px 10px; border-radius: 8px; max-width: 90%;
+}
+.ai-refine-user {
+  background: rgba(255,255,255,.05); color: var(--white, #fff);
+  align-self: flex-end;
+}
+.ai-refine-confirm {
+  background: rgba(78,204,163,.1); color: var(--teal);
+  align-self: flex-start; font-weight: 700;
+}
+.ai-refine-error {
+  background: rgba(255,90,90,.1); color: #ff8a8a;
+  align-self: flex-start;
+}
+.ai-refine-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px;
+}
+.ai-refine-chip {
+  background: rgba(255,255,255,.04); border: 1px solid var(--border2);
+  border-radius: 20px; padding: 5px 12px;
+  color: var(--dim); font-size: 11px; font-weight: 600;
+  cursor: pointer; font-family: 'Poppins', sans-serif;
+  transition: border-color .15s, color .15s;
+}
+.ai-refine-chip:hover { border-color: rgba(78,204,163,.4); color: var(--teal); }
+.ai-refine-input-row { display: flex; gap: 8px; }
+.ai-refine-input {
+  flex: 1; background: var(--bg3, #0e0e22); border: 1px solid var(--border2);
+  border-radius: var(--r-sm); padding: 9px 12px;
+  color: var(--white, #fff); font-size: 12px; font-family: 'Poppins', sans-serif;
+  outline: none;
+}
+.ai-refine-input:focus { border-color: rgba(78,204,163,.4); }
+.ai-refine-send {
+  background: linear-gradient(135deg, var(--teal), var(--teal2, #3db98f));
+  border: none; border-radius: var(--r-sm); padding: 9px 18px;
+  color: var(--text-dark, #0a0a1a); font-size: 12px; font-weight: 800;
+  cursor: pointer; font-family: 'Poppins', sans-serif;
+}
+.ai-refine-send:disabled { opacity: .5; cursor: default; }
+
 </style>
 </head>
 <body>
@@ -7345,6 +7407,7 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
           </div>
           <textarea class="fi" id="avs-script-input" rows="5" placeholder="Your script will appear here after clicking Write Script. You can also type or paste your own."></textarea>
           <div style="font-size:9px;color:var(--dimmer);margin-top:3px;text-align:right"><span id="avs-script-count">0</span> / 1500</div>
+          <div id="avs-refine-container"></div>
         </div>
 
         <div style="padding-top:14px;text-align:center">
@@ -7552,6 +7615,8 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
             <input type="range" id="car-fade-slider" min="0" max="95" value="40" oninput="carSetFade(this.value)" style="width:100%;accent-color:var(--teal);cursor:pointer;height:4px">
             <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--dimmer);margin-top:5px"><span>Vivid</span><span>Faded</span></div>
           </div>
+
+          <div id="car-refine-container"></div>
 
           <div style="display:flex;gap:8px;align-items:center;margin-top:12px;flex-wrap:wrap">
             <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--dim);cursor:pointer">
@@ -8020,6 +8085,7 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
             </div>
           </div>
           <div id="vpe-post-content" style="font-size:13px;color:var(--white);line-height:1.9;white-space:pre-wrap;font-family:'Inter',sans-serif;background:var(--bg3);border-radius:var(--r-md);padding:20px;min-height:200px"></div>
+          <div id="vpe-refine-container"></div>
         </div>
         <div id="vpe-images-section" style="background:var(--card2);border:1px solid var(--border2);border-radius:var(--r-xl);padding:28px;margin-bottom:16px;display:none">
           <div style="font-size:14px;font-weight:900;color:var(--white);font-family:'Poppins',sans-serif;margin-bottom:6px">🖼 Image Suggestions</div>
@@ -8081,6 +8147,7 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
             <div style="font-size:10px;color:var(--dimmer);margin-bottom:10px">Wrap any word in **double asterisks** to highlight it in colour on the card — AI does this automatically, but you can adjust it too</div>
             <div id="qc-gen-status" style="font-size:11px;color:var(--teal);margin-bottom:8px;display:none">✨ Writing your quote…</div>
             <textarea id="qc-quote-text" placeholder="Generating your quote…" style="width:100%;min-height:100px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 14px;font-size:14px;font-weight:700;color:var(--white);font-family:'Poppins',sans-serif;line-height:1.6;resize:none;outline:none" oninput="qcUpdateCard()" onfocus="this.style.borderColor='rgba(78,204,163,.4)'" onblur="this.style.borderColor='var(--border2)'"></textarea>
+            <div id="qc-refine-container"></div>
             <div style="display:flex;gap:6px;margin-top:10px;margin-bottom:10px">
               <button onclick="qcSetLength(this,'short')"  class="qc-type-btn qc-len-btn qc-len-active" style="flex:1;font-size:11px">Short</button>
               <button onclick="qcSetLength(this,'medium')" class="qc-type-btn qc-len-btn"               style="flex:1;font-size:11px">Medium</button>
@@ -23912,6 +23979,42 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
     });
   }
 
+  // ── Refine with AI — works on the script regardless of how it got there
+  // (either generator, or typed/pasted manually). Deliberately scoped to
+  // the script textarea only — never touches video rendering, so refining
+  // freely here can never accidentally trigger a paid HeyGen/Runway render.
+  // Deferred to DOMContentLoaded: the shared engine is defined in a later
+  // <script> block, so calling this synchronously here would run before
+  // window.aiRefineInit exists yet.
+  function _avsInitRefine() {
+    if (!scriptArea || typeof window.aiRefineInit !== 'function') return;
+    window.aiRefineInit({
+      id: 'avs',
+      containerId: 'avs-refine-container',
+      contentType: 'text',
+      getContent: function() { return scriptArea.value; },
+      applyContent: function(revised) {
+        scriptArea.value = revised;
+        var countEl = document.getElementById('avs-script-count');
+        if (countEl) countEl.textContent = revised.length;
+      },
+      systemContext: 'A video script meant to be spoken aloud verbatim by a real person on camera. No section labels, no "[Hook]", no stage directions, no brackets or parentheses — just the clean spoken words from first word to last, exactly as the original.',
+      chips: [
+        { label: 'Shorter', instruction: 'Trim this script down while keeping the hook and the core message intact.' },
+        { label: 'Punchier hook', instruction: 'Rewrite only the opening line to be a sharper, more scroll-stopping hook. Leave the rest of the script unchanged.' },
+        { label: 'Less salesy', instruction: 'Make the tone less salesy and more like a genuine recommendation from a friend.' },
+        { label: 'Stronger CTA', instruction: 'Rewrite only the final CTA line to feel more natural and earned, not like an ad. Leave the rest unchanged.' }
+      ]
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _avsInitRefine);
+  } else {
+    // Document already parsed by the time this ran — but the engine may
+    // still be defined later in the file, so defer one tick either way.
+    setTimeout(_avsInitRefine, 0);
+  }
+
   // ── Generate video ────────────────────────────────────────────
   window.avsGenerate = function() {
     var script = (document.getElementById('avs-script-input')||{}).value || '';
@@ -24883,6 +24986,29 @@ async function _carRunGeneration(topic, angle, ctx, icpQ, icpLang) {
     // attach a background to it. This keeps generation fast and immune
     // to image-fetch failures entirely.
     await carRenderSlides(result, ctx, []);
+
+    // Wire up "Refine with AI" for this carousel
+    if (typeof window.aiRefineInit === 'function') {
+      window.aiRefineInit({
+        id: 'car',
+        containerId: 'car-refine-container',
+        contentType: 'json',
+        getContent: function() { return window._carData; },
+        applyContent: function(revised) {
+          window._carData = revised;
+          // Preserve any user-attached photos across the redraw — same
+          // pattern used when restoring a saved carousel from storage.
+          var preservedBgImages = (window._carBgUrls || []).map(function(u){ return u ? {url:u} : null; });
+          carRenderSlides(revised, ctx, preservedBgImages);
+        },
+        systemContext: 'An Instagram carousel for the "' + ctx.niche + '" niche, offer: ' + (ctx.offerName||'') + '. The JSON has a hook, an array of slides, a cta, and a caption. If the instruction refers to a specific slide number, only change that slide in the slides array — leave the hook, cta, caption, and all other slides untouched.',
+        chips: [
+          { label: 'Punchier hook', instruction: 'Rewrite only the hook to be sharper and more scroll-stopping. Leave every slide and the CTA unchanged.' },
+          { label: 'Stronger CTA', instruction: 'Rewrite only the cta field to be more compelling. Leave the hook and all slides unchanged.' },
+          { label: 'Simplify language', instruction: 'Simplify the language across all slides — shorter sentences, easier words, same meaning.' }
+        ]
+      });
+    }
 
     _carSetProgress(96, 'Finishing up…');
 
@@ -46516,6 +46642,180 @@ async function vpeGenerate() {
   await vpeWrite(_vpeState.platform, topic);
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   AI REFINE ENGINE — shared "chat to edit" system for VPE, Quote Card,
+   and Carousel. One engine, thin per-surface adapters below.
+
+   How it works: each surface calls window.aiRefineInit(config) once when
+   content is generated. That renders a collapsed "Refine with AI" input
+   under the content. When the user types an instruction, we send Claude
+   the current content + full edit history + a type-specific system prompt,
+   get back ONLY the revised content (never chat prose), and hand it to the
+   surface's own update function to redraw. Free — no credit deduction,
+   since this reuses the existing /api/claude endpoint like every other
+   AI feature already does, and keeps iteration frictionless by design.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+window._refineSessions = window._refineSessions || {};
+
+// config: {
+//   id: unique string per content instance (e.g. 'vpe', 'qc', 'car'),
+//   containerId: DOM id to inject the refine UI into,
+//   contentType: 'text' | 'json',
+//   getContent: () => current content (string or object),
+//   applyContent: (revised) => void — write the revised content back and redraw,
+//   systemContext: string — niche/offer/audience grounding sent every turn,
+//   chips: [{label, instruction}] — optional quick-action shortcuts
+// }
+window.aiRefineInit = function(config) {
+  var container = document.getElementById(config.containerId);
+  if (!container) return;
+
+  window._refineSessions[config.id] = { history: [], config: config };
+
+  var chipsHtml = (config.chips || []).map(function(c) {
+    return '<button class="ai-refine-chip" onclick="aiRefineChip(\'' + config.id + '\',' +
+      JSON.stringify(c.instruction).replace(/"/g, '&quot;') + ')">' + c.label + '</button>';
+  }).join('');
+
+  container.innerHTML =
+    '<div class="ai-refine-wrap" id="ai-refine-wrap-' + config.id + '">' +
+      '<button class="ai-refine-toggle" onclick="aiRefineToggle(\'' + config.id + '\')">' +
+        '<span style="font-size:13px">\u2728</span> Refine with AI' +
+      '</button>' +
+      '<div class="ai-refine-panel" id="ai-refine-panel-' + config.id + '" style="display:none">' +
+        '<div class="ai-refine-log" id="ai-refine-log-' + config.id + '"></div>' +
+        (chipsHtml ? '<div class="ai-refine-chips">' + chipsHtml + '</div>' : '') +
+        '<div class="ai-refine-input-row">' +
+          '<input type="text" class="ai-refine-input" id="ai-refine-input-' + config.id + '" ' +
+            'placeholder="Tell it what to change\u2026 e.g. \u2018make it shorter\u2019 or \u2018remove the CTA\u2019" ' +
+            'onkeydown="if(event.key===\'Enter\')aiRefineSend(\'' + config.id + '\')">' +
+          '<button class="ai-refine-send" onclick="aiRefineSend(\'' + config.id + '\')">Send</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+};
+
+window.aiRefineToggle = function(id) {
+  var panel = document.getElementById('ai-refine-panel-' + id);
+  if (!panel) return;
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if (panel.style.display === 'block') {
+    var input = document.getElementById('ai-refine-input-' + id);
+    if (input) input.focus();
+  }
+};
+
+window.aiRefineChip = function(id, instruction) {
+  var input = document.getElementById('ai-refine-input-' + id);
+  if (input) input.value = instruction;
+  aiRefineSend(id);
+};
+
+window.aiRefineSend = async function(id) {
+  var session = window._refineSessions[id];
+  if (!session) return;
+  var config = session.config;
+
+  var input = document.getElementById('ai-refine-input-' + id);
+  var instruction = input ? input.value.trim() : '';
+  if (!instruction) return;
+
+  var log = document.getElementById('ai-refine-log-' + id);
+  var sendBtn = document.querySelector('#ai-refine-panel-' + id + ' .ai-refine-send');
+
+  // Show the user's instruction immediately
+  if (log) {
+    log.innerHTML += '<div class="ai-refine-msg ai-refine-user">' + _refineEscape(instruction) + '</div>';
+    log.scrollTop = log.scrollHeight;
+  }
+  if (input) { input.value = ''; input.disabled = true; }
+  if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '\u2026'; }
+
+  var currentContent = config.getContent();
+  var isJson = config.contentType === 'json';
+
+  var systemPrompt = isJson
+    ? 'You are editing structured content for a social media carousel. You will be given the current content as JSON and an instruction for what to change. Apply ONLY the requested change \u2014 leave every other field exactly as it was unless the instruction clearly implies a broader change. Return ONLY the complete revised JSON object, in the exact same structure as the input, with no markdown fences, no explanation, no commentary.'
+    : 'You are editing a piece of written content. You will be given the current text and an instruction for what to change. Apply the requested change and return ONLY the complete revised text \u2014 no preamble, no explanation, no commentary, no quotation marks around it. If the instruction only refers to part of the content, keep the rest exactly as it was.';
+
+  var contextLine = config.systemContext ? ('CONTEXT: ' + config.systemContext + '\n\n') : '';
+  var historyLines = session.history.map(function(h) {
+    return 'Previous instruction: ' + h.instruction + '\nResult: (content updated)';
+  }).join('\n');
+
+  var userPrompt = contextLine +
+    (historyLines ? 'EDIT HISTORY SO FAR:\n' + historyLines + '\n\n' : '') +
+    'CURRENT CONTENT:\n' + (isJson ? JSON.stringify(currentContent, null, 2) : currentContent) +
+    '\n\nINSTRUCTION: ' + instruction;
+
+  try {
+    var _ctl = new AbortController();
+    var _tid = setTimeout(function(){ _ctl.abort(); }, 30000);
+    var resp = await fetch(window.location.origin + '/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      signal: _ctl.signal,
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: isJson ? 2500 : 1200,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+    clearTimeout(_tid);
+
+    var rawText = await resp.text();
+    var data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      throw new Error('Server did not return valid JSON: ' + rawText.slice(0, 150));
+    }
+    if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
+
+    var raw = (data.content || []).map(function(b) { return b.text || ''; }).join('').trim();
+
+    var revised;
+    if (isJson) {
+      var clean = raw.replace(/```json|```/g, '').trim();
+      var match = clean.match(/\{[\s\S]*\}/);
+      if (!match) throw new Error('No JSON object found in response');
+      revised = JSON.parse(match[0]);
+    } else {
+      revised = raw.replace(/^["']|["']$/g, '').trim();
+    }
+
+    if (!revised || (isJson ? Object.keys(revised).length === 0 : revised.length === 0)) {
+      throw new Error('Empty result returned');
+    }
+
+    config.applyContent(revised);
+    session.history.push({ instruction: instruction });
+
+    if (log) {
+      log.innerHTML += '<div class="ai-refine-msg ai-refine-confirm">\u2713 Updated</div>';
+      log.scrollTop = log.scrollHeight;
+    }
+  } catch (e) {
+    console.error('[ai-refine] Error:', e.message);
+    if (log) {
+      log.innerHTML += '<div class="ai-refine-msg ai-refine-error">Couldn\u2019t apply that change \u2014 try rephrasing it.</div>';
+      log.scrollTop = log.scrollHeight;
+    }
+  } finally {
+    if (input) { input.disabled = false; input.focus(); }
+    if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Send'; }
+  }
+};
+
+function _refineEscape(str) {
+  var d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+
 async function vpeWrite(platform, topic) {
   // Prevent double-submission: lock immediately, synchronously, before any async work
   if (window._vpeWriteInFlight) return;
@@ -46656,6 +46956,26 @@ async function vpeWrite(platform, topic) {
     if (labelEl)   labelEl.textContent  = VPE_PLATFORM_LABELS[platform] + ' Post';
     if (badgeEl)   { badgeEl.textContent = VPE_PLATFORM_LABELS[platform]; badgeEl.style.display='inline-block'; }
     if (status)    status.style.display = 'none';
+    // Wire up "Refine with AI" for this post
+    if (typeof window.aiRefineInit === 'function') {
+      window.aiRefineInit({
+        id: 'vpe',
+        containerId: 'vpe-refine-container',
+        contentType: 'text',
+        getContent: function() { return _vpeState.lastPost; },
+        applyContent: function(revised) {
+          _vpeState.lastPost = revised;
+          if (contentEl) contentEl.textContent = revised;
+        },
+        systemContext: 'A ' + VPE_PLATFORM_LABELS[platform] + ' post for the "' + (window._appliedNiche||'') + '" niche.',
+        chips: [
+          { label: 'Shorter', instruction: 'Make this shorter and punchier without losing the core point.' },
+          { label: 'Remove CTA', instruction: 'Remove the call to action entirely and end on the strongest line instead.' },
+          { label: 'More casual', instruction: 'Make the tone more casual and conversational, like talking to a friend.' },
+          { label: 'Stronger hook', instruction: 'Rewrite only the opening line to be a sharper, more scroll-stopping hook.' }
+        ]
+      });
+    }
   } catch(e) {
     if (status) { status.style.display='block'; status.textContent='Error writing post. Try again.'; }
   }
@@ -47014,6 +47334,27 @@ async function qcGenerate() {
     if (captionEl) captionEl.textContent = caption;
 
     if (statusEl) { statusEl.textContent='✅ Done — customise and download.'; setTimeout(function(){ statusEl.style.display='none'; },3000); }
+
+    // Wire up "Refine with AI" for this quote
+    if (typeof window.aiRefineInit === 'function') {
+      window.aiRefineInit({
+        id: 'qc',
+        containerId: 'qc-refine-container',
+        contentType: 'text',
+        getContent: function() { return _qcState.quote; },
+        applyContent: function(revised) {
+          _qcState.quote = revised;
+          if (textarea) textarea.value = revised;
+          qcUpdateCard();
+        },
+        systemContext: 'A short quote card for the "' + niche + '" niche. Keep any **word** or **phrase** wrapped in double asterisks for emphasis unless told to remove it.',
+        chips: [
+          { label: 'Shorter', instruction: 'Make this quote shorter and punchier.' },
+          { label: 'More provocative', instruction: 'Make this quote more provocative and scroll-stopping while staying true to the message.' },
+          { label: 'Softer tone', instruction: 'Make the tone warmer and more encouraging, less harsh.' }
+        ]
+      });
+    }
 
   } catch(e) {
     if (statusEl) { statusEl.textContent='⚠️ Could not generate. Try again.'; setTimeout(function(){ statusEl.style.display='none'; },3000); }
