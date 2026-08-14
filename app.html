@@ -7106,7 +7106,6 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
     <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">
       <button class="avs-tab on" onclick="avsShowTab('clone',this)" style="padding:8px 16px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid rgba(108,99,255,.3);background:rgba(108,99,255,.12);color:#a089ff">🪞 Clone Yourself</button>
       <button class="avs-tab" onclick="avsShowTab('build',this)" style="padding:8px 16px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">🎬 Build Video</button>
-      <button class="avs-tab" onclick="avsShowTab('translate',this)" style="padding:8px 16px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">🌍 Translate Video</button>
       <button class="avs-tab" onclick="avsShowTab('library',this)" style="padding:8px 16px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Poppins',sans-serif;cursor:pointer;border:1px solid var(--border2);background:rgba(255,255,255,.04);color:var(--dim)">📁 My Videos</button>
     </div>
 
@@ -7438,54 +7437,6 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
 
       </div>
     </div>
-
-    <!-- TAB 3: Translate Video -->
-    <div id="avs-tab-translate" style="display:none">
-      <div class="card-dark" style="margin-bottom:1rem">
-        <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🌍 Translate a Video</div>
-        <div style="font-size:11px;color:var(--dim);margin-bottom:18px;line-height:1.7">Take any video and translate it into another language with lip-sync. Same avatar, same energy. Perfect for reaching new markets.</div>
-
-        <div style="margin-bottom:14px">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:6px">Video URL</div>
-          <input class="fi" type="url" id="avs-translate-url" placeholder="Paste the video URL from My Videos or any direct MP4 link" style="font-size:12px" />
-        </div>
-
-        <div style="margin-bottom:18px">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:6px">Translate to</div>
-          <select class="fi" id="avs-translate-lang" style="font-size:12px">
-            <option value="">Loading languages…</option>
-          </select>
-          <div style="font-size:9px;color:var(--dimmer);margin-top:5px">All available translation languages</div>
-        </div>
-
-        <div style="margin-bottom:12px">
-          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer);margin-bottom:6px">Quality</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <div id="avs-quality-fast" onclick="avsSetQuality('fast')" style="background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);border-radius:8px;padding:10px;text-align:center;cursor:pointer">
-              <div style="font-size:12px;font-weight:800;color:#a089ff;font-family:Poppins,sans-serif">⚡ Fast</div>
-              <div style="font-size:9px;color:var(--dim);margin-top:2px">Ready in minutes</div>
-            </div>
-            <div id="avs-quality-quality" onclick="avsSetQuality('quality')" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:8px;padding:10px;text-align:center;cursor:pointer">
-              <div style="font-size:12px;font-weight:800;color:var(--dim);font-family:Poppins,sans-serif">💎 Quality</div>
-              <div style="font-size:9px;color:var(--dimmer);margin-top:2px">Better lip sync</div>
-            </div>
-          </div>
-          <input type="hidden" id="avs-translate-quality" value="fast" />
-        </div>
-
-        <div style="text-align:center">
-          <button onclick="avsTranslate()" id="avs-translate-btn" style="background:linear-gradient(135deg,#6c63ff,#5040cc);border:none;border-radius:8px;padding:11px 40px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">🌍 Translate Video</button>
-        </div>
-
-        <div id="avs-translate-status" style="font-size:11px;text-align:center;margin-top:10px;color:var(--dim)"></div>
-        <div id="avs-translate-progress" style="display:none;margin-top:10px">
-          <div style="height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;margin-bottom:5px"><div id="avs-translate-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#6c63ff,var(--teal));border-radius:2px;transition:width 2s"></div></div>
-          <div id="avs-translate-time" style="font-size:10px;color:var(--dimmer);text-align:center">Translating…</div>
-        </div>
-      </div>
-    </div>
-
-
 
     <!-- TAB 4: My Videos Library -->
     <div id="avs-tab-library" style="display:none">
@@ -23024,7 +22975,9 @@ window.runMindsetReframe = async function() {
       return;
     }
     if (createResult.error || !createResult.projectId) {
-      if (status) status.textContent = '⚠️ Could not start captioning. Try again.';
+      console.error('[AVS] Submagic create failed. Full response:', JSON.stringify(createResult));
+      var detailMsg = (createResult.detail && (createResult.detail.message || JSON.stringify(createResult.detail))) || createResult.error || 'unknown error';
+      if (status) status.textContent = '⚠️ Could not start captioning: ' + detailMsg;
       if (btn) { btn.disabled = false; btn.textContent = '✨ Add Professional Captions & Effects'; }
       return;
     }
@@ -24342,12 +24295,14 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
         var safeUrl    = (v.url || '').replace(/"/g, '&quot;');
         var encUrl     = encodeURIComponent(v.url || '');
         var safeTitle  = (v.title || 'My Video').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-        html += '<div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;transition:all .2s"'
+        var delDocId   = v._docId ? encodeURIComponent(v._docId) : '';
+        var delCardId  = 'avs-vid-' + Math.random().toString(36).slice(2,9);
+        html += '<div id="' + delCardId + '" style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:12px;overflow:hidden;transition:all .2s"'
               + ' onmouseenter="this.style.borderColor=\'rgba(108,99,255,.3)\'"'
               + ' onmouseleave="this.style.borderColor=\'rgba(255,255,255,.07)\'">';
         html += '<div style="position:relative;background:#000;aspect-ratio:9/16;overflow:hidden;cursor:pointer"'
-              + ' onclick="avsLibraryPlay(\'' + encUrl + '\',this)">';
-        html += '<video src="' + safeUrl + '" style="width:100%;height:100%;object-fit:cover" preload="none" muted playsinline></video>';
+              + ' onclick="avsOpenVideoModal(\'' + encUrl + '\',\'' + safeTitle.replace(/'/g,"\\'") + '\')">';
+        html += '<video src="' + safeUrl + '" style="width:100%;height:100%;object-fit:cover" preload="metadata" muted playsinline></video>';
         html += '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.35);transition:opacity .2s" class="vs-play-overlay">'
               + '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:18px">&#9654;</div>'
               + '</div>';
@@ -24362,10 +24317,21 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
               + '<div style="display:flex;gap:6px">'
               + '<a href="' + safeUrl + '" download target="_blank" style="flex:1;text-align:center;padding:5px 0;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:10px;font-weight:700;text-decoration:none;font-family:Poppins,sans-serif">&#8595; Download</a>'
               + '<button onclick="navigator.clipboard.writeText(\'' + safeUrl + '\').then(function(){avsToast(\'Link copied\')})" style="flex:1;padding:5px 0;border-radius:6px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:rgba(255,255,255,.5);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">&#128279; Copy</button>'
-              + '</div></div></div>';
+              + '</div>'
+              + '<div style="display:flex;gap:6px;margin-top:6px">'
+              + '<button onclick="avsToggleTranslatePanel(\'' + delCardId + '\')" style="flex:1;padding:5px 0;border-radius:6px;border:1px solid rgba(108,99,255,.2);background:rgba(108,99,255,.06);color:#a089ff;font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">&#127760; Translate</button>'
+              + '<button onclick="avsDeleteVideo(this,\'' + delCardId + '\',\'' + delDocId + '\',\'' + encUrl + '\')" style="flex:1;padding:5px 0;border-radius:6px;border:1px solid rgba(255,90,90,.15);background:rgba(255,90,90,.05);color:rgba(255,120,120,.7);font-size:10px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">&#128465; Delete</button>'
+              + '</div>'
+              + '<div id="' + delCardId + '-tpanel" style="display:none;margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.06)">'
+              + '<select id="' + delCardId + '-tlang" style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border2);background:var(--bg3);color:var(--white);font-size:10px;font-family:Poppins,sans-serif;margin-bottom:6px"><option value="">Loading languages…</option></select>'
+              + '<button onclick="avsStartTranslate(\'' + delCardId + '\',\'' + encUrl + '\',\'' + safeTitle.replace(/'/g,"\\'") + '\')" style="width:100%;padding:6px 0;border-radius:6px;border:none;background:linear-gradient(135deg,#6c63ff,#5040cc);color:#fff;font-size:10px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">Translate This Video</button>'
+              + '<div id="' + delCardId + '-tstatus" style="font-size:9px;color:var(--dim);text-align:center;margin-top:6px"></div>'
+              + '</div>'
+              + '</div></div>';
       });
       html += '</div>';
       container.innerHTML = html;
+      if (typeof window.avsPopulateTranslateLangs === 'function') window.avsPopulateTranslateLangs();
     }
 
     // Load from Firestore first
@@ -24373,7 +24339,7 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
       window._getDocs(
         window._collection(window._db, 'users', uid, 'videos')
       ).then(function(snap) {
-        snap.forEach(function(doc) { videos.push(doc.data()); });
+        snap.forEach(function(doc) { videos.push(Object.assign({}, doc.data(), { _docId: doc.id })); });
         // Merge with localStorage
         try {
           var local = JSON.parse(localStorage.getItem('eos_video_library') || '[]');
@@ -24398,17 +24364,230 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
     }
   };
 
-  window.avsLibraryPlay = function(encodedUrl, container) {
-    var url = decodeURIComponent(encodedUrl);
-    var video = container && container.querySelector('video');
-    var overlay = container && container.querySelector('.vs-play-overlay');
-    if (!video) return;
-    if (video.paused) {
-      video.play();
-      if (overlay) overlay.style.opacity = '0';
+  // ── Delete a video from My Videos — two-step confirm on the button itself,
+  // no native confirm() dialog (those can silently fail in some environments).
+  window.avsDeleteVideo = function(btn, cardId, docId, encodedUrl) {
+    if (!btn) return;
+
+    if (!btn.dataset.confirming) {
+      // First click — arm the button, revert automatically after 3s
+      btn.dataset.confirming = '1';
+      var origHtml = btn.innerHTML;
+      btn.innerHTML = 'Click again to delete';
+      btn.style.background = 'rgba(255,90,90,.15)';
+      btn.style.color = '#ff7878';
+      btn.style.borderColor = 'rgba(255,90,90,.35)';
+      btn._avsRevertTimer = setTimeout(function() {
+        if (btn && btn.dataset.confirming) {
+          delete btn.dataset.confirming;
+          btn.innerHTML = origHtml;
+          btn.style.background = 'rgba(255,90,90,.05)';
+          btn.style.color = 'rgba(255,120,120,.7)';
+          btn.style.borderColor = 'rgba(255,90,90,.15)';
+        }
+      }, 3000);
+      return;
+    }
+
+    // Second click within the window — actually delete
+    clearTimeout(btn._avsRevertTimer);
+    btn.disabled = true;
+    btn.innerHTML = 'Deleting…';
+
+    var url = decodeURIComponent(encodedUrl || '');
+    var uid = window._currentUserUid;
+
+    function removeCardFromDom() {
+      var card = document.getElementById(cardId);
+      if (card) card.remove();
+      avsToast('Video deleted');
+      // If the library is now empty, refresh to show the empty state
+      var container = document.getElementById('avs-video-library');
+      if (container && container.children.length && container.children[0].children.length === 0) {
+        if (typeof window.avsLoadVideoLibrary === 'function') window.avsLoadVideoLibrary();
+      }
+    }
+
+    function removeFromLocalStorage() {
+      try {
+        var list = JSON.parse(localStorage.getItem('eos_video_library') || '[]');
+        list = list.filter(function(v) { return v.url !== url; });
+        localStorage.setItem('eos_video_library', JSON.stringify(list));
+      } catch(e) {}
+    }
+
+    var docIdDecoded = docId ? decodeURIComponent(docId) : '';
+
+    if (docIdDecoded && uid && window._db && window._deleteDoc && window._doc) {
+      window._deleteDoc(window._doc(window._db, 'users', uid, 'videos', docIdDecoded))
+        .then(function() {
+          removeFromLocalStorage(); // in case it's also cached there
+          removeCardFromDom();
+        })
+        .catch(function(e) {
+          console.error('[AVS] Firestore delete failed:', e.message);
+          // Still remove locally so the UI stays consistent
+          removeFromLocalStorage();
+          removeCardFromDom();
+        });
     } else {
-      video.pause();
-      if (overlay) overlay.style.opacity = '1';
+      removeFromLocalStorage();
+      removeCardFromDom();
+    }
+  };
+
+  // ── Translate a video directly from its My Videos card ──────────────────
+  // Language list is fetched once and cached — every card's dropdown reuses it.
+  window._avsLangCache = window._avsLangCache || null;
+  window.avsPopulateTranslateLangs = function() {
+    var selects = document.querySelectorAll('select[id$="-tlang"]');
+    if (!selects.length) return;
+
+    function fillAll(langs) {
+      selects.forEach(function(sel) {
+        if (sel.dataset.filled) return; // don't re-fill one already populated
+        var opts = '<option value="">Select a language…</option>';
+        langs.forEach(function(l) {
+          var name = (typeof l === 'string') ? l : (l.language || l.name || '');
+          if (!name) return;
+          opts += '<option value="' + name.replace(/"/g,'&quot;') + '">' + name + '</option>';
+        });
+        sel.innerHTML = opts;
+        sel.dataset.filled = '1';
+      });
+    }
+
+    if (window._avsLangCache) { fillAll(window._avsLangCache); return; }
+    heygenCall('get-languages', {}).then(function(data) {
+      var langs = data.languages || [];
+      window._avsLangCache = langs;
+      fillAll(langs);
+    }).catch(function() {
+      selects.forEach(function(sel) {
+        if (!sel.dataset.filled) sel.innerHTML = '<option value="">Could not load languages</option>';
+      });
+    });
+  };
+
+  window.avsToggleTranslatePanel = function(cardId) {
+    var panel = document.getElementById(cardId + '-tpanel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.avsStartTranslate = function(cardId, encodedUrl, origTitle) {
+    var url    = decodeURIComponent(encodedUrl || '');
+    var langEl = document.getElementById(cardId + '-tlang');
+    var lang   = langEl ? langEl.value : '';
+    var statusEl = document.getElementById(cardId + '-tstatus');
+    var btn = document.querySelector('#' + cardId + '-tpanel button[onclick^="avsStartTranslate"]');
+
+    if (!lang) { if (statusEl) statusEl.textContent = 'Pick a language first.'; return; }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+    if (statusEl) statusEl.textContent = 'Submitting to HeyGen…';
+
+    heygenCall('translate', { videoUrl: url, language: lang, quality: 'fast' }).then(function(data) {
+      if (data.error || !data.videoTranslateId) {
+        console.error('[AVS] Translate submit failed:', JSON.stringify(data));
+        if (statusEl) statusEl.textContent = '⚠️ ' + (data.error || 'Could not start translation.');
+        if (btn) { btn.disabled = false; btn.textContent = 'Translate This Video'; }
+        return;
+      }
+      if (btn) { btn.textContent = 'Translating…'; }
+      _avsPollTranslation(data.videoTranslateId, cardId, lang, origTitle, btn, statusEl, 0);
+    }).catch(function(err) {
+      if (statusEl) statusEl.textContent = '⚠️ ' + err.message;
+      if (btn) { btn.disabled = false; btn.textContent = 'Translate This Video'; }
+    });
+  };
+
+  function _avsPollTranslation(translateId, cardId, lang, origTitle, btn, statusEl, polls) {
+    var maxPolls = 90; // 15 min ceiling, matches the main generator
+    if (polls > maxPolls) {
+      if (statusEl) statusEl.textContent = '⚠️ Taking longer than expected — check back later.';
+      if (btn) { btn.disabled = false; btn.textContent = 'Translate This Video'; }
+      return;
+    }
+    setTimeout(function() {
+      heygenCall('translation-status', { videoTranslateId: translateId }).then(function(data) {
+        var elapsed = (polls + 1) * 10;
+        var mins = Math.floor(elapsed / 60), secs = elapsed % 60;
+        var timeStr = mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
+
+        if (data.status === 'success' || data.status === 'completed') {
+          if (data.videoUrl) {
+            if (statusEl) statusEl.textContent = '✅ Translated! Saving to My Videos…';
+            if (typeof window.avsSaveToLibrary === 'function') {
+              window.avsSaveToLibrary(data.videoUrl, {
+                title:  origTitle + ' (' + lang + ')',
+                source: 'heygen-translation',
+              });
+            }
+            if (statusEl) statusEl.textContent = '✅ Saved as "' + origTitle + ' (' + lang + ')"';
+            if (btn) { btn.disabled = false; btn.textContent = 'Translate This Video'; }
+            // Refresh the library after a moment so the new card appears
+            setTimeout(function() {
+              if (typeof window.avsLoadVideoLibrary === 'function') window.avsLoadVideoLibrary();
+            }, 1500);
+            return;
+          }
+        }
+        if (data.status === 'failed' || data.status === 'error') {
+          if (statusEl) statusEl.textContent = '⚠️ Translation failed. Try again.';
+          if (btn) { btn.disabled = false; btn.textContent = 'Translate This Video'; }
+          return;
+        }
+        if (statusEl) statusEl.textContent = 'Translating to ' + lang + '… (' + timeStr + ')';
+        _avsPollTranslation(translateId, cardId, lang, origTitle, btn, statusEl, polls + 1);
+      }).catch(function() {
+        // Transient network error — just try again next cycle
+        _avsPollTranslation(translateId, cardId, lang, origTitle, btn, statusEl, polls + 1);
+      });
+    }, 10000);
+  }
+
+  // Video modal - opens a real, full player with sound/controls when a
+  // My Videos card is clicked, instead of a small silent inline loop.
+  window.avsOpenVideoModal = function(encodedUrl, title) {
+    var url = decodeURIComponent(encodedUrl || '');
+    if (!url) return;
+    var existing = document.getElementById('avs-video-modal');
+    if (existing) existing.remove();
+
+    var overlay = document.createElement('div');
+    overlay.id = 'avs-video-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+    overlay.onclick = function(e) { if (e.target === overlay) window.avsCloseVideoModal(); };
+
+    var safeTitle = (title || 'Video').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var safeUrl   = url.replace(/"/g, '&quot;');
+
+    overlay.innerHTML =
+      '<div style="max-width:480px;width:100%;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">' +
+          '<div style="color:#fff;font-size:13px;font-weight:700;font-family:Poppins,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px">' + safeTitle + '</div>' +
+          '<button onclick="avsCloseVideoModal()" style="flex-shrink:0;width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.1);color:#fff;font-size:16px;cursor:pointer;font-family:Poppins,sans-serif">&#10005;</button>' +
+        '</div>' +
+        '<video src="' + safeUrl + '" controls autoplay playsinline style="width:100%;max-height:80vh;border-radius:10px;background:#000;display:block"></video>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    document.addEventListener('keydown', window._avsModalEscHandler = function(e) {
+      if (e.key === 'Escape') window.avsCloseVideoModal();
+    });
+  };
+
+  window.avsCloseVideoModal = function() {
+    var modal = document.getElementById('avs-video-modal');
+    if (modal) {
+      var video = modal.querySelector('video');
+      if (video) video.pause();
+      modal.remove();
+    }
+    if (window._avsModalEscHandler) {
+      document.removeEventListener('keydown', window._avsModalEscHandler);
+      window._avsModalEscHandler = null;
     }
   };
 
@@ -24493,24 +24672,6 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
     });
   }
 
-  window.avsTranslate = function() {
-    var urlEl = document.getElementById('avs-translate-url');
-    var langEl = document.getElementById('avs-translate-lang');
-    var btn  = document.getElementById('avs-translate-btn');
-    var url  = urlEl ? urlEl.value.trim() : '';
-    var lang = langEl ? langEl.value : '';
-    if (!url)  { avsToast('Paste a video URL first.', true); return; }
-    if (!lang) { avsToast('Select a language.', true); return; }
-    if (btn) { btn.disabled = true; btn.textContent = '⏳ Translating…'; }
-    heygenCall('translate', { videoUrl: url, language: lang }).then(function(data) {
-      if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
-      if (data.error) { avsToast('Translation failed: ' + data.error, true); return; }
-      avsToast('✅ Translation submitted! Check My Videos in a few minutes.');
-    }).catch(function(err) {
-      if (btn) { btn.disabled = false; btn.textContent = '🌍 Translate Video'; }
-      avsToast('Translation failed: ' + err.message, true);
-    });
-  };
 
   // ── Handle photo gen file ──────────────────────────────────────
   window.avsHandleGenPhoto = function(input) {
