@@ -7428,6 +7428,12 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
             <button onclick="avsCopyLink()" id="avs-copy-btn" style="padding:9px;background:rgba(255,255,255,.04);color:var(--dim);border:1px solid var(--border2);border-radius:7px;font-weight:700;font-size:11px;font-family:Poppins,sans-serif;cursor:pointer">🔗 Copy Link</button>
           </div>
           <button onclick="avsSaveToLibrary()" style="display:block;margin:8px auto 0;background:none;border:none;color:var(--dim);font-size:10px;cursor:pointer;font-family:Poppins,sans-serif;text-decoration:underline;text-underline-offset:3px">Save to My Videos</button>
+
+          <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border2)">
+            <button onclick="avsAddCaptions()" id="avs-captions-btn" style="width:100%;padding:11px;background:rgba(108,99,255,.1);border:1px solid rgba(108,99,255,.3);border-radius:8px;color:#a089ff;font-weight:800;font-size:11px;font-family:Poppins,sans-serif;cursor:pointer">✨ Add Professional Captions &amp; Effects</button>
+            <div style="font-size:9px;color:var(--dimmer);text-align:center;margin-top:5px">Animated captions, auto zoom, B-roll, silence removal &mdash; takes 2-5 minutes</div>
+            <div id="avs-captions-status" style="display:none;font-size:11px;color:var(--dim);text-align:center;margin-top:8px"></div>
+          </div>
         </div>
 
       </div>
@@ -22971,6 +22977,105 @@ window.runMindsetReframe = async function() {
     }
   }
 
+  // ── Submagic — post-processing polish: captions, zooms, B-roll ──────────
+  async function submagicCall(action, body) {
+    try {
+      var payload = Object.assign({ action: action }, body || {});
+      var resp = await fetch(window.location.origin + '/api/submagic', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (resp.status === 404) return { error: 'submagic_not_deployed' };
+      if (!resp.ok) {
+        var errText = await resp.text();
+        console.error('[AVS] Submagic HTTP', resp.status, errText.slice(0, 200));
+        return { error: 'Submagic server error ' + resp.status };
+      }
+      return await resp.json();
+    } catch(e) {
+      console.error('[AVS] Submagic call failed:', action, e.message);
+      return { error: e.message };
+    }
+  }
+
+  window.avsAddCaptions = async function() {
+    var videoUrl = _avs.generatedVideoUrl || (function(){ try { return localStorage.getItem('eos_last_video_url') || ''; } catch(e){ return ''; } })();
+    if (!videoUrl) { avsToast('No generated video found to add captions to.', true); return; }
+
+    if (typeof window.creditDeduct === 'function') {
+      var ok = await window.creditDeduct('video_captions');
+      if (!ok) return;
+    }
+
+    var btn    = document.getElementById('avs-captions-btn');
+    var status = document.getElementById('avs-captions-status');
+    if (btn)    { btn.disabled = true; btn.textContent = 'Sending to Submagic…'; }
+    if (status) { status.style.display = 'block'; status.textContent = 'Uploading your video for professional editing…'; }
+
+    var createResult = await submagicCall('create', {
+      videoUrl: videoUrl,
+      title: 'Execution OS Video — ' + new Date().toLocaleDateString(),
+    });
+
+    if (createResult.error === 'submagic_not_configured') {
+      if (status) status.textContent = '⚠️ Captions & Effects is not set up yet — add SUBMAGIC_API_KEY in Vercel to enable this.';
+      if (btn) { btn.disabled = false; btn.textContent = '✨ Add Professional Captions & Effects'; }
+      return;
+    }
+    if (createResult.error || !createResult.projectId) {
+      if (status) status.textContent = '⚠️ Could not start captioning. Try again.';
+      if (btn) { btn.disabled = false; btn.textContent = '✨ Add Professional Captions & Effects'; }
+      return;
+    }
+
+    var projectId = createResult.projectId;
+    var polls = 0;
+    var pollInterval = setInterval(function() {
+      polls++;
+      var elapsed = polls * 8;
+      var mins = Math.floor(elapsed / 60), secs = elapsed % 60;
+      var timeStr = mins > 0 ? mins + 'm ' + secs + 's' : secs + 's';
+
+      if (polls > 60) { // ~8 minutes safety cutoff
+        clearInterval(pollInterval);
+        if (status) status.textContent = '⚠️ Still processing after 8 minutes — check back shortly, it will save automatically when done.';
+        if (btn) { btn.disabled = false; btn.textContent = '✨ Add Professional Captions & Effects'; }
+        return;
+      }
+
+      submagicCall('status', { projectId: projectId }).then(function(data) {
+        if (data.error) return; // transient error, just wait for next poll
+
+        if (status) status.textContent = 'Adding captions, zooms & B-roll (' + timeStr + ')… this takes 2-5 minutes.';
+
+        if (data.status === 'completed' && (data.directUrl || data.downloadUrl)) {
+          clearInterval(pollInterval);
+          var finalUrl = data.directUrl || data.downloadUrl;
+          _avs.generatedVideoUrl = finalUrl;
+          try { localStorage.setItem('eos_last_video_url', finalUrl); } catch(e) {}
+
+          var videoEl = document.getElementById('avs-preview-video');
+          if (videoEl) { videoEl.src = finalUrl; videoEl.load(); }
+          if (status) status.textContent = '✅ Captions & effects added!';
+          if (btn) { btn.disabled = false; btn.textContent = '✨ Add Professional Captions & Effects'; }
+          avsToast('✨ Your video now has professional captions & effects!');
+
+          if (typeof window.avsSaveToLibrary === 'function') {
+            window.avsSaveToLibrary(finalUrl, {
+              title:   'Video (captioned) — ' + new Date().toLocaleDateString(),
+              source:  'heygen+submagic',
+            });
+          }
+        } else if (data.status === 'failed') {
+          clearInterval(pollInterval);
+          if (status) status.textContent = '⚠️ Captioning failed: ' + (data.failureReason || 'unknown error') + '. Your original video is still available above.';
+          if (btn) { btn.disabled = false; btn.textContent = '✨ Add Professional Captions & Effects'; }
+        }
+      });
+    }, 8000);
+  };
+
   function _avsShow404Warning() {
     var page = document.getElementById('page-ai-video');
     if (!page || document.getElementById('_avs_404_banner')) return;
@@ -24165,7 +24270,7 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
     var url = videoUrl || _avs.generatedVideoUrl;
     if (!url) { try { url = localStorage.getItem('eos_last_video_url') || ''; } catch(e) {} }
     if (!url) { avsToast('No video to save.', true); return; }
-    var uid = window._currentUser && window._currentUser.uid;
+    var uid = window._currentUserUid;
     if (!uid) { avsToast('Please log in to save videos.', true); return; }
     var entry = Object.assign({
       url:       url,
@@ -24219,7 +24324,7 @@ window.avsVpeWriteScript   = avsVpeWriteScript;
     if (!container) return;
     container.innerHTML = '<div style="text-align:center;padding:24px;color:var(--dim);font-size:11px">Loading your videos…</div>';
 
-    var uid = window._currentUser && window._currentUser.uid;
+    var uid = window._currentUserUid;
     var videos = [];
 
     function renderLibrary(vids) {
@@ -45771,7 +45876,7 @@ function fbSaveData() {
   try { localStorage.setItem('eos_foundation', JSON.stringify(d)); } catch(e){}
 
   // Save to Firestore
-  var uid = window._currentUser && window._currentUser.uid;
+  var uid = window._currentUserUid;
   if (uid && window._db && window._setDoc && window._doc) {
     window._setDoc(
       window._doc(window._db, 'users', uid, 'foundation', 'data'),
