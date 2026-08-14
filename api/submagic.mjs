@@ -59,6 +59,8 @@ export default async function handler(req, res) {
       if (opts.templateName) payload.templateName = opts.templateName;
       if (opts.dictionary && Array.isArray(opts.dictionary)) payload.dictionary = opts.dictionary;
 
+      console.log('[submagic] Creating project. Payload:', JSON.stringify(payload));
+
       const resp = await fetch(`${SUBMAGIC_BASE}/projects`, {
         method: 'POST',
         headers: submagicHeaders(SUBMAGIC_KEY),
@@ -66,8 +68,10 @@ export default async function handler(req, res) {
       });
       const data = await resp.json();
       if (!resp.ok) {
+        console.error('[submagic] Create FAILED. HTTP', resp.status, '— Full Submagic response:', JSON.stringify(data));
         return res.status(200).json({ error: 'submagic_create_failed', status: resp.status, detail: data });
       }
+      console.log('[submagic] Project created OK:', data.id, data.status);
       return res.status(200).json({ projectId: data.id, status: data.status });
     }
 
@@ -81,6 +85,7 @@ export default async function handler(req, res) {
       });
       const data = await resp.json();
       if (!resp.ok) {
+        console.error('[submagic] Status check FAILED. HTTP', resp.status, '— Full Submagic response:', JSON.stringify(data));
         return res.status(200).json({ error: 'submagic_status_failed', status: resp.status, detail: data });
       }
 
