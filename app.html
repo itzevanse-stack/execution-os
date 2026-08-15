@@ -7181,6 +7181,11 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
         <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🎥 Video Avatar</div>
         <div style="font-size:11px;color:var(--dim);margin-bottom:12px">Record yourself or upload a video. Say the consent sentence first, then talk naturally for 2 to 4 minutes.</div>
 
+        <div id="avs-dt-status-card" style="display:none;background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:8px;padding:12px 14px;margin-bottom:14px">
+          <div id="avs-dt-status-text" style="font-size:12px;font-weight:700;color:var(--white)"></div>
+          <div id="avs-dt-status-sub" style="font-size:10px;color:var(--dim);margin-top:3px"></div>
+        </div>
+
         <!-- Consent box -->
         <div style="background:rgba(108,99,255,.05);border:1px solid rgba(108,99,255,.15);border-radius:8px;padding:10px 14px;margin-bottom:14px">
           <div style="font-size:10px;font-weight:700;color:#a089ff;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px">Say this first</div>
@@ -23131,6 +23136,9 @@ window.runMindsetReframe = async function() {
     if (mode === 'photo' && typeof window.avsLoadMyPhotoAvatars === 'function') {
       window.avsLoadMyPhotoAvatars();
     }
+    if (mode === 'video' && typeof window.avsLoadDigitalTwinStatus === 'function') {
+      window.avsLoadDigitalTwinStatus();
+    }
   };
 
   // ── Handle photo file input ────────────────────────────────────
@@ -23399,16 +23407,115 @@ window.runMindsetReframe = async function() {
     avsSetStatus('avs-cam-status', 'Ready to record again.', 'var(--dim)');
   };
 
+  // ── Digital Twin creation — shared by both the recorded-video and
+  // uploaded-file paths. Uploads to Firebase Storage (HeyGen requires a
+  // public URL, not a raw file), submits to the real Digital Twin API,
+  // and persists status to Firestore so the new video-status cron can
+  // pick it up later — training takes 2-4 hours, this never polls live.
+  async function _avsSubmitDigitalTwin(videoBlob, statusElId, btn, btnIdleText) {
+    var uid = window._currentUserUid;
+    if (!uid) {
+      avsSetStatus(statusElId, '⚠️ Please log in to create a Digital Twin.', 'var(--orange)');
+      if (btn) { btn.disabled = false; btn.textContent = btnIdleText; }
+      return;
+    }
+    if (!window._storage || !window._storageRef || !window._uploadBytes || !window._getDownloadURL) {
+      avsSetStatus(statusElId, '⚠️ Storage is not available right now. Try again shortly.', 'var(--orange)');
+      if (btn) { btn.disabled = false; btn.textContent = btnIdleText; }
+      return;
+    }
+
+    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
+    avsSetStatus(statusElId, '⬆️ Uploading your video…', 'var(--purple)');
+
+    try {
+      var path = 'users/' + uid + '/digital-twin/' + Date.now() + '.mp4';
+      var fileRef = window._storageRef(window._storage, path);
+      await window._uploadBytes(fileRef, videoBlob, { contentType: videoBlob.type || 'video/mp4' });
+      var publicUrl = await window._getDownloadURL(fileRef);
+
+      avsSetStatus(statusElId, '🚀 Submitting to HeyGen…', 'var(--purple)');
+
+      var avatarName = 'My Digital Twin — ' + new Date().toLocaleDateString();
+      var result = await heygenCall('create-avatar', {
+        trainingFootageUrl: publicUrl,
+        consentUrl:         publicUrl, // same video — it contains both, per the on-screen instruction
+        avatarName:         avatarName,
+      });
+
+      if (result.error || !result.avatarId) {
+        console.error('[AVS] Digital Twin submission failed:', JSON.stringify(result));
+        avsSetStatus(statusElId, '⚠️ ' + (result.error || 'Could not submit. Try again.'), 'var(--orange)');
+        if (btn) { btn.disabled = false; btn.textContent = btnIdleText; }
+        return;
+      }
+
+      // Persist so the cron can find and update this later — Firestore is
+      // the source of truth here since a server-side cron can't touch localStorage.
+      var record = {
+        digitalTwinAvatarId:   result.avatarId,
+        digitalTwinStatus:     'in_progress',
+        digitalTwinName:       avatarName,
+        digitalTwinSubmittedAt: new Date().toISOString(),
+      };
+      try {
+        if (window._db && window._setDoc && window._doc) {
+          await window._setDoc(window._doc(window._db, 'users', uid), record, { merge: true });
+        }
+      } catch(e) { console.warn('[AVS] Could not save Digital Twin record to Firestore:', e.message); }
+      try { localStorage.setItem('eos_digital_twin', JSON.stringify(record)); } catch(e) {}
+
+      avsToast('✅ Submitted! Training takes 2-4 hours — we\'ll show it here once ready.');
+      if (btn) { btn.disabled = false; btn.textContent = btnIdleText; }
+      avsRenderDigitalTwinStatus(record);
+
+    } catch(err) {
+      console.error('[AVS] Digital Twin flow error:', err.message);
+      avsSetStatus(statusElId, '⚠️ ' + err.message, 'var(--orange)');
+      if (btn) { btn.disabled = false; btn.textContent = btnIdleText; }
+    }
+  }
+
+  // ── Show current Digital Twin status — checked once on tab load (not
+  // polled live; the cron job updates Firestore in the background).
+  window.avsRenderDigitalTwinStatus = function(record) {
+    var card = document.getElementById('avs-dt-status-card');
+    var text = document.getElementById('avs-dt-status-text');
+    var sub  = document.getElementById('avs-dt-status-sub');
+    if (!card || !text || !sub || !record || !record.digitalTwinAvatarId) return;
+
+    card.style.display = 'block';
+    if (record.digitalTwinStatus === 'complete') {
+      text.textContent = '✅ ' + (record.digitalTwinName || 'Your Digital Twin') + ' is ready';
+      sub.textContent  = 'Select it from your avatars when generating a video.';
+      card.style.background = 'rgba(78,204,163,.06)';
+      card.style.borderColor = 'rgba(78,204,163,.2)';
+    } else if (record.digitalTwinStatus === 'failed') {
+      text.textContent = '⚠️ Digital Twin training failed';
+      sub.textContent  = record.digitalTwinError || 'Try recording a clearer, well-lit video and submit again.';
+      card.style.background = 'rgba(255,90,90,.06)';
+      card.style.borderColor = 'rgba(255,90,90,.2)';
+    } else {
+      text.textContent = '⏳ ' + (record.digitalTwinName || 'Your Digital Twin') + ' is training';
+      sub.textContent  = 'This takes 2-4 hours. Check back later — no need to keep this tab open.';
+    }
+  };
+
+  window.avsLoadDigitalTwinStatus = function() {
+    var uid = window._currentUserUid;
+    if (!uid || !window._db || !window._getDoc || !window._doc) return;
+    window._getDoc(window._doc(window._db, 'users', uid)).then(function(snap) {
+      if (!snap.exists()) return;
+      var data = snap.data();
+      if (data.digitalTwinAvatarId) avsRenderDigitalTwinStatus(data);
+    }).catch(function(e) { console.warn('[AVS] Could not load Digital Twin status:', e.message); });
+  };
+
   window.avsSubmitRecording = function() {
     if (!_avs.recordedChunks.length) { avsToast('No recording found. Record first.', true); return; }
-    var btn = document.getElementById('avs-submit-recording-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Processing…'; }
-    // For now, show a message — actual upload requires the heygen.js server handler
-    avsSetStatus('avs-cam-status', '⚙️ Processing recording… This may take a few minutes.', 'var(--purple)');
-    avsToast('Recording submitted — avatar creation takes 2–5 minutes. Check Saved Avatars.');
-    setTimeout(function() {
-      if (btn) { btn.disabled = false; btn.textContent = 'Use This Recording →'; }
-    }, 3000);
+    var blob = new Blob(_avs.recordedChunks, { type: 'video/webm' });
+    var btn  = document.getElementById('avs-submit-recording-btn');
+    _avsSubmitDigitalTwin(blob, 'avs-cam-status', btn, 'Use This Recording →');
   };
 
   window.avsHandleVideoFile = function(input) {
@@ -23423,13 +23530,9 @@ window.runMindsetReframe = async function() {
       avsToast('Select a video file first.', true); return;
     }
     var btn = document.getElementById('avs-upload-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Uploading…'; }
-    avsSetStatus('avs-submit-status', '⚙️ Uploading video… This may take a moment.', 'var(--purple)');
-    avsToast('Video uploaded — avatar creation takes 2–5 minutes. Check Saved Avatars.');
-    setTimeout(function() {
-      if (btn) { btn.disabled = false; btn.textContent = 'Upload and Create Avatar'; }
-    }, 3000);
+    _avsSubmitDigitalTwin(fileInput.files[0], 'avs-upload-status', btn, 'Upload and Create Avatar');
   };
+
 
   // ── Load saved avatar groups ───────────────────────────────────
   window.avsLoadMyAvatarGroups = function() {
@@ -30485,6 +30588,8 @@ import { getAuth, onAuthStateChanged, signOut as _signOut }
                                                    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc,
          collection, getDocs }                     from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL }
+                                                   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -30499,6 +30604,22 @@ window._updateDoc  = updateDoc;
 window._deleteDoc  = deleteDoc;
 window._collection = collection;
 window._getDocs    = getDocs;
+
+// Storage helpers — needed for Digital Twin creation, which requires
+// public URLs (not raw file uploads) per HeyGen's real API contract.
+// Wrapped defensively: if Storage init ever fails (misconfigured bucket,
+// transient issue), it must NEVER take down Firestore/Auth/the rest of the
+// app with it — Digital Twin just becomes unavailable, everything else
+// (voice clone, photo avatars, login, etc.) keeps working normally.
+try {
+  const storage = getStorage(app);
+  window._storage        = storage;
+  window._storageRef     = storageRef;
+  window._uploadBytes    = uploadBytes;
+  window._getDownloadURL = getDownloadURL;
+} catch (storageErr) {
+  console.warn('[Firebase] Storage init failed — Digital Twin creation will be unavailable, everything else is unaffected:', storageErr.message);
+}
 
 // Sign-out
 const signOut = () => _signOut(auth);
