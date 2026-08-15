@@ -28,6 +28,21 @@ module.exports = async function handler(req, res) {
       }
     }
 
+    // HeyGen's documented error shape is { error: { code, message, param,
+    // doc_url } } — a nested object, not a string. Always unwrap it properly
+    // here so the frontend never receives an object and stringifies it as
+    // "[object Object]" via new Error(obj).
+    function extractErrorMessage(data, fallback) {
+      if (!data) return fallback;
+      if (typeof data.message === 'string' && data.message) return data.message;
+      if (typeof data.error === 'string' && data.error) return data.error;
+      if (data.error && typeof data.error === 'object') {
+        if (typeof data.error.message === 'string' && data.error.message) return data.error.message;
+        try { return JSON.stringify(data.error).substring(0, 200); } catch(e) {}
+      }
+      return fallback;
+    }
+
     const GET  = (path) => fetch(`${API}${path}`, {
       headers: { 'X-Api-Key': KEY, 'Accept': 'application/json' }
     });
@@ -47,7 +62,7 @@ module.exports = async function handler(req, res) {
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'get-avatars') {
       const r = await safeJson(await GET('/v2/avatars'));
-      if (!r.ok) return res.status(500).json({ error: r.data.error || 'Failed to fetch avatars' });
+      if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'Failed to fetch avatars') });
       const avatars = (r.data?.data?.avatars || []).map(a => ({
         avatar_id:         a.avatar_id,
         avatar_name:       a.avatar_name || a.avatar_id,
@@ -65,7 +80,7 @@ module.exports = async function handler(req, res) {
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'get-voices') {
       const r = await safeJson(await GET('/v2/voices'));
-      if (!r.ok) return res.status(500).json({ error: r.data.error || 'Failed to fetch voices' });
+      if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'Failed to fetch voices') });
       const voices = (r.data?.data?.voices || []).map(v => ({
         voice_id:     v.voice_id,
         display_name: v.display_name || v.name || v.voice_id,
@@ -107,7 +122,7 @@ module.exports = async function handler(req, res) {
       console.log(`[HeyGen] Voice clone [${status}]:`, JSON.stringify(data).substring(0, 200));
 
       if (!ok) {
-        return res.status(500).json({ error: data?.message || data?.error || `Voice cloning failed (${status}). Try a clearer, shorter audio sample.` });
+        return res.status(500).json({ error: extractErrorMessage(data, `Voice cloning failed (${status}). Try a clearer, shorter audio sample.`) });
       }
 
       const voiceId = data?.data?.voice_id || data?.voice_id;
@@ -122,7 +137,7 @@ module.exports = async function handler(req, res) {
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'list-avatar-groups') {
       const r = await safeJson(await GET('/v2/avatar_group.list'));
-      if (!r.ok) return res.status(500).json({ error: r.data?.error || 'Failed to fetch avatar groups' });
+      if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'Failed to fetch avatar groups') });
       const groups = r.data?.data?.avatar_group_list || r.data?.data || [];
       return res.status(200).json({ groups });
     }
@@ -134,7 +149,7 @@ module.exports = async function handler(req, res) {
       const { groupId } = req.body || {};
       if (!groupId) return res.status(400).json({ error: 'Missing groupId' });
       const r = await safeJson(await GET(`/v2/avatar_group/${encodeURIComponent(groupId)}/avatars`));
-      if (!r.ok) return res.status(500).json({ error: r.data?.error || 'Failed to fetch group avatars' });
+      if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'Failed to fetch group avatars') });
       return res.status(200).json({ avatars: r.data?.data?.avatar_list || r.data?.data || [] });
     }
 
@@ -212,7 +227,7 @@ module.exports = async function handler(req, res) {
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'list-talking-photos') {
       const r = await safeJson(await GET('/v1/talking_photo.list'));
-      if (!r.ok) return res.status(500).json({ error: r.data?.error || 'Failed to list talking photos' });
+      if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'Failed to list talking photos') });
       const photos = (r.data?.data || []).map(p => ({
         id:        p.id,
         image_url: p.image_url || p.circle_image || '',
@@ -236,7 +251,7 @@ module.exports = async function handler(req, res) {
         appearance:  appearance  || 'Professional person in business casual attire against a clean background',
       };
       const r = await safeJson(await POST('/v2/photo_avatar/photo/generate', payload));
-      if (!r.ok) return res.status(500).json({ error: r.data?.message || r.data?.error || 'AI avatar generation failed' });
+      if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'AI avatar generation failed') });
       return res.status(200).json({ success: true, generationId: r.data?.data?.generation_id });
     }
 
@@ -307,7 +322,7 @@ module.exports = async function handler(req, res) {
 
       const r = await safeJson(await POST('/v2/video/generate', payload));
       if (!r.ok) {
-        return res.status(500).json({ error: r.data?.message || r.data?.error || JSON.stringify(r.data).substring(0, 300) });
+        return res.status(500).json({ error: extractErrorMessage(r.data, JSON.stringify(r.data).substring(0, 300)) });
       }
       return res.status(200).json({ success: true, videoId: r.data?.data?.video_id || r.data?.video_id });
     }
@@ -409,7 +424,7 @@ module.exports = async function handler(req, res) {
       });
       const { ok, data, status } = await safeJson(uploadResp);
       console.log(`[HeyGen] Instant avatar [${status}]:`, JSON.stringify(data).substring(0, 200));
-      if (!ok) return res.status(500).json({ error: data?.message || data?.error || JSON.stringify(data).substring(0, 200) });
+      if (!ok) return res.status(500).json({ error: extractErrorMessage(data, JSON.stringify(data).substring(0, 200)) });
       const avatarId = data.data?.avatar_id || data.avatar_id || data.data?.job_id;
       return res.status(200).json({ success: true, avatarId: avatarId || 'pending_' + Date.now(), status: 'pending' });
     }
