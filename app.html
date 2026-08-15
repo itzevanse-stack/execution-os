@@ -22914,6 +22914,13 @@ window.runMindsetReframe = async function() {
     if (_savedClonedVoice) _avs.clonedVoiceId = _savedClonedVoice;
   } catch(e) {}
 
+  // Restore Automate's assigned clone slots (1-3) — was never populated
+  // anywhere before, which meant the Automate feature could never start.
+  try {
+    var _savedAutoClones = localStorage.getItem('eos_auto_clones');
+    if (_savedAutoClones) window._autoClones = JSON.parse(_savedAutoClones);
+  } catch(e) {}
+
   // ── HeyGen API helper — uses correct action names matching heygen.js ──────
   async function heygenCall(action, body) {
     try {
@@ -26962,6 +26969,77 @@ window._autoContentTypes= { fb1:true, reel1:true, carousel:true, fb2:true, reel2
   if (d) d.value = new Date().toISOString().slice(0,10);
 })();
 
+// ── Assign a saved avatar to an Automate clone slot (0, 1, or 2) ──────────
+// Reuses the same avatar data already saved from Video Studio — no separate
+// avatar-creation flow needed here, just picking which one fills each slot.
+window.autoAssignClone = function(slotIndex) {
+  var existing = document.getElementById('auto-clone-picker-modal');
+  if (existing) existing.remove();
+
+  var overlay = document.createElement('div');
+  overlay.id = 'auto-clone-picker-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px';
+  overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+
+  overlay.innerHTML =
+    '<div style="max-width:420px;width:100%;background:var(--card2,#161630);border-radius:14px;padding:20px;max-height:80vh;overflow-y:auto">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">' +
+        '<div style="font-size:14px;font-weight:800;color:var(--white);font-family:Poppins,sans-serif">Assign Clone ' + (slotIndex + 1) + '</div>' +
+        '<button onclick="document.getElementById(\'auto-clone-picker-modal\').remove()" style="width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.08);color:#fff;font-size:14px;cursor:pointer">&#10005;</button>' +
+      '</div>' +
+      '<div id="auto-clone-picker-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px">' +
+        '<div style="grid-column:1/-1;font-size:11px;color:var(--dim);text-align:center;padding:16px">Loading your saved avatars…</div>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+
+  heygenCall('list-talking-photos', {}).then(function(data) {
+    var grid = document.getElementById('auto-clone-picker-grid');
+    if (!grid) return;
+    var photos = (data && data.photos) || [];
+    if (!photos.length) {
+      grid.innerHTML = '<div style="grid-column:1/-1;font-size:11px;color:var(--dim);text-align:center;padding:16px">No saved avatars yet. Create one in Video Studio → Clone Yourself first.</div>';
+      return;
+    }
+    grid.innerHTML = photos.map(function(p) {
+      var id    = p.id || '';
+      var thumb = p.image_url || '';
+      return '<div onclick="autoConfirmCloneAssignment(' + slotIndex + ',\'' + id + '\',\'' + thumb.replace(/'/g,"\\'") + '\')" style="cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent;aspect-ratio:1">'
+        + (thumb
+          ? '<img src="'+thumb+'" style="width:100%;height:100%;object-fit:cover;display:block">'
+          : '<div style="width:100%;height:100%;background:rgba(108,99,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px">🎭</div>')
+        + '</div>';
+    }).join('');
+  }).catch(function(e) {
+    var grid = document.getElementById('auto-clone-picker-grid');
+    if (grid) grid.innerHTML = '<div style="grid-column:1/-1;font-size:11px;color:var(--red);text-align:center;padding:16px">Could not load avatars: ' + e.message + '</div>';
+  });
+};
+
+window.autoConfirmCloneAssignment = function(slotIndex, avatarId, thumb) {
+  window._autoClones = window._autoClones || [];
+  window._autoClones[slotIndex] = {
+    name: 'Clone ' + (slotIndex + 1),
+    avatarId: avatarId,
+    thumb: thumb || '',
+  };
+  try { localStorage.setItem('eos_auto_clones', JSON.stringify(window._autoClones)); } catch(e) {}
+
+  var modal = document.getElementById('auto-clone-picker-modal');
+  if (modal) modal.remove();
+
+  autoRenderChecklist();
+  avsToast('Clone ' + (slotIndex + 1) + ' assigned');
+
+  // Refresh the Start button's enabled state if the toggle is already on
+  if (window._autoToggleOn) {
+    var ok  = autoChecklistValid();
+    var btn = document.getElementById('auto-start-btn');
+    if (btn) { btn.disabled = !ok; btn.style.opacity = ok ? '1' : '.45'; }
+  }
+};
+
 window.csInitAutomate = function() {
   autoRenderChecklist();
 };
@@ -27042,23 +27120,30 @@ function autoRenderChecklist() {
       done: intelReady, critical: true },
     { label: 'Content pillars: ' + (pillarsCount ? pillarsCount + ' pillars loaded' : 'not yet generated'),
       done: pillarsCount > 0, critical: false },
-    { label: 'Clone 1 — ' + (clone1 ? (clones[0].name || 'Ready') : 'Not set up'),
-      done: clone1, critical: true },
-    { label: 'Clone 2 — ' + (clone2 ? (clones[1].name || 'Ready') : 'Not set up'),
-      done: clone2, critical: false },
-    { label: 'Clone 3 — ' + (clone3 ? (clones[2].name || 'Ready') : 'Not set up') + ((!clone3 && clone1) ? ' (optional)' : ''),
-      done: clone3, critical: false },
+    { label: 'Clone 1 — ' + (clone1 ? (clones[0].name || 'Ready') : 'Not set up — click to assign'),
+      done: clone1, critical: true, slot: 0, thumb: clone1 ? clones[0].thumb : '' },
+    { label: 'Clone 2 — ' + (clone2 ? (clones[1].name || 'Ready') : 'Not set up — click to assign'),
+      done: clone2, critical: false, slot: 1, thumb: clone2 ? clones[1].thumb : '' },
+    { label: 'Clone 3 — ' + (clone3 ? (clones[2].name || 'Ready') : 'Not set up — click to assign') + ((!clone3 && clone1) ? ' (optional)' : ''),
+      done: clone3, critical: false, slot: 2, thumb: clone3 ? clones[2].thumb : '' },
     { label: 'Offer configured: ' + (offerReady ? 'Yes' : 'Not yet'),
       done: offerReady, critical: false }
   ];
 
   el.innerHTML = items.map(function(item) {
-    var color  = item.done ? 'var(--teal)' : (item.critical ? 'var(--red)' : 'var(--orange)');
-    var icon   = item.done ? '✅' : (item.critical ? '❌' : '⚠️');
-    return '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:var(--r-sm)">'
+    var color     = item.done ? 'var(--teal)' : (item.critical ? 'var(--red)' : 'var(--orange)');
+    var icon      = item.done ? '✅' : (item.critical ? '❌' : '⚠️');
+    var clickable = typeof item.slot === 'number';
+    var thumbHtml = item.thumb
+      ? '<img src="'+item.thumb+'" style="width:22px;height:22px;border-radius:5px;object-fit:cover;margin-right:2px">'
+      : '';
+    return '<div' + (clickable ? ' onclick="autoAssignClone(' + item.slot + ')" style="cursor:pointer"' : '') + '>'
+      + '<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.05);border-radius:var(--r-sm)' + (clickable ? ';transition:border-color .15s' : '') + '"'
+      + (clickable ? ' onmouseover="this.style.borderColor=\'rgba(108,99,255,.3)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,.05)\'"' : '') + '>'
       + '<span style="font-size:14px">' + icon + '</span>'
+      + thumbHtml
       + '<span style="font-size:12px;color:' + color + ';font-weight:' + (item.critical ? '700' : '600') + '">' + item.label + '</span>'
-      + '</div>';
+      + '</div></div>';
   }).join('');
 
   // Show warning if critical items missing
@@ -41681,6 +41766,9 @@ window.calInitFirestoreListener = function() {
             videoUrl:      piece.videoUrl || '',
             imageUrls:     piece.imageUrls || [],
             images:        piece.imageUrls || piece.images || [],
+            slideData:     piece.slideData || null,
+            subject:       piece.subject || '',
+            preheader:     piece.preheader || '',
             scheduledTime: piece.scheduledTime || TIMES[key],
             status:        piece.status || 'ready',
             bestTime:      piece.bestTime || '',
@@ -41863,8 +41951,8 @@ window.calOpenModal = function(entry) {
       + '<a href="' + (entry.videoUrl || '#') + '" download style="flex:1;padding:12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--r-md);color:var(--muted);font-size:12px;font-weight:700;text-align:center;text-decoration:none;font-family:Poppins,sans-serif">⬇️ Download MP4</a>'
       + '<button onclick="calMarkPublished()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:12px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">✅ Mark as Published</button>'
       + '</div>';
-  } else if (isCarousel && entry.images) {
-    // Carousel slide thumbnails
+  } else if (isCarousel && entry.images && entry.images.length) {
+    // Carousel slide thumbnails (only available when rendered client-side via Carousel Studio)
     var imgs = Array.isArray(entry.images) ? entry.images : [];
     html += '<div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px">'
       + imgs.map(function(src, i) {
@@ -41880,6 +41968,55 @@ window.calOpenModal = function(entry) {
       + '<button onclick="calDownloadCarouselZip()" style="flex:1;padding:12px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:var(--r-md);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">⬇️ Download Slides (PNG)</button>'
       + '<button onclick="calMarkPublished()" style="flex:1;padding:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:12px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif">✅ Mark as Published</button>'
       + '</div>';
+  } else if (isCarousel && entry.slideData) {
+    // Automate-generated carousels have structured slide text but no rendered
+    // PNG images (canvas rendering only happens client-side in Carousel Studio).
+    // Show the full readable breakdown instead of leaving this nearly empty.
+    var sd = entry.slideData;
+    html += '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px">'
+      + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#a089ff;font-weight:800;margin-bottom:4px">Slide 1 — Hook</div>'
+      + '<div style="font-size:14px;color:var(--white);font-weight:700">' + (sd.hook || entry.hook || '(No hook generated)') + '</div>'
+      + '</div>';
+    (sd.slides || []).forEach(function(slide, i) {
+      html += '<div style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:12px 14px;margin-bottom:10px">'
+        + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:800;margin-bottom:4px">Slide ' + (i+2) + '</div>'
+        + '<div style="font-size:13px;color:var(--white);font-weight:700;margin-bottom:4px">' + (slide.headline || '(No headline)') + '</div>'
+        + '<div style="font-size:12px;color:var(--muted);line-height:1.6">' + (slide.body || '(No body text)') + '</div>'
+        + '</div>';
+    });
+    html += '<div style="background:rgba(78,204,163,.06);border:1px solid rgba(78,204,163,.2);border-radius:var(--r-md);padding:12px 14px;margin-bottom:14px">'
+      + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--teal);font-weight:800;margin-bottom:4px">Final Slide — CTA</div>'
+      + '<div style="font-size:13px;color:var(--white);font-weight:700">' + (sd.cta || '(No CTA generated)') + '</div>'
+      + '</div>';
+    html += '<div style="font-size:10px;color:var(--dim);text-align:center;margin-bottom:14px">💡 This carousel needs to be opened in Carousel Studio to render the actual slide images before posting.</div>';
+    html += calModalCopySection('Caption', entry.caption || '', 'modal-caption');
+    html += calModalCopySection('Hashtags', entry.hashtags || '', 'modal-hashtags');
+    html += '<button onclick="calMarkPublished()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;margin-top:4px">✅ Mark as Published</button>';
+  } else if (isReel && !entry.videoUrl) {
+    // Reel still rendering on HeyGen's side, or submission never went through —
+    // show a clear state instead of silently falling into the text-post view.
+    html += '<div style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2);border-radius:var(--r-md);padding:24px;text-align:center;margin-bottom:16px">'
+      + '<div style="font-size:28px;margin-bottom:8px">🎬</div>'
+      + '<div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">' + (entry.status === 'failed' ? 'Video generation failed' : 'Video is still rendering') + '</div>'
+      + '<div style="font-size:11px;color:var(--dim)">' + (entry.status === 'failed' ? (entry.error || 'HeyGen could not complete this render.') : 'This usually takes 5–15 minutes. Check back shortly — this page updates automatically.') + '</div>'
+      + '</div>';
+    html += calModalCopySection('Script', entry.content || '', 'modal-hook');
+    html += calModalCopySection('Caption', entry.caption || '', 'modal-caption');
+    html += calModalCopySection('Hashtags', entry.hashtags || '', 'modal-hashtags');
+  } else if (isEmail) {
+    // Email needs its subject line front and center — it's the single
+    // biggest factor in whether the email gets opened at all.
+    html += '<div style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px;margin-bottom:14px">'
+      + '<div style="font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--dimmer);font-weight:700;margin-bottom:5px">Subject Line</div>'
+      + '<div style="font-size:15px;font-weight:800;color:var(--white)">' + (entry.subject || '(No subject generated)') + '</div>'
+      + (entry.preheader ? '<div style="font-size:11px;color:var(--dim);margin-top:6px">Preview text: ' + entry.preheader + '</div>' : '')
+      + '</div>';
+    html += '<div id="cal-content-display" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px;font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:14px;white-space:pre-wrap">' + (entry.content || '(No email body generated)') + '</div>';
+    html += '<div style="display:flex;gap:6px;margin-bottom:14px">'
+      + '<button onclick="calEditContent()" id="cal-edit-btn" style="padding:8px 16px;background:rgba(255,255,255,.05);border:1px solid var(--border2);border-radius:8px;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">✏️ Edit</button>'
+      + '<button onclick="calCopyAll()" style="padding:8px 16px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.2);border-radius:8px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📋 Copy All</button>'
+      + '</div>';
+    html += '<button onclick="calMarkPublished()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:var(--r-md);color:var(--text-dark);font-size:13px;font-weight:900;cursor:pointer;font-family:Poppins,sans-serif;margin-top:4px">✅ Mark as Published</button>';
   } else {
     // Written content (FB Post, Email)
     html += '<div id="cal-content-display" style="background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:var(--r-md);padding:14px;font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:14px;white-space:pre-wrap">' + (entry.content || entry.fullScript || entry.hook || '(No content)') + '</div>';
