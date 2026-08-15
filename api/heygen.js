@@ -102,12 +102,14 @@ module.exports = async function handler(req, res) {
       if (!voiceName || !voiceName.trim()) return res.status(400).json({ error: 'Missing voiceName' });
 
       const buffer = Buffer.from(audioData, 'base64');
+      // Roughly 25MB safety cap — base64 inflates size ~33%, so check the decoded buffer
       if (buffer.length > 25 * 1024 * 1024) {
         return res.status(400).json({ error: 'Audio file too large. Please use a clip under 25MB (a minute or two of clear speech is plenty).' });
       }
 
       console.log(`[HeyGen] Cloning voice "${voiceName}" — ${buffer.length} bytes, ${mimeType || 'unknown type'}`);
 
+      // v3/voices/clone expects multipart/form-data with the audio file + name
       const form = new FormData();
       const ext  = (mimeType && mimeType.includes('wav')) ? 'wav' : 'mp3';
       form.append('name', voiceName.trim());
@@ -134,8 +136,11 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // LIST AVATAR GROUPS  —  GET /v2/photo_avatar_group/list
+    // Shows user's saved photo avatars — used to reuse without re-uploading
+    // Each group has looks; each look has a talking_photo_id for video generation
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'list-avatar-groups') {
+      // Correct endpoint per HeyGen docs: /v2/avatar_group.list
       const r = await safeJson(await GET('/v2/avatar_group.list'));
       if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'Failed to fetch avatar groups') });
       const groups = r.data?.data?.avatar_group_list || r.data?.data || [];
@@ -144,8 +149,11 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // LIST AVATARS IN GROUP  —  GET /v2/photo_avatar/avatar_group/{group_id}
+    // Gets all looks/avatars within a group — each has a unique avatar_id
+    // used as talking_photo_id in video generation
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'list-group-avatars') {
+      // Correct endpoint: /v2/avatar_group/{group_id}/avatars
       const { groupId } = req.body || {};
       if (!groupId) return res.status(400).json({ error: 'Missing groupId' });
       const r = await safeJson(await GET(`/v2/avatar_group/${encodeURIComponent(groupId)}/avatars`));
@@ -155,6 +163,8 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // DELETE AVATAR GROUP  —  DELETE /v2/photo_avatar_group/{group_id}
+    // Removes a photo avatar group and frees up the storage slot
+    // Needed when at the 3-group limit
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'delete-avatar-group') {
       const { groupId } = req.body || {};
@@ -165,6 +175,16 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // UPLOAD PHOTO + CREATE AVATAR GROUP
+    // Proper flow per docs.heygen.com/docs/create-and-train-photo-avatar-groups:
+    //   1. Upload image as asset  →  get image_key
+    //   2. Create avatar group    →  get group_id + talking_photo_id
+    //
+    // SIMPLE TALKING PHOTO (legacy but still works):
+    //   POST https://upload.heygen.com/v1/talking_photo
+    //   Raw binary body, Content-Type: image/jpeg
+    //   Response: { code: 100, data: { talking_photo_id, talking_photo_url } }
+    //
+    // NOTE: 3-group limit can be resolved by deleting old groups first
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'create-photo-avatar') {
       const { imageData, mimeType, avatarName } = req.body || {};
@@ -175,6 +195,7 @@ module.exports = async function handler(req, res) {
 
       console.log(`[HeyGen] Uploading talking photo — ${buffer.length} bytes, ${imageType}`);
 
+      // Try simple talking photo endpoint first (fastest, no group needed)
       const uploadResp = await fetch(`${UPLOAD}/v1/talking_photo`, {
         method:  'POST',
         headers: { 'X-Api-Key': KEY, 'Content-Type': imageType, 'Accept': 'application/json' },
@@ -183,15 +204,19 @@ module.exports = async function handler(req, res) {
       const { ok, data, status } = await safeJson(uploadResp);
       console.log(`[HeyGen] Talking photo [${status}]:`, JSON.stringify(data).substring(0, 200));
 
+      // If at limit, try to auto-delete oldest group and retry
       if (!ok && data?.message && data.message.toLowerCase().includes('limit')) {
+        // Get existing groups
         const groupsR = await safeJson(await GET('/v2/photo_avatar_group/list'));
         const groups  = groupsR.data?.data?.avatar_group_list || groupsR.data?.data || [];
         if (groups.length > 0) {
+          // Delete the oldest group
           const oldest = groups[groups.length - 1];
           const groupId = oldest.id || oldest.group_id;
           if (groupId) {
             console.log(`[HeyGen] At limit — auto-deleting oldest group: ${groupId}`);
             await DEL(`/v2/photo_avatar_group/${encodeURIComponent(groupId)}`);
+            // Retry upload
             const retryResp = await fetch(`${UPLOAD}/v1/talking_photo`, {
               method:  'POST',
               headers: { 'X-Api-Key': KEY, 'Content-Type': imageType, 'Accept': 'application/json' },
@@ -226,6 +251,7 @@ module.exports = async function handler(req, res) {
     // LIST EXISTING TALKING PHOTOS  —  GET /v1/talking_photo.list
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'list-talking-photos') {
+      // Also returns existing talking photos created via /v1/talking_photo upload
       const r = await safeJson(await GET('/v1/talking_photo.list'));
       if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'Failed to list talking photos') });
       const photos = (r.data?.data || []).map(p => ({
@@ -237,6 +263,8 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // GENERATE AI AVATAR PHOTO — no real photo needed
+    // POST /v2/photo_avatar/photo/generate
+    // Creates a realistic AI avatar from a text description
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'generate-ai-avatar') {
       const { name, gender, age, ethnicity, orientation, pose, style, appearance } = req.body || {};
@@ -257,12 +285,17 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // GENERATE VIDEO  —  POST /v2/video/generate
+    // Supports: stock avatars, talking photos, instant avatars (digital twins)
+    // Avatar IV supported via use_avatar_iv_model flag
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'generate') {
       const { script, scenes, avatarId, talkingPhotoId, voiceId, type, title, useAvatarIV } = req.body || {};
+      // Accept either a single `script` string (existing behavior) or a `scenes`
+      // array for multi-scene videos: [{ script, background }, { script, background }, ...]
       const sceneList = Array.isArray(scenes) && scenes.length ? scenes : (script ? [{ script }] : null);
       if (!sceneList) return res.status(400).json({ error: 'Missing script or scenes' });
 
+      // Resolve voice once, reused across all scenes for a consistent narrator
       let finalVoiceId = voiceId || null;
       if (!finalVoiceId) {
         const vR = await safeJson(await GET('/v2/voices'));
@@ -274,6 +307,7 @@ module.exports = async function handler(req, res) {
       }
       if (!finalVoiceId) return res.status(400).json({ error: 'No voice available. Check your HeyGen account has voices.' });
 
+      // Build character once, reused across all scenes
       let character;
       if (talkingPhotoId) {
         character = { type: 'talking_photo', talking_photo_id: talkingPhotoId };
@@ -294,6 +328,8 @@ module.exports = async function handler(req, res) {
       const vertical  = ['reel', 'shorts', 'story'].includes(type);
       const dimension = vertical ? { width: 1080, height: 1920 } : { width: 1920, height: 1080 };
 
+      // Default backgrounds rotate through a small palette so multi-scene videos
+      // get visual variety instead of one flat color start to finish
       const defaultBgPalette = ['#1a1a2e', '#16213e', '#0f3460', '#1a1a2e'];
 
       const video_inputs = sceneList.slice(0, 10).map((scene, i) => ({
@@ -307,13 +343,17 @@ module.exports = async function handler(req, res) {
         background: scene.background
           ? (typeof scene.background === 'string'
               ? { type: 'color', value: scene.background }
-              : scene.background)
+              : scene.background) // allow passing a full { type:'image'|'video', url } object
           : { type: 'color', value: defaultBgPalette[i % defaultBgPalette.length] },
       }));
 
       const payload = {
         video_inputs,
         dimension,
+        // Real captions on — previously hardcoded to `false`. Note: /v2/video/generate
+        // takes a plain boolean here (the object-with-style shape is for the newer
+        // /v3/videos endpoint). Some accounts have reported inconsistent caption
+        // rendering with this flag — worth a live test video to confirm it burns in.
         caption: true,
         title: title || ('EOS-' + new Date().toISOString().split('T')[0] + '-' + Date.now().toString().slice(-4)),
       };
@@ -329,6 +369,9 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // VIDEO STATUS
+    // Primary: GET /v2/videos/{video_id}   — for v2-generated videos
+    // Fallback: GET /v1/video_status.get   — for older videos
+    // Status: pending | processing | completed | failed
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'status') {
       const { videoId } = req.body || {};
@@ -347,6 +390,8 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // TRANSLATION LANGUAGES  —  GET /v2/video_translate/target_languages
+    // 175+ languages supported
+    //
     // Real response shape (verified against HeyGen docs, Aug 2026):
     //   { "data": { "languages": ["en", "es", "fr", "de", "ja", ...] } }
     // These are short codes, NOT full names — but the /v2/video_translate
@@ -411,6 +456,8 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // CREATE VIDEO AVATAR (Instant Avatar / Digital Twin)
+    // POST https://upload.heygen.com/v1/instant_avatar/video/upload
+    // Requires recorded consent video, raw binary body
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'create-avatar') {
       const { videoData, mimeType } = req.body || {};
@@ -441,10 +488,12 @@ module.exports = async function handler(req, res) {
 
     // ══════════════════════════════════════════════════════════════════════
     // PROXY VIDEO  —  streams the HeyGen MP4 through Vercel
+    // Avoids geo-blocking / CDN auth issues on files2.heygen.ai
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'proxy-video') {
       const { videoUrl } = req.body || {};
       if (!videoUrl) return res.status(400).json({ error: 'Missing videoUrl' });
+      // Only allow HeyGen CDN URLs
       if (!videoUrl.includes('heygen.ai') && !videoUrl.includes('heygen.com')) {
         return res.status(400).json({ error: 'Invalid video URL' });
       }
