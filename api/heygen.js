@@ -455,35 +455,85 @@ module.exports = async function handler(req, res) {
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // CREATE VIDEO AVATAR (Instant Avatar / Digital Twin)
-    // POST https://upload.heygen.com/v1/instant_avatar/video/upload
-    // Requires recorded consent video, raw binary body
+    // CREATE DIGITAL TWIN (video-based custom avatar)
+    // POST https://api.heygen.com/v2/video_avatar
+    // Real, documented endpoint (docs.heygen.com/reference/submit-video-avatar-creation-request).
+    //
+    // IMPORTANT — this is genuinely different from photo avatars:
+    // 1. Enterprise-only, consumes API credits. If the account isn't on that
+    //    tier, HeyGen will return an error here — surfaced clearly below,
+    //    not silently swallowed.
+    // 2. Requires two SEPARATE public video URLs (not raw file uploads):
+    //    trainingFootageUrl (>=30s, 720p+, direct .mp4) and consentUrl
+    //    (a video where the person states consent). Google Drive links do
+    //    NOT work — must be direct-access URLs (Firebase Storage works).
+    // 3. Training takes 2-4 HOURS, not minutes. This endpoint only submits
+    //    the job — status is checked separately, and should be polled by a
+    //    cron on a long interval (30+ min), never a live UI spinner.
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'create-avatar') {
-      const { videoData, mimeType } = req.body || {};
-      if (!videoData) return res.status(400).json({ error: 'Missing videoData' });
-      const buffer = Buffer.from(videoData, 'base64');
-      console.log(`[HeyGen] Uploading instant avatar — ${buffer.length} bytes`);
-      const uploadResp = await fetch(`${UPLOAD}/v1/instant_avatar/video/upload`, {
-        method:  'POST',
-        headers: { 'X-Api-Key': KEY, 'Content-Type': mimeType || 'video/mp4', 'Accept': 'application/json' },
-        body:    buffer,
-      });
-      const { ok, data, status } = await safeJson(uploadResp);
-      console.log(`[HeyGen] Instant avatar [${status}]:`, JSON.stringify(data).substring(0, 200));
-      if (!ok) return res.status(500).json({ error: extractErrorMessage(data, JSON.stringify(data).substring(0, 200)) });
-      const avatarId = data.data?.avatar_id || data.avatar_id || data.data?.job_id;
-      return res.status(200).json({ success: true, avatarId: avatarId || 'pending_' + Date.now(), status: 'pending' });
+      const { trainingFootageUrl, consentUrl, avatarName } = req.body || {};
+      if (!trainingFootageUrl) return res.status(400).json({ error: 'Missing trainingFootageUrl' });
+      if (!consentUrl)         return res.status(400).json({ error: 'Missing consentUrl' });
+      if (!avatarName)         return res.status(400).json({ error: 'Missing avatarName' });
+
+      const payload = {
+        training_footage_url: trainingFootageUrl,
+        video_consent_url:    consentUrl,
+        avatar_name:          avatarName,
+      };
+
+      console.log('[HeyGen] Submitting Digital Twin creation:', avatarName);
+      const r = await safeJson(await POST('/v2/video_avatar', payload));
+      console.log(`[HeyGen] Digital Twin submit [${r.status}]:`, JSON.stringify(r.data).substring(0, 300));
+
+      if (!r.ok) {
+        // Specifically flag the most likely real-world failure — plan tier —
+        // so it's obvious in the response, not just a generic error string.
+        const msg = extractErrorMessage(r.data, `Digital Twin submission failed (${r.status})`);
+        const isPlanIssue = r.status === 403 || /enterprise|plan|permission|not authorized/i.test(msg);
+        return res.status(200).json({
+          error: isPlanIssue
+            ? 'Your HeyGen account does not appear to have access to Digital Twin creation — this feature requires an Enterprise plan. (' + msg + ')'
+            : msg,
+        });
+      }
+
+      const avatarId = r.data?.data?.avatar_id || r.data?.data?.id;
+      if (!avatarId) {
+        return res.status(200).json({ error: 'HeyGen accepted the request but did not return an avatar_id: ' + JSON.stringify(r.data).substring(0, 200) });
+      }
+      return res.status(200).json({ success: true, avatarId, status: 'in_progress' });
     }
 
     // ══════════════════════════════════════════════════════════════════════
-    // AVATAR STATUS  —  GET /v2/avatars/{avatar_id}
+    // DIGITAL TWIN STATUS  —  GET /v2/video_avatar/{avatar_id}
+    // Real, documented endpoint (docs.heygen.com/reference/check-video-avatar-generation-status).
+    // NOT the same as /v2/avatars/{id} (that's for stock/photo avatars).
+    // Documented statuses: in_progress | complete | failed
+    // 404 means the avatar_id doesn't exist on this account at all.
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'avatar-status') {
       const { avatarId } = req.body || {};
       if (!avatarId) return res.status(400).json({ error: 'Missing avatarId' });
-      const r = await safeJson(await GET(`/v2/avatars/${encodeURIComponent(avatarId)}`));
-      return res.status(200).json({ status: r.data?.data?.status || r.data?.data?.train_status || 'processing', name: r.data?.data?.name || '' });
+
+      const resp = await GET(`/v2/video_avatar/${encodeURIComponent(avatarId)}`);
+      if (resp.status === 404) {
+        return res.status(200).json({ status: 'not_found', error: 'This Digital Twin ID was not found on your HeyGen account.' });
+      }
+
+      const r = await safeJson(resp);
+      if (!r.ok) {
+        return res.status(200).json({ status: 'error', error: extractErrorMessage(r.data, `Status check failed (${r.status})`) });
+      }
+
+      const info = r.data?.data || {};
+      return res.status(200).json({
+        status:  info.status || 'in_progress', // in_progress | complete | failed
+        name:    info.name || info.avatar_name || '',
+        avatarId: info.avatar_id || info.id || avatarId,
+        error:   info.error || info.failure_reason || null,
+      });
     }
 
     // ══════════════════════════════════════════════════════════════════════
