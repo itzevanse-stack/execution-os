@@ -7131,6 +7131,11 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
         <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🤳 Photo Avatar</div>
         <div style="font-size:11px;color:var(--dim);margin-bottom:14px">Upload a clear front-facing photo in good lighting. JPG or PNG under 10MB.</div>
 
+        <div id="avs-my-photo-avatars-wrap" style="display:none;margin-bottom:14px">
+          <div style="font-size:10px;font-weight:800;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">My Photo Avatars — click to reuse</div>
+          <div id="avs-my-photo-avatars-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;margin-bottom:6px"></div>
+        </div>
+
         <div id="avs-photo-upload-area" onclick="document.getElementById('avs-photo-file').click()" style="border:1px dashed rgba(108,99,255,.3);border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;background:rgba(108,99,255,.02)" onmouseover="this.style.borderColor='rgba(108,99,255,.55)'" onmouseout="this.style.borderColor='rgba(108,99,255,.3)'">
           <div id="avs-photo-preview-wrap" style="display:none;margin-bottom:8px">
             <img id="avs-photo-preview-img" src="" style="height:90px;border-radius:8px;border:1px solid var(--border2)" />
@@ -22900,6 +22905,15 @@ window.runMindsetReframe = async function() {
     photoAvatarId: null,
   };
 
+  // Restore last-used photo avatar and cloned voice across sessions —
+  // previously these only lived in memory and vanished on every reload.
+  try {
+    var _savedPhotoAvatar = localStorage.getItem('eos_photo_avatar_id');
+    if (_savedPhotoAvatar) _avs.photoAvatarId = _savedPhotoAvatar;
+    var _savedClonedVoice = localStorage.getItem('eos_cloned_voice_id');
+    if (_savedClonedVoice) _avs.clonedVoiceId = _savedClonedVoice;
+  } catch(e) {}
+
   // ── HeyGen API helper — uses correct action names matching heygen.js ──────
   async function heygenCall(action, body) {
     try {
@@ -23107,6 +23121,9 @@ window.runMindsetReframe = async function() {
     if (videoBtn) { videoBtn.style.background = mode==='video' ? activeStyle : inactiveStyle; videoBtn.style.borderColor = mode==='video' ? 'rgba(108,99,255,.3)' : 'var(--border2)'; }
     if (photoCard) photoCard.style.display = mode==='photo' ? 'block' : 'none';
     if (videoCard) videoCard.style.display = mode==='video' ? 'block' : 'none';
+    if (mode === 'photo' && typeof window.avsLoadMyPhotoAvatars === 'function') {
+      window.avsLoadMyPhotoAvatars();
+    }
   };
 
   // ── Handle photo file input ────────────────────────────────────
@@ -23129,6 +23146,54 @@ window.runMindsetReframe = async function() {
   };
 
   // ── Submit photo to create avatar ─────────────────────────────
+  // ── Load and render the user's previously created photo avatars ────────
+  // so they can reuse one instantly instead of re-uploading every time.
+  window.avsLoadMyPhotoAvatars = function() {
+    var wrap = document.getElementById('avs-my-photo-avatars-wrap');
+    var grid = document.getElementById('avs-my-photo-avatars-grid');
+    if (!wrap || !grid) return;
+
+    heygenCall('list-talking-photos', {}).then(function(data) {
+      var photos = (data && data.photos) || [];
+      if (!photos.length) { wrap.style.display = 'none'; return; }
+
+      wrap.style.display = 'block';
+      grid.innerHTML = photos.map(function(p) {
+        var id    = p.id || '';
+        var thumb = p.image_url || '';
+        var isSelected = (_avs.photoAvatarId === id);
+        return '<div onclick="avsSelectMyPhotoAvatar(\''+id+'\',this)" style="cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid '+(isSelected?'rgba(78,204,163,.7)':'transparent')+';aspect-ratio:1;position:relative" data-id="'+id+'">'
+          + (thumb
+            ? '<img src="'+thumb+'" style="width:100%;height:100%;object-fit:cover;display:block">'
+            : '<div style="width:100%;height:100%;background:rgba(108,99,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px">🎭</div>')
+          + (isSelected ? '<div style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:9px;color:#000">✓</div>' : '')
+          + '</div>';
+      }).join('');
+    }).catch(function(e) {
+      console.error('[AVS] Could not load saved photo avatars:', e.message);
+      wrap.style.display = 'none';
+    });
+  };
+
+  window.avsSelectMyPhotoAvatar = function(id, el) {
+    _avs.photoAvatarId = id;
+    try { localStorage.setItem('eos_photo_avatar_id', id); } catch(e) {}
+    var grid = document.getElementById('avs-my-photo-avatars-grid');
+    if (grid) grid.querySelectorAll('[data-id]').forEach(function(c) {
+      c.style.borderColor = 'transparent';
+      var check = c.querySelector('div[style*="border-radius:50%"]');
+      if (check) check.remove();
+    });
+    if (el) {
+      el.style.borderColor = 'rgba(78,204,163,.7)';
+      if (!el.querySelector('div[style*="border-radius:50%"]')) {
+        el.insertAdjacentHTML('beforeend', '<div style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:9px;color:#000">✓</div>');
+      }
+    }
+    avsSetStatus('avs-photo-status', '✅ Using this saved avatar — ready to generate a video with it.', 'var(--teal)');
+    avsToast('Avatar selected');
+  };
+
   window.avsSubmitPhoto = function() {
     var fileInput = document.getElementById('avs-photo-file');
     if (!fileInput || !fileInput.files || !fileInput.files[0]) {
@@ -23171,10 +23236,12 @@ window.runMindsetReframe = async function() {
         if (data.error) throw new Error(data.error);
         // heygen.js create-photo-avatar returns { talkingPhotoId, talkingPhotoUrl }
         _avs.photoAvatarId = data.talkingPhotoId || data.avatar_id || data.id;
+        try { localStorage.setItem('eos_photo_avatar_id', _avs.photoAvatarId); } catch(e) {}
       avsSetStatus('avs-photo-status', '✅ Photo avatar created! Go to Generate Video tab to use it.', 'var(--teal)');
       if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
       setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
       avsToast('✅ Photo avatar created successfully!');
+      if (typeof window.avsLoadMyPhotoAvatars === 'function') window.avsLoadMyPhotoAvatars();
     })
       .catch(function(err) {
         clearInterval(progInterval);
@@ -23240,6 +23307,7 @@ window.runMindsetReframe = async function() {
         if (bar) bar.style.width = '100%';
         if (data.error) throw new Error(data.error);
         _avs.clonedVoiceId = data.voiceId;
+        try { localStorage.setItem('eos_cloned_voice_id', data.voiceId); } catch(e) {}
         avsSetStatus('avs-voice-status', '✅ Voice cloned! Select "My Cloned Voice" when generating a video.', 'var(--teal)');
         if (btn) { btn.disabled = false; btn.textContent = 'Clone My Voice'; }
         setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
