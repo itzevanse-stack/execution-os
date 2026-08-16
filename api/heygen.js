@@ -97,7 +97,7 @@ module.exports = async function handler(req, res) {
     // Returns a voice_id usable anywhere voiceId is accepted in `generate`.
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'clone-voice') {
-      const { audioData, mimeType, voiceName } = req.body || {};
+      const { audioData, mimeType, voiceName, language } = req.body || {};
       if (!audioData) return res.status(400).json({ error: 'Missing audioData' });
       if (!voiceName || !voiceName.trim()) return res.status(400).json({ error: 'Missing voiceName' });
 
@@ -109,29 +109,73 @@ module.exports = async function handler(req, res) {
 
       console.log(`[HeyGen] Cloning voice "${voiceName}" — ${buffer.length} bytes, ${mimeType || 'unknown type'}`);
 
-      // v3/voices/clone expects multipart/form-data with the audio file + name
-      const form = new FormData();
-      const ext  = (mimeType && mimeType.includes('wav')) ? 'wav' : 'mp3';
-      form.append('name', voiceName.trim());
-      form.append('file', new Blob([buffer], { type: mimeType || 'audio/mpeg' }), `voice-sample.${ext}`);
+      // POST /v3/voices/clone — real, confirmed schema (developers.heygen.com/reference/clone-a-voice).
+      // Takes a JSON body, NOT multipart/form-data — that was the bug causing
+      // "Request body must be valid JSON". The audio field supports base64
+      // directly, so no separate file upload/public URL is needed here
+      // (unlike Digital Twin, which genuinely does require a public URL).
+      const payload = {
+        audio: {
+          type:       'base64',
+          media_type: mimeType || 'audio/mpeg',
+          data:       audioData,
+        },
+        voice_name: voiceName.trim().slice(0, 100),
+        remove_background_noise: true,
+      };
+      if (language) payload.language = language;
 
-      const uploadResp = await fetch(`${API}/v3/voices/clone`, {
+      const resp = await fetch(`${API}/v3/voices/clone`, {
         method:  'POST',
-        headers: { 'X-Api-Key': KEY, 'Accept': 'application/json' },
-        body:    form,
+        headers: { 'X-Api-Key': KEY, 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body:    JSON.stringify(payload),
       });
-      const { ok, data, status } = await safeJson(uploadResp);
+      const { ok, data, status } = await safeJson(resp);
       console.log(`[HeyGen] Voice clone [${status}]:`, JSON.stringify(data).substring(0, 200));
 
       if (!ok) {
-        return res.status(500).json({ error: extractErrorMessage(data, `Voice cloning failed (${status}). Try a clearer, shorter audio sample.`) });
+        return res.status(200).json({ error: extractErrorMessage(data, `Voice cloning failed (${status}).`) });
       }
 
-      const voiceId = data?.data?.voice_id || data?.voice_id;
-      if (!voiceId) {
-        return res.status(500).json({ error: 'No voice_id returned: ' + JSON.stringify(data).substring(0, 200) });
+      const voiceCloneId = data?.data?.voice_clone_id;
+      if (!voiceCloneId) {
+        return res.status(200).json({ error: 'HeyGen accepted the request but did not return a voice_clone_id: ' + JSON.stringify(data).substring(0, 200) });
       }
-      return res.status(200).json({ success: true, voiceId, status: 'ready' });
+      return res.status(200).json({ success: true, voiceId: voiceCloneId, status: 'processing' });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // VOICE CLONE STATUS  —  GET /v3/voices/{voice_clone_id}
+    // The exact response shape for this specific status field isn't fully
+    // documented (only "returns clone workflow status when available" is
+    // confirmed) — parsed defensively across a few reasonable field paths
+    // rather than assumed. Logs the raw shape if none match, so this can be
+    // tightened once a real response is seen.
+    // ══════════════════════════════════════════════════════════════════════
+    if (action === 'voice-clone-status') {
+      const { voiceId } = req.body || {};
+      if (!voiceId) return res.status(400).json({ error: 'Missing voiceId' });
+
+      const resp = await GET(`/v3/voices/${encodeURIComponent(voiceId)}`);
+      if (resp.status === 404) {
+        return res.status(200).json({ status: 'not_found' });
+      }
+      const r = await safeJson(resp);
+      if (!r.ok) {
+        return res.status(200).json({ status: 'unknown', error: extractErrorMessage(r.data, `Status check failed (${r.status})`) });
+      }
+
+      const d = r.data?.data || r.data || {};
+      const rawStatus = d.status || d.clone_status || d.voice?.status || '';
+      if (!rawStatus) {
+        console.warn('[HeyGen] Voice clone status — could not find a status field. Raw keys:', Object.keys(d));
+      }
+      // Treat anything not explicitly "processing"/"pending" as usable —
+      // avoids blocking forever on an unconfirmed field name.
+      const normalized = /complete|ready|success/i.test(rawStatus) ? 'complete'
+                        : /fail|error/i.test(rawStatus) ? 'failed'
+                        : rawStatus || 'unknown';
+      return res.status(200).json({ status: normalized, raw: rawStatus });
     }
 
     // ══════════════════════════════════════════════════════════════════════
