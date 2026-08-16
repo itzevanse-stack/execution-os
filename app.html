@@ -7157,13 +7157,40 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
       <!-- VOICE CLONE -->
       <div id="avs-mode-voice" class="card-dark" style="margin-bottom:12px">
         <div style="font-size:13px;font-weight:800;color:var(--white);margin-bottom:4px;font-family:Poppins,sans-serif">🎤 Clone Your Voice</div>
-        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">Upload 30 seconds to 2 minutes of clear speech, no background noise. MP3 or WAV under 25MB.</div>
+        <div style="font-size:11px;color:var(--dim);margin-bottom:14px">Record or upload 30 seconds to 2 minutes of clear speech, no background noise.</div>
 
-        <div id="avs-voice-upload-area" onclick="document.getElementById('avs-voice-file').click()" style="border:1px dashed rgba(78,204,163,.3);border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;background:rgba(78,204,163,.02)" onmouseover="this.style.borderColor='rgba(78,204,163,.55)'" onmouseout="this.style.borderColor='rgba(78,204,163,.3)'">
-          <div id="avs-voice-upload-icon" style="font-size:28px;margin-bottom:6px">🎙️</div>
-          <div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:2px" id="avs-voice-upload-label">Click to select your audio file</div>
-          <div style="font-size:10px;color:var(--dim)">MP3 or WAV</div>
-          <input type="file" id="avs-voice-file" accept="audio/*" style="display:none" onchange="avsHandleVoiceFile(this)" />
+        <!-- Source toggle -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+          <button id="avs-voice-src-record-btn" onclick="avsVoiceSetSource('record')" style="padding:9px;background:rgba(78,204,163,.1);border:1px solid rgba(78,204,163,.3);border-radius:8px;color:var(--teal);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">🎙️ Record</button>
+          <button id="avs-voice-src-upload-btn" onclick="avsVoiceSetSource('upload')" style="padding:9px;background:rgba(255,255,255,.03);border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:11px;font-weight:700;cursor:pointer;font-family:Poppins,sans-serif">📁 Upload File</button>
+        </div>
+
+        <!-- RECORD panel -->
+        <div id="avs-voice-record-panel">
+          <div style="background:rgba(78,204,163,.04);border:1px solid rgba(78,204,163,.15);border-radius:10px;padding:20px;text-align:center;margin-bottom:12px">
+            <div id="avs-voice-rec-indicator" style="display:none;align-items:center;justify-content:center;gap:6px;margin-bottom:12px">
+              <div style="width:8px;height:8px;border-radius:50%;background:#ff4444;animation:pulse 1s infinite"></div>
+              <span style="font-size:13px;color:#ff8888;font-weight:700;font-family:Poppins,sans-serif" id="avs-voice-rec-timer">00:00</span>
+            </div>
+            <div id="avs-voice-mic-icon" style="font-size:32px;margin-bottom:8px">🎙️</div>
+            <button id="avs-voice-record-btn" onclick="avsToggleVoiceRecording()" style="background:linear-gradient(135deg,#4ecca3,#0d9488);border:none;border-radius:8px;padding:10px 28px;color:#06060f;font-size:12px;font-weight:800;cursor:pointer;font-family:Poppins,sans-serif">⏺ Start Recording</button>
+            <div style="font-size:10px;color:var(--dim);margin-top:8px">Speak clearly for 30s–2min, minimal background noise</div>
+          </div>
+          <div id="avs-voice-recorded-preview" style="display:none;margin-bottom:12px">
+            <div style="font-size:10px;font-weight:700;color:var(--teal);margin-bottom:6px">Recording ready</div>
+            <audio id="avs-voice-recorded-audio" controls style="width:100%"></audio>
+            <button onclick="avsRerecordVoice()" style="display:block;margin:8px auto 0;background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:7px;padding:7px 20px;color:var(--dim);font-size:11px;cursor:pointer;font-family:Poppins,sans-serif;font-weight:600">↩ Redo Recording</button>
+          </div>
+        </div>
+
+        <!-- UPLOAD panel -->
+        <div id="avs-voice-upload-panel" style="display:none">
+          <div id="avs-voice-upload-area" onclick="document.getElementById('avs-voice-file').click()" style="border:1px dashed rgba(78,204,163,.3);border-radius:10px;padding:24px;text-align:center;cursor:pointer;margin-bottom:12px;background:rgba(78,204,163,.02)" onmouseover="this.style.borderColor='rgba(78,204,163,.55)'" onmouseout="this.style.borderColor='rgba(78,204,163,.3)'">
+            <div id="avs-voice-upload-icon" style="font-size:28px;margin-bottom:6px">🎙️</div>
+            <div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:2px" id="avs-voice-upload-label">Click to select your audio file</div>
+            <div style="font-size:10px;color:var(--dim)">MP3 or WAV</div>
+            <input type="file" id="avs-voice-file" accept="audio/*" style="display:none" onchange="avsHandleVoiceFile(this)" />
+          </div>
         </div>
 
         <input class="fi" id="avs-voice-name" type="text" placeholder="Name your voice (e.g. Evan's Voice)" style="margin-bottom:12px" />
@@ -23281,14 +23308,106 @@ window.runMindsetReframe = async function() {
   };
 
   // ── Submit audio sample to clone a voice ───────────────────────
-  window.avsSubmitVoiceClone = function() {
-    var fileInput = document.getElementById('avs-voice-file');
-    var nameInput = document.getElementById('avs-voice-name');
-    if (!fileInput || !fileInput.files || !fileInput.files[0]) {
-      avsToast('Please select an audio file first.', true); return;
+  // ── Voice recording — same MediaRecorder pattern already proven for
+  // video, just audio-only (no camera, no video preview needed).
+  window.avsVoiceSetSource = function(source) {
+    var recordPanel = document.getElementById('avs-voice-record-panel');
+    var uploadPanel = document.getElementById('avs-voice-upload-panel');
+    var recordBtn   = document.getElementById('avs-voice-src-record-btn');
+    var uploadBtn   = document.getElementById('avs-voice-src-upload-btn');
+    _avs.voiceSource = source;
+    if (recordPanel) recordPanel.style.display = source === 'record' ? 'block' : 'none';
+    if (uploadPanel) uploadPanel.style.display = source === 'upload' ? 'block' : 'none';
+    if (recordBtn) {
+      recordBtn.style.background = source === 'record' ? 'rgba(78,204,163,.1)' : 'rgba(255,255,255,.03)';
+      recordBtn.style.borderColor = source === 'record' ? 'rgba(78,204,163,.3)' : 'var(--border2)';
+      recordBtn.style.color = source === 'record' ? 'var(--teal)' : 'var(--dim)';
     }
+    if (uploadBtn) {
+      uploadBtn.style.background = source === 'upload' ? 'rgba(78,204,163,.1)' : 'rgba(255,255,255,.03)';
+      uploadBtn.style.borderColor = source === 'upload' ? 'rgba(78,204,163,.3)' : 'var(--border2)';
+      uploadBtn.style.color = source === 'upload' ? 'var(--teal)' : 'var(--dim)';
+    }
+  };
+
+  window.avsToggleVoiceRecording = function() {
+    var recordBtn = document.getElementById('avs-voice-record-btn');
+    var recIndicator = document.getElementById('avs-voice-rec-indicator');
+
+    if (!_avs.voiceMediaRecorder || _avs.voiceMediaRecorder.state === 'inactive') {
+      // Start recording — request microphone access fresh each time (no
+      // persistent camera-style preview needed for audio-only)
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function(stream) {
+          _avs.voiceStream = stream;
+          _avs.voiceChunks = [];
+          _avs.voiceMediaRecorder = new MediaRecorder(stream);
+          _avs.voiceMediaRecorder.ondataavailable = function(e) {
+            if (e.data.size > 0) _avs.voiceChunks.push(e.data);
+          };
+          _avs.voiceMediaRecorder.onstop = function() {
+            var blob = new Blob(_avs.voiceChunks, { type: 'audio/webm' });
+            var url  = URL.createObjectURL(blob);
+            var audioEl = document.getElementById('avs-voice-recorded-audio');
+            var previewDiv = document.getElementById('avs-voice-recorded-preview');
+            if (audioEl) audioEl.src = url;
+            if (previewDiv) previewDiv.style.display = 'block';
+            avsSetStatus('avs-voice-status', 'Recording ready — name your voice and click Clone My Voice.', 'var(--teal)');
+            // Stop the mic stream fully — don't leave it open in the background
+            stream.getTracks().forEach(function(t) { t.stop(); });
+          };
+          _avs.voiceMediaRecorder.start();
+          _avs.voiceRecordingSecs = 0;
+          if (recIndicator) recIndicator.style.display = 'flex';
+          _avs.voiceRecordingTimer = setInterval(function() {
+            _avs.voiceRecordingSecs++;
+            var mins = Math.floor(_avs.voiceRecordingSecs / 60).toString().padStart(2,'0');
+            var secs = (_avs.voiceRecordingSecs % 60).toString().padStart(2,'0');
+            var timerEl = document.getElementById('avs-voice-rec-timer');
+            if (timerEl) timerEl.textContent = mins + ':' + secs;
+          }, 1000);
+          if (recordBtn) { recordBtn.textContent = '⏹ Stop Recording'; recordBtn.style.background = 'rgba(255,91,91,.85)'; recordBtn.style.color = '#fff'; }
+          avsSetStatus('avs-voice-status', '🔴 Recording… speak clearly.', 'var(--teal)');
+        })
+        .catch(function(err) {
+          avsToast('Microphone error: ' + err.message + '. Check browser permissions.', true);
+          avsSetStatus('avs-voice-status', '⚠️ Microphone blocked — check browser permissions', 'var(--orange)');
+        });
+    } else {
+      // Stop recording
+      _avs.voiceMediaRecorder.stop();
+      clearInterval(_avs.voiceRecordingTimer);
+      if (recIndicator) recIndicator.style.display = 'none';
+      if (recordBtn) { recordBtn.textContent = '⏺ Start Recording'; recordBtn.style.background = 'linear-gradient(135deg,#4ecca3,#0d9488)'; recordBtn.style.color = '#06060f'; }
+    }
+  };
+
+  window.avsRerecordVoice = function() {
+    var previewDiv = document.getElementById('avs-voice-recorded-preview');
+    if (previewDiv) previewDiv.style.display = 'none';
+    _avs.voiceChunks = [];
+    avsSetStatus('avs-voice-status', '', 'var(--dim)');
+  };
+
+  window.avsSubmitVoiceClone = function() {
+    var nameInput = document.getElementById('avs-voice-name');
     var voiceName = nameInput ? nameInput.value.trim() : '';
     if (!voiceName) { avsToast('Please name your voice first.', true); return; }
+
+    // Works from either source — a live recording or an uploaded file
+    var audioBlob, audioMimeType;
+    if (_avs.voiceSource === 'record' && _avs.voiceChunks && _avs.voiceChunks.length) {
+      audioBlob = new Blob(_avs.voiceChunks, { type: 'audio/webm' });
+      audioMimeType = 'audio/webm';
+    } else {
+      var fileInput = document.getElementById('avs-voice-file');
+      if (!fileInput || !fileInput.files || !fileInput.files[0]) {
+        avsToast(_avs.voiceSource === 'record' ? 'Record your voice first.' : 'Please select an audio file first.', true);
+        return;
+      }
+      audioBlob = fileInput.files[0];
+      audioMimeType = fileInput.files[0].type || 'audio/mpeg';
+    }
 
     var btn      = document.getElementById('avs-voice-btn');
     var progress = document.getElementById('avs-voice-upload-progress');
@@ -23312,7 +23431,7 @@ window.runMindsetReframe = async function() {
         body: JSON.stringify({
           action: 'clone-voice',
           audioData: base64Data,
-          mimeType: fileInput.files[0].type || 'audio/mpeg',
+          mimeType: audioMimeType,
           voiceName: voiceName
         })
       })
@@ -23321,12 +23440,11 @@ window.runMindsetReframe = async function() {
         clearInterval(progInterval);
         if (bar) bar.style.width = '100%';
         if (data.error) throw new Error(data.error);
-        _avs.clonedVoiceId = data.voiceId;
-        try { localStorage.setItem('eos_cloned_voice_id', data.voiceId); } catch(e) {}
-        avsSetStatus('avs-voice-status', '✅ Voice cloned! Select "My Cloned Voice" when generating a video.', 'var(--teal)');
-        if (btn) { btn.disabled = false; btn.textContent = 'Clone My Voice'; }
-        setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
-        avsToast('✅ Voice cloned successfully!');
+        var voiceId = data.voiceId;
+        if (!voiceId) throw new Error('No voice ID returned. Try again.');
+
+        avsSetStatus('avs-voice-status', '⏳ Processing your voice clone…', 'var(--purple)');
+        _avsPollVoiceCloneStatus(voiceId, voiceName, btn, progress, 0);
       })
       .catch(function(err) {
         clearInterval(progInterval);
@@ -23336,8 +23454,52 @@ window.runMindsetReframe = async function() {
         avsToast('Voice cloning failed: ' + err.message, true);
       });
     };
-    voiceReader.readAsDataURL(fileInput.files[0]);
+    voiceReader.readAsDataURL(audioBlob);
   };
+
+  // ── Bounded status poll — checks every 3s, gives up gracefully after 45s
+  // rather than blocking indefinitely on a status field HeyGen's docs don't
+  // fully specify. Worst case, the voice is usable even if we can't confirm
+  // "complete" in time — HeyGen's own generation step will surface any real
+  // issue at that point.
+  function _avsPollVoiceCloneStatus(voiceId, voiceName, btn, progress, attempt) {
+    var maxAttempts = 15; // ~45 seconds
+    if (attempt >= maxAttempts) {
+      _avsFinishVoiceClone(voiceId, voiceName, btn, progress, 'unknown');
+      return;
+    }
+    setTimeout(function() {
+      fetch(window.location.origin + '/api/heygen', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'voice-clone-status', voiceId: voiceId })
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.status === 'complete') {
+          _avsFinishVoiceClone(voiceId, voiceName, btn, progress, 'complete');
+        } else if (data.status === 'failed') {
+          if (btn) { btn.disabled = false; btn.textContent = 'Clone My Voice'; }
+          if (progress) progress.style.display = 'none';
+          avsSetStatus('avs-voice-status', '⚠️ Voice cloning failed. Try a clearer audio sample.', 'var(--orange)');
+        } else {
+          _avsPollVoiceCloneStatus(voiceId, voiceName, btn, progress, attempt + 1);
+        }
+      })
+      .catch(function() {
+        _avsPollVoiceCloneStatus(voiceId, voiceName, btn, progress, attempt + 1);
+      });
+    }, 3000);
+  }
+
+  function _avsFinishVoiceClone(voiceId, voiceName, btn, progress, finalStatus) {
+    _avs.clonedVoiceId = voiceId;
+    try { localStorage.setItem('eos_cloned_voice_id', voiceId); } catch(e) {}
+    avsSetStatus('avs-voice-status', '✅ Voice cloned! Select "My Cloned Voice" when generating a video.', 'var(--teal)');
+    if (btn) { btn.disabled = false; btn.textContent = 'Clone My Voice'; }
+    setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
+    avsToast('✅ Voice cloned successfully!');
+  }
 
   // ── Camera ────────────────────────────────────────────────────
   window.avsStartCamera = function() {
