@@ -23195,26 +23195,40 @@ window.runMindsetReframe = async function() {
     var grid = document.getElementById('avs-my-photo-avatars-grid');
     if (!wrap || !grid) return;
 
-    heygenCall('list-talking-photos', {}).then(function(data) {
-      var photos = (data && data.photos) || [];
-      if (!photos.length) { wrap.style.display = 'none'; return; }
-
-      wrap.style.display = 'block';
-      grid.innerHTML = photos.map(function(p) {
-        var id    = p.id || '';
-        var thumb = p.image_url || '';
-        var isSelected = (_avs.photoAvatarId === id);
-        return '<div onclick="avsSelectMyPhotoAvatar(\''+id+'\',this)" style="cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid '+(isSelected?'rgba(78,204,163,.7)':'transparent')+';aspect-ratio:1;position:relative" data-id="'+id+'">'
-          + (thumb
-            ? '<img src="'+thumb+'" style="width:100%;height:100%;object-fit:cover;display:block">'
-            : '<div style="width:100%;height:100%;background:rgba(108,99,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px">🎭</div>')
-          + (isSelected ? '<div style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:9px;color:#000">✓</div>' : '')
-          + '</div>';
-      }).join('');
-    }).catch(function(e) {
-      console.error('[AVS] Could not load saved photo avatars:', e.message);
+    var uid = window._currentUserUid;
+    if (!uid || !window._db || !window._getDocs || !window._collection) {
       wrap.style.display = 'none';
-    });
+      return;
+    }
+
+    // Query OUR OWN per-user ownership records — never call HeyGen's
+    // account-wide talking-photo list here. That endpoint is shared across
+    // every Execution OS user and has no concept of "this user's" avatars,
+    // so using it directly would show (and let people reuse) other users'
+    // uploaded photos. This Firestore subcollection is what makes it private.
+    window._getDocs(window._collection(window._db, 'users', uid, 'photoAvatars'))
+      .then(function(snap) {
+        var photos = [];
+        snap.forEach(function(doc) { photos.push(doc.data()); });
+
+        if (!photos.length) { wrap.style.display = 'none'; return; }
+
+        wrap.style.display = 'block';
+        grid.innerHTML = photos.map(function(p) {
+          var id    = p.talkingPhotoId || '';
+          var thumb = p.thumbnailUrl || '';
+          var isSelected = (_avs.photoAvatarId === id);
+          return '<div onclick="avsSelectMyPhotoAvatar(\''+id+'\',this)" style="cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid '+(isSelected?'rgba(78,204,163,.7)':'transparent')+';aspect-ratio:1;position:relative" data-id="'+id+'">'
+            + (thumb
+              ? '<img src="'+thumb+'" style="width:100%;height:100%;object-fit:cover;display:block">'
+              : '<div style="width:100%;height:100%;background:rgba(108,99,255,.1);display:flex;align-items:center;justify-content:center;font-size:20px">🎭</div>')
+            + (isSelected ? '<div style="position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:9px;color:#000">✓</div>' : '')
+            + '</div>';
+        }).join('');
+      }).catch(function(e) {
+        console.error('[AVS] Could not load your saved photo avatars:', e.message);
+        wrap.style.display = 'none';
+      });
   };
 
   window.avsSelectMyPhotoAvatar = function(id, el) {
@@ -23279,6 +23293,19 @@ window.runMindsetReframe = async function() {
         // heygen.js create-photo-avatar returns { talkingPhotoId, talkingPhotoUrl }
         _avs.photoAvatarId = data.talkingPhotoId || data.avatar_id || data.id;
         try { localStorage.setItem('eos_photo_avatar_id', _avs.photoAvatarId); } catch(e) {}
+
+        // Save OUR OWN ownership record — HeyGen's account is shared across
+        // every Execution OS user, so its own talking-photo list can never
+        // be used to show "my avatars" without leaking everyone else's too.
+        // This Firestore record is what actually scopes the list per-user.
+        var uid = window._currentUserUid;
+        if (uid && window._db && window._setDoc && window._doc) {
+          window._setDoc(
+            window._doc(window._db, 'users', uid, 'photoAvatars', _avs.photoAvatarId),
+            { talkingPhotoId: _avs.photoAvatarId, thumbnailUrl: data.talkingPhotoUrl || '', createdAt: new Date().toISOString() }
+          ).catch(function(e) { console.warn('[AVS] Could not save photo avatar ownership record:', e.message); });
+        }
+
       avsSetStatus('avs-photo-status', '✅ Photo avatar created! Go to Generate Video tab to use it.', 'var(--teal)');
       if (btn) { btn.disabled = false; btn.textContent = 'Create Photo Avatar'; }
       setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
