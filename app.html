@@ -23379,14 +23379,29 @@ window.runMindsetReframe = async function() {
         .then(function(stream) {
           _avs.voiceStream = stream;
           _avs.voiceChunks = [];
-          // Explicitly request an audio-specific codec rather than letting
-          // the browser pick a default — an unlabeled WebM container is
-          // ambiguous between audio/video, and HeyGen's own upload
-          // validation was correctly catching that mismatch. Falls back
-          // gracefully if a browser doesn't support opus specifically.
-          var voiceMime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-            ? 'audio/webm;codecs=opus'
-            : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '');
+          // WebM is fundamentally a Matroska/video-capable container — even
+          // a genuinely audio-only WebM recording can get sniffed and
+          // labeled "video/webm" by real-world validators (including
+          // HeyGen's), regardless of what mimeType label we attach on our
+          // side. Explicitly requesting the opus codec did NOT resolve this
+          // in practice, so WebM is deprioritized entirely here in favor of
+          // formats with no such audio/video ambiguity, tried in order of
+          // real-world browser support.
+          var voiceMimeCandidates = [
+            'audio/mp4',
+            'audio/wav',
+            'audio/ogg;codecs=opus',
+            'audio/webm;codecs=opus', // last resort — known to trigger this exact issue
+            'audio/webm',
+          ];
+          var voiceMime = '';
+          for (var vmi = 0; vmi < voiceMimeCandidates.length; vmi++) {
+            if (MediaRecorder.isTypeSupported(voiceMimeCandidates[vmi])) {
+              voiceMime = voiceMimeCandidates[vmi];
+              break;
+            }
+          }
+          console.log('[AVS] Voice recording using mimeType:', voiceMime || '(browser default)');
           _avs.voiceMediaRecorder = voiceMime
             ? new MediaRecorder(stream, { mimeType: voiceMime })
             : new MediaRecorder(stream);
