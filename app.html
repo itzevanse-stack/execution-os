@@ -23454,7 +23454,7 @@ window.runMindsetReframe = async function() {
       offset += 2;
     }
 
-    return new Blob([buffer], { type: 'audio/wav' });
+    return new Blob([buffer], { type: 'audio/x-wav' });
   }
 
   window.avsToggleVoiceRecording = function() {
@@ -23512,7 +23512,12 @@ window.runMindsetReframe = async function() {
             avsSetStatus('avs-voice-status', 'Processing recording…', 'var(--purple)');
 
             _avsConvertBlobToWav(rawBlob).then(function(wavBlob) {
-              _avs.voiceRecordedMimeType = 'audio/wav';
+              // "audio/x-wav" specifically — HeyGen's validator rejects the
+              // more modern "audio/wav" string even though the file itself
+              // is correct, confirmed by the exact "audio/wav != audio/x-wav"
+              // error (both sides say "audio" now, not "video" — the actual
+              // WAV conversion is working correctly).
+              _avs.voiceRecordedMimeType = 'audio/x-wav';
               _avs.voiceWavBlob = wavBlob; // the actual blob that gets submitted
               var url  = URL.createObjectURL(wavBlob);
               var audioEl = document.getElementById('avs-voice-recorded-audio');
@@ -23573,7 +23578,7 @@ window.runMindsetReframe = async function() {
       // Submit the CONVERTED WAV blob, not the raw recorder output — that
       // conversion is exactly what fixes the container-signature issue.
       audioBlob = _avs.voiceWavBlob;
-      audioMimeType = 'audio/wav';
+      audioMimeType = 'audio/x-wav'; // must match the Blob's own type — was hardcoded to the old value here, missed on the last pass
     } else if (_avs.voiceSource === 'record' && _avs.voiceChunks && _avs.voiceChunks.length) {
       // WAV conversion is still in progress (async) — don't submit early
       avsToast('Still processing your recording — try again in a moment.', true);
@@ -23586,6 +23591,10 @@ window.runMindsetReframe = async function() {
       }
       audioBlob = fileInput.files[0];
       audioMimeType = fileInput.files[0].type || 'audio/mpeg';
+      // Browsers report uploaded .wav files as "audio/wav", but HeyGen's
+      // validator expects the legacy "audio/x-wav" string specifically —
+      // same fix as the recording path, applied here too.
+      if (audioMimeType === 'audio/wav') audioMimeType = 'audio/x-wav';
     }
 
     var btn      = document.getElementById('avs-voice-btn');
