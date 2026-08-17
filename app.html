@@ -24127,15 +24127,48 @@ window.runMindsetReframe = async function() {
           var id      = v.voiceId || '';
           var name    = v.name || 'My Voice';
           var preview = v.previewUrl || '';
-          return '<div class="avs-voice-row" data-id="'+id+'" data-name="'+name.replace(/"/g,'&quot;')+'" onclick="avsSelectVoiceRow(this)"'
+          var rowId   = 'avs-myvoice-row-' + id.replace(/[^a-zA-Z0-9]/g, '');
+          return '<div class="avs-voice-row" id="'+rowId+'" data-id="'+id+'" data-name="'+name.replace(/"/g,'&quot;')+'" onclick="avsSelectVoiceRow(this)"'
             + ' style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;border:1px solid rgba(78,204,163,.2);cursor:pointer;transition:all .12s;background:rgba(78,204,163,.03)">'
             + '<span style="font-size:11px">🎙️</span>'
             + '<div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+name+'</div></div>'
+            + '<span class="avs-myvoice-preview-slot" data-voice-id="'+id+'">'
             + (preview
               ? '<button onclick="event.stopPropagation();avsPreviewVoice(\''+preview+'\')" style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.25);color:#a089ff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Preview voice">▶</button>'
               : '')
+            + '</span>'
             + '</div>';
         }).join('');
+
+        // Backfill missing preview URLs — voices cloned before this feature
+        // existed never had one saved. Rather than leave them permanently
+        // without a preview, quietly check status for each one lacking a
+        // URL and fill it in once, updating both the row and the saved
+        // record so this only ever needs to happen a single time per voice.
+        voices.forEach(function(v) {
+          if (v.previewUrl || !v.voiceId) return;
+          fetch(window.location.origin + '/api/heygen', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'voice-clone-status', voiceId: v.voiceId })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (!data.previewUrl) return;
+            var slot = list.querySelector('.avs-myvoice-preview-slot[data-voice-id="'+v.voiceId+'"]');
+            if (slot) {
+              slot.innerHTML = '<button onclick="event.stopPropagation();avsPreviewVoice(\''+data.previewUrl+'\')" style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.25);color:#a089ff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Preview voice">▶</button>';
+            }
+            if (uid && window._db && window._setDoc && window._doc) {
+              window._setDoc(
+                window._doc(window._db, 'users', uid, 'clonedVoices', v.voiceId),
+                { previewUrl: data.previewUrl },
+                { merge: true }
+              ).catch(function(e) { console.warn('[AVS] Could not backfill preview URL:', e.message); });
+            }
+          })
+          .catch(function() { /* silent — not worth surfacing a background backfill failure */ });
+        });
 
         // Auto-select the first cloned voice by default, since a user who
         // went to the trouble of cloning their voice almost certainly wants
