@@ -183,12 +183,17 @@ module.exports = async function handler(req, res) {
       if (!rawStatus) {
         console.warn('[HeyGen] Voice clone status — could not find a status field. Raw keys:', Object.keys(d));
       }
+      // Also capture a preview URL if HeyGen provides one on this endpoint —
+      // the LIST voices endpoint confirms preview_audio_url as a real field,
+      // detail responses commonly mirror the same shape. Tried defensively
+      // across a few reasonable field names rather than assumed.
+      const previewUrl = d.preview_audio_url || d.preview_audio || d.preview_url || d.voice?.preview_audio_url || '';
       // Treat anything not explicitly "processing"/"pending" as usable —
       // avoids blocking forever on an unconfirmed field name.
       const normalized = /complete|ready|success/i.test(rawStatus) ? 'complete'
                         : /fail|error/i.test(rawStatus) ? 'failed'
                         : rawStatus || 'unknown';
-      return res.status(200).json({ status: normalized, raw: rawStatus });
+      return res.status(200).json({ status: normalized, raw: rawStatus, previewUrl: previewUrl });
     }
 
     // ══════════════════════════════════════════════════════════════════════
