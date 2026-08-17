@@ -23368,6 +23368,75 @@ window.runMindsetReframe = async function() {
     }
   };
 
+  // ── Convert any recorded audio Blob into a genuine WAV file ─────────────
+  // Decodes via the Web Audio API (works regardless of the source container
+  // — webm, mp4, whatever the browser produced) and manually builds real
+  // WAV bytes ourselves. This sidesteps container-signature ambiguity
+  // entirely, since we control every byte of the output format directly.
+  function _avsConvertBlobToWav(blob) {
+    return blob.arrayBuffer().then(function(arrayBuffer) {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      var ctx = new AudioCtx();
+      return ctx.decodeAudioData(arrayBuffer).then(function(audioBuffer) {
+        var wavBlob = _avsEncodeWav(audioBuffer);
+        if (ctx.close) ctx.close();
+        return wavBlob;
+      });
+    });
+  }
+
+  function _avsEncodeWav(audioBuffer) {
+    var numChannels = audioBuffer.numberOfChannels;
+    var sampleRate  = audioBuffer.sampleRate;
+    var numFrames   = audioBuffer.length;
+
+    // Interleave channels into 16-bit PCM samples
+    var interleaved = new Float32Array(numFrames * numChannels);
+    for (var ch = 0; ch < numChannels; ch++) {
+      var channelData = audioBuffer.getChannelData(ch);
+      for (var i = 0; i < numFrames; i++) {
+        interleaved[i * numChannels + ch] = channelData[i];
+      }
+    }
+
+    var bytesPerSample = 2; // 16-bit
+    var blockAlign      = numChannels * bytesPerSample;
+    var dataSize         = interleaved.length * bytesPerSample;
+    var buffer = new ArrayBuffer(44 + dataSize);
+    var view   = new DataView(buffer);
+
+    function writeString(offset, str) {
+      for (var j = 0; j < str.length; j++) view.setUint8(offset + j, str.charCodeAt(j));
+    }
+
+    // RIFF/WAVE header — this is what makes the format unambiguous:
+    // these exact bytes ("RIFF"..."WAVE"...) have no video-capable meaning
+    // anywhere, unlike MP4's "ftyp" box or WebM's EBML header.
+    writeString(0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true);
+    writeString(8, 'WAVE');
+    writeString(12, 'fmt ');
+    view.setUint32(16, 16, true);           // fmt chunk size
+    view.setUint16(20, 1, true);            // PCM format
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * blockAlign, true); // byte rate
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, 16, true);           // bits per sample
+    writeString(36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Write interleaved PCM samples, clamped and scaled to 16-bit range
+    var offset = 44;
+    for (var s = 0; s < interleaved.length; s++) {
+      var sample = Math.max(-1, Math.min(1, interleaved[s]));
+      view.setInt16(offset, sample < 0 ? sample * 0x8000 : sample * 0x7FFF, true);
+      offset += 2;
+    }
+
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
   window.avsToggleVoiceRecording = function() {
     var recordBtn = document.getElementById('avs-voice-record-btn');
     var recIndicator = document.getElementById('avs-voice-rec-indicator');
@@ -23409,18 +23478,33 @@ window.runMindsetReframe = async function() {
             if (e.data.size > 0) _avs.voiceChunks.push(e.data);
           };
           _avs.voiceMediaRecorder.onstop = function() {
-            // Use the recorder's OWN reported mimeType as ground truth —
-            // never re-declare a type we didn't actually verify. This is
-            // exactly what HeyGen checks against on their side.
-            var actualType = _avs.voiceMediaRecorder.mimeType || 'audio/webm';
-            _avs.voiceRecordedMimeType = actualType;
-            var blob = new Blob(_avs.voiceChunks, { type: actualType });
-            var url  = URL.createObjectURL(blob);
-            var audioEl = document.getElementById('avs-voice-recorded-audio');
-            var previewDiv = document.getElementById('avs-voice-recorded-preview');
-            if (audioEl) audioEl.src = url;
-            if (previewDiv) previewDiv.style.display = 'block';
-            avsSetStatus('avs-voice-status', 'Recording ready — name your voice and click Clone My Voice.', 'var(--teal)');
+            // Container-signature problem, not a real content mismatch: MP4
+            // and WebM have identical outer file signatures whether they
+            // hold audio-only or video content — a validator checking only
+            // that outer signature (not deep internal tracks) will call ANY
+            // MP4/WebM "video", audio-only or not. Tried both, same result
+            // either way. Real fix: decode the recording and re-encode it
+            // as genuine WAV — a format that's structurally unambiguous,
+            // it physically cannot be mistaken for video at any level.
+            var rawType = _avs.voiceMediaRecorder.mimeType || 'audio/webm';
+            var rawBlob = new Blob(_avs.voiceChunks, { type: rawType });
+
+            avsSetStatus('avs-voice-status', 'Processing recording…', 'var(--purple)');
+
+            _avsConvertBlobToWav(rawBlob).then(function(wavBlob) {
+              _avs.voiceRecordedMimeType = 'audio/wav';
+              _avs.voiceWavBlob = wavBlob; // the actual blob that gets submitted
+              var url  = URL.createObjectURL(wavBlob);
+              var audioEl = document.getElementById('avs-voice-recorded-audio');
+              var previewDiv = document.getElementById('avs-voice-recorded-preview');
+              if (audioEl) audioEl.src = url;
+              if (previewDiv) previewDiv.style.display = 'block';
+              avsSetStatus('avs-voice-status', 'Recording ready — name your voice and click Clone My Voice.', 'var(--teal)');
+            }).catch(function(err) {
+              console.error('[AVS] WAV conversion failed:', err.message);
+              avsSetStatus('avs-voice-status', '⚠️ Could not process recording. Try again.', 'var(--orange)');
+            });
+
             // Stop the mic stream fully — don't leave it open in the background
             stream.getTracks().forEach(function(t) { t.stop(); });
           };
@@ -23454,6 +23538,7 @@ window.runMindsetReframe = async function() {
     var previewDiv = document.getElementById('avs-voice-recorded-preview');
     if (previewDiv) previewDiv.style.display = 'none';
     _avs.voiceChunks = [];
+    _avs.voiceWavBlob = null;
     avsSetStatus('avs-voice-status', '', 'var(--dim)');
   };
 
@@ -23464,11 +23549,15 @@ window.runMindsetReframe = async function() {
 
     // Works from either source — a live recording or an uploaded file
     var audioBlob, audioMimeType;
-    if (_avs.voiceSource === 'record' && _avs.voiceChunks && _avs.voiceChunks.length) {
-      // Use the same actual recorder-reported mimeType captured at record
-      // time — never re-declare a type we haven't verified is real.
-      audioMimeType = _avs.voiceRecordedMimeType || 'audio/webm';
-      audioBlob = new Blob(_avs.voiceChunks, { type: audioMimeType });
+    if (_avs.voiceSource === 'record' && _avs.voiceWavBlob) {
+      // Submit the CONVERTED WAV blob, not the raw recorder output — that
+      // conversion is exactly what fixes the container-signature issue.
+      audioBlob = _avs.voiceWavBlob;
+      audioMimeType = 'audio/wav';
+    } else if (_avs.voiceSource === 'record' && _avs.voiceChunks && _avs.voiceChunks.length) {
+      // WAV conversion is still in progress (async) — don't submit early
+      avsToast('Still processing your recording — try again in a moment.', true);
+      return;
     } else {
       var fileInput = document.getElementById('avs-voice-file');
       if (!fileInput || !fileInput.files || !fileInput.files[0]) {
