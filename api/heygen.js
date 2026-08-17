@@ -79,15 +79,23 @@ module.exports = async function handler(req, res) {
     // LIST VOICES  —  GET /v2/voices
     // ══════════════════════════════════════════════════════════════════════
     if (action === 'get-voices') {
-      const r = await safeJson(await GET('/v2/voices'));
+      // Migrated to v3 + filtered to type:"public" only — v2 doesn't
+      // reliably expose a type field, and without it there's no way to
+      // exclude other users' cloned voices from this shared-account list.
+      // HeyGen confirms "public" as the real value for genuine stock voices
+      // (developers.heygen.com/docs/voices/search-voices).
+      const r = await safeJson(await GET('/v3/voices?limit=100'));
       if (!r.ok) return res.status(500).json({ error: extractErrorMessage(r.data, 'Failed to fetch voices') });
-      const voices = (r.data?.data?.voices || []).map(v => ({
-        voice_id:     v.voice_id,
-        display_name: v.display_name || v.name || v.voice_id,
-        language:     v.language || 'Other',
-        gender:       v.gender || '',
-        preview_url:  v.preview_audio || '',
-      }));
+      const raw = Array.isArray(r.data?.data) ? r.data.data : (r.data?.data?.voices || []);
+      const voices = raw
+        .filter(v => (v.type || 'public') === 'public') // exclude cloned/private voices from the shared list
+        .map(v => ({
+          voice_id:     v.voice_id,
+          display_name: v.name || v.display_name || v.voice_id,
+          language:     v.language || 'Other',
+          gender:       v.gender || '',
+          preview_url:  v.preview_audio_url || v.preview_audio || '',
+        }));
       return res.status(200).json({ voices });
     }
 
