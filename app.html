@@ -23686,7 +23686,7 @@ window.runMindsetReframe = async function() {
       .then(function(r) { return r.json(); })
       .then(function(data) {
         if (data.status === 'complete') {
-          _avsFinishVoiceClone(voiceId, voiceName, btn, progress, 'complete');
+          _avsFinishVoiceClone(voiceId, voiceName, btn, progress, 'complete', data.previewUrl || '');
         } else if (data.status === 'failed') {
           if (btn) { btn.disabled = false; btn.textContent = 'Clone My Voice'; }
           if (progress) progress.style.display = 'none';
@@ -23701,7 +23701,7 @@ window.runMindsetReframe = async function() {
     }, 3000);
   }
 
-  function _avsFinishVoiceClone(voiceId, voiceName, btn, progress, finalStatus) {
+  function _avsFinishVoiceClone(voiceId, voiceName, btn, progress, finalStatus, previewUrl) {
     _avs.clonedVoiceId = voiceId;
     try { localStorage.setItem('eos_cloned_voice_id', voiceId); } catch(e) {}
 
@@ -23709,11 +23709,13 @@ window.runMindsetReframe = async function() {
     // account is shared across every Execution OS user, so its own voice
     // list can never be used to show "my voices" without leaking everyone
     // else's cloned voices too. This Firestore record is what makes it private.
+    // Also saves the preview URL if HeyGen provided one, so "My Cloned
+    // Voices" can show the same ▶ preview button stock voices already have.
     var uid = window._currentUserUid;
     if (uid && window._db && window._setDoc && window._doc) {
       window._setDoc(
         window._doc(window._db, 'users', uid, 'clonedVoices', voiceId),
-        { voiceId: voiceId, name: voiceName || 'My Voice', createdAt: new Date().toISOString() }
+        { voiceId: voiceId, name: voiceName || 'My Voice', previewUrl: previewUrl || '', createdAt: new Date().toISOString() }
       ).catch(function(e) { console.warn('[AVS] Could not save voice ownership record:', e.message); });
     }
 
@@ -24122,12 +24124,16 @@ window.runMindsetReframe = async function() {
 
         wrap.style.display = 'block';
         list.innerHTML = voices.map(function(v) {
-          var id   = v.voiceId || '';
-          var name = v.name || 'My Voice';
+          var id      = v.voiceId || '';
+          var name    = v.name || 'My Voice';
+          var preview = v.previewUrl || '';
           return '<div class="avs-voice-row" data-id="'+id+'" data-name="'+name.replace(/"/g,'&quot;')+'" onclick="avsSelectVoiceRow(this)"'
             + ' style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;border:1px solid rgba(78,204,163,.2);cursor:pointer;transition:all .12s;background:rgba(78,204,163,.03)">'
             + '<span style="font-size:11px">🎙️</span>'
             + '<div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+name+'</div></div>'
+            + (preview
+              ? '<button onclick="event.stopPropagation();avsPreviewVoice(\''+preview+'\')" style="flex-shrink:0;width:22px;height:22px;border-radius:50%;background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.25);color:#a089ff;font-size:9px;cursor:pointer;display:flex;align-items:center;justify-content:center" title="Preview voice">▶</button>'
+              : '')
             + '</div>';
         }).join('');
 
