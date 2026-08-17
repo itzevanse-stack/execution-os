@@ -115,7 +115,12 @@ module.exports = async function handler(req, res) {
         return res.status(400).json({ error: 'Audio file too large. Please use a clip under 25MB (a minute or two of clear speech is plenty).' });
       }
 
-      console.log(`[HeyGen] Cloning voice "${voiceName}" — ${buffer.length} bytes, ${mimeType || 'unknown type'}`);
+      console.log(`[HeyGen] Cloning voice "${voiceName}" — ${buffer.length} bytes, declared mimeType: ${mimeType || 'unknown'}`);
+      // Log the actual magic bytes — this is real proof of what container
+      // format the data genuinely is, independent of whatever label the
+      // browser or our own code claims. If this ever mismatches the
+      // declared mimeType again, this tells us definitively rather than guessing.
+      console.log(`[HeyGen] First 16 bytes (hex): ${buffer.subarray(0, 16).toString('hex')}`);
 
       // POST /v3/voices/clone — real, confirmed schema (developers.heygen.com/reference/clone-a-voice).
       // Takes a JSON body, NOT multipart/form-data — that was the bug causing
