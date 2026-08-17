@@ -23373,14 +23373,34 @@ window.runMindsetReframe = async function() {
   // — webm, mp4, whatever the browser produced) and manually builds real
   // WAV bytes ourselves. This sidesteps container-signature ambiguity
   // entirely, since we control every byte of the output format directly.
+  //
+  // Also downsamples to 16kHz mono before encoding — the browser's raw
+  // capture is often 44.1kHz+ stereo by default, producing an uncompressed
+  // WAV file 5-10x larger than the original compressed recording. 16kHz
+  // mono is standard for voice cloning (more than sufficient for speech)
+  // and keeps the file comfortably under request size limits — a 2-minute
+  // recording at 16kHz mono 16-bit is roughly 3.8MB before base64, versus
+  // 20MB+ at 48kHz stereo, which was hitting a 413 (payload too large).
   function _avsConvertBlobToWav(blob) {
+    var TARGET_SAMPLE_RATE = 16000;
     return blob.arrayBuffer().then(function(arrayBuffer) {
       var AudioCtx = window.AudioContext || window.webkitAudioContext;
       var ctx = new AudioCtx();
-      return ctx.decodeAudioData(arrayBuffer).then(function(audioBuffer) {
-        var wavBlob = _avsEncodeWav(audioBuffer);
+      return ctx.decodeAudioData(arrayBuffer).then(function(originalBuffer) {
         if (ctx.close) ctx.close();
-        return wavBlob;
+
+        var targetLength = Math.ceil(originalBuffer.duration * TARGET_SAMPLE_RATE);
+        var OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+        var offlineCtx = new OfflineCtx(1, targetLength, TARGET_SAMPLE_RATE); // mono output
+
+        var source = offlineCtx.createBufferSource();
+        source.buffer = originalBuffer;
+        source.connect(offlineCtx.destination);
+        source.start(0);
+
+        return offlineCtx.startRendering().then(function(resampledBuffer) {
+          return _avsEncodeWav(resampledBuffer);
+        });
       });
     });
   }
@@ -23597,7 +23617,25 @@ window.runMindsetReframe = async function() {
           voiceName: voiceName
         })
       })
-      .then(function(r) { return r.json(); })
+      .then(function(r) {
+        // Handle non-JSON responses gracefully - a 413 (payload too large)
+        // or other infrastructure-level error returns a plain-text/HTML
+        // error page, not JSON. Calling .json() directly on that throws a
+        // confusing 'Unexpected token' error instead of a clear message.
+        return r.text().then(function(text) {
+          if (!r.ok) {
+            if (r.status === 413) {
+              throw new Error('Recording is too large to upload. Try a shorter clip (under 60 seconds).');
+            }
+            throw new Error('Server error (' + r.status + '). Try again.');
+          }
+          try {
+            return JSON.parse(text);
+          } catch (e) {
+            throw new Error('Unexpected server response. Try again.');
+          }
+        });
+      })
       .then(function(data) {
         clearInterval(progInterval);
         if (bar) bar.style.width = '100%';
