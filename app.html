@@ -7380,6 +7380,12 @@ Them: How much does this cost anyway?" style="width:100%;min-height:200px;resize
               <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--dimmer)">Voice</div>
               <button onclick="avsLoadVoices()" style="background:none;border:none;color:var(--dimmer);font-size:9px;cursor:pointer;font-family:Poppins,sans-serif;padding:0">↻ Refresh</button>
             </div>
+
+            <div id="avs-my-voices-wrap" style="display:none;margin-bottom:10px">
+              <div style="font-size:9px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🎙️ My Cloned Voices</div>
+              <div id="avs-my-voices-list" style="display:flex;flex-direction:column;gap:4px;margin-bottom:6px"></div>
+            </div>
+
             <!-- Voice list with preview buttons -->
             <div id="avs-voice-list" style="max-height:200px;overflow-y:auto;scrollbar-width:thin;display:flex;flex-direction:column;gap:4px"></div>
             <!-- Hidden input stores selected voice ID -->
@@ -23368,12 +23374,27 @@ window.runMindsetReframe = async function() {
         .then(function(stream) {
           _avs.voiceStream = stream;
           _avs.voiceChunks = [];
-          _avs.voiceMediaRecorder = new MediaRecorder(stream);
+          // Explicitly request an audio-specific codec rather than letting
+          // the browser pick a default — an unlabeled WebM container is
+          // ambiguous between audio/video, and HeyGen's own upload
+          // validation was correctly catching that mismatch. Falls back
+          // gracefully if a browser doesn't support opus specifically.
+          var voiceMime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+            ? 'audio/webm;codecs=opus'
+            : (MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '');
+          _avs.voiceMediaRecorder = voiceMime
+            ? new MediaRecorder(stream, { mimeType: voiceMime })
+            : new MediaRecorder(stream);
           _avs.voiceMediaRecorder.ondataavailable = function(e) {
             if (e.data.size > 0) _avs.voiceChunks.push(e.data);
           };
           _avs.voiceMediaRecorder.onstop = function() {
-            var blob = new Blob(_avs.voiceChunks, { type: 'audio/webm' });
+            // Use the recorder's OWN reported mimeType as ground truth —
+            // never re-declare a type we didn't actually verify. This is
+            // exactly what HeyGen checks against on their side.
+            var actualType = _avs.voiceMediaRecorder.mimeType || 'audio/webm';
+            _avs.voiceRecordedMimeType = actualType;
+            var blob = new Blob(_avs.voiceChunks, { type: actualType });
             var url  = URL.createObjectURL(blob);
             var audioEl = document.getElementById('avs-voice-recorded-audio');
             var previewDiv = document.getElementById('avs-voice-recorded-preview');
@@ -23424,8 +23445,10 @@ window.runMindsetReframe = async function() {
     // Works from either source — a live recording or an uploaded file
     var audioBlob, audioMimeType;
     if (_avs.voiceSource === 'record' && _avs.voiceChunks && _avs.voiceChunks.length) {
-      audioBlob = new Blob(_avs.voiceChunks, { type: 'audio/webm' });
-      audioMimeType = 'audio/webm';
+      // Use the same actual recorder-reported mimeType captured at record
+      // time — never re-declare a type we haven't verified is real.
+      audioMimeType = _avs.voiceRecordedMimeType || 'audio/webm';
+      audioBlob = new Blob(_avs.voiceChunks, { type: audioMimeType });
     } else {
       var fileInput = document.getElementById('avs-voice-file');
       if (!fileInput || !fileInput.files || !fileInput.files[0]) {
@@ -23458,7 +23481,10 @@ window.runMindsetReframe = async function() {
         body: JSON.stringify({
           action: 'clone-voice',
           audioData: base64Data,
-          mimeType: audioMimeType,
+          // Strip any ";codecs=..." parameter before sending — HeyGen's
+          // media_type expects a plain MIME type like "audio/webm", the
+          // codec detail is only meaningful for the browser's own Blob handling.
+          mimeType: (audioMimeType || '').split(';')[0].trim(),
           voiceName: voiceName
         })
       })
@@ -23522,10 +23548,24 @@ window.runMindsetReframe = async function() {
   function _avsFinishVoiceClone(voiceId, voiceName, btn, progress, finalStatus) {
     _avs.clonedVoiceId = voiceId;
     try { localStorage.setItem('eos_cloned_voice_id', voiceId); } catch(e) {}
-    avsSetStatus('avs-voice-status', '✅ Voice cloned! Select "My Cloned Voice" when generating a video.', 'var(--teal)');
+
+    // Save OUR OWN ownership record — same reason as photo avatars: HeyGen's
+    // account is shared across every Execution OS user, so its own voice
+    // list can never be used to show "my voices" without leaking everyone
+    // else's cloned voices too. This Firestore record is what makes it private.
+    var uid = window._currentUserUid;
+    if (uid && window._db && window._setDoc && window._doc) {
+      window._setDoc(
+        window._doc(window._db, 'users', uid, 'clonedVoices', voiceId),
+        { voiceId: voiceId, name: voiceName || 'My Voice', createdAt: new Date().toISOString() }
+      ).catch(function(e) { console.warn('[AVS] Could not save voice ownership record:', e.message); });
+    }
+
+    avsSetStatus('avs-voice-status', '✅ Voice cloned! Select it from your voices when generating a video.', 'var(--teal)');
     if (btn) { btn.disabled = false; btn.textContent = 'Clone My Voice'; }
     setTimeout(function() { if (progress) progress.style.display = 'none'; }, 1500);
     avsToast('✅ Voice cloned successfully!');
+    if (typeof window.avsLoadMyVoices === 'function') window.avsLoadMyVoices();
   }
 
   // ── Camera ────────────────────────────────────────────────────
@@ -23903,6 +23943,49 @@ window.runMindsetReframe = async function() {
   };
 
   // ── Load voices into interactive list with preview ────────────
+  // ── Load and render the user's own cloned voices — private, per-user,
+  // Firestore-backed. Never sourced from HeyGen's shared get-voices list,
+  // which would leak every other user's cloned voice on this account too.
+  window.avsLoadMyVoices = function() {
+    var wrap = document.getElementById('avs-my-voices-wrap');
+    var list = document.getElementById('avs-my-voices-list');
+    if (!wrap || !list) return;
+
+    var uid = window._currentUserUid;
+    if (!uid || !window._db || !window._getDocs || !window._collection) {
+      wrap.style.display = 'none';
+      return;
+    }
+
+    window._getDocs(window._collection(window._db, 'users', uid, 'clonedVoices'))
+      .then(function(snap) {
+        var voices = [];
+        snap.forEach(function(doc) { voices.push(doc.data()); });
+
+        if (!voices.length) { wrap.style.display = 'none'; return; }
+
+        wrap.style.display = 'block';
+        list.innerHTML = voices.map(function(v) {
+          var id   = v.voiceId || '';
+          var name = v.name || 'My Voice';
+          return '<div class="avs-voice-row" data-id="'+id+'" data-name="'+name.replace(/"/g,'&quot;')+'" onclick="avsSelectVoiceRow(this)"'
+            + ' style="display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;border:1px solid rgba(78,204,163,.2);cursor:pointer;transition:all .12s;background:rgba(78,204,163,.03)">'
+            + '<span style="font-size:11px">🎙️</span>'
+            + '<div style="flex:1;min-width:0"><div style="font-size:10px;font-weight:700;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+name+'</div></div>'
+            + '</div>';
+        }).join('');
+
+        // Auto-select the first cloned voice by default, since a user who
+        // went to the trouble of cloning their voice almost certainly wants
+        // to use it — this beats defaulting to a random stock voice.
+        var first = list.querySelector('.avs-voice-row');
+        if (first) avsSelectVoiceRow(first);
+      }).catch(function(e) {
+        console.error('[AVS] Could not load your cloned voices:', e.message);
+        wrap.style.display = 'none';
+      });
+  };
+
   window.avsLoadVoices = function() {
     if (window.avsLoadVoices._isStub) return;
     var list = document.getElementById('avs-voice-list');
@@ -23933,9 +24016,12 @@ window.runMindsetReframe = async function() {
             : '')
           + '</div>';
       }).join('');
-      // Auto-select first voice
+      // Auto-select first stock voice, then let My Cloned Voices (if any
+      // exist) override this as the final, higher-priority default — chained
+      // here rather than called separately, so it's never a timing race.
       var first = list.querySelector('.avs-voice-row');
       if (first) avsSelectVoiceRow(first);
+      if (typeof window.avsLoadMyVoices === 'function') window.avsLoadMyVoices();
     }).catch(function() {
       list.innerHTML = '<div style="font-size:10px;color:var(--red);padding:8px;text-align:center">Could not load voices</div>';
     });
@@ -23943,10 +24029,15 @@ window.runMindsetReframe = async function() {
 
   // ── Select a voice row ────────────────────────────────────────
   window.avsSelectVoiceRow = function(el) {
-    var list = document.getElementById('avs-voice-list');
-    if (list) list.querySelectorAll('.avs-voice-row').forEach(function(r) {
-      r.style.borderColor = 'transparent';
-      r.style.background  = 'rgba(255,255,255,.02)';
+    // Clear highlight state across BOTH the stock list and the My Cloned
+    // Voices list — they're separate containers but must behave as one
+    // mutually-exclusive selection.
+    ['avs-voice-list', 'avs-my-voices-list'].forEach(function(listId) {
+      var list = document.getElementById(listId);
+      if (list) list.querySelectorAll('.avs-voice-row').forEach(function(r) {
+        r.style.borderColor = 'transparent';
+        r.style.background  = 'rgba(255,255,255,.02)';
+      });
     });
     el.style.borderColor = 'rgba(108,99,255,.35)';
     el.style.background  = 'rgba(108,99,255,.07)';
